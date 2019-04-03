@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<ns1:exe name="sdfsdfs" xmlns:ns1="vv">
+  <ns1:path>sdfsdf</ns1:path>
+  <ns1:intro>
+    <ns1:markdown>TODO</ns1:markdown>
+  </ns1:intro>
+  <ns1:outro>
+    <ns1:markdown>TODO</ns1:markdown>
+  </ns1:outro>
+  <ns1:testLibrary>
+    <ns1:path>../tests/build/testLib.so</ns1:path>
+  </ns1:testLibrary>
+  <ns1:scope name="global">
+    <ns1:scope name="Hello">
+      <ns1:scope name="temp">
+        <ns1:injectionPoint name="Hello_temp_x" type="start" markdown="TODO">
+          <ns1:desc>Sample Test</ns1:desc>
+          <ns1:parameters>InjectionPoint(int x);</ns1:parameters>
+        </ns1:injectionPoint>
+      </ns1:scope>
+    </ns1:scope>
+    <ns1:scope name="test1a">
+      <ns1:scope name="function1">
+        <ns1:injectionPoint name="test1a_function1_T" type="start" markdown="TODO">
+          <ns1:desc>Sample Test</ns1:desc>
+          <ns1:parameters>InjectionPoint(int x);</ns1:parameters>
+          <ns1:test name="Test_Under_Sample" markdown="TODO"> 
+            <ns1:parameter from="x" to="x" trans="TestModifier"/>
+            <ns1:parameter from="x" to="y"/>
+            <ns1:parameter from="x" to="z"/>
+            <ns1:parameter from="x" to="w"/>
+          </ns1:test>  
+        </ns1:injectionPoint>
+      </ns1:scope>
+    </ns1:scope>
+  </ns1:scope>
+</ns1:exe>

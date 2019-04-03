@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="vv" xmlns:t="vv" elementFormDefault="qualified">
+
+  <xs:element name= "testLibrary">
+    <xs:complexType>
+        <xs:sequence>
+          <xs:element name="path" type="xs:string" minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>  
+
+  <xs:complexType name = "testparameter">
+    <xs:attribute name = 'from' type = 'xs:string'/>   
+    <xs:attribute name = 'to' type = 'xs:string'/>   
+    <xs:attribute name = 'trans' type = 'xs:string' default='default'/>
+  </xs:complexType>
+
+  <xs:element name="testStage">
+		<xs:complexType>
+      <xs:sequence>
+          <xs:element name ="parameter" type="t:testparameter" minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="ipId" type="xs:integer" />
+      <xs:attribute name="testId" type="xs:integer" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="test">
+    <xs:complexType >
+      <xs:sequence>
+          <xs:element ref="t:testStage" minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence> 
+      <xs:attribute name="name" type="xs:string" />
+      <xs:attribute name="markdown" type="xs:string" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="injectionPointStage">
+		<xs:complexType>
+      <xs:sequence> 
+          <xs:element name="desc" type="xs:string" maxOccurs="1"  />
+          <xs:element name="parameters" type="xs:string" maxOccurs="1"/>
+        </xs:sequence>
+      <xs:attribute name="stageId" type="xs:integer" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="injectionPoint">
+		<xs:complexType>
+      <xs:sequence>
+          <xs:element name="desc" type="xs:string" maxOccurs="1"  />
+          <xs:element ref="t:injectionPointStage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element ref="t:test" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" />
+      <xs:attribute name="markdown" type="xs:string" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="scope">
+		<xs:complexType>
+      <xs:sequence >
+          <xs:element ref="t:scope" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element ref="t:injectionPoint" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="intro">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="markdown" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="outro">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="markdown" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="exe">
+		<xs:complexType>
+      <xs:sequence>
+          <xs:element name="path" type="xs:string" minOccurs="1" maxOccurs="1" />
+          <xs:element ref="t:intro" minOccurs="0" maxOccurs="1"/>
+          <xs:element ref="t:outro" minOccurs="0" maxOccurs="1"/>
+          <xs:element ref="t:testLibrary" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element ref="t:scope" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      <xs:attribute name="name" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>
+			
