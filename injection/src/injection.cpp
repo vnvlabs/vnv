@@ -167,6 +167,21 @@ InjectionPoint::InjectionPoint(std::string scope, std::string markdown ) : m_mar
 
 InjectionPointStage::InjectionPointStage(std::string markdown) : m_empty(true) {}
 
+InjectionPointStage::InjectionPointStage(std::string filename, int lineNumber, std::string desc, plist &params ) : 
+    m_filename(filename),
+    m_lineNumber(lineNumber) ,
+    m_desc(desc),
+    m_params(params)
+{}
+
+void InjectionPointStage::setFromEmpty(std::string filename, int lineNumber, std::string desc, plist &params ) {
+    
+    m_filename = filename;
+    m_lineNumber = lineNumber;
+    m_desc = desc;
+    m_empty = false;  
+    m_params = params; 
+}
 
 std::string InjectionPoint::getScope() const {
     return m_scope;
@@ -200,8 +215,6 @@ bool InjectionPointStage::isEmpty() {
   return m_empty;
 }
 
-void InjectionPointStage::argsToVec(plist &p ) {}
-
 InjectionPoint InjectionPointBaseFactory::getDescription(std::string const&scope) {
     
     ip_map::iterator it = getMap()->find(scope);
@@ -209,6 +222,79 @@ InjectionPoint InjectionPointBaseFactory::getDescription(std::string const&scope
       throw "Injection Point Not Found";
     }
     return it->second;
+}
+
+InjectionPoint::InjectionPoint(std::string scope, int stage, std::string filename, int lineNumber, std::string desc, plist &params ) : 
+    m_scope(scope)
+{
+  stages.insert(std::make_pair(stage, InjectionPointStage(filename,lineNumber, desc, params)));
+}
+
+void InjectionPoint::addStage(int stageIndex, std::string filename, int lineNumber, std::string desc, plist &params) {
+
+  auto s = stages.find(stageIndex);
+  if ( s == stages.end() ) {
+    stages.insert(std::make_pair(stageIndex, InjectionPointStage(filename,lineNumber, desc, params)));    
+  } else if ( s->second.isEmpty() ) {
+      s->second.setFromEmpty(filename, lineNumber, desc, params);
+  } 
+}
+
+void VV_injectionPoint(int stageVal, const char * id, const char * function, ...) {
+    
+    va_list argp;
+    va_start(argp, function);
+    VV::injectionPoint(stageVal, id, function, argp);
+    va_end(argp);
+}
+
+void VV::injectionPoint(int injectionIndex, std::string scope, std::string function, ...) {
+    va_list argp;
+    va_start(argp, function);
+    injectionPoint(injectionIndex, scope, function, argp);
+}
+
+void VV::injectionPoint(int injectionIndex, std::string scope, std::string function, va_list argp) {
+ 
+    if ( runTests ) {
+        auto ipd =  InjectionPointBaseFactory::getDescription(scope);
+        ipd.runTests(injectionIndex, argp );
+    }
+
+
+}
+
+void InjectionPoint::unpack_parameters(int stageValue, NTV &ntv, va_list argp) {
+      
+      auto s = stages.find(stageValue);
+      if ( s != stages.end() ) { 
+         
+        int numParams = s->second.m_params.size(); // number of params we are expecting.  
+        
+        for ( int x = 0; x < numParams; x++ )        
+        {
+            ntv.insert(std::make_pair(s->second.m_params[x].first, std::make_pair(s->second.m_params[x].second, va_arg(argp,void*))));  
+        }
+        va_end ( argp );                  // Cleans up the list
+      }
+}
+
+void InjectionPoint::runTests(int stageValue ,va_list argp ) {
+      
+      auto s = stages.find(stageValue);
+      if ( s != stages.end() ) {
+           // Write BeginStep Injection point scope 
+           AdiosWrapper *wrapper = VV::adiosWrapper;
+           NTV ntv;
+           unpack_parameters(stageValue, ntv, argp);
+            
+           // Call the method to write this injection point to file.  
+           wrapper->startInjectionPoint(getScope(),stageValue, m_markdown);
+           for ( auto it : m_tests ) {
+              it->_runTest(stageValue,ntv);
+           }     
+           wrapper->endInjectionPoint(getScope(),stageValue, m_markdown);
+       }  
 }
 
 ip_map* InjectionPointBaseFactory::map = NULL; 
@@ -518,6 +604,47 @@ IVVTransform* VV::getTransform(std::string name) {
     return it->second(); 
   }
   return new DefaultVVTransform(); 
+}
+
+
+
+InjectionPointRegistrar::InjectionPointRegistrar(std::string scope,  // the name of the injection point  
+                                                 int injectionIndex,   // the index of the injection point in
+                                                 std::string filename, // the filename of the injection point in the loop 
+                                                 int line,             // the line where the injection point was registered 
+                                                 std::string desc,     // the json file where the injection point description is located. 
+                                                 int count,             // the number of parameters in the rest of the list (all strings) 
+                                                 ...) {
+   va_list argp;
+   va_start(argp, count);  
+   
+   plist params;
+   if ( count % 2 != 0 ) 
+     throw "Count is wrong"; 
+
+   
+   std::cout << " HEEGSSDGSDGDSG " << count << std::endl; 
+   for ( int i = 0; i < count; i=i+2 ) {
+        
+        std::string s1 = va_arg(argp, char*);
+        std::string s2 = va_arg(argp, char*);     
+
+        std::cout << " S1 S2 " << s1 << " " << s2 << std::endl;
+
+        params.push_back(std::make_pair(s2,s1));         
+   }
+   va_end(argp);
+
+    
+   auto it = getMap()->find(scope); 
+   if ( it == getMap()->end()) {
+     
+
+     InjectionPoint p(scope, injectionIndex, filename, line, desc, params);
+     getMap()->insert( std::make_pair(scope, p ) );
+   } else 
+      it->second.addStage(injectionIndex, filename, line, desc, params);
+  
 }
 
 

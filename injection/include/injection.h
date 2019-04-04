@@ -11,6 +11,7 @@
 #include "vv_macros.h"
 #include "vv/all-include.h" // Include the XSD2CPP cpp source code 
 #include "adios2.h"
+#include <stdarg.h>
 
 
 typedef std::vector<std::pair<std::string,std::string>> plist;
@@ -138,8 +139,7 @@ public:
 
 public:
 
-  template<typename ...Args> 
-  InjectionPointStage(std::string filename, int lineNumber, std::string desc, Args... args);
+  InjectionPointStage(std::string filename, int lineNumber, std::string desc, plist &params);
   
   InjectionPointStage(std::string markdown);
 
@@ -148,16 +148,7 @@ public:
   plist getParams() const;
   std::string getDescription() const;  
   bool isEmpty();
-  
-  
-  template<typename ...Args>
-  void setFromEmpty(std::string filename, int lineNumber, std::string desc, Args...args);
-
-  void argsToVec(plist &p );
-
-  template<typename ...Args>
-  void argsToVec(plist &p, std::string first, std::string second, Args...args); 
-
+  void setFromEmpty(std::string filename, int lineNumber, std::string desc, plist &params);
   
 
 };
@@ -165,8 +156,7 @@ public:
 class InjectionPoint {
 public:
    
-    template<typename ...Args> 
-    InjectionPoint(std::string scope, int stage, std::string filename, int lineNumber, std::string desc, Args... args);
+    InjectionPoint(std::string scope, int stage, std::string filename, int lineNumber, std::string desc, plist &params);
   
     InjectionPoint(std::string scope, std::string markdown);
 
@@ -178,17 +168,11 @@ public:
     
     std::string getScope() const;
     
-    template<typename T>
-    void ntv_unpacker(int stageVal, NTV &ntv, int count, T parameter); 
-    
-    template<typename T, typename ...Args> 
-    void ntv_unpacker(int stageVal, NTV &ntv, int count, T parameter, Args...args);
-    
-    template<typename ...Args> 
-    void addStage(int stageIndex, std::string filename, int lineNumber, std::string desc, Args...args);
+    void unpack_parameters(int stageVal, NTV &ntv, va_list argp);
 
-    template<typename ...Args> 
-    void runTests(int ipType, Args...args); 
+    void addStage(int stageIndex, std::string filename, int lineNumber, std::string desc, plist &params);
+
+    void runTests(int ipType, va_list argp); 
    
     void addTest(VVTestConfig c);
 
@@ -245,10 +229,14 @@ enum VVTestStatus { TEST, IP } ;
 class AdiosWrapper;
 
 class InjectionPointRegistrar : InjectionPointBaseFactory {
+
 public:
-  template<typename ...Args>
-  InjectionPointRegistrar(std::string scope, int stageVal, std::string filename, int line, std::string desc, Args... args); 
+  InjectionPointRegistrar(std::string scope, int stageVal, std::string filename, int line, std::string desc, int count, ...); 
+
+  
+
 };
+
 
 class VV {
 public:
@@ -264,9 +252,8 @@ public:
 
   static int StringSplit(const std::string &s,const char *delim, std::vector< std::string > &result );
 
-  template<typename ...Args>
-  static void injectionPoint(int ipType, std::string id, std::string function, Args... args);     
-
+  static void injectionPoint(int injectionIndex, std::string scope, std::string function, ...) ;
+  static void injectionPoint(int injectionIndex, std::string scope, std::string function, va_list argp) ;
 
   static void setAdiosWrapper(std::string outfileName="vvout.bp", std::string configFile="", MPI_Comm comm=MPI_COMM_WORLD, bool debug=true);
 
@@ -276,6 +263,10 @@ public:
   static void writeXMLFile(std::string filename);
 
 };
+
+extern "C" {
+  void VV_injectionPoint(int stageVal, const char * id, const char * function, ...); 
+}
 
 
 class AdiosWrapper {

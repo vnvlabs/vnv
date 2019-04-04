@@ -5,7 +5,12 @@ LDFLAGS=-Wl,-rpath,/home/boneill/llvm/adios2-INSTALL/lib /home/boneill/llvm/adio
 
 VVDIR=/home/boneill/llvm/self-registering-injection-points/xml/vv_schema/build/
 
+.PHONY: all clean
 
+all: sample-xml sample 
+
+clean:
+	rm -f *.a 
 
 sample-xml : sample-generate-xml.cpp 
 	mpicxx -g -o sample-generate-xml.a -rdynamic  $(CPPFLAGS) -I. -I../injection/include -I ../testLib_two -I../testLib_one sample-generate-xml.cpp -Wl,-rpath,$(VVDIR)/lib -I $(VVDIR)/include -L$(VVDIR)/lib -L../injection/build -L../testLib_one/ -L../testLib_two -ltester_2 -ltester -linjection -lvv_schema -lxsdall -ldl $(LDFLAGS) -Wl,-rpath=/home/boneill/llvm/self-registering-injection-points/injection/build/

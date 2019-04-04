@@ -26,4 +26,4 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 .PHONY: clean
 clean:
-	rm $(OBJ_FILES) $(BUILD_DIR)/$(LIBNAME).so 
+	rm -f $(OBJ_FILES) $(BUILD_DIR)/$(LIBNAME).so 

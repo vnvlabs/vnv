@@ -11,4 +11,4 @@ tester: test1.o test1a.o
 
 
 clean:
-	rm *.o 
+	rm -f *.o 
