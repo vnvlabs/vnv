@@ -35,8 +35,6 @@
 #define COUNT_UNPACKER(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, num,...) num VA_UNPACKER_ ## num 
 #define VA_UNPACK(...) COUNT_UNPACKER(__VA_ARGS__,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0)(__VA_ARGS__)
 
-
-
 #define EVERY_SECOND0(...)
 #define EVERY_SECOND1_(second,...), (void*)(&second)  
 #define EVERY_SECOND1(first,...) EVERY_SECOND1_(__VA_ARGS__)
@@ -88,6 +86,12 @@
 #define EVERY_SECOND24(first,...) EVERY_SECOND24_(__VA_ARGS__)
 #define COUNT_EVERY_SECOND(_1,__1,_2,__2,_3,__3,_4,__4,_5,__5,_6,__6,_7,__7,_8,__8,_9,__9,_10,__10,_11,__11,_12,__12,_13,__13,_14,__14,_15,__15,_16,__16,_17,__17,_18,__18,_19,__19,_20,__20,_21,__21,_22,__22,_23,__23,_24,__24,num,...) EVERY_SECOND ## num 
 #define EVERY_SECOND(...) COUNT_EVERY_SECOND(__VA_ARGS__,24,24,23,23,22,22,21,21,20,20,19,19,18,18,17,17,16,16,15,15,14,14,13,13,12,12,11,11,10,10,9,9,8,8,7,7,6,6,5,5,4,4,3,3,2,2,1,1,0)(__VA_ARGS__)
-#define INJECTION_POINT(NAME,STAGE) VV_injectionPoint(STAGE,#NAME,__FUNCTION__ EVERY_SECOND( NAME##_VVTest));
-#define REGISTER_IP(NAME,STAGE,DESC) InjectionPointRegistrar NAME ## STAGE(#NAME, STAGE , __FILE__,__LINE__,DESC, VA_UNPACK(NAME ## _VVTest) );
 
+#define INJECTION_POINT(NAME,STAGE) VV_injectionPoint(STAGE,#NAME,__FUNCTION__ EVERY_SECOND( NAME##_VVTest));
+
+#define REGISTER_IP(NAME,STAGE,DESC) int NAME ## STAGE = VV_registration(#NAME, STAGE , __FILE__,__LINE__,DESC, VA_UNPACK(NAME ## _VVTest) );
+
+extern "C" {
+  void VV_injectionPoint(int stageVal, const char * id, const char * function, ...); 
+  int VV_registration(const char * scope, int stage, const char * filename, int line, const char * desc, int count, ...);
+}

@@ -3,9 +3,10 @@ LDFLAGS=-Wl,-rpath,/home/boneill/llvm/adios2-INSTALL/lib /home/boneill/llvm/adio
 
 
 
-%.o : %.cpp 
+%.o : %.c 
 	g++ -g -c -o $@ $< $(CPPFLAGS) -I. -I../injection/include -I../xml/vv_schema/build/include  
-tester: test1.o test1a.o 
+
+tester: test.o 
 	ar -rcs libtester_2.a $^
 .PHONY: clean
 

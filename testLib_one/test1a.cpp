@@ -1,8 +1,6 @@
 
 #include "test1.h"
 
-
-
 int test1a::function1(int x) {
       #define test1a_function1_T_VVTest int,x
       INJECTION_POINT(test1a_function1_T, 0)

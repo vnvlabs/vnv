@@ -20,7 +20,7 @@
             <ns1:desc>Sample Test End</ns1:desc>
             <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
           </ns1:injectionPointStage>
-          <ns1:injectionPointStage stageId="1">
+          <ns1:injectionPointStage stageId="9999">
             <ns1:desc>Sample Testi End</ns1:desc>
             <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
           </ns1:injectionPointStage>
@@ -35,12 +35,23 @@
             <ns1:desc>Sample Test</ns1:desc>
             <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
           </ns1:injectionPointStage>
-          <ns1:injectionPointStage stageId="1">
+          <ns1:injectionPointStage stageId="9999">
             <ns1:desc>Sample Test</ns1:desc>
             <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
           </ns1:injectionPointStage>
         </ns1:injectionPoint>
       </ns1:scope>
     </ns1:scope>
+    <ns1:injectionPoint name="TestTwo" markdown="TODO">
+      <ns1:desc/>
+      <ns1:injectionPointStage stageId="0">
+        <ns1:desc>Test in lib two</ns1:desc>
+        <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
+      </ns1:injectionPointStage>
+      <ns1:injectionPointStage stageId="9999">
+        <ns1:desc>Test in lib two</ns1:desc>
+        <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
+      </ns1:injectionPointStage>
+    </ns1:injectionPoint>
   </ns1:scope>
 </ns1:exe>

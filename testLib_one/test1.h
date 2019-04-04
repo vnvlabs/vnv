@@ -1,7 +1,7 @@
 #ifndef TEST1_H
 #define TEsT1_H
 
-#include "injection.h" 
+#include "vv-runtime.h" 
 
 class test1 {
   public:

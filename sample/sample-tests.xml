@@ -13,53 +13,53 @@
   <ns1:scope name="global">
     <ns1:scope name="Hello">
       <ns1:scope name="temp">
-        <ns1:injectionPoint name="Hello_temp_x" markdown="sampleIPFile.yaml">
+        <ns1:injectionPoint name="Hello_temp_x" markdown="TODO">
           <ns1:desc/>
           <ns1:injectionPointStage stageId="0">
             <ns1:desc>Sample Test End</ns1:desc>
             <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
           </ns1:injectionPointStage>
-          <ns1:injectionPointStage stageId="1">
+          <ns1:injectionPointStage stageId="9999">
             <ns1:desc>Sample Testi End</ns1:desc>
             <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
           </ns1:injectionPointStage>
-          <ns1:test name="Test_Under_Sample" markdown="TODO"> 
-            <ns1:testStage ipId="0" testId="115"> 
+           <ns1:test name="Test_Under_Sample" markdown="TODO"> 
+            <ns1:testStage ipId="0" testId="10"> 
               <ns1:parameter from="x" to="x" trans="TestModifier"/>
               <ns1:parameter from="x" to="y"/>
               <ns1:parameter from="x" to="z"/>
               <ns1:parameter from="x" to="w"/>
             </ns1:testStage>    
-            <ns1:testStage ipId="1" testId="116"> 
+            <ns1:testStage ipId="9999" testId="20"> 
               <ns1:parameter from="x" to="x" trans="TestModifier"/>
               <ns1:parameter from="x" to="y"/>
               <ns1:parameter from="x" to="z"/>
               <ns1:parameter from="x" to="w"/>
             </ns1:testStage>    
-          </ns1:test>  
+          </ns1:test>
         </ns1:injectionPoint>
       </ns1:scope>
     </ns1:scope>
     <ns1:scope name="test1a">
       <ns1:scope name="function1">
-        <ns1:injectionPoint name="test1a_function1_T" markdown="sampleIPFile.yaml">
+        <ns1:injectionPoint name="test1a_function1_T" markdown="TODO">
           <ns1:desc/>
           <ns1:injectionPointStage stageId="0">
             <ns1:desc>Sample Test</ns1:desc>
             <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
           </ns1:injectionPointStage>
-          <ns1:injectionPointStage stageId="1">
+          <ns1:injectionPointStage stageId="9999">
             <ns1:desc>Sample Test</ns1:desc>
             <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
           </ns1:injectionPointStage>
-          <ns1:test name="Test_Under_Sample" markdown="TODO"> 
-            <ns1:testStage ipId="0" testId="15"> 
+            <ns1:test name="Test_Under_Sample" markdown="TODO"> 
+            <ns1:testStage ipId="0" testId="10"> 
               <ns1:parameter from="x" to="x" trans="TestModifier"/>
               <ns1:parameter from="x" to="y"/>
               <ns1:parameter from="x" to="z"/>
               <ns1:parameter from="x" to="w"/>
             </ns1:testStage>    
-            <ns1:testStage ipId="1" testId="16"> 
+            <ns1:testStage ipId="9999" testId="20"> 
               <ns1:parameter from="x" to="x" trans="TestModifier"/>
               <ns1:parameter from="x" to="y"/>
               <ns1:parameter from="x" to="z"/>
@@ -69,6 +69,30 @@
         </ns1:injectionPoint>
       </ns1:scope>
     </ns1:scope>
+    <ns1:injectionPoint name="TestTwo" markdown="TODO">
+      <ns1:desc/>
+      <ns1:injectionPointStage stageId="0">
+        <ns1:desc>Test in lib two</ns1:desc>
+        <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
+      </ns1:injectionPointStage>
+      <ns1:injectionPointStage stageId="9999">
+        <ns1:desc>Test in lib two</ns1:desc>
+        <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
+      </ns1:injectionPointStage>
+      <ns1:test name="Test_Under_Sample" markdown="TODO"> 
+            <ns1:testStage ipId="0" testId="10"> 
+              <ns1:parameter from="x" to="x" trans="TestModifier"/>
+              <ns1:parameter from="x" to="y"/>
+              <ns1:parameter from="x" to="z"/>
+              <ns1:parameter from="x" to="w"/>
+            </ns1:testStage>    
+            <ns1:testStage ipId="9999" testId="20"> 
+              <ns1:parameter from="x" to="x" trans="TestModifier"/>
+              <ns1:parameter from="x" to="y"/>
+              <ns1:parameter from="x" to="z"/>
+              <ns1:parameter from="x" to="w"/>
+            </ns1:testStage>    
+          </ns1:test>  
+    </ns1:injectionPoint>
   </ns1:scope>
 </ns1:exe>
-

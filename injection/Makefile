@@ -13,6 +13,6 @@ injection: src/injection.o
 
 .PHONY: clean
 clean:
-	rm build/*
-	rm src/*.o 
+	rm -f build/*
+	rm -f src/*.o 
 

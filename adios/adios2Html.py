@@ -13,6 +13,13 @@ size = comm.Get_size()
 yamlFilesParsed = []  
 injectionPointYamlDict = {}
 
+divId = 0
+
+def getDivID():
+    global divId 
+    divId = divId + 1
+    return "vv_div" + str(divId)
+
 def loadYaml(filename, injectionPoint):
     if filename not in yamlFilesParsed: 
         with open(filename, 'r') as stream:
@@ -21,7 +28,6 @@ def loadYaml(filename, injectionPoint):
                 yamlFilesParsed.append(filename)
             except yaml.YAMLError as exc:
                 print(exc)
-    print(injectionPointYamlDict)
     return injectionPointYamlDict.get(injectionPoint)
 
 def pad(x):
@@ -43,21 +49,73 @@ def getLinkedListItem(lid, text):
     return getListItem(getLink(lid,text))
 
 def getTestsList(ida, start):
-    return getLinkedListItem(ida,"TESTS") + " " + getUL(True) if start else getUL(False) + getLI(False)
+    return getLinkedListItem(getDivID(),"TESTS") + " " + getUL(True) if start else getUL(False) + getLI(False)
 
 def getParentListItem(lid, text, start):
-    return getLI(True) + getLink(lid, text) + getUL(True) if start else getUL(False) + getLI(False)
+    return getLI(True) + getLink(getDivID(), text) + getUL(True) if start else getUL(False) + getLI(False)
 
 def get_content_header(start):
-    return "<div class='col-md-9' style=\"font-size:100px;\">" if start else "</div>"
+    return "<div class='col-md-9' style=\"font-size:13px;\">" if start else "</div>"
 
 def get_section(divId, header, start ):
     s = "<div class=\"panel panel-default\">"
     s = s + "<div class=\"panel-heading\">"
-    s = s + "<h4 class=\"panel-title\" data-toggle=\"collapse\" data-target=\"#" + divId + "collapseOne\">"
+    s = s + "<h4 class=\"panel-title\" data-toggle=\"collapse\" data-target=\"#" + divId + "\">"
     s = s + header + "</h4> </div> <div id=" + divId + " class=\"panel-collapse collapse\"> <div class=\"panel-body\">"
     
     return s if start else "</div></div></div>"
+
+
+def getSectionsFromYaml(divId, yamlDict, close=True) :
+    header = yamlDict.get("title","Untitled")
+    content = yamlDict.get("content","")
+    sections = yamlDict.get("sections",[])
+
+    indexs = ""
+    if len(sections) > 0 or not close :
+        indexs = getParentListItem(divId, header, True)
+    else :
+        indexs = getLinkedListItem(divId, header) 
+
+    s = get_section(divId, header, True)
+
+    s = s + markdown.markdown(content) 
+    for n,section in enumerate(sections):
+        print("\n\n\n\n\n", section, "\n\n\n\n")        
+        sec,ind = getSectionsFromYaml(divId + "_" + str(n) , section)
+        s = s + sec;
+        indexs = indexs + ind
+    
+    if close:
+        s = s + get_section("","",False)
+    
+        if len(sections) > 0:
+            indexs += getParentListItem("","",False)
+ 
+    return s, indexs 
+
+def getInjectionPointContent(stage, ida, yamlDict, start):
+    
+    if start:
+        return getSectionsFromYaml(getDivID(), yamlDict, False) 
+    else:
+        return get_section("","",False), getParentListItem("","",False)
+        
+def getInjectionPointStageContent(stage,ida,yamlDict,start):
+    if start:
+        stageDict = yamlDict.get("stage_" + str(stage))
+        return getSectionsFromYaml(getDivID() , stageDict, False) 
+    else:
+        return get_section("","",False) , getParentListItem("","",False)
+    
+def getTestContent(stage, ida, yamlDict):
+    header = yamlDict.get("title","Untitled")
+    content = yamlDict.get("content","")
+    stageId = "stage_" + str(stage)
+    stageInfo = yamlDict.get(stageId,None)
+    return getSectionsFromYaml(getDivID(), stageInfo)
+
+    
 
 
 if( rank == 0 ):
@@ -80,49 +138,63 @@ if( rank == 0 ):
            
             type_ = fh_step.read_string("type")[0]
             if type_ == "introduction" :
-                html_index = html_index + getLinkedListItem("TODO","Introduction")
-                md = fh_step.read_string("markdown")[0]              
                 
-                introHtml = loadYaml("sampleIPFile.yaml", "introduction")
-                
-                html_content = html_content + markdown.markdown(introHtml)
-                
+                introHtml = loadYaml("sampleIPFile.yaml", "introduction") 
+                sec,inds = getSectionsFromYaml("Introduction", introHtml)
+                html_index = html_index + inds 
+                html_content = html_content + sec 
+            
             elif type_ == "StartIP" :
                 ida = fh_step.read_string("identifier")[0]
                 ss = fh_step.read("stage")[0]
-                    
-                if (ss == 0)  : 
-                    #This indicates we have a new injection point, so do a sublist
-                    html_index = html_index + getParentListItem("TODO",ida, True) ## This is a new Injection Point header
-                                
-                # Add a sub heading for this stage 
-                html_index = html_index + getParentListItem("TODO", "Stage " + str(ss) , True)
-                                
-                #d = loadYaml(fh_step.read_string("markdown")[0], fh_step.read_string("identifier")[0]) 
                 
+                introHtml = loadYaml("sampleIPFile.yaml", ida) 
+                print(ida,introHtml)
+                
+                ### This indicates that this is the start of an injection point
+                if ss == 0 or ss == -1 : 
+                    sec, inds = getInjectionPointContent(ss, ida, introHtml,True) 
+                    html_index = html_index + inds 
+                    html_content = html_content + sec 
+                
+                sec,inds = getInjectionPointStageContent(ss,ida,introHtml,True)
+                html_index = html_index + inds 
+                html_content = html_content + sec 
+
             elif type_ == "StartTest" :
                 ida = fh_step.read_string("identifier")[0]
                 ss = fh_step.read("stage")[0]
+                introHtml = loadYaml("sampleIPFile.yaml", ida) 
+                
+                print(ida) 
+                
                 # Add the test to the index 
-                html_index += getLinkedListItem("TODO",ida) 
+                sec,inds = getTestContent(ss,ida,introHtml)
+                html_index = html_index + inds 
+                html_content = html_content + sec 
             
             elif type_ == "EndIP" :
                 ida = fh_step.read_string("identifier")[0]
                 ss = fh_step.read("stage")
+                introHtml = loadYaml("sampleIPFile.yaml", ida) 
                 
-                #End the tests for this injection point stage 
-                html_index = html_index + getParentListItem("","",False) 
-                
-                if ( ss > 9000 ): 
-                    #End the injection point heading for this injection point index 
-                    html_index = html_index + getParentListItem("","",False) 
+                #End this stage for the injection point 
+                sec,inds = getInjectionPointStageContent(ss,ida,introHtml,False)
+                html_index = html_index + inds 
+                html_content = html_content + sec 
+               
+
+                #End the injection Point because this is the last stage. 
+                if ( ss > 9000 or ss == -1 ): 
+                    sec, inds = getInjectionPointContent("", "", introHtml,False) 
+                    html_index = html_index + inds 
+                    html_content = html_content + sec 
 
             elif type_ == "conclusion":
-                html_index = html_index + getLinkedListItem("TODO","Conclusion")
                 introHtml = loadYaml("sampleIPFile.yaml", "conclusion") 
-                html_content = html_content + get_section("conclusion","Conclusion",True)
-                html_content += markdown.markdown(introHtml)
-                html_content += get_section("","",False)
+                sec,inds = getSectionsFromYaml("Conclusion", introHtml)
+                html_index = html_index + inds 
+                html_content = html_content + sec 
                 
     html_index = html_index + get_index_header(False)
     html_content = html_content + get_content_header(False)
