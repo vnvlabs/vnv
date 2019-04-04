@@ -1,0 +1,6 @@
+XPlus/ConvertUTF.lo: XPlus/ConvertUTF.c /usr/include/stdc-predef.h \
+ ../include/XPlus/ConvertUTF.h
+
+/usr/include/stdc-predef.h:
+
+../include/XPlus/ConvertUTF.h:

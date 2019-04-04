@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<ns1:database xmlns:ns1="http://www.example.net/test">
+  <ns1:pdbfile>sample.pdb</ns1:pdbfile>
+  <ns1:function>
+    <ns1:trace/>
+    <ns1:info>
+      <ns1:hash>10</ns1:hash>
+      <ns1:name>int function2(int)</ns1:name>
+      <ns1:description>Default Description</ns1:description>
+      <ns1:filename>sample.C</ns1:filename>
+      <ns1:id>3</ns1:id>
+      <ns1:line>16</ns1:line>
+      <ns1:col>3</ns1:col>
+    </ns1:info>
+  </ns1:function>
+  <ns1:function>
+    <ns1:trace/>
+    <ns1:info>
+      <ns1:hash>10</ns1:hash>
+      <ns1:name>int main(int, char **)</ns1:name>
+      <ns1:description>Default Description</ns1:description>
+      <ns1:filename>sample.C</ns1:filename>
+      <ns1:id>5</ns1:id>
+      <ns1:line>40</ns1:line>
+      <ns1:col>5</ns1:col>
+    </ns1:info>
+  </ns1:function>
+  <ns1:function>
+    <ns1:trace/>
+    <ns1:info>
+      <ns1:hash>10</ns1:hash>
+      <ns1:name>V function2(V)</ns1:name>
+      <ns1:description>Default Description</ns1:description>
+      <ns1:filename>sample.C</ns1:filename>
+      <ns1:id>443</ns1:id>
+      <ns1:line>16</ns1:line>
+      <ns1:col>3</ns1:col>
+    </ns1:info>
+  </ns1:function>
+  <ns1:class>
+    <ns1:info>
+      <ns1:hash>10</ns1:hash>
+      <ns1:name>cl&lt;int&gt;</ns1:name>
+      <ns1:description>Default Description</ns1:description>
+      <ns1:filename>sample.C</ns1:filename>
+      <ns1:id>3</ns1:id>
+      <ns1:line>22</ns1:line>
+      <ns1:col>7</ns1:col>
+    </ns1:info>
+    <ns1:function>
+      <ns1:trace/>
+      <ns1:info>
+        <ns1:hash>10</ns1:hash>
+        <ns1:name>void cl&lt;int&gt;::cx(int)</ns1:name>
+        <ns1:description>Default Description</ns1:description>
+        <ns1:filename>sample.C</ns1:filename>
+        <ns1:id>4</ns1:id>
+        <ns1:line>25</ns1:line>
+        <ns1:col>10</ns1:col>
+      </ns1:info>
+    </ns1:function>
+    <ns1:function>
+      <ns1:trace/>
+      <ns1:info>
+        <ns1:hash>10</ns1:hash>
+        <ns1:name>cl&lt;int&gt; &cl&lt;int&gt;::operator=(const cl&lt;int&gt; &)</ns1:name>
+        <ns1:description>Default Description</ns1:description>
+        <ns1:filename>sample.C</ns1:filename>
+        <ns1:id>11</ns1:id>
+        <ns1:line>22</ns1:line>
+        <ns1:col>7</ns1:col>
+      </ns1:info>
+    </ns1:function>
+  </ns1:class>
+  <ns1:class>
+    <ns1:info>
+      <ns1:hash>10</ns1:hash>
+      <ns1:name>cl&lt;V&gt;</ns1:name>
+      <ns1:description>Default Description</ns1:description>
+      <ns1:filename>sample.C</ns1:filename>
+      <ns1:id>18</ns1:id>
+      <ns1:line>22</ns1:line>
+      <ns1:col>7</ns1:col>
+    </ns1:info>
+    <ns1:function>
+      <ns1:trace/>
+      <ns1:info>
+        <ns1:hash>10</ns1:hash>
+        <ns1:name>void cl&lt;V&gt;::cx(V)</ns1:name>
+        <ns1:description>Default Description</ns1:description>
+        <ns1:filename>sample.C</ns1:filename>
+        <ns1:id>7</ns1:id>
+        <ns1:line>25</ns1:line>
+        <ns1:col>10</ns1:col>
+      </ns1:info>
+    </ns1:function>
+    <ns1:function>
+      <ns1:trace/>
+      <ns1:info>
+        <ns1:hash>10</ns1:hash>
+        <ns1:name>cl&lt;V&gt; &cl&lt;V&gt;::operator=(const cl&lt;V&gt; &)</ns1:name>
+        <ns1:description>Default Description</ns1:description>
+        <ns1:filename>sample.C</ns1:filename>
+        <ns1:id>8</ns1:id>
+        <ns1:line>22</ns1:line>
+        <ns1:col>7</ns1:col>
+      </ns1:info>
+    </ns1:function>
+  </ns1:class>
+  <ns1:class>
+    <ns1:info>
+      <ns1:hash>10</ns1:hash>
+      <ns1:name>cl&lt;double&gt;</ns1:name>
+      <ns1:description>Default Description</ns1:description>
+      <ns1:filename>sample.C</ns1:filename>
+      <ns1:id>26</ns1:id>
+      <ns1:line>22</ns1:line>
+      <ns1:col>7</ns1:col>
+    </ns1:info>
+    <ns1:function>
+      <ns1:trace/>
+      <ns1:info>
+        <ns1:hash>10</ns1:hash>
+        <ns1:name>void cl&lt;double&gt;::cx(double)</ns1:name>
+        <ns1:description>Default Description</ns1:description>
+        <ns1:filename>sample.C</ns1:filename>
+        <ns1:id>6</ns1:id>
+        <ns1:line>25</ns1:line>
+        <ns1:col>10</ns1:col>
+      </ns1:info>
+    </ns1:function>
+    <ns1:function>
+      <ns1:trace/>
+      <ns1:info>
+        <ns1:hash>10</ns1:hash>
+        <ns1:name>cl&lt;double&gt; &cl&lt;double&gt;::operator=(const cl&lt;double&gt; &)</ns1:name>
+        <ns1:description>Default Description</ns1:description>
+        <ns1:filename>sample.C</ns1:filename>
+        <ns1:id>9</ns1:id>
+        <ns1:line>22</ns1:line>
+        <ns1:col>7</ns1:col>
+      </ns1:info>
+    </ns1:function>
+  </ns1:class>
+  <ns1:class>
+    <ns1:info>
+      <ns1:hash>10</ns1:hash>
+      <ns1:name>clDoubleInit</ns1:name>
+      <ns1:description>Default Description</ns1:description>
+      <ns1:filename>sample.C</ns1:filename>
+      <ns1:id>36</ns1:id>
+      <ns1:line>34</ns1:line>
+      <ns1:col>7</ns1:col>
+    </ns1:info>
+    <ns1:function>
+      <ns1:trace/>
+      <ns1:info>
+        <ns1:hash>10</ns1:hash>
+        <ns1:name>clDoubleInit &clDoubleInit::operator=(const clDoubleInit &)</ns1:name>
+        <ns1:description>Default Description</ns1:description>
+        <ns1:filename>sample.C</ns1:filename>
+        <ns1:id>10</ns1:id>
+        <ns1:line>34</ns1:line>
+        <ns1:col>7</ns1:col>
+      </ns1:info>
+    </ns1:function>
+  </ns1:class>
+  <ns1:namespace>
+    <ns1:info>
+      <ns1:hash>10</ns1:hash>
+      <ns1:name>p</ns1:name>
+      <ns1:description>Default Description</ns1:description>
+      <ns1:filename>sample.C</ns1:filename>
+      <ns1:id>3</ns1:id>
+      <ns1:line>2</ns1:line>
+      <ns1:col>12</ns1:col>
+    </ns1:info>
+    <ns1:function>
+      <ns1:trace/>
+      <ns1:info>
+        <ns1:hash>10</ns1:hash>
+        <ns1:name>int p::function(int)</ns1:name>
+        <ns1:description>Default Description</ns1:description>
+        <ns1:filename>sample.C</ns1:filename>
+        <ns1:id>1</ns1:id>
+        <ns1:line>3</ns1:line>
+        <ns1:col>5</ns1:col>
+      </ns1:info>
+    </ns1:function>
+    <ns1:function>
+      <ns1:trace/>
+      <ns1:info>
+        <ns1:hash>10</ns1:hash>
+        <ns1:name>int p::function1(int, int)</ns1:name>
+        <ns1:description>Default Description</ns1:description>
+        <ns1:filename>sample.C</ns1:filename>
+        <ns1:id>2</ns1:id>
+        <ns1:line>9</ns1:line>
+        <ns1:col>5</ns1:col>
+      </ns1:info>
+    </ns1:function>
+  </ns1:namespace>
+</ns1:database>
