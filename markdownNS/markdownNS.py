@@ -1,4 +1,5 @@
 import json
+import markdown 
 from markdown.extensions import Extension
 from markdown.inlinepatterns import SimpleTagPattern
 from markdown.inlinepatterns import InlineProcessor
@@ -11,9 +12,38 @@ DEL_RE = r'(--)(.*?)--'
 MDNS_RE=r'\[VV::(.*?)=({.*?})\]'
 
 GLOBAL_PARSER_DICT = {}
+REQUIRED_JS_SCRIPTS = set()
+CUSTOM_JS_SCRIPTS = []
+
+def getRequiredAndCustom():
+
+    l = []
+    for i in REQUIRED_JS_SCRIPTS:
+        l.append(getScriptTag("", i))
+    return l,CUSTOM_JS_SCRIPTS
+
+
+
+def getScriptTag(text, src=None):
+    e = etree.Element("script")
+    if  src is not None: 
+        e.set("src",src)
+    e.text = text
+    return e
+
+def registerScript(text, src=None):
+    GLOBAL_JS_SCRIPTS.add(getScriptTag(text,src))
+def registerParser(text, k):
+    GLOBAL_PARSER_DICT[text] = k
 
 
 #### Plot 3d
+
+DIVID = 0
+def getDIVID() :
+    global DIVID
+    DIVID = DIVID + 1
+    return "MD-NS-" + str(DIVID)
 
 class VVParser :
     options = {}
@@ -26,61 +56,33 @@ class VVParser :
         print "Base Class Does not Override the parse() method in VVParser"
         raise NotImplementedError
 
+    def requires(self):
+        return []
+    
 class plotJs(VVParser):
 
     def parse(self) :
         print self.adios
+        
+        divId = getDIVID()
+
+        # Build the element 
         et = etree.Element("div")
         et.set("class","container")
-        etree.SubElement(et, 'canvas', id='mychart')
-        s = etree.SubElement(et, 'script')
-        s.text = "src=\"https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.js\""
-        ss = etree.SubElement(et,'script')
-        ss.text = " \
-var data = [20000, 14000, 12000, 15000, 18000, 19000, 22000]; \
-var labels =  [\"sunday\", \"monday\",\"tuesday\", \"wednesday\", \"thursday\", \"friday\", \"saturday\"];\
-var ctx = document.getElementById(\"myChart\").getContext('2d');\
-var myChart = new Chart(ctx, {\ type: 'line',\
-                 data: {\
-                     labels: labels,\
-                     datasets: [{\
-                         label: 'This week',\
-                         data: data,\
-                     }]\
-                  },\
-              });"\
-              
-        return et
-
-GLOBAL_PARSER_DICT["plotJS"] = plotJs
+        etree.SubElement(et, 'canvas', id=divId)
+        
+        text = "renderExampleLineChart(%s)".format(divId)
+        scriptTag = getScriptTag(text)
+        
+        return et, scriptTag
+        # Add the script 
+    
+    # Get the javascript files that are required to run this thing
+    def requires(self):
+        return ["js/charts.js","js/jquery.min.js", "js/mycharts.js"]
 
 
-class plot3D(VVParser):
-    def parse(self) :
-        et = etree.Element("plot3d")
-        et.text = "Hello"
-        return et
-
-GLOBAL_PARSER_DICT["plot3D"] = plot3D
-
-class matrixStatistics(VVParser):
-    def parse(self) :
-        et = etree.Element("matrixStatistics")
-        et.text = "Hello"
-        return et
-
-GLOBAL_PARSER_DICT["matrixStatistics"] = matrixStatistics
-
-
-class spy(VVParser) :
-    def parse(self) :
-        et = etree.Element("spy")
-        et.text = "Hello"
-        return et
-
-GLOBAL_PARSER_DICT["spy"] = spy
-
-
+registerParser("plotJs",plotJs)
 
 def getVVParser(name, options, adios) :
     klass = GLOBAL_PARSER_DICT.get(name) 
@@ -103,7 +105,13 @@ class VVTestPattern(InlineProcessor):
         par = getVVParser(m.group(1), optionsDict, self.adios )
         if par is None:
             return None,None,None # Not one of mine (odd that another one might exist though?)
-        return par.parse(), m.start(0), m.end(0) 
+        
+        e,s = par.parse()
+        
+        REQUIRED_JS_SCRIPTS.update(par.requires())
+        CUSTOM_JS_SCRIPTS.append(s)
+
+        return e, m.start(0), m.end(0) 
 
 class MarkdownNS(Extension):
     
@@ -119,3 +127,12 @@ class MarkdownNS(Extension):
 
 def makeExtension(*args, **kwargs):
     return MarkdownNS(*args, **kwargs)
+
+
+def getMarkdown(string, adios):
+    #Reset the required and custom scripts for this js. 
+    REQUIRED_JS_SCRIPTS = set()
+    CUSTOM_JS_SCRIPTS = []
+    md = markdown.markdown(string, extensions=[MarkdownNS(adios)])
+    rjs, cjs = getRequiredAndCustom()
+    return md,rjs,cjs

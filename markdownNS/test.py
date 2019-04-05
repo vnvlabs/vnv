@@ -1,10 +1,12 @@
 import sys
 import markdown
-from markdownNS import MarkdownNS
+import markdownNS as mda
 
 filess = [10,10,10]
 
 extension_c = { "f" : filess } 
 
-print markdown.markdown(sys.argv[1], extensions=[MarkdownNS(extension_c)])
+
+print mda.getMarkdown(sys.argv[1],extension_c)
+
 

@@ -13,7 +13,13 @@ int test1::function1(int x) {
       z += 30;
       y += 333;
       x += 22;  
-  
+        
+
+      #define Hello_temp_sub_VVTest int,x
+      INJECTION_POINT(Hello_temp_sub, 0)
+      INJECTION_POINT(Hello_temp_sub, 9999)
+
+
       INJECTION_POINT(Hello_temp_x, 9999)
       
       
@@ -23,4 +29,5 @@ int test1::function1(int x) {
 // This only really works for C++ / not C
 REGISTER_IP(Hello_temp_x, 0, "Sample Test End")
 REGISTER_IP(Hello_temp_x, 9999, "Sample Testi End")
-
+REGISTER_IP(Hello_temp_sub, 0, "Sample Test End")
+REGISTER_IP(Hello_temp_sub, 9999, "Sample Testi End")

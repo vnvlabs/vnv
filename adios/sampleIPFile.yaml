@@ -5,57 +5,31 @@ Hello_temp_x:
   title: "Hello Injection Point"
   content: |
     This is the markdown for this injection Point
-  sections:
-  - section1: 
-    title: Conclusion -- SUB
-    content: "This is content "
-  - section2: 
-    title: Conclusion -- SUB 2
-    content: "This is content"
-    sections:
-    - section 1a:
-      title: Conclusion sub-sub-2
-      content: " This is suv content" 
-
-  stage_0:
-    title: "Title for stage 0"
-    content: "Content for stage 0"
-  stage_9999:
-    title: "Title for stage 9999"
-    content: "Content for stage 9999"
+  
+Hello_temp_sub:
+  title: "Hello Injection Point SUB"
+  content: |
+    This is the markdown for this injection Point
+  
 
 test1a_function1_T:
   title: "Test 1a Function Point" 
   content: |
     This is the markdown for this injection point 
-  stage_0:
-    title: "Title for stage 0"
-    content: "Content for stage 0"
-  stage_9999:
-    title: "Title for stage 9999"
-    content: "Content for stage 9999"
 
 TestTwo:
   title: "Test Two Function Point" 
   content: |
     This is the markdown for this injection point 
-  stage_0:
-    title: "Title for stage 0"
-    content: "Content for stage 0"
-  stage_9999:
-    title: "Title for stage 9999"
-    content: "Content for stage 9999"
 
 
 Test_Under_Sample:
   title: "Dummy Test 1"
-  stage_10: 
-    title: "Test_Under_Sample Collection info"
-    content: "Stage 10 content"
-  stage_20:
-    title: "Test_Under_Sample: Processing Information" 
-    content: "Finished Content"
+  content: |
+    This is the markdown for Test Under Test_Under_Sample
 
+    It incldues a plot ()
+    [VV::plotJs={}]
 
 introduction: 
   title: Introduction
@@ -79,6 +53,12 @@ introduction:
     >
     > They can span multiple paragraphs,
     > if you like.
+    
+    [VV::plotJs={}]
+
+    sdfsdfsdf
+
+    [VV::plot3D={}]
 
     Unicodese 3 dashes for an em-dash. Use 2 dashes for ranges (ex., "it's all
     in chapters 12--14"). Three dots ... will be converted to an ellipsis.
