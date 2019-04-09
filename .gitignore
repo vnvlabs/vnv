@@ -1,0 +1,8 @@
+*.sw[a-z]
+*.o
+*.a
+xml/xplus.bak
+xml/vv_schema/*
+xml/.xplus.schema*
+injection/build
+tests/build
