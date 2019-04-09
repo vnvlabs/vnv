@@ -1,0 +1,421 @@
+\section{Significance, Background, and Technical Approach}
+
+\subsection{Identification and Significance of the Innovation}
+\label{sec:identification}
+%% {\em Define the specific technical problem or opportunity addressed by
+%%  your application.  Provide enough background information so that the
+%%  importance of the problem/opportunity is clear.  Indicate the overall
+%%  technical approach to the problem/opportunity and the part that the
+%%  proposed research plays in providing needed results.}
+
+RNET Technologies Inc. (RNET) in Dayton, OH and Oak Ridge National Laboratory 
+(ORNL) are responding to 2017 DOE SBIR/STTR Phase II Release 2 
+(DE-FOA-0001646). This proposal is for a Phase II contract in succession to an 
+initial Phase I contract (Contract \#: DE-SC0015748) awarded for topic DOE 
+SBIR/STTR Topic 30d (Modeling and Simulation). RNET has extensive SBIR 
+experience in various aspects of High Performance Computing such as performance 
+optimization of numerical softwares and libraries, development of fine-grained 
+power monitoring tools for HPC infrastructure, and large scale data analysis 
+tools. RNET is currently developing a machine learning based plugin for 
+automated solver selection in NEAMS tools. Mr. Billings (ORNL) has extensive 
+experience with NEAMS tools. He was the Principal Investigator in NEAMS for the NEAMS
+Integrated Computational Environment (NiCE), now known as the Eclipse Integrated Computational Environment (ICE), for eight years. This project has successfully transitioned to other sponsors and funding mechanism and enjoys broad recognition outside the DOE research community as an official Eclipse.org project. Mr. Billings also leads the Eclipse Advanced Visualization Project which was originally developed to support multiple visualization tools for NEAMS, and he also worked on numerous other projects in NEAMS, including the initial development of Warthog, the development of the SHARP build system, and interactions with the Advanced Reaction Concepts team. He now leads the Scientific Software Development team at ORNL and, among other projects, is redeveloping the Department of Energy's Energy Science and Technology Software Center to support large, interdisciplinary codes like those from the NEAMS community. Therefore, this team is well positioned to develop and 
+commercialize a cloud based platform workflow and provenance management tool for nuclear engineering simulations. 
+
+\subsubsection{Identification and Significance}
+\label{intro}
+Modeling and simulation software and data sets for nuclear
+engineering applications play an important role in the design and
+operation of nuclear reactors. The DOE Nuclear Energy Advanced
+Modeling and Simulation (NEAMS) program is developing predictive
+models for the advanced nuclear reactor and fuel cycle systems using
+leading edge computational methods and high performance computing
+technologies \cite{NEAMS}. In addition to the role the NEAMS tools
+play in the DOE nuclear energy R\&D programs, an important objective
+of the NEAMS program is to enable widespread use among the industry,
+academia, and regulatory communities\cite{NEAMS}. The predictive
+modeling approaches and softwares being continually developed and
+updated by the DOE nuclear engineering scientists (under programs such
+as NEAMS, RISMC, CASL etc.) need to be efficiently transferred to the
+scientific community at large including academicians, industrial
+researchers, and regulatory communities. The transfer of these tools
+to industry users can facilitate the development of next generation
+nuclear reactors.
+
+An optimal utilization of this nation's intellectual property in
+nuclear engineering softwares can be enabled through robust web-based
+communication and collaboration channels that facilitate code and data
+sharing, remote execution in clouds and High Performance Computing
+(HPC) clusters, workflow and provenance management and sharing, and
+remote web/cloud visualization in order to support research
+collaboration between the seemingly diverse communities spread across
+the universities and national labs, industry, and other government
+organizations. Novel web-based platforms are desired to relatively
+accelerate sharing of information (codes, data, computational
+approaches), conglomerate the interested parties (nuclear engineers,
+applied mathematicians, software developers, and end users), promote
+collaboration, and impose de-facto standards for sharing the large
+variety of softwares and methodologies. In addition, the Department of
+Energy has a vested interest and has invested heavily in M\&S tools
+over the last few decades. A commercial opportunity exists for small
+businesses in enabling economically feasible yet specialized web-based
+communication and collaboration channels among the nuclear science and
+engineering community and extending it to other scientific communities
+(High Energy Physics, Computational Fluid Dynamics, Financial Modeling
+etc.). Vendor based Computer Aided Engineering (i.e., numerical
+simulation) platforms generally include a workflow and life cycle
+management component, which is crucial to allowing users to easily
+install and utilize the CAE tools. Unfortunately, the vendor tools only
+support vendor specific applications. This encourages vendor ``lock
+in'' and does not facilitate the integration of advanced government
+or open source codes, or the integration of ``best-in-breed'' tools
+across multiple vendors.
+
+The NEAMS toolkit and other nuclear engineering software developed by the basic energy scientists are spread across custom 
+websites and various source code hosting websites (Github, SourceForge, DOE labs' websites etc.). A lot of effort is 
+required from the end user in downloading, reading the documentation, compiling, generating input datasets, executing 
+the code, and visualizing the results. Almost all of these codes are computationally intensive and require 
+state-of-the-art-computing infrastructure such as small clusters, supercomputers, or cloud resources to yield meaningful 
+results in reasonable timeframes. These software, especially the advanced codes such as the NEAMS tools are continually 
+enhanced with new features and capabilities. For example, a contact verification problem in BISON might have been 
+enhanced with a new nonlinear solver and preconditioner and mapped to parallel compute resources such as GPGPUs. 
+
+%% In addition, there does not exist a common platform that connects the nuclear engineering community and is 
+%% driven by its users. Various interest groups exist on social networking websites (LinkedIn, Facebook, 
+%% ResearchGate etc.) that are active and vibrant but additional channels are required to connect the basic 
+%% energy scientists with the scattered end user groups. In order to enable wide spread adoption of nuclear
+%% energy modeling tools, it is imperative to provide such state-of-the-art web services under one common 
+%% platform and facilitate higher level semantic web applications. For example, using a single web-based 
+%% platform, the researcher should be able to search for a nuclear engineering code, download the input 
+%% dataset, run the simulations in cloud, visualize the results, share the results (both publicly or privately)
+%% on a professional social networking platform. 
+
+In order to address these needs RNET Technologies Inc. (RNET) and Oak
+Ridge National Laboratory (ORNL) are developing CloudBench. Our
+product is a numerical simulation workbench that assists the user in
+setting up, executing, and visualizing advanced simulation
+applications and workflows. CloudBench workflows will be dynamic and with support ``human in the loop'' research needs. CloudBench supports remote execution (on Cloud resources
+and HPC Clusters) and local job execution. Users will have the
+capability to share simulation input, output, and simulation
+provenance with authorized users. The initial iteration,
+CloudBench:NE, will focus on advanced Nuclear Engineering
+applications. Additional versions will be developed to support other
+Large Scale Numerical Simulation users. CloudBench will be available
+in a hosted environment (i.e., SaaS) or as a private server. This
+will facilitate an easy to use hosted service or a private, closed
+internal service based on customer needs. CloudBench will enable easy use
+of NEAMS and other nuclear engineering softwares, rapid dissemination
+of research results, easy sharing of knowledge, and a quick feedback
+mechanism.
+
+
+%% Phase I demonstration includes initial prototyping of the web portal and remote execution. A subset 
+%% of NEAMS tools will be used to demonstrate execution of nuclear simulations on remote compute 
+%% infrastructure yet local visualization. In addition, the cloud services that meet the government 
+%% regulatory and compliance requirements (NASA Nebula, AWS GovCloud etc.) will be identified. The Phase 
+%% II effort will fully develop the portal including integrating the complete set of NEAMS tools and other 
+%% nuclear engineering softwares of interest, supporting multiple computing platforms (cloud facilities, 
+%% super computing infrastructure, small clusters, and high end workstations), investigating other higher 
+%% level semantic web operations, and developing the software indirections and abstractions that are necessary 
+%% to extend the prototype to other research fields. In Phase III, the portal and the techniques will be 
+%% extended to other scientific domains such as metereology and weather forecasting, industrial CFD, and 
+%% high energy physics. The targeted customers include nuclear energy companies, NASA divisions, DOD and 
+%% its Prime Contractors (e.g., Boeing, Lockheed) etc.
+
+\subsubsection{Product Overview and Technical Approach}
+
+CloudBench is a hosted simulation environment for large scale numeric
+simulations. CloudBench:NE is the application of CloudBench to Nuclear
+Engineering simulation tools. The initial focus is on advanced reactor
+tools, but CloudBench:NE will include support for advanced reactors
+and light-water reactors simulation tools. CloudBench will augment
+existing simulation, Integrated Development Environment, and workbench
+tools being developed by the DOE and industry. It offers a complete
+set of simulation management features for open source, government
+sourced, and commercial simulation codes in a single integrated
+workbench;
+
+\begin{itemize}
+\item interactive workflow management using a ``human-in-the-loop'' approach,
+\item sharing of configurations, simulation output, and provenance on
+  a per simulation or per project basis (ensuring that export control
+  and license restricts are maintained),
+\item hosted versions of advanced simulation codes (removing the need
+  for the end user to perform the installation),
+\item multi-simulation provenance history to allow simulations to be
+  reconstructed, verified, or extended, and
+\item remote access to simulation tools installed on Cloud and HPC
+  resources.
+\end{itemize}
+
+Cloud Bench will allow the users to setup, launch/execute, and
+visualize their simulations through a web-based workflow management
+interface. The workflow management will allow outputs to be reused
+(possibly after the output is translated and/or remeshed using
+provided/built in or user generated/provided scripts) as input for
+another simulation. References to the inputs, outputs, applications,
+and workflow will be recorded. These records will provide provenance
+for the set of simulations and allow the original results to be
+regenerated for verification. The provenance also provides a known set
+of working experiments that can be modified to support further
+research. A user will be able to modify or extend a set of
+experiments, and rerun the simulations to formulate new results.
+
+The workflow management includes the ability to remotely manage job
+execution and records with sufficient detail to provide provenance for the
+simulation results. The provenance will include the simulation tools
+used (including version and build information where applicable),
+simulation parameters, input files, operating systems (and
+environment), and hardware. The provenance provides
+sufficient information to allow the simulations to be verified, but
+also provides a basis for verifying the results using different
+environments and inputs. This improves both the scientific
+significance and the regulatory acceptance for nuclear simulation
+results.
+
+The provenance (input, output, and application information) can be
+selectively shared with other users. This sharing will increase
+collaboration and allow for regulatory agencies to get a precise
+provenance on the applications, hardware, settings, and inputs.
+
+In addition to provenance and data sharing, CloudBench provides a
+front-end for third-party simulation tools and supports simulation
+execution on local and remote (Cloud, HPC) resources.  This provides
+access to preinstalled simulation tools without the burden of
+installing the tools. Additionally, it provides easy access to public
+and private HPC resources that are available to the user.
+
+CloudBench is a scientific workflow framework that will increase the
+usability, access, and value of numerical simulation tools. The online
+CloudBench framework will be licensed to small/medium research sized
+groups (start up companies, small government or academic labs, etc.)
+on a seat-by-seat basis. The CloudBench server will also be licensed
+to large organization for installation on private resources. This will
+allow the organization to independently control access to simulation
+software and datasets by hosting the server on internal
+resources.
+
+\subsection{Anticipated Public Benefits}
+CloudBench users include businesses and other institutions (e.g.,
+government research labs, universities, energy companies) that perform
+large-scale numerical modeling and simulation using high performance
+compute infrastructure (large super computers, small clusters, and
+high-end workstations). The companies and government labs in the
+numerical software development business (e.g., ANSYS, Cd-adapco, NEAMS
+toolkit, CASL) continuously develop new tools that would benefit from
+CloudBench.
+%The businesses in cloud and high performance computing
+%(e.g., NVidia, Intel, Amazon, Google) develop novel hardware and
+%compute environments that must be supported by these applications and
+%understood by users.
+The benefits of CloudBench include the adoption of
+new advanced simulation tools to improve product development and
+product design.
+
+%% CloudBench will facilitate wide adoption of high performance and
+%% advanced government simulation codes (including NEAMS and associated
+%% tools) by the academia, industry, and regulatory communities.  The
+%% extreme benefit of this technology to the Nuclear Engineering
+%% Community can not be overstated. A serious issue with the simulation
+%% tools such as the NEAMS Toolkit is that its technology
+%% \textbf{\textit{is too new to run on existing vendor and utility
+%%     hardware}}. To wit, the NEAMS Toolkit is state of the art and many
+%% industry tools can only be used on much older hardware and operating
+%% systems which makes it impossible to compile the NEAMS
+%% Toolkit. Usability (including workflow and provenance management) and
+%% code access are limiting factors to adoption by third-party commercial
+%% users.
+
+The CloudBench differentiating factor is support for advanced open
+source tools. The existing workbench and life cycle management tools
+offered by traditional vendors support only the vendor's tools, and do
+not include support for advanced open source simulation tools. Analysts
+like Frost and Sullivan \footnote{``Global CAD and Modeling Software Market,'' Frost \& Sullivan, January 2013. [subscription required].} expect that efficient workflows
+and access to codes will drive the adoption of next generation
+simulation technology. Workflow and life cycle management tools are
+not readily available for the state-of-the-art open source or
+government license tools (e.g., the NEAMS and CASL). Therefore,
+CloudBench will fulfill this role and provide much needed support for
+these advanced simulation tools.
+
+The initial release of CloudBench is CloudBench:NE (for Nuclear
+Engineering) will be developed during Phase II. NE is an important
+first niche market.  As the U.S. and the world ramp up to deploy new
+advanced nuclear reactors, the ability to leverage advanced codes,
+deploy on HPC and Cloud resources, and share experiments (for
+collaborative and regulatory scenarios) is becoming critical to the
+design and regulatory process. While the required workflow management
+tools often exist in vendor simulation suites, they are missing from
+open sourced and government codes.
+
+This initial NE market includes United States companies such as GE
+Hitachi, Westinghouse Electric Company, AREVA, Anatech, Nuscale,
+Bechtel Marine Propulsion Corporation, Tennessee Valley Authority,
+Studsvik Scandpower, Terrapower, Oklo, Starcore Nuclear,
+FPoliSolutions, BWXT Technologies, Transatomic Power Corporation, X
+Energy, Terrestrial Energy, Areva, and Flibe Energy.
+
+\subsection{Phase I and Feasibility Demonstration}
+\rnetprop{
+RNET worked closely with Mr. Jay Billings from ORNL and the lead architect and 
+principal investigator for the Eclipse Integrated Computational Environment 
+(ICE) in prototyping CloudBench. ICE can interface to many different 
+computational codes and NEAMS tools and its modular design allows us to 
+separate various components in preparation for a web-based interface. Our 
+approach has been to separate ICE into a front-end and back-end service (which 
+would run on any compute, cloud or local instance). The front-end User 
+Interface (UI) would be reimplemented using a web-based UI framework like 
+Vaadin~\cite{vaadin}. This can connect to the back-end which will then allow 
+simulations to be remotely executed. This requires the use of Remote OSGi 
+services~\cite{osgi_ecf} which automatically distributes and proxies 
+communication correctly. The back-end service is also referred to 
+as the ``Core'', since it is developed from ICE's Core component.
+}
+
+In order to demonstrate feasibility of developing this product, RNET and ORNL 
+have accomplished the following.
+
+\begin{itemize}
+\item \rnetprop{Prototyped a web-based UI for CloudBench using Vaadin and a system for 
+choosing users to share data with and verifying appropriate notifications.}
+\item \rnetprop{Resolved various technical challenges in isolating the Core, producing a 
+standalone executable and setting it up to run as a Remote OSGi service, which 
+is crucial towards being able to run on any server.}
+\item \rnetprop{Validated the Remote OSGi connection and the ability to connect via an
+EDEF File.}
+\item \rnetprop{Ported user interface components for a Nek5000 form to the Vaadin 
+interface.}
+\end{itemize}
+
+The following subsections provide details on the efforts to
+demonstrate CloudBench feasibility.
+
+\subsubsection{Validation of Remote Connection}
+\rnetprop{
+The Core component in ICE was setup to be a Remote OSGi service. The setup to 
+test this is outlined in the Phase I Feasibility Report and is shown here in 
+Figure~\ref{fig:test_remote_connections}.
+}
+
+\begin{figure}[thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.5\linewidth]{./narrative/figures/ice_core_connect.png}
+\end{center}
+\caption{Setup to test Remote Connections.}
+\label{fig:test_remote_connections}
+\end{figure}
+
+%%REMOVE FOR SPACE
+%% The remote connection is confirmed by the ImportRegistration event on the Host 
+%% Windows machine as shown in Figure~\ref{fig:edef_connect}.
+
+%% \begin{figure}[thb]
+%% \begin{center}
+%% \leavevmode
+%% \includegraphics[width=0.7\linewidth]{./narrative/figures/edef_connect_cropped.png}
+%% \end{center}
+%% \caption{Import Registration on Host Machine.}
+%% \label{fig:edef_connect}
+%% \end{figure}
+
+\subsubsection{Development of a CloudBench UI}
+\rnetprop{Vaadin was chosen as the framework to develop a web-based interface. This was 
+mainly due to the intuitive APIs Vaadin offers, the excellent Vaadin security model, as well as the automatic 
+adjustments to the interface, based on the device being used to view it, such 
+as smartphones and tablets~\cite{vaadin}. Upon successful user login, the 
+CloudBench Dashboard is presented where the main area contains a panel with 
+up-to-date relevant information on status of executed jobs 
+%(\rnetcomment{Can add some panels here})
+and notifications on shared output.}
+%(\rnetcomment{Currently, only notification, no file sharing yet}).
+
+\begin{figure}[!htb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.7\linewidth]{./narrative/figures/cloudbench_dashboard_cropped.png}
+\end{center}
+\caption{CloudBench Dashboard.}
+\label{fig:cbench_dashboard}
+\end{figure}
+
+\subsubsection{Simple Sharing and Notifications}
+\rnetprop{We have designed CloudBench to support File Sharing among a group of Users. To 
+facilitate this, the UI includes an ``search as you type'' box to pick out 
+Users to share data with.}
+
+\begin{figure}[!thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.7\linewidth]{./narrative/figures/cloudbench_sharedialog.png}
+\end{center}
+\caption{Selecting Users to Share With.}
+\label{fig:share_users}
+\end{figure}
+
+In this case, we are sharing data with two test Users, ``Solomon Olsen'' and 
+``Elvis Olsen''. When we login to one of their accounts, we can see that a 
+notification from the originator (test User, ``Gabrielle Patel'') is visible 
+and informs the User of the shared object.
+
+\begin{figure}[!thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.9\linewidth]{./narrative/figures/eolsen_shared.png}
+\end{center}
+\caption{Share Notification for Chosen User.}
+\label{fig:share_eolsen}
+\end{figure}
+
+\subsubsection{Headless Workflow Execution and Remote Job Execution}
+\label{sec:remote_exec}
+\rnetprop{ Mr. Billings and the ICE team worked with RNET personnel to modify the workflow 
+engine in Eclipse ICE such that it can execute workflows headlessly as a Remote 
+OSGi service. Although the ICE Core could be run headlessly before, it was by a 
+different mechanism that did not meet the needs of the RNET team. Specifically, 
+Remote OSGi services greatly simplify both memory management and communications 
+between the service client and service provider while maintaining all of the 
+normal advantages of an OSGi service that the original mechanism - a purely 
+RESTful web service - lost. One other advantage of using the Remote OSGi 
+service is that service discovery is simplified on small networks, which has 
+great advantages in production deployment. This achievement simplifies workflow 
+processing in CloudBench by removing the dependency on the ICE workbench, and 
+RESTful service to provide a much simpler programming API. One major advantage 
+of this is that workflow execution and job launch can now be performed on a 
+server that communicates remotely with the CloudBench web client, while still 
+maintaining all of the normal remote job execution capabilities in ICE. ICE's 
+normal job launch framework supports local and remote job execution for several 
+codes in NEAMS and offers full support for batch systems such as SLURM and PBS 
+as well as parallel performance monitoring and remote debugging tools.}
+
+
+\rnetprop{These updates were used to develop a working example of Vaadin with OSGi and 
+implemented the Nek5000 parameters form in Vaadin as shown in 
+Figure~\ref{fig:vaddin_nek5000}. This example demonstrates the feasibility of 
+leveraging ICE's existing support for NEAMS tools in an easy, extendible way to 
+support CloudBench.}
+
+\begin{figure}[!thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.8\linewidth]{./narrative/figures/vaadin_nek5000_cropped.png}
+\end{center}
+\caption{Vaadin implementation of the Nek5000 form.}
+\label{fig:vaddin_nek5000}
+\end{figure}
+
+\subsubsection{Advanced Visualization}
+\label{id_advViz}
+\rnetprop{In addition to the Phase I efforts, existing visualization work performed by the ICE team will be used in CloudBench and demonstrate feasibility of the proposed approach.
+The Eclipse Advanced Visualization Project (EAVP) was originally developed as part of the NEAMS program to provide visualization support for 3D post-processing visualizations using VisIt and Paraview in tandem with ICE's workflow engine as well as to provide support for 2D graphing, and 3D mesh and geometry editing. This project was spun off separately from ICE several years ago to answer requests from users to use it outside of ICE and it has continued to grow on its own ever since. The project provides}
+\begin{itemize}
+\item \rnetprop{VisIt integration for working with mesh data}
+\item \rnetprop{ParaView integration for working with mesh data}
+\item \rnetprop{2D mesh editing support (for Nek5000)}
+\item \rnetprop{3D mesh editing support (for surface meshes)}
+\item \rnetprop{3D geometry editing}
+\item \rnetprop{A full plotting library that supports remote updates and streaming}
+\item \rnetprop{Support for remote renderers and multiple connections across VisIt and Paraview}
+\end{itemize}
+
+

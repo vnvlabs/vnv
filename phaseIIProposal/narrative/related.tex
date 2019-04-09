@@ -1,0 +1,127 @@
+
+\section{Related Work}
+\label{related}
+
+RNET and ORNL have past and current experience in several SBIR/STTR projects on modeling and simulation, high performance computing, 
+and large data formats. Some of these projects are briefly described below. 
+
+\subsection{RNET's Related Work}
+
+\subsubsection{Automated Solver Selection for NEAMS Tools}
+
+RNET in collaboration with University of Oregon (Dr. Boyana Norris) is developing an add-in feature for the NEAMS 
+toolkit being developed by the Department of Energy. This work is being done as part of DOE Phase I STTR project 
+(Contract Number DE-SC0013869). This add-in feature being developed by RNET will leverage machine learning techniques 
+to automatically select the optimal solver based on run-time dependent features of the problem and the underlying 
+compute architecture with minimal runtime overhead in solver selection during the course of NEAMS simulations.
+
+%% \subsubsection{Catalytic Converter Modeling on High-End Workstations}
+
+%% RNET Technologies, Inc. in collaboration with Prof. Sandip Mazumder developed performance optimizations for accurate 
+%% CFD simulation of full-scale monolithic catalytic converters as an alternative to extrapolating single channel simulation 
+%% to the entire monolith \cite{Choudary1}. This project has been funded by Department of Energy under the STTR program 
+%% (Contract Number DE-SC 0007580). A numerical method (and code), recently developed at OSU, that successfully demonstrated 
+%% simulation of laboratory-scale catalytic converters with realistic surface chemistry has been revamped and optimized for 
+%% industrial-scale simulations. The enhancements made to the existing method included rewriting certain functionalities to 
+%% multicore processors and GPGPUs. Using these performance optimizations, a speedup of ~4.5X has been achieved for 3D test 
+%% problems with 300K cells, 20+ reactions, and various mesh topologies. These optimizations will facilitate Catalytic 
+%% Converter Simulation on high-end workstations and small clusters by fully utilizing the compute resources (Multicores, 
+%% GPUs, vector processing units, etc.) in emerging architectures. 
+
+\subsubsection{Scaling the PETSc Numerical Library to Petascale Architectures}
+
+RNET has developed an extended version of the numerical library PETSc \cite{Lowell1} in
+collaboration with Ohio State University and Argonne National Lab. PETSc is an MPI-based numerical library of
+linear and nonlinear solvers that is widely used in a variety of scientific domains. With the
+emergence of multicore processors and heterogeneous accelerators as the building blocks of
+parallel systems, it is essential to restructure the PETSc code to effectively exploit multi-level
+parallelism. Changes to the underlying PETSc data structures are required to leverage the multicore
+nodes and GPGPUs being added to the ``cluster architectures''.
+
+This project was funded by Department of Energy under the STTR program from August 2010 (Contract Number DE-SC0002434) 
+to May 2013. Dr. P. Sadayappan (OSU) and Dr. Boyana Norris (ANL) have played a key role in this effort by serving as 
+technical advisors. As part of the project, the team has investigated ways for the PETSc library to fully utilize the 
+computing power of future Petascale computers. Novel sparse matrix types,  vector types, and preconditioning techniques 
+that are conducive for GPU processing and SIMD parallelization have been integrated into the PETSc library. The matrix 
+vector operations have been optimized for specific architectures and GPUs by utilizing the autotuning tools.
+
+
+\subsubsection{Optimization of Kestrel for Emerging Architectures}
+RNET and OSU are performing this work as part of an active DOD Phase
+II STTR (FA9550-12-C-0028, Highly-Scalable Computational-Based
+Engineering). Based on the identification of the main performance
+bottlenecks in the Kestrel CFD code (based on the AVUS CFD solver), we
+are developing enhancements to improve the performance of the kCFD
+solver, as well as interface other scalable Krylov subspace sparse
+solver libraries to Kestrel. The proposed work will address the
+effective exploitation of parallelism at multiple levels: SIMD/SIMT
+level, multi-core level, and multi-node level.
+
+As part of this project CUDA kernels are also being explored for the
+bottlenecks in the CFD and CSD solvers. For instance, a GPU-based CFD
+solver with an identical interface to the current Block-Seidel solver
+is being explored.
+
+\subsubsection{A Map-Reduce Like Data-Intensive Processing Framework for Native Data Storage}
+
+%\begin{wrapfigure}{r}{0.5\linewidth}%[thb]
+%\begin{center}
+%\leavevmode
+%\includegraphics[width=1.0\linewidth]{./narrative/figures/mapreduce.png}
+%\end{center}
+%\caption{iNFORMER: A Native data format MapREDuce-like framework.}
+%\label{fig:mr}
+%\end{wrapfigure}
+
+RNET is currently under a DOE Phase II STTR contract for developing a MapReduce-like data-intensive processing framework 
+for native data storage (Contract\#: DE-SC0011312). The Ohio State University (OSU) is a collaborator on this STTR project. 
+MapReduce is a very popular data analytic framework that is widely used in both industry and scientific research. Despite 
+the popularity of MapReduce, there are several obstacles to applying it for developing some commercial and scientific data 
+analysis applications.
+
+
+This project is developing a Native data format MapREDuce-like framework, iNFORMER, based on SciMate architecture. The 
+framework allows MapReduce-like applications to be executed over data stored in a native data format, without first loading 
+the data into the framework. This addresses a major limitation of existing MapReduce-like implementations that require the 
+data to be loaded into specialized file systems, e.g., the Hadoop Distributed File System (HDFS). The overheads and additional
+data management processes required for this translation can prevent MapReduce from being used in many commercial and 
+scientific environments.
+
+% uncomment if including the image.
+%Figure \ref{fig:mr} shows how iNFORMER components are related to each other. 
+%It also shows how they 
+%can relate to other components when integrated with a larger Big Data platform 
+%such as Hadoop. 
+
+
+
+
+\subsection{ORNL's Related Work}
+%\subsubsection{ICE}
+\label{sec:nice}
+
+The Eclipse Integrated Computational Environment (ICE) is an award-winning, open source platform and user environment for working with scientific software, managing scientific 
+workflows and exposing advanced modeling and simulation technologies through a streamlined user experience. It includes tools
+for input generation, local and remote job launch including remote job monitoring, data analysis and data management. It also
+includes software development tools for multiple languages including C/C++, Java and Fortran. It uses community tools for data
+analysis including VisIt and Paraview as well as tools developed custom analysis.
+
+It was sponsored continuously by NEAMS from 2009 to 2016, where it was known as the NEAMS Integrated Computational Environment (NiCE), and has extensive 
+support for the NEAMS Toolkit. It includes plugins for MOOSE-based and 
+SHARP-based applications and also plugins for Warthog, which unifies MOOSE and 
+SHARP. It has also received funding from other offices, including the Advanced 
+Manufacturing Office, ORNL's Laboratory Director's Research and Development 
+(LDRD) fund, and external sponsors. It supports workflows in areas ranging from 
+advanced manufacturing, advanced materials, astrophysics, neutron science, 
+nuclear energy, quantum computing, and virtual batteries, among others.
+
+ICE's sister project is the Eclipse Advanced Visualization Project, which was also originally part of NEAMS and NiCE. This platform offers a wide range of visualization capabilities and integrates with existing tools in the market, including VisIt and Paraview. It provides either local or remote connections to these tools in addition to offering visualization tools for editing geometry and meshes as well as simple plotting.
+
+Mr. Billings is the project lead and architect for both of these projects.
+
+A solid foundation has been laid to achieve the objectives of the proposed project from the NEAMS perspective. The final 
+missing piece of the puzzle is streamlining these efforts to enable cloud execution and a goto-portal for the nuclear 
+engineering community. Once this is accomplished, it will be possible to seamlessly transfer all the technology that is 
+currently only within DOE and a few selected groups to the broader community at large. The collaboration between ORNL and 
+RNET is a perfect fit to facilitate this final step. RNET brings to the table the required computer science expertise to 
+satisfy the needs of this project, as is evident from a description of their related work.

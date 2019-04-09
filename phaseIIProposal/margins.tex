@@ -1,0 +1,46 @@
+\usepackage{vmargin}
+% All proposals MUST use/include these margin and header settings.
+
+% All proposals MUST use pdflatex and NOT latex/dvips/ps2pdf. Any
+% changes to this must have approval from the RNET president and your
+% manager. This is to ensure proper margins in all settings.
+
+% ALWAYS use these margins unless the changes are discussed with RNET
+% personnel.
+
+%NOTE: When printing, you MUST ensure that ALL scaling is turned OFF
+%for both the printer AND the Adobe settings. If Adobe scales the
+%document, the printed margins will be WRONG (even if the PDF is
+%correct).
+
+% Please, always double check the margins by measuring the margins on the screen, either using a tool that gives a pixel offset of a pointer in a PDF or a ``screen tapemeasure''.
+
+\usepackage[margin=1in]{geometry} % Used to ensure that PDF latex handles the
+                      % length and margin settings
+                      % approriately. http://en.wikibooks.org/wiki/LaTeX/Page_Layout
+
+% Ensure pdflatex generates letter-size pdfs
+
+
+% See http://en.wikibooks.org/wiki/LaTeX/Page_Layout for more
+% information on dimensions. However, please do not change without proper
+% approval.
+
+\setlength\hoffset{0pt} 
+\setlength\voffset{-1.05in} %need a header, so need to put the header in default 1'' maring
+\setlength\oddsidemargin{0.0in} %leave 0
+\setlength\evensidemargin{0.0in} %leave 0
+\setlength\topmargin{0.2in}
+\setlength\headheight{0.6in} 
+\setlength\headsep{0.2in} 
+\setlength\textheight{9.1in}
+\setlength\textwidth{6.5in}
+\setlength\marginparsep{0pt}
+\setlength\marginparwidth{0in}
+\setlength\footskip{0.35in}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+% Ensure pdflatex generates letter-size pdfs
+\setpapersize{USletter}

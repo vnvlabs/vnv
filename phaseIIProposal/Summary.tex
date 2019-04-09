@@ -1,0 +1,35 @@
+\documentclass[times,12pt,portrait]{article} %12pt, DOE SBIR/STTR 
+
+\input{packages}
+\usepackage[small,compact]{titlesec}
+
+\input{header}
+
+\chead{\bf{Project Summary/Abstract}}
+\lfoot{}
+
+%uncommenting below helps to squeeze some more space
+\renewcommand\floatpagefraction{.9}
+\renewcommand\topfraction{.9}
+\renewcommand\bottomfraction{.9}
+\renewcommand\textfraction{.1} 
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+\renewcommand{\abovecaptionskip}{0pt}
+\renewcommand{\belowcaptionskip}{0pt}
+%\renewcommand{\baselinestretch}{1.05} %make a little easier to read since not tight on space now, also keeps Table 1 out of the references...
+
+\input{title}
+
+\date{}
+
+\hfuzz 7pt
+
+%Use pagebreak and pdfselect to break into multiple files for submission
+\begin{document}
+\bibliographystyle{plain}
+
+\input{summary/proj_summary.tex}
+
+\end{document}
