@@ -1,0 +1,341 @@
+\section{Phase I Work and Feasibility Study}
+
+RNET worked closely with Mr. Jay Billings from ORNL who is the lead architect 
+and principal investigator for the Eclipse Integrated Computational Environment 
+(ICE) in prototyping CloudBench. ICE can interface to many different 
+computational codes and NEAMS tools and its modular design allows us to 
+separate various components in preparation for a web-based interface. Our 
+approach has been to separate ICE into a front-end and back-end service (which 
+would run on any compute, cloud or local instance). The front-end User 
+Interface (UI) would be reimplemented using a web-based UI framework like 
+Vaadin~\cite{vaadin}. This can connect to the back-end which will then allow 
+simulations to be remotely executed. The back-end service is also referred to 
+as the ``Core'', since it is developed from ICE's Core component.
+
+\subsection{Enabling Remote Connections to the Back-End}
+\label{sec:remote_backend}
+CloudBench is designed to support a workflow where the back-end service can run 
+on any machine (local or a cloud instance) and is connectable from a front-end 
+UI.  We would then like to import data from sources such as the cloud storage, 
+from GridFTP or even a point-to-point Secure Shell Copy. The simulation will be 
+executed remotely with the output data written and stored at a location of the 
+User's preference. The output is then post-processed remotely. 
+Figure~\ref{fig:cloudbench_workflow} outlines a single simulation.
+
+\begin{figure}[thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.7\linewidth]{./Figures/cloudbench_workflow.jpg}
+\end{center}
+\caption{Proposed CloudBench workflow.}
+\label{fig:cloudbench_workflow}
+\end{figure}
+
+In order to realize this, we require that the front-end be able to connect to a 
+back-end which in turn could run on any machine. This is meant to isolate the 
+interface from the computations. The front-end is meant to be a 
+web-based interface, so that it is accessible through the browser and remains 
+platform independent. After investigating various web-based frameworks, we 
+decided to base the CloudBench architecture on Vaadin as outlined in 
+Figure~\ref{fig:cloudbench_arch}.
+
+\begin{figure}[thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.7\linewidth]{./Figures/product_arch.png}
+\end{center}
+\caption{Overall framework for CloudBench.}
+\label{fig:cloudbench_arch}
+\end{figure}
+
+The proposed CloudBench architecture uses a Vaadin-based Server-side 
+architecture as outlined in~\cite{vaadin_client_app}. Since CloudBench is based 
+on ICE, RNET and ORNL first worked on enabling the back-end (or ``Core'') in 
+ICE to be connectable remotely. This requires the use of Remote OSGi 
+services~\cite{osgi_ecf} which automatically distributes and proxies 
+communication correctly.
+
+Various tutorials on the use of Remote OSGi services are already 
+available~\cite{rosgi_getting_started} and with the necessary code changes, the 
+Core was published as a Remote OSGi service. In this case, the Core was 
+launched through the developmental version of ICE, which handles the setting up 
+of environments to ensure that the runtime dependencies of the Core (in the 
+form of packages or ``bundles'') are resolved. Ideally, the Core would be a 
+standalone executable that can act as a service. Details regarding the complete 
+separation of the Core are outlined in Section~\ref{sec:remote_exec}.
+
+\subsubsection{Validation of Remote Connection}
+When using Remote OSGi services, it is possible to connect to a service (or 
+``endpoint'') either through Network Discovery protocols or by a file that 
+explicitly lists the Endpoint Description. Here, we use the Endpoint 
+Description Format (or EDEF) file, written in XML format to uniquely fix the 
+system we are connecting to.
+
+To validate our changes, we need the Core to run on a different machine and 
+check if it is connectable from an ICE session. For this purpose, we let the 
+Core run on an Ubuntu Virtual Machine and will attempt to connect to it from an 
+ICE session in the Windows Host Machine. Virtualbox is used to run the Virtual 
+Machine and the Networking mode is set to ``Host-only'' networking which allows 
+connectivity between the Host and Virtual Machines~\cite{vbox_networking}. Our 
+test setup is as shown in Figure~\ref{fig:test_remote_connections}.
+
+\begin{figure}[thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.7\linewidth]{./Figures/ice_core_connect.png}
+\end{center}
+\caption{Setup to test Remote Connections.}
+\label{fig:test_remote_connections}
+\end{figure}
+
+As the figure shows, the EDEF file has the IP address and port (where the 
+service runs) of the machine we are connecting to and this uniquely identifies 
+the connection. The ICE Core is then started up on the Ubuntu Virtual Machine. 
+When this service registers itself, an ExportRegistration event is visible in 
+the console output as highlighted in red in Figure~\ref{fig:ice_core_startup}. 
+The IP address of the VM is also part of the Endpoint Description.
+
+\begin{figure}[thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.9\linewidth]{./Figures/edef_start_cropped.png}
+\end{center}
+\caption{Console output of ICE Core Startup.}
+\label{fig:ice_core_startup}
+\end{figure}
+
+The EDEF File is stored in XML format and is then fed into the ICE session 
+(Figure~\ref{fig:edef_process}) on the Host Windows Machine, which is parsed 
+and the details are extracted into the Dialog box 
+(Figure~\ref{fig:edef_select}) for connecting to the remote Core.
+
+%\begin{figure}
+%\centering
+%\begin{subfigure}{.8\textwidth}
+%  \centering
+%  \includegraphics[width=.4\linewidth]{Figures/edef_select.png}
+%  \caption{Selecting an EDEF File to Import.}
+%  \label{fig:edef_select}
+%\end{subfigure}%
+%\begin{subfigure}{.8\textwidth}
+%  \centering
+%  \includegraphics[width=.4\linewidth]{Figures/edef_process.png}
+%  \caption{Parsing and extracting Host and Port entries.}
+%  \label{fig:edef_process}
+%\end{subfigure}
+%\caption{Input EDEF for Remote Connection}
+%\label{fig:}
+%\end{figure}
+
+% using a subcaptionbox to control whitespace between subfigures.
+\begin{figure}[thb]
+  % Fixed length
+  \centering
+  \subcaptionbox{Selecting an EDEF File to 
+  Import.\label{fig:edef_select}}{\includegraphics[width=.4\linewidth]{Figures/edef_select_cropped.png}}\hspace{1em}%
+  \subcaptionbox{Parsing and extracting Host and Port 
+  entries.\label{fig:edef_process}}{\includegraphics[width=.4\linewidth]{Figures/edef_process_cropped.png}}
+  \caption{Import and Processing an EDEF File.}
+\end{figure}
+
+Finally, we were able to verify the connection by noting the console output 
+from the ICE session on the Windows machine where the connection was 
+instantiated. The ImportRegistration event is proof that the connection was 
+achieved and we note that the IP address of the Ubuntu VM is present in the 
+Endpoint Description, thus confirming the connection in 
+Figure~\ref{fig:edef_connect}.
+
+\begin{figure}[thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.7\linewidth]{./Figures/edef_connect_cropped.png}
+\end{center}
+\caption{Import Registration on Host Machine.}
+\label{fig:edef_connect}
+\end{figure}
+
+% %
+
+\subsection{Development of a CloudBench UI}
+\label{sec:cloudbench_ui_dev}
+Vaadin was chosen as the framework to develop a web-based interface. This was 
+mainly due to the intuitive APIs Vaadin offers as well as the automatic 
+adjustments to the interface, based on the device being used to view it, such 
+as smartphones and tablets~\cite{vaadin}. We prototyped our UI off a basic 
+Vaadin demo~\cite{vaadin_demo}. When CloudBench is started, the User logs in 
+via the Login Page as shown in Figure~\ref{fig:cbench_login}:
+
+\begin{figure}[!thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.7\linewidth]{./Figures/cloudbench_login_cropped.png}
+\end{center}
+\caption{Initial CloudBench Login.}
+\label{fig:cbench_login}
+\end{figure}
+
+Upon successful user login, the CloudBench Dashboard is presented where the 
+main area contains a panel with up-to-date relevant information on status of 
+executed jobs and notifications on shared output. The panel on the left 
+highlights the User profile and navigation options. A subset of some common 
+options available in ICE are as shown in Figure~\ref{fig:cbench_dashboard}.
+
+\begin{figure}[!thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.7\linewidth]{./Figures/cloudbench_dashboard_cropped.png}
+\end{center}
+\caption{CloudBench Dashboard.}
+\label{fig:cbench_dashboard}
+\end{figure}
+
+\subsubsection{Simple Sharing and Notifications}
+We have designed CloudBench to support File Sharing among a group of Users. To 
+facilitate this, the UI includes an ``search as you type'' box to pick out 
+Users to share data with.
+
+\begin{figure}[!thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.7\linewidth]{./Figures/cloudbench_sharedialog_cropped.png}
+\end{center}
+\caption{Selecting Users to Share With.}
+\label{fig:share_users}
+\end{figure}
+
+% using a subcaptionbox to control whitespace between subfigures.
+%\begin{figure}[!thb]
+%  % Fixed length
+%  \centering
+%  \subcaptionbox{Selecting Users to Share 
+%  
+%with.\label{fig:share_users}}{\includegraphics[width=.4\linewidth]{Figures/cloudbench_sharedialog.png}}\hspace{1em}%
+%  \subcaptionbox{Sharing with Chosen 
+%  
+%Users.\label{fig:share_count}}{\includegraphics[width=.4\linewidth]{Figures/cloudbench_sharecount.png}}
+%\end{figure}
+
+In this case, we are sharing data with two test Users, ``Solomon Olsen'' and 
+``Elvis Olsen''. When we login to one of their accounts, we can see that a 
+notification from the originator (``Gabrielle Patel``) is visible and informs 
+the User of the shared object.
+
+\begin{figure}[!thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.9\linewidth]{./Figures/eolsen_shared.png}
+\end{center}
+\caption{Share Notification for Chosen User.}
+\label{fig:share_eolsen}
+\end{figure}
+
+%\begin{figure}[!thb]
+%  % Fixed length
+%  \centering
+%  \subcaptionbox{Share Notification for Chosen 
+%  
+%User.\label{fig:share_eolsen}}{\includegraphics[width=.5\linewidth]{Figures/eolsen_shared.png}}\hspace{1em}%
+%  \subcaptionbox{Share Notification for Chosen 
+%  
+%User\label{fig:share_solsen}}{\includegraphics[width=.5\linewidth]{Figures/solsen_shared.png}}
+%\end{figure}
+
+
+\subsubsection{Connecting to a Core}
+CloudBench will also connect to a Remote Core instance, so that simulations can 
+be executed and post-processed remotely. The remote connection is currently a 
+work in progress and the interface will simply process an EDEF File and connect 
+with the Hostname and Port in a manner similar to Figure~\ref{fig:edef_process} 
+in Section~\ref{sec:remote_backend}.
+
+%\rnetcomment{Current work just has a placeholder dialog box. Should perhaps 
+%add 
+%an Import EDEF button and add regex to fill the host and port names.}
+
+\subsection{Enabling Headless Execution through Remote OSGI Services}
+\label{sec:remote_exec}
+
+Mr. Billings and the ICE team worked with RNET personnel to modify the workflow 
+engine in Eclipse ICE such that it can execute workflows headlessly as a Remote 
+OSGi service. Although the ICE Core could be run headlessly before, it was by a 
+different mechanism that did not meet the needs of the RNET team. Specifically, 
+Remote OSGi services greatly simplify both memory management and communications 
+between the service client and service provider while maintaining all of the 
+normal advantages of an OSGi service that the original mechanism - a purely 
+RESTful web service - lost. One other advantage of using the Remote OSGi 
+service is that service discovery is simplified on small networks, which has 
+great advantages in production deployment. This achievement simplifies workflow 
+processing in Cloudbench by removing the dependency on the ICE workbench and 
+RESTful service to provide a much simpler programming API. One major advantage 
+of this is that workflow execution and job launch can now be performed on a 
+server that communicates remotely with the CloudBench web client, while still 
+maintaining all of the normal remote job execution capabilities in ICE. ICE's 
+normal job launch framework supports local and remote job execution for several 
+codes in NEAMS and offers full support for batch systems such as SLURM and PBS 
+as well as parallel performance monitoring and remote debugging tools.
+
+The ICE team has used these updates to develop a working example of Vaadin with 
+OSGi and implemented the Nek5000 parameters form in Vaadin as shown in 
+Figure~\ref{fig:vaddin_nek5000}. This example demonstrates the feasibility of 
+leveraging ICE's existing support for NEAMS tools in an easy, extendable way to 
+support Cloudbench.
+
+\begin{figure}[!thb]
+\begin{center}
+\leavevmode
+\includegraphics[width=0.6\linewidth]{./Figures/vaadin_nek5000_cropped.png}
+\end{center}
+\caption{Vaadin implementation of the Nek5000 form.}
+\label{fig:vaddin_nek5000}
+\end{figure}
+
+We are currently focusing on running the standalone Core and connecting 
+CloudBench to it using Remote OSGi services.
+
+\section{Phase I Task Completion}
+With regard to the proposed Phase I tasks, our achieved objectives are as 
+follows:
+
+\subsection{Task 1: Automatic Execution on Cloud}
+The effort needed to implement a standalone Core with Remote OSGi services, 
+turned out to be larger than anticipated since extricating relevant 
+dependencies took most of the time. Since ICE is already capable of launching 
+remote jobs and we have the standalone Core instance, we believe we are very 
+close to realizing this with the Nek5000 form in Vaadin.
+
+We will focus on connecting the CloudBench UI to the standalone Core instance 
+and validating the connection.
+
+\subsection{Task 2: Design and Development of Local Databases}
+Our initial focus will be on Nek5000 as it is an open source project and does 
+not face the same ITAR restrictions that other tools would impose. When we 
+validate our prototype and specialize CloudBench towards CloudBench:NE, we will 
+increase our portfolio of supported codes. The development of such a database 
+would be more appropriate at that time, which we would revisit.
+
+Also it is likely that the codes could be run on a myriad of hardware 
+configurations. Trying to compile and store binaries for each combination of 
+hardware configurations would be too unwieldy. We would store only a few 
+standard binaries but focus more on automatically compiling the installed 
+source codes, so that it better suites that particular environment.
+
+\subsection{Task 3: Web Portal Prototype and Promotion}
+Our efforts outlined in Section~\ref{sec:cloudbench_ui_dev} describe our web 
+portal prototype based on Vaadin. We believe that our CloudBench prototype will 
+provide an intuitive interface and feel across all platforms which will 
+encourage the adoption in various scientific communities. The targeted industry 
+is the businesses and other institutions (e.g., government research labs, 
+universities, energy companies) that perform large-scale numerical modeling and 
+simulation. The end users are the engineers and researchers who carry out 
+numerical simulations (e.g., to use simulation to better understand their 
+designs before prototyping).
+
+% taken from Commercialization
+The business model for CloudBench will be to sell Cloud accounts and 
+preconfigured simulator access (on Cloud resources) directly to users, to sell 
+software licenses for private servers for installation on third-party systems, 
+and contractual services to develop support for additional clusters (private or 
+public), simulation tools, and features. The potential NEAMS users (GE Hitachi, 
+EPRI, Areva, DOE Labs, NASA divisions etc.) will be our initial customers and 
+end users.
+

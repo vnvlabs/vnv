@@ -1,0 +1,92 @@
+\section{Identification and Significance of the Problem or Opportunity, and Technical Approach}
+%% {\em Define the specific technical problem or opportunity addressed by
+%%  your application.  Provide enough background information so that the
+%%  importance of the problem/opportunity is clear.  Indicate the overall
+%%  technical approach to the problem/opportunity and the part that the
+%%  proposed research plays in providing needed results.}
+
+This is the final report for contract DE-SC0015748, a Phase I DOE SBIR
+entitled ``Web Infrastructure for Remote Modeling and Simulation of Nuclear 
+Reactors and Fuel Cycle Systems''. The work was performed by RNET Technologies 
+Inc. (RNET) and Mr. Jay Billings from the Oak Ride National Laboratory (ORNL).
+
+\subsection{Significance and Identification}
+\label{intro} 
+Modeling and simulation softwares and data sets for nuclear engineering 
+applications play an important role in 
+the design and operation of nuclear reactors. The Nuclear Energy Advanced 
+Modeling and Simulation (NEAMS) program 
+by DOE is developing predictive models for the advanced nuclear reactor and 
+fuel cycle systems using leading edge 
+computational methods and high performance computing technologies \cite{NEAMS}. 
+Though the toolkit is mainly targeted 
+for DOE nuclear energy R\&D programs and leadership supercomputers, an 
+important objective of the NEAMS program is 
+to enable widespread use among the industry, academia, and regulatory 
+communities\cite{NEAMS}. The predictive 
+modeling approaches and softwares being continually developed and updated by 
+the DOE nuclear engineering scientists 
+(under programs such as NEAMS, RISMC etc.) need to be efficiently transferred 
+to the scientific community at large 
+including academicians, industrial researchers, and regulatory communities. 
+
+An optimal utilization of this nation's intellectual property in nuclear 
+engineering softwares can be enabled through
+robust web-based communication and collaboration channels that facilitate code 
+and data sharing, remote execution and visualization in a 
+cloud, and research collaboration between the seemingly 
+diverse communities spread across the 
+universities and national labs, industry, and other government organizations. 
+Novel web-based platforms are desired to 
+relatively accelerate sharing of information (codes, data, computational 
+approaches), promote collaboration among interested parties (scientists and 
+researchers), and impose de-facto standards for sharing the large variety of 
+softwares and methodologies. In 
+addition, the Department of Energy has a vested 
+interest and has invested heavily in M\&S tools over the last few decades. A 
+commercial opportunity exists for small 
+businesses in enabling economically feasible yet specialized web-based 
+communication and collaboration channels among the 
+nuclear science and engineering community and extending it to other scientific 
+communities (High Energy Physics, 
+Computational Fluid Dynamics, Financial Modeling etc.).
+
+The NEAMS and other nuclear engineering softwares developed by the basic energy 
+scientists are spread across custom 
+websites and various source code hosting websites (Github, SourceForge, DOE 
+labs' websites etc.). A lot of effort is 
+required from the end user in downloading, reading the documentation, 
+compiling, generating input datasets, executing 
+the code, and visualizing the results. Almost all of these codes are 
+computationally intensive and require 
+state-of-the-artcomputing infrastructure such as small clusters, 
+supercomputers, or cloud resources to yield meaningful 
+results in reasonable timeframes. These softwares, especially the advanced 
+codes such as NEAMS tools are continually 
+enhanced with new features and capabilities. For example, a contact 
+verification problem in BISON might have been 
+enhanced with a new nonlinear solver and preconditioner and mapped to parallel 
+compute resources such as GPGPUs. With the growing availability of cloud 
+computing services, it makes sense to be able to spin up high-end hardware 
+configurations to carry out simulations whenever local resources are exhausted.
+
+%There exists a clear need for a platform that will allow the automatic code 
+%download, setup and installation, track changes in a workflow with a 
+%provenance 
+%model and allow sharing of such workflows easily among various collaborators. 
+
+In order to address the above shortcomings, in this SBIR/STTR project, RNET and 
+ORNL are proposing to
+develop CloudBench, a web-based framework that facilitates relevant code 
+identification, automatic remote execution (on cloud-based or local clusters) 
+and visualization, tracking changes in a workflow with a provenance based 
+model, and sharing of results between various collaborators. The proposed 
+portal is prototyped using Vaadin~\cite{vaadin}, which allows web-based 
+interfaces to built and work across various platforms. The cloud computing 
+support will enable easy use of various computational tools and include the 
+ability to post-process remotely.
+
+Phase I demonstration includes an initial prototyping of the web interface with 
+Vaadin and leveraging the Integrated Computational Environment (ICE) modular 
+design to separate a back-end or ``Core''. The following sections demonstrate 
+the Phase I experiments and studies. 

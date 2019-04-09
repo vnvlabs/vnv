@@ -1,0 +1,69 @@
+\documentclass[letterpaper,times,12pt,portrait]{article} %12pt, DOE SBIR/STTR
+%\documentclass[times,12pt,portrait]{article} %12pt, DOE SBIR/STTR
+
+\input{packages}
+\input{header}
+\input{preamble} 
+
+% Ensure pdflatex generates letter-size pdfs
+\setpapersize{USletter}
+
+\chead{\bf{Final Report for Contract DE-SC0015748}}
+
+\newcommand{\rnetcomment}[1]{ {\color{red} \Large \bf \em #1} }
+%\newcommand{\rnetcomment}[1]{ }
+
+%uncommenting below helps to squeeze some more space
+%% \renewcommand\floatpagefraction{.9}
+%% \renewcommand\topfraction{.9}
+%% \renewcommand\bottomfraction{.9}
+%% \renewcommand\textfraction{.1} 
+%% \setcounter{totalnumber}{50}
+%% \setcounter{topnumber}{50}
+%% \setcounter{bottomnumber}{50}
+%% \renewcommand{\abovecaptionskip}{0pt}
+%% \renewcommand{\belowcaptionskip}{0pt}
+%% %\renewcommand{\baselinestretch}{1.05} %make a little easier to read since not tight on space now, also keeps Table 1 out of the references...
+
+%% \renewcommand{\enumhook}{\setlength{\topsep}{0pt}%
+%%   \setlength{\itemsep}{-4pt}}
+%% \renewcommand{\itemhook}{\setlength{\topsep}{0pt}%
+%%   \setlength{\itemsep}{-4pt}}
+
+\input{title}
+
+\date{}
+
+\hfuzz 7pt
+
+\setcounter{secnumdepth}{5}
+
+\makeatletter
+
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+  {-3.25ex\@plus -1ex \@minus -.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\bfseries}}
+\makeatother
+
+
+\titleformat{\subparagraph}
+    {\normalfont\normalsize\bfseries}{\thesubparagraph}{1em}{}
+\titlespacing*{\subparagraph}{\parindent}{3.25ex plus 1ex minus .2ex}{.75ex plus .1ex}
+
+
+%Use pagebreak and pdfselect to break into multiple files for submission
+\begin{document}
+\bibliographystyle{plain}
+\maketitle
+\input{report/proprietary_legend.tex}
+
+\newpage
+\tableofcontents
+\newpage
+
+\input{report/proj_narrative.tex}
+
+%\bibliography{bib/proposal,bib/biblio.bib,bib/osu.bib,bib/yusu,bib/yusu2}
+\bibliography{bib/report}
+\end{document}
