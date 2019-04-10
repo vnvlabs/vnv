@@ -9,120 +9,162 @@
 %%  proposed research plays in providing needed results.}
 
 RNET Technologies Inc. (RNET) in Dayton, OH and Oak Ridge National Laboratory 
-(ORNL) are responding to 2017 DOE SBIR/STTR Phase II Release 2 
-(DE-FOA-0001646). This proposal is for a Phase II contract in succession to an 
-initial Phase I contract (Contract \#: DE-SC0015748) awarded for topic DOE 
-SBIR/STTR Topic 30d (Modeling and Simulation). RNET has extensive SBIR 
-experience in various aspects of High Performance Computing such as performance 
-optimization of numerical softwares and libraries, development of fine-grained 
-power monitoring tools for HPC infrastructure, and large scale data analysis 
-tools. RNET is currently developing a machine learning based plugin for 
-automated solver selection in NEAMS tools. Mr. Billings (ORNL) has extensive 
-experience with NEAMS tools. He was the Principal Investigator in NEAMS for the NEAMS
-Integrated Computational Environment (NiCE), now known as the Eclipse Integrated Computational Environment (ICE), for eight years. This project has successfully transitioned to other sponsors and funding mechanism and enjoys broad recognition outside the DOE research community as an official Eclipse.org project. Mr. Billings also leads the Eclipse Advanced Visualization Project which was originally developed to support multiple visualization tools for NEAMS, and he also worked on numerous other projects in NEAMS, including the initial development of Warthog, the development of the SHARP build system, and interactions with the Advanced Reaction Concepts team. He now leads the Scientific Software Development team at ORNL and, among other projects, is redeveloping the Department of Energy's Energy Science and Technology Software Center to support large, interdisciplinary codes like those from the NEAMS community. Therefore, this team is well positioned to develop and 
-commercialize a cloud based platform workflow and provenance management tool for nuclear engineering simulations. 
+(ORNL) are responding to 2019 DOE SBIR/STTR Phase II Release 2 
+(DE-FOA-0001976). This proposal is for a Phase II contract in succession to an 
+initial Phase I contract (Contract \#: DE-SC0018728) awarded for topic DOE 
+SBIR/STTR Topic 30d (Modeling and Simulation). Based on a prototype developed in Phase I, RNET and ORNL are proposing the development of VnV: a self-documenting 
+testing framework for in-situ solution verification and validation in high performance computing applications. In this proposal we will highlight the need for, and the tremendous value of, 
+the proposed tool in high performance numerical simulations like those in the NEAMS toolkit. The goal of the proposed Phase II project will be to develop a production quality implementation of VnV that is capable of 
+delivering this value across a broad spectrum of numerical simulation applications. The overarching goal of the proposed VnV toolkit is to facilitate the development of \emph{explainable} and \emph{verifiable} numerical simulations that provide 
+the user with not only the final solution, but also an explanation of how the solution was obtained and why it can be trusted. In doing so, the VnV toolkit will streamline the process of solution verification and validation for developers and end-users alike, thereby increasing the value of advanced numerical simulation technologies in a broad range of academic and industrial applications.  
+
+RNET has extensive SBIR experience in various aspects of High Performance Computing such as performance optimization of numerical softwares and libraries, development of fine-grained 
+power monitoring tools for HPC infrastructure, and the development of software usability tools the enhance the user experience of simulations. For example, RNET is currently developing a machine learning based plugin for 
+automated solver selection in NEAMS tools and a cloud based workflow management tool that allows users to design, execute and visualize simulations on remote machines through a standard web browser. Dr. Watson (ORNL) has extensive experience developing parallel debugging software for high performance computing resources. He ...\rnetcomment{@Greg}. We believe that RNETs experience developing advanced numerical software for the HPC community combined with Dr. Watson's experience with scientific software engineering uniquely qualifies our team to fully develop and commercialize the VnV framework.
 
 \subsubsection{Identification and Significance}
 \label{intro}
-Modeling and simulation software and data sets for nuclear
-engineering applications play an important role in the design and
-operation of nuclear reactors. The DOE Nuclear Energy Advanced
-Modeling and Simulation (NEAMS) program is developing predictive
-models for the advanced nuclear reactor and fuel cycle systems using
-leading edge computational methods and high performance computing
-technologies \cite{NEAMS}. In addition to the role the NEAMS tools
-play in the DOE nuclear energy R\&D programs, an important objective
-of the NEAMS program is to enable widespread use among the industry,
-academia, and regulatory communities\cite{NEAMS}. The predictive
-modeling approaches and softwares being continually developed and
-updated by the DOE nuclear engineering scientists (under programs such
-as NEAMS, RISMC, CASL etc.) need to be efficiently transferred to the
-scientific community at large including academicians, industrial
-researchers, and regulatory communities. The transfer of these tools
-to industry users can facilitate the development of next generation
-nuclear reactors.
 
-An optimal utilization of this nation's intellectual property in
-nuclear engineering softwares can be enabled through robust web-based
-communication and collaboration channels that facilitate code and data
-sharing, remote execution in clouds and High Performance Computing
-(HPC) clusters, workflow and provenance management and sharing, and
-remote web/cloud visualization in order to support research
-collaboration between the seemingly diverse communities spread across
-the universities and national labs, industry, and other government
-organizations. Novel web-based platforms are desired to relatively
-accelerate sharing of information (codes, data, computational
-approaches), conglomerate the interested parties (nuclear engineers,
-applied mathematicians, software developers, and end users), promote
-collaboration, and impose de-facto standards for sharing the large
-variety of softwares and methodologies. In addition, the Department of
-Energy has a vested interest and has invested heavily in M\&S tools
-over the last few decades. A commercial opportunity exists for small
-businesses in enabling economically feasible yet specialized web-based
-communication and collaboration channels among the nuclear science and
-engineering community and extending it to other scientific communities
-(High Energy Physics, Computational Fluid Dynamics, Financial Modeling
-etc.). Vendor based Computer Aided Engineering (i.e., numerical
-simulation) platforms generally include a workflow and life cycle
-management component, which is crucial to allowing users to easily
-install and utilize the CAE tools. Unfortunately, the vendor tools only
-support vendor specific applications. This encourages vendor ``lock
-in'' and does not facilitate the integration of advanced government
-or open source codes, or the integration of ``best-in-breed'' tools
-across multiple vendors.
+Numerical simulations are playing an ever increasing role in the research and development (R&D)
+pipeline, with new and more powerful algorithms and packages being developed every year. When
+numerical simulation codes are used to inform design real world products (e.g., nuclear reactors, space shuttles, airplanes, etc) erroneous
+simulation errors can propagate into final designs causing issues that can be extremely expensive to fix, damage the
+environment, and, in some unfortunate cases, result in loss of human life. In response to these concerns, there has been a concerted effort
+to define a robust approach for ensuring that numerical simulation technologies are ``fit for the intended purpose``. 
 
-The NEAMS toolkit and other nuclear engineering software developed by the basic energy scientists are spread across custom 
-websites and various source code hosting websites (Github, SourceForge, DOE labs' websites etc.). A lot of effort is 
-required from the end user in downloading, reading the documentation, compiling, generating input datasets, executing 
-the code, and visualizing the results. Almost all of these codes are computationally intensive and require 
-state-of-the-art-computing infrastructure such as small clusters, supercomputers, or cloud resources to yield meaningful 
-results in reasonable timeframes. These software, especially the advanced codes such as the NEAMS tools are continually 
-enhanced with new features and capabilities. For example, a contact verification problem in BISON might have been 
-enhanced with a new nonlinear solver and preconditioner and mapped to parallel compute resources such as GPGPUs. 
+The process for determining the suitability of a simulation for a given application is known as \emph{Verification and Validation} (V&V). The first V&V guideline was issued by the American Nuclear society in 1987. Further development of V&V guidelines was conducted by other professional organizations to provide industry-specific standards. In 1998, the American Institute of Aeronautics and Astronautics (AIAA) released its first modern standards document. Thereafter, the American Society of Mechanics Engineers (ASME) V&V Standards Committee issued documents related to fluid dynamics and solid mechanics, including
+\begin{itemize}
+ \item A Standard for Verification and Validation in Computational Fluid Dynamics and Heat Transfer, ASME V&V-20 (2009).
+ \item An Illustration of the Concepts of Verification and Validation in Computational Solid Mechanics, ASME V&V-10.1 (2012).  
+\end{itemize}
+These guidelines have acted as references in numerous V&V plans across industry, including the DoD's rigorous VV&A (verification, validation and accreditation) plan and the NEAMS V&V plan.
 
-%% In addition, there does not exist a common platform that connects the nuclear engineering community and is 
-%% driven by its users. Various interest groups exist on social networking websites (LinkedIn, Facebook, 
-%% ResearchGate etc.) that are active and vibrant but additional channels are required to connect the basic 
-%% energy scientists with the scattered end user groups. In order to enable wide spread adoption of nuclear
-%% energy modeling tools, it is imperative to provide such state-of-the-art web services under one common 
-%% platform and facilitate higher level semantic web applications. For example, using a single web-based 
-%% platform, the researcher should be able to search for a nuclear engineering code, download the input 
-%% dataset, run the simulations in cloud, visualize the results, share the results (both publicly or privately)
-%% on a professional social networking platform. 
+The current best practice for the V&V of a numerical simulation package is a multi-faceted process that includes:
+\begin{itemize}
+ \item Rigorous application of software development best practices, including version control, code reviews, unit tests and automated regression testing. 
+ \item Algorithm level techniques such as mesh refinement studies, the method of manufactured solutions and error propagation analysis
+ \item Uncertainty quantification and sensitivity analysis. 
+ \item Application to a suite of benchmark problems.
+ \item Comparison with experimental results.
+ \item Comparison with other results obtained from independent 3rd party codes.
+ \item Review of the code and results by an expert in the field.
+ \end{itemize}
 
-In order to address these needs RNET Technologies Inc. (RNET) and Oak
-Ridge National Laboratory (ORNL) are developing CloudBench. Our
-product is a numerical simulation workbench that assists the user in
-setting up, executing, and visualizing advanced simulation
-applications and workflows. CloudBench workflows will be dynamic and with support ``human in the loop'' research needs. CloudBench supports remote execution (on Cloud resources
-and HPC Clusters) and local job execution. Users will have the
-capability to share simulation input, output, and simulation
-provenance with authorized users. The initial iteration,
-CloudBench:NE, will focus on advanced Nuclear Engineering
-applications. Additional versions will be developed to support other
-Large Scale Numerical Simulation users. CloudBench will be available
-in a hosted environment (i.e., SaaS) or as a private server. This
-will facilitate an easy to use hosted service or a private, closed
-internal service based on customer needs. CloudBench will enable easy use
-of NEAMS and other nuclear engineering softwares, rapid dissemination
-of research results, easy sharing of knowledge, and a quick feedback
-mechanism.
+While it is the responsibility of the program developers to ensure that their product is mathematically correct, free of programming errors, and in general, fit for the intended purpose; it is the primary responsibility of the end user to ensure the inputs provided to the verified and validated simulation lie within the scope of the applications capabilities and are an accurate representation of the physical model of interest. As with the V&V of the overall package, this requires an in-depth analysis of the underlying assumptions, algorithms and implementations used in generating the result. At a high level, this can includes tasks like mesh refinement studies, comparisons with experimental data and the assertion of physical properties (e.g., conservation of mass and momentum); but, it must also include a careful examination of the suitability, stability and accuracy of the internal algorithms (e.g., was an appropriate linear solver used and did it converge within the specified tolerance? Was the Jacobian well defined? Did the nonlinear solver converge to the global minimum? etc.). Such requirements break the encapsulation of the simulation, requiring a user to have an level of expertise regarding the internals of the code that would otherwise only be expected of the original developers. 
 
+End-user V&V is of particular importance in the DOE Nuclear Energy Advanced Modeling and Simulation (NEAMS) program. NEAMS is developing predictive
+models for the advanced nuclear reactor and fuel cycle systems using leading edge computational methods and high performance computing
+technologies \cite{NEAMS}. An important objective of the NEAMS program is to enable widespread use among the industry, academia, and regulatory communities\cite{NEAMS}. This objective has lead to the 
+development of the NEAMS workbench, which has significantly increased the usability and user experience of the NEAMS tools.
 
-%% Phase I demonstration includes initial prototyping of the web portal and remote execution. A subset 
-%% of NEAMS tools will be used to demonstrate execution of nuclear simulations on remote compute 
-%% infrastructure yet local visualization. In addition, the cloud services that meet the government 
-%% regulatory and compliance requirements (NASA Nebula, AWS GovCloud etc.) will be identified. The Phase 
-%% II effort will fully develop the portal including integrating the complete set of NEAMS tools and other 
-%% nuclear engineering softwares of interest, supporting multiple computing platforms (cloud facilities, 
-%% super computing infrastructure, small clusters, and high end workstations), investigating other higher 
-%% level semantic web operations, and developing the software indirections and abstractions that are necessary 
-%% to extend the prototype to other research fields. In Phase III, the portal and the techniques will be 
-%% extended to other scientific domains such as metereology and weather forecasting, industrial CFD, and 
-%% high energy physics. The targeted customers include nuclear energy companies, NASA divisions, DOD and 
-%% its Prime Contractors (e.g., Boeing, Lockheed) etc.
+In order to address the difficulties with end user solution verification in the NEAMS toolkit and in the numerical simulation as a whole, RNET Technologies Inc. (RNET) and Oak Ridge National Laboratory (ORNL) are proposing the development of the VnV; a framework that facilitates the development of \emph{explainable} numerical simulations that provide the user with not only the result of the simulation, but also
+with an explanation as to how the solution was obtained and why it should be trusted (the term ''explainable`` numerical simulations is a reference to the field of 
+explainable artificial intelligence (XAI), where researchers are developing mechanisms for promoting trust in otherwise black-box AI algorithms). To do this, the VnV framework will provide developers with
+a robust set of V&V tests  that, at runtime, can be inserted into developer specified injection points located at key points in the code. Users will be able to pick and choose which tests to run at which injection 
+points using a YAML based configuration script loaded at runtime. The development of new, custom tests will require implementation of a simple test interface. At the completion of the simulation, the VnV framework with combine the test specific outputs with developer specified test description files to produce a responsive, server-less HTML web page that can be displayed in any web browser. This extremely detailed, highly customizable simulation report will include all the information required to verify the validity of the simulation, including information about the executable (version, shared libraries, machine configuration, etc), the inputs, the outputs, and a coarse grained call graph describing the injection points called and the tests executed. The target user for the V&V toolkit is the application end-user, however, there is no reason that the toolkit cannot be used by the developer in the benchmark tests used in the V&V of the overall package. The runtime configuration available in the toolkit also has significant use cases for parallel debugging; in fact, many of the statistical V&V tools that will be included in the framework were first developed for use in a relative parallel debugger \cite{}. In addition to injection point testing, the framework will include an interface for defining full simulation testing algorithms using the common work flow language. This interface will allow users to setup, execute and process tests that require the simulation to be run multiple times. This will include tools for automating mesh refinement studies and for setting up uncertainty quantification and sensitivity analysis routines (i.e., with NIMROD or DAKOTA). 
+
+In summary, once integrated into an application, the VnV framework will provide a simple mechanism for creating self verifying, self describing, explainable numerical simulations. This will significantly reduce the burden associated with V&V for end user simulations, thereby increasing the usability of the tools for non-expert end-users. Although some NEAMS tools can already be configured to perform mesh refinement and MMS studies, and while one can configure UQ and sensitivity analysis testing though the workbench, there is still a significant benefit to integration of the VnV into the core tools used by NEAMS (Proteus, BISON,MOOSE,libMesh,PETSc, etc); not only because it provides a uniform interface for designing, running and reporting on all such tests, but also because the transparency afforded by the in-situ injection point testing mechanism promotes a level of trust in the solutions obtained from NEAMS tools that is not otherwise available in current commercial tools. 
 
 \subsubsection{Product Overview and Technical Approach}
+
+The VnV framework is a C/C++ API for facilitating the development of explainable numerical simulations in high performance computing applications. As shown in Figure~\ref{TODO}, the VnV framework 
+can be considered in three main parts; the injection point framework, the workflow management system and the post-processor.
+
+The VnV injection point system represents the core component of the overall framework. This system provides a simple mechanism for 
+declaring, describing and locating key processes in the code that should be included in the final VnV report. To specify an injection
+point, the user needs to provide a unique name (the full scope of the function containing the injection point is usually a good start), a 
+markdown based description of the injection point for use in the final report, and a list of (in scope) variables and there associated types that 
+will be available for inspection at the injection point. Once these requirements have been determined, inserting the injection point into the code
+is as simple as including the appropriate header and calling the injection point function as shown in the following example. 
+
+\begin{verbatim}
+
+File: "test.c" 
+ ...
+ #include "vv-runtime.h" // Include the VV runtime header 
+ ...
+ class TestClass {
+  public:
+    int x;
+    TestClass(int x_) : x(_x) {}
+ }
+ 
+ class ExampleClass {
+ 
+    int x = 0;
+    double y = 10;
+    
+    int function(TestClass ll) {
+
+      // Add the injection point. 
+      INJECTION_POINT("SampleInjectionPoint", int x, double y, TestClass cl) 
+
+      return ll.x + x ;
+    }
+ }
+ ...
+\end{verbatim}
+
+\begin{verbatim}
+ File: "Injection_Points.yml
+ ...
+ SampleInjectionPoint:
+   content: | 
+      This function accepts a TestClass and return the value TestClass.x + this.x.
+      This content supports all standard markdown formating. 
+   parameters:
+   - x : 
+      type: int 
+      description: x is a class variable  
+  - y : 
+      type: double
+      description: y is another class variable
+  - ll : 
+      type TestClass 
+      description: ll is the Test class passed to the function. 
+\end{verbatim}
+
+In that case, the injection point ''SampleInjectionPoint`` will be called each time the function ''function`` is called. 
+The content for the injection point is stored  separate file, in this case, ''Injection_Points.yml``. This keeps the original
+code clean, provides a simple mechanism for customization, and limits unnecessary string processing in the running simulation. 
+
+A key issue 
+
+
+
+
+In the simplest form, these injection points provide a mechanism for automatic generation of a coarse grained, user specified call graph for 
+each simulation (i.e., the final report will be a coarse grained call tree where each leaf represents an injection point location.)However, 
+the true power of the injection points is that they provide a location for injecting external V&V tests into the 
+code. 
+
+
+
+
+Inserting an injection
+point into a code is as simple as including the VnV header file, inserting the call to the injection point library, and linking the 
+library in the final executable. 
+
+
+
+The VnV framework, the principal deliverable of the Phase II project, will be a software API that can be integrated into existing applications to facilitate 
+the development of explainable numerical simulations. Figure~\ref{fig:outline} provides a high level overview of the framework and its functionality. 
+
+At the heart of the framework are ''injection points`` that represent key locations in the code where V&V testing can place. A detailed description of the code can be specified for each injection point 
+such that when a simulation is run, the injection point descriptions form a highly descriptive, coarse grained call trace of the simulation; the first step toward explainable numerical simulations. 
+
+However, the true power of the injection points is that the provide a location in the code for the runtime execution of external verification and validation tests. These tests are specified in external shared 
+libraries and can be added or removed from the simulation at runtime using a XML configuration file. The tests could be as simple as 
+asserting a value is positive, up to a statistical comparison a distributed array against a experimental result. In addition to the code to be executed, each test is accompanied by 
+a markdown based post-processing file that describes the details and results of the test. 
+
+The VnV will also support external, full simulation testing mechanisms such as sensitivity analysis and mesh refinement studies using the common workflow language. In those cases, injection point based testing will still be useful for determining the validity of each of the full simulation testing runs. 
+
+The final component of the V&V testing framework is automated report generation. This component of the toolkit takes the output of the VnV testing (an efficient ADIOS2 bp3 file) and the associated markdown specification files, and uses 
+them to build a modern, responsive HTML/JS web page that can be displayed in any web browser, and/or hosted on a low-cost, server-less web hosting service (i.e., from an AWS S3 bucket). 
+
+
+
 
 CloudBench is a hosted simulation environment for large scale numeric
 simulations. CloudBench:NE is the application of CloudBench to Nuclear
