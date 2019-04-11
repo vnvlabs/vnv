@@ -1,3 +1,6 @@
+
+
+
 \section{Significance, Background, and Technical Approach}
 
 \subsection{Identification and Significance of the Innovation}
@@ -14,450 +17,73 @@ RNET Technologies Inc. (RNET) in Dayton, OH and Oak Ridge National Laboratory
 initial Phase I contract (Contract \#: DE-SC0018728) awarded for topic DOE 
 SBIR/STTR Topic 30d (Modeling and Simulation). Based on a prototype developed in Phase I, RNET and ORNL are proposing the development of VnV: a self-documenting 
 testing framework for in-situ solution verification and validation in high performance computing applications. In this proposal we will highlight the need for, and the tremendous value of, 
-the proposed tool in high performance numerical simulations like those in the NEAMS toolkit. The goal of the proposed Phase II project will be to develop a production quality implementation of VnV that is capable of 
-delivering this value across a broad spectrum of numerical simulation applications. The overarching goal of the proposed VnV toolkit is to facilitate the development of \emph{explainable} and \emph{verifiable} numerical simulations that provide 
-the user with not only the final solution, but also an explanation of how the solution was obtained and why it can be trusted. In doing so, the VnV toolkit will streamline the process of solution verification and validation for developers and end-users alike, thereby increasing the value of advanced numerical simulation technologies in a broad range of academic and industrial applications.  
+the proposed tool in high performance numerical simulations like those in the NEAMS toolkit. The goal of the proposed Phase II project will be to develop a production quality implementation of the VnV framework that can deliver that value to a broad spectrum of numerical simulation applications. 
 
-RNET has extensive SBIR experience in various aspects of High Performance Computing such as performance optimization of numerical softwares and libraries, development of fine-grained 
-power monitoring tools for HPC infrastructure, and the development of software usability tools the enhance the user experience of simulations. For example, RNET is currently developing a machine learning based plugin for 
-automated solver selection in NEAMS tools and a cloud based workflow management tool that allows users to design, execute and visualize simulations on remote machines through a standard web browser. Dr. Watson (ORNL) has extensive experience developing parallel debugging software for high performance computing resources. He ...\rnetcomment{@Greg}. We believe that RNETs experience developing advanced numerical software for the HPC community combined with Dr. Watson's experience with scientific software engineering uniquely qualifies our team to fully develop and commercialize the VnV framework.
+The overarching goal of the proposed VnV toolkit is to facilitate the development of \emph{explainable} numerical simulations that provide 
+the user with not only the final solution, but also an explanation of how the solution was obtained and why it can be trusted. In doing so, the VnV toolkit will streamline the process of solution verification and validation for developers and end-users alike. RNET has extensive SBIR experience in various aspects of High Performance Computing such as performance optimization of numerical softwares and libraries, development of fine-grained power monitoring tools for HPC infrastructure, and the development of software usability tools the enhance the user experience of simulations. For example, RNET is currently developing a machine learning based plugin for automated solver selection in NEAMS tools and a cloud based workflow management tool that allows users to design, execute and visualize simulations on remote machines through a standard web browser. Dr. Watson (ORNL) has extensive experience developing parallel debugging software for high performance computing resources. He ...\rnetcomment{@Greg}. We believe that RNETs experience developing advanced numerical software for the HPC community combined with Dr. Watson's experience with scientific software engineering uniquely qualifies our team to fully develop and commercialize the VnV framework.
 
 \subsubsection{Identification and Significance}
 \label{intro}
+Numerical modeling and simulation (\MS) is almost always more economical than live testing and full scale prototypes; a fact that has led to wide scale use of \MS in the design of products ranging from \$10 polycarbonate kids toys, up to solar panels, airplane wings and nuclear reactors. With access to large-scale computational resources at an all time high, and with exascale computing resources on the horizon; the role of numerical \MS in the design of next generation technologies is only expected to increase. However, numerical simulations are, by definition, an \emph{approximation} to a real world physical system. As such, it is important that this increased reliance on simulated tests is accompanied by concerted effort to ensure simulations are fit for the intended purpose.  According the the DoD best practices guide, verification and validation (\VV) of a code should be performed when  \emph{...the risk of making an incorrect decision based on a simulation outweighs the time and cost of performing \VVA to ensure that a simulation produces results that are sufficiently accurate and reliable.} One only needs to look to the Sleipner platform accident, where an offshore platform collapsed due to failures in the finite element simulation, to get an idea of the devastating consequences poorly verified numerical simulations can have on business, the environment and society.
 
-Numerical simulations are playing an ever increasing role in the research and development (R&D)
-pipeline, with new and more powerful algorithms and packages being developed every year. When
-numerical simulation codes are used to inform design real world products (e.g., nuclear reactors, space shuttles, airplanes, etc) erroneous
-simulation errors can propagate into final designs causing issues that can be extremely expensive to fix, damage the
-environment, and, in some unfortunate cases, result in loss of human life. In response to these concerns, there has been a concerted effort
-to define a robust approach for ensuring that numerical simulation technologies are ``fit for the intended purpose``. 
+In recent years, the DOE and other government agencies has been pushing for an increased rate of transfer of technology between government funded research institutions (both at national laboratories and academic institutions) and industry. For numerical simulation technologies, this push for technology transfer often manifests as the release of software using popular open-source licenses like the LGPL or the MIT. While the technical details of these open source licenses vary, they all contain language to the effect of ``this software is released as-is with no guarantee that the software is fit for the intended purpose'', even in cases where the software has been rigorously verified and validated throughout the development life-cycle. The result of this is that, while the developer should make every effort to ensure the code is fit for the intended purpose, it is ultimately the responsibility of the end user to ensure the inputs provided to the simulation packages lie within the scope of the applications capabilities, and that the solution obtained is an accurate representation of the physical model of interest to them. From a more practical standpoint, the direct costs of a design failure, be it time, money, or loss of life, fall squarely on the shoulders on the products developer, and any attempt to shift the blame to the developers of simulation library $X$ will likely fall of deaf ears.  
 
-The process for determining the suitability of a simulation for a given application is known as \emph{Verification and Validation} (V&V). The first V&V guideline was issued by the American Nuclear society in 1987. Further development of V&V guidelines was conducted by other professional organizations to provide industry-specific standards. In 1998, the American Institute of Aeronautics and Astronautics (AIAA) released its first modern standards document. Thereafter, the American Society of Mechanics Engineers (ASME) V&V Standards Committee issued documents related to fluid dynamics and solid mechanics, including
-\begin{itemize}
- \item A Standard for Verification and Validation in Computational Fluid Dynamics and Heat Transfer, ASME V&V-20 (2009).
- \item An Illustration of the Concepts of Verification and Validation in Computational Solid Mechanics, ASME V&V-10.1 (2012).  
-\end{itemize}
-These guidelines have acted as references in numerous V&V plans across industry, including the DoD's rigorous VV&A (verification, validation and accreditation) plan and the NEAMS V&V plan.
+On the part of the DOE, legal indemnification from simulation errors make good business sense; however, the inability to explicitly state that these open source codes act as intended is significantly hindering the uptake and acceptance of the simulation codes in industry; primarily because the costs and depth of knowledge associated with performing the required \VV are impractical when compared to commercial tools. To ensure effective transition of the nations numerical simulation technologies, there is a significant need for the development of tools that aid in the end-user \VV of numerical simulations. While it might be legally impractical to unilaterally assert the accuracy of an open-source simulation, these tools should go to every length to equip the end user with the functionality and information required to determine if the given simulation is a faithful representation of the physical system of interest to them.   
 
-The current best practice for the V&V of a numerical simulation package is a multi-faceted process that includes:
-\begin{itemize}
- \item Rigorous application of software development best practices, including version control, code reviews, unit tests and automated regression testing. 
- \item Algorithm level techniques such as mesh refinement studies, the method of manufactured solutions and error propagation analysis
- \item Uncertainty quantification and sensitivity analysis. 
- \item Application to a suite of benchmark problems.
- \item Comparison with experimental results.
- \item Comparison with other results obtained from independent 3rd party codes.
- \item Review of the code and results by an expert in the field.
- \end{itemize}
+End-user \VV is of particular importance in the DOE Nuclear Energy Advanced Modeling and Simulation (NEAMS) program. NEAMS is developing predictive models for the advanced nuclear reactor and fuel cycle systems using leading edge computational methods and high performance computing technologies \cite{NEAMS}. An important objective of the NEAMS program is to enable widespread use among the industry, academia, and regulatory communities\cite{NEAMS}. This objective has lead to the 
+development of the NEAMS workbench, which has significantly increased the usability and user experience of the NEAMS tools. The NEAMS group has placed a significant emphasis on \VV in the NEAMS toolkit, as outlined in the NEAMS \VV plan (version 0) \cite{}. The result of this is that the NEAMS tools have integrated functionality for input validation (through the workbench and MOOSE), for performing mesh refinement and method of manufactured solution analysis (through MOOSE) and for completing uncertainty quantification and sensitivity analysis with DAKOTA (through the workbench \cite{}). Despite this, the complex nature of the codes, combined with the expert knowledge required to set up \VV testing and the infinite array of input parameters available in some tools (PETSc, the linear solver package used in MOOSE has thousands of configuration options alone) makes setting up robust end-user \VV an overwhelming task for all but the most expert users.   
 
-While it is the responsibility of the program developers to ensure that their product is mathematically correct, free of programming errors, and in general, fit for the intended purpose; it is the primary responsibility of the end user to ensure the inputs provided to the verified and validated simulation lie within the scope of the applications capabilities and are an accurate representation of the physical model of interest. As with the V&V of the overall package, this requires an in-depth analysis of the underlying assumptions, algorithms and implementations used in generating the result. At a high level, this can includes tasks like mesh refinement studies, comparisons with experimental data and the assertion of physical properties (e.g., conservation of mass and momentum); but, it must also include a careful examination of the suitability, stability and accuracy of the internal algorithms (e.g., was an appropriate linear solver used and did it converge within the specified tolerance? Was the Jacobian well defined? Did the nonlinear solver converge to the global minimum? etc.). Such requirements break the encapsulation of the simulation, requiring a user to have an level of expertise regarding the internals of the code that would otherwise only be expected of the original developers. 
+In order to address the difficulties with end user solution verification in the NEAMS toolkit, and numerical simulation as a whole, RNET Technologies Inc. (RNET) and Oak Ridge National Laboratory (ORNL) are proposing the development of the VnV framework; a C/C++ software package designed to streamline the process of verifying and validating a numerical simulation using industry best practices. In particular, the framework will focus on providing 
+robust functionality for the \VV of solutions obtained from general purpose numerical simulation packages (e.g., MOOSE, PETSc, libMesh, Fenics, OpenFoam, etc). To do this, the framework will facilitate the development of \emph{explainable} numerical simulations that, in addition to producing a simulation result, produce a detailed report outlining how the solution was obtained and why it should be trusted. These detailed simulation reports will dramatically reduce the burden of full scale \VV for end users in industry that would otherwise not have the time or expertise to complete through \VV. Overall, the explainable numerical simulations promoted by the proposed framework will increase the appeal the DOEs simulation technologies in industry, thereby increasing overall technology transfer and helping ensure the nation benefits from its significant investment in advanced numerical simulation technologies.
 
-End-user V&V is of particular importance in the DOE Nuclear Energy Advanced Modeling and Simulation (NEAMS) program. NEAMS is developing predictive
-models for the advanced nuclear reactor and fuel cycle systems using leading edge computational methods and high performance computing
-technologies \cite{NEAMS}. An important objective of the NEAMS program is to enable widespread use among the industry, academia, and regulatory communities\cite{NEAMS}. This objective has lead to the 
-development of the NEAMS workbench, which has significantly increased the usability and user experience of the NEAMS tools.
-
-In order to address the difficulties with end user solution verification in the NEAMS toolkit and in the numerical simulation as a whole, RNET Technologies Inc. (RNET) and Oak Ridge National Laboratory (ORNL) are proposing the development of the VnV; a framework that facilitates the development of \emph{explainable} numerical simulations that provide the user with not only the result of the simulation, but also
-with an explanation as to how the solution was obtained and why it should be trusted (the term ''explainable`` numerical simulations is a reference to the field of 
-explainable artificial intelligence (XAI), where researchers are developing mechanisms for promoting trust in otherwise black-box AI algorithms). To do this, the VnV framework will provide developers with
-a robust set of V&V tests  that, at runtime, can be inserted into developer specified injection points located at key points in the code. Users will be able to pick and choose which tests to run at which injection 
-points using a YAML based configuration script loaded at runtime. The development of new, custom tests will require implementation of a simple test interface. At the completion of the simulation, the VnV framework with combine the test specific outputs with developer specified test description files to produce a responsive, server-less HTML web page that can be displayed in any web browser. This extremely detailed, highly customizable simulation report will include all the information required to verify the validity of the simulation, including information about the executable (version, shared libraries, machine configuration, etc), the inputs, the outputs, and a coarse grained call graph describing the injection points called and the tests executed. The target user for the V&V toolkit is the application end-user, however, there is no reason that the toolkit cannot be used by the developer in the benchmark tests used in the V&V of the overall package. The runtime configuration available in the toolkit also has significant use cases for parallel debugging; in fact, many of the statistical V&V tools that will be included in the framework were first developed for use in a relative parallel debugger \cite{}. In addition to injection point testing, the framework will include an interface for defining full simulation testing algorithms using the common work flow language. This interface will allow users to setup, execute and process tests that require the simulation to be run multiple times. This will include tools for automating mesh refinement studies and for setting up uncertainty quantification and sensitivity analysis routines (i.e., with NIMROD or DAKOTA). 
-
-In summary, once integrated into an application, the VnV framework will provide a simple mechanism for creating self verifying, self describing, explainable numerical simulations. This will significantly reduce the burden associated with V&V for end user simulations, thereby increasing the usability of the tools for non-expert end-users. Although some NEAMS tools can already be configured to perform mesh refinement and MMS studies, and while one can configure UQ and sensitivity analysis testing though the workbench, there is still a significant benefit to integration of the VnV into the core tools used by NEAMS (Proteus, BISON,MOOSE,libMesh,PETSc, etc); not only because it provides a uniform interface for designing, running and reporting on all such tests, but also because the transparency afforded by the in-situ injection point testing mechanism promotes a level of trust in the solutions obtained from NEAMS tools that is not otherwise available in current commercial tools. 
 
 \subsubsection{Product Overview and Technical Approach}
 
-The VnV framework is a C/C++ API for facilitating the development of explainable numerical simulations in high performance computing applications. As shown in Figure~\ref{TODO}, the VnV framework 
-can be considered in three main parts; the injection point framework, the workflow management system and the post-processor.
-
-The VnV injection point system represents the core component of the overall framework. This system provides a simple mechanism for 
-declaring, describing and locating key processes in the code that should be included in the final VnV report. To specify an injection
-point, the user needs to provide a unique name (the full scope of the function containing the injection point is usually a good start), a 
-markdown based description of the injection point for use in the final report, and a list of (in scope) variables and there associated types that 
-will be available for inspection at the injection point. Once these requirements have been determined, inserting the injection point into the code
-is as simple as including the appropriate header and calling the injection point function as shown in the following example. 
-
-\begin{verbatim}
-
-File: "test.c" 
- ...
- #include "vv-runtime.h" // Include the VV runtime header 
- ...
- class TestClass {
-  public:
-    int x;
-    TestClass(int x_) : x(_x) {}
- }
- 
- class ExampleClass {
- 
-    int x = 0;
-    double y = 10;
-    
-    int function(TestClass ll) {
-
-      // Add the injection point. 
-      INJECTION_POINT("SampleInjectionPoint", int x, double y, TestClass cl) 
-
-      return ll.x + x ;
-    }
- }
- ...
-\end{verbatim}
-
-\begin{verbatim}
- File: "Injection_Points.yml
- ...
- SampleInjectionPoint:
-   content: | 
-      This function accepts a TestClass and return the value TestClass.x + this.x.
-      This content supports all standard markdown formating. 
-   parameters:
-   - x : 
-      type: int 
-      description: x is a class variable  
-  - y : 
-      type: double
-      description: y is another class variable
-  - ll : 
-      type TestClass 
-      description: ll is the Test class passed to the function. 
-\end{verbatim}
-
-In that case, the injection point ''SampleInjectionPoint`` will be called each time the function ''function`` is called. 
-The content for the injection point is stored  separate file, in this case, ''Injection_Points.yml``. This keeps the original
-code clean, provides a simple mechanism for customization, and limits unnecessary string processing in the running simulation. 
-
-A key issue 
-
-
-
-
-In the simplest form, these injection points provide a mechanism for automatic generation of a coarse grained, user specified call graph for 
-each simulation (i.e., the final report will be a coarse grained call tree where each leaf represents an injection point location.)However, 
-the true power of the injection points is that they provide a location for injecting external V&V tests into the 
-code. 
-
-
-
-
-Inserting an injection
-point into a code is as simple as including the VnV header file, inserting the call to the injection point library, and linking the 
-library in the final executable. 
-
-
-
-The VnV framework, the principal deliverable of the Phase II project, will be a software API that can be integrated into existing applications to facilitate 
-the development of explainable numerical simulations. Figure~\ref{fig:outline} provides a high level overview of the framework and its functionality. 
-
-At the heart of the framework are ''injection points`` that represent key locations in the code where V&V testing can place. A detailed description of the code can be specified for each injection point 
-such that when a simulation is run, the injection point descriptions form a highly descriptive, coarse grained call trace of the simulation; the first step toward explainable numerical simulations. 
-
-However, the true power of the injection points is that the provide a location in the code for the runtime execution of external verification and validation tests. These tests are specified in external shared 
-libraries and can be added or removed from the simulation at runtime using a XML configuration file. The tests could be as simple as 
-asserting a value is positive, up to a statistical comparison a distributed array against a experimental result. In addition to the code to be executed, each test is accompanied by 
-a markdown based post-processing file that describes the details and results of the test. 
-
-The VnV will also support external, full simulation testing mechanisms such as sensitivity analysis and mesh refinement studies using the common workflow language. In those cases, injection point based testing will still be useful for determining the validity of each of the full simulation testing runs. 
-
-The final component of the V&V testing framework is automated report generation. This component of the toolkit takes the output of the VnV testing (an efficient ADIOS2 bp3 file) and the associated markdown specification files, and uses 
-them to build a modern, responsive HTML/JS web page that can be displayed in any web browser, and/or hosted on a low-cost, server-less web hosting service (i.e., from an AWS S3 bucket). 
-
-
-
-
-CloudBench is a hosted simulation environment for large scale numeric
-simulations. CloudBench:NE is the application of CloudBench to Nuclear
-Engineering simulation tools. The initial focus is on advanced reactor
-tools, but CloudBench:NE will include support for advanced reactors
-and light-water reactors simulation tools. CloudBench will augment
-existing simulation, Integrated Development Environment, and workbench
-tools being developed by the DOE and industry. It offers a complete
-set of simulation management features for open source, government
-sourced, and commercial simulation codes in a single integrated
-workbench;
+Put simply, \VV is the process of ensuring a simulation is fit for its intended purpose. More precisely, Verification is the process of ensuring that a simulation is a faithful representation of the developers conceptual description and specifications (did I build the thing right?), and Validation is the process of determining the degree to which a model is an accurate representation of the physical model from the perspective of the intended use case (did I build the right thing?) \cite{DOD-VVA}. It is a long held belief of the software development community that the sooner a error is detected, the cheaper it is to fix. The same is true for numerical \MS and as such, \VV should be an integrated component of the software development life-cycle. Some examples of the tasks involved in the \VV of a numerical simulation include:
 
 \begin{itemize}
-\item interactive workflow management using a ``human-in-the-loop'' approach,
-\item sharing of configurations, simulation output, and provenance on
-  a per simulation or per project basis (ensuring that export control
-  and license restricts are maintained),
-\item hosted versions of advanced simulation codes (removing the need
-  for the end user to perform the installation),
-\item multi-simulation provenance history to allow simulations to be
-  reconstructed, verified, or extended, and
-\item remote access to simulation tools installed on Cloud and HPC
-  resources.
+ \item Development of a \VV plan
+ \item Implementation of software development best practices (e.g. version control, unit and regression testing, code reviews, etc.)
+ \item Mathematical and algorithmic testing (convergence analysis, mesh refinement studies, method of manufactured solutions, etc.)
+ \item Development of a robust benchmark testing suite
+ \item Uncertainty quantification and sensitivity analysis
+ \item Comparison of simulation results with experimental data and results from third party simulations. 
+ \item Review of the implementation and results by experts in the field
+ \item Documentation of the \VV effort
 \end{itemize}
 
-Cloud Bench will allow the users to setup, launch/execute, and
-visualize their simulations through a web-based workflow management
-interface. The workflow management will allow outputs to be reused
-(possibly after the output is translated and/or remeshed using
-provided/built in or user generated/provided scripts) as input for
-another simulation. References to the inputs, outputs, applications,
-and workflow will be recorded. These records will provide provenance
-for the set of simulations and allow the original results to be
-regenerated for verification. The provenance also provides a known set
-of working experiments that can be modified to support further
-research. A user will be able to modify or extend a set of
-experiments, and rerun the simulations to formulate new results.
+In this proposal, we make the distinction between \VV a simulation package and the end-user \VV of a solution obtained using a simulation package. These two processes are not independent; indeed, \VV of a numerical simulation 
+package almost always includes a set of verified and validated benchmark tests; likewise, the assertion that a package is verified and validated often forms the foundation of trust in the end user \VV of a new simulation. The focus of this proposal and the phase II project will be end-user validation; however, there is no reason that the functionality imparted by the proposed framework could not be used in the \VV process of the overall simulation package. They key issues associated with end-user verification and validation, and the approaches that the VnV framework will take to address them are:
 
-The workflow management includes the ability to remotely manage job
-execution and records with sufficient detail to provide provenance for the
-simulation results. The provenance will include the simulation tools
-used (including version and build information where applicable),
-simulation parameters, input files, operating systems (and
-environment), and hardware. The provenance provides
-sufficient information to allow the simulations to be verified, but
-also provides a basis for verifying the results using different
-environments and inputs. This improves both the scientific
-significance and the regulatory acceptance for nuclear simulation
-results.
+\begin{itemize}
+  \item{ \bf In-situ Testing And Analysis:} Unit tests are an extremely effective mechanism for ensuring a algorithm behaves as is expected. However, such testing 
+  and an unavoidably discrete process that, by definition, cannot cover every possible outcome. This fact is particularly true for numerical algorithms, where even small 
+  changes in the geometry of the mesh, or changes in a input parameter, can cause algorithms to diverge, or worse, converge to the incorrect solution. As such, a robust
+  \VV report should not only include a description of unit tests completed, but also a detailed set of in-situ tests and assertions that describe the state and outcomes
+  of important functions and variables as the simulation proceeds. Such tests allow us to verify the call graph of the simulation is as expected, and/or to detect the points
+  in the simulation where the solution deviates from the expected result. Moreover, such tests allow for in-situ detection of unphysical characteristics (negative pressures, infinite 
+  velocities,etc) and for in-situ comparisons with experimental data; both processes that can significantly cut down on the amount of data output required. To address this need, the VnV framework will include a sophisticated, cross library injection point system. This system will allow developers to declare locations and variables in the code where \VV testing can and should take place. In the simplest form, these injection points will act to trace the program, providing a coarse grained, highly descriptive report on the overall call graph flow of the program. However, the true power of the injection points is that the provide a location in the code for the runtime execution of external verification and validation tests. These tests are specified in external shared libraries and can be added or removed from the simulation at runtime using a XML configuration file. The tests could be as simple as asserting a value is positive, or as complicated as completing a statistical comparison between a distributed array and some experimental data. Such an approach keeps the overall code base clean, while still allowing for fine-grained for in-situ \VV testing that can be configured at runtime without the requirement for recompiling the source code. 
+ \item {\bf Software Compartmentalization:} Modern numerical simulation design focuses on the idea of compartmentalization, whereby different components of the numerical simulation pipeline are split into separate libraries. For example, the NEAMS fuel performance code, BISON, uses the Multiphysics package MOOSE to define its physics, libMesh to define the finite element discretization and PETSc to solve the resulting linear system. This modularity allows researchers to do what they do best, while still profiting of the ever growing catalog of advanced numerical simulation toolkits. However, in the context of end-user \VV, this deep hierarchy of numerical packages makes \VV extremely difficult because, as stated above, the final solution should really be analyzed at each level; a process that requires a broad understanding each package that even the developers themselves may not possess. To address this issue, the injection point system defined above will include functionality for detecting and configuring in-situ \VV testing in any VnV equipt library linked to the final executable. That is to say, through a simple function call, the user will be able to obtain a  detailed list of all the injection points located across the range of libraries used in the executable. At runtime, the data collected from these cross library injection points will be assimilated into a single \VV report that covers the entire simulation hierarchy. In this way, the integration of \VV tooling into each specific library can be left up to the experts, while still allowing the end-user to easily verify functions and algorithms across multiple numerical libraries written in multiple languages. 
+ \item {\bf Difficulty Designing \VV tests:} While the specific details of \VV vary from application to application, the marco scale algorithms used are relatively consistent, including;
+ mesh refinement studies, using the method of manufactured solutions, sensitivity analysis, uncertainty quantification, error propagation. Many of these algorithms can, and in some 
+ cases already have (see, NIMROD, DAKOTA, MASA) be implemented as black-box or near black box solutions. The VnV framework will look to capitalize on this fact by providing a set of robust,
+ near black-box, \VV tools that can be integrated into codes with limited effort. Where possible, these tools will leverage existing black box solutions such as the MASA repository for MMS 
+ analysis and the DAKOTA and NIMROD tools for UQ and SA. 
+ \item{\bf \VV Testing Cost:}  Performing a large number of \VV tests in a distributed environment will be expensive, both computationally and due to the data movement required to deal with the domain decomposition employed by the application. Where possible, the VnV framework will offer functionality for offloading the execution of in-situ tests to external processes. The optimal approach to implementing such a feature is a key goal of the Phase II proposal, however, some ideas include using the streaming functionality of the ADIOS2 IO system to stream test data to an external \VV service and/or by using the MRNet or SNOball software. Offloading of the tests to an external server will significantly reduce the run time costs of in-situ \VV with the VnV framework; further increasing its utility in HPC applications.  
+ \item{\bf Workflow Management:} A number of the most popular \VV analysis techniques, (e.g., UQ, SA, mesh refinement) require the core simulation to be run multiple times. In these cases, there is a significant potential for speeding up the verification and validation process through job based parallelism. As such, the VnV toolkit will support setting up job based parallelism using the common workflow language. 
+ \item{\bf Documentation Generation:} With software packages under almost constant development, and new and improved packages being released on a regular basis, keeping an up-to-date \VV in an almost impossible. The VnV toolkit 
+ will address this need by including automatic VnV report generation in the form of a server-less html web page visible in any modern web browser. The entire web page will be customizable using an extended markdown format and will include support for standard markdown formating, latex formating, images, videos, self-sorting tables, a two dimensional charts using charts.js  and three dimensional visualization with paraview, vtk.js and three.js. In each case, the tables and figures will be self plotting based on data extracted from the in-situ \VV testing. The format of the overall web report will follow the templates outlined in the DoD TODO VV template files. These templates have been used over many years in the \VVA of DoD simulations to great effect. Of course, additional custom templates will also be supported. 
+ \end{itemize}
 
-The provenance (input, output, and application information) can be
-selectively shared with other users. This sharing will increase
-collaboration and allow for regulatory agencies to get a precise
-provenance on the applications, hardware, settings, and inputs.
+In summary, once integrated into an application, the VnV framework will provide a simple mechanism for creating self verifying, self describing, explainable numerical simulations. This will significantly reduce the burden associated with \VV for end user simulations, thereby increasing the usability of the tools for non-expert end-users. The framework will support a full range of in-situ \VV tests with functionality for offloading in-situ tests to external processors, as well as external \VV testing algorithms like UQ and mesh refinement studies with support for job based parallelism where needed. Finally, the package will include support for a highly customizable, automated \VV test generation for creating interactive and responsive web based \VV reports. A commercial license will be required to incorporate the VnV toolkit into for profit applications; however, after rigorous testing in real applications, the core functionality of the VnV toolkit will be released as open source for use in open-source, academic and enterprise applications, with RNET providing commercial support, training and integration services. 
 
-In addition to provenance and data sharing, CloudBench provides a
-front-end for third-party simulation tools and supports simulation
-execution on local and remote (Cloud, HPC) resources.  This provides
-access to preinstalled simulation tools without the burden of
-installing the tools. Additionally, it provides easy access to public
-and private HPC resources that are available to the user.
 
-CloudBench is a scientific workflow framework that will increase the
-usability, access, and value of numerical simulation tools. The online
-CloudBench framework will be licensed to small/medium research sized
-groups (start up companies, small government or academic labs, etc.)
-on a seat-by-seat basis. The CloudBench server will also be licensed
-to large organization for installation on private resources. This will
-allow the organization to independently control access to simulation
-software and datasets by hosting the server on internal
-resources.
 
 \subsection{Anticipated Public Benefits}
-CloudBench users include businesses and other institutions (e.g.,
-government research labs, universities, energy companies) that perform
-large-scale numerical modeling and simulation using high performance
-compute infrastructure (large super computers, small clusters, and
-high-end workstations). The companies and government labs in the
-numerical software development business (e.g., ANSYS, Cd-adapco, NEAMS
-toolkit, CASL) continuously develop new tools that would benefit from
-CloudBench.
-%The businesses in cloud and high performance computing
-%(e.g., NVidia, Intel, Amazon, Google) develop novel hardware and
-%compute environments that must be supported by these applications and
-%understood by users.
-The benefits of CloudBench include the adoption of
-new advanced simulation tools to improve product development and
-product design.
 
-%% CloudBench will facilitate wide adoption of high performance and
-%% advanced government simulation codes (including NEAMS and associated
-%% tools) by the academia, industry, and regulatory communities.  The
-%% extreme benefit of this technology to the Nuclear Engineering
-%% Community can not be overstated. A serious issue with the simulation
-%% tools such as the NEAMS Toolkit is that its technology
-%% \textbf{\textit{is too new to run on existing vendor and utility
-%%     hardware}}. To wit, the NEAMS Toolkit is state of the art and many
-%% industry tools can only be used on much older hardware and operating
-%% systems which makes it impossible to compile the NEAMS
-%% Toolkit. Usability (including workflow and provenance management) and
-%% code access are limiting factors to adoption by third-party commercial
-%% users.
-
-The CloudBench differentiating factor is support for advanced open
-source tools. The existing workbench and life cycle management tools
-offered by traditional vendors support only the vendor's tools, and do
-not include support for advanced open source simulation tools. Analysts
-like Frost and Sullivan \footnote{``Global CAD and Modeling Software Market,'' Frost \& Sullivan, January 2013. [subscription required].} expect that efficient workflows
-and access to codes will drive the adoption of next generation
-simulation technology. Workflow and life cycle management tools are
-not readily available for the state-of-the-art open source or
-government license tools (e.g., the NEAMS and CASL). Therefore,
-CloudBench will fulfill this role and provide much needed support for
-these advanced simulation tools.
-
-The initial release of CloudBench is CloudBench:NE (for Nuclear
-Engineering) will be developed during Phase II. NE is an important
-first niche market.  As the U.S. and the world ramp up to deploy new
-advanced nuclear reactors, the ability to leverage advanced codes,
-deploy on HPC and Cloud resources, and share experiments (for
-collaborative and regulatory scenarios) is becoming critical to the
-design and regulatory process. While the required workflow management
-tools often exist in vendor simulation suites, they are missing from
-open sourced and government codes.
-
-This initial NE market includes United States companies such as GE
-Hitachi, Westinghouse Electric Company, AREVA, Anatech, Nuscale,
-Bechtel Marine Propulsion Corporation, Tennessee Valley Authority,
-Studsvik Scandpower, Terrapower, Oklo, Starcore Nuclear,
-FPoliSolutions, BWXT Technologies, Transatomic Power Corporation, X
-Energy, Terrestrial Energy, Areva, and Flibe Energy.
+The initial customers of the VnV framework will include the businesses and other institutions (e.g.,ANSYS, Cd-adapco, government labs, universities) that develop large-scale numerical modeling and simulations. To these customers, RNET will provide the training, support and integration services required to quickly and efficiently integrate the VnV framework into new and existing code bases, as well as contract based services for extending the toolkit to fit certain needs. For these customers, the benefits could include streamlining of the companies internal \VV practices, and an increase in the usability, reliability and confidence in their 
+final product. However, the true beneficiaries of the VnV frameworks end-user \VV functionality are the users of the advanced numerical simulation products. By removing the burden associated with
+\VV the VnV framework will ensure erroneous errors do not propagate into final designs, while also opening the door to using simulations tools for which \VV was previous infeasible. All in all, the VnV framework will 
+afford researchers and engineers with the knowledge required to drive the next generation of technological advancements. 
 
 \subsection{Phase I and Feasibility Demonstration}
-\rnetprop{
-RNET worked closely with Mr. Jay Billings from ORNL and the lead architect and 
-principal investigator for the Eclipse Integrated Computational Environment 
-(ICE) in prototyping CloudBench. ICE can interface to many different 
-computational codes and NEAMS tools and its modular design allows us to 
-separate various components in preparation for a web-based interface. Our 
-approach has been to separate ICE into a front-end and back-end service (which 
-would run on any compute, cloud or local instance). The front-end User 
-Interface (UI) would be reimplemented using a web-based UI framework like 
-Vaadin~\cite{vaadin}. This can connect to the back-end which will then allow 
-simulations to be remotely executed. This requires the use of Remote OSGi 
-services~\cite{osgi_ecf} which automatically distributes and proxies 
-communication correctly. The back-end service is also referred to 
-as the ``Core'', since it is developed from ICE's Core component.
-}
-
-In order to demonstrate feasibility of developing this product, RNET and ORNL 
-have accomplished the following.
-
-\begin{itemize}
-\item \rnetprop{Prototyped a web-based UI for CloudBench using Vaadin and a system for 
-choosing users to share data with and verifying appropriate notifications.}
-\item \rnetprop{Resolved various technical challenges in isolating the Core, producing a 
-standalone executable and setting it up to run as a Remote OSGi service, which 
-is crucial towards being able to run on any server.}
-\item \rnetprop{Validated the Remote OSGi connection and the ability to connect via an
-EDEF File.}
-\item \rnetprop{Ported user interface components for a Nek5000 form to the Vaadin 
-interface.}
-\end{itemize}
-
-The following subsections provide details on the efforts to
-demonstrate CloudBench feasibility.
-
-\subsubsection{Validation of Remote Connection}
-\rnetprop{
-The Core component in ICE was setup to be a Remote OSGi service. The setup to 
-test this is outlined in the Phase I Feasibility Report and is shown here in 
-Figure~\ref{fig:test_remote_connections}.
-}
-
-\begin{figure}[thb]
-\begin{center}
-\leavevmode
-\includegraphics[width=0.5\linewidth]{./narrative/figures/ice_core_connect.png}
-\end{center}
-\caption{Setup to test Remote Connections.}
-\label{fig:test_remote_connections}
-\end{figure}
-
-%%REMOVE FOR SPACE
-%% The remote connection is confirmed by the ImportRegistration event on the Host 
-%% Windows machine as shown in Figure~\ref{fig:edef_connect}.
-
-%% \begin{figure}[thb]
-%% \begin{center}
-%% \leavevmode
-%% \includegraphics[width=0.7\linewidth]{./narrative/figures/edef_connect_cropped.png}
-%% \end{center}
-%% \caption{Import Registration on Host Machine.}
-%% \label{fig:edef_connect}
-%% \end{figure}
-
-\subsubsection{Development of a CloudBench UI}
-\rnetprop{Vaadin was chosen as the framework to develop a web-based interface. This was 
-mainly due to the intuitive APIs Vaadin offers, the excellent Vaadin security model, as well as the automatic 
-adjustments to the interface, based on the device being used to view it, such 
-as smartphones and tablets~\cite{vaadin}. Upon successful user login, the 
-CloudBench Dashboard is presented where the main area contains a panel with 
-up-to-date relevant information on status of executed jobs 
-%(\rnetcomment{Can add some panels here})
-and notifications on shared output.}
-%(\rnetcomment{Currently, only notification, no file sharing yet}).
-
-\begin{figure}[!htb]
-\begin{center}
-\leavevmode
-\includegraphics[width=0.7\linewidth]{./narrative/figures/cloudbench_dashboard_cropped.png}
-\end{center}
-\caption{CloudBench Dashboard.}
-\label{fig:cbench_dashboard}
-\end{figure}
-
-\subsubsection{Simple Sharing and Notifications}
-\rnetprop{We have designed CloudBench to support File Sharing among a group of Users. To 
-facilitate this, the UI includes an ``search as you type'' box to pick out 
-Users to share data with.}
-
-\begin{figure}[!thb]
-\begin{center}
-\leavevmode
-\includegraphics[width=0.7\linewidth]{./narrative/figures/cloudbench_sharedialog.png}
-\end{center}
-\caption{Selecting Users to Share With.}
-\label{fig:share_users}
-\end{figure}
-
-In this case, we are sharing data with two test Users, ``Solomon Olsen'' and 
-``Elvis Olsen''. When we login to one of their accounts, we can see that a 
-notification from the originator (test User, ``Gabrielle Patel'') is visible 
-and informs the User of the shared object.
-
-\begin{figure}[!thb]
-\begin{center}
-\leavevmode
-\includegraphics[width=0.9\linewidth]{./narrative/figures/eolsen_shared.png}
-\end{center}
-\caption{Share Notification for Chosen User.}
-\label{fig:share_eolsen}
-\end{figure}
-
-\subsubsection{Headless Workflow Execution and Remote Job Execution}
-\label{sec:remote_exec}
-\rnetprop{ Mr. Billings and the ICE team worked with RNET personnel to modify the workflow 
-engine in Eclipse ICE such that it can execute workflows headlessly as a Remote 
-OSGi service. Although the ICE Core could be run headlessly before, it was by a 
-different mechanism that did not meet the needs of the RNET team. Specifically, 
-Remote OSGi services greatly simplify both memory management and communications 
-between the service client and service provider while maintaining all of the 
-normal advantages of an OSGi service that the original mechanism - a purely 
-RESTful web service - lost. One other advantage of using the Remote OSGi 
-service is that service discovery is simplified on small networks, which has 
-great advantages in production deployment. This achievement simplifies workflow 
-processing in CloudBench by removing the dependency on the ICE workbench, and 
-RESTful service to provide a much simpler programming API. One major advantage 
-of this is that workflow execution and job launch can now be performed on a 
-server that communicates remotely with the CloudBench web client, while still 
-maintaining all of the normal remote job execution capabilities in ICE. ICE's 
-normal job launch framework supports local and remote job execution for several 
-codes in NEAMS and offers full support for batch systems such as SLURM and PBS 
-as well as parallel performance monitoring and remote debugging tools.}
-
-
-\rnetprop{These updates were used to develop a working example of Vaadin with OSGi and 
-implemented the Nek5000 parameters form in Vaadin as shown in 
-Figure~\ref{fig:vaddin_nek5000}. This example demonstrates the feasibility of 
-leveraging ICE's existing support for NEAMS tools in an easy, extendible way to 
-support CloudBench.}
-
-\begin{figure}[!thb]
-\begin{center}
-\leavevmode
-\includegraphics[width=0.8\linewidth]{./narrative/figures/vaadin_nek5000_cropped.png}
-\end{center}
-\caption{Vaadin implementation of the Nek5000 form.}
-\label{fig:vaddin_nek5000}
-\end{figure}
-
-\subsubsection{Advanced Visualization}
-\label{id_advViz}
-\rnetprop{In addition to the Phase I efforts, existing visualization work performed by the ICE team will be used in CloudBench and demonstrate feasibility of the proposed approach.
-The Eclipse Advanced Visualization Project (EAVP) was originally developed as part of the NEAMS program to provide visualization support for 3D post-processing visualizations using VisIt and Paraview in tandem with ICE's workflow engine as well as to provide support for 2D graphing, and 3D mesh and geometry editing. This project was spun off separately from ICE several years ago to answer requests from users to use it outside of ICE and it has continued to grow on its own ever since. The project provides}
-\begin{itemize}
-\item \rnetprop{VisIt integration for working with mesh data}
-\item \rnetprop{ParaView integration for working with mesh data}
-\item \rnetprop{2D mesh editing support (for Nek5000)}
-\item \rnetprop{3D mesh editing support (for surface meshes)}
-\item \rnetprop{3D geometry editing}
-\item \rnetprop{A full plotting library that supports remote updates and streaming}
-\item \rnetprop{Support for remote renderers and multiple connections across VisIt and Paraview}
-\end{itemize}
-
-
