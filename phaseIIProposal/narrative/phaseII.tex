@@ -60,6 +60,41 @@ of numerical simulations. Integration into the NEAMS workbench will provide acce
 \subsection{Work Plan}
 \label{sec:workplan}
 
+As described in the objectives, the final deliverable of the Phase II project will be a fully functional, effcient, battle tested framework 
+for integrating advanced end-user verification and validation into general purpose numerical simulation packages. In what follows, we outline
+the work required to satisfy the objectives outlined in the previous section and to acheive these goals. 
+
+\subsubsection{Hardening and Optimization of the Core VnV Framework}
+
+As shown in Section~\ref{TODO}, the phase I prototype provides a simple interface that facilitates in-situ verification and validation that can be configured at runtime. In Phase II, the project team will look to address the weaknesses associated with the approach taken in Phase I; namely the system for inspecting variables in functions using (void*) pointer casts and the issues asscoiated with ensuring that the VnV tests do not alter the variables and results in any way. 
+
+The first issue the project team will look to address will be the typecasting system for providing access to internal variables. Recall, the Phase I prototype requires the user to provide 
+a list of the name and type of each variable that will be available for inspection. Under the hood, the prototype stores the ``type'' as a string, and casts the variable to a (void*). It is then the responsibility of the specfic tests to, based on the string based description of the type, ensure the pointer is cast to the correct type. The benefits of this approach are that, when implemented correctly, it is extremely eficient and that it can be compiled into any C/C++ program using any compiler. The main weakness of the approach is the reliance on the string based type specification; with the key problem being that it cannot be checked and verified during compilation. This will causes issues in cases where, say, the developer changes the type of a variable, but forgets to update the type string in the injection point.
+
+The Phase II effort will investigate a source-code preprocessor, written using LLVM, that automatically infers the types of the variables passed to the injection points. This will be an annotation based system whereby users can mark the variables to be included at each injection point. For example, Figure~\ref{TODO} shows an example code snippet for a function with two different injection points. This will remove the need for specifying the type of each variable, ensuring the correct type is always provided to the injection point factory. It would still be up to the developer of the tests to ensure the pointer is cast to the correct state. This investgation will also include looking into using C++11 RTTI information (dynamic_cast, typeid, etc.) to infer type information at runtime; however, a general C approach will be favored due to the large number of C programs still regularly used in scientifc computing. The LLVM compiler framework will allow for fast R\&D of the pre-processor. The LLVM preprocessor will be reimplemented for use with GNU compilers at a later date. 
+
+The second issue the Phase II effort will look to address is the requirement that VnV tests do not alter execution of the simulation in any way. While the proposed injection point system does provide some exciting opportunities for run-time computational steering and parallel debugging, the framework will be, first and foremost, designed for \VV, and as such, there needs to be an option to verify the constant correctness of each test.
+
+In Phase II, we will implement a constant correctness system based on ideas borrowed from relative parallel bebuggers. In these cases, the idea is to
+
+\subsubsection{Reducing Runtimes with Test Offloading and Job Parallelism}
+
+
+\subsubsection{Efficient Statistical Comparrisons in Distributed Settings}
+
+
+\subsubsection{Generic \VV tools for Mesh Refinement, Uncertainty Quantificaiton and Sensitivity Analysis.} 
+
+\subsubsection{Demonstration in Real World Applications}
+
+
+\subsubsection{Integration with the NEAMS workbench} 
+
+
+
+
+
+
 
 \subsection{Performance Schedule and Task Plan}
 \label{sec:taskplan}
