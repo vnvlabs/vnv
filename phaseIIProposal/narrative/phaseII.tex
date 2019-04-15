@@ -64,36 +64,113 @@ As described in the objectives, the final deliverable of the Phase II project wi
 for integrating advanced end-user verification and validation into general purpose numerical simulation packages. In what follows, we outline
 the work required to satisfy the objectives outlined in the previous section and to acheive these goals. 
 
-\subsubsection{Hardening and Optimization of the Core VnV Framework}
+\subsubsection{Hardening and Optimization of the Injection Point System}
 
-As shown in Section~\ref{TODO}, the phase I prototype provides a simple interface that facilitates in-situ verification and validation that can be configured at runtime. In Phase II, the project team will look to address the weaknesses associated with the approach taken in Phase I; namely the system for inspecting variables in functions using (void*) pointer casts and the issues asscoiated with ensuring that the VnV tests do not alter the variables and results in any way. 
+The injection point system developed during Phase I uses C style Macros and string based (void*) pointer casts to declare the variables available for inspection
+at each injection point.  When implemented correctly, this is an efficient (void* casts are almost free) and portable (it uses low level C functionality supported by all C/C++ compilers) approach. In Phase II, the project team will develop a custom compiler that supports an annotation based specification for the injection points and the injection point variables. This annotation based specification will be designed to address two key issues with the Phase I approach:
 
-The first issue the project team will look to address will be the typecasting system for providing access to internal variables. Recall, the Phase I prototype requires the user to provide 
-a list of the name and type of each variable that will be available for inspection. Under the hood, the prototype stores the ``type'' as a string, and casts the variable to a (void*). It is then the responsibility of the specfic tests to, based on the string based description of the type, ensure the pointer is cast to the correct type. The benefits of this approach are that, when implemented correctly, it is extremely eficient and that it can be compiled into any C/C++ program using any compiler. The main weakness of the approach is the reliance on the string based type specification; with the key problem being that it cannot be checked and verified during compilation. This will causes issues in cases where, say, the developer changes the type of a variable, but forgets to update the type string in the injection point.
+\begin{itemize}
+ \item {\bf String based pointer casts:} The injection point system developed in Phase I requires the developer to provide a string that describes the type for each variable available at an injection point. Under the hood, the injection point system using string comparisons to ensure compatibility been test parameters and injection point variables. The key issue with this approach is that the strings specified at each injection point cannot be verified during compilation.  This will causes major issues in cases where, say, the developer changes the type of a variable, but forgets to update the type string in the injection point. The custom source code processor developed in Phase II will automatically detect the type of the variables passed to the injection point system, removing the requirement for a hard-coded type string. 
+  
+ \item {\bf Restrictive type specifications:} The current system uses C compliant pre-processor macros to simplify the process of describing injection points and variables. The benefit of this approach is that the injection points can be compiled into any application without significant changes to the build system. The downside is that single-pass, text based macros place a significant restriction on the functionality that can be implemented. The annotation system developed in Phase II will be far more dynamic, allowing users to full control over what variables can be accessed at each injection point, including the ability to provide access to internal components of data structures, describe the domain decomposition of distributed arrays and to complete pre-test processing of variables. The annotation system will also provide a mechanism for suggesting default tests to be run at each injection point, and will provide a mechanism for injection point detection in non-object orientated programming languages where runtime injection point detection cannot be completed.  
+\end{itemize}
 
-The Phase II effort will investigate a source-code preprocessor, written using LLVM, that automatically infers the types of the variables passed to the injection points. This will be an annotation based system whereby users can mark the variables to be included at each injection point. For example, Figure~\ref{TODO} shows an example code snippet for a function with two different injection points. This will remove the need for specifying the type of each variable, ensuring the correct type is always provided to the injection point factory. It would still be up to the developer of the tests to ensure the pointer is cast to the correct state. This investgation will also include looking into using C++11 RTTI information (dynamic_cast, typeid, etc.) to infer type information at runtime; however, a general C approach will be favored due to the large number of C programs still regularly used in scientifc computing. The LLVM compiler framework will allow for fast R\&D of the pre-processor. The LLVM preprocessor will be reimplemented for use with GNU compilers at a later date. 
+This compiler will be written using Clang. Clang is a compiler front end for the C family of languages. It is a well supported, well documented compiler package designed as a drop in replacement for GCC. In particular, Clangs simple API for defining custom Pragma routines, combined with its robust API for walking the Abstract syntax tree of the code make it the perfect choice for developing this annotation based system for defining injection points. Clang has seen wide scale uptake across the software development world and, in recent years, has emerged as a realistic competitor to the ubiquitous GCC compiler suite.  
+
+Figure~\ref{TODO} shows how the annotation based injection point system will look in a C/C++ code. The user will annotate simple variables with the ``@Variable(''IP\_1``, ''IP\_2``,...)'' annotation. In that annotation, users will be able to specify the injection points for which that variable is available. Additionally, users will be able to specify additional parameters that define how the variable should be accessed, e,g., for providing access to a member of a struct (line TODO), or for providing access to a certain element in an array (line TODO). For distributed arrays, the annotation based system will allow users to define approaches for obtaining the global and local ownership for each processor. Together, this annotation based system will allow users to fully control the access to these variables. The original Phase I approach will still be available for users that cannot switch to the new Clang compiler. Where possible, the custom compiler will make use of available C++11 RTTI information (dynamic\_cast, typeid, etc.); however, a general C approach will be favored due to the large number of C programs still regularly used in scientific computing. 
+
+
+\subsubsection{Efficient Statistical Comparisons in Distributed Settings} 
+
+One of the major benefits of the VnV framework is that it allows for in-situ testing and analysis in distributed systems. This direct, in-situ access allows for a detailed level of testing that would otherwise not be feasible in \VV approaches that require writing data to disk. For example, this in-situ analysis could allow the user to directly assert that all the elements in an array are positive, or that all the elements in an array are the same as the elements in another array without ever writing the data to disk. 
+
+The goal of the Phase II effort will be to the main issues associated with performing such tests in a large-scale distributed environment;
+\begin{itemize}
+ \item {\bf Decomposition Description:} In order for the testing algorithms to act of the data structures, they must be aware of the way that the code has distributed 
+ the code across the parallel processors. As such, a key goal of the Phase II effort will be the implement efficient, user friendly approaches for describing the domain 
+ decomposition for arrays with both regular and irregular decompositions. For regular decompositions, the approach taken will be to allow the user to specify a BlockMap function as described in \cite{}.Blockmap follows the HPF syntax [21], and includes a collection of expressions that describe the decomposition scheme. In the blockMap function, each dimension of the data is classified as either ``Block'', ``Clyclic'' or ``Ignored''; where block decompostion means that a contiguous number of elements in the given dimension are mapped to different processes; Cyclic decmoposition means each element in the given dimension is mapped to a different process in order; and ignored means that decmoposition is ignored along that dimension. Figures \ref{} show some examples of typical decompositions for 2D arrays supported by the blockMap function.
+ 
+ Support for irregular domain decompositions will be developed based on the Assumed partition algorithm. The assumed partition algorithm was first developed to assist in efficient load balancing in Hypre, a comprehensive suite of scalable parallel linear solvers. 
+ 
+ 
+ 
+ 
+\end{itemize}
+
+
+The first issue is that the testing algorithms must know how the data is decomposed across the parallel processors.
+
+
+
+The second issue lies in developing an efficient mechanism for collecting or distributing 
+
+
+
+
+
 
 The second issue the Phase II effort will look to address is the requirement that VnV tests do not alter execution of the simulation in any way. While the proposed injection point system does provide some exciting opportunities for run-time computational steering and parallel debugging, the framework will be, first and foremost, designed for \VV, and as such, there needs to be an option to verify the constant correctness of each test.
 
-In Phase II, we will implement a constant correctness system based on ideas borrowed from relative parallel bebuggers. In these cases, the idea is to
-
-\subsubsection{Reducing Runtimes with Test Offloading and Job Parallelism}
-
-
-\subsubsection{Efficient Statistical Comparrisons in Distributed Settings}
-
-
-\subsubsection{Generic \VV tools for Mesh Refinement, Uncertainty Quantificaiton and Sensitivity Analysis.} 
-
-\subsubsection{Demonstration in Real World Applications}
-
-
-\subsubsection{Integration with the NEAMS workbench} 
 
 
 
 
+\subsubsection{Reducing Run-times with Test Offloading and Job Parallelism}
 
+Performing a large number of \VV tests in a distributed environment will be expensive, both computationally and due to the data movement required to deal with the domain decomposition employed by the application. A key goal of the Phase II effort will be to investigate and implement approaches for distributing tests for offloading tests for execution on separate processes. 
+
+The issue of efficient data transfer will be addressed using the ADIOS 2 Sustainable Staging Transport (SST). The SST is a classic streaming data architecture, that allows for direct connection between data produces and data consumers via the ADIOS2 write/read API. In HPC environments, SST uses the RDMA interconnects to ensure fast transfer of data between HPC applications; however, socket based connections are also supported. Due to issues associated with serialization of generic data-structures, the Phase II implementation will restrict data offloading to tests that work with the basic data types supported by ADIOS2 (strings, floats, double, arrays, etc). Generic data structures will be investigated in Phase III. The development of test offloading will proceed in two stages; 
+
+\begin{itemize}
+ \item The first step will be to develop the interfaces and annotations required to transfer data to external processes for testing. Test offloading will only be effective in situations where the cost of completing the required tests is large in comparison to the time required for transferring the data. To address this issue, the project team will implement a heuristic algorithms that determines the appropriate action based on the size and type of the data structures to be transferred and the type and number of tests to be executed. More robust approaches will be investigated after testing and analysis of the initial implementation.  
+ \item The second step will be to develop the separate VV executable that consumes the data and coordinates the execution of the required tests. As shown in Figure~\ref{TODO}, this will a MPI application consisting of one master processor and any number of slave processors. The role of the master processor is to efficiently allocate the incoming tests and data to the slave processors. This will include determining the appropriate number of processors to allocate to each test given the available resources, forming the required communication groups, and executing the tests. The role of the slave nodes will be to execute the tests as directed. 
+ 
+ In many cases, it will be more cost efficient to execute the tests as separate jobs. To support this use case, the external test executable will support submitting tests for execution on local and remote machines using the Eclipse Parallel tools platform (PTP). PTP was developed by our collaborator as a simple unified interface for interacting with various job schedulers available in the HPC community (PBS, SLURM, etc.). PTP has seen wide-scale usage across the scientific community, and is used in such cases as TODO.
+ \end{itemize}
+
+
+\subsubsection{Integrate Third Party Tools for Mesh Refinement, UQ and Sensitivity Analysis.}
+
+Mesh refinement studies, Uncertainty quantification and sensitivity analysis are all essential components of a robust \VV regimen. To that
+end, the Phase II effort will include the development of \VV tests that integrate third party tools to complete these tests. 
+
+The UQ and SA tests will be developed using DAKOTA. DAKOTA provides a set of black-box tools for performing parameter optimization, UQ 
+and SA. DAKOTA provides two interfaces for integrating these tools into applications; a black-box approach that uses preprocessors, postprocessors
+and the file system to complete the tests; and library API for direct, hard-coded testing. The Phase II effort will focus on integrating the 
+DAKOTA tools through the library API as it allows for the tools to be applied directly to any independent function. To that end, the Phase II 
+effort will include the development of an custom VnV testing library for direct integration with the DAKOTA library API. This will include the development
+of a flexible interface for setting up and running the DAKOTA tests, and the development of the test specification files for displaying the test results 
+in an informative and interactive way. 
+
+Support for Mesh refinement will be developed as part a separate plug-able VnV testing library. The intended functionality of this testing 
+suite will be to enable the completion of both uniform and adaptive mesh refinement studies given only the initial coarse mesh. This will require 
+the development of methods for marking the mesh for refinement and methods for refining the mesh. 
+
+
+\subsubsection{Integration with NEAMS tools and the NEAMS workbench} 
+
+The final step in the Phase II project will be to integrate the VnV framework into the NEAMS 
+tools. Doing so will allow us to demonstrate the performance of the toolkit in real codes with
+real applications; while also answering the solicitation call for tools that support end-user 
+verification of numerical solutions in the NEAMS tools. 
+
+Integration into NEAMS tools will be a three step process:
+
+\begin{itemize}
+ \item The first step will be to insert injection points into key locations in the MOOSE, libMesh and PETSc source codes. The optimal locations for 
+ inserting these injection points will be determined after detailed profiling of example codes; however, some obvious options include during each linear 
+ solver iteration, during each nonlinear iteration, during finite element matrix construction (if it exists) and inside the function for calculating the action of the Jacobian
+ on a vector. 
+ \item The second step will be to allow users to configure the VnV testing directly in the MOOSE input file, using the MOOSE input
+file syntax. This will provide users of MOOSE with a seamless mechanism for setting up and running tests. This will be completed by
+developing a custom MOOSE ``Action'' that processes the input at runtime to setup the core VnV testing functionality. 
+\item The third step will be to enable context-aware auto-complete for MOOSE based VnV configuration files in the NEAMS workbench. The workbench
+has integrated support for extracting the information required to setup input file verification and auto-complete from MOOSE applications; however, there
+will likely be some additional work required to correctly setup the auto-complete and verification for tests stored in external libraries. In particular, the current system 
+requires that the tests adhere to a specific XSD specification for configuration, but there is not yet a system for extracting the exact parameters required to inject a specific test. To do this, we will create a lightweight executable that loads external test libraries and extracts the appropriate parameter specifications in the ``SON'' format supported by workbench.  
+\item The last step will be the development of an interface for editing the YAML specification files used to generate the final report and an interface 
+for viewing said final reports. The GUI will be written using standard HTML and Javascript and then integrated into the workbench using the QT QWebEngineView component (QWebView is the workbench is using QT 4). The QWebEngineView component allows for interactions with the core QT window (i.e., open, save, copy, paste, etc.) however, it is important to note that this approach will not allow for a truly ``native'' experience within the workbench. The decision to develop in JS and HTML rather than native QT was made to ensure the final product, the VnV framework, is consistent, and can be used in applications outside of the NEAMS lines of tools. Every effort will be made to ensure the GUI conforms to the NEAMS workbench standards and specifications. 
+\end{itemize}
 
 
 \subsection{Performance Schedule and Task Plan}
