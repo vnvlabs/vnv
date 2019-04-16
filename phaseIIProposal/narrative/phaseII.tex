@@ -206,26 +206,30 @@ task.
 \setcounter{taskCount}{0}
 
 \refstepcounter{taskCount}\label{task:2.5}
-\subsubsection{Task \ref{task:2.5}: Hardening of the Phase I VnV Injection Point System. }
+\subsubsection{Task \ref{task:2.5}: Development of the Annotation based Inpjection Point System  }
 
-In this task, the project team will develop an efficient, intuitive and type-safe injection point system for specifying testing points in, and across, advanced numerical software packages. Building on top of the Phase I prototype, this work will look to implement the injection point system in a way that allows for in-situ variable inspection in a robust and consistent way. The two main that need to be addressed are (1) the distinct lack of a robust reflection API in C++ makes defining functions that support generic arguments of unknown classes in a type safe way difficult, (2) the overhead associated with \VV injection points in cases where no testing is requested and (3) the difficulties in ensuring tests do not modify the variables in any way. Implementing this will require looking into the possibilities of implementing a LLVM compiler option for run-time removal of unused injection points, and/or the development of binary rewriting tools and the integration of parallel relative debugging techniques for detecting un-authorized and/or unintended changes is the run-time variables. 
+In this task, the project team will develop the Annotation system for specifying injection points and describing injection variables. This will include the development of
+the API for specifying the Annotations as shown in Figure~\ref{TODO}, and the development of the custom LLVM compiler extensions required to process these annotations. At the end of this task, users will be able to specify injection points and injection variables using either the new Annotation point system, or using the more portable, but less robust Phase I approach. 
+
+To test the Annotation based injection point system, the project team will write injection points at several key locations in the MOOSE software stack, including inside the source code of several MOOSE modules, the core MOOSE framework, libMesh and PETSc. This will allow us to demonstrate the cross-library potential of the Annotation based system, while also acting as the first step toward integration of the tools a number of the NEAMS tools. 
 
 \rnetprop{RNET will work on the implementation for this task and ORNL will provide inputs and guidance.}
 
 
 \refstepcounter{taskCount}\label{task:3}
 \subsubsection{Task \ref{task:3}: Develop methods for offloading tests to external processes. }
-Performing a large number of \VV tests in a distributed environment will be expensive, both computationally and due to the data movement required to deal with the domain decomposition employed by the application. In this task, the project team will investigate the development of a mechanism for the evaluation of \VV tests that is lightweight and minimizes resource consumption. The initial approach to this will be to determine the requirements for efficient \VV test execution, and assess the capabilities provided by frameworks such as MRNet, SNOflake, ADIOS, etc. to determine if they can meet these requirements. Depending on the results of this assessment, work will be undertaken to create a library that can be integrated with the \VV framework. This library will be based on either one of these frameworks or using a custom solution. The project team will also determine the feasibility of integrating the Parallel Tools Platform (PTP) as a mechanism for minimizing \VV runtime through job parallelism. If appropriate, the team will extending PTP to fit this purpose.   
-
-\rnetprop{RNET will work on the implementation for this task and ORNL will provide inputs and guidance.}
 
 \refstepcounter{taskCount}\label{task:23}
 \subsubsection{Task \ref{task:23}: Development of efficient statistical \VV tools with a focus of performance in large scale distributed settings.}
 
-In this task, the team will perform R\&D work to determine and implement efficient statistical based \VV tools that can be applied in distributed settings. Consider that case of comparing the simulated solution to some known experimental results. In a distributed setting, the user must either distribute the experimental data across the nodes based on some known description of the data decomposition (difficult in a general setting), or gather to solution to some root node (expensive, and in many cases impossible. In this task, the project team will look into efficient mechanisms for inferring, detecting, and or describing the data decomposition such that this style of tests can be completed in an efficient manner. 
 
-\rnetprop{RNET will be responsible for this task. ORNL will provide guidance on 
-developing the framework for ORNL CADES.}
+In this task, the project team will investigate the optimal approaches for conveying information about the data decompoosition to the individual tests. As outlined in Section~\ref{TODO}, this will involve the implementation of the BlockMap algorithm for data structures with regular decompositions and the implementation of a simple approach for generating the global partition for problems with irregular domain decompositions. Based on the performance of those implementations, the project team will investigate more optimal approaches to completing intra-processor communications with distributed data arrays, including creating a data directory or using the assumed partition algorithm 
+
+In addition to this the project team will implement several statistical tools for asserting the state of the data in distributed arrays, as described in Section~\ref{TODO}. 
+
+At the completion of this task, users will be able to efficiently compare and analyze distributed arrays using teh VnV framework. To test these implementations, the project team will set up tests for performing assertions on various PETSc vectors and matrices. The metric for success in this task will be to: (1) support arbitary data decompoistion descriptions; and (2) obtain a factor 5x speedup when performing assertions using our custom statistical assertions when compared to the naieve approach of gathering the data on a single root core for processing. 
+
+\rnetprop{RNET will work on the implementation for this task and ORNL will provide inputs and guidance.}
 
 \refstepcounter{taskCount}\label{task:22}
 \subsubsection{Task \ref{task:22}: Development of Generic tools for Mesh refinement, Uncertainty quantification and Sensitivity Analysis.}
