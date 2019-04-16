@@ -84,35 +84,17 @@ Figure~\ref{TODO} shows how the annotation based injection point system will loo
 
 One of the major benefits of the VnV framework is that it allows for in-situ testing and analysis in distributed systems. This direct, in-situ access allows for a detailed level of testing that would otherwise not be feasible in \VV approaches that require writing data to disk. For example, this in-situ analysis could allow the user to directly assert that all the elements in an array are positive, or that all the elements in an array are the same as the elements in another array without ever writing the data to disk. 
 
-The goal of the Phase II effort will be to the main issues associated with performing such tests in a large-scale distributed environment;
-\begin{itemize}
- \item {\bf Decomposition Description:} In order for the testing algorithms to act of the data structures, they must be aware of the way that the code has distributed 
- the code across the parallel processors. As such, a key goal of the Phase II effort will be the implement efficient, user friendly approaches for describing the domain 
- decomposition for arrays with both regular and irregular decompositions. For regular decompositions, the approach taken will be to allow the user to specify a BlockMap function as described in \cite{}.Blockmap follows the HPF syntax [21], and includes a collection of expressions that describe the decomposition scheme. In the blockMap function, each dimension of the data is classified as either ``Block'', ``Clyclic'' or ``Ignored''; where block decompostion means that a contiguous number of elements in the given dimension are mapped to different processes; Cyclic decmoposition means each element in the given dimension is mapped to a different process in order; and ignored means that decmoposition is ignored along that dimension. Figures \ref{} show some examples of typical decompositions for 2D arrays supported by the blockMap function.
- 
- Support for irregular domain decompositions will be developed based on the Assumed partition algorithm. The assumed partition algorithm was first developed to assist in efficient load balancing in Hypre, a comprehensive suite of scalable parallel linear solvers. The assumed partition algorithm provides an efficient mechanism for determining the owners of a particular index in a distributed array under the assumption that a processor knows only its local ownership range. 
- 
- 
- 
- 
-\end{itemize}
+The goal of the Phase II effort will be to the main issues associated with performing such tests in a large-scale distributed environment; determining the data decompoistion and efficiently comparing arrays in a distributed setting.
 
+In order for the testing algorithms to act of the data structures, they must be aware of the way that the code has distributed 
+the code across the parallel processors. As such, a key goal of the Phase II effort will be the implement efficient, user friendly approaches for describing the domain 
+decomposition for arrays with both regular and irregular decompositions. For regular decompositions, the approach taken will be to allow the user to specify a BlockMap function as described in \cite{}.Blockmap follows the HPF syntax [21], and includes a collection of expressions that describe the decomposition scheme. In the blockMap function, each dimension of the data is classified as either ``Block'', ``Clyclic'' or ``Ignored''; where block decompostion means that a contiguous number of elements in the given dimension are mapped to different processes; Cyclic decmoposition means each element in the given dimension is mapped to a different process in order; and ignored means that decmoposition is ignored along that dimension. Figures \ref{} show some examples of typical decompositions for 2D arrays supported by the blockMap function.  To support irregular decompositions, the Phase II effort will implement a generic algorithm for forming the global partition. Under the assumption that every processor knows its own local ownership range (in global co-ordinates), the global partition can be formed using a simple global collective communication (All-To-All communication). Once each processor knows the global partition, figuring out which processors own the required indecies is a simple task. There are some concerns with this approach, namely that is requires O(P) storage and O(log(P)) communication. Such costs are acceptable at modest processor counts, but could potentially become an issue in large scale (100K+ processors) settings. If the need arrises, the project team will investigate implementing more advanced methods for determining intra processor communication patterns in a distributed data environment, including creating a distributed directory \cite{hypre-ref-9} or through an assumed partition \cite{hypre-assumed-partition}. 
 
-The first issue is that the testing algorithms must know how the data is decomposed across the parallel processors.
+Once the global partition has been obtained, the important task becomes determining TODO. 
 
-
-
-The second issue lies in developing an efficient mechanism for collecting or distributing 
-
-
-
-
-
-
-The second issue the Phase II effort will look to address is the requirement that VnV tests do not alter execution of the simulation in any way. While the proposed injection point system does provide some exciting opportunities for run-time computational steering and parallel debugging, the framework will be, first and foremost, designed for \VV, and as such, there needs to be an option to verify the constant correctness of each test.
-
-
-
+Compare to experimental results
+Compare to an expected results
+ETC
 
 
 \subsubsection{Reducing Run-times with Test Offloading and Job Parallelism}
@@ -146,13 +128,16 @@ Support for Mesh refinement will be developed as part a separate plug-able VnV t
 suite will be to enable the completion of both uniform and adaptive mesh refinement studies given only the initial coarse mesh. This will require 
 the development of methods for marking the mesh for refinement and methods for refining the mesh. 
 
+An additional test for tracking and displaying a detailed provenance history for the simulation will also be developed. This provenance tracking
+test will be attached to the main function of the executable and will include functionality for documenting the inputs to the code, the build 
+date of the executable, a list of the versions, checksums and build dates of any imported shared libraries, copies of the stdout, stdin and stderr, and, where 
+appropriate, copies of all output files. Tracking these details is not difficult, yet, this detailed level of information will significantly increase the validity of the \VV report while also providing a mechanism for detecting when a \VV report becomes out of date due to an upstream software update. 
 
 \subsubsection{Integration with NEAMS tools and the NEAMS workbench} 
 
-The final step in the Phase II project will be to integrate the VnV framework into the NEAMS 
-tools. Doing so will allow us to demonstrate the performance of the toolkit in real codes with
-real applications; while also answering the solicitation call for tools that support end-user 
-verification of numerical solutions in the NEAMS tools. 
+The next step in the Phase II project will be to integrate the VnV framework into the NEAMS 
+tools. Doing so will provide ample opportunities for testing, while also allowing us to demonstrate the performance of the toolkit in real codes with
+real applications. Moreover, this integration will answer the solicitations call for tools that support end-user verification of numerical solutions in the NEAMS tools. 
 
 Integration into NEAMS tools will be a three step process:
 
@@ -171,6 +156,15 @@ requires that the tests adhere to a specific XSD specification for configuration
 \item The last step will be the development of an interface for editing the YAML specification files used to generate the final report and an interface 
 for viewing said final reports. The GUI will be written using standard HTML and Javascript and then integrated into the workbench using the QT QWebEngineView component (QWebView is the workbench is using QT 4). The QWebEngineView component allows for interactions with the core QT window (i.e., open, save, copy, paste, etc.) however, it is important to note that this approach will not allow for a truly ``native'' experience within the workbench. The decision to develop in JS and HTML rather than native QT was made to ensure the final product, the VnV framework, is consistent, and can be used in applications outside of the NEAMS lines of tools. Every effort will be made to ensure the GUI conforms to the NEAMS workbench standards and specifications. 
 \end{itemize}
+
+\subsubsection{Hardening of the Automated Report Generation System} 
+
+Another step in the Phase II project will be the extension and completion of the automated report generation system. This will include:
+\begin{itemize} 
+ \item Adding support for a wider range of data visualization techniques. As shown in the feasibility section, the Phase I prototype supports some 2D plots and 3D plotting of .VTP files. In Phase II we will extend this support to include a wide range of charts and a wide range of VTK file formats. In addition, the project team will add support for rendering 3D plots using an instance of Paraview running on the local machine of the user who is reading the report. This functionality, which is already supported by ParaviewWeb, will allow for more detailed visualizations that can be implemented with static data and post-processing alone. 
+ \item Adding support for the industry specified \VV report Templates, such as the DoD \VV template specification \cite{}. This functionality will furter increase the value of toolkit in industry settings where specific formats a required for \VV reporting. 
+
+ \end{itemize}
 
 
 \subsection{Performance Schedule and Task Plan}

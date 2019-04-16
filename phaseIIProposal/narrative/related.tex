@@ -10,10 +10,13 @@ and large data formats. Some of these projects are briefly described below.
 \subsubsection{Automated Solver Selection for NEAMS Tools}
 
 RNET in collaboration with University of Oregon (Dr. Boyana Norris) is developing an add-in feature for the NEAMS 
-toolkit being developed by the Department of Energy. This work is being done as part of DOE Phase I STTR project 
-(Contract Number DE-SC0013869). This add-in feature being developed by RNET will leverage machine learning techniques 
+toolkit being developed by the Department of Energy. This work is being done as part of DOE Phase II STTR project 
+(Contract Number DE-SC0013869). This add-in feature being developed by RNET leverages machine learning techniques 
 to automatically select the optimal solver based on run-time dependent features of the problem and the underlying 
-compute architecture with minimal runtime overhead in solver selection during the course of NEAMS simulations.
+compute architecture with minimal runtime overhead in solver selection during the course of NEAMS simulations. 
+
+\subsubsection{Cloudbench} 
+
 
 %% \subsubsection{Catalytic Converter Modeling on High-End Workstations}
 
@@ -62,66 +65,21 @@ bottlenecks in the CFD and CSD solvers. For instance, a GPU-based CFD
 solver with an identical interface to the current Block-Seidel solver
 is being explored.
 
-\subsubsection{A Map-Reduce Like Data-Intensive Processing Framework for Native Data Storage}
-
-%\begin{wrapfigure}{r}{0.5\linewidth}%[thb]
-%\begin{center}
-%\leavevmode
-%\includegraphics[width=1.0\linewidth]{./narrative/figures/mapreduce.png}
-%\end{center}
-%\caption{iNFORMER: A Native data format MapREDuce-like framework.}
-%\label{fig:mr}
-%\end{wrapfigure}
-
-RNET is currently under a DOE Phase II STTR contract for developing a MapReduce-like data-intensive processing framework 
-for native data storage (Contract\#: DE-SC0011312). The Ohio State University (OSU) is a collaborator on this STTR project. 
-MapReduce is a very popular data analytic framework that is widely used in both industry and scientific research. Despite 
-the popularity of MapReduce, there are several obstacles to applying it for developing some commercial and scientific data 
-analysis applications.
-
-
-This project is developing a Native data format MapREDuce-like framework, iNFORMER, based on SciMate architecture. The 
-framework allows MapReduce-like applications to be executed over data stored in a native data format, without first loading 
-the data into the framework. This addresses a major limitation of existing MapReduce-like implementations that require the 
-data to be loaded into specialized file systems, e.g., the Hadoop Distributed File System (HDFS). The overheads and additional
-data management processes required for this translation can prevent MapReduce from being used in many commercial and 
-scientific environments.
-
-% uncomment if including the image.
-%Figure \ref{fig:mr} shows how iNFORMER components are related to each other. 
-%It also shows how they 
-%can relate to other components when integrated with a larger Big Data platform 
-%such as Hadoop. 
-
-
 
 
 \subsection{ORNL's Related Work}
 %\subsubsection{ICE}
 \label{sec:nice}
 
-The Eclipse Integrated Computational Environment (ICE) is an award-winning, open source platform and user environment for working with scientific software, managing scientific 
-workflows and exposing advanced modeling and simulation technologies through a streamlined user experience. It includes tools
-for input generation, local and remote job launch including remote job monitoring, data analysis and data management. It also
-includes software development tools for multiple languages including C/C++, Java and Fortran. It uses community tools for data
-analysis including VisIt and Paraview as well as tools developed custom analysis.
+Dr. Watson, the instatutional PI for this project, has experience with realtive ebuggers --- TODO a bit about the GAURD debugger
 
-It was sponsored continuously by NEAMS from 2009 to 2016, where it was known as the NEAMS Integrated Computational Environment (NiCE), and has extensive 
-support for the NEAMS Toolkit. It includes plugins for MOOSE-based and 
-SHARP-based applications and also plugins for Warthog, which unifies MOOSE and 
-SHARP. It has also received funding from other offices, including the Advanced 
-Manufacturing Office, ORNL's Laboratory Director's Research and Development 
-(LDRD) fund, and external sponsors. It supports workflows in areas ranging from 
-advanced manufacturing, advanced materials, astrophysics, neutron science, 
-nuclear energy, quantum computing, and virtual batteries, among others.
 
-ICE's sister project is the Eclipse Advanced Visualization Project, which was also originally part of NEAMS and NiCE. This platform offers a wide range of visualization capabilities and integrates with existing tools in the market, including VisIt and Paraview. It provides either local or remote connections to these tools in addition to offering visualization tools for editing geometry and meshes as well as simple plotting.
+Dr. Watson is also the main developer for the Eclipse Parallel Tools platfrom. The aim of the Eclipse Parallel Tools Platform project is to produce an open-source industry-strength platform that provides a highly integrated environment specifically designed for parallel application development. The project will provide a standard, portable parallel IDE that supports a wide range of parallel architectures and runtime systems; a scalable parallel debugger; support for the integration of a wide range of parallel tools; and an environment that simplifies the end-user interaction with parallel systems. 
 
-Mr. Billings is the project lead and architect for both of these projects.
-
-A solid foundation has been laid to achieve the objectives of the proposed project from the NEAMS perspective. The final 
-missing piece of the puzzle is streamlining these efforts to enable cloud execution and a goto-portal for the nuclear 
-engineering community. Once this is accomplished, it will be possible to seamlessly transfer all the technology that is 
-currently only within DOE and a few selected groups to the broader community at large. The collaboration between ORNL and 
+A solid foundation has been laid to achieve the objectives of the proposed project. The final 
+ piece of the puzzle is the optimization and hardening of these core approaches for efficient execution in real applications. 
+ Once this is accomplished, it will be possible to seamlessly integrate functionality for end-user \VV into any general purpose 
+ numerical simulation software. The collaboration between ORNL and 
 RNET is a perfect fit to facilitate this final step. RNET brings to the table the required computer science expertise to 
-satisfy the needs of this project, as is evident from a description of their related work.
+satisfy the needs of this project, as is evident from a description of their related work, and ORNL brings a wealth of experience developing novel
+HPC software solutions, developing robust debugging tools for use in HPC environemnts and working with a range of real application codes. 
