@@ -82,38 +82,37 @@ Figure~\ref{TODO} shows how the annotation based injection point system will loo
 
 \subsubsection{Efficient Statistical Comparisons in Distributed Settings} 
 
-One of the major benefits of the VnV framework is that it allows for in-situ testing and analysis in distributed systems. This direct, in-situ access allows for a detailed level of testing that would otherwise not be feasible in \VV approaches that require writing data to disk. For example, this in-situ analysis could allow the user to directly assert that all the elements in an array are positive, or that all the elements in an array are the same as the elements in another array without ever writing the data to disk. 
+One of the major benefits of the VnV framework is that it allows for in-situ testing and analysis in distributed systems. In particular, this type of in-situ analysis is particularly useful for analyzing and comparing data stored in distributed arrays. For example, a tests could be used to assert that all the elements in an array are positive, or that all the elements in an array are the same as the elements in another array; all without ever writing the data to disk and/or without collecting the data on a head node. 
 
-The goal of the Phase II effort will be to the main issues associated with performing such tests in a large-scale distributed environment;
+To that end, the Phase II project will research efficient techniques for analyzing, asserting and comparing data stored in distributed arrays. To achieve this, the project team will need to address two key issues; determining the data decomposition and efficiently performing the statistical analysis. 
+
+{\bf Data decomposition:} In order for the testing algorithms to act of the data structures, some information about the global distribution of the data will be required. Determining this global partition is not difficult for programs that use a regular decomposition scheme because, in these cases, there exists a static mapping function that can be evaluated locally on any processor to determine the owner of any index. For programs using irregular decompositions, no such mapping exists. Instead, for irregular domains, it is necessary to calculate the global partition dynamically at runtime. Hence, a major goal of the Phase II project will be to implement an efficient, scalable approach to dynamically obtaining the global partition from generic distributed arrays. 
+
+To do this, the project team will investigate several approaches to determining intra-processor communication patterns for distributed data. 
+
+The first approach implemented will be to generate the global partition through a collective MPI communication (MPI\_AllGatherV). In this setting, the global partition is assembled on every processor. This makes determining the owner of a particular data component a simple task. 
+
+The above approach requires O(P) storage on each processor and O(log(P)) communication costs (where P is the number of processors). For small processor counts, this linear dependence on P for storage costs is not likely to be a problem. However, in large-scale settings this will quickly become an issue \cite{hypre-assumed}. In particular, such storage costs are an issue for VnV testing because they will be required on top of the storage costs associated with the application being tested. 
+
+To address these storage concerns, the project team will implement an Assumed partition algorithm. This algorithm was first introduced in \cite{} as an efficient mechanism for determining intra-processor communication patterns in Hypre, a scalable collection of high performance linear solvers. The assumed partition algorithm is a parallel rendezvous algorithm that facilitates intra-processor communication using O(1) storage and O(log(P)) communication. The algorithm can be characterized by the following three steps;
 \begin{itemize}
- \item {\bf Decomposition Description:} In order for the testing algorithms to act of the data structures, they must be aware of the way that the code has distributed 
- the code across the parallel processors. As such, a key goal of the Phase II effort will be the implement efficient, user friendly approaches for describing the domain 
- decomposition for arrays with both regular and irregular decompositions. For regular decompositions, the approach taken will be to allow the user to specify a BlockMap function as described in \cite{}.Blockmap follows the HPF syntax [21], and includes a collection of expressions that describe the decomposition scheme. In the blockMap function, each dimension of the data is classified as either ``Block'', ``Clyclic'' or ``Ignored''; where block decompostion means that a contiguous number of elements in the given dimension are mapped to different processes; Cyclic decmoposition means each element in the given dimension is mapped to a different process in order; and ignored means that decmoposition is ignored along that dimension. Figures \ref{} show some examples of typical decompositions for 2D arrays supported by the blockMap function.
- 
- Support for irregular domain decompositions will be developed based on the Assumed partition algorithm. The assumed partition algorithm was first developed to assist in efficient load balancing in Hypre, a comprehensive suite of scalable parallel linear solvers. The assumed partition algorithm provides an efficient mechanism for determining the owners of a particular index in a distributed array under the assumption that a processor knows only its local ownership range. 
- 
- 
- 
- 
+ \item Step 1: Assume the global distribution of data 
+ \item Step 2: Redistribute the actual partition description to the assumed partition
+ \item Step 3: Use the assumed partition to determine global information
 \end{itemize}
 
+The key to the assumed partition algorithm is that it assumes the data is distributed using a regular distribution that 
+can be queried locally on each processor using a O(1) function call. Step 2 of the algorithm, the data required to form a distributed directory
+containing information about the actual data distribution is communicated to the assumed partition. Once this distributed directory has 
+been formed, it can be directly queried to determine the owner of the required data in the actual distribution. In this way, we obtain a full realization of the global partition using O(1) storage on each processor (each processor stores information regarding the owner of each index in the local ownership range on the assumed partition). 
 
-The first issue is that the testing algorithms must know how the data is decomposed across the parallel processors.
+{\bf Efficient Statistical Analysis:} In a high performance setting, it is simply to collect the data to a root processor for processing; both because of this high communication costs and because, in many cases, the arrays are simply to large to fit in the memory of a single core. Thus, there is a significant need for efficient methods for performing statistical analysis on distributed arrays in a distributed setting. 
 
+To address this need, the Phase II effort will include the development of a statistical VnV testing library for distributed arrays. Like all other VnV testing libraries, users will be able to configure these tests to run at injection points using the VnV configuration file. The testing library will include a number of simple statistical metrics, including the mean, mode, median, standard deviation, co-variance, etc. A collection of tools for verifying physical properties of matrices will also be included (e.g., matrix norms, diagonal dominance, symmetry, sparsity patterns, positive definite-ness, etc.) 
 
+The major research effort required to build this statistical testing suite will be the implementation of efficient approaches for comparing the data in distributed arrays with an expected result. In the context of \VV, such comparisons are required for regression testing, for benchmark testing, and when comparing results to experimental data.
 
-The second issue lies in developing an efficient mechanism for collecting or distributing 
-
-
-
-
-
-
-The second issue the Phase II effort will look to address is the requirement that VnV tests do not alter execution of the simulation in any way. While the proposed injection point system does provide some exciting opportunities for run-time computational steering and parallel debugging, the framework will be, first and foremost, designed for \VV, and as such, there needs to be an option to verify the constant correctness of each test.
-
-
-
-
+TODO. 
 
 \subsubsection{Reducing Run-times with Test Offloading and Job Parallelism}
 
