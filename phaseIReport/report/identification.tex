@@ -5,88 +5,35 @@
 %%  technical approach to the problem/opportunity and the part that the
 %%  proposed research plays in providing needed results.}
 
-This is the final report for contract DE-SC0015748, a Phase I DOE SBIR
-entitled ``Web Infrastructure for Remote Modeling and Simulation of Nuclear 
-Reactors and Fuel Cycle Systems''. The work was performed by RNET Technologies 
-Inc. (RNET) and Mr. Jay Billings from the Oak Ride National Laboratory (ORNL).
+This is the final report for contract DE-SC0018728, a Phase I DOE SBIR
+entitled ``An Extensible Verification and Validation Library with NEAMS Workbench Integration''. The work was performed by RNET Technologies 
+Inc. 
 
 \subsection{Significance and Identification}
 \label{intro} 
-Modeling and simulation softwares and data sets for nuclear engineering 
-applications play an important role in 
-the design and operation of nuclear reactors. The Nuclear Energy Advanced 
-Modeling and Simulation (NEAMS) program 
-by DOE is developing predictive models for the advanced nuclear reactor and 
-fuel cycle systems using leading edge 
-computational methods and high performance computing technologies \cite{NEAMS}. 
-Though the toolkit is mainly targeted 
-for DOE nuclear energy R\&D programs and leadership supercomputers, an 
-important objective of the NEAMS program is 
-to enable widespread use among the industry, academia, and regulatory 
-communities\cite{NEAMS}. The predictive 
-modeling approaches and softwares being continually developed and updated by 
-the DOE nuclear engineering scientists 
-(under programs such as NEAMS, RISMC etc.) need to be efficiently transferred 
-to the scientific community at large 
-including academicians, industrial researchers, and regulatory communities. 
+Numerical simulations are an essential component of the R\&D pipeline, with new and more powerful algorithms and packages being developed every year. Testing and debugging is a major component of software development (some experts suggesting as much as 50\% of all code development consists of debugging existing code \cite{britton_debugging}). For numerical simulation codes being used to design real world nuclear reactors, erroneous simulations can result in design errors that can be extremely expensive to fix, damage the environment, and ultimately result in loss of human life. As such, the verification and validation of all numerically obtained solutions is essential, especially when those solutions are going to be used in the design of real-world products. One only needs to look to the catastrophic Sleipner platform accident, where an offshore platform collapsed due to failures in the finite element simulation, to get an idea of the consequences associated with using unverified numerical simulations. 
 
-An optimal utilization of this nation's intellectual property in nuclear 
-engineering softwares can be enabled through
-robust web-based communication and collaboration channels that facilitate code 
-and data sharing, remote execution and visualization in a 
-cloud, and research collaboration between the seemingly 
-diverse communities spread across the 
-universities and national labs, industry, and other government organizations. 
-Novel web-based platforms are desired to 
-relatively accelerate sharing of information (codes, data, computational 
-approaches), promote collaboration among interested parties (scientists and 
-researchers), and impose de-facto standards for sharing the large variety of 
-softwares and methodologies. In 
-addition, the Department of Energy has a vested 
-interest and has invested heavily in M\&S tools over the last few decades. A 
-commercial opportunity exists for small 
-businesses in enabling economically feasible yet specialized web-based 
-communication and collaboration channels among the 
-nuclear science and engineering community and extending it to other scientific 
-communities (High Energy Physics, 
-Computational Fluid Dynamics, Financial Modeling etc.).
+V\&V is usually seen as a one-off event that occurs once the computational model has been finished. This results in developers delaying V\&V, which can increase the effort and cost required to fix errors. Additionally, it is rarely the case that a computational mode is not under continuous, or at least incremental, development. In that case, each time the computational model changes (be it  a change in the user driven simulation or the underlying computational toolkit) all previous verification and validation of the model becomes void. Without the updated V\&V the improved simulation code is often not adopted by the end users. As such, a streamlined approach to V\&V is an essential component of any design pipeline that uses numerical simulations to influence real world designs.
 
-The NEAMS and other nuclear engineering softwares developed by the basic energy 
-scientists are spread across custom 
-websites and various source code hosting websites (Github, SourceForge, DOE 
-labs' websites etc.). A lot of effort is 
-required from the end user in downloading, reading the documentation, 
-compiling, generating input datasets, executing 
-the code, and visualizing the results. Almost all of these codes are 
-computationally intensive and require 
-state-of-the-artcomputing infrastructure such as small clusters, 
-supercomputers, or cloud resources to yield meaningful 
-results in reasonable timeframes. These softwares, especially the advanced 
-codes such as NEAMS tools are continually 
-enhanced with new features and capabilities. For example, a contact 
-verification problem in BISON might have been 
-enhanced with a new nonlinear solver and preconditioner and mapped to parallel 
-compute resources such as GPGPUs. With the growing availability of cloud 
-computing services, it makes sense to be able to spin up high-end hardware 
-configurations to carry out simulations whenever local resources are exhausted.
+One of the goals of the NEAMS program is to equip end-users with a robust set of high-fidelity multi-physics capabilities that can be used to inform lower-order models for the design, analysis and licensing of advanced nuclear systems and experiments. Given the high stakes nature of nuclear power generation, it is essential that all NEAMS code, including the core tools and end-user driven and written simulations, are verified and validated using industry best practices. The NEAMS group uses internal tools and processes to verify and validate the core tools in toolkit (see the NEAMS Software Verification and Validation Plan Requirement (Version 0) specification \cite{NEAMSVV}), but, as of yet, there is limited support for end-user driven verification and validation of simulations. The proposed V\&V toolkit will be designed to full this gap, providing end-users with an automated framework for verifying and validating numerical simulations based on industry best practices.
 
-%There exists a clear need for a platform that will allow the automatic code 
-%download, setup and installation, track changes in a workflow with a 
-%provenance 
-%model and allow sharing of such workflows easily among various collaborators. 
+The goal of the Phase I/II project is to develop a framework that facilitates the development of \emph{explainable} numerical simulations. Here, the term \emph{explainable} is borrowed from the field of articfical intellegence, where researchers are looking to address issues associated with trust in AI algorithms. In the context of V\&V, we define an \emph{explainable} numerical simulation to be a simulation that, in addition to final solution, provides a detailed report as to how the solution was calculated and why it can be trusted. To do this, the proposed framework will provide all the functionality required to create such a simulation, including support for:
 
-In order to address the above shortcomings, in this SBIR/STTR project, RNET and 
-ORNL are proposing to
-develop CloudBench, a web-based framework that facilitates relevant code 
-identification, automatic remote execution (on cloud-based or local clusters) 
-and visualization, tracking changes in a workflow with a provenance based 
-model, and sharing of results between various collaborators. The proposed 
-portal is prototyped using Vaadin~\cite{vaadin}, which allows web-based 
-interfaces to built and work across various platforms. The cloud computing 
-support will enable easy use of various computational tools and include the 
-ability to post-process remotely.
+\begin{itemize}
+ \item Writing a detailed \VV plan
+ \item Performing Mathematical and algorithmic testing (convergence analysis, mesh refinement studies, method of manufactured solutions, etc.)
+ \item Verifying and Validating a broad benchmark testing suite
+ \item Performing Uncertainty quantification and sensitivity analysis
+ \item Comparing of simulation results with experimental data and results from third party simulations. 
+ \item Automatic documentation of the \VV effort
+\end{itemize}
 
-Phase I demonstration includes an initial prototyping of the web interface with 
-Vaadin and leveraging the Integrated Computational Environment (ICE) modular 
-design to separate a back-end or ``Core''. The following sections demonstrate 
-the Phase I experiments and studies. 
+The Phase I project focused on prototyping an automated V\&V framework for numerical simulations that are written and driven by end-users. In particular, the Phase I effort was directed toward developing effective techniques for injecting the required functionality into general purpose numerical simulation packages. To that end, this report will introduce the reader to \emph{VnV}: a self describing testing framework that facilitates in-situ \VV in advanced numerical simulations with the following functionality:
+
+\begin{itemize}
+ \item Cross library and multi-lingual support for run-time test injection in numerical simulations
+ \item Efficient data ouput and analysis in HPC settings using ADIOS
+ \item Support for modular, generic testing libraries that can be configured at runtime
+ \item A simple XML configuration file that allows users to fully control the \VV process without recompiling
+ \item An Automated system for generating \VV reports with support for advanced data visualization techniques.
+\end{itemize}

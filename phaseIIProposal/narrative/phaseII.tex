@@ -104,15 +104,15 @@ To address these storage concerns, the project team will implement an Assumed pa
 The key to the assumed partition algorithm is that it assumes the data is distributed using a regular distribution that 
 can be queried locally on each processor using a O(1) function call. Step 2 of the algorithm, the data required to form a distributed directory
 containing information about the actual data distribution is communicated to the assumed partition. Once this distributed directory has 
-been formed, it can be directly queried to determine the owner of the required data in the actual distribution. In this way, we obtain a full realization of the global partition using O(1) storage on each processor (each processor stores information regarding the owner of each index in the local ownership range on the assumed partition). 
+been formed, it can be directly queried to determine the owner of the required data in the actual distribution. In this way, we obtain a full realization of the global partition using O(1) storage on each processor (each processor stores information regarding the owner of each index in the local ownership range on the assumed partition). The Phase II implementation of the assumed partition algorithm will support structured grids. Alternative approaches for supporting irregular decompositions in unstructured grids will be investigated in Phase III. 
 
 {\bf Efficient Statistical Analysis:} In a high performance setting, it is simply to collect the data to a root processor for processing; both because of this high communication costs and because, in many cases, the arrays are simply to large to fit in the memory of a single core. Thus, there is a significant need for efficient methods for performing statistical analysis on distributed arrays in a distributed setting. 
 
 To address this need, the Phase II effort will include the development of a statistical VnV testing library for distributed arrays. Like all other VnV testing libraries, users will be able to configure these tests to run at injection points using the VnV configuration file. The testing library will include a number of simple statistical metrics, including the mean, mode, median, standard deviation, co-variance, etc. A collection of tools for verifying physical properties of matrices will also be included (e.g., matrix norms, diagonal dominance, symmetry, sparsity patterns, positive definite-ness, etc.) 
 
-The major research effort required to build this statistical testing suite will be the implementation of efficient approaches for comparing the data in distributed arrays with an expected result. In the context of \VV, such comparisons are required for regression testing, for benchmark testing, and when comparing results to experimental data.
+The major research effort required to build this statistical testing suite will be the implementation of efficient approaches for comparing the data in distributed arrays with an expected result. In the context of \VV, such comparisons are required for regression testing, for benchmark testing, and when comparing results to experimental data. 
 
-TODO. 
+TODO 
 
 \subsubsection{Reducing Run-times with Test Offloading and Job Parallelism}
 
@@ -120,14 +120,14 @@ Performing a large number of \VV tests in a distributed environment will be expe
 
 The issue of efficient data transfer will be addressed using the ADIOS 2 Sustainable Staging Transport (SST). The SST is a classic streaming data architecture, that allows for direct connection between data produces and data consumers via the ADIOS2 write/read API. In HPC environments, SST uses the RDMA interconnects to ensure fast transfer of data between HPC applications; however, socket based connections are also supported. Due to issues associated with serialization of generic data-structures, the Phase II implementation will restrict data offloading to tests that work with the basic data types supported by ADIOS2 (strings, floats, double, arrays, etc). Generic data structures will be investigated in Phase III. The development of test offloading will proceed in two stages; 
 
-\begin{itemize}
- \item The first step will be to develop the interfaces and annotations required to transfer data to external processes for testing. Test offloading will only be effective in situations where the cost of completing the required tests is large in comparison to the time required for transferring the data. To address this issue, the project team will implement a heuristic algorithms that determines the appropriate action based on the size and type of the data structures to be transferred and the type and number of tests to be executed. More robust approaches will be investigated after testing and analysis of the initial implementation.  
- \item The second step will be to develop the separate VV executable that consumes the data and coordinates the execution of the required tests. As shown in Figure~\ref{TODO}, this will a MPI application consisting of one master processor and any number of slave processors. The role of the master processor is to efficiently allocate the incoming tests and data to the slave processors. This will include determining the appropriate number of processors to allocate to each test given the available resources, forming the required communication groups, and executing the tests. The role of the slave nodes will be to execute the tests as directed. 
+The first step will be to develop the interfaces and annotations required to transfer data to external processes for testing. Test offloading will only be effective in situations where the cost of completing the required tests is large in comparison to the time required for transferring the data. To address this issue, the project team will implement a heuristic algorithms that determines the appropriate action based on the size and type of the data structures to be transferred and the type and number of tests to be executed. More robust approaches will be investigated after testing and analysis of the initial implementation.  
  
- In many cases, it will be more cost efficient to execute the tests as separate jobs. To support this use case, the external test executable will support submitting tests for execution on local and remote machines using the Eclipse Parallel tools platform (PTP). PTP was developed by our collaborator as a simple unified interface for interacting with various job schedulers available in the HPC community (PBS, SLURM, etc.). PTP has seen wide-scale usage across the scientific community, and is used in such cases as TODO.
- \end{itemize}
+The second step will be to develop the separate VV executable that consumes the data and coordinates the execution of the required tests. As shown in Figure~\ref{TODO}, this will a MPI application consisting of one master processor and any number of slave processors. The role of the master processor is to efficiently allocate the incoming tests and data to the slave processors. This will include determining the appropriate number of processors to allocate to each test given the available resources, forming the required communication groups, and executing the tests. The performance of the proposed approach will be tested in a range of high performance applications using codes available to RNET and our collaborators at ORNL (including in MOOSE, PETSc, and libMesh). If the performance of the proposed approach is unacceptable, the project team will investigate the benefits of other frameworks that support similar functionality, including MRNet and SNOBall. 
+ 
+In many cases, it will be more cost efficient to execute the tests as separate jobs. To support this use case, the Phase II effort will also include an investigation into launching tests as separate jobs using other resources. Such a functionality would allow for speedup through job parallelism for expensive testing routines like sensitivity analysis and mesh refinement, while also allowing for specific tests to be run on the optimal architecture (e.g., an test involving image processing could be offloaded to a GPU enabled architecture). The launching of jobs on external resources will be completed using the Eclipse Parallel tools platform (PTP). 
 
-
+The PTP project provides an integrated development environment to support the development of parallel applications written in C, C++, and Fortran. Eclipse PTP provides; support for the MPI, OpenMP and UPC programming models, as well as OpenSHMEM and OpenACC Support for a wide range of batch systems and runtime systems, including PBS/Torque, LoadLeveler, GridEngine, Parallel Environment, Open MPI, and MPICH2. The PTP platform also include a scalable parallel debugger  and support for the integration of a wide range of parallel tools. In this case, the project team will use the PTP platforms extensive support for integrating with remote job schedulers to launch tests on the best available resource. Once integrated, users will be able to specify the resources available for test offloading as part of the configuration file. At runtime, the internal test offloading engine will use test based meta data to allocate tests to the appropriate resources.  
+ 
 \subsubsection{Integrate Third Party Tools for Mesh Refinement, UQ and Sensitivity Analysis.}
 
 Mesh refinement studies, Uncertainty quantification and sensitivity analysis are all essential components of a robust \VV regimen. To that
@@ -145,13 +145,16 @@ Support for Mesh refinement will be developed as part a separate plug-able VnV t
 suite will be to enable the completion of both uniform and adaptive mesh refinement studies given only the initial coarse mesh. This will require 
 the development of methods for marking the mesh for refinement and methods for refining the mesh. 
 
+An additional test for tracking and displaying a detailed provenance history for the simulation will also be developed. This provenance tracking
+test will be attached to the main function of the executable and will include functionality for documenting the inputs to the code, the build 
+date of the executable, a list of the versions, checksums and build dates of any imported shared libraries, copies of the stdout, stdin and stderr, and, where 
+appropriate, copies of all output files. Tracking these details is not difficult, yet, this detailed level of information will significantly increase the validity of the \VV report while also providing a mechanism for detecting when a \VV report becomes out of date due to an upstream software update. 
 
 \subsubsection{Integration with NEAMS tools and the NEAMS workbench} 
 
-The final step in the Phase II project will be to integrate the VnV framework into the NEAMS 
-tools. Doing so will allow us to demonstrate the performance of the toolkit in real codes with
-real applications; while also answering the solicitation call for tools that support end-user 
-verification of numerical solutions in the NEAMS tools. 
+The next step in the Phase II project will be to integrate the VnV framework into the NEAMS 
+tools. Doing so will provide ample opportunities for testing, while also allowing us to demonstrate the performance of the toolkit in real codes with
+real applications. Moreover, this integration will answer the solicitations call for tools that support end-user verification of numerical solutions in the NEAMS tools. 
 
 Integration into NEAMS tools will be a three step process:
 
@@ -170,6 +173,15 @@ requires that the tests adhere to a specific XSD specification for configuration
 \item The last step will be the development of an interface for editing the YAML specification files used to generate the final report and an interface 
 for viewing said final reports. The GUI will be written using standard HTML and Javascript and then integrated into the workbench using the QT QWebEngineView component (QWebView is the workbench is using QT 4). The QWebEngineView component allows for interactions with the core QT window (i.e., open, save, copy, paste, etc.) however, it is important to note that this approach will not allow for a truly ``native'' experience within the workbench. The decision to develop in JS and HTML rather than native QT was made to ensure the final product, the VnV framework, is consistent, and can be used in applications outside of the NEAMS lines of tools. Every effort will be made to ensure the GUI conforms to the NEAMS workbench standards and specifications. 
 \end{itemize}
+
+\subsubsection{Hardening of the Automated Report Generation System} 
+
+Another step in the Phase II project will be the extension and completion of the automated report generation system. This will include:
+\begin{itemize} 
+ \item Adding support for a wider range of data visualization techniques. As shown in the feasibility section, the Phase I prototype supports some 2D plots and 3D plotting of .VTP files. In Phase II we will extend this support to include a wide range of charts and a wide range of VTK file formats. In addition, the project team will add support for rendering 3D plots using an instance of Paraview running on the local machine of the user who is reading the report. This functionality, which is already supported by ParaviewWeb, will allow for more detailed visualizations that can be implemented with static data and post-processing alone. 
+ \item Adding support for the industry specified \VV report Templates, such as the DoD \VV template specification \cite{}. This functionality will furter increase the value of toolkit in industry settings where specific formats a required for \VV reporting. 
+
+ \end{itemize}
 
 
 \subsection{Performance Schedule and Task Plan}
@@ -211,26 +223,30 @@ task.
 \setcounter{taskCount}{0}
 
 \refstepcounter{taskCount}\label{task:2.5}
-\subsubsection{Task \ref{task:2.5}: Hardening of the Phase I VnV Injection Point System. }
+\subsubsection{Task \ref{task:2.5}: Development of the Annotation based Inpjection Point System  }
 
-In this task, the project team will develop an efficient, intuitive and type-safe injection point system for specifying testing points in, and across, advanced numerical software packages. Building on top of the Phase I prototype, this work will look to implement the injection point system in a way that allows for in-situ variable inspection in a robust and consistent way. The two main that need to be addressed are (1) the distinct lack of a robust reflection API in C++ makes defining functions that support generic arguments of unknown classes in a type safe way difficult, (2) the overhead associated with \VV injection points in cases where no testing is requested and (3) the difficulties in ensuring tests do not modify the variables in any way. Implementing this will require looking into the possibilities of implementing a LLVM compiler option for run-time removal of unused injection points, and/or the development of binary rewriting tools and the integration of parallel relative debugging techniques for detecting un-authorized and/or unintended changes is the run-time variables. 
+In this task, the project team will develop the Annotation system for specifying injection points and describing injection variables. This will include the development of
+the API for specifying the Annotations as shown in Figure~\ref{TODO}, and the development of the custom LLVM compiler extensions required to process these annotations. At the end of this task, users will be able to specify injection points and injection variables using either the new Annotation point system, or using the more portable, but less robust Phase I approach. 
+
+To test the Annotation based injection point system, the project team will write injection points at several key locations in the MOOSE software stack, including inside the source code of several MOOSE modules, the core MOOSE framework, libMesh and PETSc. This will allow us to demonstrate the cross-library potential of the Annotation based system, while also acting as the first step toward integration of the tools a number of the NEAMS tools. 
 
 \rnetprop{RNET will work on the implementation for this task and ORNL will provide inputs and guidance.}
 
 
 \refstepcounter{taskCount}\label{task:3}
 \subsubsection{Task \ref{task:3}: Develop methods for offloading tests to external processes. }
-Performing a large number of \VV tests in a distributed environment will be expensive, both computationally and due to the data movement required to deal with the domain decomposition employed by the application. In this task, the project team will investigate the development of a mechanism for the evaluation of \VV tests that is lightweight and minimizes resource consumption. The initial approach to this will be to determine the requirements for efficient \VV test execution, and assess the capabilities provided by frameworks such as MRNet, SNOflake, ADIOS, etc. to determine if they can meet these requirements. Depending on the results of this assessment, work will be undertaken to create a library that can be integrated with the \VV framework. This library will be based on either one of these frameworks or using a custom solution. The project team will also determine the feasibility of integrating the Parallel Tools Platform (PTP) as a mechanism for minimizing \VV runtime through job parallelism. If appropriate, the team will extending PTP to fit this purpose.   
-
-\rnetprop{RNET will work on the implementation for this task and ORNL will provide inputs and guidance.}
 
 \refstepcounter{taskCount}\label{task:23}
 \subsubsection{Task \ref{task:23}: Development of efficient statistical \VV tools with a focus of performance in large scale distributed settings.}
 
-In this task, the team will perform R\&D work to determine and implement efficient statistical based \VV tools that can be applied in distributed settings. Consider that case of comparing the simulated solution to some known experimental results. In a distributed setting, the user must either distribute the experimental data across the nodes based on some known description of the data decomposition (difficult in a general setting), or gather to solution to some root node (expensive, and in many cases impossible. In this task, the project team will look into efficient mechanisms for inferring, detecting, and or describing the data decomposition such that this style of tests can be completed in an efficient manner. 
 
-\rnetprop{RNET will be responsible for this task. ORNL will provide guidance on 
-developing the framework for ORNL CADES.}
+In this task, the project team will investigate the optimal approaches for conveying information about the data decompoosition to the individual tests. As outlined in Section~\ref{TODO}, this will involve the implementation of the BlockMap algorithm for data structures with regular decompositions and the implementation of a simple approach for generating the global partition for problems with irregular domain decompositions. Based on the performance of those implementations, the project team will investigate more optimal approaches to completing intra-processor communications with distributed data arrays, including creating a data directory or using the assumed partition algorithm 
+
+In addition to this the project team will implement several statistical tools for asserting the state of the data in distributed arrays, as described in Section~\ref{TODO}. 
+
+At the completion of this task, users will be able to efficiently compare and analyze distributed arrays using teh VnV framework. To test these implementations, the project team will set up tests for performing assertions on various PETSc vectors and matrices. The metric for success in this task will be to: (1) support arbitary data decompoistion descriptions; and (2) obtain a factor 5x speedup when performing assertions using our custom statistical assertions when compared to the naieve approach of gathering the data on a single root core for processing. 
+
+\rnetprop{RNET will work on the implementation for this task and ORNL will provide inputs and guidance.}
 
 \refstepcounter{taskCount}\label{task:22}
 \subsubsection{Task \ref{task:22}: Development of Generic tools for Mesh refinement, Uncertainty quantification and Sensitivity Analysis.}
