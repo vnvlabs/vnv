@@ -24,30 +24,25 @@ narrative: Narrative.pdf
 company: Company.pdf
 commercialization: Commercialization.pdf
 budget: Budget.pdf
-bio: Narayanan_cv.pdf Sabin_cv.pdf Billings_cv.pdf
+bio: Oneill_cv.pdf Sabin_cv.pdf Nguyen_cv.pdf Watson_cv.pdf
 complete: Complete.pdf
 levelofeffort: LevelOfEffort.pdf
 
 Commercialization.pdf:
-	cp ./commercialization/cloudbench_commercialization.pdf ./Commercialization.pdf
+	cp ./commercialization/commercialization.pdf ./Commercialization.pdf
 
-SBC.pdf:
-	cp ./company/SBC.pdf ./SBC.pdf
-
-Billings_cv.pdf: 
-	mv bio/billings_cv.pdf Billings_cv.pdf
+SBA.pdf:
+	cp ./company/SBA.pdf ./SBA.pdf
 
 Phase1Report.pdf:
-	cp phase1finalreport_copy/phase1report.pdf ./Phase1Report.pdf
+	cp ../phaseIReport/FinalReport.pdf ./Phase1Report.pdf
 
 ORNL_LOC.pdf:
-	cp ./budget/ORNL_LOC.pdf ./ORNL_LOC.pdf
+	pdftk ./budget/ORNL_LOC.pdf ./budget/ORNL_Budget.pdf cat output ./ORNL_LOC.pdf
 
-EclipseLOS.pdf:
-	cp letters/EclipseLOS.pdf EclipseLOS.pdf
 
-Complete.pdf : Summary.pdf Narrative.pdf Sabin_cv.pdf Narayanan_cv.pdf Billings_cv.pdf Sabin_support.pdf Narayanan_support.pdf Budget.pdf LevelOfEffort.pdf Commercialization.pdf RNETHistory.pdf SBC.pdf Dataplan.pdf ORNL_LOC.pdf EclipseLOS.pdf Phase1Report.pdf
-	pdftk Summary.pdf Narrative.pdf Sabin_cv.pdf Narayanan_cv.pdf Billings_cv.pdf Sabin_support.pdf Narayanan_support.pdf Budget.pdf ORNL_LOC.pdf LevelOfEffort.pdf Commercialization.pdf EclipseLOS.pdf RNETHistory.pdf SBC.pdf Dataplan.pdf cat output Complete.pdf
+Complete.pdf : Summary.pdf Narrative.pdf Oneill_cv.pdf Sabin_cv.pdf Nguyen_cv.pdf Watson_cv.pdf Oneill_support.pdf Sabin_support.pdf Nguyen_support.pdf Budget.pdf LevelOfEffort.pdf Commercialization.pdf RNETHistory.pdf SBA.pdf Dataplan.pdf ORNL_LOC.pdf Phase1Report.pdf
+	pdftk Summary.pdf Narrative.pdf Oneill_cv.pdf Sabin_cv.pdf Nguyen_cv.pdf Watson_cv.pdf Oneill_support.pdf Sabin_support.pdf Nguyen_support.pdf Budget.pdf LevelOfEffort.pdf Commercialization.pdf RNETHistory.pdf SBA.pdf Dataplan.pdf ORNL_LOC.pdf Phase1Report.pdf cat output Complete.pdf
 
 
 LevelOfEffort.pdf : 
@@ -58,8 +53,9 @@ RNETHistory.pdf : Company.pdf
 	rm Company.pdf
 
 support : 
-	pdftk ./bio/overall_support.pdf ./bio/narayanan_support.pdf cat output ./Narayanan_support.pdf
+	pdftk ./bio/overall_support.pdf ./bio/oneill_support.pdf cat output ./Oneill_support.pdf
 	pdftk ./bio/overall_support.pdf ./bio/sabin_support.pdf cat output ./Sabin_support.pdf
+	pdftk ./bio/overall_support.pdf ./bio/nguyen_support.pdf cat output ./Nguyen_support.pdf
 
 %.dvi : ${SOURCES} ${EPSFIGURES}
 	./my_latex ${*}
@@ -93,6 +89,7 @@ clean:
 	rm -f ./*.out
 	rm -f ./*.bbl
 	rm -f ./*.blg
+	rm -f ./*.toc
 	rm -f ./*~
 	rm -f ./*.bak
 	rm -f ./\#*\#
