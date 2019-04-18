@@ -102,25 +102,62 @@ compartmentalization of the test output and makes post-processing significantly 
 ADIOS2 read/write API. As an example, the test in Figure~\ref{TODO} writes a data array to the output during the finalization stage of the test. 
 
 The final step in writing a test is to write the test specification. As with injection points, this specification acts as a template for the 
-content to be shown in the final report. The specification is written in a YAML file with a similar format to that used for injection points. 
+content to be shown in the final report. The specification is written in a YAML file and supports writing content using the VnV extended markdown format. As will be described 
+in the following section, this extended markdown specification allows for direct querying of the data output during each stage of a \VV test. In this way, the user can 
+create a generic, data agnositc template for the \VV test output that will be populated with data during post-processing. 
 
-The defining feature of the test specification lies in its support automated post-processing of the data output during each test. This is achieved 
-through a custom markdown extension that allows users to automatically generate a number of interactive data visualization components based on the 
-data provided during the testing phase. 
+\subsubsection{Variable Modifiers}
 
-Figure~\ref{TODO} provides a screen-shot a test specification that utilizes some of the extensions available in this custom markdown format. The figure on 
-the right show how that specification is rendered in the final report. 
+In addition to tests, the VnV framework also provides support for pluggable variable modifiers that can be used to 
+map injection point parameters into formats that can be consumed by the tests. These Test modifiers are developed using 
+the same plugin based C++ pattern used to define the tests and can be included in seperate Modifier libraries or as seperate 
+components in existing testing libraries. Some examples of modifiers implemented during the Phase I testing include; a dereference modifier
+that dereferences a pointer variable; an array access modifier that pulls out the $n$'th element from an array variable; and a PETScPC modifier that
+uses the KSPGetPC function to provide direct access to the internal preconditioner. 
 
 
+\subsection{Extended Markdown Format for Numerical Simulations} 
+
+The Extended markdown format for numerical simulations, MD-XNS,  was developed for the VnV project as a highly customizable system for automatically processing 
+the results obtained from numerical simulations into interactive, informative HTML/JS web pages. The extension itself was built using py-markdown, an open source 
+python library for converting markdown files into html.
+
+In addtion to standard markdown commands, the MD-XNS format supports custom post-processing commands of the form [VV::<name>={...}], where name is the name of 
+the component the user would like to insert and {...} represents a dictionary of configuration options. 
+
+The Phase I prototype supports a range of custom processing functions including 
+\begin{itemize}
+\item Table: The table command inserts an interactive, sortable, searchable table into the final html document. The user can populate the table by entering the information
+manaully, by providing the name of a csv file, and/or by providing a list of numpy arrays. 
+\item Chart2D: The Chart2D command inserts an interactive Charts.JS chart into the document. The entire array of Charts.JS charts are available through this component, including bar, 
+line, scatter and pie charts. In each case, the chart is configured using a python dictionary entered directly into the markdown. 
+\item VTPView: The VTPView command uses VTK.js to insert interactive 3D visulization of a .VTP files in the final document. 
+\item PostPro: The PostPro function allows the user to set up post-processing scripts for execution during the report generation phase. In this way,
+users can write simple scripts that parse the data into formats more suitable for use in any of the other data visualization components. 
+\item ThreeJs: The ThreeJS command provides another approach for integrating three dimensional visualization in the final report, in this case using three.js for rendering. This 
+component is particularly usefull for viewing meshes. 
+Figures~\ref{TODO} show examples of the html web-components supported using the MD-XNS format. The key functionality of the MD-XNS format lies in its ability to directly interact with data stored in ADIOS2 bp3 steps. For example, Figure~\ref{TODO} shows a MD-XNS file that automatically populates a plot using an array available at an ADIOS2 step under the variable name ``data''. In this way, MD-XNS allows users to write generic templates that can be populated with data during processing. This is particularly nice for \VV injection points and \VV tests because each test knows extactly what data can appear during each call to the overall testing algorithm. 
 
 
+\subsection{The VnV Runtime Module}
 
-The actual testing and writing of the data should occur in the runTest function. The variables passed to the test are direct pointers to the variables in the code. Hence, tests should not modify the pointers in any way; however, the phase I prototype does not strictly enforce this requirement. Beyond that requirement, there is not limit on the procedures that can be run inside a test. 
+The VnV runtime module is the driving force behind the framework. This module contains all the functionality required  to detect the injection points, parse the
+configuration file, setup the ADIOS IO engine, load the external testing libraries and run all the tests. Despite this, configuring a simulation to use the VnV 
+framework is a simple, four step task; (1) include the header file, (2) Call the VVInit(<input-file>) function at the start of main, (3) Call the VVFinalize function
+before exiting, and (4) link the VnV library to the main library along with any required sublibraries. 
 
-As with the injection points, the final step in the test creation process is to define the test specification. This specification acts as the link between the data collected during testing and the final report. Figure~\ref{TODO} shows an example specification 
-for a test that collects convergence factors from a PETSc linear solve routine. This specification uses the VnV extended markdown format (described below) to automatically generate a plot based on the convergence data extracted during the execution of the test.
+Once the configuration has been completed, users will be able to control the entire VnV process through the input file. The Phase I prototype 
+uses a XML based input file. Figure~\ref{TODO} shows the XSD specification for the input file. The VnV toolkit uses a  modified version of Xsd2Cpp to generate 
+a C/C++ DOM parser for the XML file. 
 
-Our vision for the VnV toolkit is that each numerical library will ship with hard-coded injection points and a custom VnV Testing library. The core VnV framework will act as a single interface to these individual libraries, allowing the end-users to build explainable numerical simulations with integrated, in-situ testing at every level of simulation hierarchy. Once the injection points have been declared and the tests created, the next step is to develop the XML test configuration file. Using this XML file, users can configure which testing libraries to load and which tests to run. Please see the final report for a full description of the XML format supported by the phase I prototype. With the configuration file in hand, performing VnV in a simulation is as simple as including a header file, linking the VnV library and calling the VnV Initialization function. 
+The key sections of the input file specification are:
+\begin{itemize}
+ \item The Simulation Information. The simulation information section is where the user can provide information at the simulation. 
+ \item The Testing Libraries. The testing libraries element is used to define external testing libraries that will be used in the final executable. 
+ \item The Introduction. The introduction element a
+\end{itemize}
+
+
 
 \subsubsection{Automated Report Generation}
 
@@ -128,9 +165,10 @@ In addition to the injection point system, the project team also developed an in
 the final report. After accessing the strengths and weaknesses of multiple different approaches, the project team
 decided on a server-less HTML/JS format generated using a custom extension of the markdown format. The primary benefit of this approach is portability - the report can be displayed in any web browser - but other benefits include interactive components, non-linear data presentation and high levels of customization. Moreover, the server-less nature of the HTML web-page allows for direct publication on any static web hosting service (github.io, AWS S3, etc.). 
 
-At the core of the report generation system is a custom markdown extension. This extension supports a range of custom data visualization features that interact directly with the output data in the ADIOS2 output file. For example, Figure~\ref{TODO} shows a markdown snippet for automatically generating an interactive two dimensional plot using time series data collected during VnV testing. Likewise, Figure~\ref{TODO} shows the markdown required to display a VTK .vtp file in the final report. The extension also includes support for custom post-processing scripts. This allows for infinite possibilities with regard to processing the test outputs. For example, it is possible to include a script that averages the array in a tests, and/or to run a paraview script that generates VTP files based on the test data. 
-
 Figures~\ref{TODO} show screen-shots of a sample VnV report generated using a set of toy testing libraries. The main layout consists of three components; the carousel, the index and the content. The carousel is an optional component that can be used to highlight important results of the simulation. It accepts up to ten pictures, each with its own custom caption. Simpler static headers are also possible. The index and content are generated automatically based on the VnV output file. Each node in the index represents an injection point encountered during the simulation. As such, this index represents a coarse grained view of the simulations call stack. At the top of each injection point section is the injection point content as specified in the injection point specification. Following this is the output of each test completed at the injection point. Last is the list of children. These children represent injection points that were initialized between the first and last step of a staged injection point. A live version of this sample VnV report will be available at http://www.rnet-tech.net/VV/sample.html until the date of award notification. 
+
+
+
 
 \subsubsection{ Demonstration in a Moose Application } 
 To demonstrate the utility of the method, the project team placed several injection points 
