@@ -2,29 +2,29 @@
 
 The result of the Phase I project is a prototype of the VnV framework. As we will show,
 this framework provides all the core functionality required to facilitate in-situ \VV and automated 
-documentation generation in numerical simulations. The requirements set for the Phase I prototype we to develop a framework 
-with the following functionality:
+documentation generation in numerical simulations. The requirements set by the project team for the Phase I prototype were:
 
 \begin{itemize}
  \item Cross library Support. Most modern numerical simulations rely on a deep hierarchy of numerical simulation tools. For example, BISON, the fuel performance code in the NEAMS toolkit, is built using MOOSE; MOOSE uses libMesh; libMesh uses PETSc; PETSc uses hypre; and hypre uses BLAS. Thus, it is a requirement of the prototype that the system should provide a single interface for in-situ testing in any library linked to the final executable. 
- \item MultiLingual Support: The big three computing languages in high performance computing are C, C++ and FORTRAN. To ensure the system has wide applicability, it essential that users be able to use the framework in software written in any one of these languages. 
+ \item MultiLingual Support: The big three computing languages in high performance computing are C, C++ and FORTRAN. To ensure the system has wide applicability, it is essential that users be able to use the framework in software written in any one of these languages. 
  \item RunTime Configuration: Users should be able run any \VV tests at hard-coded locations in each library without needing to recompile either the executable or the library. The tests themselves should be completely independent from the source code and configurable at runtime. 
  \item Simple Integration: The injection point system should be simple to integrate into existing applications
  \item The framework should automatically generate a highly customizable, publication grade \VV report for each simulation. 
 \end{itemize}
 
-These requirements were chosen because they represent the core functionality required to facilitate the development of explainable numerical simulations. That is to say,
-in demonstrating this functionality, the project team will be able to prove the feasibility of the proposed approach in equipping general purpose numerical simulation toolkits 
-with built in support for end-user solution verification and validation. 
+These requirements were chosen because they represent the core functionality required to facilitate the development of explainable numerical simulations. That is to say, in demonstrating this functionality, the project team will be able to prove the feasibility of the proposed approach in equipping general purpose numerical simulation toolkits with built in support for end-user solution verification and validation. In what follows we outline the key features of the prototype framework developed in Phase I
 
-\subsubsection{Injection Points}
+\subsection{Injection Points}
 
-At the core of the framework are injection points. Injection points represent locations in the code where \VV testing can take place. Inserting an injection 
-point into an existing function is a simple, three step process; (1) include the ``vv-runtime.h'' header file, (2) place injection points in the code and (3) write the injection point specification. 
+At the core of the framework are injection points. Injection points represent locations in a code where \VV testing can take place. Inserting an injection point into an existing function is a simple, three step process; (1) include the ``vv-runtime.h'' header file, (2) place injection points in the code and (3) write the injection point specification.
 
-Figure~\ref{TODO} shows an example code 
-snippet that has been enhanced with VnV injection points. In this case, the original code is taken from the PETSc KSPSolve function and the injection points (shown in red) represent 
-key locations in the code. On the right, we see the injection point specification that describes the state of the code at each injection point.  
+Figure~\ref{TODO} shows an example code snippet that has been enhanced with VnV injection points. In this case, the original code is taken from the PETSc KSPSolve function and the injection points (shown in red) represent key locations in the code. On the right, we see the injection point specification that describes the state of the code at each injection point.  
+
+\begin{figure}
+ \includegraphics[width=0.45\textwidth]{./Figures/carbon.png}
+ \caption{Code Snippet showing a member function enhanced with a single stage injection point. 
+\end{figure}
+
 
 As shown in Figure~\ref{TODO}, declaring an injection point is as simple as calling the INJECTION\_POINT macro. The format for this macro is:
 
@@ -49,20 +49,20 @@ an obviously risky approach that, when implemented incorrectly, could lead to fi
 change the type of the variable in the code, but forget to update the string in the injection point declaration. A key goal of the Phase II work will be to 
 develop a custom pragma directive that automatically detects the correct type for each variable. 
 
-In C++ codes, the developer can also opt to pre-register the injection point with the runtime module using the REGISTER_IP macro. The macro uses a feature of object orientated programming languages that allows code in the constructors of static variables to be executed prior to the main function. In this way, one can register certain code elements by simply defining a static variable. Self registration is particularly nice because it allows for run-time detection of the injection points present in the call-graph. That information allows for the automatic generation of a customized test configuration file for each executable. Unfortunately, such a feature is not available in C and FORTRAN, so instead, information about injection points must be determined either by running the full simulation, or by pulling information from the injection point specification files. The custom compiler extension developed in Phase II will address this issue by hardwiring information about the included injection points into the meta-data of the executable or library. 
+In C++ codes, the developer can also opt to pre-register the injection point with the runtime module using the REGISTER\_IP macro. The macro uses a feature of object orientated programming languages that allows code in the constructors of static variables to be executed prior to the main function. In this way, one can register certain code elements by simply defining a static variable. Self registration is particularly nice because it allows for run-time detection of the injection points present in the call-graph. That information allows for the automatic generation of a customized test configuration file for each executable. Unfortunately, such a feature is not available in C and FORTRAN, so instead, information about injection points must be determined either by running the full simulation, or by pulling information from the injection point specification files. The custom compiler extension developed in Phase II will address this issue by hardwiring information about the included injection points into the meta-data of the executable or library. 
 
 After an injection point has been declared and optionally registered, the final step is to write the injection point specification. This is specification
 is used to populate the content of the final \VV report for each simulation. As shown in Figure~\ref{TODO}, the specification is a YAML file containing a description of the injection point. Writing a YAML specification 
 for an injection point is not required; however, the more information entered here, the more informative the final report will be. The fields supported in the YAML specification are:
 
 \begin{itemize}
- \item {\bf{description [''``]:} A short description used to describe the injection point in the configuration file
- \item {\bf{title:} A descriptive title for the injection point 
- \item {\bf{parameters:} A list of the parameters that can be inspected at this injection point
- \item {\bf{content:} A markdown formatted string representing the content to be displayed for this injection point in the final report.
- \item {\bf{sections:} A map containing the content for any subsections to be displayed under the original content description. Each subsection is displayed
+ \item {\bf description [''``]:} A short description used to describe the injection point in the configuration file
+ \item {\bf title:} A descriptive title for the injection point 
+ \item {\bf parameters:} A list of the parameters that can be inspected at this injection point
+ \item {\bf content:} A markdown formatted string representing the content to be displayed for this injection point in the final report.
+ \item {\bf sections:} A map containing the content for any subsections to be displayed under the original content description. Each subsection is displayed
  as a collapseble child or its parents content panel and is included in the overall index of the final report. 
- \item {\bf{tests:} A list of tests that could be run at this injection point. 
+ \item {\bf tests:} A list of tests that could be run at this injection point. 
 \end{itemize}
 
 The injection point specification is used during report generation, but is not required when running the executable. This
@@ -83,7 +83,7 @@ build this library. Once the library has been initialized, the user can begin to
 
 To simplify the process of writing tests, the VnV framework includes a test generation this script. If the library generation script was used, this script will be available in the src directory of the new testing library. To run this script, the user should provide a unique name for the test and a list of the names and types of parameters that will be supported by the new Test. Using this information, the script generates all the boiler plate code required to implement the IVVTest interface and to handle all the required type-casting. 
 
-From this point, completing the test requires the developer to implement two functions; the delcareIO function and the run_tests function. 
+From this point, completing the test requires the developer to implement two functions; the delcareIO function and the run\_tests function. 
 
 The declareIO function gives the developer an opportunity to pre-declare the IO variables that will be written by the test. These declarations are not required; however, they allow for optimization in the handling of meta-data in the underlying ADIOS2 IO engine. Readers should look to the ADIOS2 documentation for a detailed description on how to set up and declare IO variables. 
 
@@ -97,7 +97,7 @@ Here, testStage is an integer representing the stage that the test is currently 
 the test shown in Figure~\ref{TODO} supports three stages; one for setup, one for data collection and one for finalization. As will be shown below, the test 
 stages are mapped to injection point stages at runtime using the test configuration file. 
 
-Data output can occur at any point in the run_tests functions. The core runtime module ensures that each test stage is completed in a unique ADIOS2 step. This allows for efficient 
+Data output can occur at any point in the run\_tests functions. The core runtime module ensures that each test stage is completed in a unique ADIOS2 step. This allows for efficient 
 compartmentalization of the test output and makes post-processing significantly easier. As in the delcareIO function; data output is completed directly in ADIOS through the 
 ADIOS2 read/write API. As an example, the test in Figure~\ref{TODO} writes a data array to the output during the finalization stage of the test. 
 
@@ -136,6 +136,7 @@ line, scatter and pie charts. In each case, the chart is configured using a pyth
 users can write simple scripts that parse the data into formats more suitable for use in any of the other data visualization components. 
 \item ThreeJs: The ThreeJS command provides another approach for integrating three dimensional visualization in the final report, in this case using three.js for rendering. This 
 component is particularly usefull for viewing meshes. 
+\end{itemize}
 Figures~\ref{TODO} show examples of the html web-components supported using the MD-XNS format. The key functionality of the MD-XNS format lies in its ability to directly interact with data stored in ADIOS2 bp3 steps. For example, Figure~\ref{TODO} shows a MD-XNS file that automatically populates a plot using an array available at an ADIOS2 step under the variable name ``data''. In this way, MD-XNS allows users to write generic templates that can be populated with data during processing. This is particularly nice for \VV injection points and \VV tests because each test knows extactly what data can appear during each call to the overall testing algorithm. 
 
 
