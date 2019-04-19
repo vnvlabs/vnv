@@ -3,40 +3,26 @@
 
 #include "injection.h"
 
-
 class Test_Under_Sample : public IVVTest { 
 public:
 
-	 TestStatus runTest(int testStage, int* x,int* y,int* z,int* w) { 
+	 TestStatus runTest(adios2::engine &engine, int testStage, double* slope, double *intersection ) { 
         
-        // This is the main function where the test is executed. Tests are assigned to 
-        // injection points using the configuration xml file. That configuration file 
-        // specifies the modifiers required to get the correct transforms. 
-        //
-        // By the time we have reached this point -- all the mappings have been done and we 
-        // have the four variables as specified by the injection point config and the test.
-        //
-         
-        
+        //Write the slope and the intersection point to the VV output file.  
+        engine.Put(*sio, *slope);
+        engine.Put(*iio, *intersection); 
 
-        std::cout << " We made into this test at stage " << testStage << " " << *x << " " << *y << " " << *z << " " << *w << std::endl;
         return SUCCESS;   
    }
 
    static void DeclareIO(adios2::IO &io) {
-     std::cout << " Made it into the decalre IO function for the test " << std::endl;
-      
-     // Here we should declare the varialbes used in the test. This function is called 
-     // once when the test is first associated with an injection point. The idea here 
-     // is to describe the variables to adios. You will then set the varaibles during
-     // the run test routine. 
-     //
-     // Note: For now, in the dev version. You can declare a variable at any point in time.
-     // Once this thing is done, we can look at optimizing IO by locking the adios definitions
-     // prior to beginning tests. 
-     
+     *sio = io.DefineVariable<double>("slope"); 
+     *iio = io.DefineVariable<double>("intersection");      
    }
     
+   ... 
+}
+
 	 Test_Under_Sample(VVTestConfig config) : IVVTest(config) {
 		 m_parameters.insert(std::make_pair("x","int"));
 		 m_parameters.insert(std::make_pair("y","int"));

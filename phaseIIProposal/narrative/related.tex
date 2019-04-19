@@ -15,8 +15,9 @@ toolkit being developed by the Department of Energy. This work is being done as 
 to automatically select the optimal solver based on run-time dependent features of the problem and the underlying 
 compute architecture with minimal runtime overhead in solver selection during the course of NEAMS simulations. 
 
-\subsubsection{Cloudbench} 
 
+\subsubsection{Cloud-based Scientific Workbench for Nuclear Reactor Simulation Life Cycle Management}
+The predictive modeling approaches and softwares being continually developed and updated by the DOE nuclear engineering scientists (under programs such as NEAMS, CASL, RISMC etc.) need to be efficiently transferred to the nuclear science and engineering community. An advanced workflow management workbench is required to allow efficient usage from small and large business and research groups. The workbench must manage inputs decks, simulation execution (on a local machine, a High Performance Compute cluster, or a Cloud cluster), intermediate results, final results and visualizations, and provenance of the tools and settings. CloudBench is a hosted simulation environment for large scale numeric simulations. CloudBench will augment existing simulation, Integrated Development Environment, and workbench tools being developed by the DOE and industry. It offers a complete set of simulation management features not available in open tools: sharing of configurations, simulation output, and provenance on a per simulation or per project basis; multi-simulation provenance history to allow simulations to be reconstructed, verified, or extended; and remote access to simulation tools installed on Cloud and HPC resources. The portal enables easy adoption of government codes. 
 
 %% \subsubsection{Catalytic Converter Modeling on High-End Workstations}
 
@@ -71,10 +72,12 @@ is being explored.
 %\subsubsection{ICE}
 \label{sec:nice}
 
-Dr. Watson, the instatutional PI for this project, has experience with realtive ebuggers --- TODO a bit about the GAURD debugger
+Dr. Watson is the main developer for the Eclipse Parallel Tools Platform (PTP). The aim of the PTP project is to produce an open-source industry-strength platform that provides a highly integrated environment specifically designed for parallel application development. The platform provides a standard, portable parallel IDE that supports a wide range of parallel architectures and runtime systems; a scalable parallel debugger; support for the integration of a wide range of parallel tools; and an environment that simplifies the end-user interaction with parallel systems. 
 
-
-Dr. Watson is also the main developer for the Eclipse Parallel Tools platfrom. The aim of the Eclipse Parallel Tools Platform project is to produce an open-source industry-strength platform that provides a highly integrated environment specifically designed for parallel application development. The project will provide a standard, portable parallel IDE that supports a wide range of parallel architectures and runtime systems; a scalable parallel debugger; support for the integration of a wide range of parallel tools; and an environment that simplifies the end-user interaction with parallel systems. 
+In addition, Dr. Watson has played a significant role in the development of GAURD, a parallel relative debugger for high performance systems. Unlike other conventional parallel debuggers a relative debugger provides the
+ability to dynamically compare data between two executing programs regardless of their location and configuration. In GAURD, data
+comparisons can be performed either using an imperative scheme or a declarative scheme. Imperative comparisons can be performed
+explicitly by the user when two programs under the control of the debugger are stopped at breakpoints. 
 
 A solid foundation has been laid to achieve the objectives of the proposed project. The final 
  piece of the puzzle is the optimization and hardening of these core approaches for efficient execution in real applications. 
@@ -82,4 +85,4 @@ A solid foundation has been laid to achieve the objectives of the proposed proje
  numerical simulation software. The collaboration between ORNL and 
 RNET is a perfect fit to facilitate this final step. RNET brings to the table the required computer science expertise to 
 satisfy the needs of this project, as is evident from a description of their related work, and ORNL brings a wealth of experience developing novel
-HPC software solutions, developing robust debugging tools for use in HPC environemnts and working with a range of real application codes. 
+HPC software solutions, developing robust debugging tools for use in HPC environments and working with a range of real application codes. 

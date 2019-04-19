@@ -16,17 +16,18 @@ function renderLineChart(divId, data, labels) {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'This week',
+                    label: 'y = 2x + 3',
                     data: data,
                 }]
             },
+           
      });
 }
 
 
 function renderExampleLineChart(divid) {
-        data = [20000, 14000, 12000, 15000, 18000, 19000, 22000];
-        labels =  ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        labels = [0,1,2,3,4,5,6,7,8,9,10];
+        data =  [3,5,7,9,11,13,15,17,19,21,23];
         renderLineChart(divid, data, labels);
 }
 

@@ -69,6 +69,7 @@ def get_section(divId, header, start ):
 
 
 def getSectionsFromYaml(divId, yamlDict, close=True) :
+    print(yamlDict)
     header = yamlDict.get("title","Untitled")
     content = yamlDict.get("content","")
     sections = yamlDict.get("sections",[])
@@ -91,6 +92,7 @@ def getSectionsFromYaml(divId, yamlDict, close=True) :
         JS_SCRIPT.append(i)
 
     for n,section in enumerate(sections):
+        
         sec,ind = getSectionsFromYaml(divId + "_" + str(n) , section)
         s = s + sec;
         indexs = indexs + ind

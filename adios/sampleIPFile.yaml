@@ -1,98 +1,13 @@
 Hello_temp_x:
-  title: "Hello Injection Point"
-  stages: 
-  - stage:
-      name: stage 0 
-      parameters : 
-        x: 
-        type: float
-        description: The value of the car at time t=10
-        y: 
-          type: int
-          description: The number of wheels on the car
-      description: |
-        In stage 0 of the injection points we.....
-  - stage:
-      name: stage 0 
-      parameters : 
-        x: 
-        type: float
-        description: The value of the car at time t=10
-        y: 
-          type: int
-          description: The number of wheels on the car
-      description: |
-        In stage 0 of the injection points we.....
-  defaultTests:
-  - test1a_function1_T : 
-    library: "testLib.a"
-    params: etc
-  - test2a_function3_T :
-    library: "tests" 
-    params: "etc"     
+  title: "Linear Function Constructor"
   content: |
+    A linear function was created at this point. The linear 
+    function class provides a mechanism for evaluating a linear 
+    function. The two **key** parameters here are:
 
-    This is the current wish list for the parser. Basically, this represents a "test" whereby, this
-    file will display correctly when everything has been implemented. 
-
-    This is the markdown for this injection Point as a whole. Each stage can also have some markdown
-    that will be included in subsections for the content. Markdown is really cool. You can include
-    many different things. Like, for example, a picture 
-
-    [VV::picture={"filename":"thisfile.png"}]
-
-    Or, you can include a video 
-
-    [VV::video={"filename":"thisfile.mov"}]
-
-    Or, you can run a python processing sricpt for a particualr adios variable in the output 
-    [VV::pythonScript={"filename":"file.py", args: ["-data", adios_array::x, "-o", "pic.png",}]
-    [VV::picture={"filename":"pic.png"}]
-
-    Or, you can run a paraview python script to generate a pvd file and then display it 
-    [VV::paraviewScript={"path":"/usr/local/paraview", "script": "./para-post.py", scriptargs={}}]
-    [VV::pvd={"para-post.pvd"}]
-
-    Or, this one is a little wild. You can set up a paraview Visualizer window in the output. When you 
-    do this, the user will first be shown a box for entering the host, port and secret key to a running
-    paraview web server. Then, we will connect to the server and run the script. 
-
-    [VV::paraviewVisulizer={}]
-
-    Simpler is the option to use the users paraview for backend rendering of a file supported by paraview. For 
-    example, an exodus file. In this case, we ask the user to enter the port on which paraview is running. Then,
-    pvw.js uses that to render the file. This is awesome --thanks kitware. 
-
-    Or, you can display a mesh using threeJs
-    [VV::threeJs={"meshfile":"mesh.file"}]}
-
-    Or, you can display a table using tabular. This function accepts a csv and works a lot like 
-    excell to get a table. (only real basic). You can always use a post-processor like a python 
-    script to generate the required data.  
-
-    [VV::tabular={"filename":"data.csv"}]
-
-    Or, you can do a twoD plot. This one uses chart.js json format to specify the parameters for the 
-    plot. You can use the adios arrays directly, or you can use a python script to generate the json 
-    required to make the plot. See charts.js for a full tutorial and a list of all the things that are 
-    possible using this one. 
-
-    [VV::plotJs={}]
-
-    Or, you can just enter latex -- We will use mathjax to generate the latex from this 
-
-    [VV::latex={src:"$$f(x) = x^2 + y^2 + z^2 $$"}]
-
-    Adding additional parsers for other scientific data representation is SUPER easy. Basically, you just have
-    to define a subsclass of VVParse with the function parse(self, options) where options will be a python dict
-    as specified in the [VV:name={}] call entered by the user. 
-
-    In addition, all of the additional markdown elements supported by py-markdown are supported. Cool. 
-
-    Non collabsable sections can to entered in the markdown. This will not show up in the index.
-    To enter a collabsable section, you the sections: dict entry. The format for any markdown will 
-    be to first display content, then to display all sections in the sections dict in the order they 
-    are entered. Each section can contain a content entry and a sections: entry for further subsections. 
+    * slope - The slope of the linear function
+    * intersection - The y intersection 
+  
     
 Hello_temp_sub:
   title: "Hello Injection Point SUB"
@@ -112,12 +27,13 @@ TestTwo:
 
 
 Test_Under_Sample:
-  title: "Dummy Test 1"
+  title: "Linear Function Plotter"
   content: |
-    This is the markdown for Test Under Test_Under_Sample
-
-    It incldues a plot ()
-    [VV::plotJs={}]
+    This test plots a linear function given the slope and the intersection point. The values
+    for DATA::slope and DATA::intersection are automatically populated using values passed 
+    to the test. 
+    
+    [VV::plotJs={"type":"linear","slope":"DATA::slope", "intersection":"DATA::intersection", "range":[0,10]}]
 
 carausol:
 - pic0:
@@ -134,38 +50,10 @@ carausol:
 introduction: 
   title: Introduction
   content: |
-    An h1 header
-    ============
-    Paragraphs are separated by a blank line.
-
-    2nd paragraph. *Italic*, **bold**, and `monospace`. Itemized lists
-    look like:
-
-    * this one
-    * that one
-    * the other one
-
-    Note that --- not considering the asterisk --- the actual text
-    content starts at 4-columns in.
-
-    > Block quotes are
-    > written like so.
-    >
-    > They can span multiple paragraphs,
-    > if you like.
-    
-    [VV::plotJs={}]
-
-    sdfsdfsdf
+    The custom Markdown extension supports full markdown syntax:
 
     [VV::plot3D={}]
 
-    Unicodese 3 dashes for an em-dash. Use 2 dashes for ranges (ex., "it's all
-    in chapters 12--14"). Three dots ... will be converted to an ellipsis.
-    Unicode is supported. ☺
-
-    An h2 header
-    ------------
 conclusion:  
   title: "Conclusion"
   content: "This is content"
