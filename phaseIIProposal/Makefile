@@ -24,7 +24,7 @@ narrative: Narrative.pdf
 company: Company.pdf
 commercialization: Commercialization.pdf
 budget: Budget.pdf
-bio: Oneill_cv.pdf Sabin_cv.pdf Nguyen_cv.pdf Watson_cv.pdf
+bio: ONeill_cv.pdf Sabin_cv.pdf Nguyen_cv.pdf Watson_cv.pdf
 complete: Complete.pdf
 levelofeffort: LevelOfEffort.pdf
 
