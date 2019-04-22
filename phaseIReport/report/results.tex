@@ -175,7 +175,8 @@ In summary, during Phase I, the project team created a functioning prototype of 
  \item A clean mechanism for inserting injection points in existing codes
  \item A simple interface for defining custom tests 
  \item A customizable approach for automatic post-processing of testing data and injection points
- \item A python based report generation code that automatically creates an interactive server-less web report based on the VnV output.
+ \item A report generation code that automatically creates an interactive server-less web report based on the VnV output.
+ 
 \end{itemize}
 
 As will be described in the workplan, the goal of the Phase II project will be to take this initial prototype and extend, harden and 
@@ -185,10 +186,54 @@ optimize it such that it can be efficiently used in high performance computing a
 With regard to the proposed Phase I tasks, our achieved objectives are as 
 follows:
 
-\subsection{Task 1: }
+\subsection{Task 1: Develop Routines for Data Collection with ADIOS. }
+
+The run-time configurable, ADIOS based injection point system described above was produced as a direct result of work completed
+during this task. This task represented the development of the core VnV framework, and hence, took the majority of the Phase I effort. 
+
+Work on task one began with a through investigation into the optimal approach for allowing injection points to be inserted 
+into existing code bases. The goal of the task was to provide a simple mechanism that required minimal changes to the build system, had small
+overheads when testing was turned off, and that which could be removed from the final executable during compilation if need be. 
+
+The project team investiged serveral approaches to doing this. For example, one approach investigated to allow for user specified injection point locations in standard 
+C++ style comments. To support this, the team modified Doxygen to act as a custom C pre-processor. This pre-processor parsed the comments in the code to
+and automatically transformed them into injection point specifications. This pre-processor was eventaully sheleved as it became evident that it provided
+no real benefit over the macro based approach that was eventually chosen that could not be better implemented using custom preprocessor directive.
+
+Another approach investigated was binary injection using the Dyninst API. The Dyninst API is used in a number of code instrumentation libraries (Tau, Vampir, etc.) to facilitate runtime profiling and stack tracing. The benefit of this approach are that it does not require the developer to modify the source code in any way. In other words, a binary injection based approach would allow for injection of tests at runtime at any point in any code. While tempting, the project team passed on this approach due to issues asscoiated with maintainabilitiy and portability of the V\&V injection point specifications. 
+
+After investigating all the available options, it was decided that the VnV framework would support two mechanis for describing injection points in existing code bases; the injection point system defined above, and the compiler based Annotation based system outlined in the Phase II proposal. This two staged approach gives the best of bost worlds; the Marcro based approach allows for simple, portable integration into FORTRAN,C and C++ codes without changing the build system; and the compiler based approach provides dynamic support for detailed specification and optimization of the injection points and inspection variables. 
+
+\subsection{Task 2: Prototype Several of the V&V tools.  }
+
+The goal of this task was to prototype several V&V tools. The Phase I proposal listed two particular tools to be developed; a tool 
+for comparing solution with an expected or analytical solution, and a tool that simplifies setting up mesh refinement studies. 
+
+It was pointed out by one of the reviewers for the Phase I proposal that mesh-refinement studies are already supported by MOOSE and can be configured 
+easily through the MOOSE input file. The approach proposed for Phase I was to develop a call-back function for specifying the mesh that would have simply
+replicated this functionality. For that reason, the project team decided to focus on developing a prototype testing library for comparing results from simulations
+with results from experimental or analytical solutions. 
+
+To do this, the project team created a VnV testing library for comparing data stored in C++ std vectors. This testing library
+allowed for the comparison of two vectors based on the one norm, the inifinity norm and the two norm. A code snippet from the testing 
+code is shown in Figure~\ref{TODO}. The Phase I prototype was admittidly simplistic, allowing for comparrison between two existing data arrays using simple error norms. Moreover, distributed arrays were not supported. However, it does provide a good example of how in-situ verificaiton and validation would work within the VnV framework. 
+
+Developing support for efficiently comparing data stored in distributed arrays is a major goal of the Phase II project. However, 
+
+\subsection{Task 3: Prototype the Graphical User Interface. }
+
+As discussed above, the framework used for the VnV report system was standard HTML and Javascript. This allows the VnV reports to be viewed in any modern web browser.
+
+To support viewing the VnV reports in the NEAMS workbench, the project team created a custom QT window using the QWebEngineView. The QWebEngineView allows for direct viewing and interaction with HTML and Javascript web pages directly in QT applications, of which the NEAMS workbench is one. Figure~\ref{TODO} shows a sample VnV report being viewed in a QTWebEngineView. The interface allows the user to open and view any VnV report stored on the local machine and could easily be integrated into the workbench in a manor similar to the Visit support that has already been implemented. 
+
+ The Phase I proposal had initially stated that the Phase I GUI prototype would include support for setting up input files. However, after developing the framework, and using the input specifications, it became clear that a ``click'' style user interface would not be all that usefull for setting up the configuration files. Rather, text-editor with context aware auto-completions and validations as is present in the NEAMS workbench is likely the best option. 
+ 
+ To that end, a XML XSD specification was written to provide validations
+ 
+ 
+ As discussed in Section~\ref{TODO}, the project team developed a XSD specification for the input file format. This specifification contains the majority of the information required to 
+setup context aware auto complete when building the input file. However, due to the evolving nature of the inputs; and with the further changes likely to 
+occur in the Phase II project, it would have been highly ineffcient to develop the input file GUI support in Phase I. 
 
 
-\subsection{Task 2: }
 
-
-\subsection{Task 3: }
