@@ -50,24 +50,6 @@ that are conducive for GPU processing and SIMD parallelization have been integra
 vector operations have been optimized for specific architectures and GPUs by utilizing the autotuning tools.
 
 
-\subsubsection{Optimization of Kestrel for Emerging Architectures}
-RNET and OSU are performing this work as part of an active DOD Phase
-II STTR (FA9550-12-C-0028, Highly-Scalable Computational-Based
-Engineering). Based on the identification of the main performance
-bottlenecks in the Kestrel CFD code (based on the AVUS CFD solver), we
-are developing enhancements to improve the performance of the kCFD
-solver, as well as interface other scalable Krylov subspace sparse
-solver libraries to Kestrel. The proposed work will address the
-effective exploitation of parallelism at multiple levels: SIMD/SIMT
-level, multi-core level, and multi-node level.
-
-As part of this project CUDA kernels are also being explored for the
-bottlenecks in the CFD and CSD solvers. For instance, a GPU-based CFD
-solver with an identical interface to the current Block-Seidel solver
-is being explored.
-
-
-
 \subsection{ORNL's Related Work}
 %\subsubsection{ICE}
 \label{sec:nice}
