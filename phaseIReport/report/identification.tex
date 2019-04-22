@@ -13,27 +13,27 @@ Inc.
 \label{intro} 
 Numerical simulations are an essential component of the R\&D pipeline, with new and more powerful algorithms and packages being developed every year. For numerical simulation codes being used to design real world nuclear reactors, erroneous simulations can result in design errors that can be extremely expensive to fix, damage the environment, and ultimately result in loss of human life. As such, the verification and validation of all numerically obtained solutions is essential, especially when those solutions are going to be used in the design of real-world products. One only needs to look to the catastrophic Sleipner platform accident, where an offshore platform collapsed due to failures in the finite element simulation, to get an idea of the consequences associated with using unverified numerical simulations. 
 
-V\&V is usually seen as a one-off event that occurs once the computational model has been finished. This results in developers delaying V\&V, which can increase the effort and cost required to fix errors. Additionally, it is rarely the case that a computational mode is not under continuous, or at least incremental, development. In that case, each time the computational model changes (be it  a change in the user driven simulation or the underlying computational toolkit) all previous verification and validation of the model becomes void. Without the updated V\&V the improved simulation code is often not adopted by the end users. As such, a streamlined approach to V\&V is an essential component of any design pipeline that uses numerical simulations to influence real world designs.
+V\&V is usually seen as a one-off event that occurs once the computational model has been finished. This results in developers delaying V\&V, which can increase the effort and cost required to fix errors. Additionally, it is rarely the case that a computational model is not under continuous, or at least incremental, development. In that case, each time the computational model changes (be it  a change in the user driven simulation or the underlying computational toolkit) all previous verification and validation of the model becomes void. Without the updated V\&V the improved simulation code is often not adopted by the end users. As such, a streamlined approach to V\&V is an essential component of any design pipeline that uses numerical simulations to influence real world designs.
 
 One of the goals of the NEAMS program is to equip end-users with a robust set of high-fidelity multi-physics capabilities that can be used to inform lower-order models for the design, analysis and licensing of advanced nuclear systems and experiments. Given the high stakes nature of nuclear power generation, it is essential that all NEAMS code, including the core tools and end-user driven and written simulations, are verified and validated using industry best practices. The NEAMS group uses internal tools and processes to verify and validate its core tools (see the NEAMS Software Verification and Validation Plan Requirement (Version 0) specification \cite{NEAMSVV}), but, as of yet, there is limited support for end-user driven verification and validation of simulations. The proposed V\&V toolkit will be designed to full this gap, providing end-users with an automated framework for verifying and validating numerical simulations based on industry best practices.
 
-The goal of the Phase I/II project is to develop a framework that facilitates the development of \emph{explainable} numerical simulations. Here, the term \emph{explainable} is borrowed from the field of articfical intellegence, where researchers are looking to address issues associated with trust in AI algorithms. In the context of V\&V, we define an \emph{explainable} numerical simulation to be a simulation that, in addition to final solution, provides a detailed report as to how the solution was calculated and why it can be trusted. To do this, the proposed framework will provide all the functionality required to create such a simulation, including support for:
+The goal of the Phase I/II project is to develop a framework that facilitates the development of \emph{explainable} numerical simulations. Here, the term \emph{explainable} is borrowed from the field of artificial intelligence, where researchers are looking to address issues associated with trust in AI algorithms. In the context of V\&V, we define an \emph{explainable} numerical simulation to be a simulation that, in addition to the final solution, provides a detailed report as to how the solution was calculated and why it can be trusted. To do this, the proposed framework will provide all the functionality required to create such a simulation, including support for:
 
 \begin{itemize}
- \item Writing a detailed \VV plan
- \item Performing Mathematical and algorithmic testing (convergence analysis, mesh refinement studies, method of manufactured solutions, etc.)
- \item Verifying and Validating a broad benchmark testing suite
- \item Performing Uncertainty quantification and sensitivity analysis
+ \item Writing a detailed \VV plan.
+ \item Performing Mathematical and algorithmic testing (convergence analysis, mesh refinement studies, method of manufactured solutions, etc.).
+ \item Verifying and Validating a broad benchmark testing suite.
+ \item Performing Uncertainty quantification and sensitivity analysis.
  \item Comparing of simulation results with experimental data and results from third party simulations. 
- \item Automatic documentation of the \VV effort
+ \item Automatic documentation of the \VV effort.
 \end{itemize}
 
 The Phase I project focused on prototyping an automated V\&V framework for numerical simulations that are written and driven by end-users. In particular, the Phase I effort was directed toward developing effective techniques for injecting the required functionality into general purpose numerical simulation packages. To that end, this report will introduce the reader to \emph{VnV}: a self describing testing framework that facilitates in-situ \VV in advanced numerical simulations with the following functionality:
 
 \begin{itemize}
- \item Cross library and multi-lingual support for run-time test injection in numerical simulations
- \item Efficient data ouput and analysis in HPC settings using ADIOS
- \item Support for modular, generic testing libraries that can be configured at runtime
- \item A simple XML configuration file that allows users to fully control the \VV process without recompiling
+ \item Cross library and multi-lingual support for run-time test injection in numerical simulations.
+ \item Efficient data ouput and analysis in HPC settings.
+ \item Support for modular, generic testing libraries that can be configured at runtime.
+ \item A simple XML configuration file that allows users to fully control the \VV process without recompiling.
  \item An Automated system for generating \VV reports with support for advanced data visualization techniques.
 \end{itemize}

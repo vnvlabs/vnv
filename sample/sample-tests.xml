@@ -10,63 +10,20 @@
   <ns1:testLibrary>
     <ns1:path>../tests/build/testLib.so</ns1:path>
   </ns1:testLibrary>
-    <ns1:scope name="global">
+  <ns1:scope name="global">
     <ns1:scope name="Hello">
       <ns1:scope name="temp">
         <ns1:injectionPoint name="Hello_temp_sub" markdown="TODO">
           <ns1:desc/>
           <ns1:injectionPointStage stageId="0">
             <ns1:desc>Sample Test End</ns1:desc>
-            <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
+            <ns1:parameters>InjectionPoint(slope double, intersection double, value double);</ns1:parameters>
           </ns1:injectionPointStage>
           <ns1:injectionPointStage stageId="9999">
-            <ns1:desc>Sample Testi End</ns1:desc>
-            <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
+            <ns1:desc>Sample Test End</ns1:desc>
+            <ns1:parameters>InjectionPoint(slope double, intersection double, value double);</ns1:parameters>
           </ns1:injectionPointStage>
-          <ns1:test name="Test_Under_Sample" markdown="TODO"> 
-            <ns1:testStage ipId="0" testId="130"> 
-              <ns1:parameter from="x" to="x" trans="TestModifier"/>
-              <ns1:parameter from="x" to="y"/>
-              <ns1:parameter from="x" to="z"/>
-              <ns1:parameter from="x" to="w"/>
-            </ns1:testStage>    
-            <ns1:testStage ipId="9999" testId="1300"> 
-              <ns1:parameter from="x" to="x" trans="TestModifier"/>
-              <ns1:parameter from="x" to="y"/>
-              <ns1:parameter from="x" to="z"/>
-              <ns1:parameter from="x" to="w"/>
-            </ns1:testStage>    
-          </ns1:test>        
         </ns1:injectionPoint>
-      </ns1:scope>
-      <ns1:scope name="Hello">
-        <ns1:scope name="temp">
-          <ns1:injectionPoint name="Hello_temp_x" markdown="TODO">
-            <ns1:desc/>
-            <ns1:injectionPointStage stageId="0">
-              <ns1:desc>Sample Test End</ns1:desc>
-              <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
-            </ns1:injectionPointStage>
-            <ns1:injectionPointStage stageId="9999">
-              <ns1:desc>Sample Testi End</ns1:desc>
-              <ns1:parameters>InjectionPoint(x int);</ns1:parameters>
-            </ns1:injectionPointStage>
-          <ns1:test name="Test_Under_Sample" markdown="TODO"> 
-            <ns1:testStage ipId="0" testId="10"> 
-              <ns1:parameter from="x" to="x" trans="TestModifier"/>
-              <ns1:parameter from="x" to="y"/>
-              <ns1:parameter from="x" to="z"/>
-              <ns1:parameter from="x" to="w"/>
-            </ns1:testStage>    
-            <ns1:testStage ipId="9999" testId="20"> 
-              <ns1:parameter from="x" to="x" trans="TestModifier"/>
-              <ns1:parameter from="x" to="y"/>
-              <ns1:parameter from="x" to="z"/>
-              <ns1:parameter from="x" to="w"/>
-            </ns1:testStage>    
-          </ns1:test>          
-          </ns1:injectionPoint>
-        </ns1:scope>
       </ns1:scope>
     </ns1:scope>
     <ns1:scope name="test1a">
@@ -84,6 +41,27 @@
         </ns1:injectionPoint>
       </ns1:scope>
     </ns1:scope>
+    <ns1:injectionPoint name="ErrorTest" markdown="TODO">
+      <ns1:desc/>
+      <ns1:injectionPointStage stageId="0">
+        <ns1:desc>Sample Test End</ns1:desc>
+        <ns1:parameters>InjectionPoint(samplePoints std::vector&lt;double&gt;, samplePoints1 std::vector&lt;double&gt;);</ns1:parameters>
+      </ns1:injectionPointStage>
+      <ns1:injectionPointStage stageId="9999">
+        <ns1:desc>Sample Test End</ns1:desc>
+        <ns1:parameters>InjectionPoint(samplePoints std::vector&lt;double&gt;, samplePoints1 std::vector&lt;double&gt;);</ns1:parameters>
+      </ns1:injectionPointStage>
+      <ns1:test name="EuclideanError" markdown="TODO"> 
+             <ns1:testStage ipId="0" testId="130"> 
+               <ns1:parameter from="samplePoints" to="data0"/>
+               <ns1:parameter from="samplePoints1" to="data1"/>
+             </ns1:testStage>    
+             <ns1:testStage ipId="9999" testId="1300"> 
+               <ns1:parameter from="samplePoints" to="data0"/>
+               <ns1:parameter from="samplePoints1" to="data1"/>
+             </ns1:testStage>    
+          </ns1:test>        
+    </ns1:injectionPoint>
     <ns1:injectionPoint name="TestTwo" markdown="TODO">
       <ns1:desc/>
       <ns1:injectionPointStage stageId="0">

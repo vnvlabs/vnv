@@ -102,11 +102,11 @@ IVVTest::IVVTest(VVTestConfig &config) : m_config(config) {
 
 // Index is the injection point index. That is, the injection
 // point that this test is being run inside.
-TestStatus IVVTest::_runTest(int stageVal, NTV &params) {
+TestStatus IVVTest::_runTest(adios2::Engine &engine, int stageVal, NTV &params) {
     if ( m_config.runOnStage(stageVal) )   {
         int testVal = m_config.getStage(stageVal).testStageId;
         VV::adiosWrapper->startTest(m_config.testName, testVal, m_config.markdown);
-        TestStatus s = runTest(stageVal, params);
+        TestStatus s = runTest(engine, stageVal, params);
         VV::adiosWrapper->stopTest(( s==SUCCESS) ? true: false);
         return s;
     }
@@ -271,7 +271,7 @@ void InjectionPoint::runTests(int stageValue ,va_list argp ) {
         // Call the method to write this injection point to file.
         wrapper->startInjectionPoint(getScope(),stageValue, m_markdown);
         for ( auto it : m_tests ) {
-            it->_runTest(stageValue,ntv);
+            it->_runTest(wrapper->engine, stageValue,ntv);
         }
         wrapper->endInjectionPoint(getScope(),stageValue, m_markdown);
     }
@@ -383,7 +383,8 @@ void InjectionPointBaseFactory::addTest(test_p t, InjectionPoint &ipd) {
     std::string testName = t->get_attr_name_string();
     std::string markdown = t->get_attr_markdown_string();
     VV::adiosWrapper->DeclareTest(testName);
-
+    
+    std::cout << " Adding the TESTS " << testName <<std::endl;
 
     VVTestConfig c;
     c.testName = t->get_attr_name_string();
@@ -395,9 +396,13 @@ void InjectionPointBaseFactory::addTest(test_p t, InjectionPoint &ipd) {
         for ( auto param : p->elements_parameter() ) {
             config.addTransform(param->get_attr_to_string(), param->get_attr_from_string(), param->get_attr_trans_string());
         }
+        for (auto conf : t->elements_config() ) {
+            c.config_params.insert( std::make_pair( conf->get_attr_name_string(),conf->get_attr_value_string()));
+        }
         c.addTestStage(config);
     }
-
+  
+    std::cout << " Adding the TESTS " << testName <<std::endl;
     ipd.addTest(c);
 }
 

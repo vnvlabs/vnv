@@ -6,56 +6,35 @@
 class Test_Under_Sample : public IVVTest { 
 public:
 
-	 TestStatus runTest(adios2::engine &engine, int testStage, double* slope, double *intersection ) { 
+	 TestStatus runTest(adios2::Engine &engine, int testStage, double* slope, double *intersection ) { 
         
         //Write the slope and the intersection point to the VV output file.  
-        engine.Put(*sio, *slope);
-        engine.Put(*iio, *intersection); 
-
+        engine.Put("slope", *slope);
+        engine.Put("intersection", *intersection); 
+        std::cout << "The slope is " << *slope << " and the intersection is " << *intersection << std::endl;
         return SUCCESS;   
    }
 
    static void DeclareIO(adios2::IO &io) {
-     *sio = io.DefineVariable<double>("slope"); 
-     *iio = io.DefineVariable<double>("intersection");      
+     io.DefineVariable<double>("slope"); 
+     io.DefineVariable<double>("intersection");      
    }
     
-   ... 
-}
 
 	 Test_Under_Sample(VVTestConfig config) : IVVTest(config) {
-		 m_parameters.insert(std::make_pair("x","int"));
-		 m_parameters.insert(std::make_pair("y","int"));
-		 m_parameters.insert(std::make_pair("z","int"));
-		 m_parameters.insert(std::make_pair("w","int"));
+		 m_parameters.insert(std::make_pair("slope","double"));
+		 m_parameters.insert(std::make_pair("intersection","double"));
 	}
 
-	TestStatus runTest(int stage, NTV& parameters ) {    
-    int* x = carefull_cast<int>(stage,"x", parameters); 
-		int* y = carefull_cast<int>(stage,"y", parameters); 
-		int* z = carefull_cast<int>(stage,"z", parameters); 
-		int* w = carefull_cast<int>(stage,"w", parameters); 
+	TestStatus runTest(adios2::Engine &engine, int stage, NTV& parameters ) {    
+    double* x = carefull_cast<double>(stage,"slope", parameters); 
+		double* y = carefull_cast<double>(stage,"intersection", parameters); 
 		int testStage = m_config.getStage(stage).testStageId;    
-      
-      return runTest(testStage,x,y,z,w);
+    return runTest(engine, testStage,x,y);
 	}
 
 };
-/*
-TEST_MODIFIER(NAME, VALUE) {
-  if ( ip.first.compare("KSP") && tp.compare("PC") ) {
-      KSP* ksp = (KSP*) ip.second;
-      PC pc;
-      KSPGetPC(*ksp,&pc);
-      return (void*) pc;
-  }
-  throw "This modifier does not apply";
-}
-REGISTER_TEST_MODIFER(UID,NAME)
-*/
-////// Modifiers -- Injection points are not always going to be in the 
-// form that we need them in general tests -- so, we need to "modify" 
-// them when they come into the tests. 
+
 class TestModifier : public IVVTransform {
   
   void * Transform(std::pair<std::string, void*> ip, std::string tp) {

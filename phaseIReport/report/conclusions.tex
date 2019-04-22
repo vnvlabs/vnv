@@ -1,40 +1,36 @@
 \section{Summary and Conclusions}
 
 During Phase I of the project, RNET and ORNL have tackled various technical 
-challenges with regard to developing a modern interface for enabling Cloud 
-Computing for Scientific Computing tools. This capability, when fully 
-developed, will provide a convenient workbench-like interface for automatically 
-setting up various computing tools on cloud-based clusters as well as 
-supporting sharing and provenance-based workflows. In order to demonstrate 
-feasibility of developing this product, RNET and ORNL have accomplished the 
+challenges with regard to developing a modern framework for facilitating 
+in-situ end-user verification and validation in general purpose numerical 
+simulation packages.  This capability, when fully 
+developed, will provide a convenient interface for creating explainable numerical 
+simulations that not only provide the user with a solution, but also a detailed 
+report on how the solution was obtained and why it should be trusted. 
+
+In order to demonstrate 
+feasibility of developing this product, RNET has accomplished the 
 following.
 
 \begin{itemize}
-\item Prototyped a web-based UI for CloudBench using Vaadin and a system for 
-choosing users to share data with and verifying appropriate notifications.
-\item Resolved various technical challenges in isolating the Core, producing a 
-standalone executable and setting it up to run as a Remote OSGi service, which 
-is crucial towards being able to run on any server.
-\item Validated the Remote OSGi connection and the ability to connect via an 
-EDEF File.
-\item Ported user interface components like a Nek5000 form to Vaadin and in 
-future, will port other forms from ICE.
+ \item Developed cross library support for defining and registering injection points in general purpose numerical simulation packages.
+ \item Created an interface for writing and integrating custom V\&V tests that can be configured at runtime.
+ \item Developed a custom markdown format that allows for automated post-processing and visualization of testing data.
+ \item Implemented an automated documentation generation script that creates a server-less, interactive VnV report that can be 
+ displayed in any web browser. 
+ \item Demonstrated how the VnV reports could be viewed in the NEAMS workbench through the QWebEngineView. 
 \end{itemize}
 
 The above evaluations demonstrate the technical feasibility of the proposed 
-approach, initially for CloudBench and eventually for CloudBench:NE. This 
+approach.  This 
 platform also has great commercial potential. RNET intends to promote 
-CloudBench by initially supporting relevant open-source computational tools to 
-leverage their existing customer base. There is also a great interest from 
-NEAMS community and the broader computational community who will benefit from 
-this approach.
+the VnV framework by initially supporting relevant open-source computational tools to 
+leverage their existing customer base. 
 
 
 \section{Publications and Presentations}
+None
 
-The PI for the project has attended the NEAMS annual review meeting from 
-December 1st - 3rd, 2015 at ORNL in Oakridge, TN. The meeting presented an 
-opportunity to meet the entire NEAMS community and get a comprehensive 
-understanding of the NEAMS program. The PI has presented a poster at the 
-meeting, discussed the project with the NEAMS community, and made
-professional connections that resulted in a collaboration for Phase II.
+
+\section{Appendix}
+

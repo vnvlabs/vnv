@@ -9,6 +9,10 @@ BUILD_DIR=./build
 LIBNAME=testLib
 
 CPPFLAGS= -std=c++11 -g -fPIC -I ../xml/vv_schema/build/include/ -I $(INJECTION_INCLUDE)
+CPPFLAGS+= -I/home/boneill/llvm/self-registering-injection-points/injection/xml/vv_schema/include
+
+
+
 LDFLAGS=-shared 
 
 CPPFLAGS +=-isystem /home/boneill/llvm/adios2-INSTALL/include -std=gnu++11  

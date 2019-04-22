@@ -14,6 +14,11 @@
     <xs:attribute name = 'to' type = 'xs:string'/>   
     <xs:attribute name = 'trans' type = 'xs:string' default='default'/>
   </xs:complexType>
+  
+  <xs:complexType name = "configparameter">
+    <xs:attribute name = 'name' type = 'xs:string'/>   
+    <xs:attribute name = 'value' type = 'xs:string'/>   
+  </xs:complexType>
 
   <xs:element name="testStage">
 		<xs:complexType>
@@ -29,6 +34,7 @@
     <xs:complexType >
       <xs:sequence>
           <xs:element ref="t:testStage" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name ="config" type="t:configparameter" minOccurs="0" maxOccurs="unbounded" />
       </xs:sequence> 
       <xs:attribute name="name" type="xs:string" />
       <xs:attribute name="markdown" type="xs:string" />
