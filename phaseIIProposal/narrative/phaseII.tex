@@ -77,7 +77,7 @@ The first step toward working with distributed arrays is to obtain some informat
 
 The naive approach to determining the global partition is to explicitly form the partition using global MPI communication. This is a robust approach that will be immediately applicable in a large number of situations. However, the large storage cost required to build the global partition (O(P), where $P$ is the number of processors) is likely to become an issue in peta- and exa-scale environments \cite{hypre-assumed}. 
 
-To that end, the Phase II effort will include a detailed analysis of the optimal algorithms for forming the global partition in a distributed setting. This will include the implementation and profiling of the aforementioned naive approach, as well as an investigation into more advanced approaches parallel rendezvous algorithms such as forming a hash based distributed directory \cite{hpre-nine} and the assumed partition algorithm \cite{hypre-assumed}. 
+To that end, the Phase II effort will include a detailed analysis of the optimal algorithms for forming the global partition in a distributed setting. This will include the implementation and profiling of the aforementioned naive approach, as well as an investigation into more advanced approaches parallel rendezvous algorithms such as forming a hash based distributed directory \cite{hypre-nine} and the assumed partition algorithm \cite{hypre-assumed}. 
 
 The second step will be to develop efficient algorithms for comparing and analyzing distributed data based on that partition. This will include the development of the VnV Testing suite for distributed Arrays. This testing suite will include a variety of analysis routines for analyzing data including, means, std deviation, variance, co-variance, etc. A collection of functions implementing matrix based metrics will also be included (e.g., one norms, symmetry, positive definiteness, etc). 
 
@@ -172,7 +172,7 @@ RNET will work on the implementation for this task and ORNL will provide inputs 
 \refstepcounter{taskCount}\label{task:3}
 \subsubsection{Task \ref{task:3}: Develop methods for offloading tests to external processes. }
 
-\rnetprop{In this task, the project team will add support for test offloading using the ADIOS2 SST architecture. This will include the development of the VnV test manager and integration with the PTP platform, a task which will likely involve custom modifications to the PTP platform. Once implemented, test offloading will be tested using the VnV enabled MOOSE software stack developed in Task~\ref{task2.5}. The goal of this task will be to see a significant speedup when using test offloading over the standard in-situ testing routines. }
+\rnetprop{In this task, the project team will add support for test offloading using the ADIOS2 SST architecture. This will include the development of the VnV test manager and integration with the PTP platform, a task which will likely involve custom modifications to the PTP platform. Once implemented, test offloading will be tested using the VnV enabled MOOSE software stack developed in Task~\ref{task:2.5}. The goal of this task will be to see a significant speedup when using test offloading over the standard in-situ testing routines. }
 
 \rnetprop{
 RNET will work on the implementation for this task with ORNL providing assistance with ADIOS and any modifications to PTP.
