@@ -29,7 +29,7 @@ complete: Complete.pdf
 levelofeffort: LevelOfEffort.pdf
 
 Commercialization.pdf:
-	cp ./commercialization/commercialization.pdf ./Commercialization.pdf
+	pdftk ./commercialization/commercialization.pdf ./commercialization/ProFormaLicensing.pdf ./commercialization/DOE_Investment_Multiplier_Calculation_Worksheet.pdf cat output ./Commercialization.pdf
 
 SBA.pdf:
 	cp ./company/SBA.pdf ./SBA.pdf
