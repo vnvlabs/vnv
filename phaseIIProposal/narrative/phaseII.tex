@@ -33,7 +33,7 @@ Toward this goal, RNET Technologies and ORNL will pursue the following objective
 
 \begin{enumerate}
 
-\item \rnetprop{Harden and extend the prototype developed during phase I. In particular, the phase II effort 
+\item \rnetprop{Harden and extend the prototype developed during Phase I. In particular, the Phase II effort 
 will focus on developing more robust mechanisms for specifying injection points inside existing code bases. }
 \item \rnetprop{Develop mechanisms for efficient in-situ comparisons between data in a distributed environment. In-situ comparison of variables with experimental and/or analytical results will significantly reduce the amount of IO required in \VV testing, while also providing a fine grained mechanism for detecting at what point a solution diverges from
 the expected result.}
@@ -67,13 +67,13 @@ In Phase II, the project team will investigate and develop an annotation based s
 
 To implement this annotation system, the project team will create a set of custom pre-processor directives (i.e., pragmas) using Clang. Clang is a compiler front end for the C family of languages. It is a well supported, well documented compiler package designed as a drop in replacement for GCC. We we utilize Clangs library API for implementing custom Pragma routines to implement a pre-processor that transforms the annotations into valid injection point specifications. 
 
-To address the issues with constant correctness, the team will develop support for fine-grained regression testing. This functionality will allow users to track the progress of a simulation against a VnV output file that was generated without significant testing. This will allows users to compare the current state of the simulation against an expected result at every level of the simulation. 
+To address the issues with constant correctness, the team will develop support for fine-grained regression testing. This functionality will allow users to track the progress of a simulation against a VnV output file that was generated without in-situ testing. This will allows users to compare the current state of the simulation against an expected result at every level of the simulation. 
 
 \subsubsection{Efficient Statistical Comparisons in Distributed Settings} 
 
 One of the major benefits of the VnV framework is that the tests are executed inside the simulations distributed environment. This allows for the development of efficient, parallel testing algorithms. To capitalize on this functionality, the Phase II effort will include an investigation into efficient statistical methods for analyzing, asserting and comparing data stored in distributed arrays. 
 
-The first step toward working with distributed arrays is to obtain some information about the global partition of the data. This information is readily available in simulations that use regular data decompositions (i.e., block, cyclic,etc.), but it is not generally known in simulations where the data is distributed irregularly across the processors. Such irregular decompositions of data are common in applications that support mesh refinement, but not load balancing. 
+The first step toward working with distributed arrays is to obtain some information about the global partition of the data. This information is readily available in simulations that use regular data decompositions (i.e., block, cyclic, etc.), but it is not generally known in simulations where the data is distributed irregularly across the processors.
 
 The naive approach to determining the global partition is to explicitly form the partition using global MPI communication. This is a robust approach that will be immediately applicable in a large number of situations. However, the large storage cost required to build the global partition (O(P), where $P$ is the number of processors) is likely to become an issue in peta- and exa-scale environments \cite{hypre-assumed}. 
 
@@ -81,11 +81,11 @@ To that end, the Phase II effort will include a detailed analysis of the optimal
 
 The second step will be to develop efficient algorithms for comparing and analyzing distributed data based on that partition. This will include the development of the VnV Testing suite for distributed Arrays. This testing suite will include a variety of analysis routines for analyzing data including, means, std deviation, variance, co-variance, etc. A collection of functions implementing matrix based metrics will also be included (e.g., one norms, symmetry, positive definiteness, etc). 
 
-A key goal of the Phase II effort will be to develop support for comparing solutions obtained in distributed arrays with data stored on disk. This will be achieved using the ADIOS2 read-write API. In this case, the global partition determined above will be used in conjunction with ADIOS to distribute the correct data to each processor. The project team will then perform a detailed analysis of existing third party data transfer and interpolation tools to determine the best approach to efficiently comparing experimental data with the data in the distributed arrays. 
+A key goal of the Phase II effort will be to develop support for comparing solutions obtained in distributed arrays with data stored on disk. This will be achieved using the ADIOS2 read-write API. In this case, the global partition determined above will be used in conjunction with ADIOS to distribute the correct data to each processor. The project team will also perform a detailed analysis of existing third party data transfer and interpolation tools to determine the best approach to efficiently comparing experimental data with the data in the distributed arrays. The project team will also investigate the feasibility of implementing a multi-cast reduction network to perform reductions and comparisons on the data.
 
 \subsubsection{Reducing Run-times with Job Parallelism}
 
-Performing \VV tests in a distributed environment will be expensive, both computationally and due to the data movement required to deal with the domain decomposition employed by the application. To address this problem, the VnV toolkit will support the offloading of tests to external processes. This functionality will allow for speedup through job parallelism for expensive testing routines like sensitivity analysis and mesh refinement, while also allowing for specific tests to be run on the optimal architecture (e.g., an test involving image processing could be offloaded to a GPU enabled architecture).  
+Performing \VV tests in a distributed environment will be expensive, both computationally and due to the data movement required to deal with the domain decomposition employed by the application. To address this problem, the VnV toolkit will support the offloading of tests to external processes. This functionality will allow for speedup through job parallelism for expensive testing routines like sensitivity analysis and mesh refinement, while also allowing for specific tests to be run on an optimal architecture (e.g., a test involving image processing could be offloaded to a GPU enabled architecture).  
 
 The first step toward supporting test offloading will be to implement an effective mechanism for transferring the required 
 data from the simulation to the external testing processes. To do this, the project team will use the ADIOS 2 Sustainable Staging Transport (SST). The SST is a classic streaming data architecture that allows for direct connection between data produces and data consumers. 
@@ -115,7 +115,7 @@ Integration into NEAMS tool-chain will be a three step process:
  
  \item The second step will be to allow users to configure the VnV testing directly in the MOOSE input file using the MOOSE input file syntax. This will provide users of MOOSE with a seamless mechanism for setting up and running tests. This will involve writing a custom MOOSE action for setting up and configuring the VnV runtime module.
  \item The third step will be to enable context-aware auto-complete for MOOSE based VnV configuration files in the NEAMS workbench. The workbench has integrated support for extracting the information required to setup input file verification and auto-complete from MOOSE applications; however, there will likely be some additional work required to correctly setup this up for tests stored in external libraries. In particular, the current system requires that the tests adhere to a specific XSD specification, but there is not yet a system for extracting the exact parameters required to inject a specific test. 
- \item The last step will be to provide support for viewing the final VnV reports in the NEAMS workbench. The project team demonstrated how the QWebEngineView can be used to display the HTML VnV report in a QT window. The Phase II effort will extend that demonstration by providing the callback function required to interact with the NEAMS workbench interface (menus, docs, etc).
+ \item The last step will be to provide support for viewing the final VnV reports in the NEAMS workbench. The project team demonstrated how the QWebEngineView can be used to display the HTML VnV report in a QT window. The Phase II effort will extend that demonstration by providing the callback function required to interact with the NEAMS workbench interface (menus, docks, etc).
 \end{itemize}
 
 \subsection{Performance Schedule and Task Plan}
@@ -221,7 +221,7 @@ RNET will be responsible for this task and ORNL will provide guidance on various
   In this task, the project team will integrate the toolkit directly into the NEAMS workbench. This will be
   a two stage process. First, the project team will implement the required interface files for enabling 
   the context aware auto-complete features available in the NEAMS workbench. MOOSE based input files are already largely supported in the workbench; however, there will likely be some issues with determining which tests are applicable at which 
-  injection points. Second will be create the interfaces for viewing the HTML based VnV reports inside the QT based workbench. As demonstrated in Phase I, this will be completed using the QWebEngineView components support for displaying HTML files inside QT windows. 
+  injection points. Second, we will create the interfaces for viewing the HTML based VnV reports inside the QT based workbench. As demonstrated in Phase I, this will be completed using the QWebEngineView components support for displaying HTML files inside QT windows. 
 }
 
 \rnetprop{ 

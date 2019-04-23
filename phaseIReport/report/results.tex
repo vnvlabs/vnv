@@ -233,16 +233,16 @@ The VnV framework implements this functionality using a combination of the YAML 
 markdown file that provides templates for the ``IP\_1'' injection point shown in Figure~\ref{ip_example} and for the LinearTest test in Figure~\ref{test-examp}. The fields supported in the YAML specification for each test and injection point are:
 
 \begin{itemize}
- \item {\bf title:} A descriptive title for the injection point 
+ \item {\bf title:} A descriptive title for the injection point.
  \item {\bf content:} A markdown formatted string representing the content to be displayed for this injection point in the final report.
- \item {\bf sections:} A map containing the content for any subsections to be displayed under the original content description. Each subsection is displayed  as a collapsible child or its parents content panel and is included in the overall index of the final report. 
+ \item {\bf sections:} A map containing the content for any subsections to be displayed under the original content description. Each subsection is displayed  as a collapsible child of its parents content panel and is included in the overall index of the final report. 
  \end{itemize}
 
-During compilation, the automatic documentation generation script loops through every injection point recorded in the VnV output file. For each injection point, the script locates the injection point specification using the markdown attribute provided in the input configuration file, renders it in html, and adds it as a new section in the final report. Similarly, for each test, the script locates the test specification and renders it as as subsection in the injection point section. 
+During compilation, the automatic documentation generation script loops through every injection point recorded in the VnV output file. For each injection point, the script locates the injection point specification using the markdown attribute provided in the input configuration file, renders it in HTML, and adds it as a new section in the final report. Similarly, for each test, the script locates the test specification and renders it as as subsection in the injection point section. 
 
 The defining feature of the specification files is the support for writing the content using a custom markdown format that provides support for automating data post-processing and visualization. In particular, this custom markdown format is designed to facilitate direct interaction with the data collected during the VnV testing Phase. In this way, users can write generic markdown specifications that are automatically populated with data during rendering.   
 
-The Extended markdown format for numerical simulations, MD-XNS,  was developed for the VnV project as a highly customizable system for automatically processing the results obtained from numerical simulations into interactive, informative HTML/JS web pages. The extension itself was built using py-markdown, an open source python library for converting markdown files into html. In addition to standard markdown commands, the MD-XNS format supports custom post-processing commands of the form 
+The Extended markdown format for numerical simulations, MD-XNS,  was developed for the VnV project as a highly customizable system for automatically processing the results obtained from numerical simulations into interactive, informative HTML/JS web pages. The extension itself was built using py-markdown, an open source python library for converting markdown files into HTML. In addition to standard markdown commands, the MD-XNS format supports custom post-processing commands of the form 
 
 \begin{verbatim}
 [VV::<name>={...},...], 

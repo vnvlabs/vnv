@@ -1,6 +1,28 @@
 
 #include "test1.h"
 
+class LinearFunction {
+
+  public:
+    double slope, intersection;
+
+    LinearFunction(double slope_, double intersection_) :
+      slope(slope_), intersection(intersection_) {}
+
+    double eval(double x) {
+      double value = slope*x + intersection;
+      //INJECTION_POINT("IP_1",-1,
+      //                double slope,
+      //                double intersection,
+      //                double x,
+      //                double value);
+      return value;
+    }
+};
+//REGISTER_IP("IP_1",-1,double slope,double intersection,
+  //           double x, double value);
+
+
 
 int test1::function1(int x) {
       
