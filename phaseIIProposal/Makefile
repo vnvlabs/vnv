@@ -41,7 +41,7 @@ ORNL_Budget_Just.pdf:
 	pdftk ./budget/ORNL_LOC.pdf ./budget/ORNL_Budget.pdf cat output ./ORNL_Budget_Just.pdf
 
 ORNL_LOC.pdf:
-	pdftk ./letters/ORNL_letter.pdf ./letters/ltr_ORNL.pdf cat output ./ORNL_LOC.pdf
+	pdftk ./letters/ltr_ORNL.pdf  ./letters/ORNL_letter.pdf cat output ./ORNL_LOC.pdf
 
 Watson_cv.pdf:
 	cp ./bio/GWatsonCV2018_2pager.pdf ./Watson_cv.pdf
