@@ -36,7 +36,7 @@ The staples of a rigorous \VV regimen are:
 
 \VV is a discrete process that cannot account for each and every possibility. This raises issues in the development of general purpose numerical simulation packages because, while it may be the developers responsibility to ensure the product is mathematically correct, it is ultimately the responsibility of the end user to ensure the solution is a suitable representation of their physical model. After all, the direct costs of a design failure, be it time, money or loss of life, fall squarely on the shoulders of the end-user; any attempt to shift the blame to the developers of simulation library $X$ will certainly fall on deaf ears. 
 
-End-user \VV is particularly important in the DOE Nuclear Energy Advanced Modeling and Simulation (NEAMS) program. NEAMS is developing predictive models for the advanced nuclear reactor and fuel cycle systems using leading edge computational methods and high performance computing technologies \cite{NEAMS}. The NEAMS group has placed a significant emphasis on \VV \cite{neams-vv}; the NEAMS tools have integrated functionality for input validation (through the workbench and MOOSE), mesh refinement and method of manufactured solution analysis (through MOOSE) and uncertainty quantification and sensitivity analysis with DAKOTA (through the workbench). Despite this, the complex nature of the codes combined with the high stakes nature of nuclear reactor design has created a need for tools that automate solution verification for end-user driven simulations. 
+End-user \VV is particularly important in the DOE Nuclear Energy Advanced Modeling and Simulation (NEAMS) program. NEAMS is developing predictive models for the advanced nuclear reactor and fuel cycle systems using leading edge computational methods and high performance computing technologies \cite{NEAMS}. The NEAMS group has placed a significant emphasis on \VV \cite{NEAMSVV}; the NEAMS tools have integrated functionality for input validation (through the workbench and MOOSE), mesh refinement and method of manufactured solution analysis (through MOOSE) and uncertainty quantification and sensitivity analysis with DAKOTA (through the workbench). Despite this, the complex nature of the codes combined with the high stakes nature of nuclear reactor design has created a need for tools that automate solution verification for end-user driven simulations. 
 
 To address this need, RNET Technologies Inc. (RNET) and Oak Ridge National Laboratory (ORNL) are proposing the development of the VnV framework; a C/C++ software package that facilitates end-user \VV in general purpose numerical simulation packages (e.g., MOOSE, PETSc, libMesh, Fenics, OpenFoam, etc). The framework will promote the development of \emph{explainable} numerical simulations that, in addition to the solution, produce a detailed report outlining how the solution was obtained and why it should be trusted. 
 
@@ -53,7 +53,7 @@ To VnV framework will facilitate the development of explainable numerical simula
  
  The VnV framework will include a sophisticated test injection system with cross-library support for defining testing points in existing codes. The framework will be able to configure injection points in any library linked to a simulation. For example, a MOOSE user would be able to run \VV tests at injection points defined in the source codes of hypre, PETSc, libMesh, MOOSE, etc through a single interface. This cross library support will allow for in-depth, expert directed, end-user \VV in executables that utilize a range of numerical simulation libraries. 
  
- \item {\bf Reusable Software Components:} While the specific details of \VV vary from application to application, the macro scale algorithms are relatively consistent (e.g., mesh refinement studies, the method of manufactured solutions, sensitivity analysis, uncertainty quantification and error propagation). Many of these algorithms can be, or already have been \cite{DAKOTA,MASA},  implemented as black-box or near black box solutions. The VnV framework will provide a robust set of near black-box tools that implement these common \VV approaches. 
+ \item {\bf Reusable Software Components:} While the specific details of \VV vary from application to application, the macro scale algorithms are relatively consistent (e.g., mesh refinement studies, the method of manufactured solutions, sensitivity analysis, uncertainty quantification and error propagation). Many of these algorithms can be, or already have been \cite{DAKOTA},  implemented as black-box or near black box solutions. The VnV framework will provide a robust set of near black-box tools that implement these common \VV approaches. 
   
  \item{\bf Efficiency:}  Performing \VV tests in a distributed environment will be expensive, both computationally and due to the data movement required to support generic domain decompositions. The VnV framework will offer functionality for offloading tests to external processes. This will significantly reduce the run time costs of completing \VV using the VnV framework.
  
@@ -62,7 +62,7 @@ To VnV framework will facilitate the development of explainable numerical simula
 
 \begin{figure}
 \centering
- \includegraphics[width=0.7\textwidth]{./narrative/figures/VnVOut.png}
+ \includegraphics[width=0.9\textwidth]{./narrative/figures/VnVOut.png}
  \caption{ The VnV toolkit. Here, green boxes represent core functionalities. Developer interactions are shown in blue, runtime interactions are shown in orange and post-processing interactions are shown in black. \label{fig:toolchain} } 
 \end{figure}
  
@@ -103,14 +103,12 @@ The injection point system was written in C++ with a focus on minimizing the amo
 code needed to insert injection points into existing code bases. 
 
 \begin{figure}
- \centering
- \includegraphics[width=1.0\textwidth]{./narrative/figures/code-example.png}
- \caption{Example of a single stage injection point in a C++ member function. \label{fig:example}}
+ \includegraphics[width=0.95\textwidth]{./narrative/figures/linear-func.png}
+ \caption{A code Snippet showing a member function enhanced with a single stage injection point called ``IP\_1''. This injection point is declared inside a member function 
+ designed to evaluate a linear function at a particular value of $x$. \label{fig:example}}
 \end{figure}
 
-Integrating of an injection point into an existing code is a two step process; (1) include the header file, (2) place injection point in the code and (3) register the injection point. Figure~\ref{fig:example} shows a function that has been augmented with a single stage injection point. 
-
-Developers will insert injection points using the INJECTION\_POINT macro. The format for this macro is:
+Integrating of an injection point into an existing code is a two step process; (1) include the header file, (2) place injection point in the code and (3) register the injection point. Figure~\ref{fig:example} shows a function that has been augmented with a single stage injection point. Developers insert injection points using the INJECTION\_POINT macro. The format for this macro is:
 
 \begin{verbatim} 
 INJECTION_POINT( <name>, <stage>, <type> <variable>, ...)
@@ -139,24 +137,38 @@ build a testing library. Once the library has been initialized, the user can beg
 
 To assist in the development of tests, and to avoid issues with incorrect type-casting, a test generation script is also included. This script automatically generates the boiler plate code required to implement the testing interface while also taking care of the required typecasting. With this, implementing a custom test requires the developer to:
 
+
+
 \begin{itemize}
  \item {\bf Implement the ``declareParameters'' function}. This function defines the parameters required to perform
- the test. For example, the test in Figure~\ref{TODO} requires two doubles; one called slope and the other called intersect. The user will map the injection point variables to the test variables using the test configuration file. 
+ the test. For example, the test in Figure~\ref{test-examp} requires two doubles; one called slope and the other called intersect. The user will map the injection point variables to the test variables using the test configuration file. 
  \item {\bf Implement the ``runTests'' function}. The variables passed to the test are direct pointers to the variables in the code. Hence, tests should not modify the pointers in any way; however, the phase I prototype does not strictly enforce this requirement. Beyond that requirement, there is not limit on the procedures that can be run inside a test. All data required for post-processing should be output inside this function using the supplied ADIOS engine. 
  \item {\bf Write the output template.} Like injection points, all tests should be accompanied by a output template. The output can be used to automatically post-process and visualize the data collected during each test. 
 \end{itemize}
 
-
 \begin{figure}
- \centering
- \includegraphics[width=0.95\textwidth]{./narrative/figures/testcode-example.png}
- \includegraphics[width=0.95\textwidth]{./narrative/figures/test-example.png} 
- \caption{Sample code a custom VnV test for tracking the slope and intersection point of a linear function. \label{fig:test-example}}
+%<<<<<<< HEAD
+% \centering
+% \includegraphics[width=0.95\textwidth]{./narrative/figures/testcode-example.png}
+% \includegraphics[width=0.95\textwidth]{./narrative/figures/test-example.png} 
+% \caption{Sample code a custom VnV test for tracking the slope and intersection point of a linear function. \label{fig:test-example}}
+%=======
+\centering
+ \includegraphics[height=0.9\textheight, width=\textwidth]{./narrative/figures/test-examp.png}
+ \caption{An example of a custom VnV test. In this case we implement a test that checks that the slope and intersection point of the linear function are positive and writes
+ the result to file. \label{test-examp}}
 \end{figure}
 
 \subsubsection{The Runtime Module}
 
-Once the injection points have been declared and the tests created, the next step is to develop the XML test configuration file. Using this XML file, users can configure which testing libraries to load and which tests to run. The test configuration file is used to map injection point parameters to test parameters. For example, Figure~\ref{TODO} shows a portion of a test configuration file that inserts the LinearTest function shown in Figure~\ref{TODO} into the ``IP\_1'' injection point defined in Figure~\ref{TODO}. Please see the final report for a full description of the XML format supported by the phase I prototype.
+Once the injection points have been declared and the tests created, the next step is to develop the XML test configuration file. Using this XML file, users can configure which testing libraries to load and which tests to run. The test configuration file is used to map injection point parameters to test parameters. For example, Figure~\ref{test-xml} shows a portion of a test configuration file that inserts the LinearTest function shown in Figure~\ref{fig:example} into the ``IP\_1'' injection point defined in Figure~\ref{test-examp}. Please see the final report for a full description of the XML format supported by the phase I prototype.
+
+\begin{figure}
+\centering
+ \includegraphics[width=\textwidth]{./narrative/figures/test-xml1.png}
+ \caption{An example of the XML configuration file for attaching test to injection points at runtime. In this case, we attach the LinearTest test shown in Figure~\ref{test-examp} to the ''IP\_1''
+ injection point shown in Figure~\ref{fig:example}. \label{test-xml}}
+\end{figure}
 
 Turning on VnV testing across all libraries linked to the executable is as simple as calling an initialization function with a valid input configuration file.
 
@@ -167,6 +179,7 @@ The final step in the VnV pipeline is the automatic report generation. At the co
 Figure~\ref{rendered-example} shows a screen-shot of a VnV report generated using this approach. The main layout consists of two components; the index and the content. The index in generated directly from the VnV output file. Each entry in the index represents an injection point that was reached during the execution of the simulation. The content section is generated automatically from the YAML specification files. In this case, the user has completed a test titled ``Linear Function Plotter'' inside an injection point called ``Linear Function Constructor''.  
 
 \begin{figure}
+\centering
  \includegraphics[width=\textwidth]{./narrative/figures/render-example.PNG}
 \caption{ An example of the VnV report generated automatically from the VnV output files and the injection point and test specification files. \label{rendered-example}}
 \end{figure}
@@ -180,7 +193,7 @@ In summary, during Phase I, the project team created a functioning prototype of 
  \item A report generation system that automatically creates an interactive server-less web report based on the VnV output.
 \end{itemize}
 
-As will be described in the workplan, the goal of the Phase II project will be to take this initial prototype and extend, harden and 
+As will be described in the work-plan, the goal of the Phase II project will be to take this initial prototype and extend, harden and 
 optimize it for use in high performance computing applications. 
 
 
