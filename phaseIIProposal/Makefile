@@ -29,7 +29,7 @@ complete: Complete.pdf
 levelofeffort: LevelOfEffort.pdf
 
 Commercialization.pdf:
-	cp ./commercialization/commercialization.pdf ./Commercialization.pdf
+	pdftk ./commercialization/commercialization.pdf ./commercialization/ProFormaLicensing.pdf ./commercialization/DOE_Investment_Multiplier_Calculation_Worksheet.pdf cat output ./Commercialization.pdf
 
 SBA.pdf:
 	cp ./company/SBA.pdf ./SBA.pdf
@@ -41,7 +41,7 @@ ORNL_LOC.pdf:
 	pdftk ./budget/ORNL_LOC.pdf ./budget/ORNL_Budget.pdf cat output ./ORNL_LOC.pdf
 
 Watson_cv.pdf:
-	cp ./bio/GWatsonCV2018.pdf ./Watson_cv.pdf
+	cp ./bio/GWatsonCV2018_2pager.pdf ./Watson_cv.pdf
 
 Complete.pdf : Summary.pdf Narrative.pdf Oneill_cv.pdf Sabin_cv.pdf Nguyen_cv.pdf Watson_cv.pdf Oneill_support.pdf Sabin_support.pdf Nguyen_support.pdf Budget.pdf LevelOfEffort.pdf Commercialization.pdf RNETHistory.pdf SBA.pdf Dataplan.pdf ORNL_LOC.pdf Phase1Report.pdf
 	pdftk Summary.pdf Narrative.pdf Oneill_cv.pdf Sabin_cv.pdf Nguyen_cv.pdf Watson_cv.pdf Oneill_support.pdf Sabin_support.pdf Nguyen_support.pdf Budget.pdf LevelOfEffort.pdf Commercialization.pdf RNETHistory.pdf SBA.pdf Dataplan.pdf ORNL_LOC.pdf Phase1Report.pdf cat output Complete.pdf
