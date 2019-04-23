@@ -10,14 +10,12 @@ Topic Number/subtopic letter: 30d (Modeling and Simulation)
 %%addressed . be sure that the DOE interest in the problem is clear, but not in such a way that implies that 
 %%any service or products are being provided for the direct benefit of DOE rather than for the 
 %%advancement of a public purpose. (Typically one to three sentences).
-Verification and Validation (V\&V) of numerical simulations is a discrete process that cannot realistically account for every possibility. This causes issues in general purpose simulation packages because, while it may be the responsibility of the developers to ensure that their product is mathematically correct, it is the responsibility of the end-user to ensure the solution obtained is a suitable representation of their physical model. After all, the direct costs of a design failure, be it time, money or loss of life, fall squarely on the shoulders on the end-user, and any attempt to shift the blame to the developers of simulation library $X$ will certainly fall of deaf ears. 
+Verification and Validation (V\&V) of numerical simulations is a discrete process that cannot realistically account for every possibility. This causes issues in general purpose simulation packages because, while it is the responsibility of the developers to ensure the product is mathematically correct, it is the responsibility of the end-user to ensure the solution is a suitable representation of the physical model. After all, the direct costs of a design failure, be it time, money or loss of life, fall squarely on the shoulders on the end-user, and any attempt to shift the blame to simulation library $X$ will certainly fall on deaf ears. 
 \section*{General Statement}
 %%General statement of how this problem is being addressed. This is the overall objective of the combined 
 %%Phase I and Phase II projects. How is this problem being addressed? What is the overall approach of the 
 %%combined Phase I/Phase II project? (Typically one to two sentences).
-The VnV toolkit facilitates the development of \emph{explainable} numerical simulations that, in addtion to the final solution, provide 
-the end-user with a detailed report on why the solution can be trusted. These reports provide the detailed knowledge
-required to robustly verify and validate end-user driven simulations.
+The VnV toolkit facilitates the development of \emph{explainable} numerical simulations that, in addition to the final solution, provide the end-user with a detailed report on why the solution can be trusted. 
 
 \section*{Phase I Feasibility}
 %%What was done in Phase I (and Phase II, if applying for Sequential A or B)? (Typically two to three 
@@ -26,15 +24,15 @@ The Phase effort demonstrated the feasibility of developing a framework that fac
 in advanced numerical simulations. This included the development of 
 a portable solution for declaring injection points in a code, an intuitive interface 
 for writing tests and injecting them at runtime, and an automated documentation generation
-system with supoprt for 2D and 3D visualization. 
+system with support for 2D and 3D visualization. 
 
 \section*{Phase II Plans}
 %%What is planned for the Phase II project? (Typically two to three sentences).
 The Phase II effort will develop the complete VnV framework, including the development
 of custom preprocessor directives that allow injection points to be configured in more dynamic ways 
 and efficient statistical metrics for asserting the state of data 
-stored in distributed arrays. The value of the VnV framework will be demonstrated using the NEAMS 
-toolchain of MOOSE, PETSc and libMesh. 
+stored in distributed arrays. The value of the VnV framework will be demonstrated through integration
+into MOOSE, PETSc and libMesh. 
 
 \section*{Commercial Applications and Other Benefits}
 %%Commercial Applications and Other Benefits (limited to the space provided). Summarize the future 
@@ -48,7 +46,7 @@ do not propagate into final designs.
 
 \section*{Key Words}
 %%Provide listing of key words that describe this effort.
-Verification, Validation, Accredidation, In-situ testing,
+Verification, Validation, Accreditation, In-situ testing,
 HPC, Documentation generation, ADIOS, NEAMS.
 
 \section*{Summary for Members of Congress}
