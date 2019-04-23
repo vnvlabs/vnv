@@ -3,7 +3,10 @@ CPPFLAGS=-isystem /home/boneill/llvm/adios2-INSTALL/include -std=gnu++11
 
 LDFLAGS=-Wl,-rpath,/home/boneill/llvm/adios2-INSTALL/lib /home/boneill/llvm/adios2-INSTALL/lib/libadios2.so.2.3.1 -pthread -Wl,-rpath-link,/home/boneill/llvm/adios2-INSTALL/lib -Wl,-rpath,/home/boneill/llvm/hdf5-install/lib /home/boneill/llvm/hdf5-install/lib/libhdf5.so  
 
-VVDIR=/home/boneill/llvm/self-registering-injection-points/xml/vv_schema/build/
+VVDIR=/home/boneill/llvm/self-registering-injection-points/injection/xml/vv_schema/build/
+
+CPPFLAGS+=-I/home/boneill/llvm/self-registering-injection-points/injection/xml/vv_schema/include
+
 
 .PHONY: all clean
 

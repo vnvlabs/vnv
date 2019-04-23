@@ -55,7 +55,9 @@ public:
     int injectionPointStageId;
     int testStageId;
     std::map<std::string, std::pair< std::string, IVVTransform* >> transforms; // maps testParameter -> ip_parameter & Transform
+    
     void addTransform(std::string to, std::string from, std::string trans);
+    
     std::pair<std::string, IVVTransform*>  getTransform(std::string);
 };
 
@@ -64,6 +66,7 @@ class VVTestConfig {
 public:
     std::string testName;
     std::string markdown;
+    std::map<std::string, std::string> config_params;
 
     std::map<int, VVTestStageConfig> stages;
     bool runOnStage(int stage);
@@ -82,9 +85,9 @@ public:
 
     IVVTest(VVTestConfig &config);
     virtual ~IVVTest();
-    TestStatus  _runTest( int stageVal, NTV &params);
+    TestStatus  _runTest( adios2::Engine &engine, int stageVal, NTV &params);
 
-    virtual TestStatus runTest( int stage , NTV &params) = 0;
+    virtual TestStatus runTest( adios2::Engine &engine, int stage , NTV &params) = 0;
 
 protected:
     template <typename T>
