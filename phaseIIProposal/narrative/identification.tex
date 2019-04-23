@@ -1,11 +1,12 @@
 \section{Significance, Background, and Technical Approach}
 
 RNET Technologies Inc. (RNET) in Dayton, OH and Oak Ridge National Laboratory 
-(ORNL) are responding to 2019 DOE SBIR/STTR Phase II Release 2 
+(ORNL) are responding to the 2019 DOE SBIR/STTR Phase II Release 2 
 (DE-FOA-0001976). This proposal is for a Phase II contract in succession to an 
 initial Phase I contract (Contract \#: DE-SC0018728) awarded for DOE 
-SBIR/STTR Topic 30d (Modeling and Simulation). Based on a prototype developed in Phase I, RNET and ORNL are proposing the development of VnV: a self-documenting 
-testing framework for in-situ solution verification and validation in high performance computing applications. In this proposal we will highlight the need for, and the tremendous value of, the proposed tool in high performance numerical simulations like those in the NEAMS toolkit. The goal of the proposed Phase II project will be to develop and demonstrate a production quality implementation of the VnV framework that can deliver this value to a broad spectrum of numerical simulation applications. 
+SBIR/STTR Topic 30d (Modeling and Simulation). Based on a prototype developed in Phase I, RNET and ORNL are proposing the development of VnV: a self-documenting testing framework for end-user solution verification and validation in high performance computing applications. This proposal will highlight the need for, and the tremendous value of, the proposed tool in high performance numerical simulations. The goal of the proposed Phase II project will be to develop and demonstrate a production quality implementation of the VnV framework that delivers this value across a broad spectrum of numerical applications. 
+
+RNET has extensive SBIR experience in high performance computing, including performance optimization of numerical software and libraries, development of fine-grained power monitoring tools for HPC infrastructure, and the development of software usability tools that enhance the user experience. Dr. Watson, our collaborator at ORNL, is an experienced software professional with extensive knowledge of software design, architecture, and engineering practices. He has experience developing parallel debugging software for HPC environments and  is the project leader of the open-source Eclipse Parallel Tools Platform (PTP). We believe that our experience developing advanced numerical software for the HPC community combined with Dr. Watson's experience with scientific software engineering uniquely qualifies our team to develop and commercialize the VnV framework.
 
 \subsection{Identification and Significance of the Innovation}
 \label{sec:identification}
@@ -15,69 +16,64 @@ testing framework for in-situ solution verification and validation in high perfo
 %%  technical approach to the problem/opportunity and the part that the
 %%  proposed research plays in providing needed results.}
 
-The fundamental concept of the VnV framework will be to facilitate the development of \emph{explainable} numerical simulations. That is, the VnV framework will equip developers with all the tools required to create simulations that not only provide a solution, but also a detailed description of how the solution was obtained and why it should be trusted. RNET has extensive SBIR experience in various aspects of High Performance Computing, including performance optimization of numerical softwares and libraries, development of fine-grained power monitoring tools for HPC infrastructure, and the development of software usability tools that enhance the user experience when working with HPC simulations. Dr. Watson, our collaborator at ORNL, is an experienced software professional with extensive knowledge of software design, architecture, and engineering practices. He has significant experience developing parallel debugging software for HPC environments, and  is the project leader of the open-source Eclipse Parallel Tools Platform project. We believe that our experience developing advanced numerical software for the HPC community combined with Dr. Watson's experience with scientific software engineering uniquely qualifies our team to fully develop and commercialize the VnV framework.
 
 \subsubsection{Identification and Significance}
 \label{intro}
-Numerical modeling and simulation M\&S is almost always more economical than live testing and prototyping; a fact that has seen wide-scale uptake of M\&S in the R\&D lifecycles of products ranging from \$10 polycarbonate toys, up to solar panels, airplane wings and nuclear reactors. With access to large-scale computational resources at an all time high, and with exascale computing resources on the horizon; the role of \MS in the design of next generation technologies is only expected to increase. However, numerical simulations are, by definition, an \emph{approximation} to a real world physical system. As such, it is important that this increased reliance on simulated tests is accompanied by a concerted effort to ensure simulations are fit for the intended purpose.  As stated in the DoD best practices guide \cite{dodvv}, verification and validation (V\&V) of a code should be performed when  \emph{``...the risk of making an incorrect decision based on a simulation outweighs the time and cost of performing \VV to ensure that a simulation produces results that are sufficiently accurate and reliable.''} One only needs to look to the Sleipner platform accident, where an offshore oil platform collapsed due to failures in the finite element simulation, to get an idea of the devastating consequences poorly verified numerical simulations can have on business, the environment and society.
+Numerical modeling and simulation (M\&S) is almost always more economical than live testing and prototyping; a fact that has seen wide-scale uptake in the R\&D life-cycles of products ranging from \$10 polycarbonate toys, up to solar panels, airplane wings and nuclear reactors. With access to high performance computational resources at an all time high, and with exascale computing resources on the horizon; the role \MS has in the design pipelines of next generation technologies is only expected to increase. However, numerical simulations are, by definition, an \emph{approximation} to a real world physical system. As such, it is important that this increased reliance on simulated tests is accompanied by a concerted effort to ensure simulations are fit for the intended purpose. As stated in the DoD best practices guide \cite{dodvv}, verification and validation (V\&V) of a code should be performed when  \emph{``...the risk of making an incorrect decision based on a simulation outweighs the time and cost of performing \VV to ensure that a simulation produces results that are sufficiently accurate and reliable.''} One only needs to look to the Sleipner platform accident, where an offshore oil platform collapsed due to failures in the finite element simulation, to get an idea of the devastating consequences poorly verified numerical simulations can have on business, the environment and society.
 
-%The first \VV guideline was issued by the American Nuclear Society in 1987. Further development of \VV guidelines was conducted by other professional organizations to provide industry-specific standards. In 1998, the American Institute of Aeronautics and Astronautics (AIAA) released its first modern standards document. Thereafter, the American Society of Mechanics Engineers (ASME) \VV Standards Committee issued documents related to fluid dynamics and solid mechanics, including
-%\begin{itemize}
-% \item A Standard for Verification and Validation in Computational Fluid Dynamics and Heat Transfer, ASME \VV-20 (2009).
-% \item An Illustration of the Concepts of Verification and Validation in Computational Solid Mechanics, ASME \VV-10.1 (2012). 
-%\end{itemize}
-
-The general concensus of these industry specific \VV reports is that \VV should be an iterative, integrated component of the software development lifecycle. The staples of a rigorous \VV regimen are:
+The staples of a rigorous \VV regimen are:
 
 \begin{itemize}
- \item The development of a detailed \VV plan
- \item The implementation of software development best practices (e.g. version control, unit and regression testing, code reviews, etc.)
- \item Mathematical and algorithmic testing (convergence analysis, mesh refinement studies, method of manufactured solutions, etc.)
- \item Development of a broad benchmark testing suite
- \item Uncertainty quantification and sensitivity analysis
+ \item The development of a detailed \VV plan.
+ \item The implementation of software development best practices (e.g. version control, unit and regression testing, code reviews, etc.).
+ \item Mathematical and algorithmic testing (convergence analysis, mesh refinement studies, method of manufactured solutions, etc.).
+ \item Development of a broad benchmark testing suite.
+ \item Uncertainty quantification and sensitivity analysis.
  \item Comparison of simulation results with experimental data and results from third party simulations. 
- \item Review of the implementation and results by experts in the field
- \item Documentation of the \VV effort
+ \item Review of the implementation and results by experts in the field.
+ \item Documentation of the \VV effort.
 \end{itemize}
 
-\VV is a discrete process that cannot realistically account for each and every possibility. This raises significant issues in the development of general purpose numerical simulation packages because, while it may be the responsibility of the program developers of such packages to ensure that their product is mathematically correct and is free of programming errors (so-called bugs), it is ultimately the responsibility of the end user to ensure the solution obtained is an suitable representation of their physical model. After all, the direct costs of a design failure, be it time, money or loss of life, fall squarely on the shoulders on the products creator, and any attempt to shift the blame to the developers of simulation library $X$ will certainly fall of deaf ears. 
+\VV is a discrete process that cannot account for each and every possibility. This raises issues in the development of general purpose numerical simulation packages because, while it may be the developers responsibility to ensure the product is mathematically correct, it is ultimately the responsibility of the end user to ensure the solution is a suitable representation of their physical model. After all, the direct costs of a design failure, be it time, money or loss of life, fall squarely on the shoulders of the end-user; any attempt to shift the blame to the developers of simulation library $X$ will certainly fall on deaf ears. 
 
-End-user \VV is of particular importance in the DOE Nuclear Energy Advanced Modeling and Simulation (NEAMS) program. NEAMS is developing predictive models for the advanced nuclear reactor and fuel cycle systems using leading edge computational methods and high performance computing technologies \cite{NEAMS}. An important objective of the NEAMS program is to enable widespread use among the industry, academia, and regulatory communities\cite{NEAMS}. This objective led to the development of the NEAMS workbench, which has significantly increased the overall user experience of the NEAMS tools. The NEAMS group has also placed a significant emphasis on \VV in the NEAMS toolkit, as outlined in the NEAMS \VV plan (version 0) \cite{neams-vv}. The result of this is that the NEAMS tools have integrated functionality for input validation (through the workbench and MOOSE), for performing mesh refinement and method of manufactured solution analysis (through MOOSE) and for completing uncertainty quantification and sensitivity analysis with DAKOTA (through the workbench). Despite this, the complex nature of the codes, combined with the expert knowledge required to set up \VV testing and the seemingly infinite array of input parameters (PETSc, the linear solver package used in MOOSE has hundreds of configuration options alone) makes setting up robust end-user \VV an complicated task for all but the most expert users.   
+End-user \VV is particularly important in the DOE Nuclear Energy Advanced Modeling and Simulation (NEAMS) program. NEAMS is developing predictive models for the advanced nuclear reactor and fuel cycle systems using leading edge computational methods and high performance computing technologies \cite{NEAMS}. The NEAMS group has placed a significant emphasis on \VV \cite{neams-vv}; the NEAMS tools have integrated functionality for input validation (through the workbench and MOOSE), mesh refinement and method of manufactured solution analysis (through MOOSE) and uncertainty quantification and sensitivity analysis with DAKOTA (through the workbench). Despite this, the complex nature of the codes combined with the high stakes nature of nuclear reactor design has created a need for tools that automate solution verification for end-user driven simulations. 
 
-To address the difficulties with end user solution verification in the NEAMS toolkit, and the numerical simulation community as a whole, RNET Technologies Inc. (RNET) and Oak Ridge National Laboratory (ORNL) are proposing the development of the VnV toolkit; a C/C++ software package that facilitates end user \VV in general purpose numerical simulation packages (e.g., MOOSE, PETSc, libMesh, Fenics, OpenFoam, etc). To do this, the framework will promote the development of \emph{explainable} numerical simulations that, in addition to producing a simulation result, produce a detailed report outlining how the solution was obtained and why it should be trusted. 
-
-%From the perspective of the DOE, the explainable numerical simulations promoted by the proposed framework will increase the appeal its government funded simulation technologies, drive technology transfer and help ensure the nation benefits from its significant investment in advanced numerical simulation technologies. Likewise, from a commercial perspective, the VnV framework is a mechanism for building trust in the results obtained from the product, while also making the simulation stand out in a very competitive market. 
-
+To address this need, RNET Technologies Inc. (RNET) and Oak Ridge National Laboratory (ORNL) are proposing the development of the VnV framework; a C/C++ software package that facilitates end-user \VV in general purpose numerical simulation packages (e.g., MOOSE, PETSc, libMesh, Fenics, OpenFoam, etc). The framework will promote the development of \emph{explainable} numerical simulations that, in addition to the solution, produce a detailed report outlining how the solution was obtained and why it should be trusted. 
 
 \subsubsection{Product Overview and Technical Approach}
 
-In this proposal, we make the distinction between \VV \emph{of} a simulation package and the end-user \VV of a solution obtained \emph{using} a simulation package. These two processes are not independent; indeed, \VV of a numerical simulation 
-package almost always includes a set of verified and validated benchmark tests; likewise, the assertion that a package is verified and validated forms the foundation of trust in in solutions obtained by end-users. The focus of this proposal and the phase II project will be end-user validation; however, there is no reason that the functionality imparted by the proposed framework could not be used in the \VV process of the overall simulation package as well. 
+In this proposal, we make the distinction between the \emph{\VV of a simulation package} and the \emph{end-user driven \VV of a solution obtained using a simulation package}. These two processes are not independent; indeed, the \VV of a numerical simulation 
+package almost always includes a set of verified and validated benchmark tests; likewise, the assertion that a package is verified and validated forms the foundation of trust in solutions obtained by end-users. The focus of the phase II project will be end-user validation; however, there is no reason that the functionality imparted by the framework could not be used in the \VV of simulation packages as well. 
 
-They key issues associated with end-user verification and validation, and the approaches that the VnV framework will take to address them are:
+To VnV framework will facilitate the development of explainable numerical simulations through:
 
 \begin{itemize}
  
- \item{ \bf In-situ Testing And Analysis:} Unit tests are an extremely effective mechanism for ensuring a algorithm behaves as is expected. However, such testing is an unavoidably discrete process that, by definition, cannot cover every possible outcome. This fact is particularly true for numerical algorithms, where even small changes (e.g., input parameters, mesh geometry. etc.) can cause algorithms to behave unexpectedly (i.e., diverge, converge to the wrong solution, etc.). As such, a robust \VV report should not only include a description of unit tests completed, but also a detailed set of in-situ tests and assertions that run as the simulation proceeds. The VnV framework will include a sophisticated test injection system. At run time, the system will automatically detect, configure and assimilate data obtained from injection points in any VnV equipt library that is linked to the executable. For example, once fully integrated at all levels of the simulation heirarchy, the user of a MOOSE tool would be able to detect, configure, modify and run tests at injection points defined in the source codes of hypre, PETSc, libMesh, MOOSE, etc. This cross library support will allow for in-depth, expert directed, end-user \VV in executables that utilize a range of numerical simulation libraries. A key feature of the framework is that, while the injection points will hard coded into the source code of the individual libraries, the tests themselves are compiled in external shared libraries loaded at runtime based on a user specified configuration file. 
+ \item{ \bf In-situ Testing And Analysis:} Unit tests are an effective mechanism for ensuring a function works as expected. However, unit testing is an unavoidably discrete process that cannot cover every possible outcome. This is particularly true for numerical algorithms because even small changes (e.g., input parameters, mesh geometry. etc.) can cause the algorithms to behave unexpectedly (i.e., diverge, converge to the wrong solution, etc.). As such, a robust \VV report should include a description of unit tests completed \emph{and} a detailed set of tests and assertions that were completed during the simulation process. 
  
- \item {\bf Reusable Software Components:} While the specific details of \VV vary from application to application, the macro scale algorithms used are relatively consistent, including; mesh refinement studies, using the method of manufactured solutions, sensitivity analysis, uncertainty quantification and error propagation. Many of these algorithms can be, and in some cases already have been (e.g., DAKOTA, MASA),  implemented as black-box or near black box solutions. The VnV framework will look to capitalize on this fact by providing a set of robust, near black-box, \VV tools that can be integrated into codes using the VnV runtime test injection system. 
+ The VnV framework will include a sophisticated test injection system with cross-library support for defining testing points in existing codes. The framework will be able to configure injection points in any library linked to a simulation. For example, a MOOSE user would be able to run \VV tests at injection points defined in the source codes of hypre, PETSc, libMesh, MOOSE, etc through a single interface. This cross library support will allow for in-depth, expert directed, end-user \VV in executables that utilize a range of numerical simulation libraries. 
+ 
+ \item {\bf Reusable Software Components:} While the specific details of \VV vary from application to application, the macro scale algorithms are relatively consistent (e.g., mesh refinement studies, the method of manufactured solutions, sensitivity analysis, uncertainty quantification and error propagation). Many of these algorithms can be, or already have been \cite{DAKOTA,MASA},  implemented as black-box or near black box solutions. The VnV framework will provide a robust set of near black-box tools that implement these common \VV approaches. 
   
- \item{\bf \VV Testing Efficiency:}  Performing a large number of \VV tests in a distributed environment will be expensive, both computationally and due to the data movement required to deal with the domain decomposition employed by the application. Where possible, the VnV framework will offer functionality for offloading the execution of in-situ tests to external processes. Offloading of the tests to an external server will significantly reduce the run time costs of in-situ \VV with the VnV framework; further increasing its utility in HPC applications. 
+ \item{\bf Efficiency:}  Performing \VV tests in a distributed environment will be expensive, both computationally and due to the data movement required to support generic domain decompositions. The VnV framework will offer functionality for offloading tests to external processes. This will significantly reduce the run time costs of completing \VV using the VnV framework.
  
- \item{\bf Documentation Generation:} With software packages under almost constant development, and new and improved packages being released on a regular basis, keeping an up-to-date \VV report is in an almost impossible task. The VnV toolkit will include automatic VnV report generation in the form of a server-less html web page that can be viewed in any modern web browser. The entire web page will be built using an extended markdown format with support for standard markdown formating, latex formating, images, videos, self-sorting tables, two dimensional charts, and three dimensional visualization. %The format of the overall web report will follow the templates outlined in the DMSCO Verification, Validation, \& Accreditation (VV\&A) reference sites template files for VV\&A reports. These templates have been used over many years in the \VVA of DoD simulations to great effect. Of course, additional custom templates will also be supported. 
+ \item{\bf Documentation Generation:} With software packages under almost constant development, and new and improved packages being released on a regular basis, keeping an up-to-date \VV report is an almost impossible task. The VnV toolkit will include automatic VnV report generation in the form of a server-less HTML web page. The report will be built using an extended markdown format with support for standard markdown formating, latex formating, images, videos, self-sorting tables, two-dimensional charts, and three-dimensional visualization. 
  \end{itemize}
 
 \begin{figure}
 \centering
  \includegraphics[width=0.7\textwidth]{./narrative/figures/VnVOut.png}
- \caption{ The VnV toolkit development lifecycle. Here, green boxes represent core VnV functionalities. Developer interactions are shown in blue, runtime interactions are shown in orange and post-processing interactions are shown in black. \label{fig:toolchain} } 
+ \caption{ The VnV toolkit. Here, green boxes represent core functionalities. Developer interactions are shown in blue, runtime interactions are shown in orange and post-processing interactions are shown in black. \label{fig:toolchain} } 
 \end{figure}
  
-Figure~\ref{fig:toolchain} provides an example of how developers and end-users will interact with the VnV toolkit. In this case, we show an example of how the toolkit functionality might be implemented in the MOOSE toolchain. The first step in the VnV development lifecycle is to specify and describe the injection points. These injection points will be placed at key locations of the code where testing can and should take place. In the Phase II product, inserting an injection point into a code will be as simple as annotating some variables for inspection and calling an injection point function. In addition to adding the code, developers will also complete an output template that will be used in the final \VV reports to describe the state of the simulation each time that injection point is met. The VnV tests are developed in external libraries and hence, can be developed either by the developer of the simulation or by the end-user of the code. The core framework will also include a robust set of general purpose \VV tests. We envision that the developers of a numerical simulation package will ship the library with hard-coded injection points, a set of custom \VV tests and a number of VnV configuration files. 
+Figure~\ref{fig:toolchain} uses the MOOSE tool-chain to show how developers and end-users will interact with the VnV framework. The first step is to define the injection points. These injection points will be placed at key locations of the code where testing can and should take place. Developers will also complete an output template describes the state of the simulation at each injection point. That specification will be used to populate the final VnV report. 
 
-The end-users of the simulations will interact with VnV framework through the configuration files. Through a simple function call, users will be able to pre-generate a VnV configuration file that contains information about every injection point that is contained in any VnV enabled library in the simulation tool-chain. After customizing that file, generating a VnV report is as simple as running the simulation and opening the report in any web browser.
+The next step is to create a VnV test. The tests are developed in external libraries and hence, can be developed either by the developer of the simulation, or by the end-user of the code. The core framework will also include a robust set of general purpose \VV tests. Each test will be accompanied for a Markdown formatted template file. Like injection points, this markdown file will be used to
+describe the test and present the results. The VnV framework supports a custom markdown format that includes a range of data visualization techniques. We envision that the developers of a numerical simulation package will ship the library with hard-coded injection points and a set of custom \VV tests. 
+
+End-users will be able to generate a customized input configuration file for each executable. This configuration file will contain information about every injection point located in the call-graph of the simulation; including those in external 3rd party libraries. After customizing that file, generating a VnV report is as simple as running the simulation.
  
-In summary, once integrated into an application, the VnV framework will provide a simple mechanism for creating self verifying, self describing, explainable numerical simulations. This will significantly reduce the burden associated with \VV for end user simulations, thereby increasing the usability of the tools for non-expert end-users. The framework will support a full range of in-situ \VV tests with functionality for offloading in-situ tests to external processors. Finally, the package will include support for generating a highly customizable, web-based \VV report. A commercial license will be required to incorporate the VnV toolkit into for profit applications; however, the core functionality of the VnV toolkit will be released as open source for use in academic and enterprise applications, with RNET providing commercial support, training and integration contracts to interested parties. 
+In summary, once integrated into an application, the VnV framework will provide a simple mechanism for creating self verifying, self describing, explainable numerical simulations. This will significantly reduce the burden associated with \VV for end users, thereby increasing the usability of the tools for non-expert end-users. The core functionality of the VnV toolkit will be released as open source for use in academic and enterprise applications, with RNET providing commercial support, training and integration contracts to interested parties. A commercial license will be required to incorporate the VnV toolkit into for-profit applications;
 
 
 \subsection{Anticipated Public Benefits}
@@ -95,48 +91,60 @@ The customers of the VnV framework include the commercial and government entitie
 
 The true beneficiaries of the \VV framework are the end users of the advanced numerical simulation products. By removing the burden associated with \VV, the VnV framework will ensure erroneous errors do not propagate into final designs. All in all, the VnV framework will afford researchers and engineers with the knowledge required to drive the next generation of technological advancements. 
 
-
 \subsection{Phase I and Feasibility Demonstration}
 
-The primary goal of the Phase I effort was to demonstrate the feasibility of in-situ end-user 
-verification and validation of numerical simulations. To that end, the project team spent the majority of the Phase I
-project developing an initial prototype that demonstrates the core functionality of the VnV toolkit.
+The goal of the Phase I effort was to demonstrate the feasibility of a framework that facilitates end-user solution
+verification in advanced numerical simulation. To that end, the project team spent the majority of the Phase I
+project developing a prototype of the VnV toolkit.
 
 \subsubsection{The VnV Injection Point System}
 
-The core functionality of the injection point system was written in C++ with a focus on minimizing the amount of 
-code required to integrate the injection points into existing code bases. Figure~\ref{fig:example} shows the three stages of specfiying an injection point; the declaration; the specification; and the final HTML rendering. In this case, the injection point is applied inside a class member function that evaluates a linear function at a particular value of $x$.
+The injection point system was written in C++ with a focus on minimizing the amount of 
+code needed to insert injection points into existing code bases. 
 
 \begin{figure}
  \centering
- \includegraphics[width=0.65\textwidth]{./narrative/figures/code-example.png}
- \includegraphics[width=0.65\textwidth]{./narrative/figures/template-example.png} 
- \includegraphics[width=0.65\textwidth]{./narrative/figures/render-example.PNG}
- \caption{Sample code showing two injection points inserted into a C++ class that represents a linear functions. Top: The source code modifications required to specify an injection point. Middle: The injection point specification written using the custom markdown extension; Bottom: The final rendering of the injection point in the VnV report. \label{fig:example}}
+ \includegraphics[width=0.6\textwidth]{./narrative/figures/code-example.png}
+ \caption{Example of a single stage injection point in a C++ member function. \label{fig:example}}
 \end{figure}
 
+Integrating of an injection point into an existing code is a two step process; (1) include the header file, (2) place injection point in the code and (3) register the injection point. Figure~\ref{fig:example} shows a function that has been augmented with a single stage injection point. 
 
-Integration of an injection point into an existing code is a simple, three step process; (1) include the ``vv-runtime.h'' header file, (2) place injection points in the code and (3) write the injection point specification. 
-
-At the core of the system is the INJECTION\_POINT macro. The format for this macro is:
+Developers will insert injection points using the INJECTION\_POINT macro. The format for this macro is:
 
 \begin{verbatim} 
 INJECTION_POINT( <name>, <stage>, <type> <variable>, ...)
 \end{verbatim}
 
-Here, ``name'' is the id that will be used to define the injection point in the configuration files and the final reports. This name must 
-be unique across all injection points in an executable. The stage parameter is an integer value that defines the step that this injection point belongs to. Using this parameter, the developer can set up multi-staged injection point testing. Tests defined on staged injection points stay in scope across 
-all stages allowing for data collection across multiple code locations. The variable parameters allows the develop to specify which variables can be inspected and tested at each injection point. The phase I prototype uses a combination of string based type checking, static casts to (void*) and C style variadic function calls to achieve this task. To enter a variable, the developer must pass the type and the variable to the macro. When the function is called at runtime, the VnV injection point factory compares the types accepted by the specified tests against the type specified at the injection point. There are several risks associated with this approach, the most important of which is memory corruption from a bad cast. A key goal of the Phase II project will be to develop a set of custom preprocessor directives that use compile time checks to minimize these risks. (see Section~\ref{sec:workplan}).
+Here, ``name'' is the id that will be used to define the injection point in the configuration files and the final reports. This name must be unique across all injection points in an executable. The stage parameter is an integer value that defines the step that this injection point belongs to. Using this parameter, the developer can set up multi-staged injection point testing. This allows for data collection across multiple code locations. 
 
-The final step in the creation of an injection point is to write the injection point specification. The specification is a YAML file containing the content used to populate the final VnV report (see Figure~\ref{fig:example1}). The only required parameter in the specification is the name; however, the more information that is entered here, the more informative the final report will be. The content entry represents the text that will be shown in the final report each time the code reaches the associated injection point. This content is specified  using a custom markdown format that supports all standard markdown commands, along with a range of data visualization extensions (described below). 
+The developer defines the variables available for inspection using the variable parameter. During preprocessing, the macro expands this variable definition as 
+\begin{verbatim}
+ <type> <variable> --> "type", (void*) &variable 
+\end{verbatim}
 
-The second facet of the injection point system are the specific \VV tests. The development of the 
-test interface was based on the idea that tests should be loaded at runtime and defined independently of the source code. To achieve this, the test interface was built using a C++ plugin pattern. 
+At runtime, the VnV injection point factory compares the ``type'' of each variable against the type of variables supported by each 
+VnV test. When a match is found, the framework casts the void* pointer back to its correct type and forwards it to the test for processing. There are several risks associated with this approach, the most important of which is the memory corruption the could occur from a bad cast. Addressing these issues is a major goal of the the Phase II project (see Section~\ref{sec:workplan}).
 
-The first step in the development of a new VnV test is to create a testing library. The framework includes a library generation script that will automatically build the directory structure and makefiles required to 
-build this library. All that is required of the user for this step is to call this script with a unique name. 
+The final step in the creation of an injection point is to write the output template. This template is used to populate 
+the final VnV report. The output template is a YAML file containing a markdown formatted description of the injection point. There is 
+no requirement that a output template be supplied, however, the more information that can be provided, the more informative the final VnV report will be. The VnV framework supports a custom markdown format that includes a number of data visualization extensions (2D charts, 3D visualization, Tables, latex, etc). Most importantly, the custom markdown format provides a mechanism for automated post-processing of the data collected during VnV testing. 
 
-Once the library has been initialized, the user can begin to develop individual tests. Writing a test is as simple as implementing the IVVTest Interface. To assist in the development of tests, and to avoid issues with incorrect type-casting, a python based test generation script is created as part of the library initialization step. This script can be used to automatically generate the boiler plate code required to implement the testing interface while also taking care of the required typecasting. 
+\subsubsection{The VnV Testing Interface}
+
+The second facet of the injection point system are the \VV tests. The test interface was developed under the assumption that tests should be loaded at runtime and defined independently of the source code. As such, the test interface was built using a C++ plugin pattern. 
+
+The framework includes a library generation script that will automatically build the directory structure and makefiles required to 
+build a testing library. Once the library has been initialized, the user can begin to develop individual tests. 
+
+To assist in the development of tests, and to avoid issues with incorrect type-casting, a test generation script is also included. This script automatically generates the boiler plate code required to implement the testing interface while also taking care of the required typecasting. With this, implementing a custom test requires the developer to:
+
+\begin{itemize}
+ \item {\bf Implement the ``declareParameters'' function}. This function defines the parameters required to perform
+ the test. For example, the test in Figure~\ref{TODO} requires two doubles; one called slope and the other called intersect. The user will map the injection point variables to the test variables using the test configuration file. 
+ \item {\bf Implement the ``runTests'' function}. The variables passed to the test are direct pointers to the variables in the code. Hence, tests should not modify the pointers in any way; however, the phase I prototype does not strictly enforce this requirement. Beyond that requirement, there is not limit on the procedures that can be run inside a test. All data required for post-processing should be output inside this function using the supplied ADIOS engine. 
+ \item {\bf Write the output template.} Like injection points, all tests should be accompanied by a output template. The output can be used to automatically post-process and visualize the data collected during each test. 
+\end{itemize}
 
 
 \begin{figure}
@@ -146,41 +154,34 @@ Once the library has been initialized, the user can begin to develop individual 
  \caption{Sample code a custom VnV test for tracking the slope and intersection point of a linear function. \label{fig:test-example}}
 \end{figure}
 
+\subsubsection{The Runtime Module}
 
-Implementing the IVVTest interface is a three step process. First, the developer must define the names and types of the parameters the test will support. This is completed in the constructor by adding the name and type of certain parameters to the parameters list. The only requirement on parameters is that the names should be unique within the test. To ensure efficiency in HPC settings, the VnV framework uses ADIOS for all data output. Writing data inside a test using ADIOS is a two step process that requires the user to (1) declare the output variables that will be written and (2) write the data. Tests should declare the output variables in the DeclareIO function. Note that it is not a requirement that the output variables be defined in advance, however it is good practice and allows for more efficient handling of the meta-data in ADIOS. The actual testing and writing of the data should occur in the runTest function. The variables passed to the test are direct pointers to the variables in the code. Hence, tests should not modify the pointers in any way; however, the phase I prototype does not strictly enforce this requirement. Beyond that requirement, there is not limit on the procedures that can be run inside a test. 
+Once the injection points have been declared and the tests created, the next step is to develop the XML test configuration file. Using this XML file, users can configure which testing libraries to load and which tests to run. The test configuration file is used to map injection point parameters to test parameters. For example, Figure~\ref{TODO} shows a portion of a test configuration file that inserts the LinearTest function shown in Figure~\ref{TODO} into the ``IP\_1'' injection point defined in Figure~\ref{TODO}. Please see the final report for a full description of the XML format supported by the phase I prototype.
 
-As with the injection points, the final step in the test creation process is to define the test specification. This specification acts as the link between the data collected during testing and the final report. Figure~\ref{fig:test-example} shows an example specification for a test designed to verify and validate the slope and intersection point of a linear function. The test specification uses the custom extended markdown format to automatically populate and render an interactive line chart representing the linear function. This specification was used to render the ``Linear Function Plotter'' section shown in Figure~\ref{fig:example1}
-
-Our vision for the VnV toolkit is that each numerical library will ship with hard-coded injection points and a custom VnV Testing library. The core VnV framework will act as a single interface to these individual libraries, allowing the end-users to build explainable numerical simulations with integrated, in-situ testing at every level of simulation hierarchy. 
-
-Once the injection points have been declared and the tests created, the next step is to develop the XML test configuration file. Using this XML file, users can configure which testing libraries to load and which tests to run. Please see the final report for a full description of the XML format supported by the phase I prototype. 
-
-With the configuration file in hand, performing VnV in a simulation is as simple as including a header file, linking the VnV library and calling the VnV Initialization function. 
+Turning on VnV testing across all libraries linked to the executable is as simple as calling an initialization function with a valid input configuration file.
 
 \subsubsection{Automated Report Generation}
 
-At the core of the report generation system is a custom markdown extension. This extension supports a range of custom data visualization features that interact directly with the output data in the ADIOS2 output file. For example, the chart shown in  Figure~\ref{fig:example} utilizes the support for generating two dimensional plots using the format. Other functionality supported includes 3D visualization with VTK.js and interactive tables with tabular.js. The extension also includes support for custom post-processing scripts. This allows for infinite possibilities with regard to processing the test outputs. For example, it is possible to  run a paraview script that generates VTI files based on the test data. 
+The final step in the VnV pipeline is the automatic report generation. At the core of the report generation system is a custom markdown extension. This extension supports a range of custom data visualization features that interact directly with the output data in the ADIOS2 output file. For example, users can specify markdown that renders as an interactive 2D visualization automatically populated with data obtained during VnV testing (the line chart shown in  Figure~\ref{rendered-example} is generated using this functionality). Other features include 3D visualization using VTK.js and search-able tables with tabular.js. The extension also includes support for running custom python scripts during compilation. This allows for infinite possibilities with regard to processing the test outputs. For example, a user can write markdown that, during compilation, runs a paraview script and then display the results using the VTK.js.   
 
-\rnetcomment{TODO}
-Figures~\ref{TODO} show screen-shots of a sample VnV report generated using a set of toy testing libraries. The main layout consists of three components; the carousel, the index and the content. The carousel is an optional component that can be used to highlight important results of the simulation. It accepts up to ten pictures, each with its own custom caption. The index and content are generated automatically based on the VnV output file. Each node in the index represents an injection point encountered during the simulation. As such, this index represents a coarse grained view of the simulations call stack. At the top of each injection point section is the injection point content as specified in the injection point specification. Following this is the output of each test completed at the injection point. Last is the list of children. These children represent injection points that were initialized between the first and last step of a staged injection point. %A live version of this sample VnV report will be available at http://www.rnet-tech.net/VV/sample.html until the date of award notification. 
+Figure~\ref{rendered-example} shows a screen-shot of a VnV report generated using this approach. The main layout consists of two components; the index and the content. The index in generated directly from the VnV output file. Each entry in the index represents an injection point that was reached during the execution of the simulation. The content section is generated automatically from the YAML specification files. In this case, the user has completed a test titled ``Linear Function Plotter'' inside an injection point called ``Linear Function Constructor''.  
 
-\subsubsection{ Demonstration in a Moose Application } 
-To demonstrate the utility of the method, the project team placed several injection points 
-in the main function of a MOOSE example ``ex01'', one injection point in the PETSc Initialize function and 
-one injection point in the PETSc Finalize functions. This is an extremely simple example that 
-did not test the full limits of the new API; however, it did act to verify that the phase I prototype 
-can be used to can be used to perform in-situ verification and validation in a across multiple libraries 
-through a single interface. 
+\begin{figure}
+ \includegraphics[width=\textwidth]{./narrative/figures/render-example.PNG}
+\caption{ An example of the VnV report generated automatically from the VnV output files and the injection point and test specification files. \label{rendered-example}}
+\end{figure}
+ 
+The key point to note here is that this interface was generated automatically from the VnV output file.
 
 In summary, during Phase I, the project team created a functioning prototype of the VnV framework that provides:
 \begin{itemize}
  \item A clean mechanism for inserting injection points in existing codes
  \item A simple interface for defining custom tests 
- \item A python based report generation code that automatically creates an interactive server-less web report based on the VnV output.
+ \item A report generation system that automatically creates an interactive server-less web report based on the VnV output.
 \end{itemize}
 
 As will be described in the workplan, the goal of the Phase II project will be to take this initial prototype and extend, harden and 
-optimize it such that it can be efficiently used in high performance computing applications. 
+optimize it for use in high performance computing applications. 
 
 
 
