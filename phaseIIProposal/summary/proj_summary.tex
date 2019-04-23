@@ -1,10 +1,8 @@
 
 \section*{Project Information}
 Company Name: RNET Technologies\\
-Research Institute: Oak Ridge National Laboratory\\
-Title: Cloud-based Scientific Workbench for Nuclear Reactor Simulation  Life Cycle Management\\
-Principal Investigator: Dr. Gerald Sabin\\
-Research Institute PI: Dr. Jay Billings\\
+Title: VnV: A Self Documenting Testing Framework for In-situ Verification and Validation in High Performance Computing Applications. \\
+Principal Investigator: Dr. Ben O'Neill\\
 Topic Number/subtopic letter: 30d (Modeling and Simulation)
 
 \section*{Problem Statement}
@@ -12,83 +10,53 @@ Topic Number/subtopic letter: 30d (Modeling and Simulation)
 %%addressed . be sure that the DOE interest in the problem is clear, but not in such a way that implies that 
 %%any service or products are being provided for the direct benefit of DOE rather than for the 
 %%advancement of a public purpose. (Typically one to three sentences).
-The predictive modeling approaches and softwares being continually
-developed and updated by the DOE nuclear engineering scientists (under
-programs such as NEAMS, CASL, RISMC etc.) need to be efficiently
-transferred to the nuclear science and engineering community.  An
-advanced workflow management workbench is required to allow efficient
-usage from small and large bossiness and research groups. The
-workbench must manage inputs decks, simulation execution (on a local
-machine, a High Performance Compute cluster, or a Cloud cluster),
-intermediate results, final results and visualizations, and provenance
-of the tools and settings.
-
+Verification and Validation (V\&V) of numerical simulations is a discrete process that cannot realistically account for every possibility. This causes issues in general purpose simulation packages because, while it may be the responsibility of the developers to ensure that their product is mathematically correct, it is the responsibility of the end-user to ensure the solution obtained is a suitable representation of their physical model. After all, the direct costs of a design failure, be it time, money or loss of life, fall squarely on the shoulders on the end-user, and any attempt to shift the blame to the developers of simulation library $X$ will certainly fall of deaf ears. 
 \section*{General Statement}
 %%General statement of how this problem is being addressed. This is the overall objective of the combined 
 %%Phase I and Phase II projects. How is this problem being addressed? What is the overall approach of the 
 %%combined Phase I/Phase II project? (Typically one to two sentences).
-CloudBench is a hosted simulation environment for large scale numeric
-simulations.  CloudBench will augment existing simulation, Integrated
-Development Environment, and workbench tools being developed by the
-DOE and industry. It offers a complete set of simulation management
-features not available in open tools: sharing of configurations,
-simulation output, and provenance on a per simulation or per project
-basis; multi-simulation provenance history to allow simulations to be
-reconstructed, verified, or extended; and remote access to simulation
-tools installed on Cloud and HPC resources.
+The VnV toolkit facilitates the development of \emph{explainable} numerical simulations that, in addtion to the final solution, provide 
+the end-user with a detailed report on why the solution can be trusted. These reports provide the detailed knowledge
+required to robustly verify and validate end-user driven simulations.
 
 \section*{Phase I Feasibility}
 %%What was done in Phase I (and Phase II, if applying for Sequential A or B)? (Typically two to three 
 %%sentences).
-The Phase effort demonstrated the feasibility of using existing DOE
-investments (i.e., the ICE workbench) to launch and manage remote jobs
-on cluster and commercial cloud software. In addition, an initial
-native web interface was demonstrated for the proposed
-workbench. These two pillars will support the development of the full
-web based large scale simulation workbench, with an initial focus on
-open source and government sourced Nuclear Engineering applications.
+The Phase effort demonstrated the feasibility of developing a framework that facilitates end-user V\&V
+in advanced numerical simulations. This included the development of 
+a portable solution for declaring injection points in a code, an intuitive interface 
+for writing tests and injecting them at runtime, and an automated documentation generation
+system with supoprt for 2D and 3D visualization. 
 
 \section*{Phase II Plans}
 %%What is planned for the Phase II project? (Typically two to three sentences).
-The Phase II effort will develop the complete CloudBench:NE tools
-including a web interface for workflow management and user provenance
-sharing, remote job launch and management (support DOE clusters, DOE
-private clouds, and major public clouds), and
-visualization. CloudBench:NE will initially support major NEAMS and
-CASL simulation codes. Additional codes (within the Nuclear
-Engineering community and in other large scale numeric simulation
-verticals) will be supported with non-SBIR funds.
-
+The Phase II effort will develop the complete VnV framework, including the development
+of custom preprocessor directives that allow injection points to be configured in more dynamic ways 
+and efficient statistical metrics for asserting the state of data 
+stored in distributed arrays. The value of the VnV framework will be demonstrated using the NEAMS 
+toolchain of MOOSE, PETSc and libMesh. 
 
 \section*{Commercial Applications and Other Benefits}
 %%Commercial Applications and Other Benefits (limited to the space provided). Summarize the future 
 %%applications or public benefits if the project is carried over into Phase III and beyond. Do not repeat 
 %%information already provided above.
-Many engineers use vendor supported computer aided simulation tools,
-which include vendor supported workbench and job management
-tools. Many open source and government sources codes provide
-simulation features not available in these commercial codes. However,
-in order for engineers to adopt advanced simulation tools there must
-be an open workbench that supports easy deployment, job execution, and
-sharing. CloudBench will provide these features, allowing users to
-adopt the advanced simulation tools.
+Numerical modeling and simulation (M\&S) is almost always more economical than live prototyping; 
+a fact that has seen wide-scale uptake of M\&S in industry (e.g., automotive, nuclear, 
+aerospace, advanced manufacturing, etc.). In all cases, the explainable numerical simulations facilitated
+by the VnV toolkit provide end-users with the wealth of knowledge required to ensure dangerous errors
+do not propagate into final designs. 
 
 \section*{Key Words}
 %%Provide listing of key words that describe this effort.
-Remote Job Management, Simulation Workflows, Provenance, Life Cycle
-Management, Large Scale Numerical Simulations, NEAMS, CASL, Web Based
-Workbench, Cloud, Clusters, HPC 
-
-
+Verification, Validation, Accredidation, In-situ testing,
+HPC, Documentation generation, ADIOS, NEAMS.
 
 \section*{Summary for Members of Congress}
 %% (layman.s terms, two sentences with a maximum of 50 words). The 
 %%DOE notifies members of Congress of awards; therefore, please provide, in clear and concise layman.s 
 %%terms, a very brief summary of the project, suitable for a possible press release from a Congressional 
 %%office.
-CloudBench is web based advanced simulation management tool to support
-open- and government- sourced applications. It will enable
-identification of modeling codes (often developed by major government
-projects such as NEAMS and CASL), remote execution and cloud
-visualization, and workflow management/provenance. The portal enables
-easy adoption of government codes.
+The VnV framework provides scientists with the tools required 
+to create explainable numerical simulations that, in addition to the final report, provide
+users with a detailed report on why the solution should be trusted. Such information will
+help end-users ensure uncaught simulation errors do not propagate into final designs. 
