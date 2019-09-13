@@ -16,21 +16,20 @@ To Install, there are three steps.
    (sudo) make install   
 
 3. Generate the vv_schema api. 
-   cd xml
-   ${XPLUS2XSD_DIR}/bin/xsd2cpp ./vv_schema.xsd
-   export VVSCHEMA_DIR=<install-path>
-   cd vv_schema
-   ./autogen.sh
-   ./configure --prefix=${VVSCHEMA_DIR} 
-   make 
-   make install
+   cd injection
+
+   # Set the XSD install directory then
+
+   make-generate-api 
 
 4. Build the injection library
    cd injection
-   mkdir build
-   cd build
-   cmake -DCMAKE_INSTALL_PREFIX=<install-path> ..
    make 
-   make install
+
+5. cd examples/dummy
+   make
+   cd executables
+   ./sample.a
+
 
 
