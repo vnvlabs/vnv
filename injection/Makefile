@@ -3,24 +3,26 @@
 MAX_SUPPORTED_ARGUMENTS=25
 
 XSD_INSTALL_DIR=/usr/local
-ADIOS_INSTALL_DIR = /home/boneill/llvm/adios2-INSTALL
-HDF5_DIR=/home/boneill/llvm/hdf5-install
 
-CPPFLAGS=-isystem ${ADIOS_INSTALL_DIR}/include -std=gnu++11  
-LDFLAGS= vv_schema_build/lib/libvv_schema.so ${XSD_INSTALL_DIR}/lib/libxsdall.so ${ADIOS_INSTALL_DIR}/lib/libadios2.so ${HDF5_DIR}/lib/libhdf5.so -pthread
-LDFLAGS+= -Wl,-rpath-link,${ADIOS_INSTALL_DIR}/lib    
-LDFLAGS+= -Wl,-rpath,${ADIOS_INSTALL_DIR}/lib    
-LDFLAGS+= -Wl,-rpath,${PWD}/vv_schema_build/lib   
+CPPFLAGS=-I./include -I./xml/vv_schema/build/include -std=gnu++11  
+LDFLAGS= ${PWD}/xml/vv_schema/build/lib/libvv_schema.so ${XSD_INSTALL_DIR}/lib/libxsdall.so -pthread
+LDFLAGS+= -Wl,-rpath,${PWD}/xml/vv_schema/build/lib   
 LDFLAGS+= -Wl,-rpath,${XSD_INSTALL_DIR}/lib
-LDFLAGS+= -Wl,-rpath,${HDF5_DIR}/lib
 
-XMLFLAGS= ${PWD}/vv_schema_build/include
+SRCS=src/injection.o src/vv-testing.o src/vv-output.o src/vv-adios.o
+
+WITH_ADIOS2=1
+ADIOS2_DIR?=/home/boneill/llvm/adios2-INSTALL
+ifeq ($(WITH_ADIOS2),1)
+CPPFLAGS+=-isystem ${ADIOS2_DIR}/include
+LDFLAGS+=-Wl,-rpath,${ADIOS2_DIR}/lib ${ADIOS2_DIR}/lib/libadios2.so.2.3.1 -lpthread -Wl,-rpath-link,${ADIOS2_DIR}/lib 
+endif
 
 %.o : %.cpp 
-	g++ -shared -fPIC -g -c -o $@ $< -std=c++11 $(CPPFLAGS) -I./include -I$(XMLFLAGS)  
+	mpicxx -shared -fPIC -g -c -o $@ $< -std=c++11 $(CPPFLAGS) -I./include   
 
-injection: src/injection.o
-	g++ -fPIC -shared -o libinjection.so $^ $(LDFLAGS) 
+injection: ${SRCS}
+	mpicxx -fPIC -shared -o libinjection.so $^ $(LDFLAGS) 
 
 install: injection
 	mkdir -p build/lib
@@ -29,13 +31,9 @@ install: injection
 
 
 .PHONY: generate-xml-api
-generate-xml-api:
-	${MAKE} -C xml 
+generate-xml-api: xml/vv_schema.xsd 
+	cd xml && ${XSD_INSTALL_DIR}/bin/xsd2cpp vv_schema.xsd && cd vv_schema && ./autogen.sh && make && make install
 
-.PHONY: generate-macros
-generate-macros:
-	python ./util/macro_generator.py ${MAX_SUPPORTED_ARGUMENTS}
-	mv ./vv-runtime.h ./include/
 
 .PHONY: clean
 clean:

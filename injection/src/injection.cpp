@@ -1,10 +1,9 @@
 
 #include "injection.h"
-#include "adios2.h"
 
 using namespace vv;
 
-int VV::StringSplit(const std::string &s,
+int InjectionPointBaseFactory::StringSplit(const std::string &s,
                     const char *delim,
                     std::vector< std::string > &result )
 {
@@ -44,77 +43,7 @@ void VVTestLibrary::closeLibrary() {
     }
 }
 
-
-
 VVTestLibrary::~VVTestLibrary() {
-}
-
-DefaultVVTransform VVTestStageConfig::defaultTransform;
-
-bool VVTestConfig::runOnStage(int index) {
-
-    return ( stages.find(index) != stages.end());
-}
-
-void VVTestConfig::addTestStage(VVTestStageConfig config) {
-
-    stages.insert(std::make_pair(config.injectionPointStageId, config));
-}
-
-VVTestStageConfig VVTestConfig::getStage(int stage) {
-
-    auto it = stages.find(stage);
-    if ( it != stages.end() )
-        return it->second;
-    throw "Stage not found " ;
-}
-
-void VVTestStageConfig::addTransform(std::string testParameter, std::string ipParameter, std::string trans) {
-    IVVTransform *transform = VV::getTransform(trans);
-    transforms.insert( std::make_pair(testParameter, std::make_pair(ipParameter, transform)));
-}
-
-std::pair<std::string, IVVTransform*> VVTestStageConfig::getTransform(std::string s) {
-
-    auto it = transforms.find(s);
-    if ( it != transforms.end())
-        return it->second;
-
-    // Could not find a transform for that parameter, so return the default transform with same name;
-    return std::make_pair(s, &defaultTransform);
-}
-
-
-IVVTransform::IVVTransform()  {}
-
-void * DefaultVVTransform::Transform(std::pair<std::string, void*> ip, std::string testParameterType) {
-
-    if ( ip.first.compare(testParameterType) == 0 )
-        return ip.second;
-    throw "Default Transform does not apply";
-}
-
-
-IVVTest::IVVTest(VVTestConfig &config) : m_config(config) {
-
-}
-
-
-// Index is the injection point index. That is, the injection
-// point that this test is being run inside.
-TestStatus IVVTest::_runTest(adios2::Engine &engine, int stageVal, NTV &params) {
-    if ( m_config.runOnStage(stageVal) )   {
-        int testVal = m_config.getStage(stageVal).testStageId;
-        VV::adiosWrapper->startTest(m_config.testName, testVal, m_config.markdown);
-        TestStatus s = runTest(engine, stageVal, params);
-        VV::adiosWrapper->stopTest(( s==SUCCESS) ? true: false);
-        return s;
-    }
-    return NOTRUN;
-}
-
-IVVTest::~IVVTest() {
-
 }
 
 
@@ -161,8 +90,8 @@ std::string InjectionPointStage::getDescription() const {
 
 void InjectionPoint::addTest(VVTestConfig config) {
 
-    auto it = VV::test_factory.find(config.testName);
-    if ( it != VV::test_factory.end() ) {
+    auto it = InjectionPointBaseFactory::test_factory.find(config.testName);
+    if ( it != InjectionPointBaseFactory::test_factory.end() ) {
         m_tests.push_back(it->second.first(config));
     }
 }
@@ -200,27 +129,50 @@ void VV_injectionPoint(int stageVal, const char * id, const char * function, ...
 
     va_list argp;
     va_start(argp, function);
-    VV::injectionPoint(stageVal, id, function, argp);
+    InjectionPointBaseFactory::injectionPoint(stageVal, id, function, argp);
     va_end(argp);
 }
 
+void InjectionPointBaseFactory::printAllEngines() {
+
+    InjectionPointBaseFactory::getAll();
+    
+    std::cout << " All Available Engines " << std::endl;
+    for (auto it : registeredEngines ) {
+      std::cout << "\t" << it.first << std::endl; 
+    }
+    std::cout << "End registered Engines" << std::endl; 
+    
+    std::cout << " All Available Tests -- Note: Tests are registered through the input file.  " << std::endl;
+    for (auto it : test_factory ) {
+      std::cout << "\t" << it.first << std::endl; 
+    }
+    std::cout << "End registered Tests" << std::endl; 
+
+    std::cout << " All Available Transformater -- Note: Transformers are registered through the input file.  " << std::endl;
+    for (auto it : trans_factory ) {
+      std::cout << "\t" << it.first << std::endl; 
+    }
+    std::cout << "End registered Transformer" << std::endl; 
+
+}
+
+
 int VV_init(const char * filename) {
-  VV::VVInit(filename);
+  InjectionPointBaseFactory::VVInit(filename);
   return 1;
 }
 
 int VV_finalize() {
-  VV::VVFinalize();
+  InjectionPointBaseFactory::VVFinalize();
   return 1;
 }
 int VV_writeXML(const char * filename) {
-  VV::writeXMLFile(filename);
+  InjectionPointBaseFactory::writeXMLFile(filename);
   return 1;
 }
 
 int VV_registration(const char * scope, int stage, const char * filename, int line, const char * desc, int count, ...) {
-
-
     va_list argp;
     va_start(argp,count);
     InjectionPointRegistrar r(scope, stage, filename, line, desc, count, argp);
@@ -228,19 +180,18 @@ int VV_registration(const char * scope, int stage, const char * filename, int li
     return 0;
 }
 
-void VV::injectionPoint(int injectionIndex, std::string scope, std::string function, ...) {
+void InjectionPointBaseFactory::injectionPoint(int injectionIndex, std::string scope, std::string function, ...) {
     va_list argp;
     va_start(argp, function);
     injectionPoint(injectionIndex, scope, function, argp);
 }
 
-void VV::injectionPoint(int injectionIndex, std::string scope, std::string function, va_list argp) {
+void InjectionPointBaseFactory::injectionPoint(int injectionIndex, std::string scope, std::string function, va_list argp) {
 
     if ( runTests ) {
         auto ipd =  InjectionPointBaseFactory::getDescription(scope);
         ipd.runTests(injectionIndex, argp );
     }
-
 
 }
 
@@ -264,14 +215,14 @@ void InjectionPoint::runTests(int stageValue ,va_list argp ) {
     auto s = stages.find(stageValue);
     if ( s != stages.end() ) {
         // Write BeginStep Injection point scope
-        AdiosWrapper *wrapper = VV::adiosWrapper;
+        VVOutputEngineManager *wrapper = InjectionPointBaseFactory::manager;
         NTV ntv;
         unpack_parameters(stageValue, ntv, argp);
 
         // Call the method to write this injection point to file.
         wrapper->startInjectionPoint(getScope(),stageValue, m_markdown);
         for ( auto it : m_tests ) {
-            it->_runTest(wrapper->engine, stageValue,ntv);
+            it->_runTest(wrapper->getOutputEngine(), stageValue,ntv);
         }
         wrapper->endInjectionPoint(getScope(),stageValue, m_markdown);
     }
@@ -282,16 +233,19 @@ ip_map* InjectionPointBaseFactory::map = NULL;
 std::vector<void*> InjectionPointBaseFactory::testLibraries;
 IntroStruct InjectionPointBaseFactory::intro;
 OutroStruct InjectionPointBaseFactory::outro;
+std::set<std::string> InjectionPointBaseFactory::registeredTests;
 
 
 void InjectionPointBaseFactory::getAll() {
 
     ip_map::iterator it = getMap()->begin();
-
+    std::cout << "Printing all registered Injection points: " << std::endl;
     while ( it != getMap()->end() ) {
         std::cout << it->second.getScope() << std::endl;
         it++;
     }
+    std::cout << "Finished printing available injection points" << std::endl;
+
 }
 
 ip_map* InjectionPointBaseFactory::getMap() {
@@ -354,7 +308,7 @@ void InjectionPointBaseFactory::populateDocument(vv::Document *doc) {
         std::vector<std::string> split_scope;
         std::string scope = ipd.second.getScope();
         scope = "global_" + scope;
-        VV::StringSplit(scope,"_",split_scope);
+        InjectionPointBaseFactory::StringSplit(scope,"_",split_scope);
 
         scope_p current_scope = mainScope; // start at the root.
         for ( auto it = split_scope.begin(); it != split_scope.end(); it++ ) {
@@ -378,11 +332,22 @@ void InjectionPointBaseFactory::populateDocument(vv::Document *doc) {
     }
 }
 
+void InjectionPointBaseFactory::DeclareTest(std::string testName) {
+    auto it = InjectionPointBaseFactory::test_factory.find(testName);
+    auto itt = registeredTests.find(testName);
+
+    if ( itt == registeredTests.end() && it != InjectionPointBaseFactory::test_factory.end() ) {
+        it->second.second(InjectionPointBaseFactory::manager->getOutputEngine());
+        registeredTests.insert(testName);
+    }
+
+}
 
 void InjectionPointBaseFactory::addTest(test_p t, InjectionPoint &ipd) {
     std::string testName = t->get_attr_name_string();
     std::string markdown = t->get_attr_markdown_string();
-    VV::adiosWrapper->DeclareTest(testName);
+    
+    DeclareTest(testName);
     
     std::cout << " Adding the TESTS " << testName <<std::endl;
 
@@ -489,27 +454,18 @@ void InjectionPointBaseFactory::parseXMLFile(std::string filename) {
 
     // Parse the xml file.
     //
-    // Also -- set up the ADIOS component. This is the main component
 
 
     try {
         vv::Document * doc = new vv::Document(false);
         doc->prettyPrint(true);
 
-        // When reading the xml file. The parser XPlus parser prints out
-        // a load of garbage that I cannot seem to locate and or turn off.
-        // As a hack, we redirect stdout to a buffer. FIXME
-        // FILE fp_old = *stdout;
-        // *stdout = *fopen("/dev/null","w");
-        // FILE fp_new = *stdout;
-
+        // TODO -- This dumps a ton to stdout -- 
+        std::cout << "DEBUG -- TODO -- REMOVE ALL THIS PRINTS InjectionPointBaseFactory::parseXMLFILE " << std::endl;
         ifstream ifs(filename.c_str());
         ifs >> *doc;
         parseXMLFile(doc);
 
-        // Restate the stdout file pointer <---- REALY FIXME
-        // *stdout = fp_old;
-        //fclose(&fp_new); // Cant close a file pointing to dev/null
     }
     catch(XPlus::Exception& ex) {
         cerr << "  => write failed" << endl;
@@ -518,15 +474,18 @@ void InjectionPointBaseFactory::parseXMLFile(std::string filename) {
         cerr << endl << "}" << endl;
         exit(1);
     }
+    
+    //FIXME -- ADD TO XML FILE
+    InjectionPointBaseFactory::setEngineManager("adios", "todo","todo",false);
 
 
 }
 
 void InjectionPointBaseFactory::writeIntroduction() {
-    VV::adiosWrapper->writeIntroduction(intro);
+    InjectionPointBaseFactory::manager->writeIntroduction(intro);
 }
 void InjectionPointBaseFactory::writeConclusion() {
-    VV::adiosWrapper->writeConclusion(outro);
+    InjectionPointBaseFactory::manager->writeConclusion(outro);
 }
 
 void InjectionPointBaseFactory::writeXMLFile(std::string filename) {
@@ -549,47 +508,43 @@ void InjectionPointBaseFactory::writeXMLFile(std::string filename) {
     }
 }
 
-bool VV::runTests = false;
+bool InjectionPointBaseFactory::runTests = false;
 
-bool VV::VVInit(std::string configFile) {
-    setAdiosWrapper("outfile_defualt.bp") ;
-
+bool InjectionPointBaseFactory::VVInit(std::string configFile) {
+    
     runTests = true;
-
     InjectionPointBaseFactory::parseXMLFile(configFile);
+    
     InjectionPointBaseFactory::writeIntroduction();
-    InjectionPointBaseFactory::getAll();
-
-
+    
+    printAllEngines();
 
     return true;
 }
 
-bool VV::VVFinalize() {
+bool InjectionPointBaseFactory::VVFinalize() {
 
-    InjectionPointBaseFactory::writeConclusion();
-    adiosWrapper->finalizeAdios();
+    writeConclusion();
+    manager->finalize();
 }
 
-void VV::writeXMLFile(std::string filename) {
-    InjectionPointBaseFactory::writeXMLFile(filename);
+
+VVOutputEngineManager* InjectionPointBaseFactory::manager = NULL;
+std::map<std::string, std::pair<maker_ptr *, variable_register_ptr*> , std::less<std::string>> InjectionPointBaseFactory::test_factory;
+std::map<std::string, trans_ptr *, std::less<std::string>> InjectionPointBaseFactory::trans_factory;
+std::map<std::string, engine_register_ptr*, std::less<std::string>> InjectionPointBaseFactory::registeredEngines;
+
+void InjectionPointBaseFactory::setEngineManager(std::string type, std::string outfileName, std::string configFile, bool debug) {
+    manager = (registeredEngines[type])(outfileName,configFile,debug);
 }
 
-//Define the adios wrapper pointer static
-AdiosWrapper* VV::adiosWrapper = NULL;
-std::map<std::string, std::pair<maker_ptr *, adios_register_ptr*> , std::less<std::string>> VV::test_factory;
-std::map<std::string, trans_ptr *, std::less<std::string>> VV::trans_factory;
 
-void VV::setAdiosWrapper(std::string outfileName, std::string configFile, MPI_Comm comm, bool debug) {
-    VV::adiosWrapper = new AdiosWrapper(outfileName,configFile,comm,debug);
-}
+IVVTransform* InjectionPointBaseFactory::getTransform(std::string name) {
 
-IVVTransform* VV::getTransform(std::string name) {
-
-    auto it = VV::trans_factory.find(name);
+    auto it = InjectionPointBaseFactory::trans_factory.find(name);
 
 
-    if ( it != VV::trans_factory.end() ) {
+    if ( it != InjectionPointBaseFactory::trans_factory.end() ) {
         return it->second();
     }
     return new DefaultVVTransform();
@@ -607,14 +562,10 @@ InjectionPointRegistrar::InjectionPointRegistrar(std::string scope,  // the name
     if ( count % 2 != 0 )
         throw "Count is wrong";
 
-
-    std::cout << " HEEGSSDGSDGDSG " << count << std::endl;
     for ( int i = 0; i < count; i=i+2 ) {
 
         std::string s1 = va_arg(argp, char*);
         std::string s2 = va_arg(argp, char*);
-
-        std::cout << " S1 S2 " << s1 << " " << s2 << std::endl;
 
         params.push_back(std::make_pair(s2,s1));
     }
@@ -670,118 +621,5 @@ InjectionPointRegistrar::InjectionPointRegistrar(std::string scope,  // the name
 }
 
 
-AdiosWrapper::AdiosWrapper(std::string outfile, MPI_Comm comm, bool debug ) :
-    adios(comm,debug)
-{
-    setAdios(outfile);
-}
-
-AdiosWrapper::AdiosWrapper(std::string outfile, std::string configFile, MPI_Comm comm, bool debug ) :
-    adios(configFile, comm, debug)
-{
-    setAdios(outfile);
-}
-
-void AdiosWrapper::writeIntroduction(IntroStruct intro) {
-    if (engine) {
-        engine.BeginStep();
-        engine.Put(stage, 88888);
-        engine.Put(markdown,intro.intoMarkdown);
-        std::string s = "introduction";
-        engine.Put(type, s);
-        engine.EndStep();
-    }
-}
-
-void AdiosWrapper::writeConclusion(OutroStruct outro) {
-    if (engine) {
-        engine.BeginStep();
-        engine.Put(stage, -88888);
-        engine.Put(markdown, outro.outroMarkdown);
-        std::string s = "conclusion";
-        engine.Put(type, s);
-        engine.EndStep();
-    }
-}
-
-void AdiosWrapper::DeclareTest(std::string testName) {
-    auto it = VV::test_factory.find(testName);
-    auto itt = registeredTests.find(testName);
-
-    if ( itt == registeredTests.end() && it != VV::test_factory.end() ) {
-        it->second.second(bpWriter);
-        registeredTests.insert(testName);
-    }
-
-}
-
-void AdiosWrapper::finalizeAdios() {
-    if (engine) {
-        engine.Close();
-    }
-}
-
-void AdiosWrapper::setAdios(std::string outfile) {
-    bpWriter = adios.DeclareIO("BPWriter");
-    //bpWriter.SetEngine("HDF5");
-    outputFile = bpWriter.AddTransport("File", {{"Library","POSIX"},{"Name",outfile.c_str()}});
-    identifier = bpWriter.DefineVariable<std::string>("identifier");
-    stage = bpWriter.DefineVariable<int>("stage");
-    type = bpWriter.DefineVariable<std::string>("type");
-    markdown = bpWriter.DefineVariable<std::string>("markdown");
-    result = bpWriter.DefineVariable<int>("result");
-    engine = bpWriter.Open(outfile, adios2::Mode::Write);
-
-
-}
-
-void AdiosWrapper::endInjectionPoint(std::string id, int stageVal , std::string markdownVal ) {
-
-    if ( engine ) {
-        engine.BeginStep();
-        engine.Put(identifier, id);
-        engine.Put(stage, stageVal );
-        engine.Put(markdown, markdownVal);
-        std::string s = "EndIP";
-        engine.Put(type, s);
-        engine.EndStep();
-    } else {
-        throw "Engine not initialized" ;
-    }
-}
-void AdiosWrapper::startInjectionPoint(std::string id, int stageVal , std::string markdownVal ) {
-    if ( engine ) {
-        engine.BeginStep();
-        engine.Put(identifier, id);
-        engine.Put(stage, stageVal );
-        engine.Put(markdown, markdownVal);
-        std::string s = "StartIP";
-        engine.Put(type, s);
-        engine.EndStep();
-    } else {
-        throw "Engine not initialized" ;
-    }
-}
-
-void AdiosWrapper::startTest( std::string testName, int testStageVal, std::string markdownVal ) {
-    if (engine) {
-        engine.BeginStep();
-        engine.Put(identifier, testName);
-        engine.Put(stage, testStageVal);
-        engine.Put(markdown, markdownVal);
-        std::string test = "StartTest";
-        engine.Put(type,test);
-    } else {
-        throw "Engine not setup correctly";
-    }
-}
-
-void AdiosWrapper::stopTest(bool result_) {
-    if ( engine ) {
-        int res = (result_) ? 1 : 0 ;
-        engine.Put(result, res);
-        engine.EndStep();
-    }
-}
 
 

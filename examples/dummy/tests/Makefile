@@ -1,0 +1,6 @@
+
+
+
+
+all:
+	${MAKE} -C dummyTestLibOne

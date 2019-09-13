@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<ns1:exe name="sdfsdfs" xmlns:ns1="vv">
+  <ns1:path>sdfsdf</ns1:path>
+  <ns1:intro>
+    <ns1:markdown>default.md</ns1:markdown>
+  </ns1:intro>
+  <ns1:outro>
+    <ns1:markdown>default.md</ns1:markdown>
+  </ns1:outro>
+  <ns1:testLibrary>
+    <ns1:path>../tests/dummyTestLibOne/testLib.so</ns1:path>
+  </ns1:testLibrary>
+  <ns1:scope name="global">
+    <ns1:injectionPoint name="ErrorTest" markdown="TODO">
+      <ns1:desc/>
+      <ns1:injectionPointStage stageId="0">
+        <ns1:desc>Sample Test End</ns1:desc>
+        <ns1:parameters>InjectionPoint(samplePoints std::vector&lt;double&gt;, samplePoints1 std::vector&lt;double&gt;);</ns1:parameters>
+      </ns1:injectionPointStage>
+      <ns1:injectionPointStage stageId="9999">
+        <ns1:desc>Sample Test End</ns1:desc>
+        <ns1:parameters>InjectionPoint(samplePoints std::vector&lt;double&gt;, samplePoints1 std::vector&lt;double&gt;);</ns1:parameters>
+      </ns1:injectionPointStage>
+      <ns1:test name="EuclideanError" markdown="TODO"> 
+             <ns1:testStage ipId="0" testId="130"> 
+               <ns1:parameter from="samplePoints" to="data0"/>
+               <ns1:parameter from="samplePoints1" to="data1"/>
+             </ns1:testStage>    
+             <ns1:testStage ipId="9999" testId="1300"> 
+               <ns1:parameter from="samplePoints" to="data0"/>
+               <ns1:parameter from="samplePoints1" to="data1"/>
+             </ns1:testStage>    
+          </ns1:test>        
+    </ns1:injectionPoint>
+  </ns1:scope>
+</ns1:exe>
