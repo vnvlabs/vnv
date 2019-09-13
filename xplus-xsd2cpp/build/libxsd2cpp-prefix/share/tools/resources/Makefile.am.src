@@ -1,6 +1,0 @@
-AM_CXXFLAGS= -I/usr/local/include -I$(top_srcdir)/include
-AM_LDFLAGS=
-
-lib_LTLIBRARIES = lib@xsdname@.la
-lib@xsdname@_la_LIBADD = /usr/local/lib/libxsdall.la
-lib@xsdname@_la_SOURCES = \

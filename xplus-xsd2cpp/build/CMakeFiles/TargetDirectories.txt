@@ -1,3 +1,0 @@
-/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/CMakeFiles/rebuild_cache.dir
-/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/CMakeFiles/edit_cache.dir
-/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/CMakeFiles/libxsd2cpp.dir

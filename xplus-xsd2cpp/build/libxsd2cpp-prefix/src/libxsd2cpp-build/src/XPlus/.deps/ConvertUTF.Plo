@@ -1,8 +1,0 @@
-XPlus/ConvertUTF.lo: \
- /home/boneill/Documents/vv-neams/xplus-xsd2cpp/src/XPlus/ConvertUTF.c \
- /usr/include/stdc-predef.h \
- /home/boneill/Documents/vv-neams/xplus-xsd2cpp/include/XPlus/ConvertUTF.h
-
-/usr/include/stdc-predef.h:
-
-/home/boneill/Documents/vv-neams/xplus-xsd2cpp/include/XPlus/ConvertUTF.h:

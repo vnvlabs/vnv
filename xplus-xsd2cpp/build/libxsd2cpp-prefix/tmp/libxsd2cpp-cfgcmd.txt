@@ -1,1 +1,0 @@
-cmd='/home/boneill/Documents/vv-neams/xplus-xsd2cpp/autogen.sh;COMMAND;/home/boneill/Documents/vv-neams/xplus-xsd2cpp/configure;--prefix;/home/boneill/software/xplus-xsd2cpp'
