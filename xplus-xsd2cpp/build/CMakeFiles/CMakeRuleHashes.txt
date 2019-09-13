@@ -1,0 +1,10 @@
+# Hashes of file build rules.
+7ac46e5176abbabcc4a1b8d9d9f6a118 CMakeFiles/libxsd2cpp
+c5f65880f1c3ac69b1ed95b6d99e1bff CMakeFiles/libxsd2cpp-complete
+ba623de0180e9bf60970e960648c24b1 libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-build
+66c2ccfb2591be5cce3bcd8224b72c31 libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-configure
+501a810e09b89a3bc1036973e518c5ee libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-download
+8cbac2624ed35866c2cf2b42b675a431 libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-install
+73384c13fd9c626bb146ec9486af5ab9 libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-mkdir
+e93a677b7ed07ec1ff31b8b3fa866ad8 libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-patch
+eb92ecf2ab9c8abb786021370fb3e564 libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-update

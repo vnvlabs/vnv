@@ -1,8 +1,16 @@
-SUBDIRS := injection testLib_one testLib_two tests sample
 
-all: $(SUBDIRS)
-$(SUBDIRS):
-	$(MAKE) -C $@ clean
-	$(MAKE) -C $@ 
 
-.PHONY: all $(SUBDIRS)
+VV_INJECTION_INSTALL_DIR=/home/boneill/software
+
+
+all: xplus vv_schema injection examples 
+
+.PHONY: xplus 
+xplus: 
+	${MAKE} -c xplus-xsd2cpp
+
+
+vv_schema: vv_schema
+
+
+

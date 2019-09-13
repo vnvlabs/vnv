@@ -209,7 +209,7 @@ int VV_init(const char * filename) {
   return 1;
 }
 
-int VV_finialze() {
+int VV_finalize() {
   VV::VVFinalize();
   return 1;
 }

@@ -1,0 +1,36 @@
+
+
+This is the runtime library for the VnV injection point system
+
+To Install, there are three steps. 
+
+1. Install ADIOS2 and export ADIOS2_DIR=<install-path>
+
+
+2. Install XPLUS2XSD and export XPLUS2XSD_DIR=<install-path>
+   cd xplus-xsd
+   export XPLUS2XSD_DIR=<install-location>
+   ./autogen.sh
+   ./configure --prefix=${XPLUS2XSD_DIR} 
+   make
+   (sudo) make install   
+
+3. Generate the vv_schema api. 
+   cd xml
+   ${XPLUS2XSD_DIR}/bin/xsd2cpp ./vv_schema.xsd
+   export VVSCHEMA_DIR=<install-path>
+   cd vv_schema
+   ./autogen.sh
+   ./configure --prefix=${VVSCHEMA_DIR} 
+   make 
+   make install
+
+4. Build the injection library
+   cd injection
+   mkdir build
+   cd build
+   cmake -DCMAKE_INSTALL_PREFIX=<install-path> ..
+   make 
+   make install
+
+

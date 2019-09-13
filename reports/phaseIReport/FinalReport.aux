@@ -1,0 +1,55 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\bibstyle{plain}
+\citation{NEAMSVV}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Identification and Significance of the Problem or Opportunity, and Technical Approach}{3}{section.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Significance and Identification}{3}{subsection.1.1}}
+\newlabel{intro}{{1.1}{3}{Significance and Identification}{subsection.1.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Phase I Work and Feasibility Study}{4}{section.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces  The VnV toolkit development lifecycle. Here, green boxes represent core VnV functionalities. Developer interactions are shown in blue, runtime interactions are shown in orange and post-processing interactions are shown in black.  \relax }}{5}{figure.caption.1}}
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:toolchain}{{1}{5}{The VnV toolkit development lifecycle. Here, green boxes represent core VnV functionalities. Developer interactions are shown in blue, runtime interactions are shown in orange and post-processing interactions are shown in black.  \relax }{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Task 1: Develop Routines for Data Collection with ADIOS. }{5}{subsection.2.1}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.1}Injection Points}{6}{subsubsection.2.1.1}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces A code Snippet showing a member function enhanced with a single stage injection point called ``IP\_1''. This injection point is declared inside a member function designed to evaluate a linear function at a particular value of $x$. This injection point provides access to the member variables describing the slope and intersection point of the linear function, the input parameter $x$ that defines where the function should be evaluated and to the result that will be returned. A user could add a simple test to verify the accuracy of the value being returned and/or to assert that the slope and intersection are correct in accordance with the physical model they are attempting to simulate. \relax }}{7}{figure.caption.2}}
+\newlabel{ip_example}{{2}{7}{A code Snippet showing a member function enhanced with a single stage injection point called ``IP\_1''. This injection point is declared inside a member function designed to evaluate a linear function at a particular value of $x$. This injection point provides access to the member variables describing the slope and intersection point of the linear function, the input parameter $x$ that defines where the function should be evaluated and to the result that will be returned. A user could add a simple test to verify the accuracy of the value being returned and/or to assert that the slope and intersection are correct in accordance with the physical model they are attempting to simulate. \relax }{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.2}The Testing Interface}{8}{subsubsection.2.1.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces The IVVTest Interface. The framework includes a test generation script that generates all the boiler plate code required to implement this interface. All the developer needs to do is implement the ''declareParameters`` function and the ''runTests`` function. \relax }}{9}{figure.caption.3}}
+\newlabel{test-inter}{{3}{9}{The IVVTest Interface. The framework includes a test generation script that generates all the boiler plate code required to implement this interface. All the developer needs to do is implement the ''declareParameters`` function and the ''runTests`` function. \relax }{figure.caption.3}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces An example of a custom VnV test. In this case we implement a test that checks that the slope and intersection point of the linear function are positive and writes the result to file. \relax }}{10}{figure.caption.4}}
+\newlabel{test-examp}{{4}{10}{An example of a custom VnV test. In this case we implement a test that checks that the slope and intersection point of the linear function are positive and writes the result to file. \relax }{figure.caption.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.3}Variable Transform}{11}{subsubsection.2.1.3}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.1.4}The VnV Runtime Module}{11}{subsubsection.2.1.4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces An example of a custom VnV test. In this case we implement a test that checks that the slope and intersection point of the linear function are positive and writes the result to file. \relax }}{12}{figure.caption.5}}
+\newlabel{test-mod}{{5}{12}{An example of a custom VnV test. In this case we implement a test that checks that the slope and intersection point of the linear function are positive and writes the result to file. \relax }{figure.caption.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces The XSD specification for the input configuration file. The VnV framework uses this specification in conjunction with Xsd2Cpp to automatically generate a fully featured XML Parsing library with support for reading, writing and validating XML files. \relax }}{13}{figure.caption.6}}
+\newlabel{fig:xsd_specification}{{6}{13}{The XSD specification for the input configuration file. The VnV framework uses this specification in conjunction with Xsd2Cpp to automatically generate a fully featured XML Parsing library with support for reading, writing and validating XML files. \relax }{figure.caption.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces An example of the XML configuration file for attaching test to injection points at runtime. In this case, we attach the LinearTest test shown in Figure\nobreakspace  {}\ref  {test-examp} to the ''IP\_1'' injection point shown in Figure\nobreakspace  {}\ref  {ip_example}. \relax }}{14}{figure.caption.7}}
+\newlabel{test-xml}{{7}{14}{An example of the XML configuration file for attaching test to injection points at runtime. In this case, we attach the LinearTest test shown in Figure~\ref {test-examp} to the ''IP\_1'' injection point shown in Figure~\ref {ip_example}. \relax }{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Task 2: Prototype Several VnV Tools }{14}{subsection.2.2}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces  The testing code for the beginnings of a VnV testing library for making statistical assertions regarding the data stored in distributed arrays. Amongst other things, the Phase I prototype supports calculating the Euclidean error between two vectors. The Phase II effort will look to extend this support to include a range of efficient statistical methods that can be applied to data stored in distributed arrays. \relax }}{15}{figure.caption.8}}
+\newlabel{fig:euclid_test}{{8}{15}{The testing code for the beginnings of a VnV testing library for making statistical assertions regarding the data stored in distributed arrays. Amongst other things, the Phase I prototype supports calculating the Euclidean error between two vectors. The Phase II effort will look to extend this support to include a range of efficient statistical methods that can be applied to data stored in distributed arrays. \relax }{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Task 3: Prototype the Graphical User Interface.}{16}{subsection.2.3}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces  An example YAML specification file. In this case, the test LinearTest uses the data API to extract the values for the slope and intersect provided by the injection point. The test specification then uses the support for two dimensional plotting to generate a linear plot with the appropriate slope and intersect point. \relax }}{18}{figure.caption.9}}
+\newlabel{fig:test-spec}{{9}{18}{An example YAML specification file. In this case, the test LinearTest uses the data API to extract the values for the slope and intersect provided by the injection point. The test specification then uses the support for two dimensional plotting to generate a linear plot with the appropriate slope and intersect point. \relax }{figure.caption.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces  An example of the VnV report generated automatically from the VnV output files and the injection point and test specification files. \relax }}{19}{figure.caption.10}}
+\newlabel{rendered-example}{{10}{19}{An example of the VnV report generated automatically from the VnV output files and the injection point and test specification files. \relax }{figure.caption.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Summary and Conclusions}{20}{section.3}}
+\bibdata{bib/proposal, bib/report}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Publications and Presentations}{21}{section.4}}

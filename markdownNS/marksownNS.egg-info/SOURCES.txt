@@ -1,7 +1,0 @@
-markdownNS.py
-setup.py
-marksownNS.egg-info/PKG-INFO
-marksownNS.egg-info/SOURCES.txt
-marksownNS.egg-info/dependency_links.txt
-marksownNS.egg-info/requires.txt
-marksownNS.egg-info/top_level.txt

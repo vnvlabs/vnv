@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/CMakeFiles/libxsd2cpp"
+		},
+		{
+			"file" : "/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/CMakeFiles/libxsd2cpp.rule"
+		},
+		{
+			"file" : "/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/CMakeFiles/libxsd2cpp-complete.rule"
+		},
+		{
+			"file" : "/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-install.rule"
+		},
+		{
+			"file" : "/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-mkdir.rule"
+		},
+		{
+			"file" : "/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-download.rule"
+		},
+		{
+			"file" : "/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-update.rule"
+		},
+		{
+			"file" : "/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-patch.rule"
+		},
+		{
+			"file" : "/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-configure.rule"
+		},
+		{
+			"file" : "/home/boneill/Documents/vv-neams/xplus-xsd2cpp/build/libxsd2cpp-prefix/src/libxsd2cpp-stamp/libxsd2cpp-build.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"libxsd2cpp"
+		],
+		"name" : "libxsd2cpp"
+	}
+}

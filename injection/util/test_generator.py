@@ -67,7 +67,6 @@ parser.add_argument('-si','--sys_include', help='system include file')
 
 args = vars(parser.parse_args())
 
-print args
 
 with open(args["name"] + ".cpp","w") as w:
     w.write(generateCppFile(args["name"] , args["parameter"], args['include'],args['sys_include']) )

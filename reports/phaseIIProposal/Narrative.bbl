@@ -1,0 +1,48 @@
+\begin{thebibliography}{1}
+
+\bibitem{DAKOTA}
+{DAKOTA - Explore and Predict with Confidence }.
+\newblock \url{https://dakota.sandia.gov/}.
+
+\bibitem{dodvv}
+{DoD VV\&A Recommended Practices Guide }.
+\newblock \url{https://vva.msco.mil/}.
+
+\bibitem{NEAMSVV}
+{NEAMS Software Verification and Validation Plan Requirements V0}.
+\newblock \url{https://preview.tinyurl.com/y8q7zr2v}.
+
+\bibitem{NEAMS}
+Neams: The nuclear energy advanced modeling and simulation program.
+\newblock
+  \url{http://people.nas.nasa.gov/~pulliam/Overflow/Overflow_Manuals.html}.
+
+\bibitem{hypre-assumed}
+Allison~H Baker, Robert~D Falgout, and Ulrike~Meier Yang.
+\newblock An assumed partition algorithm for determining processor
+  inter-communication.
+\newblock {\em Parallel Computing}, 32(5-6):394--414, 2006.
+
+\bibitem{collins1997failure}
+MR~Collins, Franck~J Vecchio, Robert~G Selby, and Pawan~R Gupta.
+\newblock The failure of an offshore platform.
+\newblock {\em CONCRETE INTERNATIONAL-DETROIT-}, 19:28--36, 1997.
+
+\bibitem{jakobsen1994sleipner}
+Bernt Jakobsen and Finn Rosendahl.
+\newblock The sleipner platform accident.
+\newblock {\em Structural Engineering International}, 4(3):190--193, 1994.
+
+\bibitem{Lowell1}
+D.~Lowell, J.~Holewinski J.~Godwin, D.~Karthik, C.~Choudary, A.~Mametjanov,
+  B.~Norris, G.~Sabin, P.~Sadayappan, and J.~Sarich.
+\newblock Stencil-aware gpu optimization of iterative solvers.
+\newblock {\em SIAM Journal on Scientific Computing}, 35(5), 2013.
+
+\bibitem{hypre-nine}
+A~Pinar and B~Hendrickson.
+\newblock Communication support for adaptive communication.
+\newblock {\em In Proceedings of the 10th SIAM Conference on Parallel
+  Processing}, 2001.
+
+\end{thebibliography}
