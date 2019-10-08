@@ -1,7 +1,9 @@
 
-//#if WITH_ADIOS
-
+#if WITH_ADIOS2
+#include "vv-output.h"
 #include "vv-adios.h"
+
+using namespace VnV;
 
 AdiosEngine::AdiosEngine(adios2::Engine &e, adios2::IO &i) : engine(e) , writer(i) {}
 
@@ -49,28 +51,6 @@ AdiosWrapper::AdiosWrapper(std::string outfile, std::string configFile,  bool de
     set(outfile);
 }
 
-void AdiosWrapper::writeIntroduction(IntroStruct intro) {
-    if (engine) {
-        engine.BeginStep();
-        engine.Put(stage, 88888);
-        engine.Put(markdown,intro.intoMarkdown);
-        std::string s = "introduction";
-        engine.Put(type, s);
-        engine.EndStep();
-    }
-}
-
-void AdiosWrapper::writeConclusion(OutroStruct outro) {
-    if (engine) {
-        engine.BeginStep();
-        engine.Put(stage, -88888);
-        engine.Put(markdown, outro.outroMarkdown);
-        std::string s = "conclusion";
-        engine.Put(type, s);
-        engine.EndStep();
-    }
-}
-
 
 void AdiosWrapper::finalize() {
     if (engine) {
@@ -93,13 +73,12 @@ void AdiosWrapper::set(std::string outfile) {
 
 }
 
-void AdiosWrapper::endInjectionPoint(std::string id, int stageVal , std::string markdownVal ) {
+void AdiosWrapper::endInjectionPoint(std::string id, int stageVal ) {
 
     if ( engine ) {
         engine.BeginStep();
         engine.Put(identifier, id);
         engine.Put(stage, stageVal );
-        engine.Put(markdown, markdownVal);
         std::string s = "EndIP";
         engine.Put(type, s);
         engine.EndStep();
@@ -108,12 +87,11 @@ void AdiosWrapper::endInjectionPoint(std::string id, int stageVal , std::string 
     }
 }
 
-void AdiosWrapper::startInjectionPoint(std::string id, int stageVal , std::string markdownVal ) {
+void AdiosWrapper::startInjectionPoint(std::string id, int stageVal  ) {
     if ( engine ) {
         engine.BeginStep();
         engine.Put(identifier, id);
         engine.Put(stage, stageVal );
-        engine.Put(markdown, markdownVal);
         std::string s = "StartIP";
         engine.Put(type, s);
         engine.EndStep();
@@ -122,12 +100,11 @@ void AdiosWrapper::startInjectionPoint(std::string id, int stageVal , std::strin
     }
 }
 
-void AdiosWrapper::startTest( std::string testName, int testStageVal, std::string markdownVal ) {
+void AdiosWrapper::startTest( std::string testName, int testStageVal) {
     if (engine) {
         engine.BeginStep();
         engine.Put(identifier, testName);
         engine.Put(stage, testStageVal);
-        engine.Put(markdown, markdownVal);
         std::string test = "StartTest";
         engine.Put(type,test);
     } else {
@@ -143,12 +120,12 @@ void AdiosWrapper::stopTest(bool result_) {
     }
 }
 
-IVVOutputEngine* AdiosWrapper::getOutputEngine() {
+IOutputEngine* AdiosWrapper::getOutputEngine() {
   return adiosEngine; 
 }
 
 extern "C" {
- VVOutputEngineManager*  AdiosEngineBuilder(std::string outfile , std::string configFile , bool debug ) {
+ OutputEngineManager*  AdiosEngineBuilder(std::string outfile , std::string configFile , bool debug ) {
    return new AdiosWrapper(outfile, configFile, debug);
  }
 }
@@ -156,11 +133,11 @@ extern "C" {
 class Adios_engine_proxy {                                                                               
 public:                                                                                                       
   Adios_engine_proxy(){                                                                                  
-    VV_registerEngine("adios",AdiosEngineBuilder);                
+    VnV_registerEngine("adios",AdiosEngineBuilder);                
   }                                                                                                           
 };                                                                                                            
                                                                                                             
 Adios_engine_proxy adios_engine_proxy; 
 
 
-//#endif
+#endif

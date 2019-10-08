@@ -18,5 +18,5 @@ clean:
 	rm -f *.a 
 
 sample : sample.cpp 
-	mpicxx -g -o sample.a -rdynamic  ${INCLUDES} sample.cpp ${LIBS}
+	g++ -g -o sample.a -rdynamic  ${INCLUDES} sample.cpp ${LIBS}
 

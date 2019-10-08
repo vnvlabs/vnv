@@ -7,4 +7,4 @@ tester: src/class1.o src/class2.o
 
 
 clean:
-	rm -f *.o 
+	rm -f *.a src/*.o 

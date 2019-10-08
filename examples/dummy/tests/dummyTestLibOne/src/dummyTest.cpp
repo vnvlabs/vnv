@@ -1,45 +1,47 @@
-#ifndef VV_dummyTest_H 
-#define VV_dummyTest_H 
+#ifndef _dummyTest_H 
+#define _dummyTest_H 
 
 #include "vv-testing.h"
 
-class dummyTest : public IVVTest { 
+using namespace VnV;
+
+class dummyTest : public ITest { 
 public:
 
-	 TestStatus runTest(IVVOutputEngine *engine, int testStage, double* slope, double *intersection ) { 
+	 TestStatus runTest(IOutputEngine *engine, int testStage, double* slope, double *intersection ) { 
         
-        //Write the slope and the intersection point to the VV output file.  
+        //Write the slope and the intersection point to the  output file.  
         engine->Put("slope", *slope);
         engine->Put("intersection", *intersection); 
         return SUCCESS;   
    }
 
-   static void DeclareIO(IVVOutputEngine *engine) {
+   static void DeclareIO(IOutputEngine *engine) {
      engine->DefineDouble("slope"); 
      engine->DefineDouble("intersection");      
    }
     
 
-	 dummyTest(VVTestConfig config) : IVVTest(config) {
+	 dummyTest(TestConfig config) : ITest(config) {
 		 m_parameters.insert(std::make_pair("slope","double"));
 		 m_parameters.insert(std::make_pair("intersection","double"));
 	}
 
-	TestStatus runTest(IVVOutputEngine *engine, int stage, NTV& parameters ) {    
+	TestStatus runTest(IOutputEngine *engine, int stage, NTV& parameters ) {    
     double* x = carefull_cast<double>(stage,"slope", parameters); 
 		double* y = carefull_cast<double>(stage,"intersection", parameters); 
-		int testStage = m_config.getStage(stage).testStageId;    
+		int testStage = m_config.getStage(stage).getTestStageId();    
     return runTest(engine, testStage,x,y);
 	}
 
 };
 
 extern "C" { 
-	IVVTest* dummyTest_maker(VVTestConfig &config) {
+	ITest* dummyTest_maker(TestConfig &config) {
 		return new dummyTest(config);
 	}
   
-  void dummyTest_DeclareIO(IVVOutputEngine *engine) {
+  void dummyTest_DeclareIO(IOutputEngine *engine) {
     dummyTest::DeclareIO(engine);
   }
   
@@ -48,7 +50,7 @@ extern "C" {
 class dummyTest_proxy { 
 public: 
 	dummyTest_proxy(){ 
-    VV_registerTest("dummyTest",dummyTest_maker, dummyTest_DeclareIO); 
+   VnV_registerTest("dummyTest",dummyTest_maker, dummyTest_DeclareIO); 
   }
 };
 

@@ -1,21 +1,35 @@
-
+#include <iostream>
+#include <dlfcn.h>
 #include "vv-testing.h"
-#include "injection.h"
+#include "vv-output.h"
 
+using namespace VnV;
 
-DefaultVVTransform VVTestStageConfig::defaultTransform;
+DefaultTransform TestStageConfig::defaultTransform;
 
-bool VVTestConfig::runOnStage(int index) {
+bool TestConfig::runOnStage(int index) {
 
     return ( stages.find(index) != stages.end());
 }
 
-void VVTestConfig::addTestStage(VVTestStageConfig config) {
+void TestConfig::addTestStage(TestStageConfig config) {
 
-    stages.insert(std::make_pair(config.injectionPointStageId, config));
+    stages.insert(std::make_pair(config.getInjectionPointStageId(), config));
 }
 
-VVTestStageConfig VVTestConfig::getStage(int stage) {
+void TestConfig::setName(std::string name){
+  testName = name;
+}
+
+void TestConfig::addParameter(const std::pair<std::string, std::string> &pair) {
+   config_params.insert(pair);
+}
+
+std::string TestConfig::getName() {
+  return testName;
+}
+
+TestStageConfig TestConfig::getStage(int stage) {
 
     auto it = stages.find(stage);
     if ( it != stages.end() )
@@ -23,25 +37,43 @@ VVTestStageConfig VVTestConfig::getStage(int stage) {
     throw "Stage not found " ;
 }
 
-void VVTestStageConfig::addTransform(std::string testParameter, std::string ipParameter, std::string trans) {
-    IVVTransform *transform = InjectionPointBaseFactory::getTransform(trans);
-    transforms.insert( std::make_pair(testParameter, std::make_pair(ipParameter, transform)));
+void TestStageConfig::addTransform(std::string testParameter, std::string ipParameter, std::string trans) {
+    transforms.insert( std::make_pair(testParameter, std::make_pair(ipParameter, trans)));
 }
 
-std::pair<std::string, IVVTransform*> VVTestStageConfig::getTransform(std::string s) {
+
+int TestStageConfig::getInjectionPointStageId() {
+  return injectionPointStageId;
+}
+
+int TestStageConfig::getTestStageId() {
+  return testStageId;
+}
+
+void TestStageConfig::setTestStageId(int id) {
+  testStageId = id;
+}
+
+void TestStageConfig::setInjectionPointStageId(int id) {
+  injectionPointStageId = id;
+}
+
+std::pair<std::string, ITransform*> TestStageConfig::getTransform(std::string s) {
 
     auto it = transforms.find(s);
-    if ( it != transforms.end())
-        return it->second;
+    if ( it != transforms.end()) {
+        ITransform *transform = TestStore::getTestStore().getTransform(it->second.second);
+        return std::make_pair(it->second.first, transform);
+    }
 
     // Could not find a transform for that parameter, so return the default transform with same name;
     return std::make_pair(s, &defaultTransform);
 }
 
 
-IVVTransform::IVVTransform()  {}
+ITransform::ITransform()  {}
 
-void * DefaultVVTransform::Transform(std::pair<std::string, void*> ip, std::string testParameterType) {
+void * DefaultTransform::Transform(std::pair<std::string, void*> ip, std::string testParameterType) {
 
     if ( ip.first.compare(testParameterType) == 0 )
         return ip.second;
@@ -49,33 +81,92 @@ void * DefaultVVTransform::Transform(std::pair<std::string, void*> ip, std::stri
 }
 
 
-IVVTest::IVVTest(VVTestConfig &config) : m_config(config) {
+ITest::ITest(TestConfig &config) : m_config(config) {
 
 }
 
 
 // Index is the injection point index. That is, the injection
 // point that this test is being run inside.
-TestStatus IVVTest::_runTest(IVVOutputEngine *engine, int stageVal, NTV &params) {
-    if ( m_config.runOnStage(stageVal) )   {
-        int testVal = m_config.getStage(stageVal).testStageId;
-        InjectionPointBaseFactory::manager->startTest(m_config.testName, testVal, m_config.markdown);
+TestStatus ITest::_runTest(IOutputEngine *engine, int stageVal, NTV &params) {
+     
+   if ( m_config.runOnStage(stageVal) )   {
+        int testVal = m_config.getStage(stageVal).getTestStageId();
+        EngineStore::getEngineStore().getEngineManager()->startTest(m_config.getName(), testVal);
         TestStatus s = runTest(engine, stageVal, params);
-        InjectionPointBaseFactory::manager->stopTest(( s==SUCCESS) ? true: false);
+        EngineStore::getEngineStore().getEngineManager()->stopTest(( s==SUCCESS) ? true: false);
         return s;
     }
     return NOTRUN;
 }
 
-IVVTest::~IVVTest() {
+ITest::~ITest() {
 
 }
 
-void VV_registerTest(std::string name, maker_ptr m , variable_register_ptr v) {
-  InjectionPointBaseFactory::test_factory[name] = std::make_pair(m,v);
+
+
+TestStore::TestStore(){}
+
+TestStore& TestStore::getTestStore() {
+  static TestStore *store = new TestStore();
+  return *store;  
 }
-void VV_registerTransform(std::string name, trans_ptr t) {
-  InjectionPointBaseFactory::trans_factory[name] = t;
+
+void TestStore::addTestLibrary(std::string libraryPath) {
+    try {
+        void * dllib = dlopen(libraryPath.c_str(), RTLD_NOW);
+        if ( dllib == NULL )
+            std::cerr << dlerror();
+        else {
+           testLibraries.push_back( dllib );
+        }
+    } catch(...) {
+        std::cout << "Library not found: " << libraryPath << "\n";
+    }
+}
+
+void TestStore::addTest(std::string name, maker_ptr m , variable_register_ptr v) {
+  test_factory[name] = std::make_pair(m,v);
+}
+
+ITest* TestStore::getTest(TestConfig &config) {
+  
+  std::string name = config.getName();
+  
+  auto it = test_factory.find(name);
+  if ( it != test_factory.end() ) {
+      auto itt = registeredTests.find(name); 
+      if ( itt == registeredTests.end() ) {
+        it->second.second( EngineStore::getEngineStore().getEngineManager()->getOutputEngine());
+        registeredTests.insert(name);
+      }
+      return it->second.first(config);
+  }
+  return NULL;
+}
+
+
+ITransform* TestStore::getTransform(std::string name) {
+
+    auto it = TestStore::getTestStore().trans_factory.find(name);
+
+    if ( it != TestStore::getTestStore().trans_factory.end() ) {
+        return it->second();
+    }
+    return new DefaultTransform();
+}
+
+void TestStore::addTransform(std::string name, trans_ptr t) {
+    trans_factory.insert(std::make_pair(name,t));
+}
+
+
+void VnV_registerTest(std::string name, maker_ptr m , variable_register_ptr v) {
+  TestStore::getTestStore().addTest(name, m,v);
+}
+
+void VnV_registerTransform(std::string name, trans_ptr t) {
+  TestStore::getTestStore().addTransform(name,t);
   
 }
-

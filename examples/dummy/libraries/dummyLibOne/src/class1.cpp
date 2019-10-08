@@ -1,5 +1,6 @@
 
 #include "dlclass1.h"
+#include "VnV.h"
 
 using namespace dummyLibOne;
 
@@ -21,5 +22,3 @@ int class1::function1(int x) {
       return value;
 }
 
-REGISTER_IP(Hello_temp_sub, 0, "Sample Test End")
-REGISTER_IP(Hello_temp_sub, 9999, "Sample Test End")

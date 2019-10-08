@@ -14,7 +14,8 @@ SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(SRC_DIR)/%.o,$(SRC_FILES))
 
 all: $(OBJ_FILES)
-	  mpicxx $(LDFLAGS) -shared -o $(LIBNAME).so $^
+	  g++ $(LDFLAGS) -shared -o $(LIBNAME).so $^
+
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	   g++ $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<

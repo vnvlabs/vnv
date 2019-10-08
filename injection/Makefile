@@ -2,16 +2,21 @@
 # The number of arguments allowed in VV injection point descriptions. 
 MAX_SUPPORTED_ARGUMENTS=25
 
+
 XSD_INSTALL_DIR=/usr/local
 
+CC=g++
+
 CPPFLAGS=-I./include -I./xml/vv_schema/build/include -std=gnu++11  
-LDFLAGS= ${PWD}/xml/vv_schema/build/lib/libvv_schema.so ${XSD_INSTALL_DIR}/lib/libxsdall.so -pthread
+LDFLAGS= ${PWD}/xml/vv_schema/build/lib/libvv_schema.so ${XSD_INSTALL_DIR}/lib/libxsdall.so -pthread -ldl
 LDFLAGS+= -Wl,-rpath,${PWD}/xml/vv_schema/build/lib   
 LDFLAGS+= -Wl,-rpath,${XSD_INSTALL_DIR}/lib
 
-SRCS=src/injection.o src/vv-testing.o src/vv-output.o src/vv-adios.o
+SRC_FILES := $(wildcard src/*.cpp)
+OBJ_FILES := $(patsubst src/%.cpp,src/%.o,$(SRC_FILES))
 
-WITH_ADIOS2=1
+
+WITH_ADIOS2=0
 ADIOS2_DIR?=/home/boneill/llvm/adios2-INSTALL
 ifeq ($(WITH_ADIOS2),1)
 CPPFLAGS+=-isystem ${ADIOS2_DIR}/include
@@ -19,10 +24,10 @@ LDFLAGS+=-Wl,-rpath,${ADIOS2_DIR}/lib ${ADIOS2_DIR}/lib/libadios2.so.2.3.1 -lpth
 endif
 
 %.o : %.cpp 
-	mpicxx -shared -fPIC -g -c -o $@ $< -std=c++11 $(CPPFLAGS) -I./include   
+	${CC} -shared -fPIC -g -c -o $@ $< -std=c++11 $(CPPFLAGS) -I./include   
 
-injection: ${SRCS}
-	mpicxx -fPIC -shared -o libinjection.so $^ $(LDFLAGS) 
+injection: ${OBJ_FILES}
+	${CC} -fPIC -shared -o libinjection.so $^ $(LDFLAGS) 
 
 install: injection
 	mkdir -p build/lib
@@ -39,4 +44,4 @@ generate-xml-api: xml/vv_schema.xsd
 clean:
 	rm -rf build/
 	rm -f src/*.o 
-
+	rm -f *.so
