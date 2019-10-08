@@ -17,3 +17,11 @@ int VnV::StringSplit(const std::string &s,
     }
     return 1;
 }
+  
+
+std::string VnV::getFileExtension(const std::string& fileName)
+{
+      if (fileName.find_last_of(".") != std::string::npos)
+        return fileName.substr(fileName.find_last_of(".")+1);
+      return "";
+}  

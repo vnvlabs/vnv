@@ -7,6 +7,9 @@
 namespace VnV {
 
    int StringSplit(const std::string &s,const char *delim, std::vector< std::string > &result );
-    
+  
+   std::string getFileExtension(const std::string& fileName);
+
+  
 }
 #endif

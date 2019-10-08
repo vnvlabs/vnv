@@ -3,7 +3,6 @@
 
 #include <string>
 #include <set>
-#include "vv/all-include.h" // Include the XSD2CPP cpp source code 
 #include "vv-testing.h"
 namespace VnV {
 
@@ -32,20 +31,31 @@ public:
   virtual RunInfo parse(std::string filename) = 0;
 };
 
-class Parser : public IParser {
+
+typedef IParser *parser_register_ptr(std::string);
+
+class ParserStore {
 private:
-    EngineInfo getEngineInfo(vv::outputEngine_p);
-    
-    void addTest(vv::test_p , std::vector<TestConfig> &testConfig, std::set<std::string> &runScopes );
-    void addInjectionPoint(vv::injectionPoint_p, std::set<std::string> &runScopes, std::map<std::string,std::vector<TestConfig>> &ips);
-    void addTestLibrary(vv::testLibrary_p,std::set<std::string> &libs);
-    RunInfo parseXMLFile(vv::Document*);
-public:   
-    RunInfo parse(std::string filename);
+  std::map<std::string, parser_register_ptr*> registeredParsers;
+  ParserStore();    
+  
+public:
+  void registerParser(std::string name, parser_register_ptr* parser_ptr);
+  IParser* getParser(std::string fileExtension);
+  static ParserStore & getParserStore();
 };
 
-
-
 }
+
+#ifdef __cplusplus
+    #define EXTERNC extern "C" 
+#else
+    #define EXTERNC 
+#endif
+
+EXTERNC void VnV_registerParser(std::string name, VnV::parser_register_ptr r); 
+
+#undef EXTERNC
+
 #endif
 

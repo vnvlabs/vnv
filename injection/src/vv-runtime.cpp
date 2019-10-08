@@ -3,6 +3,7 @@
 #include "vv-injection.h"
 #include "vv-parser.h"
 #include "vv-output.h"
+#include "vv-utils.h"
 
 using namespace VnV;
 
@@ -33,7 +34,7 @@ RunTime::RunTime(){}
 
 bool RunTime::Init(std::string configFile) {
     
-    IParser *parser = new Parser();
+    IParser *parser = ParserStore::getParserStore().getParser(VnV::getFileExtension(configFile));
     
     RunInfo info =  parser->parse(configFile);
     runTests = info.runTests;
