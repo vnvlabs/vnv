@@ -1,6 +1,7 @@
 *.sw[a-z]
 *.o
 *.a
+*.so
 xml/xplus.bak
 xml/vv_schema/*
 xml/.xplus.schema*
