@@ -7,3 +7,4 @@ xml/vv_schema/*
 xml/.xplus.schema*
 injection/build
 tests/build
+build/
