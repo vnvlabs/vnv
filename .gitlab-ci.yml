@@ -1,0 +1,36 @@
+before_script:
+  - rm -rf install
+
+build_with_adios:
+  script:
+    - mkdir -p build/with_adios
+    - cd build/with_adios
+    - cmake -DCMAKE_INSTALL_PREFIX=../install/with_adios ../../
+    - make
+    - make install
+
+build_without_adios:
+  script:
+    - mkdir -p build/without_adios
+    - cd build/without_adios
+    - cmake -DCMAKE_INSTALL_PREFIX=../install/without_adios -DWITH_ADIOS_ENGINE=0 ../../
+    - make
+    - make install
+
+build_without_logging:
+  script:
+    - mkdir -p build/without_logging
+    - cd build/without_logging
+    - cmake -DCMAKE_INSTALL_PREFIX=../install/without_logging -DWITH_LOGGING=0 ../../
+    - make
+    - make install
+
+build_docs:
+  script:
+    - mkdir -p build/docs/
+    - cd build/docs/
+    - cmake ../../
+    - make docs
+    - cp -r docs/html /usr/local/http/vv-neams-1 #local-server has a python docs running on 192.168.10.137:5999
+
+

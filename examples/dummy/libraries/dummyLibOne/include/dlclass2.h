@@ -1,14 +1,12 @@
 #ifndef CLASS2_H
 #define CLASS2_H
 
-
-
-namespace dummyLibOne{
+namespace dummyLibOne {
 
 class class2 {
-  public:
+ public:
   int function1(int x);
 };
 
-}
+}  // namespace dummyLibOne
 #endif

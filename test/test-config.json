@@ -1,0 +1,93 @@
+{
+  "runTests": true,
+  "runScopes": [
+    {
+      "name": "all",
+      "run": true
+    }
+  ],
+  "logging": {
+   	"on" : true,
+    "filename" : "stdout",
+    "logs" : {}
+  },
+  "testLibraries": [
+    "../test-libs/libdummyTestLibOne.so"
+  ],
+  "outputEngine": {
+    "outputFile": "./sample.out",
+    "debug": true,
+    "configFile": "./adios.config",
+    "type": "debug",
+    "extra": {
+      "something": "else"
+    }
+  },
+  "injectionPoints": {
+    "config": [
+      {
+        "name": "initialization",
+        "tests": [
+          {
+            "name": "provenance",
+            "runScope": [
+              "all"
+            ],
+            "stages": {
+              "0": {
+                "ipId": 0,
+                "mapping": {
+                  "argc": {
+                    "ipParameter": "argc"
+                  },
+                  "argv": {
+                    "ipParameter": "argv"
+                  },
+		  "config" : {
+		    "ipParameter": "configFile"
+		  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "ErrorTest",
+        "tests": [
+          {
+            "name": "EuclideanError",
+            "runScope": [
+              "all"
+            ],
+            "stages": {
+              "0": {
+                "ipId": 0,
+                "mapping": {
+                  "measured": {
+                    "ipParameter": "samplePoints"
+                  },
+                  "exact": {
+                    "ipParameter": "samplePoints1"
+                  }
+                }
+              },
+              "1": {
+                "ipId": 9999,
+                "mapping": {
+                  "measured": {
+                    "ipParameter": "samplePoints"
+                  },
+                  "exact": {
+                    "ipParameter": "samplePoints1"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "files": []
+  }
+}
