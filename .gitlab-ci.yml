@@ -33,7 +33,7 @@ build_docs:
     - make docs
     - rm -rf /usr/local/http/vv-neams-1
     - cp -r docs/html /usr/local/http/vv-neams-1 #local-server has a python docs running on 192.168.10.137:5999
-    - rm -rf /usr/loca/http/vv-neams-doxy 
-    - cp -r /docs/_build/html /usr/local/http/vv-neams-doxy
+    - rm -rf /usr/local/http/vv-neams-doxy 
+    - cp -r docs/_build/html /usr/local/http/vv-neams-doxy
 
 
