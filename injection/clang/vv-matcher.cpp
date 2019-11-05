@@ -1,5 +1,6 @@
 
 /**
+ *  @file vv-matcher.cpp
  *  Clang tool to detect VnV Injection points in the Clang AST. This 
  *  Tool searches the AST for calls to the VnV Injection point library and
  *  prints out a json specifying all the injection points in the class. 
@@ -16,7 +17,6 @@
 
 #include "json-schema.hpp"
 
-#define VNVINJECTION "VnV_InjectionPoint"
 
 using nlohmann::json;
 using namespace clang::ast_matchers;
@@ -47,9 +47,7 @@ public:
 
 	 info["InjectionPointName"] = "not-implemented-yet";
 	 info["InjectionPointStage"] = "not-implemented-yet";
-	 info["Number Parameters"] = "not-implemented-yet";
-
-         
+	 info["Number Parameters"] = "not-implemented-yet";         
 
 	 llvm::outs() << "Found call at " << FullLocation.getSpellingLineNumber()
                      << ":" << FullLocation.getSpellingColumnNumber() << "\n";
@@ -61,18 +59,26 @@ public:
   
 };
 
-// Apply a custom category to all command-line options so that they are the
-// only ones displayed.
+/** Apply a custom category to all command-line options so that they are the
+ only ones displayed.
+*/
 static llvm::cl::OptionCategory MyToolCategory("my-tool options");
 
-// CommonOptionsParser declares HelpMessage with a description of the common
-// command-line options related to the compilation database and input files.
-// It's nice to have this help message in all tools.
+/** CommonOptionsParser declares HelpMessage with a description of the common
+ command-line options related to the compilation database and input files.
+ It's nice to have this help message in all tools.
+**/
 static cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 
-// A help message for this specific tool can be added afterwards.
+
+/**
+ * A help message for this specific tool can be added afterwards.
+**/
 static cl::extrahelp MoreHelp("\nMore help text...");
 
+/**
+ * Main Executable for VnV Processor. 
+ */
 int main(int argc, const char **argv) {
   CommonOptionsParser OptionsParser(argc, argv, MyToolCategory);
   ClangTool Tool(OptionsParser.getCompilations(),
@@ -86,6 +92,3 @@ int main(int argc, const char **argv) {
   Finder.addMatcher(functionMatcher, &Printer);
   return Tool.run(newFrontendActionFactory(&Finder).get());
 }
-
-
-

@@ -58,7 +58,7 @@ exhale_args = {
 #"treeViewIsBootstrap" : True,
     "exhaleExecutesDoxygen": True,
     "exhaleDoxygenStdin": textwrap.dedent('''
-       INPUT = @CMAKE_CURRENT_LIST_DIR@/../injection/include @CMAKE_CURRENT_LIST_DIR@/../injection/src 
+       INPUT = @CMAKE_CURRENT_LIST_DIR@/../injection/include @CMAKE_CURRENT_LIST_DIR@/../injection/src @CMAKE_CURRENT_LIST_DIR@/../injection/clang
        EXTRACT_PRIVATE = YES 
        FILE_PATTERNS += *.cpp 
        GENERATE_HTML = YES
