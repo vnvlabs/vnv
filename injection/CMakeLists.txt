@@ -7,6 +7,8 @@ option(WITH_LOGGING "Build Library with Configuble Logger included" ON)
 #Build the Json Parser Library ( json-schema-validator TODO github-link) 
 add_subdirectory(third-party/json-schema-validator)
 
+add_subdirectory(clang)
+
 add_library(injection SHARED "")
 
 set_target_properties(injection

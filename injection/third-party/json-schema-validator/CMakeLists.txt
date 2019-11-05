@@ -11,8 +11,8 @@ add_library(jsv::jsv ALIAS jsv)
 
 set_target_properties(jsv
                       PROPERTIES
-                          VERSION ${PROJECT_VERSION}
-                          SOVERSION 1)
+                      VERSION ${PROJECT_VERSION}
+                      SOVERSION 1)
 
 install(TARGETS jsv
 	EXPORT jsv-targets

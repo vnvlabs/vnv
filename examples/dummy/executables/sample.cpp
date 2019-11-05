@@ -8,6 +8,22 @@
 #include "dlclass1.h"
 #include "dlclass2.h"
 
+template <typename T>
+class hello {
+public:
+int function1(int x, T y) {
+ std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
+ 
+ INJECTION_POINT(ErrorTest, 0, std::vector<double>, samplePoints,
+                  std::vector<double>, samplePoints1, std::vector<double>,
+                  samplePoints3)
+  return 11;
+ }
+};
+
+
+class test1 {
+
 int function1(int x) {
   std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
 
@@ -16,6 +32,31 @@ int function1(int x) {
                   samplePoints3)
   for (int i = 0; i < 10; i++) {
     samplePoints.push_back(i);
+    INJECTION_POINT(ErrorTest, 10, std::vector<double>, samplePoints,
+                  std::vector<double>, samplePoints1, std::vector<double>,
+                  samplePoints3)
+    samplePoints1.push_back(i * i);
+  }
+
+  INJECTION_POINT(ErrorTest, 9999, std::vector<double>, samplePoints,
+                  std::vector<double>, samplePoints1, std::vector<double>,
+                  samplePoints3)
+  return 11;
+}
+
+};
+
+int function1(int x) {
+  std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
+
+  INJECTION_POINT(ErrorTest, 0, std::vector<double>, samplePoints,
+                  std::vector<double>, samplePoints1, std::vector<double>,
+                  samplePoints3)
+  for (int i = 0; i < 10; i++) {
+    samplePoints.push_back(i);
+    INJECTION_POINT(ErrorTest, 10, std::vector<double>, samplePoints,
+                  std::vector<double>, samplePoints1, std::vector<double>,
+                  samplePoints3)
     samplePoints1.push_back(i * i);
   }
 
@@ -29,6 +70,10 @@ int main(int argc, char** argv) {
   VnV_init(&argc, &argv, "./sample.json");
 
   function1(10);
+ 
+  hello<double> why;
+  why.function1(1,1.0);
+
 
   class1 sample_class_1;
   class2 sample_class_2;
