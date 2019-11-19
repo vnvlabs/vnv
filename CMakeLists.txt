@@ -10,6 +10,7 @@ set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
 option(BUILD_EXAMPLES "Build the examples" ON)
 option(BUILD_TESTS "Build the test runner" ON)
+option(BUILD_DOCS "Build the Docs" ON)
 
 add_subdirectory(injection)
 
@@ -21,4 +22,7 @@ if (BUILD_TESTS)
   add_subdirectory(test)
 endif()
 
-add_subdirectory(docs)
+if (BUILD_DOCS)
+  add_subdirectory(docs)
+endif()
+

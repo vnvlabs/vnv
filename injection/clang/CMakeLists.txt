@@ -1,7 +1,7 @@
 
 
 find_package(Clang)
-
+if(CLANG_FOUND)
 
 add_executable(vnv-matcher
   vv-matcher.cpp
@@ -22,6 +22,7 @@ target_link_libraries(vnv-matcher PRIVATE
   clangToolingRefactoring
   jsv::jsv
   )
-
-
 install(TARGETS vnv-matcher DESTINATION bin)
+
+endif()
+
