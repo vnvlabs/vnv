@@ -6,7 +6,6 @@
 #  include "vv-logging.h"
 
 #  include <fstream>
-#  include <iostream>
 
 using namespace VnV::Internal;
 
