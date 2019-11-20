@@ -3,16 +3,11 @@
 option(WITH_ADIOS_ENGINE "Use the Adios Engine" ON)
 option(WITH_BUILT_IN_TESTS "Build the VnV test libraries" ON)
 option(WITH_LOGGING "Build Library with Configuble Logger included" ON)
-option(WITH_CLANG "Build the Clang Tools" ON)
-
 
 #Build the Json Parser Library ( json-schema-validator TODO github-link) 
 add_subdirectory(third-party/json-schema-validator)
 
-if(WITH_CLANG)
 add_subdirectory(clang)
-endif()
-
 
 add_library(injection SHARED "")
 
