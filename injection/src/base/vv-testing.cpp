@@ -10,19 +10,33 @@
 #include <iostream>
 
 #include "vv-output.h"
+#include "vv-schema.h"
 
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
-void* DefaultTransform::Transform(std::pair<std::string, void*> ip,
+void* DefaultTransform::_Transform(std::pair<std::string, void*> ip,
                                   std::string testParameterType) {
   if (ip.first.compare(testParameterType) == 0) return ip.second;
   throw "Default Transform does not apply";
 }
 
 
+void ITransform::addInnerTransform(std::string trans) {
+      innerTransforms.push_back(trans);
+}
 
-bool TestConfig::runOnStage(int index) {
+void* ITransform::Transform(std::pair<std::string,void*> ip, std::string tp) {
+    for (auto it = innerTransforms.rbegin(); it != innerTransforms.rend(); it++) {
+       ITransform* itrans = TestStore::getTestStore().getTransform(*it);
+       if ( itrans != nullptr) {
+        ip.second = itrans->Transform(ip,tp);
+       }
+    }
+    return _Transform(ip,tp);
+}
+
+bool TestConfig::runOnStage(int index) const {
   VnV_Debug("{} {} {}", getName(), index, stages.size());
     return (stages.find(index) != stages.end());
 }
@@ -31,28 +45,34 @@ void TestConfig::addTestStage(TestStageConfig config) {
   stages.insert(std::make_pair(config.getInjectionPointStageId(), config));
 }
 
-void TestStageConfig::setExpectedResult(json expectedResult) {
-  this->expectedResult = expectedResult;
+const json& TestConfig::getAdditionalParameters() const {
+    return additionalParameters;
 }
 
-json TestStageConfig::getExpectedResult() { return expectedResult; }
+const json& TestConfig::getExpectedResult() const {
+    return expectedResult;
+}
+
+const json& ITest::getExpectedResultJson() const {
+    return m_config.getExpectedResult();
+}
+const json& ITest::getConfigurationJson() const {
+    return m_config.getAdditionalParameters();
+}
+
 
 void TestConfig::setName(std::string name) { testName = name; }
 
-void TestConfig::addParameter(const std::pair<std::string, std::string>& pair) {
-  config_params.insert(pair);
-}
+std::string TestConfig::getName() const { return testName; }
 
-std::string TestConfig::getName() { return testName; }
-
-TestStageConfig TestConfig::getStage(int stage) {
+TestStageConfig TestConfig::getStage(int stage) const  {
   auto it = stages.find(stage);
   if (it != stages.end()) return it->second;
   throw "Stage not found ";
 }
 
 void TestStageConfig::addTransform(std::string testParameter,
-                                   std::string ipParameter, std::string trans) {
+                                   std::string ipParameter, std::vector<std::string> trans) {
   transforms.insert(
       std::make_pair(testParameter, std::make_pair(ipParameter, trans)));
 }
@@ -71,20 +91,23 @@ void TestStageConfig::setInjectionPointStageId(int id) {
   injectionPointStageId = id;
 }
 
-void TestConfig::setAdditionalProperties(json additionalProperties) {
-  userProperties = additionalProperties;
-}
-json TestConfig::getAdditionalProperties() { return userProperties; }
-
 std::pair<std::string, std::shared_ptr<ITransform>>
 TestStageConfig::getTransform(std::string s) {
 
   VnV_Debug("Looking for a transform called {}.", s);
   auto it = transforms.find(s);
   if (it != transforms.end()) {
-    VnV_Debug("Found a transform called {} {} {}. ", it->first , it->second.first , it->second.second);
+    VnV_Debug("Found a transform called {} {}. ", it->first , it->second.first) ;
     std::shared_ptr<ITransform> transform = nullptr;
-    transform.reset(TestStore::getTestStore().getTransform(it->second.second));
+
+    for ( auto &itt : it->second.second ) {
+       if ( itt == it->second.second.front() )
+            transform.reset(TestStore::getTestStore().getTransform(itt));
+       else {
+           transform->addInnerTransform(itt);
+       }
+
+    }
     return std::make_pair(it->second.first, transform);
   } else {
        VnV_Debug("Could not find a transform called {}. Returning the default transform", s);
@@ -92,38 +115,51 @@ TestStageConfig::getTransform(std::string s) {
     }
 }
 
-ITransform::ITransform() {}
+TestConfig::TestConfig(std::string name, json &config) {
+  setName(name);
+  additionalParameters = config["config"];
+  expectedResult = config["expectedResult"];
 
-ITest::ITest() {}
-
-void ITest::set(TestConfig& config) {
-  m_config = config;
-
-  // Validate the additional properties passed into the test config
-  json schema = getAdditionalPropertiesSchema();
-  if (!schema.empty()) {
-    json_validator validator;
-    validator.set_root_schema(schema);
-    validator.validate(config.getAdditionalProperties());
-  }
-
-  // Validate the expected results passed in.
-  for (auto it : m_config.getStages()) {
-    json s = getExpectedResultSchema(it.first);
-    if (!s.empty()) {
-      json_validator validator;
-      validator.set_root_schema(schema);
-      validator.validate(it.second.getExpectedResult());
+  for (auto& stage : config["stages"].items()) {
+    TestStageConfig config;
+    config.setTestStageId(std::stoi(stage.key()));
+    config.setInjectionPointStageId(stage.value()["ipId"].get<int>());
+    for (auto& param : stage.value().items()) {
+        if ( param.key().compare("ipId") == 0 ) {
+            config.setInjectionPointStageId(param.value().get<int>());
+        } else {
+            std::string testParameter = param.key();
+            std::string injectionParameter;
+            std::vector<std::string> transforms;
+            if ( param.value().type() == json::value_t::string) {
+                injectionParameter = param.value().get<std::string>();
+            } else {
+                // Its an object of { "",""} or {"":["","",""]}
+                auto it  = param.value().items().begin(); // first element
+                injectionParameter = it.key();
+                if ( it.value().type() == json::value_t::string) {
+                  transforms.push_back(it.value().get<std::string>());
+                } else {
+                  for ( auto itt: it.value().items()) {
+                    transforms.push_back(itt.value().get<std::string>());
+                  }
+                }
+            }
+            config.addTransform(testParameter,injectionParameter,transforms);
+        }
     }
+    addTestStage(config);
   }
-
-  // Call the users init function to let them know the config
-  // is set, and all inputs have been validated.
-  init();
 }
 
-json ITest::getExpectedResultSchema(int /*stage*/) { return R"({})"_json; }
-json ITest::getAdditionalPropertiesSchema() { return R"({})"_json; }
+ITransform::ITransform() {}
+
+ITest::ITest(TestConfig &config) : m_config(config)   {
+}
+
+int ITest::getTestStage(int stage) const {
+      return m_config.getStage(stage).getTestStageId();
+}
 
 // Index is the injection point index. That is, the injection
 // point that this test is being run inside.
@@ -168,8 +204,65 @@ void TestStore::addTestLibrary(std::string libraryPath) {
 }
 
 void TestStore::addTest(std::string name, maker_ptr m,
-                        variable_register_ptr v) {
+                        declare_test_ptr v) {
   test_factory[name] = std::make_pair(m, v);
+}
+
+
+
+
+std::vector<TestConfig> TestStore::validateTests(std::vector<json> &configs) {
+    std::vector<TestConfig> conf;
+    for (auto &it : configs) {
+        conf.push_back(validateTest(it));
+    }
+    return conf;
+}
+
+TestConfig TestStore::validateTest(json &config) {
+
+  if ( config.find("name") == config.end() ) {
+       throw "Test Declaration does not contain Test Name";
+  }
+  std::string name = config["name"].get<std::string>();
+
+  auto it = test_factory.find(name);
+  if (it != test_factory.end()) {
+
+    json test_schema;
+    auto itt = registeredTests.find(name);
+    if (itt == registeredTests.end()) {
+
+      // This is the first time we have encountered this test.
+      // So, we need to build the schema for it, and validate.
+      json testDeclaration = it->second.second();
+
+      //Validate the testDeclaration itself
+      json_validator validator;
+      validator.set_root_schema(getTestDelcarationJsonSchema());
+      validator.validate(testDeclaration);
+
+      //Define the variables listed in the test.
+      IOutputEngine* engine = EngineStore::getEngineStore().getEngineManager()->getOutputEngine();
+      for ( auto it : testDeclaration["io-variables"].items()) {
+          engine->Define(it.key(),it.value().get<std::string>());
+      }
+
+      test_schema = getTestValidationSchema(testDeclaration);
+      registeredTests.insert(std::make_pair(name, test_schema));
+    } else {
+      test_schema = itt->second;
+    }
+
+    // Validate the config file.
+    json_validator validator;
+    validator.set_root_schema(test_schema);
+    validator.validate(config);
+
+    // Create the Test Config File
+    return TestConfig(name, config);
+  }
+  throw "test not found";
 }
 
 ITest* TestStore::getTest(TestConfig& config) {
@@ -177,14 +270,7 @@ ITest* TestStore::getTest(TestConfig& config) {
 
   auto it = test_factory.find(name);
   if (it != test_factory.end()) {
-    auto itt = registeredTests.find(name);
-    if (itt == registeredTests.end()) {
-      it->second.second(
-          EngineStore::getEngineStore().getEngineManager()->getOutputEngine());
-      registeredTests.insert(name);
-    }
-    ITest * t = it->second.first();
-    t->set(config);
+    ITest * t = it->second.first(config);
     return t;
   }
   return nullptr;
@@ -205,7 +291,7 @@ void TestStore::addTransform(std::string name, trans_ptr t) {
   trans_factory.insert(std::make_pair(name, t));
 }
 
-void VnV_registerTest(std::string name, maker_ptr m, variable_register_ptr v) {
+void VnV_registerTest(std::string name, maker_ptr m, declare_test_ptr v) {
   TestStore::getTestStore().addTest(name, m, v);
 }
 

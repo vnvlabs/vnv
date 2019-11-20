@@ -55,9 +55,12 @@ void RunTime::loadInjectionPoints(std::string json) {
     TestStore::getTestStore().addTestLibrary(it);
   }
 
+  std::map<std::string, std::vector<TestConfig>> configs;
+  for ( auto it : info.injectionPoints) {
+      configs.insert(std::make_pair(it.first, TestStore::getTestStore().validateTests(it.second))) ;
+  }
   // Load the injection Points and create all the tests.
-  InjectionPointStore::getInjectionPointStore().addInjectionPoints(
-      info.injectionPoints);
+  InjectionPointStore::getInjectionPointStore().addInjectionPoints(configs);
 }
 
 bool RunTime::Init(int* argc, char*** argv, std::string configFile) {
@@ -73,10 +76,7 @@ bool RunTime::Init(int* argc, char*** argv, std::string configFile) {
   }
 #endif
 
-  JsonParser
-      parser;  // =
-               // ParserStore::getParserStore().getParser(VnV::getFileExtension(configFile));
-
+  JsonParser parser;
   RunInfo info = parser.parse(configFile);
 
   VnV_Debug("Finished Parsing Json File {}", 10);
@@ -87,14 +87,16 @@ bool RunTime::Init(int* argc, char*** argv, std::string configFile) {
     for (auto it : info.testLibraries) {
       TestStore::getTestStore().addTestLibrary(it);
     }
-
     // Load the Output Engine ( tests declare variables when loaded) .
     EngineStore::getEngineStore().setEngineManager(
         info.engineInfo.engineType, info.engineInfo.engineConfig);
 
+    std::map<std::string, std::vector<TestConfig>> configs;
+    for ( auto it : info.injectionPoints) {
+        configs.insert(std::make_pair(it.first, TestStore::getTestStore().validateTests(it.second))) ;
+    }
     // Load the injection Points and create all the tests.
-    InjectionPointStore::getInjectionPointStore().addInjectionPoints(
-        info.injectionPoints);
+    InjectionPointStore::getInjectionPointStore().addInjectionPoints(configs);
 
     // Run the initialize Injection point.
     INJECTION_POINT(initialization, -1, int*, argc, char***, argv, std::string,
@@ -104,7 +106,6 @@ bool RunTime::Init(int* argc, char*** argv, std::string configFile) {
     VnV_Error("{}", info.errorMessage);
     runTests = false;
   }
-
   return runTests;
 }
 

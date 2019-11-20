@@ -62,7 +62,26 @@ class EuclideanError : public ITest {
 extern "C" {
 ITest* EuclideanError_maker() { return new EuclideanError(); }
 
-void EuclideanError_DeclareIO(IOutputEngine* engine) {
+json EuclideanError_Declare() {
+    json dummyTest_Declare() {
+      return R"(
+      {
+        "name" : "EuclieanErorr",
+        "title" : "Test For calculating euclidean error between two vectors."
+        "description" : "This test calculates the euclidean distance between two vectors",
+        "expectedResult" : {"type" : "object"}
+        "configuration" : {"type" : "object"}
+        "stages" : {
+           "-1" : {
+              "measured" : "std::vector<double>",
+              "exact" : "std::vector<double>",
+           }
+        }
+        "required" : ["-1"]
+
+}
+)"_json;
+}
   EuclideanError::DeclareIO(engine);
 }
 };

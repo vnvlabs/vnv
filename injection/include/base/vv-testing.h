@@ -25,7 +25,7 @@ class DefaultTransform : public ITransform {
    * @param testParameterType
    * @return
    */
-  void* Transform(std::pair<std::string, void*> ip,
+  void* _Transform(std::pair<std::string, void*> ip,
                   std::string testParameterType) override;
 };
 /**
@@ -41,12 +41,12 @@ class TestStore {
   /**
    * @brief registeredTests
    */
-  std::set<std::string> registeredTests;
+  std::map<std::string, json> registeredTests;
 
   /**
    * @brief test_factory
    */
-  std::map<std::string, std::pair<maker_ptr*, variable_register_ptr*>,
+  std::map<std::string, std::pair<maker_ptr*, declare_test_ptr*>,
            std::less<std::string>>
       test_factory;
 
@@ -73,7 +73,7 @@ class TestStore {
    * @param m
    * @param v
    */
-  void addTest(std::string name, maker_ptr m, variable_register_ptr v);
+  void addTest(std::string name, maker_ptr m, declare_test_ptr v);
 
   /**
    * @brief addTransform
@@ -95,6 +95,11 @@ class TestStore {
    * @return
    */
   ITest* getTest(TestConfig& config);
+
+  std::vector<TestConfig> validateTests(std::vector<json> &configs);
+
+
+  TestConfig validateTest(json &config);
 
   /**
    * @brief getTestStore

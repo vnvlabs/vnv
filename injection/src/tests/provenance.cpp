@@ -69,7 +69,12 @@ static int callback(struct dl_phdr_info* info, size_t /*size*/, void* data) {
 
 class provenance : public ITest {
  public:
-  TestStatus runTest(IOutputEngine* engine, int argc, char** argv,
+
+    provenance(TestConfig config) : ITest(config) {
+
+    }
+
+    TestStatus runTest(IOutputEngine* engine, int argc, char** argv,
                      std::string configFile) {
 
     {
@@ -107,13 +112,13 @@ class provenance : public ITest {
     }
     {
 
-       json extra = m_config.getAdditionalProperties();
+       const json extra = getConfigurationJson();
+
        if ( extra.find("input-files") != extra.end() ) {
 
          json a = extra["input-files"];
          std::vector<json> ins;
          for ( auto itt: a ) {
-               std::cout << a;
                std::ifstream f(itt.get<std::string>());
                if (f.is_open())	{
                    json r;
@@ -147,15 +152,7 @@ class provenance : public ITest {
     return SUCCESS;
   }
 
-  static void DeclareIO(IOutputEngine* /*engine*/) {}
-
-  void init() override {
-    m_parameters.insert(std::make_pair("argc", "int*"));
-    m_parameters.insert(std::make_pair("argv", "char***"));
-    m_parameters.insert(std::make_pair("config", "std::string"));
-  }
-
-  virtual TestStatus runTest(IOutputEngine* engine, int stage,
+    virtual TestStatus runTest(IOutputEngine* engine, int stage,
                              NTV& parameters) override {
     
     VnV_Debug("RUNNING PROVENANCE TEST");	  
@@ -170,18 +167,37 @@ class provenance : public ITest {
 
 provenance::~provenance() {}
 
-extern "C" {
-ITest* provenance_maker() { return new provenance(); }
+ITest* provenance_maker(TestConfig config) { return new provenance(config); }
 
-void provenance_DeclareIO(IOutputEngine* engine) {
-  provenance::DeclareIO(engine);
+json provenance_Declare() {
+    return R"({
+            "name" : "provenance",
+            "title" : "Provenance Tracking.",
+            "description" : "This test tracks provenance for the executable, including info about all linked libraries",
+            "expectedResult" : {"type" : "object" },
+            "configuration" : {
+               "type" : "object",
+               "properties" : {
+                  "input-files" : { "type" : "array" , "items" : {"type" : "string"} }
+               }
+
+            },
+            "stages" : {
+               "-1" : {
+                  "argc" : "int*",
+                  "argv" : "char***",
+                  "config" : "std::string"
+               }
+            },
+            "requiredStages" : ["-1"],
+            "io-variables" : {}
+    })"_json;
 }
-};
 
 class provenance_proxy {
  public:
   provenance_proxy() {
-    VnV_registerTest("provenance", provenance_maker, provenance_DeclareIO);
+    VnV_registerTest("provenance", provenance_maker, provenance_Declare);
   }
 };
 

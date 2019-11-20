@@ -7,6 +7,29 @@
 
 using namespace VnV;
 
+
+static json __adios_input_schema__ = R"(
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "http://rnet-tech.net/vv.schema.json",
+	"title": "Adios Engine Input Schema",
+	"description": "Schema for the adios Engine",
+	"type": "object",
+	"properties": {
+		"debug": {
+			"type": "boolean"
+		},
+		"configFile": {
+			"type": "string"
+		},
+		"outFile": {
+			"type": "string"
+		}
+	},
+	"additionalProperties": false
+})"_json;
+
+
 AdiosEngine::AdiosEngine(adios2::Engine& e, adios2::IO& i)
     : writer(i), engine(e) {}
 
@@ -56,20 +79,32 @@ void AdiosWrapper::finalize() {
 }
 
 void AdiosWrapper::set(json& config) {
-  adios = new adios2::ADIOS(MPI_COMM_WORLD, false);
 
-  std::string outfile = config["outfile"].get<std::string>();
+  
+  bool debug = false;
+  std::string configFile = "";
+  std::string outfile = "./vnv-adios.out";
 
+  if ( config.find("debug") != config.end() )
+	debug = config["debug"].get<bool>();
+  if ( config.find("outFile") != config.end() ) 
+	outfile = config["outFile"].get<std::string>();
+  if ( config.find("configFile") != config.end() ) 
+	configFile = config["configFile"].get<std::string>();
+
+  if ( configFile.empty()) 
+  	adios = new adios2::ADIOS(MPI_COMM_WORLD, debug);
+  else 
+	adios = new adios2::ADIOS(configFile, MPI_COMM_WORLD, debug);
+  
   bpWriter = adios->DeclareIO("BPWriter");
-  outputFile = bpWriter.AddTransport(
-      "File", {{"Library", "POSIX"}, {"Name", outfile.c_str()}});
+  outputFile = bpWriter.AddTransport("File", {{"Library", "POSIX"}, {"Name", outfile.c_str()}});
   identifier = bpWriter.DefineVariable<std::string>("identifier");
   stage = bpWriter.DefineVariable<int>("stage");
   type = bpWriter.DefineVariable<std::string>("type");
   markdown = bpWriter.DefineVariable<std::string>("markdown");
   result = bpWriter.DefineVariable<int>("result");
   engine = bpWriter.Open(outfile, adios2::Mode::Write);
-
   adiosEngine = new AdiosEngine(engine, bpWriter);
 }
 
@@ -120,6 +155,10 @@ void AdiosWrapper::stopTest(bool result_) {
 }
 
 IOutputEngine* AdiosWrapper::getOutputEngine() { return adiosEngine; }
+
+json AdiosWrapper::getConfigurationSchema() {
+	return __adios_input_schema__;
+}
 
 extern "C" {
 OutputEngineManager* AdiosEngineBuilder() { return new AdiosWrapper(); }

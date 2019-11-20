@@ -12,7 +12,18 @@ using namespace VnV;
 using nlohmann::json;
 using nlohmann::json_schema::json_validator;
 
-json OutputEngineManager::getConfigurationSchema() { return R"({})"_json; }
+static json __default_configuration_schema__ = R"(
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://rnet-tech.net/vv.schema.json",
+  "title": "Basic VV RunTime Schema",
+  "description": "Schema for a VnV runtime Configuration file",
+  "type": "object"
+})"_json;
+
+json OutputEngineManager::getConfigurationSchema() { 
+    return __default_configuration_schema__;
+}
 
 void OutputEngineManager::_set(json& inputjson) {
   json schema = getConfigurationSchema();
@@ -20,7 +31,7 @@ void OutputEngineManager::_set(json& inputjson) {
     json_validator validator;
     validator.set_root_schema(schema);
     validator.validate(inputjson);
-  }
+  } 
   set(inputjson);
 }
 

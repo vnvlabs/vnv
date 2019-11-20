@@ -10,6 +10,18 @@
 
 using namespace VnV;
 
+static json __debug_engine_schema__ = R"(
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "http://rnet-tech.net/vv-debug-schema.json",
+	"title": "Debug Engine Input Schema",
+	"description": "Schema for the debug engine",
+	"type": "object",
+	"additionalProperties": false
+}
+)"_json;
+
+
 DebugEngine::DebugEngine() {}
 
 void DebugEngine::Put(std::string variableName, double& value) {
@@ -51,10 +63,16 @@ void DebugEngine::DefineLong(std::string variableName) {
 
 DebugEngineWrapper::DebugEngineWrapper() {}
 
+json DebugEngineWrapper::getConfigurationSchema() {
+	return __debug_engine_schema__;
+}
+
+
 void DebugEngineWrapper::finalize() { VnV_Info("DEBUG ENGINE: FINALIZE"); }
 
 void DebugEngineWrapper::set(json& config) {
   VnV_Info("DEBUG ENGINE WRAPPER Init with file {}", config.dump());
+  
   debugEngine = new DebugEngine();
 }
 

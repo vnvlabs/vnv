@@ -15,6 +15,8 @@ namespace VnV {
 /**
  * @brief The AdiosEngine class
  */
+
+	
 class AdiosEngine : public IOutputEngine {
  public:
   adios2::IO& writer;
@@ -144,6 +146,11 @@ class AdiosWrapper : public OutputEngineManager {
    * @param result_
    */
   void stopTest(bool result_);
+
+  /**
+   * @brief get the configuration schema for the adios engine. 
+   */
+  json getConfigurationSchema() override;
 
   /**
    * @brief getOutputEngine

@@ -103,6 +103,12 @@ class DebugEngineWrapper : public OutputEngineManager {
   DebugEngineWrapper();
 
   /**
+   * @brief Get the configuration Schema for the Debug engine. 
+   */
+  json getConfigurationSchema() override;
+
+
+  /**
    * @brief finalize
    */
   void finalize();

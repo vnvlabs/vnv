@@ -35,10 +35,9 @@ struct EngineInfo {
  */
 struct RunInfo {
   bool runTests; /**< Should any tests be run */
-  std::set<std::string>
-      testLibraries; /*< List of file paths to included plugin libraries */
-  std::map<std::string, std::vector<TestConfig>>
-      injectionPoints; /**< all injection points with tests */
+  std::set<std::string> testLibraries; /*< List of file paths to included plugin libraries */
+  std::map<std::string, std::vector<json>> injectionPoints; /**< all injection points with tests */
+
 
   EngineInfo engineInfo; /**< Information about the IO engine */
 
@@ -114,7 +113,7 @@ class JsonParser {
    * will only be added if it has been tagged with a runScope in that set. If
    * runScopes is empty, the test is added regardless.
    */
-  void addTest(const json& testJson, std::vector<TestConfig>& testConfig,
+  void addTest(const json& testJson, std::vector<json>& testConfig,
                std::set<std::string>& runScopes);
 
   /**
@@ -131,7 +130,7 @@ class JsonParser {
    */
   void addInjectionPoint(const json& injectionPointJson,
                          std::set<std::string>& runScopes,
-                         std::map<std::string, std::vector<TestConfig>>& ips);
+                         std::map<std::string, std::vector<json>>& ips);
 
   /**
    * @brief addTestLibrary

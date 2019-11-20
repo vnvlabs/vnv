@@ -7,7 +7,13 @@ using namespace VnV;
 
 class dummyTest : public ITest {
  public:
-  TestStatus runTest(IOutputEngine* engine, int testStage, double* slope,
+
+    dummyTest(TestConfig config) : ITest(config) {
+
+    }
+
+
+    TestStatus runTest(IOutputEngine* engine, int testStage, double* slope,
                      double* intersection) {
     // Write the slope and the intersection point to the  output file.
     engine->Put("slope", *slope);
@@ -15,36 +21,41 @@ class dummyTest : public ITest {
     return SUCCESS;
   }
 
-  static void DeclareIO(IOutputEngine* engine) {
-    engine->DefineDouble("slope");
-    engine->DefineDouble("intersection");
-  }
-
-  void init() {
-    m_parameters.insert(std::make_pair("slope", "double"));
-    m_parameters.insert(std::make_pair("intersection", "double"));
-  }
-
   TestStatus runTest(IOutputEngine* engine, int stage, NTV& parameters) {
     double* x = carefull_cast<double>(stage, "slope", parameters);
     double* y = carefull_cast<double>(stage, "intersection", parameters);
-    int testStage = m_config.getStage(stage).getTestStageId();
+    int testStage = getTestStage(stage);
     return runTest(engine, testStage, x, y);
   }
 };
 
-extern "C" {
-ITest* dummyTest_maker() { return new dummyTest(); }
+ITest* dummyTest_maker(TestConfig config) { return new dummyTest(config); }
 
-void dummyTest_DeclareIO(IOutputEngine* engine) {
-  dummyTest::DeclareIO(engine);
+json dummyTest_Declare() {
+    return R"(
+{
+  "name" : "dummyTest",
+  "title" : "Dummy test for plotting a line.",
+  "description" : "This test writes data for the equation of a line.",
+  "expectedResult" : {"type" : "object"},
+  "configuration" : {"type" : "object"},
+  "stages" : {
+     "-1" : {
+        "slope" : "double",
+        "intersection" : "double",
+     }
+  },
+  "requiredStages" : ["-1"],
+  "io-variables" : {}
 }
-};
+)"_json;
+}
+
 
 class dummyTest_proxy {
  public:
   dummyTest_proxy() {
-    VnV_registerTest("dummyTest", dummyTest_maker, dummyTest_DeclareIO);
+    VnV_registerTest("dummyTest", dummyTest_maker, dummyTest_Declare);
   }
 };
 
