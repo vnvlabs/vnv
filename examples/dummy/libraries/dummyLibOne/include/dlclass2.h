@@ -1,5 +1,5 @@
-#ifndef CLASS2_H
-#define CLASS2_H
+#ifndef DLCLASS2_H
+#define DLCLASS2_H
 
 namespace dummyLibOne {
 
