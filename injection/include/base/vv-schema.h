@@ -44,7 +44,7 @@ static json vv_schema = R"(
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^(.*).so$"
+        "pattern": "^(.*).(so|dylib)$"
       },
       "uniqueItems": true
     },

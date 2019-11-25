@@ -5,7 +5,6 @@
 #include "vv-logging.h"
 
 #include <dlfcn.h>
-#include <link.h>
 
 #include <iostream>
 

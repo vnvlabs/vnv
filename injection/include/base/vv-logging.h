@@ -7,6 +7,7 @@
 
 #  include <map>
 #  include <string>
+#  include <iostream>
 
 /**
  * \file Header file for the logging structure in the code. The logger itself is

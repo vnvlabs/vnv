@@ -4,7 +4,9 @@
 #define _provenance_H
 
 
+#if !defined(__APPLE__)
 #include <link.h>
+#endif /* !defined(__APPLE__) */
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -43,12 +45,21 @@ json getLibInfo(std::string filepath, unsigned long add) {
     libJson["st_gid"] = result.st_gid;
     libJson["st_ino"] = result.st_ino;
     libJson["st_uid"] = result.st_uid;
+#if defined(__APPLE__)
+    libJson["st_atim_sec"] = result.st_atimespec.tv_sec;
+    libJson["st_atim_nsec"] = result.st_atimespec.tv_nsec;
+    libJson["st_ctim_sec"] = result.st_ctimespec.tv_sec;
+    libJson["st_ctim_nsec"] = result.st_ctimespec.tv_nsec;
+    libJson["st_mtim_sec"] = result.st_mtimespec.tv_sec;
+    libJson["st_mtim_nsec"] = result.st_mtimespec.tv_nsec;
+#else /* defined(__APPLE__) */
     libJson["st_atim_sec"] = result.st_atim.tv_sec;
     libJson["st_atim_nsec"] = result.st_atim.tv_nsec;
     libJson["st_ctim_sec"] = result.st_ctim.tv_sec;
     libJson["st_ctim_nsec"] = result.st_ctim.tv_nsec;
     libJson["st_mtim_sec"] = result.st_mtim.tv_sec;
     libJson["st_mtim_nsec"] = result.st_mtim.tv_nsec;
+#endif /* defined(__APPLE__) */
     libJson["st_mode"] = result.st_mode;
     libJson["st_rdev"] = result.st_rdev;
     libJson["st_size"] = result.st_size;
@@ -57,6 +68,23 @@ json getLibInfo(std::string filepath, unsigned long add) {
     libJson["st_blksize"] = result.st_blksize;
     return libJson;
 }
+
+#if defined(__APPLE__)
+/* Define things that are missing. Note that dl_iterate_pdhr() does
+not do anything in this version. */
+
+struct dl_phdr_info {
+  unsigned long dlpi_addr;
+  char *dlpi_name;
+};
+
+static char *get_current_dir_name(void) {
+  return getcwd(NULL, 0);
+}
+
+static void dl_iterate_phdr(int (*callback)(struct dl_phdr_info *info, size_t size, void *data), void *data) {
+}
+#endif /* defined(__APPLE__) */
 
 static int callback(struct dl_phdr_info* info, size_t /*size*/, void* data) {
 
