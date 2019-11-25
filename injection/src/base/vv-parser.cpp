@@ -37,8 +37,7 @@ void JsonParser::addTest(const json& testJson,
 void JsonParser::addInjectionPoint(
     const json& ip, std::set<std::string>& runScopes,
     std::map<std::string, std::vector<json>>& ips) {
-  json ipd = ip["config"];
-  for (auto& it : ipd.items()) {
+  for (auto& it : ip.items()) {
     std::string name = it.value()["name"].get<std::string>();
 
     auto aip = ips.find(name);
@@ -65,14 +64,24 @@ void JsonParser::addTestLibrary(const json& lib, std::set<std::string>& libs) {
   }
 }
 
-void JsonParser::setupLogger(const json& logging) {
-  if (logging["on"].get<bool>()) {
-    std::string type = logging["filename"].get<std::string>();
-    VnV_ConfigureLog(logging["filename"].get<std::string>());
+LoggerInfo JsonParser::getLoggerInfo(const json& logging) {
+
+  LoggerInfo info;
+  info.on = logging["on"].get<bool>();
+  if (info.on) {
+    info.filename = logging["filename"].get<std::string>();
     for (auto& it : logging["logs"].items()) {
-      VnV_ConfigureLogLevel(it.key(), it.value().get<bool>());
+      info.logs.insert(std::make_pair(logLevelFromString(it.key()), it.value().get<bool>()));
     }
+    auto it = logging.find("blackList");
+    if ( it != logging.end() ) {
+        for (auto itt : logging["blackList"].items()) {
+            info.blackList.insert(itt.value().get<std::string>());
+        }
+    }
+
   }
+  return info;
 }
 
 EngineInfo JsonParser::getEngineInfo(const json& engine) {
@@ -82,15 +91,15 @@ EngineInfo JsonParser::getEngineInfo(const json& engine) {
   return einfo;
 }
 
-RunInfo JsonParser::parse(const json& main) {
-  // First port of call is to set up logging. This is done here, so we can
-  // use logging inside the parser itself.
-  if (main.find("logging") != main.end())
-    setupLogger(main["logging"]);  // getLoggingInfo(main["logging"])
-  else
-    setupLogger(R"({"on" : true, "filename" : "stdout", "logs" : {} })"_json);
-
+RunInfo JsonParser::_parse(const json& main) {
   RunInfo info;
+
+  if (main.find("logging") != main.end())
+    info.logInfo = getLoggerInfo(main["logging"]);
+  else {
+      info.logInfo.filename = "stdout";
+      info.logInfo.on = true;
+  }
 
   // Get the run information and the scopes.
   if (main.find("runTests") != main.end()) {
@@ -136,28 +145,30 @@ RunInfo JsonParser::parse(const json& main) {
   return info;
 }
 
-RunInfo JsonParser::parse(std::string filename) {
-  // TODO -- Change input parameter to represent the fact that this function
-  // supports passing in
-  // a string filename, and a string representation of a json object.
-  //
-  // Currently the code tries to open "filename" as a file. If that fails, it
-  // parses it as a json string. If that fails, it throws an invalid json error.
-
-  std::ifstream input(filename);
+RunInfo JsonParser::parse(std::ifstream &fstream) {
   
-  std::cout << "GERE" << std::endl;
  	 
   json mainJson;
-  if (!input) {
-    mainJson = json::parse(filename);
-  } else {
-    mainJson = json::parse(input);
- }
-  std::cout << "GERE" << std::endl;
-  
+  if (!fstream.good()) {
+    throw "Invalid Input File Stream";
+  }
+
+  try {
+     mainJson = json::parse(fstream);
+  } catch (json::exception e) {
+     throw;
+  }
+  return parse(mainJson);
+}
+
+RunInfo JsonParser::parse(const json& _json) {
+
   json_validator validator;
   validator.set_root_schema(getVVSchema());
-  validator.validate(mainJson);
-  return parse(mainJson);
+  try {
+    validator.validate(_json);
+  } catch (std::exception e) {
+    throw;
+  }
+  return _parse(_json);
 }

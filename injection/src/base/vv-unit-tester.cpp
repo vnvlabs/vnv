@@ -36,7 +36,7 @@ IUnitTester* UnitTestStore::getUnitTester(std::string name) {
 void UnitTestStore::runAll(bool /*stopOnFail*/) {
   for (auto& it : tester_factory) {
     IUnitTester* tester = it.second();
-    RunTime::loadInjectionPoints(tester->getInputJson());
+    RunTime::instance().loadInjectionPoints(tester->getInputJson());
     tester->run();
   }
 }

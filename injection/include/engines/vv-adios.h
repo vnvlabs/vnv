@@ -23,6 +23,13 @@ class AdiosEngine : public IOutputEngine {
   adios2::Engine& engine;
 
   AdiosEngine(adios2::Engine& _engine, adios2::IO& _io);
+
+  /**
+   * @brief Log
+   * @param log
+   */
+  void Log(const char * package, int stage, LogLevel level, std::string message) override;
+
   /**
    * @brief Put
    * @param variableName
@@ -59,34 +66,11 @@ class AdiosEngine : public IOutputEngine {
   void Put(std::string variableName, std::string& value);
 
   /**
-   * @brief DefineDouble
+   * @brief Define IO Variable
    * @param name
    */
-  void DefineDouble(std::string name);
+  void Define(VariableEnum type, std::string name);
 
-  /**
-   * @brief DefineFloat
-   * @param name
-   */
-  void DefineFloat(std::string name);
-
-  /**
-   * @brief DefineInt
-   * @param name
-   */
-  void DefineInt(std::string name);
-
-  /**
-   * @brief DefineLong
-   * @param name
-   */
-  void DefineLong(std::string name);
-
-  /**
-   * @brief DefineString
-   * @param name
-   */
-  void DefineString(std::string name);
 };
 
 class AdiosWrapper : public OutputEngineManager {

@@ -7,16 +7,25 @@
 
 #include <set>
 #include <string>
+#include <fstream>
+#include <map>
 
 #include "json-schema.hpp"
 #include "vv-testing.h"
-
+#include "vv-logging.h"
 using nlohmann::json;
 
 /**
  * VnV namespace
  */
 namespace VnV {
+
+struct LoggerInfo {
+    bool on;
+    std::string filename;
+    std::map<LogLevel, bool> logs;
+    std::set<std::string> blackList;
+};
 
 /**
  * @brief The EngineInfo struct
@@ -38,12 +47,11 @@ struct RunInfo {
   std::set<std::string> testLibraries; /*< List of file paths to included plugin libraries */
   std::map<std::string, std::vector<json>> injectionPoints; /**< all injection points with tests */
 
-
+  LoggerInfo logInfo;
   EngineInfo engineInfo; /**< Information about the IO engine */
 
   bool error; /**< Was there an error when parsing */
-  std::string
-      errorMessage; /**< What was the error message (if there was one) */
+  std::string errorMessage; /**< What was the error message (if there was one) */
 };
 
 /**
@@ -88,7 +96,7 @@ class JsonParser {
    * file.
    *
    */
-  void setupLogger(const json& loggingJson);
+  LoggerInfo getLoggerInfo(const json& loggingJson);
 
   /**
    * @brief getEngineInfo
@@ -152,18 +160,20 @@ class JsonParser {
    * present in the json. In most cases, those assumptions are based on the fact
    * that the parameter is marked required in the schema.
    */
-  RunInfo parse(const json& input);
+  RunInfo _parse(const json& input);
 
  public:
   /**
    * @brief parse
-   * @param filename The file containing the json or a json string.
+   * @param fstram . The file containing the json or a json string.
    * @return The RunInfo struct containing all parsed information.
    *
    * Note, This function supports both files and json strings as input.
    * @todo Change parameter name to indicate support for json strings and files.
    */
-  RunInfo parse(std::string filename);
+  RunInfo parse(std::ifstream &fstream);
+  RunInfo parse(const json& _json);
+
 };
 
 }  // namespace VnV

@@ -33,7 +33,9 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-testing.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-unit-tester.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-schema.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-cinterface.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/engines/vv-debug-engine.cpp)
+
 
 target_link_libraries(injection PRIVATE dl)
 target_link_libraries(injection PUBLIC jsv::jsv)

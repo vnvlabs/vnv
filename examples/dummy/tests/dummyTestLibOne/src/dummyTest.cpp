@@ -24,7 +24,7 @@ class dummyTest : public ITest {
   TestStatus runTest(IOutputEngine* engine, int stage, NTV& parameters) {
     double* x = carefull_cast<double>(stage, "slope", parameters);
     double* y = carefull_cast<double>(stage, "intersection", parameters);
-    int testStage = getTestStage(stage);
+    int testStage = 0;;
     return runTest(engine, testStage, x, y);
   }
 };
@@ -39,13 +39,11 @@ json dummyTest_Declare() {
   "description" : "This test writes data for the equation of a line.",
   "expectedResult" : {"type" : "object"},
   "configuration" : {"type" : "object"},
-  "stages" : {
-     "-1" : {
+  "parameters" : {
         "slope" : "double",
-        "intersection" : "double",
-     }
-  },
-  "requiredStages" : ["-1"],
+        "intersection" : "double"
+   },
+   "requiredParameters" : ["slope","intersection"],
   "io-variables" : {}
 }
 )"_json;

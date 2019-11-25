@@ -18,21 +18,23 @@
 
 using namespace VnV;
 
-void RunTime::injectionPoint(int injectionIndex, std::string scope,
+void RunTime::injectionPoint(std::string pname, int injectionIndex, std::string scope,
                              std::string function, ...) {
   va_list argp;
   va_start(argp, function);
-  injectionPoint(injectionIndex, scope, function, argp);
+  injectionPoint(pname, injectionIndex, scope, function, argp);
   va_end(argp);
 }
 
-void RunTime::injectionPoint(int injectionIndex, std::string scope,
+void RunTime::injectionPoint(std::string pname, int injectionIndex, std::string scope,
                              std::string function, va_list argp) {
   if (runTests) {
     std::shared_ptr<InjectionPoint> ipd =
         InjectionPointStore::getInjectionPointStore().getInjectionPoint(
             scope, injectionIndex);
-    if (ipd != nullptr) {
+    if (ipd != nullptr)
+    {
+      VnV_Info("Running tests at injection Point %s from package %s inside function %s", scope.c_str(),pname.c_str(),function.c_str());
       ipd->runTests(injectionIndex, argp);
     } else {
     }
@@ -46,21 +48,49 @@ RunTime& RunTime::instance() {
 
 RunTime::RunTime() {}
 
-void RunTime::loadInjectionPoints(std::string json) {
-  JsonParser parser;
-  RunInfo info = parser.parse(json);
+void RunTime::loadRunInfo(RunInfo &info) {
+
+  if (info.logInfo.on) {
+       logger.setLog(info.logInfo.filename);
+     for (auto it: info.logInfo.logs) {
+         logger.setLogLevel(it.first,it.second);
+     }
+     for ( auto it : info.logInfo.blackList ) {
+        logger.addToBlackList(it);
+     }
+  }
 
   // Load the test libraries ( plugins -- This could include a custom engine )
+  //VnV_Debug("Loading Test Libraries");
   for (auto it : info.testLibraries) {
     TestStore::getTestStore().addTestLibrary(it);
+    //VnV_Debug("\t Loaded Test Library {}" , it);
+  }
+
+
+  if (!EngineStore::getEngineStore().isInitialized()) {
+      //VnV_Debug("Configuring The Output Engine");
+      EngineStore::getEngineStore().setEngineManager(
+            info.engineInfo.engineType, info.engineInfo.engineConfig);
+      //VnV_Debug("Output Engine Configuration Successful");
   }
 
   std::map<std::string, std::vector<TestConfig>> configs;
+  //VnV_Debug("Validating Json Test Configuration Input and converting to TestConfig objects");
   for ( auto it : info.injectionPoints) {
       configs.insert(std::make_pair(it.first, TestStore::getTestStore().validateTests(it.second))) ;
   }
   // Load the injection Points and create all the tests.
+  //VnV_Debug("Loading Injection Points into Injection Point Store");
   InjectionPointStore::getInjectionPointStore().addInjectionPoints(configs);
+
+}
+
+
+void RunTime::loadInjectionPoints(json _json) {
+  JsonParser parser;
+  RunInfo info = parser.parse(_json);
+  loadRunInfo(info);
 }
 
 bool RunTime::Init(int* argc, char*** argv, std::string configFile) {
@@ -77,35 +107,19 @@ bool RunTime::Init(int* argc, char*** argv, std::string configFile) {
 #endif
 
   JsonParser parser;
-  RunInfo info = parser.parse(configFile);
-
-  VnV_Debug("Finished Parsing Json File {}", 10);
+  std::ifstream in(configFile);
+  RunInfo info = parser.parse(in);
 
   runTests = info.runTests;
   if (runTests) {
-    // Load the test libraries ( plugins -- This could include a custom engine )
-    for (auto it : info.testLibraries) {
-      TestStore::getTestStore().addTestLibrary(it);
-    }
-    // Load the Output Engine ( tests declare variables when loaded) .
-    EngineStore::getEngineStore().setEngineManager(
-        info.engineInfo.engineType, info.engineInfo.engineConfig);
-
-    std::map<std::string, std::vector<TestConfig>> configs;
-    for ( auto it : info.injectionPoints) {
-        configs.insert(std::make_pair(it.first, TestStore::getTestStore().validateTests(it.second))) ;
-    }
-    // Load the injection Points and create all the tests.
-    InjectionPointStore::getInjectionPointStore().addInjectionPoints(configs);
-
-    // Run the initialize Injection point.
-    INJECTION_POINT(initialization, -1, int*, argc, char***, argv, std::string,
-                    configFile);
-
+    loadRunInfo(info);
+    INJECTION_POINT(initialization, -1, int*, argc, char***, argv, std::string,configFile);
   } else if (info.error) {
-    VnV_Error("{}", info.errorMessage);
     runTests = false;
   }
+
+  printRunTimeInformation();
+
   return runTests;
 }
 
@@ -128,29 +142,27 @@ bool RunTime::Finalize() {
 
 bool RunTime::isRunTests() { return runTests; }
 
+
+void RunTime::log(std::string pname, LogLevel level, std::string message, va_list args) {
+    logger.log_c(pname, level, message, args);
+}
+
 void RunTime::runUnitTests() {
   UnitTestStore::getUnitTestStore().runAll(false);
 }
 
-void VnV_injectionPoint(int stageVal, const char* id, const char* function,
-                        ...) {
-  va_list argp;
-  va_start(argp, function);
-  RunTime::instance().injectionPoint(stageVal, id, function, argp);
-  va_end(argp);
+
+void RunTime::printRunTimeInformation() {
+        VnV_BeginStage("Printing The RunTime Configuration.");
+        logger.print();
+        EngineStore::getEngineStore().print();
+        TestStore::getTestStore().print();
+        InjectionPointStore::getInjectionPointStore().print();
+        VnV_EndStage("");
 }
 
-int VnV_init(int* argc, char*** argv, const char* filename) {
-  RunTime::instance().Init(argc, argv, filename);
-  return 1;
-}
 
-int VnV_finalize() {
-  RunTime::instance().Finalize();
-  return 1;
-}
 
-int VnV_runUnitTests() {
-  RunTime::instance().runUnitTests();
-  return 0;
-}
+
+
+

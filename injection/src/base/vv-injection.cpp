@@ -2,7 +2,7 @@
 /** @file vv-injection.cpp **/
 
 #include "vv-injection.h"
-
+#include "VnV.h"
 #include <iostream>
 #include "vv-logging.h"
 #include "vv-output.h"
@@ -18,7 +18,6 @@ void InjectionPoint::addTest(TestConfig config) {
   std::shared_ptr<ITest> test = nullptr;
   test.reset(TestStore::getTestStore().getTest(config));
 
-  VnV_Debug("Adding the Test {} " , test != nullptr );
 
   if (test != nullptr) {
     m_tests.push_back(test);
@@ -51,7 +50,7 @@ void InjectionPoint::runTests(int stageValue, va_list argp) {
   // Call the method to write this injection point to file.
   wrapper->startInjectionPoint(getScope(), stageValue);
   for (auto it : m_tests) {
-      VnV_Debug("Running Test" ) ;   
+      //VnV_Debug("Running Test" ) ;
 	  it->_runTest(wrapper->getOutputEngine(), stageValue, ntv);
   }
   wrapper->endInjectionPoint(getScope(), stageValue);
@@ -66,9 +65,9 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
     std::shared_ptr<InjectionPoint> injectionPoint =
         std::make_shared<InjectionPoint>(it->first);
     
-    VnV_Debug("Adding the Tests to injection point {} " , key );
+    //VnV_Debug("Adding the Tests to injection point {} " , key );
     for (auto& test : it->second) {
-      VnV_Debug("TestConfig {} {} ", test.getName(), test.getStages().size());
+      //VnV_Debug("TestConfig {} {} ", test.getName(), test.getStages().size());
       injectionPoint->addTest(test);
     }
     return injectionPoint;
@@ -79,19 +78,19 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
 std::shared_ptr<InjectionPoint> InjectionPointStore::getInjectionPoint(
     std::string key, int stage) {
 
-  VnV_Debug("Looking for injection point {} at stage {} ", key, stage );
+  //VnV_Debug("Looking for injection point {} at stage {} ", key, stage );
     
   
   if (injectionPoints.find(key) == injectionPoints.end()) {
-    VnV_Debug("Injection point {} not configured ", key );
+    //VnV_Debug("Injection point {} not configured ", key );
     for ( auto it : injectionPoints ) {
-	    VnV_Debug("{} {} {}" , it.first, key, key.compare(it.first));
+        //VnV_Debug("{} {} {}" , it.first, key, key.compare(it.first));
     }
     
     
     return nullptr;  // Not configured
   } else if (stage == -1) {
-    VnV_Debug("Returning new Injection point for stage -1 {} ", key );
+   // VnV_Debug("Returning new Injection point for stage -1 {} ", key );
     return newInjectionPoint(key); /* Single stage injection point --> Return an
                                       injection point directly. */
   } else if (stage ==
@@ -137,13 +136,19 @@ void InjectionPointStore::addInjectionPoint(std::string name,
 
 void InjectionPointStore::addInjectionPoints(
     std::map<std::string, std::vector<TestConfig>>& injectionPoints) {
-  this->injectionPoints.insert(injectionPoints.begin(), injectionPoints.end());
-  for (auto i : injectionPoints) {
-    VnV_Debug("Printing Tests for {}", i.first);
-    for (auto it : i.second ) {
-        VnV_Debug("Name {}" , it.getName());
-        for (auto itt : it.getStages()) {
-            VnV_Debug("Stage {}", itt.first);
+    this->injectionPoints.insert(injectionPoints.begin(), injectionPoints.end());
+}
+
+void InjectionPointStore::print() {
+    VnV_BeginStage("InjectionPointStore Configuration");
+    for ( auto it: injectionPoints) {
+        VnV_BeginStage("Name: %s", it.first.c_str());
+        for ( auto itt : it.second ) {
+            VnV_BeginStage("Test %s:", itt.getName().c_str());
+            itt.print();
+            VnV_EndStage("");
         }
-    }}
+        VnV_EndStage("");
+   }
+   VnV_EndStage("");
 }

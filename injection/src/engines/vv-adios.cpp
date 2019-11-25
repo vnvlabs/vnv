@@ -4,7 +4,7 @@
 #include "vv-adios.h"
 
 #include "vv-output.h"
-
+#include "vv-logging.h"
 using namespace VnV;
 
 
@@ -30,8 +30,10 @@ static json __adios_input_schema__ = R"(
 })"_json;
 
 
-AdiosEngine::AdiosEngine(adios2::Engine& e, adios2::IO& i)
-    : writer(i), engine(e) {}
+AdiosEngine::AdiosEngine(adios2::Engine& e, adios2::IO& w)
+    : writer(w), engine(e)  {
+    Define(VariableEnum::String, "LOGS");
+}
 
 void AdiosEngine::Put(std::string variableName, double& value) {
   engine.Put(variableName, value);
@@ -50,25 +52,23 @@ void AdiosEngine::Put(std::string variableName, std::string& value) {
   engine.Put(variableName, value);
 }
 
-void AdiosEngine::DefineDouble(std::string name) {
-  writer.DefineVariable<double>(name);
+void AdiosEngine::Log(const char* package, int stage, LogLevel level, std::string message) {
+    std::ostringstream oss;
+    oss << getIndent(stage) << "[" << package << ":" << logLevelToString(level) << "]: " << message;
+    engine.Put("LOGS", oss.str() );
 }
 
-void AdiosEngine::DefineFloat(std::string name) {
-  writer.DefineVariable<float>(name);
+void AdiosEngine::Define(VariableEnum type, std::string name) {
+    switch (type) {
+        case VariableEnum::Double: writer.DefineVariable<double>(name); break;
+        case VariableEnum::Long: writer.DefineVariable<long>(name); break;
+        case VariableEnum::Int: writer.DefineVariable<int>(name); break;
+        case VariableEnum::Float: writer.DefineVariable<float>(name); break;
+        case VariableEnum::String: writer.DefineVariable<std::string>(name); break;
+        default: throw "Adios Engine Does not handle Variable Enum Type " + VariableEnumFactory::toString(type);
+    }
 }
 
-void AdiosEngine::DefineInt(std::string name) {
-  writer.DefineVariable<int>(name);
-}
-
-void AdiosEngine::DefineString(std::string name) {
-  writer.DefineVariable<std::string>(name);
-}
-
-void AdiosEngine::DefineLong(std::string name) {
-  writer.DefineVariable<long>(name);
-}
 
 AdiosWrapper::AdiosWrapper() {}
 

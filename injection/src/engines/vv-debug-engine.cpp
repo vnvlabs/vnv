@@ -7,7 +7,6 @@
 
 #include "vv-logging.h"
 #include "vv-output.h"
-
 using namespace VnV;
 
 static json __debug_engine_schema__ = R"(
@@ -16,8 +15,7 @@ static json __debug_engine_schema__ = R"(
 	"$id": "http://rnet-tech.net/vv-debug-schema.json",
 	"title": "Debug Engine Input Schema",
 	"description": "Schema for the debug engine",
-	"type": "object",
-	"additionalProperties": false
+    "type": "object"
 }
 )"_json;
 
@@ -25,40 +23,29 @@ static json __debug_engine_schema__ = R"(
 DebugEngine::DebugEngine() {}
 
 void DebugEngine::Put(std::string variableName, double& value) {
-  VnV_Info("DEBUG ENGINE PUT {} = {}", variableName, value);
+  printf("DEBUG ENGINE PUT %s = %f", variableName.c_str(), value);
 }
 void DebugEngine::Put(std::string variableName, int& value) {
-  VnV_Info("DEBUG ENGINE PUT {} = {}", variableName, value);
+  printf("DEBUG ENGINE PUT %s = %d", variableName.c_str(), value);
 }
 void DebugEngine::Put(std::string variableName, float& value) {
-  VnV_Info("DEBUG ENGINE PUT {} = {}", variableName, value);
+  printf("DEBUG ENGINE PUT %s = %f", variableName.c_str(), value);
 }
 void DebugEngine::Put(std::string variableName, long& value) {
-  VnV_Info("DEBUG ENGINE PUT {} = {}", variableName, value);
+  printf("DEBUG ENGINE PUT %s = %ld", variableName.c_str(), value);
 }
 
 void DebugEngine::Put(std::string variableName, std::string& value) {
-  VnV_Info("DEBUG ENGINE PUT {} = {}", variableName, value);
+  printf("DEBUG ENGINE PUT %s = %s", variableName.c_str(), value.c_str());
 }
 
-void DebugEngine::DefineDouble(std::string variableName) {
-  VnV_Info("DEBUG ENGINE DEFINE {} = {}", variableName, "double");
+void DebugEngine::Log(const char *package, int stage, LogLevel level, std::string message) {
+    std::string s = getIndent(stage);
+    printf("%s[%s:%s]: %s", s.c_str(), package, logLevelToString(level).c_str(), message.c_str() );
 }
 
-void DebugEngine::DefineFloat(std::string variableName) {
-  VnV_Info("DEBUG ENGINE DEFINE {} = {}", variableName, "float");
-}
-
-void DebugEngine::DefineString(std::string variableName) {
-  VnV_Info("DEBUG ENGINE DEFINE {} = {}", variableName, "string");
-}
-
-void DebugEngine::DefineInt(std::string variableName) {
-  VnV_Info("DEBUG ENGINE DEFINE {} = {}", variableName, "int");
-}
-
-void DebugEngine::DefineLong(std::string variableName) {
-  VnV_Info("DEBUG ENGINE DEFINE {} = {}", variableName, "long");
+void DebugEngine::Define(VariableEnum type, std::string variableName) {
+  VnV_Info("DEBUG ENGINE DEFINE %s = %s", variableName.c_str(), VariableEnumFactory::toString(type).c_str());
 }
 
 DebugEngineWrapper::DebugEngineWrapper() {}
@@ -71,14 +58,14 @@ json DebugEngineWrapper::getConfigurationSchema() {
 void DebugEngineWrapper::finalize() { VnV_Info("DEBUG ENGINE: FINALIZE"); }
 
 void DebugEngineWrapper::set(json& config) {
-  VnV_Info("DEBUG ENGINE WRAPPER Init with file {}", config.dump());
+  VnV_Info("DEBUG ENGINE WRAPPER Init with file %s", config.dump().c_str());
   
   debugEngine = new DebugEngine();
 }
 
 void DebugEngineWrapper::endInjectionPoint(std::string id, int stageVal) {
   if (debugEngine) {
-    VnV_Info("DEBUG ENGINE End Injection Point {} : {} ", id, stageVal);
+    VnV_Info("DEBUG ENGINE End Injection Point %s : %s ", id.c_str(), stageVal);
   } else {
     throw "Engine not initialized";
   }
@@ -86,7 +73,7 @@ void DebugEngineWrapper::endInjectionPoint(std::string id, int stageVal) {
 
 void DebugEngineWrapper::startInjectionPoint(std::string id, int stageVal) {
   if (debugEngine) {
-    VnV_Info("DEBUG ENGINE Start Injection Point {} : {} ", id, stageVal);
+    VnV_Info("DEBUG ENGINE Start Injection Point %s : %s ", id.c_str(), stageVal);
   } else {
     throw "Engine not initialized";
   }
@@ -94,7 +81,7 @@ void DebugEngineWrapper::startInjectionPoint(std::string id, int stageVal) {
 
 void DebugEngineWrapper::startTest(std::string id, int stageVal) {
   if (debugEngine) {
-    VnV_Info("DEBUG ENGINE Start Test {} : {} ", id, stageVal);
+    VnV_Info("DEBUG ENGINE Start Test %s : %s ", id.c_str(), stageVal);
   } else {
     throw "Engine not initialized";
   }
@@ -102,7 +89,7 @@ void DebugEngineWrapper::startTest(std::string id, int stageVal) {
 
 void DebugEngineWrapper::stopTest(bool result_) {
   if (debugEngine) {
-    VnV_Info("DEBUG ENGINE Stop Test. Test Was Successful-> {}", result_);
+    VnV_Info("DEBUG ENGINE Stop Test. Test Was Successful-> %s", result_);
   } else {
     throw "Engine not initialized";
   }

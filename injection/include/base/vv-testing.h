@@ -37,7 +37,7 @@ class TestStore {
    * @brief testLibraries
    */
   std::vector<void*> testLibraries;
-
+  std::vector<std::string> testLibraryPaths;
   /**
    * @brief registeredTests
    */
@@ -53,7 +53,7 @@ class TestStore {
   /**
    * @brief trans_factory
    */
-  std::map<std::string, trans_ptr*, std::less<std::string>> trans_factory;
+  std::map<std::string, std::pair<trans_ptr*,declare_transform_ptr*>, std::less<std::string>> trans_factory;
 
   /**
    * @brief TestStore
@@ -80,7 +80,7 @@ class TestStore {
    * @param name
    * @param p
    */
-  void addTransform(std::string name, trans_ptr p);
+  void addTransform(std::string name, trans_ptr p, declare_transform_ptr v);
 
   /**
    * @brief getTransform
@@ -106,6 +106,12 @@ class TestStore {
    * @return
    */
   static TestStore& getTestStore();
+
+  /**
+   * @brief print out test store configuration information.
+   */
+  void print();
+
 };
 
 }  // namespace VnV

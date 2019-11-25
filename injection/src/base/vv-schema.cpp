@@ -1,5 +1,6 @@
 
 #include "vv-schema.h"
+#include <iostream>
 
 namespace VnV {
 static const json __vv_schema__ = R"(
@@ -86,7 +87,8 @@ static const json __vv_schema__ = R"(
     "properties" : {
             "on" : { "type" : "boolean" } ,
         "filename" : { "type " : "string" },
-        "logs" : { "$ref" : "#/definitions/logTypes" }
+        "logs" : { "$ref" : "#/definitions/logTypes" },
+        "blackList" : { "type" : "array", "items" : { "type" : "string" } }
     },
     "required" : ["on","filename","logs"]
     },
@@ -103,20 +105,10 @@ static const json __vv_schema__ = R"(
 
     "injectionPoints": {
       "description": "Injection Points",
-      "type": "object",
-      "properties" : {
-          "config" : {
-             "type" : "array",
-             "items": {
-              "$ref": "#/definitions/injectionPoint"
-            }
-          },
-          "files" : {
-            "description" : "Injection point config files",
-            "type" : "array",
-            "items" : { "type" : "string" }
-          }
-      }
+      "type": "array",
+      "items" : {
+         "$ref": "#/definitions/injectionPoint"
+       }
     },
     "injectionPoint": {
       "description": "An injection Point defined somewhere in the code",
@@ -133,7 +125,7 @@ static const json __vv_schema__ = R"(
         }
       },
       "required": [
-        "name"
+        "name","tests"
       ]
     },
     "test": {
@@ -143,17 +135,8 @@ static const json __vv_schema__ = R"(
         "name": {
           "type": "string"
         },
-        "stages": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/testStage"
-          },
-          "propertyNames": {
-            "pattern": "^[0-9]*$"
-          }
-        },
-        "testConfig": {
-          "type": "object"
+        "config" : {
+            "type" : "object"
         },
         "runScope": {
           "type": "array",
@@ -165,40 +148,9 @@ static const json __vv_schema__ = R"(
       },
       "required": [
         "name",
-        "stages",
         "runScope"
       ],
       "additionalProperties": false
-    },
-    "testStage": {
-      "type": "object",
-      "properties": {
-        "ipId": {
-          "type": "integer"
-        },
-        "mapping": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "object",
-            "properties": {
-              "ipParameter": {
-                "type": "string"
-              },
-              "transform": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "ipParameter"
-            ]
-          }
-        },
-    "expected": { "type" : "object" }
-      },
-      "required": [
-        "ipId",
-        "mapping"
-      ]
     }
   }
 })"_json;
@@ -206,32 +158,30 @@ static const json __vv_schema__ = R"(
 const json& getVVSchema() {
     return __vv_schema__;
 }
-static json __test_declaration_schema__ = R"({
-   "$schema": "http://json-schema.org/draft-07/schema#",
-   "$id": "http://rnet-tech.net/vv.schema.json",
-   "title": "test declaration schema",
-   "type": "object",
-   "properties" : {
-       "configuration" : {"$ref":"#/raw"},
-       "expectedResult" : {"$ref":"#/raw"},
-       "description" : {"type" : "string"},
-       "title" : {"type" : "string" },
-       "stages" :{ "type": "object",
-                   "additionalProperties" : {
-                       "type" : "object",
-                       "additionalProperties" : {"type":"string"}
-                   },
-                   "propertyNames" : {
-                     "pattern":"^-?[0-9]*$"
+
+static json __test_declaration_schema__ = R"(
+{
+ "$schema": "http://json-schema.org/draft-07/schema#",
+ "$id": "http://rnet-tech.net/vv.schema.json",
+ "title": "test declaration schema",
+ "type": "object",
+ "properties" : {
+     "configuration" : {"$ref":"#/raw"},
+     "expectedResult" : {"$ref":"#/raw"},
+     "description" : {"type" : "string"},
+     "title" : {"type" : "string" },
+     "supports" : {"oneOf":[{"type" : "array" , "items" : {"type" : "string", "enum" : ["Linux","MacOs"] }}, {"type" : "string", "enum" : ["all"]}]},
+     "parameters" :{ "type": "object",
+                     "additionalProperties" : { "type" : "string" }
                    }
-                 }
-        },
-        "requiredStages" : {"type":"array", "items" : {"type": "string" },
-        "io-variables" : { "type" : "object" , "additionalProperties" : {"type" : "string"} }
-    },
-    "required" : ["expectedResult","configuration","description","title","stages","requiredStages","io-variables"],
-    "definitions" : {}
-})"_json ;
+      },
+      "requiredParameters" : {"type":"array", "items" : {"type": "string" },
+      "io-variables" : { "type" : "object" , "additionalProperties" : {"type" : "string", "enum" : ["String","Double","Float","Long","Integer"]} }
+  },
+  "required" : ["expectedResult","configuration","description","title","parameters","requiredParameters","io-variables"],
+  "definitions" : {}
+}
+)"_json ;
 
 json getTestDelcarationJsonSchema() {
     if (__test_declaration_schema__.find("raw") == __test_declaration_schema__.end())
@@ -247,33 +197,33 @@ json getTestValidationSchema(json &testDeclaration) {
        "$id": "http://rnet-tech.net/vv.schema.json",
        "type": "object",
        "definitions": {
-         "testStage" : { "type" : "object" ,
-                         "additionalItems : { "oneOf" : [{ "type" : "array", "items" : {"type":"string"} },{"type":"string"}] }
-         }
-       }
+          "testStage": {
+             "properties" : {
+                   "parameter" : {"type" : "string" },
+                   "transform" : { "oneOf" : [{"type" : "array", "items" : { "type" : "string" }}, {"type" : "string"} ]}
+               },
+               "type": "object",
+               "required" : ["parameter","transform"]
+          }
+        }
     })"_json;
 
     schema["title"] = testDeclaration["title"];
     schema["description"] = testDeclaration["description"];
 
-    json properties = R"({"name":{"type":"string"}})"_json;
+    json properties = R"({})"_json;
     properties["expectedResult"] = testDeclaration["expectedResult"];
-    properties["config"] = testDeclaration["configuration"];
+    properties["configuration"] = testDeclaration["configuration"];
 
-    json stages = R"({"type":"object" ,"properties" : {}, "additionalProperties" : false)"_json;
-
-    for ( auto it : testDeclaration["stages"].items()) {
-        json stage = R"({ "type"  : "object", "properties" : {"ipId" : { "type" : "integer" } } })"_json;
-        for (auto itt : it.value().items()) {
-            stage["properties"][itt.key()] = R"("type" : { "oneOf" : [{"$ref" : "#/definitions/testStage",{"type":"string"}]})"_json;
-        }
-        stage["required"] = it.value()["required"];
-        stage["required"].insert(stage["required"].end(), "ipId");
-        stages["properties"][it.key()] = stage;
+    json parameters = R"({"type":"object" ,"properties" : {}, "additionalProperties" : false})"_json;
+    parameters["required"] = testDeclaration["requiredParameters"];
+    for ( auto it : testDeclaration["parameters"].items()) {
+        parameters["properties"][it.key()] = R"({"oneOf" : [{"$ref" : "#/definitions/testStage"},{"type":"string"}]})"_json;
     }
-    stages["required"] = testDeclaration["required"];
-    properties["stages"] = stages;
+
+    properties["parameters"] = parameters;
     schema["properties"] = properties;
+    schema["required"] = R"(["expectedResult","configuration","parameters"])"_json;
     return schema;
 }
 

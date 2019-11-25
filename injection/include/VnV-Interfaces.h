@@ -7,7 +7,7 @@
 #include <set>
 #include <string>
 #include <iostream>
-
+#include "VnV.h"
 #include "json-schema.hpp"
 
 using nlohmann::json;
@@ -17,77 +17,69 @@ using nlohmann::json;
  */
 namespace VnV {
 
+ enum class LogLevel { DEBUG, INFO, WARN, ERROR, STAGE_END, STAGE_START };
+
+ enum class VariableEnum {Double, String, Int, Float, Long};
+
+ /**
+ *@namespace convienence methods for Variable Type enum.
+ */
+
+namespace VariableEnumFactory {
+    VariableEnum fromString(std::string s);
+    std::string toString(VariableEnum e);
+};
+
 /**
  * @brief The IOutputEngine class
  */
 class IOutputEngine {
- public:
-  /**
-   * @brief Put
-   * @param variableName
-   * @param value
-   */
-  virtual void Put(std::string variableName, double& value) = 0;
 
-  /**
+public:
+
+    /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, int& value) = 0;
+  virtual void Put(std::string variableName, double& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, float& value) = 0;
+  virtual void Put(std::string variableName, int& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, long& value) = 0;
+  virtual void Put(std::string variableName, float& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, std::string& value) = 0;
+  virtual void Put(std::string variableName, long& value);
 
   /**
-   * @brief DefineDouble
+   * @brief Put
+   * @param variableName
+   * @param value
+   */
+  virtual void Put(std::string variableName, std::string& value);
+
+  virtual void Log(const char * packageName, int stage, LogLevel level, std::string message);
+
+    /**
+   * @brief Define IO variables that will be written.
+   * @param type
    * @param name
    */
-  virtual void DefineDouble(std::string name) = 0;
-
-  /**
-   * @brief DefineFloat
-   * @param name
-   */
-  virtual void DefineFloat(std::string name) = 0;
-
-  /**
-   * @brief DefineInt
-   * @param name
-   */
-  virtual void DefineInt(std::string name) = 0;
-
-  /**
-   * @brief DefineLong
-   * @param name
-   */
-  virtual void DefineLong(std::string name) = 0;
-
-  /**
-   * @brief DefineString
-   * @param name
-   */
-  virtual void DefineString(std::string name) = 0;
-
-  void Define(std::string type, std::string name);
+  virtual void Define(VariableEnum type, std::string name) = 0;
 
   /**
    * @brief ~IOutputEngine
@@ -115,6 +107,8 @@ class OutputEngineManager {
    * @return
    */
   virtual json getConfigurationSchema();
+
+  virtual void print();
 
   /**
    * @brief endInjectionPoint
@@ -201,67 +195,14 @@ private:
    */
   virtual void* _Transform(std::pair<std::string, void*> ip, std::string tp) = 0;
 
-};
-/**
- * @brief The TestStageConfig class
- */
-class TestStageConfig {
- private:
-  int injectionPointStageId;
-  int testStageId;
-
-  std::map<std::string, std::pair<std::string, std::vector<std::string>>>
-      transforms;  // maps testParameter -> ip_parameter & Transform
-
- public:
-  /**
-   * @brief addTransform
-   * @param to
-   * @param from
-   * @param trans
-   */
-  void addTransform(std::string to, std::string from, std::vector<std::string> trans);
-
-  /**
-   * @brief getInjectionPointStageId
-   * @return
-   */
-  int getInjectionPointStageId();
-
-  /**
-   * @brief getTestStageId
-   * @return
-   */
-  int getTestStageId();
-
-  /**
-   * @brief setInjectionPointStageId
-   * @param id
-   */
-  void setInjectionPointStageId(int id);
-
-  /**
-   * @brief setTestStageId
-   * @param id
-   */
-  void setTestStageId(int id);
-
-  /**
-   * @brief getTransform
-   * @return
-   */
-  std::pair<std::string, std::shared_ptr<ITransform>> getTransform(std::string);
-
-};
-
-/**
+};/**
  * @brief The TestConfig class
  */
 class TestConfig {
  private:
+  std::map<std::string, std::pair<std::string, std::vector<std::string>>> transforms;  // maps testParameter -> ip_parameter & Transfor
   std::string testName;
-  std::map<int, TestStageConfig> stages;
-  std::set<std::string> scopes;
+  //std::set<std::string> scopes;
   json additionalParameters;
   json expectedResult;
 
@@ -269,25 +210,6 @@ class TestConfig {
 
   TestConfig(std::string name, json &config);
 
-  /**
-   * @brief runOnStage
-   * @param stage
-   * @return
-   */
-  bool runOnStage(int stage) const ;
-
-  /**
-   * @brief addTestStage
-   * @param config
-   */
-  void addTestStage(TestStageConfig config);
-
-  /**
-   * @brief getStage
-   * @param stage
-   * @return
-   */
-  TestStageConfig getStage(int stage) const ;
 
   /**
    * @brief getAdditionalParameters
@@ -310,11 +232,25 @@ class TestConfig {
   std::string getName() const ;
 
   /**
-   * @brief getStages
+   * @brief print out configuration information.
+   */
+  void print();
+
+  /**
+   * @brief addTransform
+   * @param to
+   * @param from
+   * @param trans
+   */
+  void addTransform(std::string to, std::string from, std::vector<std::string> trans);
+
+  /**
+   * @brief getTransform
    * @return
    */
-  std::map<int, TestStageConfig>& getStages();
+  std::pair<std::string, std::shared_ptr<ITransform>> getTransform(std::string) const ;
 };
+
 
 /**
  * @brief The ITest class
@@ -326,10 +262,6 @@ class ITest {
    */
   ITest(TestConfig &config);
 
-  /**
-   * @brief getValidationSchema
-   */
-  virtual json getValidationSchema();
 
   /**
    * @brief ~ITest
@@ -366,14 +298,8 @@ class ITest {
    */
   const json& getExpectedResultJson() const ;
 
-  /**
-   * @brief getTestStage
-   * @param stage
-   * @return
-   */
-  int getTestStage(int stage) const ;
 
- private:
+private:
   const TestConfig &m_config;
   NT m_parameters;
 
@@ -449,7 +375,7 @@ T* ITest::carefull_cast(int stage, std::string parameterName, NTV& parameters) {
   // Next, get the transform. If one exists, it is returned, else return
   // "parameterName,DefaultTransform">
   std::pair<std::string, std::shared_ptr<ITransform>> trans =
-      m_config.getStage(stage).getTransform(parameterName);
+      m_config.getTransform(parameterName);
 
   auto ip_parameter = parameters.find(trans.first);
 
@@ -468,6 +394,7 @@ T* ITest::carefull_cast(int stage, std::string parameterName, NTV& parameters) {
 typedef IUnitTester* tester_ptr();
 typedef ITest* maker_ptr(TestConfig config);
 typedef json declare_test_ptr();
+typedef json declare_transform_ptr();
 typedef ITransform* trans_ptr();
 typedef OutputEngineManager* engine_register_ptr();
 
@@ -478,9 +405,8 @@ typedef OutputEngineManager* engine_register_ptr();
 #else
 #  define EXTERNC
 #endif
-EXTERNC void VnV_registerTest(std::string name, VnV::maker_ptr m,
-                              VnV::declare_test_ptr v);
-EXTERNC void VnV_registerTransform(std::string name, VnV::trans_ptr t);
+EXTERNC void VnV_registerTest(std::string name, VnV::maker_ptr m, VnV::declare_test_ptr v);
+EXTERNC void VnV_registerTransform(std::string name, VnV::trans_ptr t, VnV::declare_transform_ptr v);
 EXTERNC void VnV_registerEngine(std::string name, VnV::engine_register_ptr r);
 EXTERNC void VnV_registerUnitTester(std::string name, VnV::tester_ptr ptr);
 

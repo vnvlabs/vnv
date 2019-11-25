@@ -6,12 +6,16 @@
   */
 
 #include <stdarg.h>
-
 #include <string>
-
+#include <json-schema.hpp>
+#include "vv-parser.h"
+#include "vv-logging.h"
 /**
  * VnV Namespace
  */
+
+using nlohmann::json;
+
 namespace VnV {
 
 /**
@@ -27,7 +31,12 @@ namespace VnV {
  */
 class RunTime {
  private:
-  /**
+
+ #ifdef WITH_LOGGING
+    Logger logger;
+ #endif
+
+   /**
    * @brief RunTime
    *
    * Private Constructor -- Called used the getRunTime() function.
@@ -39,8 +48,9 @@ class RunTime {
   char*** argv; /**< Stored args list for command line */
 
   bool runTests; /**< Should tests be run */
-  bool finalize_mpi =
-      false; /**< Are we responsible for calling MPI_Finalize) */
+  bool finalize_mpi = false; /**< Are we responsible for calling MPI_Finalize) */
+
+  void loadRunInfo(RunInfo &info);
 
  public:
   /**
@@ -62,6 +72,12 @@ class RunTime {
   bool Init(int* argc, char*** argv, std::string configFile);
 
   /**
+   * @brief printRunTimeInformation
+   * Write all run infomation to the logs.
+   */
+  void printRunTimeInformation();
+
+  /**
    * @brief injectionPoint
    * @param injectionIndex The stage of the injection point to be run
    * @param scope The name of the injection point to be run
@@ -74,7 +90,7 @@ class RunTime {
    * Here, we are responsibe for pulling the correct IP from the IPStore, and
    * running it with the given parameters.
    */
-  void injectionPoint(int injectionIndex, std::string scope,
+  void injectionPoint(std::string pname, int injectionIndex, std::string scope,
                       std::string function, va_list argp);
 
   /**
@@ -90,7 +106,7 @@ class RunTime {
    *
    *
    */
-  void injectionPoint(int injectionIndex, std::string scope,
+  void injectionPoint(std::string pname, int injectionIndex, std::string scope,
                       std::string function, ...);
 
   /**
@@ -113,6 +129,19 @@ class RunTime {
   bool isRunTests();
 
   /**
+   * @brief log
+   * @param level
+   * @param message
+   * @param args
+   *
+   * Log a message with the logger. Note. Individual libraries can also use the logger.
+   *
+   *
+   */
+  void log(std::string pname, LogLevel level, std::string message, va_list args);
+
+
+  /**
    * @brief instance
    * @return
    *
@@ -132,7 +161,7 @@ class RunTime {
    *
    *
    */
-  static void loadInjectionPoints(std::string json);
+   void loadInjectionPoints(json _json);
 
   /**
    * @brief runUnitTests
@@ -143,48 +172,5 @@ class RunTime {
 };
 }  // namespace VnV
 
-extern "C" {
-/**
- * @brief VnV_injectionPoint
- * @param stageVal The stage of this injection point
- * @param id The id of the injection point
- * @param function The name of the function calling this injection point
- *
- * @arg Args The parameters of the injection point. These should be pairs of
- * string,void* where string is the class name, and void* is a pointer to a
- * class of that type. The final arguement should always be a string
- * "__VV_PARAMETERS_END__"
- *
- */
-void VnV_injectionPoint(int stageVal, const char* id, const char* function,
-                        ...);
-
-/**
- * @brief VnV_init
- * @param argc argc from the command line ( used in case of MPI_Init )
- * @param argv argv from the command line ( used in case of MPI_Init )
- * @param filename The configuration file name
- * @return todo.
- *
- * Initialize the VnV library. If this function is not called, no injection
- * point testing will take place.
- */
-int VnV_init(int* argc, char*** argv, const char* filename);
-/**
- * @brief VnV_finalize
- * @return todo
- *
- * Calls RunTime::instance().Finalize();
- */
-int VnV_finalize();
-
-/**
- * @brief VnV_runUnitTests
- * @return tod
- *
- * Calls RunTime::instance().runUnitTests().
- */
-int VnV_runUnitTests();
-}
 
 #endif

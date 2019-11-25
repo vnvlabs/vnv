@@ -227,6 +227,12 @@ class InjectionPointStore {
    */
   static InjectionPointStore& getInjectionPointStore();
 
+  /**
+   * @brief print out injection point infomration.
+   */
+  void print();
+
+
 };  // end InjectionPointStore
 
 }  // namespace VnV

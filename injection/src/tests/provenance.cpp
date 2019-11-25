@@ -180,16 +180,13 @@ json provenance_Declare() {
                "properties" : {
                   "input-files" : { "type" : "array" , "items" : {"type" : "string"} }
                }
-
             },
-            "stages" : {
-               "-1" : {
-                  "argc" : "int*",
-                  "argv" : "char***",
-                  "config" : "std::string"
-               }
+            "parameters" : {
+               "argc" : "int*",
+               "argv" : "char***",
+               "config" : "std::string"
             },
-            "requiredStages" : ["-1"],
+            "requiredParameters" : ["argc","argv","config"],
             "io-variables" : {}
     })"_json;
 }

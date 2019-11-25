@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include "json-schema.hpp"
 
 int VnV::StringSplit(const std::string& s, const char* delim,
                      std::vector<std::string>& result) {
@@ -39,3 +40,4 @@ std::string VnV::hashfile( std::string filename) {
    oss << std::hex << std::setw(8) << std::setfill('0') << magic;
    return oss.str();
 }
+
