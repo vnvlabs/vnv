@@ -4,8 +4,7 @@ project(vnv-docs)
 
 find_package(Doxygen)
 find_package(Python3 3.5)
-find_package(VirtualEnv 15.0 REQUIRED)
-
+find_package(VirtualEnv 15.0)
 
 if ( DOXYGEN_FOUND AND Python3_FOUND AND VirtualEnv_FOUND ) 
 
