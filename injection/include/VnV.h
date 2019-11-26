@@ -5,7 +5,7 @@
 
 #include <stdarg.h>
 
-#include <string>
+#include <string.h>
 
 #define START_INJECTION_POINT 1
 #define CP_INJECTION_POINT 2
