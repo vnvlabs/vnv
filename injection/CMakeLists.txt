@@ -41,6 +41,7 @@ target_link_libraries(injection PUBLIC jsv::jsv)
 if ( WITH_BUILT_IN_TESTS)
 target_sources(injection PRIVATE 
 	${CMAKE_CURRENT_LIST_DIR}/src/tests/provenance.cpp)
+        ${CMAKE_CURRENT_LIST_DIR}/src/tests/stdout-reroute.cpp)
 endif()
 
 

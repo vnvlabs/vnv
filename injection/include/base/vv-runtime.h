@@ -33,9 +33,7 @@ namespace VnV {
 class RunTime {
  private:
 
- #ifdef WITH_LOGGING
     Logger logger;
- #endif
 
    /**
    * @brief RunTime
