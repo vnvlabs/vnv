@@ -3,16 +3,11 @@
 option(WITH_ADIOS_ENGINE "Use the Adios Engine" ON)
 option(WITH_BUILT_IN_TESTS "Build the VnV test libraries" ON)
 option(WITH_LOGGING "Build Library with Configuble Logger included" ON)
-option(WITH_CLANG "Build the Clang Tools" ON)
-
 
 #Build the Json Parser Library ( json-schema-validator TODO github-link) 
 add_subdirectory(third-party/json-schema-validator)
 
-if(WITH_CLANG)
 add_subdirectory(clang)
-endif()
-
 
 add_library(injection SHARED "")
 
@@ -32,7 +27,9 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-utils.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-testing.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-unit-tester.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-serializer.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-schema.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-dist-utils.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-cinterface.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/engines/vv-debug-engine.cpp)
 
@@ -49,13 +46,7 @@ endif()
 if (WITH_LOGGING)  
   target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-logging.cpp)
   target_compile_definitions(injection PRIVATE WITH_LOGGING=1)
-  
-   set(BUILD_SHARED_LIBS ON CACHE BOOL "Turn on shared libraries" FORCE)
-   set(FMT_INSTALL ON CACHE BOOL "Turn on install target" FORCE)
-   add_subdirectory(third-party/fmt)
-   target_link_libraries(injection PRIVATE fmt::fmt)
  
-
 endif()
 
 target_include_directories(injection PRIVATE

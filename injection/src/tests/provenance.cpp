@@ -3,21 +3,14 @@
 #ifndef _provenance_H
 #define _provenance_H
 
-
-#include <link.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include "vv-utils.h"
 #include <ctime>
-#include <iomanip>
-#include <iostream>
 #include <sstream>
 #include <vector>
 #include <fstream>
-
+#include <iomanip>
+#include "vv-dist-utils.h"
 #include "VnV-Interfaces.h"
-#include "vv-logging.h"
+
 using namespace VnV;
 
 struct libInfo {
@@ -31,39 +24,12 @@ public:
     libData() {}
 };
 
-json getLibInfo(std::string filepath, unsigned long add) {
-
-    struct stat result;
-    stat(filepath.c_str(),&result);
-    json libJson;
-    libJson["name"] = filepath;
-    libJson["add"] = add;
-    libJson["hash"] = hashfile(filepath);
-    libJson["st_dev"] = result.st_dev;
-    libJson["st_gid"] = result.st_gid;
-    libJson["st_ino"] = result.st_ino;
-    libJson["st_uid"] = result.st_uid;
-    libJson["st_atim_sec"] = result.st_atim.tv_sec;
-    libJson["st_atim_nsec"] = result.st_atim.tv_nsec;
-    libJson["st_ctim_sec"] = result.st_ctim.tv_sec;
-    libJson["st_ctim_nsec"] = result.st_ctim.tv_nsec;
-    libJson["st_mtim_sec"] = result.st_mtim.tv_sec;
-    libJson["st_mtim_nsec"] = result.st_mtim.tv_nsec;
-    libJson["st_mode"] = result.st_mode;
-    libJson["st_rdev"] = result.st_rdev;
-    libJson["st_size"] = result.st_size;
-    libJson["st_nlink"] = result.st_nlink;
-    libJson["st_blocks"] = result.st_blocks;
-    libJson["st_blksize"] = result.st_blksize;
-    return libJson;
-}
-
 static int callback(struct dl_phdr_info* info, size_t /*size*/, void* data) {
 
   std::string name(info->dlpi_name);
   unsigned long add(info->dlpi_addr);
-  libData* x = (libData*) data;
-  x->libs.push_back(getLibInfo(name,add));
+  libData* x = static_cast<libData*>(data);
+  x->libs.push_back(DistUtils::getLibInfo(name,add));
   return 0;
 }
 
@@ -78,11 +44,13 @@ class provenance : public ITest {
                      std::string configFile) {
 
     {
-        std::string currentWorkingDirectory(get_current_dir_name());
+        // Add the current working directory
+        std::string currentWorkingDirectory(DistUtils::getCurrentDirectory());
         engine->Put("cwd", currentWorkingDirectory);
     }
 
     {
+        // Add the command line
         std::string commandline = argv[0];
         for (int i = 1; i < argc; i++) {
           std::string v(argv[i]);
@@ -102,16 +70,22 @@ class provenance : public ITest {
      }
 
      {
+        // Iterate over all linked libraries.
         std::string exe(argv[0]);
         libData libNames;
-        dl_iterate_phdr(callback, &libNames);
-        json exe_info = getLibInfo(exe.c_str(),0);
+        DistUtils::iterateLinkedLibraries(callback, &libNames);
+
+        //Add all the libraries and the current exe to the json
+        json exe_info = DistUtils::getLibInfo(exe.c_str(),0);
         exe_info["libs"] = libNames.libs;
         std::string exe_i = exe_info.dump();
         engine->Put("exe-info",exe_i);
     }
     {
-
+       // The configuration allows the user to specify additional files
+       // that should be included in the output section. This allows for versioning
+       // of things like input files. In this case, we load the entire file into the
+       // output.
        const json extra = getConfigurationJson();
 
        if ( extra.find("input-files") != extra.end() ) {
@@ -126,7 +100,7 @@ class provenance : public ITest {
                    sstr << f.rdbuf();
                    r["file"] = sstr.str();
                    f.close();
-                   r["info"] = getLibInfo(itt.get<std::string>(),0);
+                   r["info"] = DistUtils::getLibInfo(itt.get<std::string>(),0);
                    ins.push_back(r);
                }
          }
@@ -137,6 +111,7 @@ class provenance : public ITest {
       }
    }
    {
+     //Throw the VnV configuration file into the output as well.
      json conf;
      conf["name"] = configFile;
      std::ifstream ff(configFile);

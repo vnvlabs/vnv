@@ -96,9 +96,4 @@
   (__VA_ARGS__)
 
 
-#define INJECTION_POINT(NAME, STAGE, ...)        \
-    VnV_injectionPoint(STAGE, #NAME, __FUNCTION__, \
-                       EVERY_SECOND(__VA_ARGS__) "__VV_END_PARAMETERS__");
-
-
 #endif // VNVMACROS_H

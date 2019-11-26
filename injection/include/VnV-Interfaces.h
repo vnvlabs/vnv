@@ -86,6 +86,7 @@ public:
    */
   virtual ~IOutputEngine();
 };
+
 /**
  * @brief The OutputEngineManager class
  */
@@ -195,7 +196,36 @@ private:
    */
   virtual void* _Transform(std::pair<std::string, void*> ip, std::string tp) = 0;
 
-};/**
+};
+
+class ISerializer {
+public:
+    ISerializer();
+
+    ~ISerializer();
+
+    /**
+    * Return the size required for the buffer to serialize the object.
+    */
+    virtual std::size_t getBuffSize(void* data) = 0;
+
+    /**
+     * Pack the given void* pointer ( of class type classType ) into the buffer
+     */
+    virtual void* buffPack(void* data, std::string classType) = 0;
+
+    /**
+     * Unpack the buffer into a object with class type "classType". Return
+     * the class in a void* pointer. We will free the new class and buffer
+     * internally.
+     */
+    virtual void* buffUnpack(void* buffsize, std::string buffer) = 0;
+
+};
+
+
+
+/**
  * @brief The TestConfig class
  */
 class TestConfig {
@@ -393,8 +423,10 @@ T* ITest::carefull_cast(int stage, std::string parameterName, NTV& parameters) {
 
 typedef IUnitTester* tester_ptr();
 typedef ITest* maker_ptr(TestConfig config);
+typedef ISerializer* serializer_ptr();
 typedef json declare_test_ptr();
 typedef json declare_transform_ptr();
+typedef json declare_serializer_ptr();
 typedef ITransform* trans_ptr();
 typedef OutputEngineManager* engine_register_ptr();
 
@@ -407,6 +439,7 @@ typedef OutputEngineManager* engine_register_ptr();
 #endif
 EXTERNC void VnV_registerTest(std::string name, VnV::maker_ptr m, VnV::declare_test_ptr v);
 EXTERNC void VnV_registerTransform(std::string name, VnV::trans_ptr t, VnV::declare_transform_ptr v);
+EXTERNC void VnV_registerSerializer(std::string name, VnV::serializer_ptr t, VnV::declare_serializer_ptr v);
 EXTERNC void VnV_registerEngine(std::string name, VnV::engine_register_ptr r);
 EXTERNC void VnV_registerUnitTester(std::string name, VnV::tester_ptr ptr);
 

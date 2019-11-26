@@ -16,8 +16,7 @@
 #include "llvm/Support/CommandLine.h"
 
 #include "json-schema.hpp"
-#include <fstream>
-#include <iostream>
+
 
 using nlohmann::json;
 using namespace clang::ast_matchers;
@@ -27,21 +26,9 @@ using namespace llvm;
 
 class VnVPrinter : public MatchFinder::MatchCallback {
 private: 
-   std::string outputFileName;
    json ip_json;		
 public:
     
-   VnVPrinter(std::string _outputFileName) : outputFileName(_outputFileName) {
-      std::ifstream fs("./vnv-out.json" ) ;
-      if ( fs.is_open() ) {
-	 if ( fs.peek() != std::ifstream::traits_type::eof()  ) { 
-	    ip_json = json::parse(fs);
-         }
-      } else {
-        
-      }
-   }	   
-
    virtual void run(const MatchFinder::MatchResult &Result) {
     ASTContext *Context = Result.Context;
     if (const CallExpr *E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite")) { 
@@ -57,58 +44,31 @@ public:
 	 info["lineColumn"] = FullLocation.getSpellingColumnNumber();
          info["filename"] = "not-implemented-yet"; 
 	 info["Calling Function"] = F->getNameInfo().getAsString();
-         
-	
 
-	 std::string name = "hello";
-	 info["num_args"] = E->getNumArgs();
-	 info["num_commas"] = E->getNumCommas();
-	 for ( auto it = E->arg_begin(); it!= E->arg_end(); it++ ) {
-             const Expr* ee = *it;
-	     QualType q = ee->getType();
-
-             std::cout << q.getAsString() << std::endl;      
-	 } 
-
-
-
-	 info["InjectionPointName"] = "hello";
+	 info["InjectionPointName"] = "not-implemented-yet";
 	 info["InjectionPointStage"] = "not-implemented-yet";
 	 info["Number Parameters"] = "not-implemented-yet";         
-   	 ip_json["name"] = info;
 
+	 llvm::outs() << "Found call at " << FullLocation.getSpellingLineNumber()
+                     << ":" << FullLocation.getSpellingColumnNumber() << "\n";
       }
-
     }
    }
   }
 
-  json getJson() {
-    return ip_json;
-  }
-
+  
 };
 
 /** Apply a custom category to all command-line options so that they are the
  only ones displayed.
 */
-static llvm::cl::OptionCategory VnVCategory("VnV PreCheck options");
+static llvm::cl::OptionCategory MyToolCategory("my-tool options");
 
 /** CommonOptionsParser declares HelpMessage with a description of the common
  command-line options related to the compilation database and input files.
  It's nice to have this help message in all tools.
 **/
 static cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
-
-static llvm::cl::opt<std::string>
-    ProjectName("VnV", llvm::cl::desc("VnV Precheck Parser"),
-                llvm::cl::cat(VnVCategory));
-
-
-static llvm::cl::opt<std::string> OutputDirectory(
-    "vnv-output",
-    llvm::cl::desc("VnV Output File Name"),
-    llvm::cl::init("vnv.json"), llvm::cl::cat(VnVCategory));
 
 
 /**
@@ -120,13 +80,11 @@ static cl::extrahelp MoreHelp("\nMore help text...");
  * Main Executable for VnV Processor. 
  */
 int main(int argc, const char **argv) {
-  CommonOptionsParser OptionsParser(argc, argv, VnVCategory);
-  
-  
+  CommonOptionsParser OptionsParser(argc, argv, MyToolCategory);
   ClangTool Tool(OptionsParser.getCompilations(),
                  OptionsParser.getSourcePathList());
 
-  VnVPrinter Printer(OutputDirectory.getValue());
+  VnVPrinter Printer;
   MatchFinder Finder;
 
   StatementMatcher functionMatcher =

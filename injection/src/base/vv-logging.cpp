@@ -54,7 +54,7 @@ void Logger::setLogLevel(LogLevel level, bool on) {
 
 void Logger::log(std::string pname, LogLevel level, std::string format) {
     if (!locked) return;
-    if (packageBlackList.find(PACKAGE_NAME) != packageBlackList.end()) {
+    if (packageBlackList.find(pname) != packageBlackList.end()) {
         return;
     }
     auto it = logs.find(level);

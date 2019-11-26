@@ -14,7 +14,9 @@ target_link_libraries(sample.a dummyLibOne dummyLibTwo Injection::Injection)
 # up to inherit the RPATH from the linked library. But, 
 set_target_properties(sample.a PROPERTIES 
 	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/examples/dummy/lib
-	)
+)
+
+#file(COPY ${CMAKE_CURRENT_LIST_DIR}/sample.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 install(TARGETS sample.a DESTINATION examples/dummy/executables)
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/sample.json DESTINATION examples/dummy/executables)

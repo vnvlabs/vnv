@@ -5,7 +5,6 @@
 #include "vv-logging.h"
 
 #include <dlfcn.h>
-#include <link.h>
 
 #include <iostream>
 #include <sstream>
@@ -265,7 +264,6 @@ TestConfig TestStore::validateTest(json &testJson) {
     if ( testConfigJson.find("parameters") == testConfigJson.end() ) {
         testConfigJson["parameters"] = R"({})"_json;
     }
-
     std:: cout << test_schema << " \n\n " << testConfigJson << std::endl;
 
     validator.validate(testConfigJson);

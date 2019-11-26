@@ -4,14 +4,32 @@
 #define VV_VNV_H
 
 #include "vnv-macros.h"
+#define PACKAGENAME VnV
 
-#define PACKAGENAME "VnV"
+#define VNV_STR(x) #x
+
 
 #  ifdef __cplusplus
 #    define EXTERNC extern "C"
 #  else
 #    define EXTERNC
 #  endif
+
+// This structure can be used to register VnV objects. Basically, the functions
+// should return valid json strings, in the correct formats, for declaring objects. This
+// is an alternative to using the static initialization approach in C++ codes, which results
+// in objects being registered upon loading of the shared library. The goal will be to have
+// the compiler generate the code (and json) required to populate this structure. In the VnV
+// code, we will search the json for the export VnV_Registration_impl;
+#define VNV_REG_OBJ __vnv_registration_object
+#define VNV_REG_STR VNV_STR(VNV_REG_OBJ)
+#define PACKAGENAME_S VNV_STR(PACKAGENAME)
+
+
+struct VnV_Registration {
+    char* (*info)(void);
+};
+
 /**
  * @brief VnV_injectionPoint
  * @param stageVal The stage of this injection point
@@ -25,7 +43,30 @@
  *
  */
 EXTERNC void _VnV_injectionPoint(const char *, int stageVal, const char* id, const char* function,...);
-#define VnV_injectionPoint(stageVal, id, ...) _VnV_injectionPoint(PACKAGENAME, stageVal, id, __FUNCTION__, __VA_ARGS__ )
+/**
+ * Helper Define
+ */
+#define H1(prefix, ...) VNV_STR(prefix #__VA_ARGS__)
+
+/**
+ * Writes a Valid _Pragma statement
+ */
+#define VNVPRAG(prefix,...) _Pragma(H1(prefix, __VA_ARGS__))
+/**
+ * Call the Runtime VnV_InjectionPoint function. This runs the tests.
+*/
+#define INJECTION_POINT_(NAME, STAGE, ...)        \
+    _VnV_injectionPoint(PACKAGENAME_S,STAGE,#NAME, __FUNCTION__, EVERY_SECOND(__VA_ARGS__) "VV_END_PARAMETERS");
+
+/**
+ * The Main Injection point function. This function does two things. First, it writes a #pragma that can
+ * be used by the compiler to detect and log injection points. Second, it calls the runtime injection
+ * point code, through the INJECTION_POINT_ macro.
+ */
+#define INJECTION_POINT(...) \
+    VNVPRAG(VnV InjectionPoint, PACKAGENAME, __VA_ARGS__) \
+    INJECTION_POINT_(__VA_ARGS__)
+
 
 /**
  * @brief VnV_init
@@ -63,13 +104,13 @@ EXTERNC void _VnV_Info(const char *p, const char * message, ...);
 EXTERNC void _VnV_BeginStage(const char *p, const char * message, ...);
 EXTERNC void _VnV_EndStage(const char *p, const char * message, ...);
 
-#define VnV_Debug(...) _VnV_Debug(PACKAGENAME,__VA_ARGS__)
-#define VnV_Warn(...) _VnV_Warn(PACKAGENAME,__VA_ARGS__)
-#define VnV_Error(...) _VnV_Error(PACKAGENAME,__VA_ARGS__)
-#define VnV_Info(...) _VnV_Info(PACKAGENAME,__VA_ARGS__)
+#define VnV_Debug(...) _VnV_Debug(PACKAGENAME_S,__VA_ARGS__)
+#define VnV_Warn(...) _VnV_Warn(PACKAGENAME_S,__VA_ARGS__)
+#define VnV_Error(...) _VnV_Error(PACKAGENAME_S,__VA_ARGS__)
+#define VnV_Info(...) _VnV_Info(PACKAGENAME_S,__VA_ARGS__)
 
-#define VnV_BeginStage(...) _VnV_BeginStage(PACKAGENAME,__VA_ARGS__)
-#define VnV_EndStage(...) _VnV_EndStage(PACKAGENAME,__VA_ARGS__)
+#define VnV_BeginStage(...) _VnV_BeginStage(PACKAGENAME_S,__VA_ARGS__)
+#define VnV_EndStage(...) _VnV_EndStage(PACKAGENAME_S,__VA_ARGS__)
 #else
 #  define VnV_Debug(...)
 #  define VnV_Warn(...)

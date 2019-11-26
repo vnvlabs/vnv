@@ -5,16 +5,12 @@
 #  include <map>
 #  include <string>
 #  include <set>
+#  include <iostream>
 
 #  include "VnV-Interfaces.h"
-// TODO: There is no reason other packages can not use this logger. It is in the library
-// and will be linked automatically when using the VnV library anyway. So, we may as well
-// offer it up as another "feature" of the VnV Toolkit. In this case, the "feature" is unified
-// logging across all linked libraries. To do that, we need to keep track of the "package" that
-// is calling the logger at each logging call. This will be achieved through a @CMAKE_xxx_xxx
-// varaible that is injected at runtime. For now, lets set it to VnV.
-#define PACKAGE_NAME "VnV"
+
 #define MAX_LOG_SIZE 2048
+
 /**
  * \file Header file for the logging structure in the code. The logger itself is
  * a c++ class, however, all calls to the logger should be completed through

@@ -12,7 +12,7 @@
     "logs" : {}
   },
   "testLibraries": [
-    "../test-libs/libdummyTestLibOne.so"
+    "../tests/libdummyTestLibOne.so"
   ],
   "outputEngine": {
     "type": "debug",
@@ -20,74 +20,24 @@
       "something": "else"
     }
   },
-  "injectionPoints": {
-    "config": [
-      {
-        "name": "initialization",
-        "tests": [
-          {
-            "name": "provenance",
-            "runScope": [
-              "all"
-            ],
-            "stages": {
-              "0": {
-                "ipId": -1,
-                "mapping": {
-                  "argc": {
-                    "ipParameter": "argc"
-                  },
-                  "argv": {
-                    "ipParameter": "argv"
-                  },
-		  "config" : {
-		    "ipParameter": "configFile"
-		  }
-                }
-              }
-            },
-	    "testConfig" : {
-	      "input-files" : [ "./test-extra.txt" ]
-	    }
-          }
-        ]
-      },
-      {
-        "name": "ErrorTest",
-        "tests": [
-          {
-            "name": "EuclideanError",
-            "runScope": [
-              "all"
-            ],
-            "stages": {
-              "0": {
-                "ipId": 0,
-                "mapping": {
-                  "measured": {
-                    "ipParameter": "samplePoints"
-                  },
-                  "exact": {
-                    "ipParameter": "samplePoints1"
-                  }
-                }
-              },
-              "1": {
-                "ipId": 9999,
-                "mapping": {
-                  "measured": {
-                    "ipParameter": "samplePoints"
-                  },
-                  "exact": {
-                    "ipParameter": "samplePoints1"
-                  }
-                }
-              }
-            }
-          }
-        ]
-      }
-    ],
-    "files": []
-  }
+  "injectionPoints": [
+	  {
+		"name" : "initialization",
+		"tests" : [	
+			{
+				"name" : "provenace",
+				"runScope" : ["all"],
+				"config" : {
+                                    "expectedResult" : {},
+				    "configuration": {
+				    },
+				    "parameters": {
+					    "argc" : "argc",
+					    "argv" : "argv",
+					    "configFile" : "configFile"
+				    }
+				}
+		]
+	  }
+  ]	  
 }

@@ -10,11 +10,11 @@ int class1::function1(int x) {
   double value = 0;
 
 #define Hello_temp_sub_VVTest double, slope, double, intersection, double, value
-  INJECTION_POINT(Hello_temp_sub, 0)
+  INJECTION_POINT(Hello_temp_sub, 0);
 
   value = slope * x + intersection;
 
-  INJECTION_POINT(Hello_temp_sub, 9999)
+  INJECTION_POINT(Hello_temp_sub, 9999);
 
   return value;
 }

@@ -6,6 +6,10 @@
 #  include <mpi.h>
 #endif
 
+#if defined(__APPLE__)
+#include <link.h>
+#endif
+
 #include <unistd.h>
 
 #include "VnV.h"
@@ -15,8 +19,56 @@
 #include "vv-parser.h"
 #include "vv-unit-tester.h"
 #include "vv-utils.h"
+#include "vv-dist-utils.h"
 
 using namespace VnV;
+
+/**
+ * Anon Namespace to house ld iterate callback code used in fetchInjectionPoint information. (only accesible in this file).
+ */
+namespace {
+
+
+ int callback(struct dl_phdr_info* info, size_t /*size*/, void* data) {
+    json &j = *(static_cast<json*>(data));
+
+    std::string name(info->dlpi_name);  // Library name
+    try {
+        if ( j.find(name) == j.end()) {
+            // If we have not seen this.
+            void* dllib = dlopen(name.c_str(), RTLD_NOW);
+            if (dllib == nullptr)
+                std::cerr << dlerror();
+            else {
+                 // Search the shared library for the symbol named: INJECTION_POINT_DECLARE.
+                 // This assumes that the linked library exports a symbol called __vnv__registration__
+                 // that contains functions injectionPoints(), tests(), unitTests(), etc,
+                struct VnV_Registration * vv_info;
+                vv_info = static_cast<VnV_Registration*>(dlsym(dllib, VNV_REG_STR));
+                if ( vv_info != nullptr ) {
+                    json libJson = json::parse(vv_info->info());
+                    j[name] = json::parse(vv_info->info());
+                }
+            }
+        }
+     } catch (...) {
+        VnV_Error("Could not load Shared Library %s", name.c_str());
+     }
+     return 0;
+ }
+
+ json iterateLinkedLibraries() {
+    json info;
+    DistUtils::iterateLinkedLibraries(callback, static_cast<void*>(&info));
+    return info;
+ }
+
+}
+
+json RunTime::fetchInjectionPointInformation() {
+    return iterateLinkedLibraries();
+}
+
 
 void RunTime::injectionPoint(std::string pname, int injectionIndex, std::string scope,
                              std::string function, ...) {

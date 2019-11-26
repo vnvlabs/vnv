@@ -22,6 +22,9 @@ class UnitTestStore {
   static UnitTestStore& getUnitTestStore();
 
   void runAll(bool stopOnFail);
+
+  void print();
+
 };
 
 }  // namespace VnV

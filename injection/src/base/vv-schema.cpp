@@ -36,8 +36,7 @@ static const json __vv_schema__ = R"(
       "description": "Array containing the paths to  the plugin libraries to be imported",
       "type": "array",
       "items": {
-        "type": "string",
-        "pattern": "^(.*).so$"
+        "type": "string"
       },
       "uniqueItems": true
     },

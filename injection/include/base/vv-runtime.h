@@ -10,6 +10,7 @@
 #include <json-schema.hpp>
 #include "vv-parser.h"
 #include "vv-logging.h"
+#include "VnV.h"
 /**
  * VnV Namespace
  */
@@ -51,6 +52,8 @@ class RunTime {
   bool finalize_mpi = false; /**< Are we responsible for calling MPI_Finalize) */
 
   void loadRunInfo(RunInfo &info);
+
+  json fetchInjectionPointInformation();
 
  public:
   /**
