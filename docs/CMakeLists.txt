@@ -2,9 +2,11 @@ cmake_minimum_required(VERSION 3.6)
 
 project(vnv-docs)
 
-find_package(Doxygen REQUIRED)
-find_package(Python3 3.5 REQUIRED )
-find_package(VirtualEnv 15.0 REQUIRED)
+find_package(Doxygen)
+find_package(Python3 3.5)
+find_package(VirtualEnv 15.0)
+
+if ( DOXYGEN_FOUND AND Python3_FOUND AND VirtualEnv_FOUND ) 
 
 set(BINARY_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/_build")
 set(SPHINX_CACHE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_doctrees")
@@ -43,4 +45,7 @@ add_custom_command(
 add_custom_target(docs  
   DEPENDS ${SPHINX_HTML_DIR}/index.html 
 )
+else()
+  message(WARNING "Generating the documentation requires Python3.5+, VirtualEnv 15.0+ and Doxygen.\n Docuementation will not be built.")	
+endif()
 

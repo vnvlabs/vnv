@@ -3,6 +3,8 @@
 find_package(Clang)
 
 if (Clang_FOUND)
+
+>>>>>>> master
 add_executable(vnv-matcher
   vv-matcher.cpp
 )
@@ -26,4 +28,7 @@ target_link_libraries(vnv-matcher PRIVATE
 
 install(TARGETS vnv-matcher DESTINATION bin)
 
+else()
+	message(WARNING "\n\n Clang Not Found. Clang tools will not be built" ) 
 endif()
+
