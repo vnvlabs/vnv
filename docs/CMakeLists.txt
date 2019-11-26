@@ -45,5 +45,7 @@ add_custom_command(
 add_custom_target(docs  
   DEPENDS ${SPHINX_HTML_DIR}/index.html 
 )
+else()
+  message(WARNING "Generating the documentation requires Python3.5+, VirtualEnv 15.0+ and Doxygen.\n Docuementation will not be built.")	
 endif()
 
