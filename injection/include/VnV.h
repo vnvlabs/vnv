@@ -3,11 +3,12 @@
 #ifndef VV_VNV_H
 #define VV_VNV_H
 
+#ifndef WITHOUT_VNV
+
 #include "vnv-macros.h"
 #define PACKAGENAME VnV
 
 #define VNV_STR(x) #x
-
 
 #  ifdef __cplusplus
 #    define EXTERNC extern "C"
@@ -24,7 +25,6 @@
 #define VNV_REG_OBJ __vnv_registration_object
 #define VNV_REG_STR VNV_STR(VNV_REG_OBJ)
 #define PACKAGENAME_S VNV_STR(PACKAGENAME)
-
 
 struct VnV_Registration {
     char* (*info)(void);
@@ -95,7 +95,7 @@ EXTERNC int VnV_finalize();
  */
 EXTERNC int VnV_runUnitTests();
 
-#ifdef WITH_LOGGING
+#ifndef WITHOUT_LOGGING
 
 EXTERNC void _VnV_Debug(const char *p, const char * message, ...);
 EXTERNC void _VnV_Warn(const char *p,const char * message, ...);
@@ -111,6 +111,7 @@ EXTERNC void _VnV_EndStage(const char *p, const char * message, ...);
 
 #define VnV_BeginStage(...) _VnV_BeginStage(PACKAGENAME_S,__VA_ARGS__)
 #define VnV_EndStage(...) _VnV_EndStage(PACKAGENAME_S,__VA_ARGS__)
+
 #else
 #  define VnV_Debug(...)
 #  define VnV_Warn(...)
@@ -118,7 +119,22 @@ EXTERNC void _VnV_EndStage(const char *p, const char * message, ...);
 #  define VnV_Info(...)
 #  define VnV_BeginStage(...)
 #  define VnV_EndStage(...)
-#endif
+
+#endif //WITHOUT LOGGING.
 
 #undef EXTERNC
+
+#else //If not without vnv
+// No VnV, so just define out all injection point calls.
+
+#  define INJECTION_POINT(...)
+#  define VnV_Debug(...)
+#  define VnV_Warn(...)
+#  define VnV_Error(...)
+#  define VnV_Info(...)
+#  define VnV_BeginStage(...)
+#  define VnV_EndStage(...)
+
+#endif
+
 #endif

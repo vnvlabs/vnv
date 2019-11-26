@@ -17,14 +17,6 @@ build_without_adios:
     - make
     - make install
 
-build_without_logging:
-  script:
-    - mkdir -p build/without_logging
-    - cd build/without_logging
-    - cmake -DCMAKE_INSTALL_PREFIX=../install/without_logging -DWITH_LOGGING=0 ../../
-    - make
-    - make install
-
 build_docs:
   script:
     - mkdir -p build/docs/

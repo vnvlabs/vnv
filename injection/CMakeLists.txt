@@ -2,9 +2,8 @@
 #Add the adios engine to the target
 option(WITH_ADIOS_ENGINE "Use the Adios Engine" ON)
 option(WITH_BUILT_IN_TESTS "Build the VnV test libraries" ON)
-option(WITH_LOGGING "Build Library with Configuble Logger included" ON)
 
-#Build the Json Parser Library ( json-schema-validator TODO github-link) 
+#Build the Json Parser Library ( json-schema-validator TODO github-link)
 add_subdirectory(third-party/json-schema-validator)
 
 add_subdirectory(clang)
@@ -31,6 +30,7 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-schema.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-dist-utils.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-cinterface.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-logging.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/engines/vv-debug-engine.cpp)
 
 
@@ -43,11 +43,6 @@ target_sources(injection PRIVATE
 	${CMAKE_CURRENT_LIST_DIR}/src/tests/provenance.cpp)
 endif()
 
-if (WITH_LOGGING)  
-  target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-logging.cpp)
-  target_compile_definitions(injection PRIVATE WITH_LOGGING=1)
- 
-endif()
 
 target_include_directories(injection PRIVATE
                             ${CMAKE_CURRENT_LIST_DIR}/include/base

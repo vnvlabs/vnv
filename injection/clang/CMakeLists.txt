@@ -4,7 +4,6 @@ find_package(Clang)
 
 if (Clang_FOUND)
 
->>>>>>> master
 add_executable(vnv-matcher
   vv-matcher.cpp
 )
