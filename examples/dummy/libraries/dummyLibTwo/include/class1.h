@@ -1,5 +1,5 @@
-#ifndef TEST1_H
-#  define TEsT1_H
+#ifndef CLASS1_H
+#  define CLASS1_H
 
 class class1 {
  public:
