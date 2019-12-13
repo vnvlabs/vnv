@@ -53,8 +53,8 @@ OutputEngineManager* EngineStore::getEngineManager() {
 EngineStore::EngineStore() {}
 
 EngineStore& EngineStore::getEngineStore() {
-  static EngineStore* engine = new EngineStore();
-  return *engine;
+  static EngineStore engine;
+  return engine;
 }
 
 void EngineStore::registerEngine(std::string name,

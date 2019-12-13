@@ -40,8 +40,8 @@ void RunTime::injectionPoint(int injectionIndex, std::string scope,
 }
 
 RunTime& RunTime::instance() {
-  static RunTime* store = new RunTime();
-  return *store;
+  static RunTime store;
+  return store;
 }
 
 RunTime::RunTime() {}
