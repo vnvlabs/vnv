@@ -143,8 +143,8 @@ ITest::~ITest() {}
 TestStore::TestStore() {}
 
 TestStore& TestStore::getTestStore() {
-  static TestStore* store = new TestStore();
-  return *store;
+  static TestStore store;
+  return store;
 }
 
 void TestStore::addTestLibrary(std::string libraryPath) {

@@ -125,8 +125,8 @@ void RunTime::injectionPoint_iter(std::string pname, std::string id, std::string
 }
 
 RunTime& RunTime::instance() {
-  static RunTime* store = new RunTime();
-  return *store;
+  static RunTime store;
+  return store;
 }
 
 RunTime::RunTime() {}

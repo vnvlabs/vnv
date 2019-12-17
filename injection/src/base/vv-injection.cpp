@@ -133,8 +133,8 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getInjectionPoint(
 }
 
 InjectionPointStore& InjectionPointStore::getInjectionPointStore() {
-  static InjectionPointStore* store = new InjectionPointStore();
-  return *store;
+  static InjectionPointStore store;
+  return store;
 }
 
 void InjectionPointStore::addInjectionPoint(std::string name,
