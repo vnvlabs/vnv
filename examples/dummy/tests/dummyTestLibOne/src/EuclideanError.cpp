@@ -43,19 +43,17 @@ class EuclideanError : public ITest {
 
 
 
-  TestStatus runTest(IOutputEngine* engine, int stage, NTV& parameters) {
-    std::vector<double>* x =
-        carefull_cast<std::vector<double>>(stage, "measured", parameters);
-    std::vector<double>* y =
-        carefull_cast<std::vector<double>>(stage, "exact", parameters);
-    int testStage = 0;//getTestStage(stage);
-    return runTest(engine, testStage, x, y);
+  TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId, std::map<std::string,void*> &parameters) {
+
+    std::vector<double>* x = static_cast<std::vector<double>*>(parameters["measured"]);
+    std::vector<double>* y = static_cast<std::vector<double>*>(parameters["exact"]);
+    return runTest(engine, 0, x, y);
   }
 };
 
-ITest* EuclideanError_maker(TestConfig config) { return new EuclideanError(config); }
+ITest* euclideanError_maker(TestConfig config) { return new EuclideanError(config); }
 
-json EuclideanError_Declare() {
+json euclideanError_declare() {
    return R"(
    {
            "name" : "EuclieanErorr",
@@ -72,14 +70,5 @@ json EuclideanError_Declare() {
    })"_json;
 }
 
-class EuclideanError_proxy {
- public:
-  EuclideanError_proxy() {
-    VnV_registerTest("EuclideanError", EuclideanError_maker,
-                     EuclideanError_Declare);
-  }
-};
-
-EuclideanError_proxy euclideanError_proxy;
 
 #endif

@@ -6,7 +6,8 @@ project(vnv LANGUAGES CXX)
 set(PROJECT_VERSION 1.0.0)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_BUILD_TYPE RelWithDebInfo)
+
+include("${CMAKE_SOURCE_DIR}/cmake/BuildType.cmake")
 
 option(BUILD_EXAMPLES "Build the examples" ON)
 option(BUILD_TESTS "Build the test runner" ON)

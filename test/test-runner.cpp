@@ -4,7 +4,7 @@
 #include <vector>
 
 int main(int argc, char** argv) {
-    VnV_init(&argc,&argv,"./test-config.json");
+    VnV_init(&argc,&argv,"./test-config.json",nullptr);
     VnV_runUnitTests();
     VnV_finalize();
 }

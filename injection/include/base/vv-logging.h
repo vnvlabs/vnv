@@ -6,7 +6,7 @@
 #  include <string>
 #  include <set>
 #  include <iostream>
-
+# include <stack>
 #  include "VnV-Interfaces.h"
 
 #define MAX_LOG_SIZE 2048
@@ -25,26 +25,6 @@
  */
 namespace VnV {
 
-
-  /**
-   * @brief logLevelFromString
-   * @param level String representation of the level requested
-   * @return The requested log level.
-   *
-   * Utility function for converting a string into a LogLevel.
-   *
-   */
-   LogLevel logLevelFromString(std::string level);
-
-   /** @brief logLevelToString
-   * @param level Utility functions for switching between strings and LogLevel
-   * enum
-   * @return LogLevel::X -> "X"
-   *
-   * Convert a LogLevel enum into a string.
-   */
-   std::string logLevelToString(LogLevel level);
-
    std::string getIndent(int stage);
 
    /**
@@ -53,11 +33,6 @@ namespace VnV {
  * above. (so they can be removed at compile time when needed)
  */
 
-/**
- * @brief The LogLevel enum
- *
- * Enum Class defining the log levels available.
- */
 
 /**
  * @brief The Logger Class
@@ -65,23 +40,30 @@ namespace VnV {
  * The logger class does all the logging. The class itself consists of only
  *  functions; however, it should never be called directly. Instead, the
  * macros should be used to call the Logger.
+ *
+ *
+ *
  */
 class Logger {
  private:
    friend class RunTime;
+   int refcount = 0;
+
+   std::map<std::string, std::string> logLevelsToColor;
+   std::map<std::string, bool> logs; /**< Switches for the different log levels */
+
+
+
 
    Logger();
    bool engine = false; /**< True if this logger writes to the output engine. */
-   int stage = 0;
+   std::stack<int> stage;
    bool on = true; /**< Is the logger on */
-   std::map<LogLevel, bool> logs; /**< Switches for the different log levels */
    std::ostream* fileptr; /**< ostream for writing the logs to the intended location */
    bool locked = false; /**< has the logger been configured */
    std::set<std::string> packageBlackList;
    std::string outFileName;
    /**
-
-
 
 
   /**
@@ -91,7 +73,7 @@ class Logger {
    *
    * The Log function.
    */
-   void log(std::string pname, LogLevel level, std::string format);
+   void log(std::string pname, std::string level, std::string format);
 
   /**
    * @brief setLog
@@ -115,19 +97,10 @@ class Logger {
    * of the project. Inside the configuration file, users can turn off logging from entire
    * packages by adding the package to the "blackList". For example, to turn off logging for
    * the internal VnV library, the user should add "VnV" to the blacklist. All debug statements
-   * are written to file in the format [PACKAGE_NAME:LogLevel] <msg>, where PACKAGE_NAME is the name
+   * are written to file in the format [PACKAGE_NAME:logLevel] <msg>, where PACKAGE_NAME is the name
    * of the package that should be blacklisted to turn of the logging.
    */
    void addToBlackList(std::string packageName);
-
-  /**
-   * @brief setLogLevel
-   * @param level  what level should be modified
-   * @param on should logging be turned on ?
-   *
-   * DO NOT CALL DIRECTLY. Set the flags for a given log level.
-   */
-   void setLogLevel(LogLevel level, bool on);
 
   /**
    * @brief log_c
@@ -135,18 +108,22 @@ class Logger {
    * @param format
    * @param args
    *
-   * Standard C Style logging. Added for supporting C Programs. C++ programs should
-   * use the C++ fmt library style.
+   * Standard C Style logging.
    */
-   void log_c(std::string pname, LogLevel level, std::string format, va_list args);
+   void log_c(std::string pname, std::string level, std::string format, va_list args);
 
 
+   int beginStage(std::string pname, std::string format, va_list args);
+   void endStage(int ref);
    /**
     * @brief print
     * Print out Logger configuration information.
     */
    void print();
 
+   void registerLogLevel(std::string name, std::string color);
+   void setLogLevel(std::string level, bool on);
+   std::string logLevelToColor(std::string logLevel, std::string message);
 };
 
 

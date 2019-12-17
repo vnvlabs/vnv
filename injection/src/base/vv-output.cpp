@@ -50,7 +50,7 @@ void IOutputEngine::Put(std::string /*variableName*/, int& /**value**/){throw "E
 void IOutputEngine::Put(std::string /*variableName*/, float& /**value**/){throw "Engine Does not support type float";}
 void IOutputEngine::Put(std::string /*variableName*/, long& /**value**/){throw "Engine Does not support type long";}
 void IOutputEngine::Put(std::string /*variableName*/, std::string& /**value**/){throw "Engine Does not support type string";}
-void IOutputEngine::Log(const char *, int, LogLevel, std::string) { throw "Engine does not support in engine logging";}
+void IOutputEngine::Log(const char *, int, std::string, std::string) { throw "Engine does not support in engine logging";}
 
 json OutputEngineManager::getConfigurationSchema() {
     return __default_configuration_schema__;
@@ -88,11 +88,11 @@ void EngineStore::setEngineManager(std::string type, json& config) {
 }
 
 void EngineStore::printAvailableEngines() {
-  VnV_BeginStage("Available Engines:");
+  int a = VnV_BeginStage("Available Engines:");
   for (auto it : registeredEngines) {
      VnV_Info("%s", it.first.c_str());
   }
-  VnV_EndStage("");
+  VnV_EndStage(a);
 }
 
 void OutputEngineManager::print() {
@@ -112,14 +112,14 @@ EngineStore& EngineStore::getEngineStore() {
 }
 
 void EngineStore::print() {
-    VnV_BeginStage("Output Engine Configuration");
+    int b = VnV_BeginStage("Output Engine Configuration");
     printAvailableEngines();
     if ( manager != nullptr) {
-       VnV_BeginStage("Chosen Engine: %s ", engineName.c_str());
+       int a = VnV_BeginStage("Chosen Engine: %s ", engineName.c_str());
        manager->print();
-       VnV_EndStage("");
+       VnV_EndStage(a);
     }
-    VnV_EndStage("");
+    VnV_EndStage(b);
 
 
 }

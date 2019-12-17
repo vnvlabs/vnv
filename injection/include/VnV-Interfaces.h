@@ -17,10 +17,14 @@ using nlohmann::json;
  */
 namespace VnV {
 
- enum class LogLevel { DEBUG, INFO, WARN, ERROR, STAGE_END, STAGE_START };
+// enum class LogLevel { DEBUG, INFO, WARN, ERROR, STAGE_END, STAGE_START };
 
  enum class VariableEnum {Double, String, Int, Float, Long};
 
+ enum class InjectionPointType {Single, Begin, End, Iter};
+ namespace InjectionPointTypeUtils {
+    std::string getType(InjectionPointType type, std::string stageId);
+ }
  /**
  *@namespace convienence methods for Variable Type enum.
  */
@@ -28,6 +32,10 @@ namespace VnV {
 namespace VariableEnumFactory {
     VariableEnum fromString(std::string s);
     std::string toString(VariableEnum e);
+};
+
+class LogStageRef {
+
 };
 
 /**
@@ -72,7 +80,7 @@ public:
    */
   virtual void Put(std::string variableName, std::string& value);
 
-  virtual void Log(const char * packageName, int stage, LogLevel level, std::string message);
+  virtual void Log(const char * packageName, int stage, std::string level, std::string message);
 
     /**
    * @brief Define IO variables that will be written.
@@ -116,27 +124,28 @@ class OutputEngineManager {
    * @param id
    * @param stageVal
    */
-  virtual void endInjectionPoint(std::string id, int stageVal) = 0;
+  virtual void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageId) = 0;
 
   /**
    * @brief startInjectionPoint
    * @param id
    * @param stageVal
    */
-  virtual void startInjectionPoint(std::string id, int stageVal) = 0;
+  virtual void injectionPointStartedCallBack(std::string id, InjectionPointType type, std::string stageId) = 0;
+
 
   /**
    * @brief startTest
    * @param testName
    * @param testStageVal
    */
-  virtual void startTest(std::string testName, int testStageVal) = 0;
+  virtual void testStartedCallBack(std::string testName) = 0;
 
   /**
    * @brief stopTest
    * @param result_
    */
-  virtual void stopTest(bool result_) = 0;
+  virtual void testFinishedCallBack(bool result_) = 0;
 
   /**
    * @brief finalize
@@ -177,16 +186,15 @@ enum TestStatus { SUCCESS, FAILURE, NOTRUN };
  */
 class ITransform {
  public:
-  /**
+  friend class TestStore;
+    /**
    * @brief ITransform
    */
   ITransform();
-  void addInnerTransform(std::string trans);
 
-  void* Transform(std::pair<std::string,void*> ip, std::string tp);
 
+  virtual ~ITransform();
 private:
-  std::vector<std::string> innerTransforms;
 
   /**
    * @brief Transform
@@ -194,7 +202,7 @@ private:
    * @param tp
    * @return
    */
-  virtual void* _Transform(std::pair<std::string, void*> ip, std::string tp) = 0;
+  virtual void* Transform(std::string outputType, std::string inputType, void* ptr ) = 0;
 
 };
 
@@ -228,25 +236,36 @@ public:
 /**
  * @brief The TestConfig class
  */
+
+struct ParameterMapping {
+    std::string injectionPointParameter;
+    bool required;
+    std::string parameterType;
+};
+
 class TestConfig {
  private:
-  std::map<std::string, std::pair<std::string, std::vector<std::string>>> transforms;  // maps testParameter -> ip_parameter & Transfor
+  std::map<std::string, ParameterMapping > parameterMap;
+  std::map<std::string, bool> requiredMap;
+  std::map<std::string, std::string> parameterTypeMap;
   std::string testName;
-  //std::set<std::string> scopes;
   json additionalParameters;
   json expectedResult;
 
+  void* mapParameter(std::string name, NTV& parameters) const;
+
  public:
 
-  TestConfig(std::string name, json &config);
+  TestConfig(std::string name, json &usersConfig, json &testSpec);
 
-
+  bool isRequired(std::string parmaeterName) const;
   /**
    * @brief getAdditionalParameters
    * @return
    */
   const json& getAdditionalParameters() const;
 
+  std::map<std::string, void*> mapParameters(NTV& parameters) const ;
 
   const json& getExpectedResult() const;
   /**
@@ -272,13 +291,8 @@ class TestConfig {
    * @param from
    * @param trans
    */
-  void addTransform(std::string to, std::string from, std::vector<std::string> trans);
+  ParameterMapping getMapping(std::string testParameter) const ;
 
-  /**
-   * @brief getTransform
-   * @return
-   */
-  std::pair<std::string, std::shared_ptr<ITransform>> getTransform(std::string) const ;
 };
 
 
@@ -305,7 +319,7 @@ class ITest {
    * @param params
    * @return
    */
-  TestStatus _runTest(IOutputEngine* engine, int stageVal, NTV& params);
+  TestStatus _runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId, NTV& params);
 
   /**
    * @brief runTest
@@ -314,7 +328,7 @@ class ITest {
    * @param params
    * @return
    */
-  virtual TestStatus runTest(IOutputEngine* engine, int stage, NTV& params) = 0;
+  virtual TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId, std::map<std::string, void*>&params) = 0;
 
   /**
    * @brief getConfigurationJson
@@ -330,8 +344,7 @@ class ITest {
 
 
 private:
-  const TestConfig &m_config;
-  NT m_parameters;
+  const TestConfig m_config;
 
   /**
    * @brief carefull_cast
@@ -342,10 +355,6 @@ private:
    * point.
    */
 
-protected:
-
-  template <typename T>
-  T* carefull_cast(int stage, std::string parameterName, NTV& parameters);
 
 };
 
@@ -387,40 +396,6 @@ class IUnitTester {
    */
   virtual bool verifyResult(IOutputEngine* resultsEngine) = 0;
 };
-
-template <typename T>
-T* ITest::carefull_cast(int stage, std::string parameterName, NTV& parameters) {
-  // First, make sure "parameterName" is a test parameter and, if it is, get its
-  // type
-
-  auto test_parameter = m_parameters.find(parameterName);
-  if (test_parameter == m_parameters.end()) {
-    throw " This is not a test parameter ";
-  }
-
-
-  for (auto it: parameters) {
-      std::cout << it.first << " " << it.second.first << std::endl;;
-  }
-  // Next, get the transform. If one exists, it is returned, else return
-  // "parameterName,DefaultTransform">
-  std::pair<std::string, std::shared_ptr<ITransform>> trans =
-      m_config.getTransform(parameterName);
-
-  auto ip_parameter = parameters.find(trans.first);
-
-  if (ip_parameter == parameters.end()) {
-    throw "A injection point parameter with the transform name does not exist";
-  }
-
-  // Transform the injection point parameter into the test parameter
-  void* tptr =
-      trans.second->Transform(ip_parameter->second, test_parameter->second);
-
-  // Finally, cast it to the correct type;
-  return (T*)tptr;
-}
-
 typedef IUnitTester* tester_ptr();
 typedef ITest* maker_ptr(TestConfig config);
 typedef ISerializer* serializer_ptr();
@@ -429,7 +404,8 @@ typedef json declare_transform_ptr();
 typedef json declare_serializer_ptr();
 typedef ITransform* trans_ptr();
 typedef OutputEngineManager* engine_register_ptr();
-
+typedef json options_schema_ptr();
+typedef void options_callback_ptr(json &info);
 }  // namespace VnV
 
 #ifdef __cplusplus
@@ -442,7 +418,7 @@ EXTERNC void VnV_registerTransform(std::string name, VnV::trans_ptr t, VnV::decl
 EXTERNC void VnV_registerSerializer(std::string name, VnV::serializer_ptr t, VnV::declare_serializer_ptr v);
 EXTERNC void VnV_registerEngine(std::string name, VnV::engine_register_ptr r);
 EXTERNC void VnV_registerUnitTester(std::string name, VnV::tester_ptr ptr);
-
+EXTERNC void VnV_registerOptions(std::string name, VnV::options_schema_ptr s, VnV::options_callback_ptr v);
 #undef EXTERNC
 
 #endif

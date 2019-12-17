@@ -33,4 +33,10 @@ json getTestDelcarationJsonSchema();
  */
 json getTestValidationSchema(json &testDeclaration);
 
+json getTransformDeclarationSchema() ;
+
+json getInjectionPointDeclarationSchema();
+
+//json getTestMappingSchema(json injectionPointDeclaration);
+
 }

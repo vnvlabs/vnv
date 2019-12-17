@@ -12,6 +12,8 @@ target_sources(dummyLibTwo PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/src/class2.cpp
 )
 
+target_compile_definitions(dummyLibTwo PRIVATE -DPACKAGENAME=DummyLibTwo)
+
 target_include_directories(dummyLibTwo PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(dummyLibTwo Injection::Injection)
 

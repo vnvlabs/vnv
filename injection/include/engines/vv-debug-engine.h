@@ -27,7 +27,7 @@ class DebugEngine : public IOutputEngine {
    * @brief Log
    * @param log
    */
-  void Log(const char * package, int stage, LogLevel level, std::string message);
+  void Log(const char * package, int stage, std::string level, std::string message);
 
 
   /**
@@ -108,27 +108,28 @@ class DebugEngineWrapper : public OutputEngineManager {
    * @param id
    * @param stageVal
    */
-  void endInjectionPoint(std::string id, int stageVal);
+  void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageVal) override;
+
 
   /**
    * @brief startInjectionPoint
    * @param id
    * @param stageVal
    */
-  void startInjectionPoint(std::string id, int stageVal);
+  void injectionPointStartedCallBack(std::string id, InjectionPointType type, std::string stageVal) override;
 
   /**
    * @brief startTest
    * @param testName
    * @param testStageVal
    */
-  void startTest(std::string testName, int testStageVal);
+  void testStartedCallBack(std::string testName ) override;
 
   /**
    * @brief stopTest
    * @param result_
    */
-  void stopTest(bool result_);
+  void testFinishedCallBack(bool result_) override;
 
   /**
    * @brief getOutputEngine

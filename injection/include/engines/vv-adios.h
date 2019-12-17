@@ -28,7 +28,7 @@ class AdiosEngine : public IOutputEngine {
    * @brief Log
    * @param log
    */
-  void Log(const char * package, int stage, LogLevel level, std::string message) override;
+  void Log(const char * package, int stage, std::string level, std::string message) override;
 
   /**
    * @brief Put
@@ -80,7 +80,7 @@ class AdiosWrapper : public OutputEngineManager {
   adios2::IO bpWriter;                      /**< @todo  */
   adios2::Engine engine;                    /**< @todo  */
   adios2::Variable<std::string> identifier; /**< @todo  */
-  adios2::Variable<int> stage;              /**< @todo  */
+  adios2::Variable<std::string> stage;              /**< @todo  */
   adios2::Variable<std::string> type;       /**< @todo  */
   adios2::Variable<std::string> markdown;   /**< @todo  */
   adios2::Variable<int> result;             /**< @todo  */
@@ -109,27 +109,27 @@ class AdiosWrapper : public OutputEngineManager {
    * @param id
    * @param stageVal
    */
-  void endInjectionPoint(std::string id, int stageVal);
+  void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageId) override;
 
   /**
    * @brief startInjectionPoint
    * @param id
    * @param stageVal
    */
-  void startInjectionPoint(std::string id, int stageVal);
+  void injectionPointStartedCallBack(std::string id, InjectionPointType type, std::string stageId) override;
 
   /**
    * @brief startTest
    * @param testName
    * @param testStageVal
    */
-  void startTest(std::string testName, int testStageVal);
+  void testStartedCallBack(std::string testName) override;
 
   /**
    * @brief stopTest
    * @param result_
    */
-  void stopTest(bool result_);
+  void testFinishedCallBack(bool result_) override;
 
   /**
    * @brief get the configuration schema for the adios engine. 

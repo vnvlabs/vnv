@@ -14,7 +14,7 @@ json getLibInfo(std::string filepath, unsigned long add) {
     struct stat result;
     stat(filepath.c_str(),&result);
     json libJson;
-    libJson["name"] = filepath;
+    libJson["name"] = getAbsolutePath(filepath);
     libJson["add"] = add;
     libJson["hash"] = hashfile(filepath);
     libJson["st_dev"] = result.st_dev;
@@ -50,6 +50,21 @@ char* getCurrentDirectory() {
     return getcwd(NULL,0);
 # else
    return get_current_dir_name();
+#endif
+}
+
+std::string getAbsolutePath(std::string filename) {
+#if defined(__APPLE__)
+    VnV_Warn("TODO MacOS function to convert to absoulte file path.");
+    return filename;
+#else
+    char* x = realpath(filename.c_str(),nullptr);
+    if (x != nullptr) {
+        std::string path(x);
+        free(x);
+        return path;
+    }
+    return filename;
 #endif
 }
 

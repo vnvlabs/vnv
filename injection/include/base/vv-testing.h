@@ -10,24 +10,14 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <list>
 
 #include "VnV-Interfaces.h"
 #include "vv-output.h"
 
 namespace VnV {
-/**
- * @brief The DefaultTransform class
- */
-class DefaultTransform : public ITransform {
-  /**
-   * @brief Transform
-   * @param ip
-   * @param testParameterType
-   * @return
-   */
-  void* _Transform(std::pair<std::string, void*> ip,
-                  std::string testParameterType) override;
-};
+
+
 /**
  * @brief The TestStore class
  */
@@ -39,22 +29,22 @@ class TestStore {
   std::vector<void*> testLibraries;
   std::vector<std::string> testLibraryPaths;
   /**
+
    * @brief registeredTests
    */
-  std::map<std::string, json> registeredTests;
+  std::map<std::string, std::pair<json,json>> registeredTests;
 
   /**
    * @brief test_factory
    */
-  std::map<std::string, std::pair<maker_ptr*, declare_test_ptr*>,
-           std::less<std::string>>
+  std::map<std::string, std::pair<maker_ptr*, declare_test_ptr*>, std::less<std::string>>
       test_factory;
 
   /**
    * @brief trans_factory
    */
-  std::map<std::string, std::pair<trans_ptr*,declare_transform_ptr*>, std::less<std::string>> trans_factory;
-
+  std::map<std::string, trans_ptr*, std::less<std::string>> trans_factory;
+  std::map<std::string, std::map<std::string, std::string>> trans_map;
   /**
    * @brief TestStore
    */
@@ -87,7 +77,7 @@ class TestStore {
    * @param tname
    * @return
    */
-  ITransform* getTransform(std::string tname);
+  void* getTransform(std::string from, std::string to, void* ptr);
 
   /**
    * @brief getTest

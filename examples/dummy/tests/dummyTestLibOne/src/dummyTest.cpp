@@ -21,17 +21,17 @@ class dummyTest : public ITest {
     return SUCCESS;
   }
 
-  TestStatus runTest(IOutputEngine* engine, int stage, NTV& parameters) {
-    double* x = carefull_cast<double>(stage, "slope", parameters);
-    double* y = carefull_cast<double>(stage, "intersection", parameters);
-    int testStage = 0;;
-    return runTest(engine, testStage, x, y);
+  TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId, std::map<std::string,void*> &parameters) {
+
+    double* x = static_cast<double*>(parameters["slope"]);
+    double* y = static_cast<double*>(parameters["intersection"]);
+    return runTest(engine, 0, x, y);
   }
 };
 
 ITest* dummyTest_maker(TestConfig config) { return new dummyTest(config); }
 
-json dummyTest_Declare() {
+json dummyTest_declare() {
     return R"(
 {
   "name" : "dummyTest",
@@ -48,15 +48,5 @@ json dummyTest_Declare() {
 }
 )"_json;
 }
-
-
-class dummyTest_proxy {
- public:
-  dummyTest_proxy() {
-    VnV_registerTest("dummyTest", dummyTest_maker, dummyTest_Declare);
-  }
-};
-
-dummyTest_proxy p;
 
 #endif

@@ -34,6 +34,10 @@ json getLibInfo(std::string filepath, unsigned long add);
 char* getCurrentDirectory();
 
 /**
+ * Convert a relative filename to an absolute.
+ */
+std::string getAbsolutePath(std::string realativeFileName);
+/**
  * @brief getLinkedLibraries
  * @param callBack
  * @param data

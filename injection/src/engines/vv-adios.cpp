@@ -52,9 +52,9 @@ void AdiosEngine::Put(std::string variableName, std::string& value) {
   engine.Put(variableName, value);
 }
 
-void AdiosEngine::Log(const char* package, int stage, LogLevel level, std::string message) {
+void AdiosEngine::Log(const char* package, int stage, std::string level, std::string message) {
     std::ostringstream oss;
-    oss << getIndent(stage) << "[" << package << ":" << logLevelToString(level) << "]: " << message;
+    oss << getIndent(stage) << "[" << package << ":" << level << "]: " << message;
     engine.Put("LOGS", oss.str() );
 }
 
@@ -100,7 +100,7 @@ void AdiosWrapper::set(json& config) {
   bpWriter = adios->DeclareIO("BPWriter");
   outputFile = bpWriter.AddTransport("File", {{"Library", "POSIX"}, {"Name", outfile.c_str()}});
   identifier = bpWriter.DefineVariable<std::string>("identifier");
-  stage = bpWriter.DefineVariable<int>("stage");
+  stage = bpWriter.DefineVariable<std::string>("stage");
   type = bpWriter.DefineVariable<std::string>("type");
   markdown = bpWriter.DefineVariable<std::string>("markdown");
   result = bpWriter.DefineVariable<int>("result");
@@ -108,11 +108,12 @@ void AdiosWrapper::set(json& config) {
   adiosEngine = new AdiosEngine(engine, bpWriter);
 }
 
-void AdiosWrapper::endInjectionPoint(std::string id, int stageVal) {
+void AdiosWrapper::injectionPointEndedCallBack(std::string id, InjectionPointType type_, std::string stageId) {
   if (engine) {
     engine.BeginStep();
     engine.Put(identifier, id);
-    engine.Put(stage, stageVal);
+    std::string ss = InjectionPointTypeUtils::getType(type_,stageId);
+    engine.Put(stage, ss);
     std::string s = "EndIP";
     engine.Put(type, s);
     engine.EndStep();
@@ -121,11 +122,12 @@ void AdiosWrapper::endInjectionPoint(std::string id, int stageVal) {
   }
 }
 
-void AdiosWrapper::startInjectionPoint(std::string id, int stageVal) {
+void AdiosWrapper::injectionPointStartedCallBack(std::string id, InjectionPointType type_, std::string stageId) {
   if (engine) {
     engine.BeginStep();
     engine.Put(identifier, id);
-    engine.Put(stage, stageVal);
+    std::string ss = InjectionPointTypeUtils::getType(type_,stageId);
+    engine.Put(stage, ss);
     std::string s = "StartIP";
     engine.Put(type, s);
     engine.EndStep();
@@ -134,11 +136,11 @@ void AdiosWrapper::startInjectionPoint(std::string id, int stageVal) {
   }
 }
 
-void AdiosWrapper::startTest(std::string testName, int testStageVal) {
+void AdiosWrapper::testStartedCallBack(std::string testName) {
+
   if (engine) {
     engine.BeginStep();
     engine.Put(identifier, testName);
-    engine.Put(stage, testStageVal);
     std::string test = "StartTest";
     engine.Put(type, test);
   } else {
@@ -146,7 +148,7 @@ void AdiosWrapper::startTest(std::string testName, int testStageVal) {
   }
 }
 
-void AdiosWrapper::stopTest(bool result_) {
+void AdiosWrapper::testFinishedCallBack(bool result_) {
   if (engine) {
     int res = (result_) ? 1 : 0;
     engine.Put(result, res);

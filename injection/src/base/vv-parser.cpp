@@ -71,7 +71,7 @@ LoggerInfo JsonParser::getLoggerInfo(const json& logging) {
   if (info.on) {
     info.filename = logging["filename"].get<std::string>();
     for (auto& it : logging["logs"].items()) {
-      info.logs.insert(std::make_pair(logLevelFromString(it.key()), it.value().get<bool>()));
+      info.logs.insert(std::make_pair(it.key(), it.value().get<bool>()));
     }
     auto it = logging.find("blackList");
     if ( it != logging.end() ) {
@@ -99,6 +99,10 @@ RunInfo JsonParser::_parse(const json& main) {
   else {
       info.logInfo.filename = "stdout";
       info.logInfo.on = true;
+  }
+
+  if (main.find("toolConfig") != main.end()) {
+      info.toolConfig = main.find("toolConfig").value();
   }
 
   // Get the run information and the scopes.

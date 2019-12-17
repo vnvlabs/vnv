@@ -11,6 +11,7 @@
 #include "vv-parser.h"
 #include "vv-logging.h"
 #include "VnV.h"
+#include "vv-injection.h"
 /**
  * VnV Namespace
  */
@@ -48,11 +49,13 @@ class RunTime {
 
   bool runTests; /**< Should tests be run */
   bool finalize_mpi = false; /**< Are we responsible for calling MPI_Finalize) */
+  bool logUnhandledInjectionPoints = true;
+  bool terminalSupportsAsciiColors = true;
 
-  void loadRunInfo(RunInfo &info);
+  void loadRunInfo(RunInfo &info, registrationCallBack *callback);
+  void makeLibraryRegistrationCallbacks();
 
-  json fetchInjectionPointInformation();
-
+  void _injectionPoint(std::string pname, std::string id, InjectionPointType type, std::string function, std::string file, int line, va_list argp, std::string stageId);
  public:
   /**
    * @brief Init
@@ -70,46 +73,34 @@ class RunTime {
    * information. The Provenance test included in the tests/provenance is
    * designed to work with this injection point in mind.
    */
-  bool Init(int* argc, char*** argv, std::string configFile);
+  bool Init(int* argc, char*** argv, std::string configFile, registrationCallBack *callback);
 
+
+  bool useAsciiColors();
   /**
    * @brief printRunTimeInformation
    * Write all run infomation to the logs.
    */
   void printRunTimeInformation();
 
+  void processToolConfig(json config);
+
   /**
    * @brief injectionPoint
    * @param injectionIndex The stage of the injection point to be run
-   * @param scope The name of the injection point to be run
-   * @param function The name of the function from which this injection point
-   * was called.
+   * @param id The name of the injection point to be run
    * @param argp The va_list containing all the arguements supplied at the
    * injection point.
    *
    * This function is called (eventually) whenever an INJECTION_POINT is found.
    * Here, we are responsibe for pulling the correct IP from the IPStore, and
    * running it with the given parameters.
-   */
-  void injectionPoint(std::string pname, int injectionIndex, std::string scope,
-                      std::string function, va_list argp);
-
-  /**
-   * @brief injectionPoint
-   * @param injectionIndex The stage of the injection point
-   * @param scope The name of the injection point
-   * @param function The function that called this injection point
-   *
-   * The variadic form of the injectionPoint function above.
-   * This function is called (eventually) whenever an INJECTION_POINT is found.
-   * Here, we are responsibe for pulling the correct IP from the IPStore, and
-   * running it with the given parameters.
-   *
    *
    */
-  void injectionPoint(std::string pname, int injectionIndex, std::string scope,
-                      std::string function, ...);
-
+  void injectionPoint(std::string pname, std::string id, std::string function, std::string file, int line,  va_list argp);
+  void injectionPoint_begin(std::string pname, std::string id, std::string function,std::string file, int line, va_list argp);
+  void injectionPoint_end(std::string pname, std::string id, std::string function,std::string file, int line, va_list argp);
+  void injectionPoint_iter(std::string pname, std::string id, std::string iterId, std::string function,std::string file, int line, va_list argp);
   /**
    * @brief Finalize
    * @return
@@ -139,8 +130,14 @@ class RunTime {
    *
    *
    */
-  void log(std::string pname, LogLevel level, std::string message, va_list args);
+  void log(std::string pname, std::string level, std::string message, va_list args);
 
+  void logUnhandled(std::string name, std::string id, std::string stageId, std::string function, std::string file, int line, va_list argp);
+
+  void registerLogLevel(std::string logLevel, std::string color);
+
+  int beginStage(std::string pname, std::string message, va_list args);
+  void endStage(int ref);
 
   /**
    * @brief instance

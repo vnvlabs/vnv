@@ -13,6 +13,8 @@
 
 using namespace VnV;
 
+namespace ProvenanceTest {
+
 struct libInfo {
     std::string name;
 };
@@ -27,6 +29,7 @@ public:
 static int callback(struct dl_phdr_info* info, size_t /*size*/, void* data) {
 
   std::string name(info->dlpi_name);
+  if (name.empty()) return 0;
   unsigned long add(info->dlpi_addr);
   libData* x = static_cast<libData*>(data);
   x->libs.push_back(DistUtils::getLibInfo(name,add));
@@ -78,7 +81,7 @@ class provenance : public ITest {
         //Add all the libraries and the current exe to the json
         json exe_info = DistUtils::getLibInfo(exe.c_str(),0);
         exe_info["libs"] = libNames.libs;
-        std::string exe_i = exe_info.dump();
+        std::string exe_i = exe_info.dump(2);
         engine->Put("exe-info",exe_i);
     }
     {
@@ -113,28 +116,47 @@ class provenance : public ITest {
    {
      //Throw the VnV configuration file into the output as well.
      json conf;
-     conf["name"] = configFile;
+     conf["name"] = DistUtils::getAbsolutePath(configFile);
+
      std::ifstream ff(configFile);
-     if (ff.is_open()) {
-        std::stringstream ss;
-        ss << ff.rdbuf();
-        conf["file"] = ss.str();
-     }
-     std::string confx = conf.dump();
+     conf["file"] = json::parse(ff);
+
+     std::string confx = conf.dump(2);
      engine->Put("vnv-config", confx);
     }
 
     return SUCCESS;
   }
 
-    virtual TestStatus runTest(IOutputEngine* engine, int stage,
-                             NTV& parameters) override {
-    
-    VnV_Debug("RUNNING PROVENANCE TEST");	  
-    char**** v = carefull_cast<char***>(stage, "argv", parameters);
-    int** c = carefull_cast<int*>(stage, "argc", parameters);
-    std::string* f = carefull_cast<std::string>(stage, "config", parameters);
-    return runTest(engine, **c, **v, *f);
+   void writeTree(IOutputEngine *engine) {
+       // TODO -- If the stage is looped. We can track changes to the file tree on output and
+       // use that to track the outputs of the execution from the current working directory.
+   }
+   void logTree() {
+       //TODO Copy down the file tree in the current directory. This will be used to track
+       // which output files are generated during the Current looped injection point.
+   }
+
+   virtual TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId,
+                             std::map<std::string, void*>& parameters) override {
+      TestStatus r = SUCCESS;
+       
+      std::cout << "sfdsfdf" << std::endl;
+      if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
+            
+            VnV_Debug("RUNNING PROVENANCE TEST");
+            char*** v = *static_cast<char****>(parameters["argv"]);
+            int* c = *static_cast<int**>(parameters["argc"]);
+            std::string f = *static_cast<std::string*>(parameters["config"]);
+            r = runTest(engine, *c, *v, f);
+     }
+     if ( type == InjectionPointType::Begin) {
+        logTree();
+     }
+     else if (type == InjectionPointType::End){
+        writeTree(engine);
+     }
+     return r;
   }
 
   virtual ~provenance() override;
@@ -142,9 +164,9 @@ class provenance : public ITest {
 
 provenance::~provenance() {}
 
-ITest* provenance_maker(TestConfig config) { return new provenance(config); }
+ITest* maker(TestConfig config) { return new provenance(config); }
 
-json provenance_Declare() {
+json declare() {
     return R"({
             "name" : "provenance",
             "title" : "Provenance Tracking.",
@@ -165,14 +187,6 @@ json provenance_Declare() {
             "io-variables" : {}
     })"_json;
 }
-
-class provenance_proxy {
- public:
-  provenance_proxy() {
-    VnV_registerTest("provenance", provenance_maker, provenance_Declare);
-  }
-};
-
-provenance_proxy prov_proxy;
+}
 
 #endif

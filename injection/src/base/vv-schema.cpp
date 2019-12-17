@@ -28,6 +28,9 @@ static const json __vv_schema__ = R"(
     },
     "injectionPoints": {
       "$ref": "#/definitions/injectionPoints"
+    },
+    "toolConfig" : {
+      "type" : "object"
     }
   },
   "additionalProperties": false,
@@ -93,13 +96,7 @@ static const json __vv_schema__ = R"(
     },
     "logTypes": {
     "type" : "object",
-    "properties" : {
-        "WARN" : {"type" : "boolean"},
-        "INFO" : {"type" : "boolean"},
-        "DEBUG" : {"type" : "boolean"},
-        "ERROR" : {"type" : "boolean"}
-    },
-    "additionalProperties" : false
+    "additionalProperties" : {"type" : "boolean" }
     },
 
     "injectionPoints": {
@@ -182,29 +179,79 @@ static json __test_declaration_schema__ = R"(
 }
 )"_json ;
 
+static json __transform_declaration_schema__ = R"({
+ "$schema": "http://json-schema.org/draft-07/schema#",
+ "$id": "http://rnet-tech.net/vv.transform.schema.json",
+ "title": "transform declaration schema",
+ "type": "object",
+ "additionalProperties" : {"type" : "array" , "items" : { "type" : "string" } }
+}
+)"_json ;
+
+json getTransformDeclarationSchema() {
+    return __transform_declaration_schema__;
+}
+
+static json __injectionPoint_declaration_schema__ = R"({
+"$schema": "http://json-schema.org/draft-07/schema#",
+"$id": "http://rnet-tech.net/vv.injectionPoint.schema.json",
+"title": "transform declaration schema",
+"type": "object",
+"properties" : {
+     "name" : {"type":"string"},
+     "type" : {"type":"string","enum" : ["SINGLE","LOOP"]},
+     "package" : {"type" : "string"},
+     "function" : {"type" : "string"},
+     "description" : {"type" : "string"},
+     "stages" : { "type" : "object" ,"additionalProperties" : {"$ref" : "#/definitions/stage" }},
+     "suggested" : {"type" : "object" },
+     "restructuredText" : {"type" : "string"}
+},
+"required" : ["name","type","package","stages"],
+"additionalProperties" : false,
+"definitions" : {
+    "stage" : {
+       "type" : "object",
+       "properties" : {
+         "description" : {"type":"string"},
+         "parameters" : { "$ref" : "#/definitions/parameters" }
+       },
+       "required" : ["parameters"]
+    },
+    "parameters" : {
+       "type" : "object",
+       "additionalProperties" : {
+          "$ref" : "#/definitions/parameter"
+       }
+    },
+    "parameter" : {
+      "type" : "object",
+      "properties" : {
+         "class" : {"type":"string"},
+         "description" : {"type":"string"}
+       },
+       "required" : ["class"]
+    }
+ }
+})"_json;
+
+json getInjectionPointDeclarationSchema() {
+    return __injectionPoint_declaration_schema__;
+}
+
+
 json getTestDelcarationJsonSchema() {
     if (__test_declaration_schema__.find("raw") == __test_declaration_schema__.end())
         __test_declaration_schema__["raw"] = nlohmann::json_schema::draft7_schema_builtin;
     return __test_declaration_schema__;
 }
 
-
 json getTestValidationSchema(json &testDeclaration) {
     json schema = R"(
     {
        "$schema": "http://json-schema.org/draft-07/schema#",
        "$id": "http://rnet-tech.net/vv.schema.json",
-       "type": "object",
-       "definitions": {
-          "testStage": {
-             "properties" : {
-                   "parameter" : {"type" : "string" },
-                   "transform" : { "oneOf" : [{"type" : "array", "items" : { "type" : "string" }}, {"type" : "string"} ]}
-               },
-               "type": "object",
-               "required" : ["parameter","transform"]
-          }
-        }
+       "type": "object"
     })"_json;
 
     schema["title"] = testDeclaration["title"];
@@ -217,7 +264,7 @@ json getTestValidationSchema(json &testDeclaration) {
     json parameters = R"({"type":"object" ,"properties" : {}, "additionalProperties" : false})"_json;
     parameters["required"] = testDeclaration["requiredParameters"];
     for ( auto it : testDeclaration["parameters"].items()) {
-        parameters["properties"][it.key()] = R"({"oneOf" : [{"$ref" : "#/definitions/testStage"},{"type":"string"}]})"_json;
+        parameters["properties"][it.key()] = R"({"type":"string"})"_json;
     }
 
     properties["parameters"] = parameters;

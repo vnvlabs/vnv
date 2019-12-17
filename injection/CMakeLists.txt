@@ -3,8 +3,8 @@
 option(WITH_ADIOS_ENGINE "Use the Adios Engine" ON)
 option(WITH_BUILT_IN_TESTS "Build the VnV test libraries" ON)
 
-#Build the Json Parser Library ( json-schema-validator TODO github-link)
-add_subdirectory(third-party/json-schema-validator)
+#Add the third party targets ( json-schema-validator TODO github-link)
+add_subdirectory(third-party)
 
 add_subdirectory(clang)
 
@@ -30,18 +30,21 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-schema.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-dist-utils.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-cinterface.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-options-parser.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-logging.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/vv-registration.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/engines/vv-debug-engine.cpp)
 
 
 target_link_libraries(injection PRIVATE dl)
 target_link_libraries(injection PUBLIC jsv::jsv)
+target_link_libraries(injection PRIVATE xxhash::xxhash)
 
 
 if ( WITH_BUILT_IN_TESTS)
 target_sources(injection PRIVATE 
-	${CMAKE_CURRENT_LIST_DIR}/src/tests/provenance.cpp)
-        ${CMAKE_CURRENT_LIST_DIR}/src/tests/stdout-reroute.cpp)
+        ${CMAKE_CURRENT_LIST_DIR}/src/tests/provenance.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/tests/stout-reroute.cpp)
 endif()
 
 

@@ -17,8 +17,8 @@ IUnitTester::IUnitTester(){};
 IUnitTester::~IUnitTester(){};
 
 UnitTestStore& UnitTestStore::getUnitTestStore() {
-  static UnitTestStore* store = new UnitTestStore();
-  return *store;
+  static UnitTestStore store;
+  return store;
 }
 
 void UnitTestStore::addUnitTester(std::string name, tester_ptr m) {
@@ -42,11 +42,11 @@ void UnitTestStore::runAll(bool /*stopOnFail*/) {
 }
 
 void UnitTestStore::print() {
-    VnV_BeginStage("Registered Unit Test Modules");
+    int a = VnV_BeginStage("Registered Unit Test Modules");
     for ( auto it : tester_factory ) {
         VnV_Info("Unit Test Module: %s ", it.first.c_str());
     }
-    VnV_EndStage("");
+    VnV_EndStage(a);
 }
 
 void VnV_registerUnitTester(std::string name, tester_ptr m) {

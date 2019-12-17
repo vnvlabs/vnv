@@ -9,38 +9,48 @@
 #  include <stdio.h>
 #  include <stdarg.h>
 # include "vv-output.h"
-
+#include "vv-runtime.h"
+#include <sstream>
 using namespace VnV;
 
-std::string VnV::logLevelToString(LogLevel level) {
-  switch (level) {
-  case LogLevel::DEBUG:
-    return "DEBUG";
-  case LogLevel::INFO:
-    return "INFO";
-  case LogLevel::WARN:
-    return "WARN";
-  case LogLevel::ERROR:
-    return "ERROR";
-  case LogLevel::STAGE_START:
-    return "BEGIN STAGE";
-  case LogLevel::STAGE_END:
-    return "END STAGE";
+namespace {
+constexpr const char *red = "\033[31m";
+constexpr const char *green = "\033[32m";
+constexpr const char *blue = "\033[34m";
+constexpr const char *magenta = "\033[35m";
+constexpr const char *yellow = "\033[33m";
+constexpr const char *white = "\033[37m";
+constexpr const char *cyan = "\033[36m";
+constexpr const char *reset = "\033[0m";
+}
+
+std::string VnV::Logger::logLevelToColor(std::string level, std::string message) {
+   if (!RunTime::instance().useAsciiColors())
+       return message;
+
+  auto it = logLevelsToColor.find(level);
+  if ( it != logLevelsToColor.end()) {
+      std::ostringstream oss;
+      oss << it->second << message << reset;
+      return oss.str();
   }
-  throw "enum added to LogLevel without implementing to string method [see vv-logging.cpp]";
+  return message;
 };
 
-Logger::Logger(){};
 
-LogLevel VnV::logLevelFromString(std::string level) {
-  if (level.compare("DEBUG") == 0) return LogLevel::DEBUG;
-  if (level.compare("INFO") == 0) return LogLevel::INFO;
-  if (level.compare("WARN") == 0) return LogLevel::WARN;
-  if (level.compare("ERROR") == 0) return LogLevel::ERROR;
-  if (level.compare("BEGIN STAGE") == 0) return LogLevel::STAGE_START;
-  if (level.compare("END STAGE") == 0) return LogLevel::STAGE_END;
-  throw "Invalid";
+Logger::Logger(){
+    registerLogLevel("STAGE_START",yellow);
+    registerLogLevel("STAGE_END", yellow);
+    registerLogLevel("INFO", green);
+    registerLogLevel("DEBUG", cyan);
+    registerLogLevel("WARN", magenta);
+    registerLogLevel("ERROR", red);
+};
+
+void Logger::registerLogLevel(std::string name, std::string color) {
+    logLevelsToColor[name] = color;
 }
+
 
 std::string VnV::getIndent(int stage) {
     std::string s = "";
@@ -48,11 +58,11 @@ std::string VnV::getIndent(int stage) {
     return s;
 }
 
-void Logger::setLogLevel(LogLevel level, bool on) {
+void Logger::setLogLevel(std::string level, bool on) {
   logs.insert(std::make_pair(level, on));
 }
 
-void Logger::log(std::string pname, LogLevel level, std::string format) {
+void Logger::log(std::string pname, std::string level, std::string format) {
     if (!locked) return;
     if (packageBlackList.find(pname) != packageBlackList.end()) {
         return;
@@ -61,13 +71,48 @@ void Logger::log(std::string pname, LogLevel level, std::string format) {
     if (it != logs.end() && !it->second) return;
 
     if ( engine ) {
-       EngineStore::getEngineStore().getEngineManager()->getOutputEngine()->Log(pname.c_str(), stage, level, format );
+       EngineStore::getEngineStore().getEngineManager()->getOutputEngine()->Log(pname.c_str(), stage.size(), level, format );
+    } else {
+        std::ostringstream oss;
+        oss << "[" << pname << ":" << level << "] ";
+        if ( outFileName.compare("stdout") == 0) {
+            (*fileptr) << getIndent(stage.size()) << logLevelToColor(level,oss.str()) << format << std::endl;
+        } else {
+            (*fileptr) << getIndent(stage.size()) << oss.str() << format << std::endl;
+
+        }
     }
-    (*fileptr) << getIndent(stage) << "[" << pname << ":" << logLevelToString(level) << "] " << format
-               << std::endl;
+
+ }
+
+
+
+int Logger::beginStage(std::string pname, std::string format, va_list args) {
+    log_c(pname,"STAGE_START", format, args);
+    stage.push(refcount);
+    return refcount++;
 }
 
-void Logger::log_c(std::string pname, LogLevel level, std::string format, va_list args) {
+void Logger::endStage(int ref ) {
+    if ( stage.size() == 0) return;
+
+    int cStage = stage.top();
+    while ( cStage != ref  )  {
+        VnV_Warn("Incorrect stage name or missing StageEnd call %d (expected: %d)", ref, cStage);
+        stage.pop();
+        if ( stage.size() == 0 ) {
+            break;
+        } else {
+            cStage = stage.top();
+        }
+      }
+      if ( stage.size() > 0 )
+         stage.pop();
+      log("","STAGE_END", "");
+}
+
+void Logger::log_c(std::string pname, std::string level, std::string format, va_list args) {
+
       char buff[MAX_LOG_SIZE];
       int j = vsnprintf(buff,MAX_LOG_SIZE,format.c_str(), args);
 
@@ -76,13 +121,7 @@ void Logger::log_c(std::string pname, LogLevel level, std::string format, va_lis
       if ( j > MAX_LOG_SIZE) {
           log(pname, level, "Following message has been truncated due to buffer overflow");
       }
-      if ( level == LogLevel::STAGE_END) {
-         stage--;
-      }
-      log(pname,level, message);
-      if ( level == LogLevel::STAGE_START) {
-          stage++;
-      }
+      log(pname,level,message);
 }
 
 void Logger::addToBlackList(std::string packageName){
@@ -112,7 +151,7 @@ void Logger::setLog(const std::string& filename) {
 }
 
 void Logger::print() {
-    VnV_BeginStage("Logger Configuration");
+    int a = VnV_BeginStage("Logger Configuration");
     VnV_Info("Outfile Name: %s", outFileName.c_str());
-    VnV_EndStage("");
+    VnV_EndStage(a);
 }

@@ -12,12 +12,11 @@
     "logs" : {}
   },
   "testLibraries": [
-    "../tests/libdummyTestLibOne.so"
+    "../tests/dummyTestLibOne/libdummyTestLibOne.so"
   ],
   "outputEngine": {
     "type": "debug",
     "config": {
-      "something": "else"
     }
   },
   "injectionPoints": [
@@ -25,7 +24,7 @@
 		"name" : "initialization",
 		"tests" : [	
 			{
-				"name" : "provenace",
+				"name" : "provenance",
 				"runScope" : ["all"],
 				"config" : {
                                     "expectedResult" : {},
@@ -34,9 +33,10 @@
 				    "parameters": {
 					    "argc" : "argc",
 					    "argv" : "argv",
-					    "configFile" : "configFile"
+					    "config" : "configFile"
 				    }
 				}
+			}
 		]
 	  }
   ]	  

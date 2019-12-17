@@ -23,29 +23,30 @@ static json __debug_engine_schema__ = R"(
 DebugEngine::DebugEngine() {}
 
 void DebugEngine::Put(std::string variableName, double& value) {
-  printf("DEBUG ENGINE PUT %s = %f", variableName.c_str(), value);
+  printf("DEBUG ENGINE PUT %s = %f\n", variableName.c_str(), value);
 }
 void DebugEngine::Put(std::string variableName, int& value) {
-  printf("DEBUG ENGINE PUT %s = %d", variableName.c_str(), value);
+  printf("DEBUG ENGINE PUT %s = %d\n", variableName.c_str(), value);
 }
 void DebugEngine::Put(std::string variableName, float& value) {
-  printf("DEBUG ENGINE PUT %s = %f", variableName.c_str(), value);
+  printf("DEBUG ENGINE PUT %s = %f\n", variableName.c_str(), value);
 }
 void DebugEngine::Put(std::string variableName, long& value) {
-  printf("DEBUG ENGINE PUT %s = %ld", variableName.c_str(), value);
+  printf("DEBUG ENGINE PUT %s = %ld\n", variableName.c_str(), value);
 }
 
 void DebugEngine::Put(std::string variableName, std::string& value) {
-  printf("DEBUG ENGINE PUT %s = %s", variableName.c_str(), value.c_str());
+  printf("DEBUG ENGINE PUT %s = %s\n", variableName.c_str(), value.c_str());
 }
 
-void DebugEngine::Log(const char *package, int stage, LogLevel level, std::string message) {
+void DebugEngine::Log(const char *package, int stage,  std::string level, std::string message) {
+
     std::string s = getIndent(stage);
-    printf("%s[%s:%s]: %s", s.c_str(), package, logLevelToString(level).c_str(), message.c_str() );
+    printf("%s[%s:%s]: %s\n", s.c_str(), package, level.c_str(), message.c_str() );
 }
 
 void DebugEngine::Define(VariableEnum type, std::string variableName) {
-  VnV_Info("DEBUG ENGINE DEFINE %s = %s", variableName.c_str(), VariableEnumFactory::toString(type).c_str());
+  printf("DEBUG ENGINE DEFINE %s = %s\n", variableName.c_str(), VariableEnumFactory::toString(type).c_str());
 }
 
 DebugEngineWrapper::DebugEngineWrapper() {}
@@ -58,38 +59,38 @@ json DebugEngineWrapper::getConfigurationSchema() {
 void DebugEngineWrapper::finalize() { VnV_Info("DEBUG ENGINE: FINALIZE"); }
 
 void DebugEngineWrapper::set(json& config) {
-  VnV_Info("DEBUG ENGINE WRAPPER Init with file %s", config.dump().c_str());
+  printf("DEBUG ENGINE WRAPPER Init with file %s\n", config.dump().c_str());
   
   debugEngine = new DebugEngine();
 }
 
-void DebugEngineWrapper::endInjectionPoint(std::string id, int stageVal) {
+void DebugEngineWrapper::injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageVal) {
   if (debugEngine) {
-    VnV_Info("DEBUG ENGINE End Injection Point %s : %s ", id.c_str(), stageVal);
+    printf("DEBUG ENGINE End Injection Point %s : %s \n", id.c_str(), InjectionPointTypeUtils::getType(type,stageVal).c_str());
   } else {
     throw "Engine not initialized";
   }
 }
 
-void DebugEngineWrapper::startInjectionPoint(std::string id, int stageVal) {
+void DebugEngineWrapper::injectionPointStartedCallBack(std::string id, InjectionPointType type, std::string stageVal) {
   if (debugEngine) {
-    VnV_Info("DEBUG ENGINE Start Injection Point %s : %s ", id.c_str(), stageVal);
+    printf("DEBUG ENGINE Start Injection Point %s : %s \n", id.c_str(),InjectionPointTypeUtils::getType(type,stageVal).c_str());
   } else {
     throw "Engine not initialized";
   }
 }
 
-void DebugEngineWrapper::startTest(std::string id, int stageVal) {
+void DebugEngineWrapper::testStartedCallBack(std::string testName) {
   if (debugEngine) {
-    VnV_Info("DEBUG ENGINE Start Test %s : %s ", id.c_str(), stageVal);
+    printf("DEBUG ENGINE Start Test %s \n", testName.c_str() );
   } else {
     throw "Engine not initialized";
   }
 }
 
-void DebugEngineWrapper::stopTest(bool result_) {
+void DebugEngineWrapper::testFinishedCallBack(bool result_) {
   if (debugEngine) {
-    VnV_Info("DEBUG ENGINE Stop Test. Test Was Successful-> %s", result_);
+    printf("DEBUG ENGINE Stop Test. Test Was Successful-> %d\n", result_);
   } else {
     throw "Engine not initialized";
   }

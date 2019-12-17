@@ -23,7 +23,7 @@ namespace VnV {
 struct LoggerInfo {
     bool on;
     std::string filename;
-    std::map<LogLevel, bool> logs;
+    std::map<std::string, bool> logs;
     std::set<std::string> blackList;
 };
 
@@ -46,6 +46,7 @@ struct RunInfo {
   bool runTests; /**< Should any tests be run */
   std::set<std::string> testLibraries; /*< List of file paths to included plugin libraries */
   std::map<std::string, std::vector<json>> injectionPoints; /**< all injection points with tests */
+  json toolConfig;
 
   LoggerInfo logInfo;
   EngineInfo engineInfo; /**< Information about the IO engine */

@@ -5,35 +5,30 @@
 #include "vv-logging.h"
 
 #include <dlfcn.h>
-
+#include <vector>
+#include <map>
+#include <set>
+#include <list>
 #include <iostream>
 #include <sstream>
 #include "vv-output.h"
 #include "vv-schema.h"
 #include "VnV.h"
+
+
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
-void* DefaultTransform::_Transform(std::pair<std::string, void*> ip,
-                                  std::string testParameterType) {
-  if (ip.first.compare(testParameterType) == 0) return ip.second;
-  throw "Default Transform does not apply";
-}
-
-
-void ITransform::addInnerTransform(std::string trans) {
-      innerTransforms.push_back(trans);
-}
-
-void* ITransform::Transform(std::pair<std::string,void*> ip, std::string tp) {
-    for (auto it = innerTransforms.rbegin(); it != innerTransforms.rend(); it++) {
-       ITransform* itrans = TestStore::getTestStore().getTransform(*it);
-       if ( itrans != nullptr) {
-        ip.second = itrans->Transform(ip,tp);
-       }
+void* ITransform::Transform(std::string outputType, std::string inputType, void* ptr ) {
+    if ( inputType.compare(outputType) == 0 ) {
+        return ptr;
+    } else {
+        throw "Input Type Does not match output type when using Default Transform.";
     }
-    return _Transform(ip,tp);
 }
+
+ITransform::ITransform(){};
+ITransform::~ITransform(){};
 
 const json& TestConfig::getAdditionalParameters() const {
     return additionalParameters;
@@ -56,109 +51,89 @@ void TestConfig::setName(std::string name) { testName = name; }
 std::string TestConfig::getName() const { return testName; }
 
 
-void TestConfig::addTransform(std::string testParameter,
-                                   std::string ipParameter, std::vector<std::string> trans) {
-  transforms.insert(
-      std::make_pair(testParameter, std::make_pair(ipParameter, trans)));
-}
 
 
-
-
-
-
-std::pair<std::string, std::shared_ptr<ITransform>>
-TestConfig::getTransform(std::string s) const {
-
-  //VnV_Debug("Looking for a transform called {}.", s);
-  auto it = transforms.find(s);
-  if (it != transforms.end()) {
-    //VnV_Debug("Found a transform called {} {}. ", it->first , it->second.first) ;
-    std::shared_ptr<ITransform> transform = nullptr;
-
-    for ( auto &itt : it->second.second ) {
-       if ( itt == it->second.second.front() )
-            transform.reset(TestStore::getTestStore().getTransform(itt));
-       else {
-           transform->addInnerTransform(itt);
-       }
-
-    }
-    return std::make_pair(it->second.first, transform);
-  } else {
-       //VnV_Debug("Could not find a transform called {}. Returning the default transform", s);
-       return std::make_pair(s, std::make_shared<DefaultTransform>());
-    }
-}
 
 void TestConfig::print() {
-    VnV_BeginStage("Test Configuration %s", getName().c_str());
+    int a = VnV_BeginStage("Test Configuration %s", getName().c_str());
     VnV_Info("Expected Result: %s", getExpectedResult().dump().c_str());
     VnV_Info("Configuration Options: %s", getAdditionalParameters().dump().c_str());
-    VnV_BeginStage("Injection Point Mapping");
-    for ( auto it : transforms ) {
-        std::ostringstream oss;
-        int close = 0;
-        for ( auto itt : it.second.second) {
-            oss << itt << "(";
-            close++;
-        }
-        oss << it.second.first ;
-        while (close-- > 0) {
-            oss << ")"; close--;
-        }
-        VnV_Info("%s -> %s ", it.first.c_str(), oss.str().c_str());
-
+    int b = VnV_BeginStage("Injection Point Mapping");
+    for ( auto it : parameterMap ) {
+        VnV_Info("%s(%s) -> %s [%d]", it.first.c_str(), it.second.parameterType.c_str(), it.second.injectionPointParameter.c_str(), it.second.required);
     }
-    VnV_EndStage("");
-    VnV_EndStage("");
+    VnV_EndStage(b);
+    VnV_EndStage(a);
 }
 
-TestConfig::TestConfig(std::string name, json &testConfigJson) {
+TestConfig::TestConfig(std::string name, json &testConfigJson, json &testDeclarationJson) {
   setName(name);
   additionalParameters = testConfigJson["configuration"];
   expectedResult = testConfigJson["expectedResult"];
 
   for (auto& param : testConfigJson["parameters"].items()) {
        std::string testParameter = param.key();
-       std::string injectionParameter;
-       std::vector<std::string> transforms;
-       // Three options for a parameter are given
-       // 1) testPName:ipName -> testP = ipName;
-       // 2) testPName:{ parameter:ipName ,transform :tname } -> testP = tname(ipName)
-       // 3) testPName:{parameter:ipName, transform: [tname1,tname2,...,tnameN]} -> testP = tname1(tname2(...(tnameN(ipName))...))
-       if ( param.value().type() == json::value_t::string) {
-           injectionParameter = param.value().get<std::string>();
-       } else {
-           injectionParameter = param.value().find("parameter")->get<std::string>();
-           if ( param.value()["transform"].type() == json::value_t::string ) {
-               transforms.push_back(param.value()["transform"].get<std::string>());
-           } else {
-               for ( auto tform : param.value()["transform"].items()) {
-                   transforms.push_back(tform.value().get<std::string>());
-               }
-           }
-       }
-       std::cout << testParameter << " " << injectionParameter << std::endl;
-       addTransform(testParameter,injectionParameter,transforms);
+       std::string injectionParameter = param.value();
+       std::string testParameterType = testDeclarationJson["parameters"][testParameter].get<std::string>();
+       bool required = (testDeclarationJson["requiredParameters"].find(testParameter) != testDeclarationJson["requiredParameters"].end());
+       parameterMap[testParameter] = { injectionParameter, required, testParameterType };
   }
 }
 
-ITransform::ITransform() {}
+
+bool TestConfig::isRequired(std::string name) const {
+    auto it = parameterMap.find(name);
+    if (it != parameterMap.end()) {
+        return it->second.required;
+    }
+    return false;
+}
+
 
 ITest::ITest(TestConfig &config) : m_config(config)   {
 }
 
+ParameterMapping TestConfig::getMapping(std::string parmaeterName) const {
+    auto it = parameterMap.find(parmaeterName);
+    if (it != parameterMap.end()) {
+        return it->second;
+    }
+    throw "Parameter Not Found";
+}
+
+void* TestConfig::mapParameter(std::string parameterName, NTV &parameters) const {
+  ParameterMapping mapping = getMapping(parameterName);
+
+  //Pull the associated Injection point param from the NTV.
+  auto ip_parameter = parameters.find(mapping.injectionPointParameter);
+  if (ip_parameter == parameters.end()) {
+      if ( mapping.required) {
+          throw "Required Parameter was not found";
+      } else {
+        return nullptr;
+      }
+  }
+  // Transform the injection point parameter into the test parameter
+  return TestStore::getTestStore().getTransform(mapping.parameterType, ip_parameter->second.first, ip_parameter->second.second);
+}
+
+std::map<std::string, void*> TestConfig::mapParameters(NTV &parameters) const {
+    std::map<std::string, void*> rparameters;
+    for (auto it: parameterMap) {
+        rparameters.insert(std::make_pair(it.first,mapParameter(it.first,parameters)));
+    }
+    return rparameters;
+}
 
 // Index is the injection point index. That is, the injection
 // point that this test is being run inside.
-TestStatus ITest::_runTest(IOutputEngine* engine, int stageVal, NTV& params) {
-    //VnV_Debug("Runnnig Test {} " , m_config.getName());
+TestStatus ITest::_runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId, NTV &parameters) {
+    VnV_Debug("Runnnig Test %s " , m_config.getName().c_str());
 
-    EngineStore::getEngineStore().getEngineManager()->startTest(
-        m_config.getName(), 0);
-    TestStatus s = runTest(engine, stageVal, params);
-    EngineStore::getEngineStore().getEngineManager()->stopTest(
+    EngineStore::getEngineStore().getEngineManager()->testStartedCallBack(m_config.getName());
+    std::map<std::string,void*> p = m_config.mapParameters(parameters);
+    TestStatus s = runTest(engine,type,stageId, p);
+    EngineStore::getEngineStore().getEngineManager()->testFinishedCallBack(
         (s == SUCCESS) ? true : false);
     return s;
 }
@@ -213,13 +188,13 @@ TestConfig TestStore::validateTest(json &testJson) {
   auto it = test_factory.find(name);
   if (it != test_factory.end()) {
 
-    json test_schema;
+    json test_schema, testDeclaration;
     auto itt = registeredTests.find(name);
     if (itt == registeredTests.end()) {
 
       // This is the first time we have encountered this test.
       // So, we need to build the schema for it, and validate.
-      json testDeclaration = it->second.second();
+      testDeclaration = it->second.second();
 
       //Validate the testDeclaration itself
       json_validator validator;
@@ -233,9 +208,10 @@ TestConfig TestStore::validateTest(json &testJson) {
       }
 
       test_schema = getTestValidationSchema(testDeclaration);
-      registeredTests.insert(std::make_pair(name, test_schema));
+      registeredTests.insert(std::make_pair(name, std::make_pair(test_schema,testDeclaration)));
     } else {
-      test_schema = itt->second;
+      test_schema = itt->second.first;
+      testDeclaration = itt->second.second;
     }
 
     // Validate the config file.
@@ -264,12 +240,10 @@ TestConfig TestStore::validateTest(json &testJson) {
     if ( testConfigJson.find("parameters") == testConfigJson.end() ) {
         testConfigJson["parameters"] = R"({})"_json;
     }
-    std:: cout << test_schema << " \n\n " << testConfigJson << std::endl;
-
     validator.validate(testConfigJson);
 
     // Create the Test Config File
-    return TestConfig(name, testConfigJson);
+    return TestConfig(name, testConfigJson,testDeclaration );
   }
   throw "test not found";
 }
@@ -285,42 +259,76 @@ ITest* TestStore::getTest(TestConfig& config) {
   return nullptr;
 }
 
-ITransform* TestStore::getTransform(std::string name) {
-  auto it = TestStore::getTestStore().trans_factory.find(name);
+void* TestStore::getTransform(std::string from, std::string to, void* ptr) {
 
-  if (it != TestStore::getTestStore().trans_factory.end()) {
-    return it->second.first();
-  } else if ( name.compare("default")==0) {
-      return new DefaultTransform();
-  }
-  return nullptr;
+   // TODO -- Allow for multiple transforms. Currently, to obtain a transform, we
+   // search the trans_map for an entry related to the class "from". If one is
+   // found, we search the inner map from an entry named "to". If that is found
+   // then the transform with the name trans_map[from][to] has declared that it
+   // can do the required transform.
+
+   // To improve this, we could create a directed transform graph. This would allow
+   // us to chain together multiple transforms to achieve the desired result.
+
+   // TODO Need to figure out the memeory management for these transforms.
+
+   if  (from.compare(to) == 0) {
+       return ptr;
+   } else {
+     auto t = trans_map.find(from);
+     if (t != trans_map.end()) {
+       auto tt = t->second.find(to);
+       if ( tt != t->second.end()) {
+          ITransform *trans = trans_factory.find(tt->second)->second();
+          return trans->Transform(to,from,ptr);
+       }
+     }
+     VnV_Warn("Cannot Convert from Object from (%s) to (%s).", from.c_str(),to.c_str());
+     return ptr;
+   }
 }
 
+
 void TestStore::print() {
-    VnV_BeginStage("Test Store Configuration");
-    VnV_BeginStage("Loaded Libraries");
+    auto a = VnV_BeginStage("Test Store Configuration");
+
+    auto b =VnV_BeginStage("Loaded Libraries");
     for ( auto it : testLibraryPaths) {
         VnV_Info("%s",it.c_str());
     }
-    VnV_EndStage("");
-    VnV_BeginStage("Loaded Tests");
-    for ( auto it : test_factory ) {
-        VnV_BeginStage("Test: %s" , it.first.c_str());
-        VnV_Info("Schema %s", it.second.second().dump().c_str());
-        VnV_EndStage("");
-    }
+    VnV_EndStage(b);
 
-    VnV_BeginStage("Loaded Transforms");
-    for ( auto it : trans_factory) {
-        VnV_BeginStage("Transform: %s", it.first.c_str());
-        VnV_Info("Schema: %s" , it.second.second().dump().c_str());
-        VnV_EndStage("");
+    b = VnV_BeginStage("Loaded Tests");
+    for ( auto it : test_factory ) {
+        auto c = VnV_BeginStage("Test: %s" , it.first.c_str());
+        VnV_Info("Schema %s", it.second.second().dump().c_str());
+        VnV_EndStage(c);
     }
-    VnV_EndStage("");
+    VnV_EndStage(b);
+
+    b = VnV_BeginStage("Loaded Transforms");
+    for ( auto it : trans_factory) {
+        VnV_Info("Transform: %s", it.first.c_str());
+    }
+    VnV_EndStage(b);
+
+    VnV_EndStage(a);
 }
 
 void TestStore::addTransform(std::string name, trans_ptr t, declare_transform_ptr v) {
-  trans_factory.insert(std::make_pair(name, std::make_pair(t,v)));
+  trans_factory.insert(std::make_pair(name,t));
+  json x = v();
+  json_validator validator;
+  validator.set_root_schema(getTransformDeclarationSchema());
+  validator.validate(x);
+
+  for( auto from : x.items() ) {
+      std::string fromStr = from.key();
+      auto from_trans = trans_map.insert(std::make_pair(fromStr,std::map<std::string,std::string>())).first->second;
+      for ( auto to : from.value().items() ){
+          from_trans.insert(std::make_pair(to.value(),name));
+      }
+  }
 }
 
 void VnV_registerTest(std::string name, maker_ptr m, declare_test_ptr v) {
