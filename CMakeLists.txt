@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.6)
 
-project(vnv LANGUAGES CXX)
+project(vnv LANGUAGES CXX C)
 
 set(PROJECT_VERSION 1.0.0)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")

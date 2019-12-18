@@ -96,15 +96,30 @@ void DebugEngineWrapper::testFinishedCallBack(bool result_) {
   }
 }
 
-IOutputEngine* DebugEngineWrapper::getOutputEngine() { return debugEngine; }
-
-extern "C" {
-OutputEngineManager* DebugEngineBuilder() { return new DebugEngineWrapper(); }
+void DebugEngineWrapper::unitTestStartedCallBack(std::string unitTestName) {
+    if  (debugEngine) {
+        printf("DEBUG ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
+    } else {
+        throw "Engine not initialized";
+    }
 }
 
-class Debug_engine_proxy {
- public:
-  Debug_engine_proxy() { VnV_registerEngine("debug", DebugEngineBuilder); }
-};
+void DebugEngineWrapper::unitTestFinishedCallBack(std::map<std::string, bool> &results){
+    if (debugEngine) {
+        printf("Test Results\n");
+        bool suiteSuccessful = true;
+        for ( auto it : results ) {
+            printf("\t%s : %s\n", it.first.c_str(), (it.second) ? "Successful" : "Failed");
+            if (suiteSuccessful && !it.second) {
+                suiteSuccessful = false;
+           }
+        }
+        printf("DEBUG ENGINE Test Suite Completed : %s\n", (suiteSuccessful) ? "Successfully" : "Unsuccessfully");
+    } else {
+        throw "Engine Not Initialized";
+    }
+}
 
-Debug_engine_proxy debug_engine_proxy;
+IOutputEngine* DebugEngineWrapper::getOutputEngine() { return debugEngine; }
+
+OutputEngineManager* DebugEngineBuilder() { return new DebugEngineWrapper(); }

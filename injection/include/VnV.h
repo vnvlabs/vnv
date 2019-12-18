@@ -3,12 +3,15 @@
 #ifndef VV_VNV_H
 #define VV_VNV_H
 
+
+
+
 #ifndef WITHOUT_VNV
 
 #include "vnv-macros.h"
 
 #ifndef PACKAGENAME
-    #define PACKAGENAME VnV
+#  error "VnV: PACKAGENAME is not defined. Please Ensure a Macro called PACKAGENAME is defined before VnV.h is loaded"
 #endif
 
 #define VnV_E_STR(x) #x
@@ -47,6 +50,32 @@ typedef void (*registrationCallBack)();
 #define VNV_END_PARAMETERS_S VNV_STR(VNV_END_PARAMETERS)
 
 /**
+ * @brief VnV_init
+ * @param argc argc from the command line ( used in case of MPI_Init )
+ * @param argv argv from the command line ( used in case of MPI_Init )
+ * @param filename The configuration file name
+ * @return todo.
+ *
+ * Initialize the VnV library. If this function is not called, no injection
+ * point testing will take place.
+ */
+EXTERNC void VnV_init(int* argc, char*** argv, const char* filename, registrationCallBack callback);
+/**
+ * @brief VnV_finalize
+ * @return todo
+ *
+ * Calls RunTime::instance().Finalize();
+ */
+EXTERNC void VnV_finalize();
+/**
+ * @brief VnV_runUnitTests
+ * @return tod
+ *
+ * Calls RunTime::instance().runUnitTests().
+ */
+EXTERNC void VnV_runUnitTests();
+
+/**
  * @brief VnV_injectionPoint
  * @param stageVal The stage of this injection point
  * @param id The id of the injection point
@@ -63,7 +92,7 @@ EXTERNC void _VnV_injectionPoint_begin(const char * packageName, const char* id,
 EXTERNC void _VnV_injectionPoint_end(const char * packageName, const char* id, const char* function, const char* file, int line, ...);
 EXTERNC void _VnV_injectionPoint_loop(const char * packageName, const char* id, const char* stageId, const char* function, const char* file, int line, ...);
 EXTERNC void _VnV_registerInjectionPoint(const char* name, const char *json_str);
-EXTERNC void _VnV_registerLogLevel(const char *name, const char *color);
+
 /**
  * Helper Define
  */
@@ -73,7 +102,6 @@ EXTERNC void _VnV_registerLogLevel(const char *name, const char *color);
  * Writes a Valid _Pragma statement
  */
 #define VNVPRAG(prefix,...) _Pragma(H1(prefix, __VA_ARGS__))
-
 
 /**
  * Call the Runtime VnV_InjectionPoint function. This runs the tests.
@@ -98,56 +126,20 @@ EXTERNC void _VnV_registerLogLevel(const char *name, const char *color);
     VNVPRAG(VnV, InjectionLoopIter, PACKAGENAME, NAME, STAGE, __VA_ARGS__) \
     _VnV_injectionPoint_loop(VNV_STR(PACKAGENAME),#NAME,#STAGE, __PRETTY_FUNCTION__,__FILE__,__LINE__, EVERY_SECOND(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
+//REGISTER AN INJECTION POINT
 #define Register_Injection_Point(NAME, CONFIG) \
     _VnV_registerInjectionPoint(NAME, CONFIG);
 
 
-#define Register_Log_Level(NAME, COLOR) \
-    _VnV_registerLogLevel(NAME, COLOR);
-
-/**
- * @brief VnV_init
- * @param argc argc from the command line ( used in case of MPI_Init )
- * @param argv argv from the command line ( used in case of MPI_Init )
- * @param filename The configuration file name
- * @return todo.
- *
- * Initialize the VnV library. If this function is not called, no injection
- * point testing will take place.
- */
-EXTERNC int VnV_init(int* argc, char*** argv, const char* filename, registrationCallBack callback);
-/**
- * @brief VnV_finalize
- * @return todo
- *
- * Calls RunTime::instance().Finalize();
- */
-EXTERNC int VnV_finalize();
-
-/**
- * @brief VnV_runUnitTests
- * @return tod
- *
- * Calls RunTime::instance().runUnitTests().
- */
-EXTERNC int VnV_runUnitTests();
-
+// IF LOGGING IS TURNED ON.
 #ifndef WITHOUT_LOGGING
 
-/** Format attr allows for compile time checking of printf style functions.
- * Internally, the logger using vsnprintf, so, applying this attribute to
- * these external functions makes sense
- */
-#define FORMAT_ATTR __attribute__ ((format(printf,3,4)))
-
+EXTERNC void _VnV_registerLogLevel(const char *name, const char *color);
 EXTERNC void _VnV_Log(const char *p, const char * level, const char * message, ... ) __attribute__((format(printf,3,4)));
-
 EXTERNC int _VnV_BeginStage(const char *p, const char * message, ...) __attribute__((format(printf,2,3)));
 EXTERNC void _VnV_EndStage(int ref);
 
-
-#undef FORMAT_ATTR
-
+#define Register_Log_Level(NAME, COLOR) _VnV_registerLogLevel(NAME, COLOR);
 #define VnV_Debug(...) _VnV_Log(PACKAGENAME_S,"DEBUG",__VA_ARGS__)
 #define VnV_Warn(...) _VnV_Log(PACKAGENAME_S,"WARN",__VA_ARGS__)
 #define VnV_Error(...) _VnV_Log(PACKAGENAME_S,"ERROR",__VA_ARGS__)
@@ -161,8 +153,10 @@ EXTERNC void _VnV_EndStage(int ref);
 #  define VnV_Warn(...)
 #  define VnV_Error(...)
 #  define VnV_Info(...)
-#  define VnV_BeginStage(...)
+#  define VnV_Log(...)
+#  define VnV_BeginStage(...) 1;
 #  define VnV_EndStage(...)
+#  define Register_Log_Level(...)
 
 #endif //WITHOUT LOGGING.
 
@@ -172,12 +166,24 @@ EXTERNC void _VnV_EndStage(int ref);
 // No VnV, so just define out all injection point calls.
 
 #  define INJECTION_POINT(...)
+#  define INJECTION_LOOP_BEGIN(...)
+#  define INJECTION_LOOP_END(...)
+#  define INJECTION_LOOP_ITER(...)
+#  define Register_Injection_Point(...)
+
 #  define VnV_Debug(...)
 #  define VnV_Warn(...)
 #  define VnV_Error(...)
 #  define VnV_Info(...)
-#  define VnV_BeginStage(...)
+#  define VnV_Log(...)
+#  define VnV_BeginStage(...) 1;
 #  define VnV_EndStage(...)
+#  define Register_Log_Level(...)
+
+#  define VnV_init(...)
+#  define VnV_finalize(...)
+#  define VnV_runUnitTests()
+# define REGISTER_VNV_CALLBACK void __vnv_call_back_will_never_be_called
 
 #endif
 

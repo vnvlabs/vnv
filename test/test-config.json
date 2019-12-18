@@ -1,25 +1,17 @@
 {
   "runTests": true,
-  "runScopes": [
-    {
-      "name": "all",
-      "run": true
-    }
-  ],
+  "runScopes": [],
   "logging": {
    	"on" : true,
     "filename" : "stdout",
     "logs" : {}
   },
-  "testLibraries": [
-    "../test-libs/libdummyTestLibOne.so"
-  ],
+  "testLibraries": [],
   "outputEngine": {
     "type": "debug",
-    "config": {}
+    "config": {
+    }
   },
-  "injectionPoints": {
-    "config": [],
-    "files": []
-  }
+  "injectionPoints": [
+  ]	  
 }

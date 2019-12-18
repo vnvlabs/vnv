@@ -55,13 +55,15 @@ target_include_directories(injection PRIVATE
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
                             $<INSTALL_INTERFACE:include>
                           )
-                     
+
+target_compile_definitions(injection PRIVATE -DPACKAGENAME=VnV Framework)
+
 if(WITH_ADIOS_ENGINE)
 find_package(ADIOS2)
 if (ADIOS2_FOUND) 
   target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/engines/vv-adios.cpp)
   target_link_libraries(injection PRIVATE adios2::adios2 )
-  target_compile_definitions(injection PRIVATE WITH_MPI=1)
+  target_compile_definitions(injection PRIVATE WITH_MPI=1 PRIVATE WITH_ADIOS=1)
 endif()
 endif()
 

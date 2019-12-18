@@ -1,0 +1,43 @@
+{
+  "runTests": true,
+  "runScopes": [
+    {
+      "name": "all",
+      "run": true
+    }
+  ],
+  "logging": {
+   	"on" : true,
+    "filename" : "stdout",
+    "logs" : {}
+  },
+  "testLibraries": [
+    "../tests/dummyTestLibOne/libdummyTestLibOne.so"
+  ],
+  "outputEngine": {
+    "type": "debug",
+    "config": {
+    }
+  },
+  "injectionPoints": [
+	  {
+		"name" : "initialization",
+		"tests" : [	
+			{
+				"name" : "provenance",
+				"runScope" : ["all"],
+				"config" : {
+                                    "expectedResult" : {},
+				    "configuration": {
+				    },
+				    "parameters": {
+					    "argc" : "argc",
+					    "argv" : "argv",
+					    "config" : "configFile"
+				    }
+				}
+			}
+		]
+	  }
+  ]	  
+}

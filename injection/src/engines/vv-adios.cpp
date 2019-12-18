@@ -10,23 +10,23 @@ using namespace VnV;
 
 static json __adios_input_schema__ = R"(
 {
-	"$schema": "http://json-schema.org/draft-07/schema#",
-	"$id": "http://rnet-tech.net/vv.schema.json",
-	"title": "Adios Engine Input Schema",
-	"description": "Schema for the adios Engine",
-	"type": "object",
-	"properties": {
-		"debug": {
-			"type": "boolean"
-		},
-		"configFile": {
-			"type": "string"
-		},
-		"outFile": {
-			"type": "string"
-		}
-	},
-	"additionalProperties": false
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://rnet-tech.net/vv.schema.json",
+    "title": "Adios Engine Input Schema",
+    "description": "Schema for the adios Engine",
+    "type": "object",
+    "properties": {
+        "debug": {
+            "type": "boolean"
+        },
+        "configFile": {
+            "type": "string"
+        },
+        "outFile": {
+            "type": "string"
+        }
+    },
+    "additionalProperties": false
 })"_json;
 
 
@@ -80,23 +80,23 @@ void AdiosWrapper::finalize() {
 
 void AdiosWrapper::set(json& config) {
 
-  
+
   bool debug = false;
   std::string configFile = "";
   std::string outfile = "./vnv-adios.out";
 
   if ( config.find("debug") != config.end() )
-	debug = config["debug"].get<bool>();
-  if ( config.find("outFile") != config.end() ) 
-	outfile = config["outFile"].get<std::string>();
-  if ( config.find("configFile") != config.end() ) 
-	configFile = config["configFile"].get<std::string>();
+    debug = config["debug"].get<bool>();
+  if ( config.find("outFile") != config.end() )
+    outfile = config["outFile"].get<std::string>();
+  if ( config.find("configFile") != config.end() )
+    configFile = config["configFile"].get<std::string>();
 
-  if ( configFile.empty()) 
-  	adios = new adios2::ADIOS(MPI_COMM_WORLD, debug);
-  else 
-	adios = new adios2::ADIOS(configFile, MPI_COMM_WORLD, debug);
-  
+  if ( configFile.empty())
+    adios = new adios2::ADIOS(MPI_COMM_WORLD, debug);
+  else
+    adios = new adios2::ADIOS(configFile, MPI_COMM_WORLD, debug);
+
   bpWriter = adios->DeclareIO("BPWriter");
   outputFile = bpWriter.AddTransport("File", {{"Library", "POSIX"}, {"Name", outfile.c_str()}});
   identifier = bpWriter.DefineVariable<std::string>("identifier");
@@ -156,19 +156,37 @@ void AdiosWrapper::testFinishedCallBack(bool result_) {
   }
 }
 
+void AdiosWrapper::unitTestStartedCallBack(std::string unitTestName) {
+    if (engine) {
+        engine.BeginStep();
+        engine.Put(identifier, unitTestName);
+        std::string test = "StartUnitTest";
+        engine.Put(type,test);
+    } else {
+        throw "Engine not setup correctly.";
+    }
+
+}
+
+void AdiosWrapper::unitTestFinishedCallBack(std::map<std::string, bool> &results) {
+    if ( engine ) {
+        int suiteSuccess = 1;
+        for ( auto it: results) {
+            int res = (it.second) ? 1 : 0;
+            engine.Put(identifier,it.first);
+            engine.Put(result, res);
+            if (suiteSuccess && !it.second)
+                suiteSuccess = false;
+        }
+        engine.Put(result,suiteSuccess);
+        engine.EndStep();
+    }
+}
+
 IOutputEngine* AdiosWrapper::getOutputEngine() { return adiosEngine; }
 
 json AdiosWrapper::getConfigurationSchema() {
-	return __adios_input_schema__;
+    return __adios_input_schema__;
 }
 
-extern "C" {
 OutputEngineManager* AdiosEngineBuilder() { return new AdiosWrapper(); }
-}
-
-class Adios_engine_proxy {
- public:
-  Adios_engine_proxy() { VnV_registerEngine("adios", AdiosEngineBuilder); }
-};
-
-Adios_engine_proxy adios_engine_proxy;

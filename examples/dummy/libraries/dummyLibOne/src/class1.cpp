@@ -61,5 +61,7 @@ REGISTER_VNV_CALLBACK() {
    }
 })";
 
-    Register_Injection_Point("Hello_temp_sub", config);}
+Register_Injection_Point("Hello_temp_sub", config);
+
+}
 

@@ -67,6 +67,7 @@ int function1(int x) {
 };
 
 void callback() {
+   // Here is where we would register all the injection points.
    VnV_Debug("Inside the Executable Call Back.");
 };
 

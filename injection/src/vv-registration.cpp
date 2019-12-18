@@ -3,12 +3,18 @@
 
 #include "VnV.h"
 #include "VnV-Interfaces.h"
-#include "vv-adios.h"
+
+#ifdef WITH_ADIOS
+  #include "vv-adios.h"
+#endif
+
 #include "vv-debug-engine.h"
 
 namespace VnV {
  namespace {
+#ifdef WITH_ADIOS
     OutputEngineManager* AdiosEngineBuilder() { return new AdiosWrapper(); }
+#endif
     OutputEngineManager* DebugEngineBuilder() { return new DebugEngineWrapper();}
  }
 }
@@ -56,7 +62,9 @@ namespace VnV {
     void registerVnV() {
 
         // Register the engines.
+#ifdef WITH_ADIOS
         VnV_registerEngine("adios", VnV::AdiosEngineBuilder);
+#endif
         VnV_registerEngine("debug",VnV::DebugEngineBuilder);
 
         //Register the tests.

@@ -147,6 +147,11 @@ class OutputEngineManager {
    */
   virtual void testFinishedCallBack(bool result_) = 0;
 
+
+  virtual void unitTestStartedCallBack(std::string unitTestName) = 0;
+
+  virtual void unitTestFinishedCallBack(std::map<std::string,bool> &results) = 0;
+
   /**
    * @brief finalize
    */
@@ -381,20 +386,9 @@ class IUnitTester {
   /**
    * @brief run
    */
-  virtual void run() = 0;
+  virtual std::map<std::string, bool> run(IOutputEngine *engine) = 0;
 
-  /**
-   * @brief getInputJson
-   * @return
-   */
-  virtual std::string getInputJson() = 0;
 
-  /**
-   * @brief verifyResult
-   * @param resultsEngine
-   * @return
-   */
-  virtual bool verifyResult(IOutputEngine* resultsEngine) = 0;
 };
 typedef IUnitTester* tester_ptr();
 typedef ITest* maker_ptr(TestConfig config);

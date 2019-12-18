@@ -1,5 +1,6 @@
 
 #include <stdarg.h>
+#include <stdexcept>
 #include "vv-runtime.h"
 #include "VnV.h"
 #include "vv-injection.h"
@@ -35,23 +36,16 @@ void _VnV_injectionPoint_loop(const char * package, const char* id, const char* 
 
 }
 
-void defaultRegistrationCallBack() {
-    VnV_Info("The Registration Callback has not been set for this package.");
-}
-
-int VnV_init(int* argc, char*** argv, const char* filename, registrationCallBack callback) {
+void  VnV_init(int* argc, char*** argv, const char* filename, registrationCallBack callback) {
   RunTime::instance().Init(argc, argv, filename,&callback);
-  return 1;
 }
 
-int VnV_finalize() {
+void VnV_finalize() {
   RunTime::instance().Finalize();
-  return 1;
 }
 
-int VnV_runUnitTests() {
+void VnV_runUnitTests() {
   RunTime::instance().runUnitTests();
-  return 0;
 }
 
 void _VnV_registerInjectionPoint(const char* name, const char *json_str) {
