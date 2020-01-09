@@ -10,24 +10,14 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <list>
 
 #include "VnV-Interfaces.h"
 #include "vv-output.h"
 
 namespace VnV {
-/**
- * @brief The DefaultTransform class
- */
-class DefaultTransform : public ITransform {
-  /**
-   * @brief Transform
-   * @param ip
-   * @param testParameterType
-   * @return
-   */
-  void* Transform(std::pair<std::string, void*> ip,
-                  std::string testParameterType) override;
-};
+
+
 /**
  * @brief The TestStore class
  */
@@ -37,24 +27,24 @@ class TestStore {
    * @brief testLibraries
    */
   std::vector<void*> testLibraries;
-
+  std::vector<std::string> testLibraryPaths;
   /**
+
    * @brief registeredTests
    */
-  std::set<std::string> registeredTests;
+  std::map<std::string, std::pair<json,json>> registeredTests;
 
   /**
    * @brief test_factory
    */
-  std::map<std::string, std::pair<maker_ptr*, variable_register_ptr*>,
-           std::less<std::string>>
+  std::map<std::string, std::pair<maker_ptr*, declare_test_ptr*>, std::less<std::string>>
       test_factory;
 
   /**
    * @brief trans_factory
    */
   std::map<std::string, trans_ptr*, std::less<std::string>> trans_factory;
-
+  std::map<std::string, std::map<std::string, std::string>> trans_map;
   /**
    * @brief TestStore
    */
@@ -73,21 +63,21 @@ class TestStore {
    * @param m
    * @param v
    */
-  void addTest(std::string name, maker_ptr m, variable_register_ptr v);
+  void addTest(std::string name, maker_ptr m, declare_test_ptr v);
 
   /**
    * @brief addTransform
    * @param name
    * @param p
    */
-  void addTransform(std::string name, trans_ptr p);
+  void addTransform(std::string name, trans_ptr p, declare_transform_ptr v);
 
   /**
    * @brief getTransform
    * @param tname
    * @return
    */
-  ITransform* getTransform(std::string tname);
+  void* getTransform(std::string from, std::string to, void* ptr);
 
   /**
    * @brief getTest
@@ -96,11 +86,22 @@ class TestStore {
    */
   ITest* getTest(TestConfig& config);
 
+  std::vector<TestConfig> validateTests(std::vector<json> &configs);
+
+
+  TestConfig validateTest(json &config);
+
   /**
    * @brief getTestStore
    * @return
    */
   static TestStore& getTestStore();
+
+  /**
+   * @brief print out test store configuration information.
+   */
+  void print();
+
 };
 
 }  // namespace VnV

@@ -2,13 +2,15 @@
 /** @file vv-injection.cpp **/
 
 #include "vv-injection.h"
-
+#include "VnV.h"
 #include <iostream>
 #include "vv-logging.h"
 #include "vv-output.h"
 #include "vv-testing.h"
-
+#include "json-schema.hpp"
+#include "vv-schema.h"
 using namespace VnV;
+using nlohmann::json_schema::json_validator;
 
 InjectionPoint::InjectionPoint(std::string scope) : m_scope(scope) {}
 
@@ -18,12 +20,18 @@ void InjectionPoint::addTest(TestConfig config) {
   std::shared_ptr<ITest> test = nullptr;
   test.reset(TestStore::getTestStore().getTest(config));
 
-  VnV_Debug("Adding the Test {} " , test != nullptr );
 
   if (test != nullptr) {
     m_tests.push_back(test);
   }
 
+}
+
+
+
+void InjectionPoint::setInjectionPointType(InjectionPointType type_, std::string stageId_) {
+    type = type_;
+    stageId = stageId_;
 }
 
 bool InjectionPoint::hasTests() { return m_tests.size() > 0; }
@@ -32,7 +40,7 @@ void InjectionPoint::unpack_parameters(NTV& ntv, va_list argp) {
 
   while (1) {
     std::string variableType = va_arg(argp, char*);
-    if (variableType == "__VV_END_PARAMETERS__") {
+    if (variableType == VNV_END_PARAMETERS_S) {
       break;
     }
     std::string variableName = va_arg(argp, char*);
@@ -42,19 +50,18 @@ void InjectionPoint::unpack_parameters(NTV& ntv, va_list argp) {
   }
 }
 
-void InjectionPoint::runTests(int stageValue, va_list argp) {
-  OutputEngineManager* wrapper =
-      EngineStore::getEngineStore().getEngineManager();
+void InjectionPoint::runTests(va_list argp) {
+  OutputEngineManager* wrapper = EngineStore::getEngineStore().getEngineManager();
   NTV ntv;
   unpack_parameters(ntv, argp);
 
   // Call the method to write this injection point to file.
-  wrapper->startInjectionPoint(getScope(), stageValue);
+
+  wrapper->injectionPointStartedCallBack(getScope(), type, stageId);
   for (auto it : m_tests) {
-      VnV_Debug("Running Test" ) ;   
-	  it->_runTest(wrapper->getOutputEngine(), stageValue, ntv);
+      it->_runTest(wrapper->getOutputEngine(), type, stageId, ntv);
   }
-  wrapper->endInjectionPoint(getScope(), stageValue);
+  wrapper->injectionPointEndedCallBack(getScope(), type,stageId);
 }
 
 InjectionPointStore::InjectionPointStore() {}
@@ -66,9 +73,8 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
     std::shared_ptr<InjectionPoint> injectionPoint =
         std::make_shared<InjectionPoint>(it->first);
     
-    VnV_Debug("Adding the Tests to injection point {} " , key );
+    VnV_Debug("Adding the Tests to injection point %s " , it->first.c_str());
     for (auto& test : it->second) {
-      VnV_Debug("TestConfig {} {} ", test.getName(), test.getStages().size());
       injectionPoint->addTest(test);
     }
     return injectionPoint;
@@ -76,28 +82,31 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
   return nullptr;
 }
 
-std::shared_ptr<InjectionPoint> InjectionPointStore::getInjectionPoint(
-    std::string key, int stage) {
+void InjectionPointStore::registerInjectionPoint(std::string name, std::string json_str) {
+    // Parse the json.
+    json x = json::parse(json_str);
+    // Validate it against the schema for defining an injection point.
+    nlohmann::json_schema::json_validator validator;
+    validator.set_root_schema(getInjectionPointDeclarationSchema());
+    validator.validate(x);
 
-  VnV_Debug("Looking for injection point {} at stage {} ", key, stage );
-    
-  
+    // Register the injection point in the store:(Validation throws)
+    registeredInjectionPoints.insert(std::make_pair(name,x));
+}
+
+std::shared_ptr<InjectionPoint> InjectionPointStore::getInjectionPoint(
+    std::string key, InjectionPointType stage, std::string stageId) {
+
+  //VnV_Debug("Looking for injection point {} at stage {} ", key, stage );
+  std::shared_ptr<InjectionPoint> ptr;
   if (injectionPoints.find(key) == injectionPoints.end()) {
-    VnV_Debug("Injection point {} not configured ", key );
-    for ( auto it : injectionPoints ) {
-	    VnV_Debug("{} {} {}" , it.first, key, key.compare(it.first));
-    }
-    
-    
+    VnV_Debug("Injection point %s not configured ", key.c_str() );
     return nullptr;  // Not configured
-  } else if (stage == -1) {
-    VnV_Debug("Returning new Injection point for stage -1 {} ", key );
-    return newInjectionPoint(key); /* Single stage injection point --> Return an
-                                      injection point directly. */
-  } else if (stage ==
-             0) { /* New staged injection point. -- Add it to the stack */
+  } else if (stage == InjectionPointType::Single) {
+    ptr = newInjectionPoint(key);
+  } else if (stage == InjectionPointType::Begin) { /* New staged injection point. -- Add it to the stack */
     auto it = active.find(key);
-    auto ptr = newInjectionPoint(key); /*Not nullptr because we checked above*/
+    ptr = newInjectionPoint(key); /*Not nullptr because we checked above*/
 
     /* If first of its kind, make a new map entry. */
     if (it == active.end()) {
@@ -107,21 +116,20 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getInjectionPoint(
     } else {
       it->second.push(ptr);
     }
-    return ptr;
   } else {
     // Stage > 0 --> Fetch the queue.
     auto it = active.find(key);
     if (it == active.end() || it->second.size() == 0) {
-      return nullptr; /* queue doesn't exist or no active injection point -->
-                         invalid. */
-    } else if (stage == 9999) {
-      auto iptr = it->second.top();  // Final stage, remove it from the stack.
+      return nullptr; /* queue doesn't exist or not active ip. */
+    } else if (stage == InjectionPointType::End) {
+      ptr = it->second.top();  // Final stage, remove it from the stack.
       it->second.pop();
-      return iptr;
     } else {
-      return it->second.top();  // Intermediate stage -> return top of stack.
+      ptr = it->second.top();  // Intermediate stage -> return top of stack.
     }
   }
+  ptr->setInjectionPointType(stage,stageId);
+  return ptr;
 }
 
 InjectionPointStore& InjectionPointStore::getInjectionPointStore() {
@@ -131,19 +139,47 @@ InjectionPointStore& InjectionPointStore::getInjectionPointStore() {
 
 void InjectionPointStore::addInjectionPoint(std::string name,
                                             std::vector<TestConfig>& tests) {
+    auto reg = registeredInjectionPoints.find(name);
+    if ( reg!=registeredInjectionPoints.end()) {
+        VnV_Warn("Injection Point %s Is Registered, but Injection point to Test Mapping "
 
+                    "has not been validated yet. The injection point to test mapping will"
+                    "be un validated", name.c_str());
+    } else {
+        for ( auto it : registeredInjectionPoints ) {
+            printf("%s %s ", name.c_str(), it.first.c_str());
+        }
+        VnV_Warn("The injection point %s has not been registered with the Injection point store. All calls"
+                 "to this injection point will be validated at runtime.", name.c_str());
+    }
     injectionPoints.insert(std::make_pair(name, tests));
 }
 
 void InjectionPointStore::addInjectionPoints(
     std::map<std::string, std::vector<TestConfig>>& injectionPoints) {
-  this->injectionPoints.insert(injectionPoints.begin(), injectionPoints.end());
-  for (auto i : injectionPoints) {
-    VnV_Debug("Printing Tests for {}", i.first);
-    for (auto it : i.second ) {
-        VnV_Debug("Name {}" , it.getName());
-        for (auto itt : it.getStages()) {
-            VnV_Debug("Stage {}", itt.first);
+    for (auto it : injectionPoints) {
+        addInjectionPoint(it.first,it.second);
+    }
+
+    this->injectionPoints.insert(injectionPoints.begin(), injectionPoints.end());
+}
+
+void InjectionPointStore::print() {
+    auto rip = VnV_BeginStage("Registered Injection Points");
+    for (auto it : registeredInjectionPoints) {
+        VnV_Info("%s: %s", it.first.c_str(), it.second.dump().c_str());
+    }
+    VnV_EndStage(rip);
+
+    int ups = VnV_BeginStage("InjectionPointStore Configuration");
+    for ( auto it: injectionPoints) {
+        int s = VnV_BeginStage("Name: %s", it.first.c_str());
+        for ( auto itt : it.second ) {
+            auto ss = VnV_BeginStage("Test %s:", itt.getName().c_str());
+            itt.print();
+            VnV_EndStage(ss);
         }
-    }}
+        VnV_EndStage(s);
+   }
+   VnV_EndStage(ups);
 }

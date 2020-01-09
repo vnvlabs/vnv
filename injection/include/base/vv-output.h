@@ -46,12 +46,14 @@ class EngineStore {
       registeredEngines; /**< List of all registered engines */
   OutputEngineManager*
       manager; /**< The current Engine Manager being used in VnV for all IO */
-
+  std::string engineName;
   /**
    * @brief EngineStore
    * Private constructor called through public static function getEngineStore()
    */
   EngineStore();
+
+  bool initialized = false; /**< Set when the Engine has been initialized */
 
  public:
   /**
@@ -103,6 +105,13 @@ class EngineStore {
    * that level (or removed in compilation), this function does nothing.
    */
   void printAvailableEngines();
+
+  bool isInitialized();
+
+  /**
+   * @brief print
+   */
+  void print();
 };
 
 }  // namespace VnV

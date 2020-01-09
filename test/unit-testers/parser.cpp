@@ -3,65 +3,60 @@
 
 #include "VnV-Interfaces.h"
 #include "VnV.h"
-
+#include <sstream>
 using namespace VnV;
 
 class ParserUnitTests : public IUnitTester { 
+
+   int x,y;	
 public:
 
-    // The run function is called to run the unit tester. This function should 
-    // contain all the injection points needed to test the specified code. The getInputJson
-    // function must return a json object that contains the configuration for all injection 
-    // points that are to be included in the testing routine. 
-    //
-    // The runtime object will build up and run all tests at each injection point as specified
-    // in the getInputJson return. 
-    //
-    // After the tests have run, the verify result function will be called. That call will pass
-    // a json object containing the output from each of the injection points, and the associated 
-    // tests. The JsonEngine is used for that file.  The object is a json array containing 
-    // injection point objects. Each injection point object contains the name, and an array 
-    // of tests completed at that injection point. The tests themselves will have stages 
-    // as defined. 
-    //
-    // The verifyResult function should return true or false to indicate is all tests ran
-    // successfully. 
-    //
-    // The user is also given a IOutputEngine ptr to allow writing a testing report that can
-    // be comsumed by the hugo report generation code. 
-    void run() {
+    ParserUnitTests(int _x, int _y ) : x(_x), y(_y) {
 
-	int x = 10; int y = 11;
-	INJECTION_POINT(-1, "parser-test-x-y", int, x, int, y);
-
-        x += 12;
-	INJECTION_POINT(-1, "parser-test-x-y-2", int, x, int, y);
     }
 
-     std::string getInputJson() {
-        return R"({"not-implemented-yet" : "see" })";
+    std::map<std::string,bool> run(IOutputEngine* /* engine */) {
+        
+	std::map<std::string, bool> results;
+        std::string xstr = std::to_string(x);
+        std::string ystr = std::to_string(y);
+        std::ostringstream t1,t2,t3;
+        t1 << "x(" << x << ") + y(" << y << ") == 22 (" << x+y << ")";
+        t2 << "x(" << x << ") - y(" << y << ") == -2 (" << x-y << ")";
+        t3 << "x(" << x << ") != y(" << y << ")";
+
+
+        results[t1.str()] = ( (x + y) == 22);
+        results[t2.str()] = ( (x - y) == -2 );
+        results[t3.str()] = ( x != y );
+        results["x == 10"] = (x==10);
+        results["y == 12"] = (y==12);
+        return results;
     }
-    
-    bool verifyResult(IOutputEngine *results) {
-    	return true;    
-    }	     
+
+    ~ParserUnitTests();
 };
 
+ParserUnitTests::~ParserUnitTests(){};
 
+IUnitTester* parser_maker() {
+    return new ParserUnitTests(10,10);
+}
+IUnitTester* parser_maker1() {
+    return new ParserUnitTests(0,0);
+}
+IUnitTester* parser_maker2() {
+    return new ParserUnitTests(10,12);
+}
+IUnitTester* parser_maker3() {
+    return new ParserUnitTests(-1,-22);
+}
 
-extern "C" { 
-   IUnitTester* ParserUnitTests_maker(TestConfig &config) {
-	return new ParserUnitTests(config);
-   } 
-};
-
-class ParserUnitTests_proxy { 
-public: 
-	ParserUnitTests_proxy(){ 
-        VnV_registerUnitTester("Parser",ParserUnitTester_maker); 
-  }
-};
-
-ParserUnitTests_proxy parserUnitTests_proxy;
+void parser_callBack() {
+    VnV_registerUnitTester("parser_10_10", parser_maker);
+    VnV_registerUnitTester("parser_0_0", parser_maker1);
+    VnV_registerUnitTester("parser_10_12", parser_maker2);
+    VnV_registerUnitTester("parser_n1_n22", parser_maker3);
+}
 
 #endif

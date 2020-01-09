@@ -2,10 +2,9 @@
 #Add the adios engine to the target
 option(WITH_ADIOS_ENGINE "Use the Adios Engine" ON)
 option(WITH_BUILT_IN_TESTS "Build the VnV test libraries" ON)
-option(WITH_LOGGING "Build Library with Configuble Logger included" ON)
 
-#Build the Json Parser Library ( json-schema-validator TODO github-link) 
-add_subdirectory(third-party/json-schema-validator)
+#Add the third party targets ( json-schema-validator TODO github-link)
+add_subdirectory(third-party)
 
 add_subdirectory(clang)
 
@@ -27,28 +26,27 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-utils.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-testing.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-unit-tester.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-serializer.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-schema.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-dist-utils.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-cinterface.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-options-parser.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-logging.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/vv-registration.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/engines/vv-debug-engine.cpp)
+
 
 target_link_libraries(injection PRIVATE dl)
 target_link_libraries(injection PUBLIC jsv::jsv)
+target_link_libraries(injection PRIVATE xxhash::xxhash)
 
 
 if ( WITH_BUILT_IN_TESTS)
 target_sources(injection PRIVATE 
-	${CMAKE_CURRENT_LIST_DIR}/src/tests/provenance.cpp)
+        ${CMAKE_CURRENT_LIST_DIR}/src/tests/provenance.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/tests/stout-reroute.cpp)
 endif()
 
-if (WITH_LOGGING)  
-  target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-logging.cpp)
-  target_compile_definitions(injection PRIVATE WITH_LOGGING=1)
-  
-   set(BUILD_SHARED_LIBS ON CACHE BOOL "Turn on shared libraries" FORCE)
-   set(FMT_INSTALL ON CACHE BOOL "Turn on install target" FORCE)
-   add_subdirectory(third-party/fmt)
-   target_link_libraries(injection PRIVATE fmt::fmt)
- 
-
-endif()
 
 target_include_directories(injection PRIVATE
                             ${CMAKE_CURRENT_LIST_DIR}/include/base
@@ -57,13 +55,15 @@ target_include_directories(injection PRIVATE
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
                             $<INSTALL_INTERFACE:include>
                           )
-                     
+
+target_compile_definitions(injection PRIVATE -DPACKAGENAME=VnV Framework)
+
 if(WITH_ADIOS_ENGINE)
 find_package(ADIOS2)
 if (ADIOS2_FOUND) 
   target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/engines/vv-adios.cpp)
   target_link_libraries(injection PRIVATE adios2::adios2 )
-  target_compile_definitions(injection PRIVATE WITH_MPI=1)
+  target_compile_definitions(injection PRIVATE WITH_MPI=1 PRIVATE WITH_ADIOS=1)
 endif()
 endif()
 

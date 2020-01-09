@@ -9,3 +9,4 @@ add_subdirectory(tests)
 #Build the executable
 add_subdirectory(executables)
 
+add_subdirectory(c_executables)

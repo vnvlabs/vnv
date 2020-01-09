@@ -10,6 +10,7 @@ target_sources(dummyLibOne PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/src/class2.cpp
 )
 
+target_compile_definitions(dummyLibOne PRIVATE -DPACKAGENAME=DummyLibOne)
 
 target_include_directories(dummyLibOne PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 

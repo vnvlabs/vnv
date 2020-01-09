@@ -7,7 +7,13 @@ using namespace VnV;
 
 class dummyTest : public ITest {
  public:
-  TestStatus runTest(IOutputEngine* engine, int testStage, double* slope,
+
+    dummyTest(TestConfig config) : ITest(config) {
+
+    }
+
+
+    TestStatus runTest(IOutputEngine* engine, int testStage, double* slope,
                      double* intersection) {
     // Write the slope and the intersection point to the  output file.
     engine->Put("slope", *slope);
@@ -15,39 +21,32 @@ class dummyTest : public ITest {
     return SUCCESS;
   }
 
-  static void DeclareIO(IOutputEngine* engine) {
-    engine->DefineDouble("slope");
-    engine->DefineDouble("intersection");
-  }
+  TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId, std::map<std::string,void*> &parameters) {
 
-  void init() {
-    m_parameters.insert(std::make_pair("slope", "double"));
-    m_parameters.insert(std::make_pair("intersection", "double"));
-  }
-
-  TestStatus runTest(IOutputEngine* engine, int stage, NTV& parameters) {
-    double* x = carefull_cast<double>(stage, "slope", parameters);
-    double* y = carefull_cast<double>(stage, "intersection", parameters);
-    int testStage = m_config.getStage(stage).getTestStageId();
-    return runTest(engine, testStage, x, y);
+    double* x = static_cast<double*>(parameters["slope"]);
+    double* y = static_cast<double*>(parameters["intersection"]);
+    return runTest(engine, 0, x, y);
   }
 };
 
-extern "C" {
-ITest* dummyTest_maker() { return new dummyTest(); }
+ITest* dummyTest_maker(TestConfig config) { return new dummyTest(config); }
 
-void dummyTest_DeclareIO(IOutputEngine* engine) {
-  dummyTest::DeclareIO(engine);
+json dummyTest_declare() {
+    return R"(
+{
+  "name" : "dummyTest",
+  "title" : "Dummy test for plotting a line.",
+  "description" : "This test writes data for the equation of a line.",
+  "expectedResult" : {"type" : "object"},
+  "configuration" : {"type" : "object"},
+  "parameters" : {
+        "slope" : "double",
+        "intersection" : "double"
+   },
+   "requiredParameters" : ["slope","intersection"],
+  "io-variables" : {}
 }
-};
-
-class dummyTest_proxy {
- public:
-  dummyTest_proxy() {
-    VnV_registerTest("dummyTest", dummyTest_maker, dummyTest_DeclareIO);
-  }
-};
-
-dummyTest_proxy p;
+)"_json;
+}
 
 #endif

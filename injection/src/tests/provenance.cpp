@@ -3,24 +3,17 @@
 #ifndef _provenance_H
 #define _provenance_H
 
-
-#if !defined(__APPLE__)
-#include <link.h>
-#endif /* !defined(__APPLE__) */
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include "vv-utils.h"
 #include <ctime>
-#include <iomanip>
-#include <iostream>
 #include <sstream>
 #include <vector>
 #include <fstream>
-
+#include <iomanip>
+#include "vv-dist-utils.h"
 #include "VnV-Interfaces.h"
-#include "vv-logging.h"
+
 using namespace VnV;
+
+namespace ProvenanceTest {
 
 struct libInfo {
     std::string name;
@@ -33,79 +26,34 @@ public:
     libData() {}
 };
 
-json getLibInfo(std::string filepath, unsigned long add) {
-
-    struct stat result;
-    stat(filepath.c_str(),&result);
-    json libJson;
-    libJson["name"] = filepath;
-    libJson["add"] = add;
-    libJson["hash"] = hashfile(filepath);
-    libJson["st_dev"] = result.st_dev;
-    libJson["st_gid"] = result.st_gid;
-    libJson["st_ino"] = result.st_ino;
-    libJson["st_uid"] = result.st_uid;
-#if defined(__APPLE__)
-    libJson["st_atim_sec"] = result.st_atimespec.tv_sec;
-    libJson["st_atim_nsec"] = result.st_atimespec.tv_nsec;
-    libJson["st_ctim_sec"] = result.st_ctimespec.tv_sec;
-    libJson["st_ctim_nsec"] = result.st_ctimespec.tv_nsec;
-    libJson["st_mtim_sec"] = result.st_mtimespec.tv_sec;
-    libJson["st_mtim_nsec"] = result.st_mtimespec.tv_nsec;
-#else /* defined(__APPLE__) */
-    libJson["st_atim_sec"] = result.st_atim.tv_sec;
-    libJson["st_atim_nsec"] = result.st_atim.tv_nsec;
-    libJson["st_ctim_sec"] = result.st_ctim.tv_sec;
-    libJson["st_ctim_nsec"] = result.st_ctim.tv_nsec;
-    libJson["st_mtim_sec"] = result.st_mtim.tv_sec;
-    libJson["st_mtim_nsec"] = result.st_mtim.tv_nsec;
-#endif /* defined(__APPLE__) */
-    libJson["st_mode"] = result.st_mode;
-    libJson["st_rdev"] = result.st_rdev;
-    libJson["st_size"] = result.st_size;
-    libJson["st_nlink"] = result.st_nlink;
-    libJson["st_blocks"] = result.st_blocks;
-    libJson["st_blksize"] = result.st_blksize;
-    return libJson;
-}
-
-#if defined(__APPLE__)
-/* Define things that are missing. Note that dl_iterate_pdhr() does
-not do anything in this version. */
-
-struct dl_phdr_info {
-  unsigned long dlpi_addr;
-  char *dlpi_name;
-};
-
-static char *get_current_dir_name(void) {
-  return getcwd(NULL, 0);
-}
-
-static void dl_iterate_phdr(int (*callback)(struct dl_phdr_info *info, size_t size, void *data), void *data) {
-}
-#endif /* defined(__APPLE__) */
-
 static int callback(struct dl_phdr_info* info, size_t /*size*/, void* data) {
 
   std::string name(info->dlpi_name);
+  if (name.empty()) return 0;
   unsigned long add(info->dlpi_addr);
-  libData* x = (libData*) data;
-  x->libs.push_back(getLibInfo(name,add));
+  libData* x = static_cast<libData*>(data);
+  x->libs.push_back(DistUtils::getLibInfo(name,add));
   return 0;
 }
 
 class provenance : public ITest {
  public:
-  TestStatus runTest(IOutputEngine* engine, int argc, char** argv,
+
+    provenance(TestConfig config) : ITest(config) {
+
+    }
+
+    TestStatus runTest(IOutputEngine* engine, int argc, char** argv,
                      std::string configFile) {
 
     {
-        std::string currentWorkingDirectory(get_current_dir_name());
+        // Add the current working directory
+        std::string currentWorkingDirectory(DistUtils::getCurrentDirectory());
         engine->Put("cwd", currentWorkingDirectory);
     }
 
     {
+        // Add the command line
         std::string commandline = argv[0];
         for (int i = 1; i < argc; i++) {
           std::string v(argv[i]);
@@ -125,23 +73,29 @@ class provenance : public ITest {
      }
 
      {
+        // Iterate over all linked libraries.
         std::string exe(argv[0]);
         libData libNames;
-        dl_iterate_phdr(callback, &libNames);
-        json exe_info = getLibInfo(exe.c_str(),0);
+        DistUtils::iterateLinkedLibraries(callback, &libNames);
+
+        //Add all the libraries and the current exe to the json
+        json exe_info = DistUtils::getLibInfo(exe.c_str(),0);
         exe_info["libs"] = libNames.libs;
-        std::string exe_i = exe_info.dump();
+        std::string exe_i = exe_info.dump(2);
         engine->Put("exe-info",exe_i);
     }
     {
+       // The configuration allows the user to specify additional files
+       // that should be included in the output section. This allows for versioning
+       // of things like input files. In this case, we load the entire file into the
+       // output.
+       const json extra = getConfigurationJson();
 
-       json extra = m_config.getAdditionalProperties();
        if ( extra.find("input-files") != extra.end() ) {
 
          json a = extra["input-files"];
          std::vector<json> ins;
          for ( auto itt: a ) {
-               std::cout << a;
                std::ifstream f(itt.get<std::string>());
                if (f.is_open())	{
                    json r;
@@ -149,7 +103,7 @@ class provenance : public ITest {
                    sstr << f.rdbuf();
                    r["file"] = sstr.str();
                    f.close();
-                   r["info"] = getLibInfo(itt.get<std::string>(),0);
+                   r["info"] = DistUtils::getLibInfo(itt.get<std::string>(),0);
                    ins.push_back(r);
                }
          }
@@ -160,37 +114,49 @@ class provenance : public ITest {
       }
    }
    {
+     //Throw the VnV configuration file into the output as well.
      json conf;
-     conf["name"] = configFile;
+     conf["name"] = DistUtils::getAbsolutePath(configFile);
+
      std::ifstream ff(configFile);
-     if (ff.is_open()) {
-        std::stringstream ss;
-        ss << ff.rdbuf();
-        conf["file"] = ss.str();
-     }
-     std::string confx = conf.dump();
+     conf["file"] = json::parse(ff);
+
+     std::string confx = conf.dump(2);
      engine->Put("vnv-config", confx);
     }
 
     return SUCCESS;
   }
 
-  static void DeclareIO(IOutputEngine* /*engine*/) {}
+   void writeTree(IOutputEngine *engine) {
+       // TODO -- If the stage is looped. We can track changes to the file tree on output and
+       // use that to track the outputs of the execution from the current working directory.
+   }
+   void logTree() {
+       //TODO Copy down the file tree in the current directory. This will be used to track
+       // which output files are generated during the Current looped injection point.
+   }
 
-  void init() override {
-    m_parameters.insert(std::make_pair("argc", "int*"));
-    m_parameters.insert(std::make_pair("argv", "char***"));
-    m_parameters.insert(std::make_pair("config", "std::string"));
-  }
-
-  virtual TestStatus runTest(IOutputEngine* engine, int stage,
-                             NTV& parameters) override {
-    
-    VnV_Debug("RUNNING PROVENANCE TEST");	  
-    char**** v = carefull_cast<char***>(stage, "argv", parameters);
-    int** c = carefull_cast<int*>(stage, "argc", parameters);
-    std::string* f = carefull_cast<std::string>(stage, "config", parameters);
-    return runTest(engine, **c, **v, *f);
+   virtual TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId,
+                             std::map<std::string, void*>& parameters) override {
+      TestStatus r = SUCCESS;
+       
+      std::cout << "sfdsfdf" << std::endl;
+      if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
+            
+            VnV_Debug("RUNNING PROVENANCE TEST");
+            char*** v = *static_cast<char****>(parameters["argv"]);
+            int* c = *static_cast<int**>(parameters["argc"]);
+            std::string f = *static_cast<std::string*>(parameters["config"]);
+            r = runTest(engine, *c, *v, f);
+     }
+     if ( type == InjectionPointType::Begin) {
+        logTree();
+     }
+     else if (type == InjectionPointType::End){
+        writeTree(engine);
+     }
+     return r;
   }
 
   virtual ~provenance() override;
@@ -198,21 +164,29 @@ class provenance : public ITest {
 
 provenance::~provenance() {}
 
-extern "C" {
-ITest* provenance_maker() { return new provenance(); }
+ITest* maker(TestConfig config) { return new provenance(config); }
 
-void provenance_DeclareIO(IOutputEngine* engine) {
-  provenance::DeclareIO(engine);
+json declare() {
+    return R"({
+            "name" : "provenance",
+            "title" : "Provenance Tracking.",
+            "description" : "This test tracks provenance for the executable, including info about all linked libraries",
+            "expectedResult" : {"type" : "object" },
+            "configuration" : {
+               "type" : "object",
+               "properties" : {
+                  "input-files" : { "type" : "array" , "items" : {"type" : "string"} }
+               }
+            },
+            "parameters" : {
+               "argc" : "int*",
+               "argv" : "char***",
+               "config" : "std::string"
+            },
+            "requiredParameters" : ["argc","argv","config"],
+            "io-variables" : {}
+    })"_json;
 }
-};
-
-class provenance_proxy {
- public:
-  provenance_proxy() {
-    VnV_registerTest("provenance", provenance_maker, provenance_DeclareIO);
-  }
-};
-
-provenance_proxy prov_proxy;
+}
 
 #endif

@@ -24,6 +24,13 @@ class DebugEngine : public IOutputEngine {
   DebugEngine();
 
   /**
+   * @brief Log
+   * @param log
+   */
+  void Log(const char * package, int stage, std::string level, std::string message);
+
+
+  /**
    * @brief Put
    * @param variableName
    * @param value
@@ -59,34 +66,11 @@ class DebugEngine : public IOutputEngine {
   void Put(std::string variableName, std::string& value);
 
   /**
-   * @brief DefineDouble
+   * @brief Define IO Variable
    * @param name
    */
-  void DefineDouble(std::string name);
+  void Define(VariableEnum type, std::string name);
 
-  /**
-   * @brief DefineFloat
-   * @param name
-   */
-  void DefineFloat(std::string name);
-
-  /**
-   * @brief DefineInt
-   * @param name
-   */
-  void DefineInt(std::string name);
-
-  /**
-   * @brief DefineLong
-   * @param name
-   */
-  void DefineLong(std::string name);
-
-  /**
-   * @brief DefineString
-   * @param name
-   */
-  void DefineString(std::string name);
 };
 
 /**
@@ -101,6 +85,12 @@ class DebugEngineWrapper : public OutputEngineManager {
    * @brief DebugEngineWrapper
    */
   DebugEngineWrapper();
+
+  /**
+   * @brief Get the configuration Schema for the Debug engine. 
+   */
+  json getConfigurationSchema() override;
+
 
   /**
    * @brief finalize
@@ -118,28 +108,32 @@ class DebugEngineWrapper : public OutputEngineManager {
    * @param id
    * @param stageVal
    */
-  void endInjectionPoint(std::string id, int stageVal);
+  void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageVal) override;
+
 
   /**
    * @brief startInjectionPoint
    * @param id
    * @param stageVal
    */
-  void startInjectionPoint(std::string id, int stageVal);
+  void injectionPointStartedCallBack(std::string id, InjectionPointType type, std::string stageVal) override;
 
   /**
    * @brief startTest
    * @param testName
    * @param testStageVal
    */
-  void startTest(std::string testName, int testStageVal);
+  void testStartedCallBack(std::string testName ) override;
 
   /**
    * @brief stopTest
    * @param result_
    */
-  void stopTest(bool result_);
+  void testFinishedCallBack(bool result_) override;
 
+  void unitTestStartedCallBack(std::string unitTestName) override;
+
+  void unitTestFinishedCallBack(std::map<std::string,bool> &results) override;
   /**
    * @brief getOutputEngine
    * @return

@@ -12,6 +12,9 @@ using namespace VnV;
 
 class EuclideanError : public ITest {
  public:
+
+    EuclideanError(TestConfig config) : ITest(config) {}
+
   TestStatus runTest(IOutputEngine* engine, int testStage,
                      std::vector<double>* measured,
                      std::vector<double>* exact) {
@@ -38,43 +41,34 @@ class EuclideanError : public ITest {
     return SUCCESS;
   }
 
-  static void DeclareIO(IOutputEngine* engine) {
-    engine->DefineDouble("l2_error");
-    engine->DefineDouble("l1_error");
-    engine->DefineDouble("linf_error");
-  }
 
-  void init() {
-    m_parameters.insert(std::make_pair("measured", "std::vector<double>"));
-    m_parameters.insert(std::make_pair("exact", "std::vector<double>"));
-  }
 
-  TestStatus runTest(IOutputEngine* engine, int stage, NTV& parameters) {
-    std::vector<double>* x =
-        carefull_cast<std::vector<double>>(stage, "measured", parameters);
-    std::vector<double>* y =
-        carefull_cast<std::vector<double>>(stage, "exact", parameters);
-    int testStage = m_config.getStage(stage).getTestStageId();
-    return runTest(engine, testStage, x, y);
+  TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId, std::map<std::string,void*> &parameters) {
+
+    std::vector<double>* x = static_cast<std::vector<double>*>(parameters["measured"]);
+    std::vector<double>* y = static_cast<std::vector<double>*>(parameters["exact"]);
+    return runTest(engine, 0, x, y);
   }
 };
 
-extern "C" {
-ITest* EuclideanError_maker() { return new EuclideanError(); }
+ITest* euclideanError_maker(TestConfig config) { return new EuclideanError(config); }
 
-void EuclideanError_DeclareIO(IOutputEngine* engine) {
-  EuclideanError::DeclareIO(engine);
+json euclideanError_declare() {
+   return R"(
+   {
+           "name" : "EuclieanErorr",
+           "title" : "Test For calculating euclidean error between two vectors.",
+           "description" : "This test calculates the euclidean distance between two vectors",
+           "expectedResult" : {"type" : "object"},
+           "configuration" : {"type" : "object"},
+           "parameters" : {
+                 "measured" : "std::vector<double>",
+                 "exact" : "std::vector<double>"
+           },
+           "requiredParameters" : ["measured","exact"],
+           "io-variables" :{}
+   })"_json;
 }
-};
 
-class EuclideanError_proxy {
- public:
-  EuclideanError_proxy() {
-    VnV_registerTest("EuclideanError", EuclideanError_maker,
-                     EuclideanError_DeclareIO);
-  }
-};
-
-EuclideanError_proxy euclideanError_proxy;
 
 #endif

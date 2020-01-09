@@ -9,7 +9,10 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include "VnV-Interfaces.h"
+
 /**
+
  * \file Header file for the InjectionPoint and InjectionPointStore classes.
  */
 
@@ -25,6 +28,8 @@ class TestConfig;  // defined in VnV-Intefaces.h
 class ITest;  // defined in VnV-Interfaces.h
 
 class InjectionPointStore;  // defined below.
+
+
 
 /**
  * \typedef
@@ -64,19 +69,10 @@ class InjectionPoint {
   std::vector<std::shared_ptr<ITest>>
       m_tests; /**< Vector of tests given to this injection point */
 
-  /**
-   * @brief unpack_parameters
-   * @param[out] ntv The map populated by this function.
-   * @param[in] argp The va_list obtained from a variadic function call.
-   *
-   * Unpack parameters takes a va_list and parses it into a NTV (std::map)
-   * object. Because all type information is lost from a va_list, the function
-   * works under the assumption that the parameters are doubles of the form
-   * (string, void*)  where string is a string representing the class name of
-   * the object pointed to by the void* pointer. The last parameter in the
-   * va_list should be a string "__VV_PARAMETERS_END__"
-   */
-  void unpack_parameters(NTV& ntv, va_list argp);
+  InjectionPointType type;
+  std::string stageId;
+
+  void setInjectionPointType(InjectionPointType type, std::string stageId);
 
   /**
    * @brief addTest Add a test Config to that injection point.
@@ -102,6 +98,20 @@ class InjectionPoint {
   InjectionPoint(std::string scope);
 
   /**
+   * @brief unpack_parameters
+   * @param[out] ntv The map populated by this function.
+   * @param[in] argp The va_list obtained from a variadic function call.
+   *
+   * Unpack parameters takes a va_list and parses it into a NTV (std::map)
+   * object. Because all type information is lost from a va_list, the function
+   * works under the assumption that the parameters are doubles of the form
+   * (string, void*)  where string is a string representing the class name of
+   * the object pointed to by the void* pointer. The last parameter in the
+   * va_list should be a string "__VV_PARAMETERS_END__"
+   */
+  static void unpack_parameters(NTV& ntv, va_list argp);
+
+  /**
    * @brief getScope
    * @return the name of this injection point
    *
@@ -118,7 +128,7 @@ class InjectionPoint {
    *id gets passed onto the tests to ensure the correct tests are run during
    *each stage.
    **/
-  void runTests(int ipType, va_list argp);
+  void runTests(va_list argp);
 
   /**
    * @brief hasTests
@@ -157,6 +167,8 @@ class InjectionPointStore {
   std::map<std::string, std::vector<TestConfig>>
       injectionPoints; /**< The stored configurations */
 
+  std::map<std::string, json> registeredInjectionPoints;
+
   /**
    * @brief InjectionPointStore
    * Private constructor. The class creates itself on first use.
@@ -192,7 +204,7 @@ class InjectionPointStore {
    * an empty queue is considered invalid and will return a nullptr.
    *
    */
-  std::shared_ptr<InjectionPoint> getInjectionPoint(std::string key, int stage);
+  std::shared_ptr<InjectionPoint> getInjectionPoint(std::string key, InjectionPointType type, std::string stageId="");
 
   /**
    * @brief addInjectionPoint
@@ -218,6 +230,9 @@ class InjectionPointStore {
   void addInjectionPoints(
       std::map<std::string, std::vector<TestConfig>>& injectionPoints);
 
+
+  void registerInjectionPoint(std::string name, std::string json_str);
+
   /**
    * @brief getInjectionPointStore
    * @return The InjectionPointStore
@@ -226,6 +241,12 @@ class InjectionPointStore {
    * static store on first call, returning that object on each subsequent call.
    */
   static InjectionPointStore& getInjectionPointStore();
+
+  /**
+   * @brief print out injection point infomration.
+   */
+  void print();
+
 
 };  // end InjectionPointStore
 
