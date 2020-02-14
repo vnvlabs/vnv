@@ -1,16 +1,18 @@
 
 /** @file vv-logging.cpp **/
 
-#  include "vv-logging.h"
+# include "base/vv-logging.h"
 
 # include "VnV.h"
-#  include <fstream>
-#  include <iostream>
-#  include <stdio.h>
-#  include <stdarg.h>
-# include "vv-output.h"
-#include "vv-runtime.h"
-#include <sstream>
+# include <fstream>
+# include <iostream>
+# include <stdio.h>
+# include <stdarg.h>
+# include <sstream>
+
+# include "base/vv-output.h"
+# include "base/vv-runtime.h"
+
 using namespace VnV;
 
 namespace {
@@ -52,7 +54,7 @@ void Logger::registerLogLevel(std::string name, std::string color) {
 }
 
 
-std::string VnV::getIndent(int stage) {
+std::string Logger::getIndent(int stage) {
     std::string s = "";
     for ( int i = 0; i < std::max(0,stage); i++) s+= "\t";
     return s;

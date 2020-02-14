@@ -1,15 +1,17 @@
 
 /** @file vv-utils.cpp **/
 
-#include "vv-utils.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
-#include "json-schema.hpp"
 #include <xxhash.h>
-#include "VnV.h"
-#include "VnV-Interfaces.h"
+
+#include "json-schema.hpp"
+#include "base/vv-utils.h"
+#include "interfaces/ioutputengine.h"
+#include "c-interfaces/logging-interface.h"
+
 int VnV::StringSplit(const std::string& s, const char* delim,
                      std::vector<std::string>& result) {
   std::stringstream ss;
@@ -22,17 +24,7 @@ int VnV::StringSplit(const std::string& s, const char* delim,
   return 1;
 }
 
-std::string VnV::InjectionPointTypeUtils::getType(InjectionPointType type, std::string stageId) {
-    if (type == InjectionPointType::Begin) {
-        return "Begin";
-    } else if (type == InjectionPointType::End) {
-        return "End";
-    } else if (type == InjectionPointType::Single) {
-        return "Single";
-    } else {
-        return stageId;
-    }
-}
+
 
 std::string VnV::getFileExtension(const std::string& fileName) {
   if (fileName.find_last_of(".") != std::string::npos)

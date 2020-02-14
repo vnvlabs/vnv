@@ -1,13 +1,15 @@
 
 /** @file vv-unit-tester.cpp **/
 
-#include "vv-unit-tester.h"
 
 #include <dlfcn.h>
 
 #include <iostream>
 
-#include "vv-runtime.h"
+#include "base/vv-runtime.h"
+#include "base/vv-output.h"
+#include "base/vv-unit-tester.h"
+#include "c-interfaces/logging-interface.h"
 
 using namespace VnV;
 
@@ -87,6 +89,6 @@ void UnitTestStore::print() {
     VnV_EndStage(a);
 }
 
-void VnV_registerUnitTester( std::string name, tester_ptr m) {
+void VnV::registerUnitTester( std::string name, tester_ptr m) {
   UnitTestStore::getUnitTestStore().addUnitTester(PACKAGENAME_S, name, m);
 }

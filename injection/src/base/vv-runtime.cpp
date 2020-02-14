@@ -1,6 +1,5 @@
 
 /** @file vv-runtime.cpp **/
-#include "vv-runtime.h"
 
 #ifdef WITH_MPI
 #  include <mpi.h>
@@ -13,14 +12,15 @@
 #include <unistd.h>
 
 #include "VnV.h"
-#include "vv-injection.h"
-#include "vv-logging.h"
-#include "vv-output.h"
-#include "vv-parser.h"
-#include "vv-unit-tester.h"
-#include "vv-utils.h"
-#include "vv-dist-utils.h"
-#include "vv-options-parser.h"
+#include "base/vv-injection.h"
+#include "base/vv-logging.h"
+#include "base/vv-output.h"
+#include "base/vv-parser.h"
+#include "base/vv-unit-tester.h"
+#include "base/vv-utils.h"
+#include "base/vv-dist-utils.h"
+#include "base/vv-options-parser.h"
+#include "base/vv-runtime.h"
 #include "vv-registration.h"
 
 using namespace VnV;
@@ -30,47 +30,10 @@ using namespace VnV;
 /**
  * Anon Namespace to house ld iterate callback code used in fetchInjectionPoint information. (only accesible in this file).
  */
-namespace {
 
 
- bool loadLibrary(std::string name) {
-    if ( name.empty()) return false;
-    void* dllib = dlopen(name.c_str(), RTLD_NOW);
-
-    if (dllib == nullptr) {
-        throw "Could not open shared library";
-    }
-    bool ret = false;
-    auto a = VnV_BeginStage("Searching %s for VnV Registration Callback", name.c_str());
-    void* callback = dlsym(dllib,VNV_REGISTRATION_CALLBACK_NAME_STR);
-    if ( callback != nullptr ) {
-       VnV_Debug("Found A Registration CallBack. Calling it %s", name.c_str());
-       ((registrationCallBack) callback)();
-       dlclose(dllib);
-       ret = true;
-    } else {
-       VnV_Debug("Library %s did not register a callback", name.c_str());
-       dlclose(dllib);
-       ret = false;
-    }
-    VnV_EndStage(a);
-    return ret;
- }
-
- int callback(struct dl_phdr_info* info, size_t /*size*/, void* /*data*/) {
-    std::string name(info->dlpi_name);  // Library name
-    try {
-       loadLibrary(name);
-     } catch (...) {
-        VnV_Error("Could not load Shared Library %s", name.c_str());
-     }
-     return 0;
- }
-
-}
-
-void RunTime::makeLibraryRegistrationCallbacks() {
-   DistUtils::iterateLinkedLibraries(callback, nullptr);
+void RunTime::makeLibraryRegistrationCallbacks(std::map<std::string, std::string> packageNames) {
+   DistUtils::callAllLibraryRegistrationFunctions(packageNames);
 }
 
 bool RunTime::useAsciiColors() {
@@ -153,23 +116,15 @@ void RunTime::loadRunInfo(RunInfo &info, registrationCallBack *callback) {
 
 
   // Load the test libraries ( plugins -- This could include a custom engine )
-  //VnV_Debug("Loading Test Libraries");
+  VnV_Debug("Loading Test Libraries");
   for (auto it : info.testLibraries) {
-    TestStore::getTestStore().addTestLibrary(it);
-    //VnV_Debug("\t Loaded Test Library {}" , it);
+      if (!it.second.empty()) {
+        TestStore::getTestStore().addTestLibrary(it.second);
+      }
+      VnV_Debug("\t Loaded Test Library %s" , it.second.c_str());
   }
-
-
-
-  //Call All the linked libraries registration callbacks. This allows
-  // linked libraries to declare injectionPoints, engines, unit tests, options,
-  // etc programatically at runtime. This is not required, but extremely useful
-  // for declaring injection points. The better approach would be to declare
-  // items using the static initializer approach, but that is not possible
-  // is C and fortran. Through this callback, users should call the "VnV_RegisterInjectionPoint
-  // " function to declare all injection points. The clang libtooling tool will be designed to
-  // automatiically generate this file" .
-  makeLibraryRegistrationCallbacks();
+  // Now we need to call the library registration functions.
+  makeLibraryRegistrationCallbacks(info.testLibraries);
 
   // Call the executables registration callback.
   if (callback != nullptr) {

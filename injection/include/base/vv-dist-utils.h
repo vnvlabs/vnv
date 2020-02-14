@@ -1,26 +1,17 @@
 
 #ifndef _VV_DYNAMIC_H
 #define _VV_DYNAMIC_H
-
-#if !defined(__APPLE__)
-#include <link.h>
-#endif /* !defined(__APPLE__) */
-
+#include <set>
 #include "json-schema.hpp"
 using nlohmann::json;
 
-#if defined(__APPLE__)
-struct dl_phdr_info {
-  unsigned long dlpi_addr;
-  char *dlpi_name;
-};
-#endif
-
 namespace VnV {
   namespace DistUtils {
+struct libData {
+    std::vector<json> libs;
+    libData(){}
+};
 
-
-typedef int (*dynamicCallBack)(struct dl_phdr_info *info, size_t size, void *data);
 
 /**
  * Get "stat" information for the file. Here add is the "address".
@@ -42,12 +33,15 @@ std::string getAbsolutePath(std::string realativeFileName);
  * @param callBack
  * @param data
  *
- * Callback that iterates over all linked libraries.
+ * Function that iterates over all linked libries and extract library data about them.
  */
-void iterateLinkedLibraries(dynamicCallBack callBack, void* data);
+void getAllLinkedLibraryData(libData *data);
 
-} //namespace Dynamic
-} //namespace VnV
+
+void callAllLibraryRegistrationFunctions(std::map<std::string,std::string> packageNames);
+
+}
+}//namespace VnV
 
 #endif //VV_DYNAMIC_H
 

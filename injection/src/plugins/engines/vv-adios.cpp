@@ -1,12 +1,10 @@
 
 /** @file vv-adios.cpp **/
 
-#include "vv-adios.h"
+#include "plugins/engines/vv-adios.h"
 
-#include "vv-output.h"
-#include "vv-logging.h"
 using namespace VnV;
-
+using nlohmann::json;
 
 static json __adios_input_schema__ = R"(
 {

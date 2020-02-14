@@ -4,7 +4,8 @@
 #include <map>
 #include <string>
 
-#include "VnV-Interfaces.h"
+//#include "VnV.h"
+#include "c-interfaces/json-interface.h"
 
 namespace VnV {
 
@@ -20,8 +21,6 @@ class OptionsParserStore {
   void parse(json info);
 
   static OptionsParserStore& instance();
-
-
 
 };
 

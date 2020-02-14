@@ -3,9 +3,7 @@
 
 #include <map>
 #include <string>
-
-#include "VnV-Interfaces.h"
-
+#include "interfaces/ioutputengine.h"
 /**
   \file Headers for the Engine Store.
 */

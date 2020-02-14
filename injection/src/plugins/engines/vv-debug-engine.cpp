@@ -1,12 +1,11 @@
 
 /** @file vv-debug-engine.cpp **/
+#include "VnV.h"
 
-#include "vv-debug-engine.h"
+#include "plugins/engines/vv-debug-engine.h"
 
 #include <iostream>
 
-#include "vv-logging.h"
-#include "vv-output.h"
 using namespace VnV;
 
 static json __debug_engine_schema__ = R"(

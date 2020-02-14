@@ -2,16 +2,17 @@
 
 /** @file vv-serializer.cpp **/
 
-#include "vv-serializer.h"
 #include <iostream>
-#include "vv-runtime.h"
+//#include "VnV.h"
+
+#include "base/vv-runtime.h"
+#include "base/vv-serializer.h"
+#include "c-interfaces/logging-interface.h"
+#include "interfaces/iserializer.h"
 
 using namespace VnV;
 
 SerializerStore::SerializerStore() {}
-
-ISerializer::ISerializer(){};
-ISerializer::~ISerializer(){};
 
 SerializerStore& SerializerStore::getSerializerStore() {
   static SerializerStore store;
@@ -50,6 +51,6 @@ void SerializerStore::print() {
     VnV_EndStage(b);
 }
 
-void VnV_registerSerializer(std::string name, serializer_ptr m, declare_serializer_ptr v) {
+void VnV::registerSerializer(std::string name, serializer_ptr m, declare_serializer_ptr v) {
   SerializerStore::getSerializerStore().addSerializer(name, m,v);
 }

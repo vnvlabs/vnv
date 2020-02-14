@@ -1,14 +1,17 @@
 
 /** @file vv-injection.cpp **/
 
-#include "vv-injection.h"
-#include "VnV.h"
+//#include "VnV.h"
 #include <iostream>
-#include "vv-logging.h"
-#include "vv-output.h"
-#include "vv-testing.h"
 #include "json-schema.hpp"
-#include "vv-schema.h"
+#include "base/vv-logging.h"
+#include "base/vv-output.h"
+#include "base/vv-testing.h"
+#include "base/vv-schema.h"
+#include "base/vv-injection.h"
+#include "c-interfaces/injection-point-interface.h"
+#include "c-interfaces/logging-interface.h"
+
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 

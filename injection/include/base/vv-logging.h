@@ -7,7 +7,6 @@
 #  include <set>
 #  include <iostream>
 # include <stack>
-#  include "VnV-Interfaces.h"
 
 #define MAX_LOG_SIZE 2048
 
@@ -25,7 +24,6 @@
  */
 namespace VnV {
 
-   std::string getIndent(int stage);
 
    /**
  *  Internal. An internal namespace is used in a effort to "hide"
@@ -124,6 +122,8 @@ class Logger {
    void registerLogLevel(std::string name, std::string color);
    void setLogLevel(std::string level, bool on);
    std::string logLevelToColor(std::string logLevel, std::string message);
+
+   std::string getIndent(int stage);
 };
 
 

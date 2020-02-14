@@ -11,8 +11,8 @@
 #include <map>
 
 #include "json-schema.hpp"
-#include "vv-testing.h"
-#include "vv-logging.h"
+#include "base/vv-testing.h"
+#include "base/vv-logging.h"
 using nlohmann::json;
 
 /**
@@ -44,7 +44,7 @@ struct EngineInfo {
  */
 struct RunInfo {
   bool runTests; /**< Should any tests be run */
-  std::set<std::string> testLibraries; /*< List of file paths to included plugin libraries */
+  std::map<std::string,std::string> testLibraries; /*< List of file paths to included plugin libraries */
   std::map<std::string, std::vector<json>> injectionPoints; /**< all injection points with tests */
   json toolConfig;
 
@@ -148,7 +148,7 @@ class JsonParser {
    *
    * Here, add the newest filepath to the testLibraries set.
    */
-  void addTestLibrary(const json& testLibsJson, std::set<std::string>& libs);
+  void addTestLibrary(const json& testLibsJson, std::map<std::string,std::string>& libs);
 
   /**
    * @brief parse

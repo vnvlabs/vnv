@@ -1,18 +1,18 @@
 
 /** @file vv-parser.cpp **/
 
-#include "vv-parser.h"
 
 #include <fstream>
 #include <iostream>
 #include <string>
 
-#include "vv-injection.h"
-#include "vv-logging.h"
-#include "vv-output.h"
-#include "vv-schema.h"
-#include "vv-testing.h"
-#include "vv-utils.h"
+#include "base/vv-injection.h"
+#include "base/vv-logging.h"
+#include "base/vv-output.h"
+#include "base/vv-schema.h"
+#include "base/vv-testing.h"
+#include "base/vv-utils.h"
+#include "base/vv-parser.h"
 
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
@@ -58,9 +58,9 @@ void JsonParser::addInjectionPoint(
   }
 }
 
-void JsonParser::addTestLibrary(const json& lib, std::set<std::string>& libs) {
+void JsonParser::addTestLibrary(const json& lib, std::map<std::string, std::string>& libs) {
   for (auto& it : lib.items()) {
-    libs.insert(it.value().get<std::string>());
+    libs.insert(std::make_pair(it.key(), it.value().get<std::string>()));
   }
 }
 

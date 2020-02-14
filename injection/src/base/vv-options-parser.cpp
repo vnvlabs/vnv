@@ -1,9 +1,12 @@
 
-#include "vv-options-parser.h"
 #include <dlfcn.h>
 #include <iostream>
-#include "vv-runtime.h"
+
 #include "json-schema.hpp"
+#include "base/vv-runtime.h"
+#include "base/vv-options-parser.h"
+#include "c-interfaces/logging-interface.h"
+
 using namespace VnV;
 
 OptionsParserStore::OptionsParserStore(){
@@ -21,7 +24,8 @@ void OptionsParserStore::callBack(std::string name, json info){
        nlohmann::json_schema::json_validator validator;
        validator.set_root_schema(schema);
        validator.validate(info);
-       it->second.second(info);
+       c_json j = {&info};
+       it->second.second(j);
     } else {
         VnV_Warn("Unknown Options Configuration Name %s", name.c_str());
     }
@@ -44,10 +48,9 @@ void OptionsParserStore::parse(json info) {
             foundJson = found.value();
         }
         validator.validate(foundJson);
-        it.second.second(foundJson);
+        c_json j = {&foundJson};
+        it.second.second(j);
    }
 }
 
-void VnV_registerOptions(std::string name, VnV::options_schema_ptr s, VnV::options_callback_ptr v) {
-   OptionsParserStore::instance().add(name,s,v);
-}
+

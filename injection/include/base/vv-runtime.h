@@ -8,10 +8,10 @@
 #include <stdarg.h>
 #include <string>
 #include <json-schema.hpp>
-#include "vv-parser.h"
-#include "vv-logging.h"
-#include "VnV.h"
-#include "vv-injection.h"
+#include "base/vv-parser.h"
+#include "base/vv-logging.h"
+#include "base/vv-injection.h"
+#include "c-interfaces/runtime-interface.h"
 /**
  * VnV Namespace
  */
@@ -53,7 +53,7 @@ class RunTime {
   bool terminalSupportsAsciiColors = true;
 
   void loadRunInfo(RunInfo &info, registrationCallBack *callback);
-  void makeLibraryRegistrationCallbacks();
+  void makeLibraryRegistrationCallbacks(std::map<std::string,std::string> packageNames);
 
   void _injectionPoint(std::string pname, std::string id, InjectionPointType type, std::string function, std::string file, int line, va_list argp, std::string stageId);
  public:

@@ -5,11 +5,12 @@
 #include <map>
 #include <string>
 
-#include "VnV-Interfaces.h"
+#include "interfaces/iserializer.h"
 
 namespace VnV {
 
 class SerializerStore {
+
  private:
   std::map<std::string, std::pair<serializer_ptr*, declare_serializer_ptr*>, std::less<std::string>> serializer_factory;
   SerializerStore();
@@ -26,8 +27,6 @@ class SerializerStore {
 
 };
 
-}  // namespace VnV
-
-
+}
 
 #endif // VVSERIALIZERS_H

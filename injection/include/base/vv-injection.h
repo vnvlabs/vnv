@@ -9,8 +9,7 @@
 #include <stack>
 #include <string>
 #include <vector>
-#include "VnV-Interfaces.h"
-
+#include "interfaces/ioutputengine.h"
 /**
 
  * \file Header file for the InjectionPoint and InjectionPointStore classes.

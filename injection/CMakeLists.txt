@@ -25,16 +25,30 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-runtime.cpp                        
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-utils.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-testing.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-transform.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-unit-tester.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-serializer.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-schema.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-dist-utils.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-cinterface.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-options-parser.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-logging.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/runtime-interface.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/json-interface.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/logging-interface.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/injection-point-interface.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ioutputengine.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/iserializer.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/itest.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/itransform.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/vv-registration.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/engines/vv-debug-engine.cpp)
+                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/vv-debug-engine.cpp)
 
+if (APPLE)
+    target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/macos/dist-utils.cpp)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/linux/dist-utils.cpp)
+else()
+    message(FATAL_ERROR "Dist is not MACOS or Linux")
+endif()
 
 target_link_libraries(injection PRIVATE dl)
 target_link_libraries(injection PUBLIC jsv::jsv)
@@ -43,14 +57,13 @@ target_link_libraries(injection PRIVATE xxhash::xxhash)
 
 if ( WITH_BUILT_IN_TESTS)
 target_sources(injection PRIVATE 
-        ${CMAKE_CURRENT_LIST_DIR}/src/tests/provenance.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/tests/stout-reroute.cpp)
+    ${CMAKE_CURRENT_LIST_DIR}/src/plugins/tests/provenance.cpp)
 endif()
 
 
+
 target_include_directories(injection PRIVATE
-                            ${CMAKE_CURRENT_LIST_DIR}/include/base
-                            ${CMAKE_CURRENT_LIST_DIR}/include/engines
+                            ${CMAKE_CURRENT_LIST_DIR}/include
                             PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
                             $<INSTALL_INTERFACE:include>
@@ -61,7 +74,7 @@ target_compile_definitions(injection PRIVATE -DPACKAGENAME=VnV Framework)
 if(WITH_ADIOS_ENGINE)
 find_package(ADIOS2)
 if (ADIOS2_FOUND) 
-  target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/engines/vv-adios.cpp)
+  target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/vv-adios.cpp)
   target_link_libraries(injection PRIVATE adios2::adios2 )
   target_compile_definitions(injection PRIVATE WITH_MPI=1 PRIVATE WITH_ADIOS=1)
 endif()

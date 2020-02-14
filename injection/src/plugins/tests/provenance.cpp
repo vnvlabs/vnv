@@ -8,33 +8,15 @@
 #include <vector>
 #include <fstream>
 #include <iomanip>
-#include "vv-dist-utils.h"
-#include "VnV-Interfaces.h"
+#include "base/vv-dist-utils.h"
+#include "interfaces/itest.h"
+#include "c-interfaces/logging-interface.h"
+
+//#include "VnV.h"
 
 using namespace VnV;
 
 namespace ProvenanceTest {
-
-struct libInfo {
-    std::string name;
-};
-
-struct libData
-{
-public:
-    std::vector<json> libs;
-    libData() {}
-};
-
-static int callback(struct dl_phdr_info* info, size_t /*size*/, void* data) {
-
-  std::string name(info->dlpi_name);
-  if (name.empty()) return 0;
-  unsigned long add(info->dlpi_addr);
-  libData* x = static_cast<libData*>(data);
-  x->libs.push_back(DistUtils::getLibInfo(name,add));
-  return 0;
-}
 
 class provenance : public ITest {
  public:
@@ -75,8 +57,8 @@ class provenance : public ITest {
      {
         // Iterate over all linked libraries.
         std::string exe(argv[0]);
-        libData libNames;
-        DistUtils::iterateLinkedLibraries(callback, &libNames);
+        DistUtils::libData libNames;
+        DistUtils::getAllLinkedLibraryData(&libNames);
 
         //Add all the libraries and the current exe to the json
         json exe_info = DistUtils::getLibInfo(exe.c_str(),0);
@@ -141,7 +123,6 @@ class provenance : public ITest {
                              std::map<std::string, void*>& parameters) override {
       TestStatus r = SUCCESS;
        
-      std::cout << "sfdsfdf" << std::endl;
       if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
             
             VnV_Debug("RUNNING PROVENANCE TEST");

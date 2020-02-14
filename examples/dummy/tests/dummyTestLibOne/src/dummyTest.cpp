@@ -1,7 +1,7 @@
 #ifndef _dummyTest_H
 #define _dummyTest_H
 
-#include "VnV-Interfaces.h"
+#include "VnV.h"
 
 using namespace VnV;
 

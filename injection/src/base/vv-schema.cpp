@@ -1,5 +1,5 @@
 
-#include "vv-schema.h"
+#include "base/vv-schema.h"
 #include <iostream>
 
 namespace VnV {
@@ -36,12 +36,9 @@ static const json __vv_schema__ = R"(
   "additionalProperties": false,
   "definitions": {
     "testLibraries": {
-      "description": "Array containing the paths to  the plugin libraries to be imported",
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "uniqueItems": true
+      "description": "Map describing all plugins in the system",
+      "type": "object",
+      "additionalProperties" : {"type" : "string" }
     },
     "outputEngine": {
       "description": "Parameters to configure the output Engine",

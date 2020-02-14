@@ -1,5 +1,9 @@
-#ifndef VNVMACROS_H
-#define VNVMACROS_H
+#ifndef INJECTIONPOINTINTERFACE_H
+#define INJECTIONPOINTINTERFACE_H
+
+#ifndef WITHOUT_VNV
+
+#include "c-interfaces/packagename.h"
 
 #define START_INJECTION_POINT 1
 #define CP_INJECTION_POINT 2
@@ -95,5 +99,71 @@
                      4, 3, 3, 2, 2, 1, 1, 0)                                  \
   (__VA_ARGS__)
 
+/**
+ * Helper Define
+ */
+#define H1(prefix, ...) VNV_STR(prefix #__VA_ARGS__)
 
-#endif // VNVMACROS_H
+/**
+ * Writes a Valid _Pragma statement
+ */
+#define VNVPRAG(prefix,...) _Pragma(H1(prefix, __VA_ARGS__))
+
+/**
+ * Call the Runtime VnV_InjectionPoint function. This runs the tests.
+*/
+
+
+#define VNV_END_PARAMETERS __vnv_end_parameters__
+#define VNV_END_PARAMETERS_S VNV_STR(VNV_END_PARAMETERS)
+
+// SINGULAR INJECTION POINT.
+#define INJECTION_POINT(NAME, ...)        \
+    VNVPRAG(VnV, InjectionPoint, PACKAGENAME, NAME, __VA_ARGS__) \
+   _VnV_injectionPoint(VNV_STR(PACKAGENAME),#NAME, __PRETTY_FUNCTION__,__FILE__,__LINE__, EVERY_SECOND(__VA_ARGS__) VNV_END_PARAMETERS_S);
+
+// BEGIN A LOOPED INJECTION POINT
+#define INJECTION_LOOP_BEGIN(NAME, ...)        \
+    VNVPRAG(VnV, InjectionLoopBegin, PACKAGENAME, NAME, __VA_ARGS__) \
+    _VnV_injectionPoint_begin(VNV_STR(PACKAGENAME), #NAME, __PRETTY_FUNCTION__,__FILE__,__LINE__, EVERY_SECOND(__VA_ARGS__) VNV_END_PARAMETERS_S);
+
+// END A LOOPED INJECTION POINT.
+#define INJECTION_LOOP_END(NAME,...) \
+    VNVPRAG(VnV, InjectionLoopEnd, PACKAGENAME, NAME, __VA_ARGS__) \
+    _VnV_injectionPoint_end(VNV_STR(PACKAGENAME), #NAME, __PRETTY_FUNCTION__,__FILE__,__LINE__, EVERY_SECOND(__VA_ARGS__) VNV_END_PARAMETERS_S);
+
+// INTERNAL ITERATION OF A LOOPED INJECTION POINT.
+#define INJECTION_LOOP_ITER(NAME,STAGE,...) \
+    VNVPRAG(VnV, InjectionLoopIter, PACKAGENAME, NAME, STAGE, __VA_ARGS__) \
+    _VnV_injectionPoint_loop(VNV_STR(PACKAGENAME),#NAME,#STAGE, __PRETTY_FUNCTION__,__FILE__,__LINE__, EVERY_SECOND(__VA_ARGS__) VNV_END_PARAMETERS_S);
+
+//REGISTER AN INJECTION POINT
+#define Register_Injection_Point(NAME, CONFIG) \
+    _VnV_registerInjectionPoint(NAME, CONFIG);
+
+#if __cplusplus
+#define EXTERNC extern "C"
+#else
+   #define EXTERNC
+#endif
+
+EXTERNC void _VnV_injectionPoint(const char * packageName, const char* id, const char* function, const char* file, int line, ...);
+EXTERNC void _VnV_injectionPoint_begin(const char * packageName, const char* id, const char* function, const char* file, int line, ...);
+EXTERNC void _VnV_injectionPoint_end(const char * packageName, const char* id, const char* function, const char* file, int line, ...);
+EXTERNC void _VnV_injectionPoint_loop(const char * packageName, const char* id, const char* stageId, const char* function, const char* file, int line, ...);
+EXTERNC void _VnV_registerInjectionPoint(const char* name, const char *json_str);
+
+#undef EXTERNC
+
+#else
+
+#  define INJECTION_POINT(...)
+#  define INJECTION_LOOP_BEGIN(...)
+#  define INJECTION_LOOP_END(...)
+#  define INJECTION_LOOP_ITER(...)
+#  define Register_Injection_Point(...)
+
+#endif
+
+
+#endif // INJECTIONPOINTINTERFACE_H

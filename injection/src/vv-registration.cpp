@@ -2,13 +2,12 @@
 //Core VnV Registration functions.
 
 #include "VnV.h"
-#include "VnV-Interfaces.h"
 
 #ifdef WITH_ADIOS
-  #include "vv-adios.h"
+  #include "plugins/engines/vv-adios.h"
 #endif
 
-#include "vv-debug-engine.h"
+#include "plugins/engines/vv-debug-engine.h"
 
 namespace VnV {
  namespace {
@@ -23,11 +22,7 @@ namespace ProvenanceTest {
     VnV::ITest* maker(VnV::TestConfig config);
     json declare();
 };
-namespace StdRerouteTest{
-    VnV::ITest* maker(VnV::TestConfig config);
-    json declare();
 
-}
 
 static const char * initializationConfig = R"(
 {
@@ -63,20 +58,15 @@ namespace VnV {
 
         // Register the engines.
 #ifdef WITH_ADIOS
-        VnV_registerEngine("adios", VnV::AdiosEngineBuilder);
+        VnV::registerEngine("adios", VnV::AdiosEngineBuilder);
 #endif
-        VnV_registerEngine("debug",VnV::DebugEngineBuilder);
+        VnV::registerEngine("debug",VnV::DebugEngineBuilder);
 
         //Register the tests.
-        VnV_registerTest("provenance", ProvenanceTest::maker, ProvenanceTest::declare );
-        VnV_registerTest("std-reroute", StdRerouteTest::maker, StdRerouteTest::declare );
+        VnV::registerTest("provenance", ProvenanceTest::maker, ProvenanceTest::declare );
 
         //Register the injection points hard coded into the code.
         Register_Injection_Point("initialization", initializationConfig);
-
-        //Register a custom log level for VnV
-        Register_Log_Level("custom", "\033[36m")
-        VnV_Log("custom", "Custom log level registered with cyan output");
     }
   }
 }

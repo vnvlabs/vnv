@@ -1,7 +1,6 @@
 #ifndef _EuclideanError_H 
 #define _EuclideanError_H 
 
-#include "VnV-Interfaces.h"
 #include "VnV.h"
 #include <sstream>
 using namespace VnV;
@@ -53,10 +52,10 @@ IUnitTester* parser_maker3() {
 }
 
 void parser_callBack() {
-    VnV_registerUnitTester("parser_10_10", parser_maker);
-    VnV_registerUnitTester("parser_0_0", parser_maker1);
-    VnV_registerUnitTester("parser_10_12", parser_maker2);
-    VnV_registerUnitTester("parser_n1_n22", parser_maker3);
+    VnV::registerUnitTester("parser_10_10", parser_maker);
+    VnV::registerUnitTester("parser_0_0", parser_maker1);
+    VnV::registerUnitTester("parser_10_12", parser_maker2);
+    VnV::registerUnitTester("parser_n1_n22", parser_maker3);
 }
 
 #endif
