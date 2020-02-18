@@ -12,7 +12,7 @@ build_with_adios:
     - cd ../examples/dummy/executables
     - ./sample.a
     - cd ../c_executables
-    - ./sample.a
+    - ./csample.a
     
 build_without_adios:
   script:
