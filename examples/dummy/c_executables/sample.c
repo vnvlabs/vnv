@@ -26,13 +26,6 @@ char* schemaCallback() {
 void optionsCallback(c_json json) {
 
     VnV_printJson(json);
-    char * opt;
-    c_json temp;
-    VnV_getKeyValue(json, "option3",&temp);
-    VnV_getString(temp, &opt);
-    printf("%s sdfsdfsdf ", opt);
-    VnV_freeString(temp,&opt);
-
 }
 
 void callback() {
