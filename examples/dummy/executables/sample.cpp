@@ -72,7 +72,8 @@ void callback() {
 };
 
 int main(int argc, char** argv) {
-  VnV_init(&argc, &argv, "./sample.json",callback);
+
+  VnV_init(&argc, &argv, (argc==2) ? argv[1] : "./vv-input.json", callback);
 
   function1(10);
  

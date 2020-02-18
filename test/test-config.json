@@ -6,7 +6,7 @@
     "filename" : "stdout",
     "logs" : {}
   },
-  "testLibraries": [],
+  "testLibraries": {},
   "outputEngine": {
     "type": "debug",
     "config": {

@@ -5,8 +5,8 @@
 #include <iostream>
 
 #include "base/SerializerStore.h"
-#include "c-interfaces/logging-interface.h"
-#include "interfaces/iserializer.h"
+#include "c-interfaces/Logging.h"
+#include "interfaces/ISerializer.h"
 
 using namespace VnV;
 

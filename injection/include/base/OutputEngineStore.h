@@ -3,7 +3,7 @@
 
 #include <map>
 #include <string>
-#include "interfaces/ioutputengine.h"
+#include "interfaces/IOutputEngine.h"
 /**
   \file Headers for the Engine Store.
 */

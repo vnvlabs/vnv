@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "VnV.h"
-#include "interfaces/itest.h"
+#include "interfaces/ITest.h"
 
 using namespace VnV;
 

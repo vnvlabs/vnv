@@ -32,21 +32,21 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/JsonSchema.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/OptionsParserStore.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/Logger.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/runtime-interface.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/json-interface.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/logging-interface.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/injection-point-interface.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ioutputengine.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/iserializer.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/itest.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/itransform.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/vv-registration.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/vv-debug-engine.cpp)
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Runtime.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/CJson.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Logging.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Injection.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/IOutputEngine.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ISerializer.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITest.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITransform.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/Registration.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/DebugOutputEngineImpl.cpp)
 
 if (APPLE)
-    target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/macos/dist-utils.cpp)
+    target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/macos/DistUtils.cpp)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/linux/dist-utils.cpp)
+    target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/linux/DistUtils.cpp)
 else()
     message(FATAL_ERROR "Dist is not MACOS or Linux")
 endif()
@@ -75,7 +75,7 @@ target_compile_definitions(injection PRIVATE -DPACKAGENAME=VnV Framework)
 if(WITH_ADIOS_ENGINE)
 find_package(ADIOS2)
 if (ADIOS2_FOUND) 
-  target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/vv-adios.cpp)
+  target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/AdiosOutputEngineImpl.cpp)
   target_link_libraries(injection PRIVATE adios2::adios2 )
   target_compile_definitions(injection PRIVATE WITH_MPI=1 PRIVATE WITH_ADIOS=1)
 endif()

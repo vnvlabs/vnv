@@ -43,7 +43,12 @@ void callback() {
 }
 
 int main(int argc, char** argv) {
-  VnV_init(&argc, &argv, "./sample.json",callback);
+
+  if (argc !=2 )
+    VnV_init(&argc, &argv, "./sample.json",callback);
+  else {
+    VnV_init(&argc,&argv, argv[1], callback);
+  }
 
   function1(10);
  

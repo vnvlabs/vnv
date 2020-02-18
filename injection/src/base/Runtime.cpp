@@ -11,8 +11,8 @@
 
 #include <unistd.h>
 
-#include "c-interfaces/logging-interface.h"
-#include "c-interfaces/injection-point-interface.h"
+#include "c-interfaces/Logging.h"
+#include "c-interfaces/Injection.h"
 #include "base/InjectionPoint.h"
 #include "base/InjectionPointStore.h"
 #include "base/OutputEngineStore.h"
@@ -20,7 +20,7 @@
 #include "base/DistUtils.h"
 #include "base/OptionsParserStore.h"
 #include "base/Runtime.h"
-#include "vv-registration.h"
+#include "Registration.h"
 
 using namespace VnV;
 

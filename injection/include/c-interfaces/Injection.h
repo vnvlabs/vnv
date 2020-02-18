@@ -3,7 +3,7 @@
 
 #ifndef WITHOUT_VNV
 
-#include "c-interfaces/packagename.h"
+#include "c-interfaces/PackageName.h"
 
 #define START_INJECTION_POINT 1
 #define CP_INJECTION_POINT 2

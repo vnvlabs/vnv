@@ -10,7 +10,7 @@
 #include <vector>
 #include <list>
 
-#include "interfaces/itransform.h"
+#include "interfaces/ITransform.h"
 
 namespace VnV {
 

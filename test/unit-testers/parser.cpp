@@ -2,7 +2,7 @@
 #define _EuclideanError_H 
 
 #include "VnV.h"
-#include "interfaces/iunittester.h"
+#include "interfaces/IUnitTester.h"
 
 #include <sstream>
 using namespace VnV;
@@ -44,13 +44,9 @@ ParserUnitTests::~ParserUnitTests(){};
 IUnitTester* parser_maker() {
     return new ParserUnitTests(10,10);
 }
-IUnitTester* parser_maker1() {
-    return new ParserUnitTests(0,0);
-}
 
 void parser_callBack() {
     VnV::registerUnitTester("parser_10_10", parser_maker);
-    VnV::registerUnitTester("parser_0_0", parser_maker1);
 }
 
 #endif

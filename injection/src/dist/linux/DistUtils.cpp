@@ -4,8 +4,8 @@
 #include "base/DistUtils.h"
 #include "base/Utilities.h"
 
-#include "c-interfaces/runtime-interface.h"
-#include "c-interfaces/logging-interface.h"
+#include "c-interfaces/RunTime.h"
+#include "c-interfaces/Logging.h"
 using nlohmann::json;
 namespace VnV {
   namespace DistUtils {

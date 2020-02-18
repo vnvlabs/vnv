@@ -10,7 +10,7 @@
 #include "json-schema.hpp"
 #include "base/Utilities.h"
 
-#include "c-interfaces/logging-interface.h"
+#include "c-interfaces/Logging.h"
 
 int VnV::StringSplit(const std::string& s, const char* delim,
                      std::vector<std::string>& result) {

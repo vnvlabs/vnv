@@ -1,7 +1,7 @@
 #ifndef IUNITTESTER_H
 #define IUNITTESTER_H
 #include <map>
-#include "interfaces/ioutputengine.h"
+#include "interfaces/IOutputEngine.h"
 
 namespace VnV {
 

@@ -3,7 +3,7 @@
 
 #ifndef WITHOUT_VNV
 
-#include "c-interfaces/packagename.h"
+#include "c-interfaces/PackageName.h"
 
 #define REG_HELPER_(X,Y) X ## Y
 #define REG_HELPER(X,Y) REG_HELPER_(X,Y)

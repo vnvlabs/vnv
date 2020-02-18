@@ -1,8 +1,8 @@
 
 /** @file vv-debug-engine.cpp **/
 
-#include "plugins/engines/vv-debug-engine.h"
-#include "c-interfaces/logging-interface.h"
+#include "plugins/engines/DebugOutputEngineImpl.h"
+#include "c-interfaces/Logging.h"
 #include <iostream>
 
 using namespace VnV;

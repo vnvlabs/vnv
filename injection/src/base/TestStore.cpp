@@ -13,7 +13,7 @@
 #include "base/OutputEngineStore.h"
 #include "base/JsonSchema.h"
 #include "base/TestStore.h"
-#include "c-interfaces/logging-interface.h"
+#include "c-interfaces/Logging.h"
 
 #include "json-schema.hpp"
 using nlohmann::json_schema::json_validator;

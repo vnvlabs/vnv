@@ -1,7 +1,7 @@
 
 /** @file vv-adios.cpp **/
 
-#include "plugins/engines/vv-adios.h"
+#include "plugins/engines/AdiosOutputEngineImpl.h"
 
 using namespace VnV;
 using nlohmann::json;

@@ -5,7 +5,7 @@
 #include <string>
 #include "base/OutputEngineStore.h"
 
-#include "c-interfaces/logging-interface.h"
+#include "c-interfaces/Logging.h"
 
 using namespace VnV;
 using nlohmann::json;

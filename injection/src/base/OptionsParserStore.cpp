@@ -5,7 +5,7 @@
 #include "json-schema.hpp"
 #include "base/Runtime.h"
 #include "base/OptionsParserStore.h"
-#include "c-interfaces/logging-interface.h"
+#include "c-interfaces/Logging.h"
 
 using namespace VnV;
 

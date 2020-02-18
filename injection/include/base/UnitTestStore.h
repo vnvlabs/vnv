@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 
-#include "interfaces/iunittester.h"
+#include "interfaces/IUnitTester.h"
 
 namespace VnV {
 

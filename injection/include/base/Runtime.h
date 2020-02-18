@@ -11,7 +11,7 @@
 #include "base/JsonParser.h"
 #include "base/Logger.h"
 #include "base/InjectionPoint.h"
-#include "c-interfaces/runtime-interface.h"
+#include "c-interfaces/RunTime.h"
 /**
  * VnV Namespace
  */

@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 
-#include "interfaces/iserializer.h"
+#include "interfaces/ISerializer.h"
 
 namespace VnV {
 

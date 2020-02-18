@@ -1,5 +1,5 @@
 
-#include "c-interfaces/json-interface.h"
+#include "c-interfaces/CJson.h"
 #include <iostream>
 using nlohmann::json;
 
@@ -168,7 +168,11 @@ bool VnV_getBoolean(c_json json, bool *result) {
 }
 
 bool VnV_printJson(c_json json) {
-    std::cout << VnV_castJson(json)->dump();
+    if (VnV_check(json)) {
+        std::cout << VnV_castJson(json)->dump();
+        return true;
+    }
+    return false;
 }
 
 json* VnV::asJson(c_json json) {

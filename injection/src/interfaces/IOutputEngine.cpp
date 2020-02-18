@@ -1,7 +1,7 @@
 
-#include "interfaces/ioutputengine.h"
+#include "interfaces/IOutputEngine.h"
 #include "json-schema.hpp"
-#include "c-interfaces/logging-interface.h"
+#include "c-interfaces/Logging.h"
 #include "base/OutputEngineStore.h"
 #include "base/SerializerStore.h"
 using namespace VnV;

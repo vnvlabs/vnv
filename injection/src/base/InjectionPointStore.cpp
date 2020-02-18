@@ -6,8 +6,8 @@
 #include "base/TestStore.h"
 #include "base/JsonSchema.h"
 #include "base/InjectionPointStore.h"
-#include "c-interfaces/injection-point-interface.h"
-#include "c-interfaces/logging-interface.h"
+#include "c-interfaces/Injection.h"
+#include "c-interfaces/Logging.h"
 
 using namespace VnV;
 

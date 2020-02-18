@@ -3,7 +3,7 @@
 
 #ifndef WITHOUT_VNV
 
-#include "c-interfaces/packagename.h"
+#include "c-interfaces/PackageName.h"
 
 struct _c_json {
     void* data;

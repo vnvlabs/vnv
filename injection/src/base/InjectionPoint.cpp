@@ -7,7 +7,7 @@
 #include "base/OutputEngineStore.h"
 #include "base/TestStore.h"
 #include "base/InjectionPoint.h"
-#include "c-interfaces/injection-point-interface.h"
+#include "c-interfaces/Injection.h"
 
 using namespace VnV;
 using nlohmann::json_schema::json_validator;

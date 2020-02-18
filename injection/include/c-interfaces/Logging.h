@@ -3,7 +3,7 @@
 
 #ifndef WITHOUT_VNV
 
-#include "c-interfaces/packagename.h"
+#include "c-interfaces/PackageName.h"
 
 #if __cplusplus
    #define EXTERNC extern "C"

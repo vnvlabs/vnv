@@ -1,6 +1,6 @@
 
-#include "interfaces/itest.h"
-#include "c-interfaces/logging-interface.h"
+#include "interfaces/ITest.h"
+#include "c-interfaces/Logging.h"
 #include "base/OutputEngineStore.h"
 #include "base/TransformStore.h"
 

@@ -1,5 +1,5 @@
 
-#include "c-interfaces/logging-interface.h"
+#include "c-interfaces/Logging.h"
 #include "base/Runtime.h"
 
 void _VnV_registerLogLevel(const char *name, const char *color) {

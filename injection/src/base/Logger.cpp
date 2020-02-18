@@ -11,7 +11,7 @@
 
 # include "base/OutputEngineStore.h"
 # include "base/Runtime.h"
-# include "c-interfaces/logging-interface.h"
+# include "c-interfaces/Logging.h"
 using namespace VnV;
 
 namespace {

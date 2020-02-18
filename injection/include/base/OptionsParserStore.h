@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-#include "c-interfaces/json-interface.h"
+#include "c-interfaces/CJson.h"
 
 namespace VnV {
 

@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "VnV.h"
-#include "interfaces/iunittester.h"
+#include "interfaces/IUnitTester.h"
 
 void parser_callBack();
 
@@ -13,13 +13,7 @@ void callback() {
 }
 
 int main(int argc, char** argv) {
-
-    std::string configurationFile = "./test-config.json";
-    if (argc == 1 ) {
-        configurationFile = argv[1];
-    }
-
-    VnV_init(&argc,&argv,configurationFile.c_str(),callback);
+    VnV_init(&argc,&argv, (argc==2) ? argv[1] : "./test-config.json",callback);
     VnV_runUnitTests();
     VnV_finalize();
 }

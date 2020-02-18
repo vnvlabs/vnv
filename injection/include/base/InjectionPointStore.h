@@ -6,7 +6,7 @@
 #include <stack>
 #include <string>
 #include <vector>
-#include "interfaces/ioutputengine.h"
+#include "interfaces/IOutputEngine.h"
 #include "base/InjectionPoint.h"
 
 namespace VnV {

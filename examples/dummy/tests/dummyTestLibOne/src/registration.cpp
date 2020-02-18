@@ -1,7 +1,7 @@
 
 
 #include "VnV.h"
-#include "interfaces/itest.h"
+#include "interfaces/ITest.h"
 
 VnV::ITest* euclideanError_maker(VnV::TestConfig config);
 json euclideanError_declare();

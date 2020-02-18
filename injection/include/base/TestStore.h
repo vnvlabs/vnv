@@ -12,7 +12,7 @@
 #include <vector>
 #include <list>
 
-#include "interfaces/itest.h"
+#include "interfaces/ITest.h"
 
 namespace VnV {
 

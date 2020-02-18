@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include "base/Runtime.h"
 #include "base/InjectionPointStore.h"
-#include "c-interfaces/injection-point-interface.h"
+#include "c-interfaces/Injection.h"
 
 extern "C" {
 

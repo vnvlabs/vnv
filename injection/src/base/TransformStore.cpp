@@ -9,7 +9,7 @@
 
 #include "base/JsonSchema.h"
 #include "base/TransformStore.h"
-#include "c-interfaces/logging-interface.h"
+#include "c-interfaces/Logging.h"
 #include "json-schema.hpp"
 
 using nlohmann::json_schema::json_validator;
