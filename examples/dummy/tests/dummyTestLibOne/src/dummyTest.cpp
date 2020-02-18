@@ -2,6 +2,7 @@
 #define _dummyTest_H
 
 #include "VnV.h"
+#include "interfaces/itest.h"
 
 using namespace VnV;
 

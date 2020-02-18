@@ -66,9 +66,6 @@ void OutputEngineStore::registerEngine(std::string name,
   registeredEngines.insert(std::make_pair(name, engine_ptr));
 }
 
-void VnV::registerEngine(std::string name, engine_register_ptr r) {
-  OutputEngineStore::getOutputEngineStore().registerEngine(name, r);
-}
 
 OutputEngineManager* OutputEngineStore::getEngineManager() {
   if (manager != nullptr) return manager;

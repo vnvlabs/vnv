@@ -155,6 +155,7 @@ class OutputEngineManager {
 };
 
 typedef OutputEngineManager* engine_register_ptr();
+
 void registerEngine(std::string name, VnV::engine_register_ptr r);
 
 }

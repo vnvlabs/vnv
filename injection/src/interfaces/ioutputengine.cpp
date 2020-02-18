@@ -2,7 +2,7 @@
 #include "interfaces/ioutputengine.h"
 #include "json-schema.hpp"
 #include "c-interfaces/logging-interface.h"
-
+#include "base/OutputEngineStore.h"
 
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
@@ -88,6 +88,10 @@ void OutputEngineManager::_set(json& inputjson) {
 
 void OutputEngineManager::print() {
     VnV_Info("Print not implemented for this Output Engine Manager");
+}
+
+void VnV::registerEngine(std::string name, engine_register_ptr r) {
+  OutputEngineStore::getOutputEngineStore().registerEngine(name, r);
 }
 
 OutputEngineManager::~OutputEngineManager() {}

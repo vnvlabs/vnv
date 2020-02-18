@@ -2,6 +2,8 @@
 #define _EuclideanError_H 
 
 #include "VnV.h"
+#include "interfaces/iunittester.h"
+
 #include <sstream>
 using namespace VnV;
 
@@ -16,20 +18,21 @@ public:
 
     std::map<std::string,bool> run(IOutputEngine* /* engine */) {
         
-	std::map<std::string, bool> results;
+        std::map<std::string, bool> results;
+
         std::string xstr = std::to_string(x);
         std::string ystr = std::to_string(y);
         std::ostringstream t1,t2,t3;
-        t1 << "x(" << x << ") + y(" << y << ") == 22 (" << x+y << ")";
-        t2 << "x(" << x << ") - y(" << y << ") == -2 (" << x-y << ")";
+
+        t1 << "x(" << x << ") + y(" << y << ") == 20 (" << x+y << ")";
+        t2 << "x(" << x << ") - y(" << y << ") == 0 (" << x-y << ")";
         t3 << "x(" << x << ") != y(" << y << ")";
 
-
-        results[t1.str()] = ( (x + y) == 22);
-        results[t2.str()] = ( (x - y) == -2 );
-        results[t3.str()] = ( x != y );
+        results[t1.str()] = ( (x + y) == 20 );
+        results[t2.str()] = ( (x - y) == 0 );
+        results[t3.str()] = ( x == y );
         results["x == 10"] = (x==10);
-        results["y == 12"] = (y==12);
+        results["y == 10"] = (y==10);
         return results;
     }
 
@@ -44,18 +47,10 @@ IUnitTester* parser_maker() {
 IUnitTester* parser_maker1() {
     return new ParserUnitTests(0,0);
 }
-IUnitTester* parser_maker2() {
-    return new ParserUnitTests(10,12);
-}
-IUnitTester* parser_maker3() {
-    return new ParserUnitTests(-1,-22);
-}
 
 void parser_callBack() {
     VnV::registerUnitTester("parser_10_10", parser_maker);
     VnV::registerUnitTester("parser_0_0", parser_maker1);
-    VnV::registerUnitTester("parser_10_12", parser_maker2);
-    VnV::registerUnitTester("parser_n1_n22", parser_maker3);
 }
 
 #endif
