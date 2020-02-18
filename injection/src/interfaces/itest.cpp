@@ -1,9 +1,9 @@
 
 #include "interfaces/itest.h"
 #include "c-interfaces/logging-interface.h"
-#include "base/vv-output.h"
-#include "base/vv-testing.h"
-#include "base/vv-transform.h"
+#include "base/OutputEngineStore.h"
+#include "base/TransformStore.h"
+
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
@@ -107,10 +107,10 @@ std::map<std::string, void*> TestConfig::mapParameters(NTV &parameters) const {
 TestStatus ITest::_runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId, NTV &parameters) {
     VnV_Debug("Runnnig Test %s " , m_config.getName().c_str());
 
-    EngineStore::getEngineStore().getEngineManager()->testStartedCallBack(m_config.getName());
+    OutputEngineStore::getOutputEngineStore().getEngineManager()->testStartedCallBack(m_config.getName());
     std::map<std::string,void*> p = m_config.mapParameters(parameters);
     TestStatus s = runTest(engine,type,stageId, p);
-    EngineStore::getEngineStore().getEngineManager()->testFinishedCallBack(
+    OutputEngineStore::getOutputEngineStore().getEngineManager()->testFinishedCallBack(
         (s == SUCCESS) ? true : false);
     return s;
 }

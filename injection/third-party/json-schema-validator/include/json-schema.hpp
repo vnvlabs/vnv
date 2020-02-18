@@ -23,14 +23,6 @@
 
 #include <nlohmann/json.hpp>
 
-#ifdef NLOHMANN_JSON_VERSION_MAJOR
-#	if (NLOHMANN_JSON_VERSION_MAJOR * 10000 + NLOHMANN_JSON_VERSION_MINOR * 100 + NLOHMANN_JSON_VERSION_PATCH) < 30600
-#		error "Please use this library with NLohmann's JSON version 3.6.0 or higher"
-#	endif
-#else
-#	error "expected existing NLOHMANN_JSON_VERSION_MAJOR preproc variable, please update to NLohmann's JSON 3.6.0"
-#endif
-
 // make yourself a home - welcome to nlohmann's namespace
 namespace nlohmann
 {

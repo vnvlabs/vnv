@@ -1,6 +1,6 @@
 
 #include "c-interfaces/logging-interface.h"
-#include "base/vv-runtime.h"
+#include "base/Runtime.h"
 
 void _VnV_registerLogLevel(const char *name, const char *color) {
     VnV::RunTime::instance().registerLogLevel(name,color);

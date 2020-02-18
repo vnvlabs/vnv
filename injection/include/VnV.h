@@ -16,6 +16,10 @@
 // C Interface for the Logging components of VnV
 #include "c-interfaces/logging-interface.h"
 
+// TODO: Decide on including these interfaces in the VnV.h header include for all C++ projects. This would be fine,
+// but, the interfaces include a header only json library. We could forward declare the json class to remove that dependency,
+// but, then the user would be forced to include the "json.hpp" when implementing any plugin. At that point, its probably more
+// intuitive to foce the user to include the interface/i*.h header instead.
 #if __cplusplus
 
  # include "interfaces/ioutputengine.h"

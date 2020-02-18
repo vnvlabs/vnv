@@ -1,7 +1,8 @@
 
 //Core VnV Registration functions.
 
-#include "VnV.h"
+#include "interfaces/itest.h"
+#include "c-interfaces/injection-point-interface.h"
 
 #ifdef WITH_ADIOS
   #include "plugins/engines/vv-adios.h"

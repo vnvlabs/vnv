@@ -8,11 +8,9 @@
 #include <vector>
 #include <fstream>
 #include <iomanip>
-#include "base/vv-dist-utils.h"
+#include "base/DistUtils.h"
 #include "interfaces/itest.h"
 #include "c-interfaces/logging-interface.h"
-
-//#include "VnV.h"
 
 using namespace VnV;
 

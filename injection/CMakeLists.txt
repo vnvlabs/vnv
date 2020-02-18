@@ -19,18 +19,19 @@ add_library(Injection::Injection ALIAS injection)
 
 #Add the Base files to the injection target
 target_sources(injection PRIVATE
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-injection.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-output.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-parser.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-runtime.cpp                        
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-utils.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-testing.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-transform.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-unit-tester.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-serializer.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-schema.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-options-parser.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-logging.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/InjectionPoint.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/InjectionPointStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/OutputEngineStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/JsonParser.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/Runtime.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/Utilities.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/TestStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/TransformStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/UnitTestStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/SerializerStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/JsonSchema.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/OptionsParserStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/Logger.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/runtime-interface.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/json-interface.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/logging-interface.cpp
@@ -102,10 +103,11 @@ install(EXPORT injection-targets
   DESTINATION lib/cmake/Injection
     )
 
-  install(FILES 
-     ${CMAKE_CURRENT_LIST_DIR}/include/VnV.h
-     ${CMAKE_CURRENT_LIST_DIR}/include/VnV-Interfaces.h
-     DESTINATION include)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/include/VnV.h  DESTINATION include)
+install(DIRECTORY
+         ${CMAKE_CURRENT_LIST_DIR}/include/interfaces
+         ${CMAKE_CURRENT_LIST_DIR}/include/c-interfaces
+         DESTINATION include)
 
 
 #Create a ConfigVersion.cmake file

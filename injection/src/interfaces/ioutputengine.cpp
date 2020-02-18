@@ -2,7 +2,6 @@
 #include "interfaces/ioutputengine.h"
 #include "json-schema.hpp"
 #include "c-interfaces/logging-interface.h"
-#include "base/vv-output.h"
 
 
 using namespace VnV;
@@ -53,6 +52,7 @@ void IOutputEngine::Log(const char *, int, std::string, std::string) { throw "En
 
 IOutputEngine::~IOutputEngine() {}
 
+
 std::string IOutputEngine::getIndent(int stage) {
     std::string s = "";
     for ( int i = 0; i < std::max(0,stage); i++) s+= "\t";
@@ -88,11 +88,6 @@ void OutputEngineManager::_set(json& inputjson) {
 
 void OutputEngineManager::print() {
     VnV_Info("Print not implemented for this Output Engine Manager");
-}
-
-OutputEngineManager* EngineStore::getEngineManager() {
-  if (manager != nullptr) return manager;
-  throw "Engine Not Initialized Error";
 }
 
 OutputEngineManager::~OutputEngineManager() {}

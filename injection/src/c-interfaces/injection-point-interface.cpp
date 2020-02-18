@@ -1,7 +1,7 @@
 
 #include <stdarg.h>
-#include "base/vv-runtime.h"
-#include "base/vv-injection.h"
+#include "base/Runtime.h"
+#include "base/InjectionPointStore.h"
 #include "c-interfaces/injection-point-interface.h"
 
 extern "C" {

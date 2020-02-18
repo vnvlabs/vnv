@@ -1,8 +1,10 @@
-#include "VnV.h"
-#include "vv-dist-utils.h"
-#include "vv-utils.h"
+#include "base/vv-dist-utils.h"
+#include "base/vv-utils.h"
 #include <sys/stat.h>
 #include <unistd.h>
+
+#include "json-schema.hpp"
+#include "c-interfaces/logging-interface.h"
 
 using nlohmann::json;
 namespace VnV {

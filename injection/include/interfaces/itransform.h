@@ -8,7 +8,6 @@ using nlohmann::json;
 namespace VnV {
 
 
-
 /**
  * @brief The ITransform class
  */
