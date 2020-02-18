@@ -3,7 +3,7 @@
 #include "json-schema.hpp"
 #include "c-interfaces/logging-interface.h"
 #include "base/OutputEngineStore.h"
-
+#include "base/SerializerStore.h"
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
@@ -49,6 +49,12 @@ void IOutputEngine::Put(std::string /*variableName*/, float& /**value**/){throw 
 void IOutputEngine::Put(std::string /*variableName*/, long& /**value**/){throw "Engine Does not support type long";}
 void IOutputEngine::Put(std::string /*variableName*/, std::string& /**value**/){throw "Engine Does not support type string";}
 void IOutputEngine::Log(const char *, int, std::string, std::string) { throw "Engine does not support in engine logging";}
+
+void IOutputEngine::Put(std::string variableName, std::string serializer, std::string inputType, void* object) {
+    std::string s = SerializerStore::getSerializerStore().getSerializer(serializer)->Serialize(inputType,object);
+    Put(variableName,s);
+}
+
 
 IOutputEngine::~IOutputEngine() {}
 

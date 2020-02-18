@@ -71,6 +71,9 @@ class InjectionPoint {
   InjectionPointType type;
   std::string stageId;
 
+  NTV parameterMap;
+
+
   void setInjectionPointType(InjectionPointType type, std::string stageId);
 
   /**

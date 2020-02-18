@@ -14,7 +14,7 @@ typedef struct _c_json c_json;
    #include "json-schema.hpp"
    using nlohmann::json;
    namespace VnV {
-        json asJson(c_json json);
+        json* asJson(c_json json);
    };
    #define EXTERNC extern "C"
 #else
@@ -45,6 +45,7 @@ EXTERNC bool VnV_getString(c_json json, char **result);
 EXTERNC bool VnV_freeString(c_json json, char **result);
 EXTERNC bool VnV_is_boolean(c_json json);
 EXTERNC bool VnV_getBoolean(c_json json, bool *result);
+EXTERNC bool VnV_printJson(c_json json);
 
 typedef void options_callback_ptr(c_json info);
 typedef char* options_schema_ptr();

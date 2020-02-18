@@ -5,13 +5,17 @@
 
 #include "c-interfaces/packagename.h"
 
-#define VNV_REGISTRATION_CALLBACK_NAME __vnv_registration_callback__ ## PACKAGENAME
+#define REG_HELPER_(X,Y) X ## Y
+#define REG_HELPER(X,Y) REG_HELPER_(X,Y)
+
+#define VNV_REGISTRATION_CALLBACK_NAME REG_HELPER(__vnv_registration_callback__,PACKAGENAME)
 #define VNV_GET_REGISTRATION "__vnv_registration_callback__"
 
 
 #  ifdef __cplusplus
-#    define EXTERNC extern "C"
-#   define REGISTER_VNV_CALLBACK extern "C" void VNV_REGISTATION_CALLBACK_NAME
+#   define EXTERNC extern "C"
+#   define REGISTER_VNV_CALLBACK extern "C" void VNV_REGISTRATION_CALLBACK_NAME
+
 #  else
 #    define EXTERNC
 #    define REGISTER_VNV_CALLBACK void VNV_REGISTATION_CALLBACK_NAME

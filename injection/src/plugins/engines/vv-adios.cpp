@@ -50,6 +50,7 @@ void AdiosEngine::Put(std::string variableName, std::string& value) {
   engine.Put(variableName, value);
 }
 
+
 void AdiosEngine::Log(const char* package, int stage, std::string level, std::string message) {
     std::ostringstream oss;
     oss << getIndent(stage) << "[" << package << ":" << level << "]: " << message;

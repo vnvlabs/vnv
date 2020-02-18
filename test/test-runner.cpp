@@ -8,14 +8,18 @@
 
 void parser_callBack();
 
-VnV::IUnitTester* parser_maker();
-
 void callback() {
     parser_callBack();
 }
 
 int main(int argc, char** argv) {
-    VnV_init(&argc,&argv,"./test-config.json",callback);
+
+    std::string configurationFile = "./test-config.json";
+    if (argc == 1 ) {
+        configurationFile = argv[1];
+    }
+
+    VnV_init(&argc,&argv,configurationFile.c_str(),callback);
     VnV_runUnitTests();
     VnV_finalize();
 }

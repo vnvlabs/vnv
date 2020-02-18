@@ -43,21 +43,35 @@ void InjectionPoint::unpack_parameters(NTV& ntv, va_list argp) {
     }
     std::string variableName = va_arg(argp, char*);
     void* variablePtr = va_arg(argp, void*);
-    ntv.insert(std::make_pair(variableName,
-                    std::make_pair(variableType, variablePtr)));
+    auto it = ntv.find(variableName);
+    if (it!=ntv.end()) {
+        // If nullptr, indicates this variable is no longer available, so remove it.
+        if (variablePtr==NULL) {
+            ntv.erase(variableName);
+        } else {
+            // Variable has been defined before. In this case, replace the entry to it.
+            it->second = std::make_pair(variableType,variablePtr);
+        }
+    } else {
+        // Put a new entry into the NTV object.
+        ntv.insert(std::make_pair(variableName,std::make_pair(variableType,variablePtr)));
+    }
   }
 }
 
 void InjectionPoint::runTests(va_list argp) {
   OutputEngineManager* wrapper = OutputEngineStore::getOutputEngineStore().getEngineManager();
-  NTV ntv;
-  unpack_parameters(ntv, argp);
+
+  // Parameter map is this injection points parameter map. The pointers to the injection objects are
+  // stored across injection point calls. So, in staged calls, it is up to the developer to ensure
+  // the pointers are up to date and still active.
+  unpack_parameters(parameterMap,argp);
 
   // Call the method to write this injection point to file.
 
   wrapper->injectionPointStartedCallBack(getScope(), type, stageId);
   for (auto it : m_tests) {
-      it->_runTest(wrapper->getOutputEngine(), type, stageId, ntv);
+      it->_runTest(wrapper->getOutputEngine(), type, stageId, parameterMap);
   }
   wrapper->injectionPointEndedCallBack(getScope(), type,stageId);
 }

@@ -14,8 +14,8 @@ char* options_schema() {
 }
 
 void options_callback(c_json callbackJson) {
-    json j = VnV::asJson(callbackJson);
-    VnV_Info("DummyTestLibrary options callback: %s", j.dump().c_str());
+    json *j = VnV::asJson(callbackJson);
+    VnV_Info("DummyTestLibrary options callback: %s", j->dump().c_str());
 }
 
 

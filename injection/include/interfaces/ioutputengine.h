@@ -55,6 +55,17 @@ public:
    */
   virtual void Put(std::string variableName, long& value);
 
+
+   /**
+   * @brief Put a variable using a registered serializer. Serializers are objects that allow
+   * converting a certain object to and from strings.
+   * @param variableName
+   * @param serializer
+   * @param inputType
+   * @param object
+   */
+  void Put(std::string variableName, std::string serializer, std::string inputType, void* object);
+
   /**
    * @brief Put
    * @param variableName

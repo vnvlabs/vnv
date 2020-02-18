@@ -87,6 +87,7 @@ bool searchLibrary(void *dylib, std::string packageName) {
     if ( callback != nullptr ) {
        ((registrationCallBack) callback)();
        ret = true;
+       VnV_Debug("Found it");
     } else {
        ret = false;
     }
@@ -110,7 +111,7 @@ int load_callback(struct dl_phdr_info* info, size_t /*size*/, void* data) {
      try {
        searchLibrary(name, *((std::set<std::string>*)data));
      } catch (...) {
-        VnV_Error("Could not load Shared Library %s", name.c_str());
+       // VnV_Error("Could not load Shared Library %s", name.c_str());
      }
      return 0;
  }

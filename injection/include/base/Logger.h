@@ -55,7 +55,7 @@ class Logger {
 
    Logger();
    bool engine = false; /**< True if this logger writes to the output engine. */
-   std::stack<int> stage;
+   std::stack<std::pair<int,std::string>> stage;
    bool on = true; /**< Is the logger on */
    std::ostream* fileptr; /**< ostream for writing the logs to the intended location */
    bool locked = false; /**< has the logger been configured */

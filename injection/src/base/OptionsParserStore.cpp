@@ -20,7 +20,7 @@ void OptionsParserStore::callBack(std::string name, json info){
 
     auto it = factory.find(name);
     if ( it != factory.end() ) {
-       json schema = it->second.first();
+       json schema = json::parse(it->second.first());
        nlohmann::json_schema::json_validator validator;
        validator.set_root_schema(schema);
        validator.validate(info);
@@ -37,19 +37,16 @@ OptionsParserStore& OptionsParserStore::instance(){
 }
 
 void OptionsParserStore::parse(json info) {
-    for ( auto &it : factory ) {
-       json schema = it.second.first();
-       nlohmann::json_schema::json_validator validator;
-       validator.set_root_schema(schema);
 
-        auto found = info.find(it.first);
-        json foundJson = R"({})"_json;
-        if ( found != info.end() ) {
-            foundJson = found.value();
-        }
-        validator.validate(foundJson);
-        c_json j = {&foundJson};
-        it.second.second(j);
+    for ( auto &it : factory ) {
+       std::cout << "it: " << it.first << std::endl;
+       auto found = info.find(it.first);
+       if (found != info.end()) {
+          callBack(it.first, found.value());
+       } else {
+          json foundJson = R"({})"_json;
+          callBack(it.first, foundJson);
+       }
    }
 }
 

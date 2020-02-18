@@ -90,26 +90,27 @@ void Logger::log(std::string pname, std::string level, std::string format) {
 
 int Logger::beginStage(std::string pname, std::string format, va_list args) {
     log_c(pname,"STAGE_START", format, args);
-    stage.push(refcount);
+    stage.push({refcount,pname});
+
     return refcount++;
 }
 
 void Logger::endStage(int ref ) {
     if ( stage.size() == 0) return;
 
-    int cStage = stage.top();
-    while ( cStage != ref  )  {
-        VnV_Warn("Incorrect stage name or missing StageEnd call %d (expected: %d)", ref, cStage);
+    std::pair<int,std::string> cStage = stage.top();
+    while ( cStage.first != ref  )  {
+        VnV_Warn("Incorrect stage name or missing StageEnd call %d (expected: %d)", ref, cStage.first);
         stage.pop();
         if ( stage.size() == 0 ) {
             break;
         } else {
             cStage = stage.top();
         }
-      }
-      if ( stage.size() > 0 )
+     }
+     if ( stage.size() > 0 )
          stage.pop();
-      log("","STAGE_END", "");
+      log(cStage.second,"STAGE_END", "");
 }
 
 void Logger::log_c(std::string pname, std::string level, std::string format, va_list args) {

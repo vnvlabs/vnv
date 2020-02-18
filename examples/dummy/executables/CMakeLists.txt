@@ -13,6 +13,7 @@ target_compile_definitions(sample.a PRIVATE -DPACKAGENAME=SampleExecutable)
 
 #TOOD
 #configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json ${CMAKE_CURRENT_BINARY_DIR}/sample.json COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json ${CMAKE_CURRENT_BINARY_DIR}/sample.json COPYONLY)
 
 # We place the test libs in a strange directory. So, for this case, we will 
 # set the RPATH to those libs directory. There must be a way to set the target
