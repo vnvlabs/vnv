@@ -25,7 +25,8 @@ char* schemaCallback() {
 
 void optionsCallback(c_json json) {
 
-    VnV_printJson(json);
+
+
 }
 
 void callback() {
