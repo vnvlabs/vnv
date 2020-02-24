@@ -2,6 +2,7 @@
 *.o
 *.a
 *.so
+*.autosave
 xml/xplus.bak
 xml/vv_schema/*
 xml/.xplus.schema*

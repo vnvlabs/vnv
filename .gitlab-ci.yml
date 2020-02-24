@@ -7,15 +7,25 @@ build_with_adios:
     - cd build/with_adios
     - cmake -DCMAKE_INSTALL_PREFIX=../install/with_adios ../../
     - make
-    - make install
-
+    - cd test
+    - ./test-runner
+    - cd ../examples/dummy/executables
+    - ./sample.a
+    - cd ../c_executables
+    - ./csample.a
+    
 build_without_adios:
   script:
     - mkdir -p build/without_adios
     - cd build/without_adios
     - cmake -DCMAKE_INSTALL_PREFIX=../install/without_adios -DWITH_ADIOS_ENGINE=0 ../../
     - make
-    - make install
+    - cd test
+    - ./test-runner
+    - cd ../examples/dummy/executables
+    - ./sample.a
+    - cd ../c_executables
+    - ./csample.a
 
 build_docs:
   script:

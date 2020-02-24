@@ -7,6 +7,7 @@ set(PROJECT_VERSION 1.0.0)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 14)
 
+
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type selected, default to RelWithDebInfo")
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type (default RelWitDebInfo)")

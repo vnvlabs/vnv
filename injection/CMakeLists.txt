@@ -19,22 +19,37 @@ add_library(Injection::Injection ALIAS injection)
 
 #Add the Base files to the injection target
 target_sources(injection PRIVATE
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-injection.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-output.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-parser.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-runtime.cpp                        
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-utils.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-testing.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-unit-tester.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-serializer.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-schema.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-dist-utils.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-cinterface.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-options-parser.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/vv-logging.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/vv-registration.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/engines/vv-debug-engine.cpp)
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/InjectionPoint.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/InjectionPointStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/OutputEngineStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/JsonParser.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/Runtime.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/Utilities.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/TestStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/TransformStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/UnitTestStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/SerializerStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/JsonSchema.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/OptionsParserStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/Logger.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Runtime.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/CJson.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Logging.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Injection.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/IOutputEngine.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ISerializer.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITest.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITransform.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/Registration.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/DebugOutputEngineImpl.cpp)
 
+if (APPLE)
+    target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/macos/DistUtils.cpp)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/linux/DistUtils.cpp)
+else()
+    message(FATAL_ERROR "Dist is not MACOS or Linux")
+endif()
 
 target_link_libraries(injection PRIVATE dl)
 target_link_libraries(injection PUBLIC jsv::jsv)
@@ -43,14 +58,13 @@ target_link_libraries(injection PRIVATE xxhash::xxhash)
 
 if ( WITH_BUILT_IN_TESTS)
 target_sources(injection PRIVATE 
-        ${CMAKE_CURRENT_LIST_DIR}/src/tests/provenance.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/tests/stout-reroute.cpp)
+    ${CMAKE_CURRENT_LIST_DIR}/src/plugins/tests/provenance.cpp)
 endif()
 
 
+
 target_include_directories(injection PRIVATE
-                            ${CMAKE_CURRENT_LIST_DIR}/include/base
-                            ${CMAKE_CURRENT_LIST_DIR}/include/engines
+                            ${CMAKE_CURRENT_LIST_DIR}/include
                             PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
                             $<INSTALL_INTERFACE:include>
@@ -61,7 +75,7 @@ target_compile_definitions(injection PRIVATE -DPACKAGENAME=VnV Framework)
 if(WITH_ADIOS_ENGINE)
 find_package(ADIOS2)
 if (ADIOS2_FOUND) 
-  target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/engines/vv-adios.cpp)
+  target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/AdiosOutputEngineImpl.cpp)
   target_link_libraries(injection PRIVATE adios2::adios2 )
   target_compile_definitions(injection PRIVATE WITH_MPI=1 PRIVATE WITH_ADIOS=1)
 endif()
@@ -89,10 +103,11 @@ install(EXPORT injection-targets
   DESTINATION lib/cmake/Injection
     )
 
-  install(FILES 
-     ${CMAKE_CURRENT_LIST_DIR}/include/VnV.h
-     ${CMAKE_CURRENT_LIST_DIR}/include/VnV-Interfaces.h
-     DESTINATION include)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/include/VnV.h  DESTINATION include)
+install(DIRECTORY
+         ${CMAKE_CURRENT_LIST_DIR}/include/interfaces
+         ${CMAKE_CURRENT_LIST_DIR}/include/c-interfaces
+         DESTINATION include)
 
 
 #Create a ConfigVersion.cmake file

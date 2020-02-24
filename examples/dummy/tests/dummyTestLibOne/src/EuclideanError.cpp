@@ -6,7 +6,8 @@
 #include <iostream>
 #include <vector>
 
-#include "VnV-Interfaces.h"
+#include "VnV.h"
+#include "interfaces/ITest.h"
 
 using namespace VnV;
 
