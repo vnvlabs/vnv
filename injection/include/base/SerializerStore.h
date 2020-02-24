@@ -1,3 +1,8 @@
+
+/**
+  @file SerializerStore.h
+**/
+
 #ifndef VVSERIALIZERS_H
 #define VVSERIALIZERS_H
 

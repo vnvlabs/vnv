@@ -1,6 +1,7 @@
 
-/** @file vv-logging.cpp **/
-
+/** @file Logger.cpp Implementation of the Logger class as defined in
+    base/Logger.h
+**/
 # include "base/Logger.h"
 
 # include <fstream>

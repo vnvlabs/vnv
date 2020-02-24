@@ -1,4 +1,9 @@
 
+
+/**
+  @file DistUtils.h
+**/
+
 #ifndef _VV_DYNAMIC_H
 #define _VV_DYNAMIC_H
 #include <set>

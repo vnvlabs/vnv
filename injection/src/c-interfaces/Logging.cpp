@@ -1,4 +1,7 @@
 
+/**
+  @file Logging.cpp
+**/
 #include "c-interfaces/Logging.h"
 #include "base/Runtime.h"
 

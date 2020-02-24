@@ -14,7 +14,7 @@
 
 #  ifdef __cplusplus
 #   define EXTERNC extern "C"
-#   define REGISTER_VNV_CALLBACK extern "C" void VNV_REGISTRATION_CALLBACK_NAME
+#   define REGISTER_VNV extern "C" void VNV_REGISTRATION_CALLBACK_NAME
 
 #  else
 #    define EXTERNC

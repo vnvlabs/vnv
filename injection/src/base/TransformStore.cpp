@@ -1,4 +1,7 @@
 
+/** @file TransformStore.cpp Implementation of the TransformStore class as defined in
+ * base/TransformStore.h"
+ **/
 #include <dlfcn.h>
 #include <vector>
 #include <map>

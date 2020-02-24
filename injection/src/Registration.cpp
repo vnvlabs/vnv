@@ -1,4 +1,7 @@
 
+/**
+  @file Registration.cpp
+**/
 //Core VnV Registration functions.
 
 #include "Registration.h"

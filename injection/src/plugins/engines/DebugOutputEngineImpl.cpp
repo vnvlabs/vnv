@@ -1,5 +1,5 @@
 
-/** @file vv-debug-engine.cpp **/
+/** @file DebugOutputEngineImpl.cpp **/
 
 #include "plugins/engines/DebugOutputEngineImpl.h"
 #include "c-interfaces/Logging.h"

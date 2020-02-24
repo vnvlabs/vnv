@@ -1,3 +1,8 @@
+
+/**
+  @file Logger.h
+**/
+
 #ifndef VV_LOGGING_HEADER
 #define VV_LOGGING_HEADER
 

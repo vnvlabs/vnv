@@ -1,4 +1,7 @@
 
+/** @file OptionsParserStore.cpp Implementation of the OptionsParserStore as defined in
+ * base/OptionParserStore.h"
+ **/
 #include <dlfcn.h>
 #include <iostream>
 

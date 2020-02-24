@@ -1,5 +1,5 @@
 /**
- *\file vv-schema.h
+ *\file JsonSchema.h
  *
  * Json Schema file for the VV json format. This is stored as a string Raw
  *string literal, and converted to json with the custom _json string literal

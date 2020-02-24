@@ -27,7 +27,7 @@ int class1::function1(int x) {
   return (int) value;
 }
 
-REGISTER_VNV_CALLBACK() {
+REGISTER_VNV() {
     // This code will be generated automatically when using the clang libTool.
     VnV_Debug("Inside the Registration Callback for the DummyLibOne");
     // This is where all the injection points should be registered.

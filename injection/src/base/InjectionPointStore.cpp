@@ -1,3 +1,7 @@
+/**
+  @file InjectionPointStore.cpp Implementation of the injection point store as defined in
+  base/InjectionPointStore.h.
+**/
 
 #include <iostream>
 #include "json-schema.hpp"

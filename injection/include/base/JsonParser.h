@@ -1,3 +1,7 @@
+/**
+  @file JsonParser.h
+**/
+
 #ifndef VV_PARSER_HEADER
 #define VV_PARSER_HEADER
 

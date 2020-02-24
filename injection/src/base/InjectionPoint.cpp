@@ -1,5 +1,5 @@
 
-/** @file vv-injection.cpp **/
+/** @file InjectionPoint.cpp Implementation of InjectionPoint class as defined in InjectionPoint.h **/
 
 #include <iostream>
 #include "json-schema.hpp"

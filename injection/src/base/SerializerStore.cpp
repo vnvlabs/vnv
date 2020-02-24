@@ -1,6 +1,8 @@
 
+/** @file SerializerStore.cpp Implementation of the SerializerStore class as defined in
+ * base/SerializerStore.h"
+ **/
 
-/** @file vv-serializer.cpp **/
 
 #include <iostream>
 

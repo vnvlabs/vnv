@@ -1,4 +1,7 @@
 
+/**
+  @file InjectionPoint.h
+**/
 #ifndef VV_INJECTION_POINTS_H
 #define VV_INJECTION_POINTS_H
 

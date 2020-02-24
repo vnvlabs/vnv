@@ -1,4 +1,7 @@
 
+/** @file JsonSchema.cpp Implementation of the JsonSchema class as defined in
+    base/JsonSchema.h
+**/
 #include "base/JsonSchema.h"
 #include <iostream>
 

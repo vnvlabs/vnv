@@ -19,7 +19,7 @@ void options_callback(c_json callbackJson) {
 }
 
 
-REGISTER_VNV_CALLBACK() {
+REGISTER_VNV() {
 
     // Register some options.
     VnV_Register_Options(options_schema, options_callback );

@@ -1,5 +1,7 @@
 
-/** @file vv-output.cpp **/
+/** @file OutputEngineStore.cpp Implementation of the OutputEngineStore as defined in
+ * base/OutputEngineStore.h"
+ **/
 
 #include <iostream>
 #include <string>

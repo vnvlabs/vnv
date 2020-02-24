@@ -1,5 +1,7 @@
 
-/** @file vv-parser.cpp **/
+/** @file JsonParser.cpp Implementation of the JsonParser class as defined in
+    base/JsonParser.h
+**/
 
 
 #include <fstream>

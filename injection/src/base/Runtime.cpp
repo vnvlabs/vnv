@@ -1,5 +1,7 @@
 
-/** @file vv-runtime.cpp **/
+/** @file Runtime.cpp Implementation of the Runtime class as defined in
+ * base/Runtime.h"
+ **/
 
 #ifdef WITH_MPI
 #  include <mpi.h>
