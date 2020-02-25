@@ -87,17 +87,14 @@ bool searchLibrary(void *dylib, std::string packageName) {
 
     bool ret = false;
     std::string s = VNV_GET_REGISTRATION + packageName;
-    auto a = VnV_BeginStage("Searching for VnV Registration Callback with name %s", s.c_str());
 
     void* callback = dlsym(dylib,s.c_str() );
     if ( callback != nullptr ) {
        ((registrationCallBack) callback)();
        ret = true;
-       VnV_Debug("Found it");
     } else {
        ret = false;
     }
-    VnV_EndStage(a);
     return ret;
 }
 
@@ -105,7 +102,10 @@ bool searchLibrary(std::string name,  std::set<std::string> &packageNames) {
 
     void * dylib = loadLibrary(name);
     for (auto it : packageNames ) {
-       searchLibrary(dylib,it);
+        if (searchLibrary(dylib,it)) {
+            dlclose(dylib);
+            return true;
+        }
     }
     dlclose(dylib);
     return false;

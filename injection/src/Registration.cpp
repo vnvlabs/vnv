@@ -42,7 +42,7 @@ static const char * initializationConfig = R"(
       "type" : "SINGLE",
       "package" : "VnV",
       "function" : "RunTime::Init",
-      "description" : "Initial Injection point containing the command line parameters and config file name",
+      "description" : "Initial Injection point containing the command line parameters and config file name"
    }
 }
 )";

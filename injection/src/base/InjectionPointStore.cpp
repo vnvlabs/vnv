@@ -19,12 +19,13 @@ InjectionPointStore::InjectionPointStore() {}
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
     std::string key, va_list args) {
-  auto it = injectionPoints.find(key);
-  if (it != injectionPoints.end()) {
-    std::shared_ptr<InjectionPoint> injectionPoint =
-        std::make_shared<InjectionPoint>(it->first, args);
 
-    VnV_Debug("Adding the Tests to injection point %s " , it->first.c_str());
+
+  auto it = injectionPoints.find(key);
+  auto reg = registeredInjectionPoints.find(key);
+
+  if (it != injectionPoints.end() && reg != registeredInjectionPoints.end()) {
+    std::shared_ptr<InjectionPoint> injectionPoint = std::make_shared<InjectionPoint>(reg->second, args);
     for (auto& test : it->second) {
       injectionPoint->addTest(test);
     }
@@ -41,25 +42,65 @@ void InjectionPointStore::registerInjectionPoint(json &jsonObject) {
 
     // Register the injection point in the store:(Validation throws)
     std::string name = jsonObject.find("name").value().get<std::string>();
+    VnV_Debug("NAME: %s", name.c_str());
     registeredInjectionPoints.insert(std::make_pair(name,jsonObject));
 
 }
 
+void InjectionPointStore::logInjectionPoint(std::string package, std::string id, va_list args)  {
+
+       int aa;
+       auto it = registeredInjectionPoints.find(id);
+       if (it!=registeredInjectionPoints.end()) {
+            aa = VnV_BeginStage("Registered Injection Point");
+       } else {
+            aa = VnV_BeginStage("Un Registered Injection Point");
+       }
+       VnV_Info("Package: %s",package.c_str());
+       VnV_Info("Name: %s",id.c_str());
+       auto a = VnV_BeginStage("Available Parameters:");
+       if (it!=registeredInjectionPoints.end()) {
+           for (auto p : it->second["parameters"].items() ) {
+              VnV_Info("%s :  %s", p.key().c_str(), p.value().get<std::string>().c_str());
+           }
+       } else {
+            NTV ntv;
+            InjectionPoint::unpack_parameters(ntv,args);
+            for ( auto &it : ntv ) {
+                VnV_Info("%s : <unknown> ",it.first.c_str());
+            }
+       }
+       VnV_EndStage(a);
+       VnV_EndStage(aa);
+}
+
+
+
 void InjectionPointStore::registerInjectionPoint(std::string json_str) {
+
+    VnV_Debug("Registering %s " , json_str.c_str());
     // Parse the json. We support a single injection point and an array of injection points.
-    json x = json::parse(json_str);
-    if (x.is_array()) {
-        for ( auto it : x.items() ) {
+    try {
+        json x = json::parse(json_str);
+        if (x.is_array()) {
+            for ( auto it : x.items() ) {
+                 try {
+                    registerInjectionPoint(it.value());
+                } catch (...) {
+                    VnV_Warn("Could not register Injection Point. Invalid Json. %s", it.value().dump().c_str());
+                }
+            }
+        } else {
             try {
-                registerInjectionPoint(it.value());
-            } catch (std::exception e) {
-                VnV_Warn("Could not register Injection Point. Invalid Json. %s", it.value().dump().c_str());
+                registerInjectionPoint(x);
+            } catch(...) {
+                 VnV_Warn("Could not register Injection Point. Invalid Json. %s", x.dump().c_str());
+
             }
         }
-    } else {
-        registerInjectionPoint(x);
+    } catch(...) {
+        VnV_Warn("Could not register Injection Point. Invalid Json. %s", json_str.c_str());
     }
-
 }
 
 json InjectionPointStore::getInjectionPointRegistrationJson(std::string name) {
@@ -74,10 +115,8 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getInjectionPoint(
     std::string key, InjectionPointType stage, va_list args) {
 
 
-  //VnV_Debug("Looking for injection point {} at stage {} ", key, stage );
   std::shared_ptr<InjectionPoint> ptr;
   if (injectionPoints.find(key) == injectionPoints.end()) {
-    VnV_Debug("Injection point %s not configured ", key.c_str() );
     return nullptr;  // Not configured
   } else if (stage == InjectionPointType::Single) {
     ptr = newInjectionPoint(key, args);

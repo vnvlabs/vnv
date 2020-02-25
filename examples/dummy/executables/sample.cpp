@@ -58,18 +58,18 @@ static const char* injectionPoints = R"(
    [
        {
           "name" : "Function1",
-          "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" : "samplePoints3" : "std::vector<double>" }
+          "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" , "samplePoints3" : "std::vector<double>" }
        },
        {
           "name" : "Function1Class1",
-          "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" : "samplePoints3" : "std::vector<double>" }
+          "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" , "samplePoints3" : "std::vector<double>" }
        },
        {
           "name" : "Function_In_Template",
-          "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" : "samplePoints3" : "std::vector<double>" }
+          "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" , "samplePoints3" : "std::vector<double>" }
        }
    ]
-})";
+)";
 
 void callback() {
    // Here is where we would register all the injection points.

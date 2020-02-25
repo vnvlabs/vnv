@@ -116,6 +116,7 @@ class InjectionPointStore {
   void registerInjectionPoint(std::string json_str);
 
 
+  void logInjectionPoint(std::string package, std::string name, va_list args);
 
   json getInjectionPointRegistrationJson(std::string name);
   /**

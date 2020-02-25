@@ -19,13 +19,8 @@ InjectionPoint::InjectionPoint(json registrationJson, va_list args) {
      m_scope = registrationJson["name"].get<std::string>();
      json parameters = registrationJson["parameters"];
      for ( auto it : parameters.items()) {
-         std::string pname = it.key();
-         json parameter = it.value();
-
-         // add the parameter to the ntv map;
-         parameterMap[pname] = std::make_pair(parameter["class"].get<std::string>(),nullptr);
+         parameterMap[it.key()] = std::make_pair(it.value().get<std::string>(),nullptr);
      }
-     // Load up the ntv with the args.
      unpack_parameters(parameterMap,args);
 }
 

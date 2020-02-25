@@ -15,11 +15,6 @@ int class1::function1(int x) {
 
   value = slope * x + intersection;
 
-  VnV_Info("Some Additional information from this third party package.");
-  VnV_Debug("Third party packages should define the PACKAGE_NAME macro inside the VnV.h file when compiling. This"
-            "ensures the logging statements of the packages are correctly identified. In this case, the packageName"
-            "should be DummyLibOne");
-
   INJECTION_LOOP_END(Hello_temp_sub);
 
   VnV_EndStage(a);
@@ -52,10 +47,10 @@ const char* config = R"(
       "x" : "int",
       "value" : "double"
     }
-   }
-})";
+}
+)";
 
-Register_Injection_Point( config);
+Register_Injection_Point(config);
 
 }
 

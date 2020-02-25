@@ -42,17 +42,7 @@ bool RunTime::useAsciiColors() {
 }
 
 void RunTime::logUnhandled(std::string name, std::string id, va_list argp) {
-       auto aa = VnV_BeginStage("Unhandled InjectionPoint");
-       VnV_Info("Package: %s",name.c_str());
-       VnV_Info("Name: %s",id.c_str());
-       auto a = VnV_BeginStage("Available Parameters:");
-       NTV ntv;
-       InjectionPoint::unpack_parameters(ntv,argp);
-       for ( auto &it : ntv ) {
-           VnV_Info("%s %s %p",it.first.c_str(),it.second.first.c_str(), it.second.second);
-       }
-       VnV_EndStage(a);
-       VnV_EndStage(aa);
+     InjectionPointStore::getInjectionPointStore().logInjectionPoint(name, id,argp);
 }
 
 void RunTime::_injectionPoint(std::string pname, std::string id, InjectionPointType type, va_list argp) {
@@ -63,7 +53,7 @@ void RunTime::_injectionPoint(std::string pname, std::string id, InjectionPointT
     if (ipd != nullptr) {
         ipd->setInjectionPointType(type,"Begin");
         ipd->runTests();
-    } else {
+    } else if (runTimeOptions.logUnhandled) {
         logUnhandled(pname,id,argp);
     }
   }
@@ -72,9 +62,9 @@ void RunTime::_injectionPoint(std::string pname, std::string id, InjectionPointT
 void RunTime::_injectionPoint(std::string pname, std::string id, InjectionPointType type, std::string stageId) {
   if (runTests) {
     std::shared_ptr<InjectionPoint> ipd =
-        InjectionPointStore::getInjectionPointStore().getInjectionPoint(id,type,nullptr);
+        InjectionPointStore::getInjectionPointStore().getInjectionPoint( id,type,nullptr);
     if (ipd != nullptr) {
-        ipd->setInjectionPointType(type,"Begin");
+        ipd->setInjectionPointType(type,stageId);
         ipd->runTests();
     }
   }
@@ -106,6 +96,30 @@ void RunTime::registerLogLevel(std::string name, std::string color) {
     logger.registerLogLevel(name,color);
 }
 
+void RunTimeOptions::callback(c_json j) {
+    json *a = VnV::asJson(j);
+    RunTime::instance().runTimeOptions.fromJson(*a);
+}
+
+char* RunTimeOptions::getSchema() {
+       return R"(
+      {
+         "type" : "object",
+         "parameters" : {
+             "logUnhandled" : { "type" : "boolean" }
+         },
+         "additionalParameters" : false
+      }
+      )";
+}
+
+void RunTimeOptions::fromJson(json j) {
+    if (j.contains("logUnhandled")) {
+        logUnhandled = j["logUnhandled"].get<bool>();
+    }
+}
+
+
 void RunTime::loadRunInfo(RunInfo &info, registrationCallBack *callback) {
 
   // Set up the logger.
@@ -121,7 +135,7 @@ void RunTime::loadRunInfo(RunInfo &info, registrationCallBack *callback) {
 
   //Call this libraries registration callback object (defined in vv-registration.cpp) .
   VnV::Registration::registerVnV();
-
+  VnV_Register_Options(RunTimeOptions::getSchema, RunTimeOptions::callback);
 
   // Load the test libraries ( plugins -- This could include a custom engine )
   VnV_Debug("Loading Test Libraries");

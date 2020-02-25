@@ -18,6 +18,7 @@
 #include "base/Logger.h"
 #include "base/InjectionPoint.h"
 #include "c-interfaces/RunTime.h"
+#include "c-interfaces/CJson.h"
 /**
  * VnV Namespace
  */
@@ -36,9 +37,24 @@ namespace VnV {
  * Like the EngineStore, the RunTime class uses a static initialization function
  * and a private constructor. This makes it impossible to create more than one
  * instance of the RunTime Class.
+ *
  */
+
+
+
+class RunTimeOptions {
+ public:
+    bool logUnhandled = false;
+
+    void fromJson(json jsonObject);
+    static char* getSchema();
+    static void callback(c_json j);
+};
+
+
 class RunTime {
- private:
+    friend class RunTimeOptions;
+private:
 
     Logger logger;
 
@@ -58,11 +74,15 @@ class RunTime {
   bool logUnhandledInjectionPoints = true;
   bool terminalSupportsAsciiColors = true;
 
+
   void loadRunInfo(RunInfo &info, registrationCallBack *callback);
   void makeLibraryRegistrationCallbacks(std::map<std::string,std::string> packageNames);
 
   void _injectionPoint(std::string pname, std::string id, InjectionPointType type, va_list argp);
   void _injectionPoint(std::string pname, std::string id, InjectionPointType type, std::string stageId);
+
+  // TODO Getter and setter.
+  RunTimeOptions runTimeOptions;
 
  public:
   /**
@@ -82,7 +102,6 @@ class RunTime {
    * designed to work with this injection point in mind.
    */
   bool Init(int* argc, char*** argv, std::string configFile, registrationCallBack *callback);
-
 
   bool useAsciiColors();
   /**
