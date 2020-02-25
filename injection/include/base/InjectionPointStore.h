@@ -59,7 +59,10 @@ class InjectionPointStore {
    *
    * Create a new Injection point based on the users specification.
    */
-  std::shared_ptr<InjectionPoint> newInjectionPoint(std::string key);
+  std::shared_ptr<InjectionPoint> newInjectionPoint(std::string key, va_list args);
+
+  // JsonObject is a json object that validates againt the Injection point schema.
+  void registerInjectionPoint(json &jsonObject);
 
  public:
   /**
@@ -81,7 +84,7 @@ class InjectionPointStore {
    * an empty queue is considered invalid and will return a nullptr.
    *
    */
-  std::shared_ptr<InjectionPoint> getInjectionPoint(std::string key, InjectionPointType type, std::string stageId="");
+  std::shared_ptr<InjectionPoint> getInjectionPoint(std::string key, InjectionPointType type, va_list args);
 
   /**
    * @brief addInjectionPoint
@@ -107,9 +110,14 @@ class InjectionPointStore {
   void addInjectionPoints(
       std::map<std::string, std::vector<TestConfig>>& injectionPoints);
 
+  // Register Injection point. JsonStr must be json that validates against the injection
+  // point schema OR an array of objects that individually validate against that same
+  // schema.
+  void registerInjectionPoint(std::string json_str);
 
-  void registerInjectionPoint(std::string name, std::string json_str);
 
+
+  json getInjectionPointRegistrationJson(std::string name);
   /**
    * @brief getInjectionPointStore
    * @return The InjectionPointStore

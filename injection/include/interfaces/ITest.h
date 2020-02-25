@@ -26,8 +26,6 @@ struct ParameterMapping {
 class TestConfig {
  private:
   std::map<std::string, ParameterMapping > parameterMap;
-  std::map<std::string, bool> requiredMap;
-  std::map<std::string, std::string> parameterTypeMap;
   std::string testName;
   json additionalParameters;
   json expectedResult;
@@ -46,6 +44,9 @@ class TestConfig {
   const json& getAdditionalParameters() const;
 
   std::map<std::string, void*> mapParameters(NTV& parameters) const ;
+
+
+  bool isMappingValidForParameterSet(NTV &parameters) const ;
 
   const json& getExpectedResult() const;
   /**

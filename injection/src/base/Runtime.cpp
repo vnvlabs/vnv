@@ -41,14 +41,10 @@ bool RunTime::useAsciiColors() {
     return terminalSupportsAsciiColors;
 }
 
-void RunTime::logUnhandled(std::string name, std::string id, std::string stageId, std::string function, std::string file, int line, va_list argp) {
+void RunTime::logUnhandled(std::string name, std::string id, va_list argp) {
        auto aa = VnV_BeginStage("Unhandled InjectionPoint");
        VnV_Info("Package: %s",name.c_str());
        VnV_Info("Name: %s",id.c_str());
-       VnV_Info("Stage: %s ", stageId.c_str());
-       VnV_Info("File: %s",file.c_str());
-       VnV_Info("Function: %s",function.c_str());
-       VnV_Info("Line: %d", line);
        auto a = VnV_BeginStage("Available Parameters:");
        NTV ntv;
        InjectionPoint::unpack_parameters(ntv,argp);
@@ -59,33 +55,44 @@ void RunTime::logUnhandled(std::string name, std::string id, std::string stageId
        VnV_EndStage(aa);
 }
 
-void RunTime::_injectionPoint(std::string pname, std::string id, InjectionPointType type, std::string function, std::string file, int line, va_list argp, std::string stageId) {
+void RunTime::_injectionPoint(std::string pname, std::string id, InjectionPointType type, va_list argp) {
   if (runTests) {
+
     std::shared_ptr<InjectionPoint> ipd =
-        InjectionPointStore::getInjectionPointStore().getInjectionPoint(id,type,stageId);
-    if (ipd != nullptr)
-    {
-        ipd->runTests(argp);
+        InjectionPointStore::getInjectionPointStore().getInjectionPoint(id,type,argp);
+    if (ipd != nullptr) {
+        ipd->setInjectionPointType(type,"Begin");
+        ipd->runTests();
     } else {
-        logUnhandled(pname,id,stageId,function,file,line,argp);
+        logUnhandled(pname,id,argp);
     }
   }
-
 }
 
-void RunTime::injectionPoint_end(std::string pname, std::string id, std::string function, std::string file, int line, va_list argp) {
-    _injectionPoint(pname,id,InjectionPointType::End,function,file,line,argp,"End");
+void RunTime::_injectionPoint(std::string pname, std::string id, InjectionPointType type, std::string stageId) {
+  if (runTests) {
+    std::shared_ptr<InjectionPoint> ipd =
+        InjectionPointStore::getInjectionPointStore().getInjectionPoint(id,type,nullptr);
+    if (ipd != nullptr) {
+        ipd->setInjectionPointType(type,"Begin");
+        ipd->runTests();
+    }
+  }
 }
 
-void RunTime::injectionPoint_begin(std::string pname, std::string id, std::string function, std::string file, int line, va_list argp) {
-    _injectionPoint(pname,id,InjectionPointType::Begin,function,file,line,argp,"Begin");
+void RunTime::injectionPoint_end(std::string pname, std::string id) {
+    _injectionPoint(pname,id,InjectionPointType::End,"End");
 }
 
-void RunTime::injectionPoint(std::string pname, std::string id, std::string function, std::string file, int line, va_list argp) {
-    _injectionPoint(pname,id,InjectionPointType::Single,function,file,line,argp,"Single");
+void RunTime::injectionPoint_begin(std::string pname, std::string id, va_list argp) {
+    _injectionPoint(pname,id,InjectionPointType::Begin,argp);
 }
-void RunTime::injectionPoint_iter(std::string pname, std::string id, std::string stageId, std::string function, std::string file, int line, va_list argp) {
-    _injectionPoint(pname,id,InjectionPointType::Iter,function,file,line,argp,stageId);
+
+void RunTime::injectionPoint(std::string pname, std::string id, va_list argp) {
+    _injectionPoint(pname,id,InjectionPointType::Single,argp);
+}
+void RunTime::injectionPoint_iter(std::string pname, std::string id,std::string stageId) {
+    _injectionPoint(pname,id,InjectionPointType::Iter,stageId);
 }
 
 RunTime& RunTime::instance() {
@@ -179,12 +186,11 @@ bool RunTime::Init(int* argc, char*** argv, std::string configFile, registration
   std::ifstream in(configFile);
   RunInfo info = parser.parse(in);
 
-
   runTests = info.runTests;
   if (runTests) {
    loadRunInfo(info,callback);
    printRunTimeInformation();
-   INJECTION_POINT(initialization, int*, argc, char***, argv, std::string,configFile);
+   INJECTION_POINT(initialization, argc, argv, configFile);
   } else if (info.error) {
     runTests = false;
     processToolConfig(info.toolConfig);
@@ -234,7 +240,6 @@ void RunTime::endStage(int ref) {
 void RunTime::runUnitTests() {
   UnitTestStore::getUnitTestStore().runAll(false);
 }
-
 
 void RunTime::printRunTimeInformation() {
         int a = VnV_BeginStage("Runtime Configuration");

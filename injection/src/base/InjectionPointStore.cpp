@@ -18,11 +18,11 @@ using namespace VnV;
 InjectionPointStore::InjectionPointStore() {}
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
-    std::string key) {
+    std::string key, va_list args) {
   auto it = injectionPoints.find(key);
   if (it != injectionPoints.end()) {
     std::shared_ptr<InjectionPoint> injectionPoint =
-        std::make_shared<InjectionPoint>(it->first);
+        std::make_shared<InjectionPoint>(it->first, args);
 
     VnV_Debug("Adding the Tests to injection point %s " , it->first.c_str());
     for (auto& test : it->second) {
@@ -33,20 +33,46 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
   return nullptr;
 }
 
-void InjectionPointStore::registerInjectionPoint(std::string name, std::string json_str) {
-    // Parse the json.
-    json x = json::parse(json_str);
+void InjectionPointStore::registerInjectionPoint(json &jsonObject) {
     // Validate it against the schema for defining an injection point.
     nlohmann::json_schema::json_validator validator;
     validator.set_root_schema(getInjectionPointDeclarationSchema());
-    validator.validate(x);
+    validator.validate(jsonObject);
 
     // Register the injection point in the store:(Validation throws)
-    registeredInjectionPoints.insert(std::make_pair(name,x));
+    std::string name = jsonObject.find("name").value().get<std::string>();
+    registeredInjectionPoints.insert(std::make_pair(name,jsonObject));
+
+}
+
+void InjectionPointStore::registerInjectionPoint(std::string json_str) {
+    // Parse the json. We support a single injection point and an array of injection points.
+    json x = json::parse(json_str);
+    if (x.is_array()) {
+        for ( auto it : x.items() ) {
+            try {
+                registerInjectionPoint(it.value());
+            } catch (std::exception e) {
+                VnV_Warn("Could not register Injection Point. Invalid Json. %s", it.value().dump().c_str());
+            }
+        }
+    } else {
+        registerInjectionPoint(x);
+    }
+
+}
+
+json InjectionPointStore::getInjectionPointRegistrationJson(std::string name) {
+    auto it = registeredInjectionPoints.find(name);
+    if ( it != registeredInjectionPoints.end()) {
+        return it->second;
+    }
+    return json(nullptr);
 }
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::getInjectionPoint(
-    std::string key, InjectionPointType stage, std::string stageId) {
+    std::string key, InjectionPointType stage, va_list args) {
+
 
   //VnV_Debug("Looking for injection point {} at stage {} ", key, stage );
   std::shared_ptr<InjectionPoint> ptr;
@@ -54,10 +80,10 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getInjectionPoint(
     VnV_Debug("Injection point %s not configured ", key.c_str() );
     return nullptr;  // Not configured
   } else if (stage == InjectionPointType::Single) {
-    ptr = newInjectionPoint(key);
+    ptr = newInjectionPoint(key, args);
   } else if (stage == InjectionPointType::Begin) { /* New staged injection point. -- Add it to the stack */
     auto it = active.find(key);
-    ptr = newInjectionPoint(key); /*Not nullptr because we checked above*/
+    ptr = newInjectionPoint(key, args); /*Not nullptr because we checked above*/
 
     /* If first of its kind, make a new map entry. */
     if (it == active.end()) {
@@ -79,7 +105,6 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getInjectionPoint(
       ptr = it->second.top();  // Intermediate stage -> return top of stack.
     }
   }
-  ptr->setInjectionPointType(stage,stageId);
   return ptr;
 }
 

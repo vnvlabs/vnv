@@ -195,44 +195,52 @@ json getTransformDeclarationSchema() {
 static json __injectionPoint_declaration_schema__ = R"({
 "$schema": "http://json-schema.org/draft-07/schema#",
 "$id": "http://rnet-tech.net/vv.injectionPoint.schema.json",
-"title": "transform declaration schema",
+"title": "injection point declaration schema",
 "type": "object",
 "properties" : {
      "name" : {"type":"string"},
-     "type" : {"type":"string","enum" : ["SINGLE","LOOP"]},
-     "package" : {"type" : "string"},
-     "function" : {"type" : "string"},
-     "description" : {"type" : "string"},
-     "stages" : { "type" : "object" ,"additionalProperties" : {"$ref" : "#/definitions/stage" }},
-     "suggested" : {"type" : "object" },
-     "restructuredText" : {"type" : "string"}
+     "parameters" : {"$ref" : "#/definitions/parameters"},
+     "documentation" : {"$ref" : "#/definitions/documentation"}
 },
-"required" : ["name","type","package","stages"],
+"required" : ["name","parameters"],
 "additionalProperties" : false,
 "definitions" : {
-    "stage" : {
-       "type" : "object",
-       "properties" : {
-         "description" : {"type":"string"},
-         "parameters" : { "$ref" : "#/definitions/parameters" }
-       },
-       "required" : ["parameters"]
-    },
     "parameters" : {
        "type" : "object",
-       "additionalProperties" : {
-          "$ref" : "#/definitions/parameter"
-       }
+       "additionalProperties" : { "type" : "string" }
     },
     "parameter" : {
       "type" : "object",
       "properties" : {
          "class" : {"type":"string"},
-         "description" : {"type":"string"}
-       },
+         "documentation" : {"$ref" : "#/definitions/parameterDocumentation"}
+     },
        "required" : ["class"]
+    },
+    "documentation" : {
+      "type" : "object",
+      "properties" : {
+          "package" : {"type" : "string"},
+          "type" : {"type":"string","enum" : ["SINGLE","LOOP"]},
+          "function" : {"type" : "string"},
+          "line" : {"type" : "string"},
+          "file" : {"type" : "string"},
+          "stages" : { "type" : "object" },
+          "parameters" : {
+             "type" : "object",
+             "additionalProperties" : {"$ref" : "#/definitions/parameterDocumentation"}
+          }
+       }
+     },
+    "parameterDocumentation" : {
+      "type" : "object",
+      "properties" : {
+          "package" : {"type" : "string"},
+          "line" : {"type" : "string"},
+          "file" : {"type" : "string"}
+      }
     }
- }
+}
 })"_json;
 
 json getInjectionPointDeclarationSchema() {

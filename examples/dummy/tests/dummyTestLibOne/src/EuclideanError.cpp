@@ -57,7 +57,7 @@ ITest* euclideanError_maker(TestConfig config) { return new EuclideanError(confi
 json euclideanError_declare() {
    return R"(
    {
-           "name" : "EuclieanErorr",
+           "name" : "EuclieanError",
            "title" : "Test For calculating euclidean error between two vectors.",
            "description" : "This test calculates the euclidean distance between two vectors",
            "expectedResult" : {"type" : "object"},

@@ -14,9 +14,7 @@ public:
 int function1(int x, T y) {
  std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
  
- INJECTION_POINT(Function_In_Teplate, std::vector<double>, samplePoints,
-                  std::vector<double>, samplePoints1, std::vector<double>,
-                  samplePoints3)
+ INJECTION_POINT(Function_In_Template, samplePoints, samplePoints1, samplePoints3)
   return 11;
  }
 };
@@ -27,20 +25,14 @@ class test1 {
 int function1(int x) {
   std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
 
-  INJECTION_LOOP_BEGIN(Function1Class1, std::vector<double>, samplePoints,
-                  std::vector<double>, samplePoints1, std::vector<double>,
-                  samplePoints3)
+  INJECTION_LOOP_BEGIN(Function1Class1, samplePoints, samplePoints1, samplePoints3)
   for (int i = 0; i < 10; i++) {
     samplePoints.push_back(i);
-    INJECTION_LOOP_ITER(Function1Class1, inner, std::vector<double>, samplePoints,
-                  std::vector<double>, samplePoints1, std::vector<double>,
-                  samplePoints3)
+    INJECTION_LOOP_ITER(Function1Class1, inner)
     samplePoints1.push_back(i * i);
   }
 
-  INJECTION_LOOP_END(Function1Class1, std::vector<double>, samplePoints,
-                  std::vector<double>, samplePoints1, std::vector<double>,
-                  samplePoints3)
+  INJECTION_LOOP_END(Function1Class1)
   return 11;
 }
 
@@ -49,26 +41,40 @@ int function1(int x) {
 int function1(int x) {
   std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
 
-  INJECTION_LOOP_BEGIN(Function1, std::vector<double>, samplePoints,
-                  std::vector<double>, samplePoints1, std::vector<double>,
-                  samplePoints3)
+  INJECTION_LOOP_BEGIN(Function1, samplePoints, samplePoints1, samplePoints3)
   for (int i = 0; i < 10; i++) {
     samplePoints.push_back(i);
-    INJECTION_LOOP_ITER(Function1, inner, std::vector<double>, samplePoints,
-                  std::vector<double>, samplePoints1, std::vector<double>,
-                  samplePoints3)
+    INJECTION_LOOP_ITER(Function1, inner)
     samplePoints1.push_back(i * i);
   }
+  INJECTION_LOOP_END(Function1)
 
-  INJECTION_LOOP_END(Function1, std::vector<double>, samplePoints,
-                  std::vector<double>, samplePoints1, std::vector<double>,
-                  samplePoints3)
   return 11;
 };
+
+// Write the injection point registation -- we use the array form to specify multiple points
+// in a single string.
+static const char* injectionPoints = R"(
+   [
+       {
+          "name" : "Function1",
+          "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" : "samplePoints3" : "std::vector<double>" }
+       },
+       {
+          "name" : "Function1Class1",
+          "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" : "samplePoints3" : "std::vector<double>" }
+       },
+       {
+          "name" : "Function_In_Template",
+          "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" : "samplePoints3" : "std::vector<double>" }
+       }
+   ]
+})";
 
 void callback() {
    // Here is where we would register all the injection points.
    VnV_Debug("Inside the Executable Call Back.");
+   Register_Injection_Point(injectionPoints);
 };
 
 int main(int argc, char** argv) {

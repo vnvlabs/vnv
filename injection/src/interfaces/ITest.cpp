@@ -81,18 +81,33 @@ ParameterMapping TestConfig::getMapping(std::string parmaeterName) const {
     throw "Parameter Not Found";
 }
 
+bool TestConfig::isMappingValidForParameterSet(NTV &parameters) const {
+    // Loop over all test parameters.
+    for (auto it : parameterMap ) {
+        // If the parameter is not required, then it is ok.
+        auto p = parameters.find(it.second.injectionPointParameter);
+        if ( p == parameters.end() && it.second.required ){
+               return false; //Could not find required parameter.
+        } else if (p->second.first != it.second.parameterType) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void* TestConfig::mapParameter(std::string parameterName, NTV &parameters) const {
   ParameterMapping mapping = getMapping(parameterName);
 
   //Pull the associated Injection point param from the NTV.
   auto ip_parameter = parameters.find(mapping.injectionPointParameter);
-  if (ip_parameter == parameters.end()) {
+  if (ip_parameter == parameters.end() || ip_parameter->second.second == nullptr) {
       if ( mapping.required) {
           throw "Required Parameter was not found";
       } else {
-        return nullptr;
+          return nullptr;
       }
   }
+
   // Transform the injection point parameter into the test parameter
   return TransformStore::getTransformStore().getTransform(mapping.parameterType, ip_parameter->second.first, ip_parameter->second.second);
 }

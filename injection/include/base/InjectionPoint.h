@@ -66,10 +66,8 @@ class InjectionPoint {
    * InjectionPoints.
    */
   friend class InjectionPointStore;
-  std::string
-      m_scope; /**< The name of the Injection point. (TODO change name) */
-  std::vector<std::shared_ptr<ITest>>
-      m_tests; /**< Vector of tests given to this injection point */
+  std::string  m_scope; /**< The name of the Injection point. (TODO change name) */
+  std::vector<std::shared_ptr<ITest>> m_tests; /**< Vector of tests given to this injection point */
 
   InjectionPointType type;
   std::string stageId;
@@ -77,7 +75,8 @@ class InjectionPoint {
   NTV parameterMap;
 
 
-  void setInjectionPointType(InjectionPointType type, std::string stageId);
+  bool isValidTest(TestConfig config);
+
 
   /**
    * @brief addTest Add a test Config to that injection point.
@@ -100,10 +99,11 @@ class InjectionPoint {
    *support names of the form "a::b::c"
    *
    **/
-  InjectionPoint(std::string scope);
+  InjectionPoint(json registrationJson, va_list args);
 
   /**
    * @brief unpack_parameters
+   * @param[in] registration The registration json for the injection point
    * @param[out] ntv The map populated by this function.
    * @param[in] argp The va_list obtained from a variadic function call.
    *
@@ -133,7 +133,9 @@ class InjectionPoint {
    *id gets passed onto the tests to ensure the correct tests are run during
    *each stage.
    **/
-  void runTests(va_list argp);
+  void runTests();
+
+  void setInjectionPointType(InjectionPointType type, std::string stageId);
 
   /**
    * @brief hasTests

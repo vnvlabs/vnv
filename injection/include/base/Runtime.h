@@ -61,7 +61,9 @@ class RunTime {
   void loadRunInfo(RunInfo &info, registrationCallBack *callback);
   void makeLibraryRegistrationCallbacks(std::map<std::string,std::string> packageNames);
 
-  void _injectionPoint(std::string pname, std::string id, InjectionPointType type, std::string function, std::string file, int line, va_list argp, std::string stageId);
+  void _injectionPoint(std::string pname, std::string id, InjectionPointType type, va_list argp);
+  void _injectionPoint(std::string pname, std::string id, InjectionPointType type, std::string stageId);
+
  public:
   /**
    * @brief Init
@@ -103,10 +105,10 @@ class RunTime {
    * running it with the given parameters.
    *
    */
-  void injectionPoint(std::string pname, std::string id, std::string function, std::string file, int line,  va_list argp);
-  void injectionPoint_begin(std::string pname, std::string id, std::string function,std::string file, int line, va_list argp);
-  void injectionPoint_end(std::string pname, std::string id, std::string function,std::string file, int line, va_list argp);
-  void injectionPoint_iter(std::string pname, std::string id, std::string iterId, std::string function,std::string file, int line, va_list argp);
+  void injectionPoint(std::string pname, std::string id, va_list argp);
+  void injectionPoint_begin(std::string pname, std::string id, va_list argp);
+  void injectionPoint_end(std::string pname, std::string id);
+  void injectionPoint_iter(std::string pname, std::string id, std::string iterid);
   /**
    * @brief Finalize
    * @return
@@ -138,7 +140,7 @@ class RunTime {
    */
   void log(std::string pname, std::string level, std::string message, va_list args);
 
-  void logUnhandled(std::string name, std::string id, std::string stageId, std::string function, std::string file, int line, va_list argp);
+  void logUnhandled(std::string name, std::string id, va_list argp);
 
   void registerLogLevel(std::string logLevel, std::string color);
 

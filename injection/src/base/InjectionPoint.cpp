@@ -8,24 +8,43 @@
 #include "base/TestStore.h"
 #include "base/InjectionPoint.h"
 #include "c-interfaces/Injection.h"
-
+#include "base/InjectionPointStore.h"
+#include "c-interfaces/Logging.h"
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
-InjectionPoint::InjectionPoint(std::string scope) : m_scope(scope) {}
+InjectionPoint::InjectionPoint(json registrationJson, va_list args) {
+
+     //RegistrationJson is a validated InjectionPoint Registration json object.
+     m_scope = registrationJson["name"].get<std::string>();
+     json parameters = registrationJson["parameters"];
+     for ( auto it : parameters.items()) {
+         std::string pname = it.key();
+         json parameter = it.value();
+
+         // add the parameter to the ntv map;
+         parameterMap[pname] = std::make_pair(parameter["class"].get<std::string>(),nullptr);
+     }
+     // Load up the ntv with the args.
+     unpack_parameters(parameterMap,args);
+}
 
 std::string InjectionPoint::getScope() const { return m_scope; }
 
+
 void InjectionPoint::addTest(TestConfig config) {
-  std::shared_ptr<ITest> test = nullptr;
-  test.reset(TestStore::getTestStore().getTest(config));
+  if ( config.isMappingValidForParameterSet(parameterMap)) {
 
-
-  if (test != nullptr) {
-    m_tests.push_back(test);
+     std::shared_ptr<ITest> test = nullptr;
+     test.reset(TestStore::getTestStore().getTest(config));
+     if (test != nullptr) {
+        m_tests.push_back(test);
+        return;
+     }
   }
-
+  VnV_Error("Error Loading Test Config with Name %s", config.getName().c_str());
 }
+
 
 void InjectionPoint::setInjectionPointType(InjectionPointType type_, std::string stageId_) {
     type = type_;
@@ -37,36 +56,24 @@ bool InjectionPoint::hasTests() { return m_tests.size() > 0; }
 void InjectionPoint::unpack_parameters(NTV& ntv, va_list argp) {
 
   while (1) {
-    std::string variableType = va_arg(argp, char*);
-    if (variableType == VNV_END_PARAMETERS_S) {
+    std::string variableName = va_arg(argp, char*);
+    if (variableName == VNV_END_PARAMETERS_S) {
       break;
     }
-    std::string variableName = va_arg(argp, char*);
     void* variablePtr = va_arg(argp, void*);
+
     auto it = ntv.find(variableName);
     if (it!=ntv.end()) {
-        // If nullptr, indicates this variable is no longer available, so remove it.
-        if (variablePtr==NULL) {
-            ntv.erase(variableName);
-        } else {
-            // Variable has been defined before. In this case, replace the entry to it.
-            it->second = std::make_pair(variableType,variablePtr);
-        }
+        it->second.second = variablePtr;
     } else {
-        // Put a new entry into the NTV object.
-        ntv.insert(std::make_pair(variableName,std::make_pair(variableType,variablePtr)));
+        //variable was not registered, add it with a type void*
+        ntv.insert(std::make_pair(variableName, std::make_pair("void*", variablePtr)));
     }
   }
 }
 
-void InjectionPoint::runTests(va_list argp) {
+void InjectionPoint::runTests() {
   OutputEngineManager* wrapper = OutputEngineStore::getOutputEngineStore().getEngineManager();
-
-  // Parameter map is this injection points parameter map. The pointers to the injection objects are
-  // stored across injection point calls. So, in staged calls, it is up to the developer to ensure
-  // the pointers are up to date and still active.
-  unpack_parameters(parameterMap,argp);
-
   // Call the method to write this injection point to file.
 
   wrapper->injectionPointStartedCallBack(getScope(), type, stageId);

@@ -11,7 +11,7 @@ int class1::function1(int x) {
 
   auto a = VnV_BeginStage("An example of a third party library using the VnV logging capabilities");
 
-  INJECTION_LOOP_BEGIN(Hello_temp_sub,double,slope,double,intersection,double,x,double,value);
+  INJECTION_LOOP_BEGIN(Hello_temp_sub,slope,intersection,x,value);
 
   value = slope * x + intersection;
 
@@ -20,11 +20,11 @@ int class1::function1(int x) {
             "ensures the logging statements of the packages are correctly identified. In this case, the packageName"
             "should be DummyLibOne");
 
-  INJECTION_LOOP_END(Hello_temp_sub,double,slope,double,intersection,double,x,double,value);
+  INJECTION_LOOP_END(Hello_temp_sub);
 
   VnV_EndStage(a);
 
-  return (int) value;
+  return static_cast<int>(value);
 }
 
 REGISTER_VNV() {
@@ -32,36 +32,30 @@ REGISTER_VNV() {
     VnV_Debug("Inside the Registration Callback for the DummyLibOne");
     // This is where all the injection points should be registered.
 
-    const char* config = R"(
+    const char* config1 = R"(
+  {
+   "name" : "class2_function1",
+   "parameters" : {
+      "x" : "int"
+    }
+  }
+)";
+
+Register_Injection_Point(config1);
+
+const char* config = R"(
 {
    "name" : "Hello_temp_sub",
-   "type" : "LOOP",
-   "package" : "DummyLibOne",
-   "stages" : {
-       "BEGIN" : {
-          "parameters" : {
-                "slope" : {
-                    "class" : "double"
-                },
-                "intersection" : {
-                    "class" : "double"
-                }
-          }
-       },
-       "END" : {
-          "parameters" : {
-                "slope" : {
-                    "class" : "double"
-                },
-                "intersection" : {
-                    "class" : "double"
-                }
-          }
-       }
+   "parameters" : {
+      "slope" : "double",
+      "intersection" : "double",
+      "x" : "int",
+      "value" : "double"
+    }
    }
 })";
 
-Register_Injection_Point("Hello_temp_sub", config);
+Register_Injection_Point( config);
 
 }
 

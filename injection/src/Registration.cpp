@@ -33,30 +33,19 @@ namespace ProvenanceTest {
 static const char * initializationConfig = R"(
 {
    "name" : "initialization",
-   "type" : "SINGLE",
-   "package" : "VnV",
-   "function" : "RunTime::Init",
-   "description" : "Initial Injection point containing the command line parameters and config file name",
-   "restructuredText" : "VnV Initialization is Complete",
-   "stages" : {
-       "BEGIN" : {
-          "parameters" : {
-                "argc" : {
-                    "class" : "int*",
-                    "description" : "argc from the command line"
-                },
-                "argv" : {
-                    "class" : "char***" ,
-                    "description" : "argv from the command line"
-                },
-                "configFile" : {
-                  "class" : "std::string",
-                  "description" : "the filename of the configuration file used to configure the runtime"
-                }
-          }
-       }
+   "parameters" : {
+        "argc" : "int*" ,
+        "argv" : "char***" ,
+        "configFile" : "std::string"
+   },
+   "documentation" : {
+      "type" : "SINGLE",
+      "package" : "VnV",
+      "function" : "RunTime::Init",
+      "description" : "Initial Injection point containing the command line parameters and config file name",
    }
-})";
+}
+)";
 
 namespace VnV {
   namespace Registration {
@@ -72,7 +61,7 @@ namespace VnV {
         VnV::registerTest("provenance", ProvenanceTest::maker, ProvenanceTest::declare );
 
         //Register the injection points hard coded into the code.
-        Register_Injection_Point("initialization", initializationConfig);
+        Register_Injection_Point(initializationConfig);
     }
   }
 }
