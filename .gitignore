@@ -3,6 +3,9 @@
 *.a
 *.so
 *.autosave
+*.bak
+*.removed
+
 xml/xplus.bak
 xml/vv_schema/*
 xml/.xplus.schema*

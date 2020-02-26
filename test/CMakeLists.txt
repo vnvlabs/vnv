@@ -6,7 +6,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Not needed inside the build tree
 #find_package(Injection)
 
-add_executable(test-runner "test-runner.cpp"  "unit-testers/parser.cpp")
+add_executable(test-runner)
+target_sources(test-runner PRIVATE "test-runner.cpp")
+target_sources(test-runner PRIVATE "unit-testers/parser.cpp")
+
+#target_sources(test-runner PRIVATE "./unit-testers/Fish.cpp")
+
+
+#<needle>
+
+
+
 configure_file(${CMAKE_CURRENT_LIST_DIR}/test-config.json ${CMAKE_CURRENT_BINARY_DIR}/test-config.json COPYONLY)
 target_link_libraries(test-runner Injection::Injection)
 target_compile_definitions(test-runner PRIVATE -DPACKAGENAME=TestRunner)
