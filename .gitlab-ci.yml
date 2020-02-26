@@ -5,7 +5,7 @@ build_with_adios:
   script:
     - mkdir -p build/with_adios
     - cd build/with_adios
-    - cmake -DCMAKE_INSTALL_PREFIX=../install/with_adios ../../
+    - cmake ../../
     - make
     - cd test
     - ./test-runner
@@ -18,7 +18,7 @@ build_without_adios:
   script:
     - mkdir -p build/without_adios
     - cd build/without_adios
-    - cmake -DCMAKE_INSTALL_PREFIX=../install/without_adios -DWITH_ADIOS_ENGINE=0 ../../
+    - cmake -DWITH_ADIOS_ENGINE=0 ../../
     - make
     - cd test
     - ./test-runner
@@ -26,6 +26,24 @@ build_without_adios:
     - ./sample.a
     - cd ../c_executables
     - ./csample.a
+
+test_gen_script:
+   script:
+   - mkdir -p build/test-gen-script
+   - cd test 
+   - ./gen.py TestingTheGenerationScript
+   - cd ../build/test-gen-script
+   - cmake -DWITH_ADIOS_ENGINE=0 ../../
+   - make
+   - cd test
+   - ./test-runner
+   - cd ../../../test
+   - ./gen.py --r TestingTheGenerationScript
+   - cd ../build/test-gen-script
+   - make
+   - cd test
+   - ./test-runner
+
 
 build_docs:
   script:
