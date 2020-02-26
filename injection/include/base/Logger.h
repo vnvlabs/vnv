@@ -50,6 +50,7 @@ namespace VnV {
 class Logger {
  private:
    friend class RunTime;
+   friend class IUnitTester; // Allow unit tester to Test the private functions.
    int refcount = 0;
 
    std::map<std::string, std::string> logLevelsToColor;
@@ -66,8 +67,6 @@ class Logger {
    bool locked = false; /**< has the logger been configured */
    std::set<std::string> packageBlackList;
    std::string outFileName;
-   /**
-
 
   /**
    * @arg level The level to which this log should be written.

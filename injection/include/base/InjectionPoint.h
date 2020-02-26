@@ -75,17 +75,15 @@ class InjectionPoint {
   NTV parameterMap;
 
 
-  bool isValidTest(TestConfig config);
-
-
   /**
-   * @brief addTest Add a test Config to that injection point.
+   * @brief addTest Add a test Config to that injection point. Note: This function
+   * simply adds the test. It does not validate it. It is a private function only
+   * called by the InjectionPointStore (friend class).
    * @param c
    */
   void addTest(TestConfig c);
 
- public:
-  /**
+ /**
    * @brief InjectionPoint
    * @param scope The unique name of this injection point.
    *
@@ -101,6 +99,7 @@ class InjectionPoint {
    **/
   InjectionPoint(json registrationJson, va_list args);
 
+public:
   /**
    * @brief unpack_parameters
    * @param[in] registration The registration json for the injection point
@@ -114,7 +113,7 @@ class InjectionPoint {
    * the object pointed to by the void* pointer. The last parameter in the
    * va_list should be a string "__VV_PARAMETERS_END__"
    */
-  static void unpack_parameters(NTV& ntv, va_list argp);
+   void unpack_parameters(NTV& ntv, va_list argp);
 
   /**
    * @brief getScope
@@ -144,6 +143,7 @@ class InjectionPoint {
    * Returns true if the injection point has tests defined.
    */
   bool hasTests();
+
 };  // end InjectionPoint.
 
 

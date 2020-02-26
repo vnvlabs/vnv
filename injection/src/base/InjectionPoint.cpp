@@ -27,17 +27,14 @@ InjectionPoint::InjectionPoint(json registrationJson, va_list args) {
 std::string InjectionPoint::getScope() const { return m_scope; }
 
 
-void InjectionPoint::addTest(TestConfig config) {
-  if ( config.isMappingValidForParameterSet(parameterMap)) {
-
+void InjectionPoint::addTest(TestConfig config) { 
      std::shared_ptr<ITest> test = nullptr;
      test.reset(TestStore::getTestStore().getTest(config));
      if (test != nullptr) {
         m_tests.push_back(test);
         return;
      }
-  }
-  VnV_Error("Error Loading Test Config with Name %s", config.getName().c_str());
+     VnV_Error("Error Loading Test Config with Name %s", config.getName().c_str());
 }
 
 

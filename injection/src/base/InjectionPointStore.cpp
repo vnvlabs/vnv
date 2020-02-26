@@ -25,7 +25,11 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
   auto reg = registeredInjectionPoints.find(key);
 
   if (it != injectionPoints.end() && reg != registeredInjectionPoints.end()) {
-    std::shared_ptr<InjectionPoint> injectionPoint = std::make_shared<InjectionPoint>(reg->second, args);
+
+    // Construct and reset because InjectionPoint ctor is only accessible in InjectionPointStore.
+    std::shared_ptr<InjectionPoint> injectionPoint;
+    injectionPoint.reset( new InjectionPoint(reg->second, args));
+
     for (auto& test : it->second) {
       injectionPoint->addTest(test);
     }
@@ -64,10 +68,13 @@ void InjectionPointStore::logInjectionPoint(std::string package, std::string id,
               VnV_Info("%s :  %s", p.key().c_str(), p.value().get<std::string>().c_str());
            }
        } else {
-            NTV ntv;
-            InjectionPoint::unpack_parameters(ntv,args);
-            for ( auto &it : ntv ) {
-                VnV_Info("%s : <unknown> ",it.first.c_str());
+            while (1) {
+                std::string variableName = va_arg(args, char*);
+                if (variableName == VNV_END_PARAMETERS_S) {
+                    break;
+                }
+                va_arg(args, void*);
+                VnV_Info("%s : <unknown> ",variableName.c_str());
             }
        }
        VnV_EndStage(a);
@@ -156,16 +163,28 @@ void InjectionPointStore::addInjectionPoint(std::string name,
                                             std::vector<TestConfig>& tests) {
     auto reg = registeredInjectionPoints.find(name);
     if ( reg!=registeredInjectionPoints.end()) {
-        VnV_Warn("Injection Point %s Is Registered, but Injection point to Test Mapping "
 
-                    "has not been validated yet. The injection point to test mapping will"
-                    "be un validated", name.c_str());
-    } else {
-        for ( auto it : registeredInjectionPoints ) {
-            printf("%s %s ", name.c_str(), it.first.c_str());
+        // Validate the test configs against the registered Json.
+        json regJson = reg->second;
+        json parameters = regJson["parameters"];
+
+        // Build an empty parameter map for the InjectionPoint.
+        NTV parameterMap;
+        for ( auto it : parameters.items()) {
+            parameterMap[it.key()] = std::make_pair(it.value().get<std::string>(),nullptr);
         }
-        VnV_Warn("The injection point %s has not been registered with the Injection point store. All calls"
-                 "to this injection point will be validated at runtime.", name.c_str());
+
+        tests.erase(std::remove_if(tests.begin(), tests.end(), [&](TestConfig &t){
+           if (t.isMappingValidForParameterSet(parameterMap)) {
+             VnV_Debug("Test Added Successfully %s" , t.getName().c_str());
+             return false;
+           }
+           VnV_Warn("Test Config is Invalid %s", t.getName().c_str());
+           return true;
+        }), tests.end());
+
+     } else {
+        VnV_Warn("The injection point %s has not been registered with the Injection point store", name.c_str());
     }
     injectionPoints.insert(std::make_pair(name, tests));
 }
@@ -175,7 +194,6 @@ void InjectionPointStore::addInjectionPoints(
     for (auto it : injectionPoints) {
         addInjectionPoint(it.first,it.second);
     }
-
     this->injectionPoints.insert(injectionPoints.begin(), injectionPoints.end());
 }
 
