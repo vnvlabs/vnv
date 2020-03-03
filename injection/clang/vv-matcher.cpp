@@ -7,16 +7,21 @@
  *
  *  https://jonasdevlieghere.com/understanding-the-clang-ast/
  */
+#include <fstream>
+#include <iostream>
+#include <regex>
+
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/ASTMatchers/ASTMatchers.h"
 #include "clang/Frontend/FrontendActions.h"
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
-
 #include "llvm/Support/CommandLine.h"
-
 #include "json-schema.hpp"
-
+#include <algorithm>
+#include <cctype>
+#include <locale>
+#include "base/Utilities.h"
 
 using nlohmann::json;
 using namespace clang::ast_matchers;
@@ -26,10 +31,13 @@ using namespace llvm;
 
 class VnVPrinter : public MatchFinder::MatchCallback {
 private: 
-   json ip_json;		
+   json& ip_json;
 public:
 
-   json get() {
+   VnVPrinter(json &json_) : ip_json(json_) {
+   }
+
+   json& get() {
        return ip_json;
    }
 
@@ -44,7 +52,7 @@ public:
    }
 
 
-   unsigned int  getInfo(const CallExpr *call, const FunctionDecl *func, const MatchFinder::MatchResult &Result , json &info, std::string &package, std::string &id)
+   unsigned int  getInfo(const CallExpr *call, const FunctionDecl *func, const MatchFinder::MatchResult &Result , json &info, std::string &id)
    {
        FullSourceLoc callLocation = Result.Context->getFullLoc(call->getBeginLoc());
        FullSourceLoc funclocation = Result.Context->getFullLoc(func->getBeginLoc());
@@ -64,22 +72,17 @@ public:
 
        json parameters;
        unsigned int count = 0;
-       package = getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts());
-       id = getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts());
+       std::string package =  getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts());
+
+       // Get the id, and create a new object in the main json for it, if needed.
+       // Note: it might already be there (from Docs, or another iterations, stage, etc)
+       id = VnV::StringUtils::trim_copy(getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts()));
+       if (!ip_json.contains(id)) {
+           ip_json[id] = json::object();
+       }
        return count;
    }
 
-   void addToMainJson(std::string package, std::string id, json info)
-   {
-       if (!ip_json.contains(package)) {
-          ip_json[package] = json::object();
-       }
-       if (!ip_json[package].contains(id)) {
-          ip_json[package][id] = json::object();
-          ip_json[package][id]["Start"] = json::array();
-       }
-       ip_json[package][id]["Start"].push_back(info);
-   }
 
    json extractParameters(const CallExpr *E, unsigned int count)
    {
@@ -94,36 +97,127 @@ public:
        return parameters;
    }
 
+   // ** id -> {"linenumber, filename, columnnumber caller, callline, callfunc, parameters[...] , stages[iterid][info]
+
    virtual void run(const MatchFinder::MatchResult &Result) {
 
-       std::string package;
        std::string id;
        json info;
 
        const FunctionDecl *FF = Result.Nodes.getNodeAs<clang::FunctionDecl>("function");
 
-       if (const CallExpr *E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite")) {
-            unsigned int count = getInfo(E,FF,Result,info, package,id);
-            info["parameters"] = extractParameters(E,count);
-            addToMainJson(package,id,info);
-       } else if (const CallExpr *E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iter")) {
-            unsigned int count = getInfo(E,FF,Result,info, package,id);
-            std::string iterid = getValueFromStringLiteral(E->getArg(count++)->IgnoreParenCasts());
-            if (ip_json.contains(package) && ip_json[package].contains(id)) {
-                if(!ip_json[package][id].contains("stages")) {
-                   ip_json[package][id]["stages"] = json::object();
-                }
-                ip_json[package][id]["stages"][iterid] = info;
-            }
-       } else if ( const CallExpr *E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_end")) {
-           getInfo(E,FF,Result,info, package,id);
-           if (ip_json.contains(package) && ip_json[package].contains(id)) {
-               ip_json[package][id]["End"] = info;
-           }
+
+
+
+       json &idJson = VnV::JsonUtilities::getOrCreate(ip_json, id, VnV::JsonUtilities::CreateType::Object);
+       if (const CallExpr *E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite")) {   
+            unsigned int count = getInfo(E,FF,Result,info, id);
+            json &idJson = VnV::JsonUtilities::getOrCreate(ip_json, id, VnV::JsonUtilities::CreateType::Object);
+            json &singleJson = VnV::JsonUtilities::getOrCreate(idJson, "Single", VnV::JsonUtilities::CreateType::Object);
+            singleJson["Info"] = info;
+            idJson["parameters"] = extractParameters(E,count);
        }
-    }
+       else if (const CallExpr *E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_begin")) {
+            unsigned int count = getInfo(E,FF,Result,info, id);
+            json &idJson = VnV::JsonUtilities::getOrCreate(ip_json, id, VnV::JsonUtilities::CreateType::Object);
+            json &singleJson = VnV::JsonUtilities::getOrCreate(idJson, "Begin", VnV::JsonUtilities::CreateType::Object);
+            singleJson["Info"] = info;
+            idJson["parameters"] = extractParameters(E,count);
+       } else if (const CallExpr *E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iter")) {
+            unsigned int count = getInfo(E,FF,Result,info, id);
+            std::string iterid = VnV::StringUtils::trim_copy(getValueFromStringLiteral(E->getArg(count++)->IgnoreParenCasts()));
+            json &idJson = VnV::JsonUtilities::getOrCreate(ip_json, id, VnV::JsonUtilities::CreateType::Object);
+            json &stagesJson = VnV::JsonUtilities::getOrCreate(idJson, "stages", VnV::JsonUtilities::CreateType::Object);
+            json &thisStageJson = VnV::JsonUtilities::getOrCreate(stagesJson, iterid, VnV::JsonUtilities::CreateType::Object);
+            thisStageJson["Info"] = info;
+       } else if ( const CallExpr *E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_end")) {
+           getInfo(E,FF,Result,info, id);
+           json &idJson = VnV::JsonUtilities::getOrCreate(ip_json, id, VnV::JsonUtilities::CreateType::Object);
+           json &singleJson = VnV::JsonUtilities::getOrCreate(idJson, "End", VnV::JsonUtilities::CreateType::Object);
+           singleJson["Info"] = info;
+       }
+       std::cout << id << "Is a template " << FF->isTemplateInstantiation() <<  std::endl << ip_json[id].dump(3) << std::endl;;
+
+   }
   
 };
+
+class VnVCommentParser {
+public :
+
+    std::set<std::string> matchedFiles;
+    std::set<std::string> getAllFiles() {
+        return matchedFiles;
+    }
+
+
+    json& getOrCreate(json &j, std::string name) {
+        if (!j.contains(name)) {
+            json jj;
+            j[name] = json::object();
+        }
+        return j[name];
+    }
+
+    void parse(json &coreJson, std::string filename) {
+
+        std::ifstream stream;
+        stream.open(filename);
+        std::stringstream oss;
+        oss << stream.rdbuf();
+        std::string searchstring = oss.str();
+
+        std::regex r("(?:\\/\\*\\*((?:[^*]|[\r\n]|(?:\\*+(?:[^*/]|[\r\n])))*)\\*+\\/(?:[ \t\r\n]+))?(?:INJECTION_(POINT|LOOP_BEGIN|LOOP_END|LOOP_ITER)*)\\(((.*?)(?:,(.*?))?(?:,(?:.*?))*)\\)");
+        std::smatch match;
+        std::string::const_iterator searchStart(searchstring.cbegin());
+        while (std::regex_search(searchStart, searchstring.cend(), match, r)) {
+
+            // Should match both documented and undocuemented INJECTION points.
+            //Match 0 --> full match
+            //Match 1 --> Comment contents
+            //Match 2 --> "" | "_ITER" | "_BEGIN" | "_END"
+            //Match 3 --> comma seperated list of all the parameters (as a string, no parens. (i.e., par1,par2,par3,... )
+            //Match 4 --> parameter1
+            //Match 5 --> parameter2
+
+            // Get the json from the core json if it exists.
+            json& thisJson = getOrCreate(coreJson,match[4]);
+            std::string docs = ((match[1]).length()==0 ) ? "<None>" : match[1].str();
+
+            if (match[2] == "LOOP_ITER") {
+                json& iters = getOrCreate(thisJson,"stages");
+                std::string itername = VnV::StringUtils::trim_copy(match[5]);
+                json& stage = getOrCreate(iters,itername);
+                stage["Docs"] = docs;
+            } else if (match[2] == "LOOP_END") {
+                json &end = getOrCreate(thisJson,"End");
+                end["Docs"] = docs;
+            } else if (match[2] == "LOOP_BEGIN") {
+                json &begin = getOrCreate(thisJson,"Begin");
+                begin["Docs"] = docs;
+            } else  {
+                json &single = getOrCreate(thisJson,"Single");
+                single["Docs"] = docs;
+            }
+            matchedFiles.insert(filename);
+            searchStart = match.suffix().first;
+
+       }
+    }
+
+    json parseFiles( std::vector<std::string> filename) {
+        json j;
+
+        std::string x = __FILE__;
+        for (auto it : filename) {
+            if (it != x )
+                parse(j,it);
+        }
+        return j;
+    }
+
+};
+
 
 /** Apply a custom category to all command-line options so that they are the
  only ones displayed.
@@ -147,14 +241,23 @@ static cl::extrahelp MoreHelp("\nMore help text...");
  */
 int main(int argc, const char **argv) {
   CommonOptionsParser OptionsParser(argc, argv, MyToolCategory);
-  ClangTool Tool(OptionsParser.getCompilations(),
-                 OptionsParser.getCompilations().getAllFiles());
 
-  VnVPrinter Printer;
+
+  VnVCommentParser parser;
+  json info = parser.parseFiles(OptionsParser.getCompilations().getAllFiles());
+
+  std::set<std::string> sfiles = parser.getAllFiles();
+  std::vector<std::string> s(sfiles.begin(),sfiles.end());
+
+  ClangTool Tool(OptionsParser.getCompilations(), s);
+
+
+
+  VnVPrinter Printer(info);
   MatchFinder Finder;
 
   StatementMatcher functionMatcher = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_VnV_injectionPoint")))).bind("callsite");
-  StatementMatcher functionMatcher1 = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_VnV_injectionPoint_begin")))).bind("callsite");
+  StatementMatcher functionMatcher1 = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_VnV_injectionPoint_begin")))).bind("callsite_begin");
   StatementMatcher functionMatcher2 = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_VnV_injectionPoint_loop")))).bind("callsite_iter");
   StatementMatcher functionMatcher3 = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_VnV_injectionPoint_end")))).bind("callsite_end");
   Finder.addMatcher(functionMatcher, &Printer);
@@ -163,7 +266,6 @@ int main(int argc, const char **argv) {
   Finder.addMatcher(functionMatcher3, &Printer);
   int x = Tool.run(newFrontendActionFactory(&Finder).get());
 
-  llvm::outs() << Printer.get().dump(3,' ') << "\n";
-  return x;
+  return 1;//x;
 
 }

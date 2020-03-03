@@ -10,8 +10,12 @@
 // C Interface for the runtime functions.
 #include "c-interfaces/RunTime.h"
 
-// C Interface for the Injection points
+// Cpp Injection Includes. Allows specification of Injection points with Runtime type info
+#ifdef __cplusplus
+#include "c-interfaces/CppInjection.h"
+#else
 #include "c-interfaces/Injection.h"
+#endif
 
 // C Interface for the Json Object. These functions allow C libraries to utilize the JSON
 // input file options.
@@ -19,5 +23,7 @@
 
 // C Interface for the Logging components of VnV
 #include "c-interfaces/Logging.h"
+
+
 
 #endif // GAURD

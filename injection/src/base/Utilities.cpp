@@ -6,13 +6,52 @@
 #include <iostream>
 #include <iomanip>
 #include <xxhash.h>
+#include <type_traits>
 
-#include "json-schema.hpp"
 #include "base/Utilities.h"
-
 #include "c-interfaces/Logging.h"
 
-int VnV::StringSplit(const std::string& s, const char* delim,
+using nlohmann::json;
+
+// trim from start (in place)
+void VnV::StringUtils::ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+        return !std::isspace(ch);
+    }));
+}
+
+// trim from end (in place)
+void VnV::StringUtils::rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
+}
+
+// trim from both ends (in place)
+void VnV::StringUtils::trim(std::string &s) {
+    ltrim(s);
+    rtrim(s);
+}
+
+// trim from start (copying)
+std::string VnV::StringUtils::ltrim_copy(std::string s) {
+    ltrim(s);
+    return s;
+}
+
+// trim from end (copying)
+std::string VnV::StringUtils::rtrim_copy(std::string s) {
+    rtrim(s);
+    return s;
+}
+
+// trim from both ends (copying)
+std::string VnV::StringUtils::trim_copy(std::string s) {
+    trim(s);
+    return s;
+}
+
+int VnV::StringUtils::StringSplit(const std::string& s, const char* delim,
                      std::vector<std::string>& result) {
   std::stringstream ss;
   ss.str(s);
@@ -25,6 +64,18 @@ int VnV::StringSplit(const std::string& s, const char* delim,
 }
 
 
+nlohmann::json& VnV::JsonUtilities::getOrCreate(json &parent, std::string key, CreateType type) {
+    if (!parent.contains(key)) {
+        switch (type) {
+            case CreateType::Object : parent[key] = json::object(); break;
+            case CreateType::Array : parent[key] = json::array(); break;
+            case CreateType::Float : parent[key] = 1.0; break;
+            case CreateType::String : parent[key] = ""; break;
+            case CreateType::Integer : parent[key] = 0; break;
+        }
+    }
+    return parent[key];
+}
 
 std::string VnV::getFileExtension(const std::string& fileName) {
   if (fileName.find_last_of(".") != std::string::npos)

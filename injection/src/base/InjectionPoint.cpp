@@ -13,19 +13,31 @@
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
-InjectionPoint::InjectionPoint(json registrationJson, va_list args) {
+InjectionPoint::InjectionPoint(json registrationJson, NTV &args) {
 
      //RegistrationJson is a validated InjectionPoint Registration json object.
      m_scope = registrationJson["name"].get<std::string>();
      json parameters = registrationJson["parameters"];
-     for ( auto it : parameters.items()) {
-         parameterMap[it.key()] = std::make_pair(it.value().get<std::string>(),nullptr);
+     for ( const auto &it : parameters.items()) {
+         auto p = args.find(it.key());
+         void* ptr = (p == args.end()) ? nullptr : p->second.second;
+         parameterMap[it.key()] = std::make_pair(it.value().get<std::string>(),ptr);
      }
-     unpack_parameters(parameterMap,args);
-}
+     // Load any RTTI ("<none>" for C programs)
+     for (const auto &it : args) {
+         parameterRTTI[it.first] = it.second.first;
+     }
+ }
 
 std::string InjectionPoint::getScope() const { return m_scope; }
 
+std::string InjectionPoint::getParameterRTTI(std::string key)  const {
+    auto it = parameterRTTI.find(key);
+    if (it != parameterRTTI.end()) {
+        return it->second;
+    }
+    return "<Unknown>";
+}
 
 void InjectionPoint::addTest(TestConfig config) { 
      std::shared_ptr<ITest> test = nullptr;
@@ -45,24 +57,6 @@ void InjectionPoint::setInjectionPointType(InjectionPointType type_, std::string
 
 bool InjectionPoint::hasTests() { return m_tests.size() > 0; }
 
-void InjectionPoint::unpack_parameters(NTV& ntv, va_list argp) {
-
-  while (1) {
-    std::string variableName = va_arg(argp, char*);
-    if (variableName == VNV_END_PARAMETERS_S) {
-      break;
-    }
-    void* variablePtr = va_arg(argp, void*);
-
-    auto it = ntv.find(variableName);
-    if (it!=ntv.end()) {
-        it->second.second = variablePtr;
-    } else {
-        //variable was not registered, add it with a type void*
-        ntv.insert(std::make_pair(variableName, std::make_pair("void*", variablePtr)));
-    }
-  }
-}
 
 void InjectionPoint::runTests() {
   OutputEngineManager* wrapper = OutputEngineStore::getOutputEngineStore().getEngineManager();

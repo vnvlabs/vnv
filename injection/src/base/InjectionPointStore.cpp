@@ -18,7 +18,7 @@ using namespace VnV;
 InjectionPointStore::InjectionPointStore() {}
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
-    std::string key, va_list args) {
+    std::string key, NTV &args) {
 
 
   auto it = injectionPoints.find(key);
@@ -51,7 +51,7 @@ void InjectionPointStore::registerInjectionPoint(json &jsonObject) {
 
 }
 
-void InjectionPointStore::logInjectionPoint(std::string package, std::string id, va_list args)  {
+void InjectionPointStore::logInjectionPoint(std::string package, std::string id, NTV &args)  {
 
        int aa;
        auto it = registeredInjectionPoints.find(id);
@@ -68,14 +68,9 @@ void InjectionPointStore::logInjectionPoint(std::string package, std::string id,
               VnV_Info("%s :  %s", p.key().c_str(), p.value().get<std::string>().c_str());
            }
        } else {
-            while (1) {
-                std::string variableName = va_arg(args, char*);
-                if (variableName == VNV_END_PARAMETERS_S) {
-                    break;
-                }
-                va_arg(args, void*);
-                VnV_Info("%s : <unknown> ",variableName.c_str());
-            }
+           for ( auto it : args) {
+               VnV_Info("%s : (%s)", it.first.c_str(), it.second.first.c_str());
+           }
        }
        VnV_EndStage(a);
        VnV_EndStage(aa);
@@ -118,29 +113,49 @@ json InjectionPointStore::getInjectionPointRegistrationJson(std::string name) {
     return json(nullptr);
 }
 
-std::shared_ptr<InjectionPoint> InjectionPointStore::getInjectionPoint(
-    std::string key, InjectionPointType stage, va_list args) {
-
+std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::string key, InjectionPointType type, NTV &args) {
 
   std::shared_ptr<InjectionPoint> ptr;
   if (injectionPoints.find(key) == injectionPoints.end()) {
     return nullptr;  // Not configured
-  } else if (stage == InjectionPointType::Single) {
+  } else if (type == InjectionPointType::Single) {
     ptr = newInjectionPoint(key, args);
-  } else if (stage == InjectionPointType::Begin) { /* New staged injection point. -- Add it to the stack */
-    auto it = active.find(key);
+  } else if (type == InjectionPointType::Begin) { /* New staged injection point. -- Add it to the stack */
     ptr = newInjectionPoint(key, args); /*Not nullptr because we checked above*/
+    registerLoopedInjectionPoint(key,ptr);
+  } else {
+     return fetchFromQueue(key, type);
+  }
+  return ptr; 
+}
 
-    /* If first of its kind, make a new map entry. */
-    if (it == active.end()) {
+std::shared_ptr<InjectionPoint> InjectionPointStore::getExistingInjectionPoint(std::string key, InjectionPointType type) {
+
+  std::shared_ptr<InjectionPoint> ptr;
+  if (injectionPoints.find(key) == injectionPoints.end()) {
+    return nullptr;  // Not configured
+  }
+  return fetchFromQueue(key, type);
+}
+
+
+
+
+void InjectionPointStore::registerLoopedInjectionPoint(std::string key, std::shared_ptr<InjectionPoint>&ptr) {
+     auto it = active.find(key);
+     if (it == active.end()) {       
       std::stack<std::shared_ptr<InjectionPoint>> s;
       s.push(ptr);
       active.insert(std::make_pair(key, s));
     } else {
       it->second.push(ptr);
     }
-  } else {
+    
+}
+
+std::shared_ptr<InjectionPoint> InjectionPointStore::fetchFromQueue(std::string key, InjectionPointType stage) {
     // Stage > 0 --> Fetch the queue.
+    std::shared_ptr<InjectionPoint> ptr;
     auto it = active.find(key);
     if (it == active.end() || it->second.size() == 0) {
       return nullptr; /* queue doesn't exist or not active ip. */
@@ -150,8 +165,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getInjectionPoint(
     } else {
       ptr = it->second.top();  // Intermediate stage -> return top of stack.
     }
-  }
-  return ptr;
+    return ptr;
 }
 
 InjectionPointStore& InjectionPointStore::getInjectionPointStore() {

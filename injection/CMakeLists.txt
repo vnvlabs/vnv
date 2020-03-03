@@ -8,6 +8,7 @@ add_subdirectory(third-party)
 
 add_subdirectory(clang)
 
+
 add_library(injection SHARED "")
 
 set_target_properties(injection
@@ -36,6 +37,7 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/CJson.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Logging.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Injection.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/CppInjection.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/IOutputEngine.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ISerializer.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITest.cpp

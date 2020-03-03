@@ -73,7 +73,7 @@ class InjectionPoint {
   std::string stageId;
 
   NTV parameterMap;
-
+  std::map<std::string, std::string> parameterRTTI;
 
   /**
    * @brief addTest Add a test Config to that injection point. Note: This function
@@ -97,23 +97,11 @@ class InjectionPoint {
    *support names of the form "a::b::c"
    *
    **/
-  InjectionPoint(json registrationJson, va_list args);
+  InjectionPoint(json registrationJson, NTV &args);
+
 
 public:
-  /**
-   * @brief unpack_parameters
-   * @param[in] registration The registration json for the injection point
-   * @param[out] ntv The map populated by this function.
-   * @param[in] argp The va_list obtained from a variadic function call.
-   *
-   * Unpack parameters takes a va_list and parses it into a NTV (std::map)
-   * object. Because all type information is lost from a va_list, the function
-   * works under the assumption that the parameters are doubles of the form
-   * (string, void*)  where string is a string representing the class name of
-   * the object pointed to by the void* pointer. The last parameter in the
-   * va_list should be a string "__VV_PARAMETERS_END__"
-   */
-   void unpack_parameters(NTV& ntv, va_list argp);
+
 
   /**
    * @brief getScope
@@ -123,6 +111,12 @@ public:
    **/
   std::string getScope() const;
 
+  /**
+   * @brief getParameterRTTI Get the RTTI for a parameter if we have it (C++ INjectionPoints only).
+   * @param key
+   * @return
+   */
+  std::string getParameterRTTI(std::string key) const;
   /**
    * @brief runTests Run all tests at a given stage (ipType).
    * @param ipType The stage value for the injection point.

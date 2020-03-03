@@ -10,8 +10,27 @@
  */
 #include <string>
 #include <vector>
+#include "json-schema.hpp"
 
 namespace VnV {
+
+namespace StringUtils {
+void ltrim(std::string &s) ;
+
+// trim from end (in place)
+void rtrim(std::string &s) ;
+
+// trim from both ends (in place)
+void trim(std::string &s) ;
+
+// trim from start (copying)
+std::string ltrim_copy(std::string s) ;
+// trim from end (copying)
+std::string rtrim_copy(std::string s);
+
+// trim from both ends (copying)
+std::string trim_copy(std::string s);
+
 /**
  * @brief StringSplit
  * @param s
@@ -21,6 +40,19 @@ namespace VnV {
  */
 int StringSplit(const std::string& s, const char* delim,
                 std::vector<std::string>& result);
+}
+
+
+namespace JsonUtilities {
+
+ enum class CreateType { Object, Array, String, Float, Integer };
+
+ nlohmann::json& getOrCreate(nlohmann::json& parent, std::string key, CreateType type );
+
+
+
+}
+
 
 /**
  * @brief getFileExtension

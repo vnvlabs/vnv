@@ -9,16 +9,21 @@
 #include "dlclass2.h"
 #include <typeinfo>
 
-template <typename T>
-class hello {
+
+template<typename T>
+class f {
 public:
-int function1(int x, T y) {
- std::vector<T> samplePoints(10), samplePoints1(10), samplePoints3(13);
- INJECTION_POINT(Function_In_Template, samplePoints, samplePoints1, samplePoints3)
-  return 11;
- }
+    T ff;
+    int getF(int t) {
+        INJECTION_POINT(sdfsdf, ff);
+        return 1;
+    }
 };
 
+template <typename T, typename X>
+int templateFnc(int x, T y, X xx) {
+    INJECTION_POINT(templateFn,x,y,xx);
+}
 
 class test1 {
 
@@ -83,16 +88,21 @@ int main(int argc, char** argv) {
 
   function1(10);
  
-  hello<double> why;
-  why.function1(1,1.0);
-  hello<int> whyint;
-  whyint.function1(1,1.0);
+  f<double> why;
+  why.getF(1);
+
+  templateFnc(1,1.0, "sdfsdf");
+
+ // hello<int> whyint;
+ // whyint.function1(1,1.0);
 
   class1 sample_class_1;
   class2 sample_class_2;
 
   dummyLibOne::class1 sample_class_3;
   dummyLibOne::class1 sample_class_4;
+
+//  f2(10, 10.0);
 
   sample_class_1.function1(10);
   sample_class_2.function1(10);

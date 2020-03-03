@@ -14,7 +14,6 @@
 #include <unistd.h>
 
 #include "c-interfaces/Logging.h"
-#include "c-interfaces/Injection.h"
 #include "base/InjectionPoint.h"
 #include "base/InjectionPointStore.h"
 #include "base/OutputEngineStore.h"
@@ -23,6 +22,8 @@
 #include "base/OptionsParserStore.h"
 #include "base/Runtime.h"
 #include "Registration.h"
+
+#include "c-interfaces/CppInjection.h"
 
 using namespace VnV;
 
@@ -41,28 +42,28 @@ bool RunTime::useAsciiColors() {
     return terminalSupportsAsciiColors;
 }
 
-void RunTime::logUnhandled(std::string name, std::string id, va_list argp) {
-     InjectionPointStore::getInjectionPointStore().logInjectionPoint(name, id,argp);
+void RunTime::logUnhandled(std::string name, std::string id, NTV &args) {
+     InjectionPointStore::getInjectionPointStore().logInjectionPoint(name, id,args);
 }
 
-void RunTime::_injectionPoint(std::string pname, std::string id, InjectionPointType type, va_list argp) {
+void RunTime::getNewInjectionPoint(std::string pname, std::string id, InjectionPointType type, NTV &args) {
   if (runTests) {
 
     std::shared_ptr<InjectionPoint> ipd =
-        InjectionPointStore::getInjectionPointStore().getInjectionPoint(id,type,argp);
+        InjectionPointStore::getInjectionPointStore().getNewInjectionPoint(id,type,args);
     if (ipd != nullptr) {
         ipd->setInjectionPointType(type,"Begin");
         ipd->runTests();
     } else if (runTimeOptions.logUnhandled) {
-        logUnhandled(pname,id,argp);
+        logUnhandled(pname,id,args);
     }
   }
 }
 
-void RunTime::_injectionPoint(std::string pname, std::string id, InjectionPointType type, std::string stageId) {
+void RunTime::getExistingInjectionPoint(std::string pname, std::string id, InjectionPointType type, std::string stageId) {
   if (runTests) {
     std::shared_ptr<InjectionPoint> ipd =
-        InjectionPointStore::getInjectionPointStore().getInjectionPoint( id,type,nullptr);
+        InjectionPointStore::getInjectionPointStore().getExistingInjectionPoint( id,type);
     if (ipd != nullptr) {
         ipd->setInjectionPointType(type,stageId);
         ipd->runTests();
@@ -71,18 +72,18 @@ void RunTime::_injectionPoint(std::string pname, std::string id, InjectionPointT
 }
 
 void RunTime::injectionPoint_end(std::string pname, std::string id) {
-    _injectionPoint(pname,id,InjectionPointType::End,"End");
+    getExistingInjectionPoint(pname,id,InjectionPointType::End,"End");
 }
 
-void RunTime::injectionPoint_begin(std::string pname, std::string id, va_list argp) {
-    _injectionPoint(pname,id,InjectionPointType::Begin,argp);
+void RunTime::injectionPoint_begin(std::string pname, std::string id, NTV &argp) {
+    getNewInjectionPoint(pname,id,InjectionPointType::Begin,argp);
 }
 
-void RunTime::injectionPoint(std::string pname, std::string id, va_list argp) {
-    _injectionPoint(pname,id,InjectionPointType::Single,argp);
+void RunTime::injectionPoint(std::string pname, std::string id, NTV &argp) {
+    getNewInjectionPoint(pname,id,InjectionPointType::Single,argp);
 }
 void RunTime::injectionPoint_iter(std::string pname, std::string id,std::string stageId) {
-    _injectionPoint(pname,id,InjectionPointType::Iter,stageId);
+    getExistingInjectionPoint(pname,id,InjectionPointType::Iter,stageId);
 }
 
 RunTime& RunTime::instance() {
@@ -204,6 +205,11 @@ bool RunTime::Init(int* argc, char*** argv, std::string configFile, registration
   if (runTests) {
    loadRunInfo(info,callback);
    printRunTimeInformation();
+
+   /**
+    * INJECTION POINT FOR INITIALIZATION.
+    *
+    **/
    INJECTION_POINT(initialization, argc, argv, configFile);
   } else if (info.error) {
     runTests = false;

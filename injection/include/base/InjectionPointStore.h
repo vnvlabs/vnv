@@ -59,7 +59,13 @@ class InjectionPointStore {
    *
    * Create a new Injection point based on the users specification.
    */
-  std::shared_ptr<InjectionPoint> newInjectionPoint(std::string key, va_list args);
+
+
+  // RTODO IMPLEMENT THIS FUNCTIONS.
+  std::shared_ptr<InjectionPoint> newInjectionPoint(std::string key, NTV &args);
+  std::shared_ptr<InjectionPoint> fetchFromQueue(std::string key, InjectionPointType stage);
+  void registerLoopedInjectionPoint(std::string key, std::shared_ptr<InjectionPoint>&ptr);
+
 
   // JsonObject is a json object that validates againt the Injection point schema.
   void registerInjectionPoint(json &jsonObject);
@@ -84,7 +90,11 @@ class InjectionPointStore {
    * an empty queue is considered invalid and will return a nullptr.
    *
    */
-  std::shared_ptr<InjectionPoint> getInjectionPoint(std::string key, InjectionPointType type, va_list args);
+  std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string key, InjectionPointType type, NTV& args);
+
+
+  std::shared_ptr<InjectionPoint> getExistingInjectionPoint(std::string key, InjectionPointType type);
+
 
   /**
    * @brief addInjectionPoint
@@ -115,8 +125,7 @@ class InjectionPointStore {
   // schema.
   void registerInjectionPoint(std::string json_str);
 
-
-  void logInjectionPoint(std::string package, std::string name, va_list args);
+  void logInjectionPoint(std::string package, std::string name, NTV &args);
 
   json getInjectionPointRegistrationJson(std::string name);
   /**
