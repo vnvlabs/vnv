@@ -14,10 +14,31 @@
 #include "base/TransformStore.h"
 #include "c-interfaces/Logging.h"
 #include "json-schema.hpp"
-
+#include "base/Utilities.h"
 using nlohmann::json_schema::json_validator;
 
 using namespace VnV;
+
+Transformer::Transformer(std::string from_, std::vector<std::pair<std::string,ITransform*>> &trans) {
+   from = from_;
+   transPath = trans;
+}
+
+Transformer::~Transformer() {
+    //Free all transforms in reverse order
+    for ( auto it = transPath.rbegin(); it != transPath.rend(); it++) {
+        delete it->second;
+    }
+}
+
+void* Transformer::Transform(void* ptr, std::string &rtti) {
+    std::string f = from;
+    for (auto it = transPath.begin(); it != transPath.end(); it++) {
+        ptr = it->second->Transform(f,it->first,ptr, rtti);
+        f = it->first;
+    }
+    return ptr;
+}
 
 TransformStore::TransformStore() {}
 
@@ -26,33 +47,17 @@ TransformStore& TransformStore::getTransformStore() {
   return store;
 }
 
+std::shared_ptr<Transformer> TransformStore::getTransformer(std::string from, std::string to) {
 
-void* TransformStore::getTransform(std::string from, std::string to, void* ptr) {
-
-   // TODO -- Allow for multiple transforms. Currently, to obtain a transform, we
-   // search the trans_map for an entry related to the class "from". If one is
-   // found, we search the inner map from an entry named "to". If that is found
-   // then the transform with the name trans_map[from][to] has declared that it
-   // can do the required transform.
-
-   // To improve this, we could create a directed transform graph. This would allow
-   // us to chain together multiple transforms to achieve the desired result.
-
-   // TODO Need to figure out the memeory management for these transforms.
-
-   if  (from.compare(to) == 0) {
-       return ptr;
-   } else {
-     auto t = trans_map.find(from);
-     if (t != trans_map.end()) {
-       auto tt = t->second.find(to);
-       if ( tt != t->second.end()) {
-          ITransform *trans = trans_factory.find(tt->second)->second();
-          return trans->Transform(to,from,ptr);
+   std::vector<std::pair<std::string,ITransform*>> m;
+   try {
+       std::vector<std::pair<std::string,std::string>> r = bfs(trans_map,from,to);
+       for (auto it : r) {
+           m.push_back({it.first, trans_factory.find(it.second)->second()});
        }
-     }
-     VnV_Warn("Cannot Convert from Object from (%s) to (%s).", from.c_str(),to.c_str());
-     return ptr;
+       return std::make_shared<Transformer>(from,m);
+   } catch (...) {
+        return nullptr;
    }
 }
 

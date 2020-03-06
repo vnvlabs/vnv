@@ -5,7 +5,8 @@
 #include <string>
 #include "json-schema.hpp"
 #include "interfaces/IOutputEngine.h"
-
+#include "base/TransformStore.h"
+#include "c-interfaces/Logging.h"
 using nlohmann::json;
 /**
  * @brief The TestConfig class
@@ -15,27 +16,102 @@ namespace VnV {
 enum TestStatus { SUCCESS, FAILURE, NOTRUN };
 
 
-typedef std::map<std::string, std::pair<std::string, void*>> NTV;
 
-struct ParameterMapping {
-    std::string injectionPointParameter;
-    bool required;
-    std::string parameterType;
+class VnVParameter {
+    void* ptr;
+    std::string rtti;
+    std::string type;
+    bool hasRtti = true;
+
+ public:
+
+    VnVParameter() {
+        ptr = nullptr;
+    }
+
+    VnVParameter( void* obj, std::string type_) {
+        rtti = "";
+        type = type_;
+        ptr = obj;
+        hasRtti = false;
+    }
+
+    VnVParameter(const VnVParameter &copy) {
+        ptr = copy.getRawPtr();
+        rtti = copy.getRtti();
+        type = copy.getType();
+        hasRtti = copy.hasRtti;
+    }
+
+    VnVParameter(void* obj, std::string type_, std::string rtti) {
+        rtti = rtti;
+        type = type_;
+        ptr = obj;
+        hasRtti = (rtti.size()>0);
+    }
+
+    void setType(std::string type){
+        this->type = type;
+    }
+
+    void setRtti(std::string rtti){
+        this->rtti = rtti;
+    }
+
+    void* getRawPtr() const {
+        return ptr;
+    }
+
+    std::string getType() const {
+        return type;
+    }
+
+    std::string getRtti() const {
+        return rtti;
+    }
+
+    template<typename T>
+    T* getPtr(std::string type, bool checkRtti) const  {
+        if ( !type.empty() != getType().compare(type)!=0 ) {
+            throw "type information incorrect";
+        }
+       if (hasRtti && checkRtti) {
+            T* tempPtr = static_cast<T*>(getRawPtr());
+            std::string typeId = typeid(tempPtr).name();
+            if (typeId.compare(rtti) != 0) {
+                VnV_Warn("Unmatched RTTI %s: %s", typeId.c_str(), rtti.c_str());
+                throw "Rtti information does not match";
+            } else {
+                return tempPtr;
+            }
+       }
+       return static_cast<T*>(getRawPtr());
+    }
+
+    template<typename T>
+    T& getRef(std::string type, bool checkRtti) const {
+        return *getPtr<T>(type, checkRtti);
+    }
+
 };
+typedef std::map<std::string,VnVParameter> VnVParameterSet;
 
 class TestConfig {
  private:
-  std::map<std::string, ParameterMapping > parameterMap;
-  std::string testName;
-  json additionalParameters;
-  json expectedResult;
 
-  void* mapParameter(std::string name, NTV& parameters) const;
+  std::map<std::string, std::shared_ptr<Transformer> > transformers;
+  VnVParameterSet parameters;
+
+  std::string testName;
+  json testConfigJson;
+  json testDeclarationJson;
+
 
  public:
 
   TestConfig(std::string name, json &usersConfig, json &testSpec);
 
+  
   bool isRequired(std::string parmaeterName) const;
   /**
    * @brief getAdditionalParameters
@@ -43,10 +119,9 @@ class TestConfig {
    */
   const json& getAdditionalParameters() const;
 
-  std::map<std::string, void*> mapParameters(NTV& parameters) const ;
 
+  bool preLoadParameterSet(std::map<std::string,std::string> &parameters) ;
 
-  bool isMappingValidForParameterSet(NTV &parameters) const ;
 
   const json& getExpectedResult() const;
   /**
@@ -55,6 +130,10 @@ class TestConfig {
    */
   void setName(std::string name);
 
+  const std::map<std::string,VnVParameter>& getParameterMap() const  ;
+
+  void setParameterMap(std::map<std::string, VnVParameter> &args);
+  
   /**
    * @brief getName
    * @return
@@ -65,14 +144,6 @@ class TestConfig {
    * @brief print out configuration information.
    */
   void print();
-
-  /**
-   * @brief addTransform
-   * @param to
-   * @param from
-   * @param trans
-   */
-  ParameterMapping getMapping(std::string testParameter) const ;
 
 };
 
@@ -100,7 +171,7 @@ class ITest {
    * @param params
    * @return
    */
-  TestStatus _runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId, NTV& params);
+  TestStatus _runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId);
 
   /**
    * @brief runTest
@@ -109,7 +180,7 @@ class ITest {
    * @param params
    * @return
    */
-  virtual TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId, std::map<std::string, void*>&params) = 0;
+  virtual TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId) = 0;
 
   /**
    * @brief getConfigurationJson
@@ -123,6 +194,15 @@ class ITest {
    */
   const json& getExpectedResultJson() const ;
 
+
+  template <typename T>
+  T& getReference(std::string name, std::string type) const {
+      auto it = m_config.getParameterMap().find(name);
+      if ( it!= m_config.getParameterMap().end()) {
+        return it->second.getRef<T>(type,true);
+      }
+      throw "Parameter Mapping Error.";
+  }
 
 private:
   const TestConfig m_config;
@@ -138,6 +218,10 @@ private:
 
 
 };
+
+// Search in s for a VnVParameter named "name". Convert the raw ptr to class T with checking.
+#define GetRef(a,name,T) T& a = getReference<T>(name,#T);
+
 
 
 typedef ITest* maker_ptr(TestConfig config);

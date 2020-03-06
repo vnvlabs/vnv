@@ -118,3 +118,61 @@ std::string VnV::hashfile( std::string filename) {
 
 }
 
+#include <set>
+#include <list>
+#include <queue>
+
+std::vector<std::pair<std::string,std::string>> VnV::bfs(std::map<std::string,std::map<std::string, std::string>> &m, std::string start, std::string end) {
+    std::queue<std::string> queue({start});
+    std::set<std::string> visited;
+    std::map<std::string,std::string> parentMap;
+
+    if (start == end) {
+        return {}; // Nothing to be done.
+    } else if (m.find(start) == m.end()) {
+        throw "From not in graph";
+    } else {
+        bool yes = false;
+        for (auto &t : m ) {
+            if (t.second.find(end) != t.second.end() ) {
+                yes = true;
+                break;
+            }
+        }
+        if (!yes) {
+            throw "End node is not in the graph";
+        }
+    }
+    while (!queue.empty()) {
+
+        // Gets the first path in the queue
+        std::string front = queue.front();
+        queue.pop();
+
+        if (front == end) {
+            // Front is the name of this node. From front to to.
+            // Result is m[front][to]
+            // We are done. Plus (base case means we have at least one transform.
+            auto it = parentMap.find(front);
+            std::vector<std::pair<std::string,std::string>> result;
+            while (it != parentMap.end() ) {
+                result.push_back(std::make_pair(front, m[it->second][front]));
+                front = it->second;
+                it = parentMap.find(it->second);
+            }
+            std::reverse(result.begin(),result.end());
+            return result;
+        }
+        auto it = m.find(front);
+        if ( it != m.end() ) {
+            for (auto itt : it->second) {
+                if (visited.find(itt.first) ==visited.end()) {
+                    visited.insert(itt.first);
+                    queue.push(itt.first);
+                    parentMap[itt.first] = front;
+                }
+            }
+        }
+    }
+    throw "No Path";
+}

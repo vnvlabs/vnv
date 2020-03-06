@@ -179,6 +179,22 @@ static json __test_declaration_schema__ = R"(
 }
 )"_json ;
 
+//Get rid of this
+static json __base_options_schema__ = R"({
+         "type" : "object",
+         "parameters" : {
+             "logUnhandled" : { "type" : "boolean" }
+         },
+         "additionalParameters" : false
+      }
+)"_json;
+
+json& getBaseOptionsSchema() {
+    __base_options_schema__.dump(3);
+    return __base_options_schema__;
+}
+
+
 static json __transform_declaration_schema__ = R"({
  "$schema": "http://json-schema.org/draft-07/schema#",
  "$id": "http://rnet-tech.net/vv.transform.schema.json",

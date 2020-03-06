@@ -13,13 +13,9 @@
 
 
 #  ifdef __cplusplus
-#   define EXTERNC extern "C"
 #   define REGISTER_VNV extern "C" void VNV_REGISTRATION_CALLBACK_NAME
-
 #  else
-#    define EXTERNC
 #    define REGISTER_VNV_CALLBACK void VNV_REGISTATION_CALLBACK_NAME
-
 #  endif
 
 // This structure can be used to register VnV objects. Basically, the functions
@@ -40,14 +36,14 @@ typedef void (*registrationCallBack)();
  * Initialize the VnV library. If this function is not called, no injection
  * point testing will take place.
  */
-EXTERNC void VnV_init(int* argc, char*** argv, const char* filename, registrationCallBack callback);
+VNVEXTERNC void VnV_init(int* argc, char*** argv, const char* filename, registrationCallBack callback);
 /**
  * @brief VnV_finalize
  * @return todo
  *
  * Calls RunTime::instance().Finalize();
  */
-EXTERNC void VnV_finalize();
+VNVEXTERNC void VnV_finalize();
 
 /**
  * @brief VnV_runUnitTests
@@ -56,9 +52,8 @@ EXTERNC void VnV_finalize();
  * Calls RunTime::instance().runUnitTests().
 */
 
-EXTERNC void VnV_runUnitTests();
+VNVEXTERNC void VnV_runUnitTests();
 
-#undef EXTERNC
 
 #else // WITHOUT_VNV
 #  define VnV_init(...)

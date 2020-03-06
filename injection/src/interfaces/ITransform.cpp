@@ -6,13 +6,17 @@
 
 using namespace VnV;
 
-void* ITransform::Transform(std::string outputType, std::string inputType, void* ptr ) {
-    if ( inputType.compare(outputType) == 0 ) {
+void* ITransform::Transform(std::string from, std::string to, void* ptr, std::string &rtti ) {
+
+    if ( from.compare(to) == 0 ) {
+        rtti = ""; // Don't know the rtti of this one.
         return ptr;
     } else {
         throw "Input Type Does not match output type when using Default Transform.";
     }
 }
+
+
 
 ITransform::ITransform(){};
 ITransform::~ITransform(){};

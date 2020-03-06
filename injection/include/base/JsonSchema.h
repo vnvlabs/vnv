@@ -39,6 +39,8 @@ json getTransformDeclarationSchema() ;
 
 json getInjectionPointDeclarationSchema();
 
+json& getBaseOptionsSchema();
+
 //json getTestMappingSchema(json injectionPointDeclaration);
 
 }

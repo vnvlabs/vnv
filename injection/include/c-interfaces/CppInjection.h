@@ -17,12 +17,11 @@ namespace VnV {
 typedef std::map<std::string, std::pair<std::string,void*>> NTV;
 
 void UnwrapParameterPack(NTV &m);
-void CppInjectionPoint(std::string package, std::string id, NTV &map);
-void CppInjectionPoint_Begin(std::string package, std::string id, NTV &map);
-void CppInjectionPoint_End(std::string package, std::string id);
-void CppInjectionPoint_Iter(std::string package, std::string id, std::string iterId);
+void CppInjectionPoint(const char* package, const char * id, NTV &map);
+void CppInjectionPoint_Begin(const char *package, const char * id, NTV &map);
+void CppInjectionPoint_End(const char* package, const char* id);
+void CppInjectionPoint_Iter(const char* package, const char * id, const char* iterId);
 void CppRegisterInjectionPoint(std::string json_str);
-void CppRegisterInjectionPoint(nlohmann::json &json);
 
 template<typename T, typename V,  typename ...Args>
 void UnwrapParameterPack(NTV &m, V& name, T& first, Args&&...args) {
@@ -34,7 +33,7 @@ void UnwrapParameterPack(NTV &m, V& name, T& first, Args&&...args) {
 }
 
 template<typename ...Args>
-void CppInjectionPoint_ParameterPack(std::string package, std::string id, bool loop, Args&&...args) {
+void CppInjectionPoint_ParameterPack(const char* package, const char * id, bool loop, Args&&...args) {
     std::map<std::string,std::pair<std::string,void*>> m;
     UnwrapParameterPack(m,std::forward<Args>(args)...);
     if (loop) {
@@ -43,15 +42,26 @@ void CppInjectionPoint_ParameterPack(std::string package, std::string id, bool l
         CppInjectionPoint(package,id,m);
     }
 }
+
+template<typename ...Args>
+void _CppInjectionPoint(const char *package, const char* name, Args&&...args) {
+    CppInjectionPoint_ParameterPack(package,name,false,std::forward<Args>(args)...);
+}
+
+template<typename ...Args>
+void _CppInjectionPoint_Begin(const char * package, const char* name, Args&&...args) {
+    CppInjectionPoint_ParameterPack(package,name,true,std::forward<Args>(args)...);
+}
+
 }
 
 // SINGULAR INJECTION POINT.
 #define INJECTION_POINT(NAME, ...)        \
-    VnV::CppInjectionPoint_ParameterPack(VNV_STR(PACKAGENAME),#NAME,false  EVERYONE(__VA_ARGS__));
+    VnV::_CppInjectionPoint(VNV_STR(PACKAGENAME),#NAME EVERYONE(__VA_ARGS__));
 
 // BEGIN A LOOPED INJECTION POINT
 #define INJECTION_LOOP_BEGIN(NAME, ...)        \
-    VnV::CppInjectionPoint_ParameterPack(VNV_STR(PACKAGENAME), #NAME,true  EVERYONE(__VA_ARGS__));
+    VnV::_CppInjectionPoint_Begin(VNV_STR(PACKAGENAME), #NAME EVERYONE(__VA_ARGS__));
 
 // END A LOOPED INJECTION POINT.
 #define INJECTION_LOOP_END(NAME) \

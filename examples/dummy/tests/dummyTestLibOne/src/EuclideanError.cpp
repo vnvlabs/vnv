@@ -17,9 +17,9 @@ class EuclideanError : public ITest {
     EuclideanError(TestConfig config) : ITest(config) {}
 
   TestStatus runTest(IOutputEngine* engine, int testStage,
-                     std::vector<double>* measured,
-                     std::vector<double>* exact) {
-    if (measured->size() != exact->size()) {
+                     std::vector<double> measured,
+                     std::vector<double> exact) {
+    if (measured.size() != exact.size()) {
       double m1 = -1;
       engine->Put("l2_error", m1);
       engine->Put("l1_error", m1);
@@ -28,8 +28,8 @@ class EuclideanError : public ITest {
     }
 
     double l2(0), l1(0), linf(0);
-    for (int i = 0; i < measured->size(); i++) {
-      double diff = fabs((*measured)[i] - (*exact)[i]);
+    for (int i = 0; i < measured.size(); i++) {
+      double diff = fabs(measured[i] - exact[i]);
       l1 += diff;
       l2 += diff * diff;
       linf = (diff > linf) ? diff : linf;
@@ -44,10 +44,9 @@ class EuclideanError : public ITest {
 
 
 
-  TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId, std::map<std::string,void*> &parameters) {
-
-    std::vector<double>* x = static_cast<std::vector<double>*>(parameters["measured"]);
-    std::vector<double>* y = static_cast<std::vector<double>*>(parameters["exact"]);
+  TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId) {
+    GetRef(x,"measured",std::vector<double>);
+    GetRef(y,"exact", std::vector<double>);
     return runTest(engine, 0, x, y);
   }
 };

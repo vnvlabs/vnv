@@ -22,6 +22,7 @@
 #include "base/OptionsParserStore.h"
 #include "base/Runtime.h"
 #include "Registration.h"
+#include "base/JsonSchema.h"
 
 #include "c-interfaces/CppInjection.h"
 
@@ -43,7 +44,15 @@ bool RunTime::useAsciiColors() {
 }
 
 void RunTime::logUnhandled(std::string name, std::string id, NTV &args) {
-     InjectionPointStore::getInjectionPointStore().logInjectionPoint(name, id,args);
+    int a = VnV_BeginStage("Unhandled Injection Point");
+    VnV_Info("Name: %s", name.c_str());
+    VnV_Info("ID: %s", id.c_str());
+    int aa = VnV_BeginStage("Parameters");
+    for ( auto &it : args) {
+       VnV_Info("%s : (%s)", it.first.c_str(),it.second.first.c_str());
+    }
+    VnV_EndStage(aa);
+    VnV_EndStage(a);
 }
 
 void RunTime::getNewInjectionPoint(std::string pname, std::string id, InjectionPointType type, NTV &args) {
@@ -97,24 +106,12 @@ void RunTime::registerLogLevel(std::string name, std::string color) {
     logger.registerLogLevel(name,color);
 }
 
-void RunTimeOptions::callback(c_json j) {
-    json *a = VnV::asJson(j);
-    RunTime::instance().runTimeOptions.fromJson(*a);
+void RunTimeOptions::callback(json &j) {
+    RunTime::instance().runTimeOptions.fromJson(j);
 }
 
-char* RunTimeOptions::getSchema() {
-       return R"(
-      {
-         "type" : "object",
-         "parameters" : {
-             "logUnhandled" : { "type" : "boolean" }
-         },
-         "additionalParameters" : false
-      }
-      )";
-}
 
-void RunTimeOptions::fromJson(json j) {
+void RunTimeOptions::fromJson(json& j) {
     if (j.contains("logUnhandled")) {
         logUnhandled = j["logUnhandled"].get<bool>();
     }
@@ -136,7 +133,7 @@ void RunTime::loadRunInfo(RunInfo &info, registrationCallBack *callback) {
 
   //Call this libraries registration callback object (defined in vv-registration.cpp) .
   VnV::Registration::registerVnV();
-  VnV_Register_Options(RunTimeOptions::getSchema, RunTimeOptions::callback);
+  VnV_Register_Options(getBaseOptionsSchema(), RunTimeOptions::callback);
 
   // Load the test libraries ( plugins -- This could include a custom engine )
   VnV_Debug("Loading Test Libraries");

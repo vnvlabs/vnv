@@ -19,6 +19,19 @@
 
 namespace VnV {
 
+class Transformer {
+
+private:
+    std::string from;
+    std::vector<std::pair<std::string,ITransform*>> transPath;
+
+
+public:
+    Transformer(std::string from_, std::vector<std::pair<std::string,ITransform*>> &trans);
+    virtual void* Transform(void* ptr, std::string &rtti);
+    virtual ~Transformer();
+};
+
 
 /**
  * @brief The TestStore class
@@ -50,7 +63,7 @@ private:
    * @param tname
    * @return
    */
-  void* getTransform(std::string from, std::string to, void* ptr);
+  std::shared_ptr<Transformer> getTransformer(std::string from, std::string to);
 
 
   /**

@@ -10,7 +10,6 @@
 #include "base/TestStore.h"
 #include "base/JsonSchema.h"
 #include "base/InjectionPointStore.h"
-#include "c-interfaces/Injection.h"
 #include "c-interfaces/Logging.h"
 
 using namespace VnV;
@@ -50,33 +49,6 @@ void InjectionPointStore::registerInjectionPoint(json &jsonObject) {
     registeredInjectionPoints.insert(std::make_pair(name,jsonObject));
 
 }
-
-void InjectionPointStore::logInjectionPoint(std::string package, std::string id, NTV &args)  {
-
-       int aa;
-       auto it = registeredInjectionPoints.find(id);
-       if (it!=registeredInjectionPoints.end()) {
-            aa = VnV_BeginStage("Registered Injection Point");
-       } else {
-            aa = VnV_BeginStage("Un Registered Injection Point");
-       }
-       VnV_Info("Package: %s",package.c_str());
-       VnV_Info("Name: %s",id.c_str());
-       auto a = VnV_BeginStage("Available Parameters:");
-       if (it!=registeredInjectionPoints.end()) {
-           for (auto p : it->second["parameters"].items() ) {
-              VnV_Info("%s :  %s", p.key().c_str(), p.value().get<std::string>().c_str());
-           }
-       } else {
-           for ( auto it : args) {
-               VnV_Info("%s : (%s)", it.first.c_str(), it.second.first.c_str());
-           }
-       }
-       VnV_EndStage(a);
-       VnV_EndStage(aa);
-}
-
-
 
 void InjectionPointStore::registerInjectionPoint(std::string json_str) {
 
@@ -124,6 +96,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::s
     ptr = newInjectionPoint(key, args); /*Not nullptr because we checked above*/
     registerLoopedInjectionPoint(key,ptr);
   } else {
+      //Should never happen.
      return fetchFromQueue(key, type);
   }
   return ptr; 
@@ -183,13 +156,13 @@ void InjectionPointStore::addInjectionPoint(std::string name,
         json parameters = regJson["parameters"];
 
         // Build an empty parameter map for the InjectionPoint.
-        NTV parameterMap;
+        std::map<std::string,std::string> parameterMap;
         for ( auto it : parameters.items()) {
-            parameterMap[it.key()] = std::make_pair(it.value().get<std::string>(),nullptr);
+            parameterMap[it.key()] = it.value().get<std::string>();
         }
 
         tests.erase(std::remove_if(tests.begin(), tests.end(), [&](TestConfig &t){
-           if (t.isMappingValidForParameterSet(parameterMap)) {
+           if (t.preLoadParameterSet(parameterMap)) {
              VnV_Debug("Test Added Successfully %s" , t.getName().c_str());
              return false;
            }

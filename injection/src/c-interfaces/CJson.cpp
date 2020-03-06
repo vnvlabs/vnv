@@ -4,6 +4,7 @@
 
 #include "c-interfaces/CJson.h"
 #include <iostream>
+#include "base/OptionsParserStore.h"
 using nlohmann::json;
 
 #define CJSON_OK 0
@@ -248,6 +249,20 @@ void VnV_CJson_printJson(c_json json, int *err) {
     if (VnV_CJson_check(json,err)) {
         std::cout << VnV_CJson_castJson(json)->dump();
     }
+}
+
+void _VnV_registerOptions(const char* name, const char* s, options_callback_ptr v) {
+   json k = json::parse(s);
+   VnV::OptionsParserStore::instance().add(name,k, v);
+}
+
+
+void VnV::RegisterOptions(std::string packageName, std::string schema, options_cpp_callback_ptr callback) {
+   VnV::RegisterOptions(packageName, json::parse(schema), callback);
+}
+
+void VnV::RegisterOptions(std::string name, json &schema, options_cpp_callback_ptr callback) {
+   VnV::OptionsParserStore::instance().add(name, schema, callback);
 }
 
 json* VnV::asJson(c_json json) {

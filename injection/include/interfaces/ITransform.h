@@ -14,11 +14,11 @@ namespace VnV {
 class ITransform {
  public:
   friend class TransformStore;
+  friend class Transformer;
     /**
    * @brief ITransform
    */
   ITransform();
-
 
   virtual ~ITransform();
 private:
@@ -29,7 +29,8 @@ private:
    * @param tp
    * @return
    */
-  virtual void* Transform(std::string outputType, std::string inputType, void* ptr ) = 0;
+  virtual void* Transform(std::string from,  std::string to, void* ptr, std::string &rtti );
+
 
 };
 

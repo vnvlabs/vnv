@@ -7,7 +7,7 @@
 #include "Registration.h"
 
 #include "interfaces/ITest.h"
-#include "c-interfaces/Injection.h"
+#include "c-interfaces/CppInjection.h"
 
 #ifdef WITH_ADIOS
   #include "plugins/engines/AdiosOutputEngineImpl.h"
@@ -30,7 +30,7 @@ namespace ProvenanceTest {
 };
 
 
-static const char * initializationConfig = R"(
+static const std::string initializationConfig = R"(
 {
    "name" : "initialization",
    "parameters" : {

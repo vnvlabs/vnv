@@ -9,21 +9,26 @@
 #include "dlclass2.h"
 #include <typeinfo>
 
-
 template<typename T>
 class f {
 public:
     T ff;
+    T gg;
+    int ggg;
     int getF(int t) {
-        INJECTION_POINT(sdfsdf, ff);
+        INJECTION_POINT(sdfsdf, ff, gg, ggg );
         return 1;
     }
 };
 
+
+
 template <typename T, typename X>
 int templateFnc(int x, T y, X xx) {
     INJECTION_POINT(templateFn,x,y,xx);
+    return 0;
 }
+
 
 class test1 {
 
@@ -59,7 +64,7 @@ int function1(int x) {
 
 // Write the injection point registation -- we use the array form to specify multiple points
 // in a single string.
-static const char* injectionPoints = R"(
+static const json injectionPoints = R"(
    [
        {
           "name" : "Function1",
@@ -74,7 +79,7 @@ static const char* injectionPoints = R"(
           "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" , "samplePoints3" : "std::vector<double>" }
        }
    ]
-)";
+)"_json;
 
 void callback() {
    // Here is where we would register all the injection points.
@@ -91,7 +96,16 @@ int main(int argc, char** argv) {
   f<double> why;
   why.getF(1);
 
+  f<int> hh;
+  hh.getF(1);
+
+  struct xx{
+      int y;
+  };
+  xx ten;
+
   templateFnc(1,1.0, "sdfsdf");
+  templateFnc(1,"","");
 
  // hello<int> whyint;
  // whyint.function1(1,1.0);

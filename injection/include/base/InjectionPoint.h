@@ -13,6 +13,10 @@
 #include <string>
 #include <vector>
 #include "interfaces/IOutputEngine.h"
+#include "interfaces/ITest.h"
+#include "base/Runtime.h"
+#include "c-interfaces/CppInjection.h"
+
 /**
 
  * \file Header file for the InjectionPoint and InjectionPointStore classes.
@@ -25,9 +29,6 @@
 namespace VnV {
 
 // Forward delclare
-class TestConfig;  // defined in VnV-Intefaces.h
-
-class ITest;  // defined in VnV-Interfaces.h
 
 class InjectionPointStore;  // defined below.
 
@@ -42,7 +43,6 @@ class InjectionPointStore;  // defined below.
  * is intended to give the ITest implementation enough information to cast the
  * void* pointer back to its intended form.
  */
-typedef std::map<std::string, std::pair<std::string, void*>> NTV;
 
 /**
  * \class InjectionPoint
@@ -72,8 +72,7 @@ class InjectionPoint {
   InjectionPointType type;
   std::string stageId;
 
-  NTV parameterMap;
-  std::map<std::string, std::string> parameterRTTI;
+  std::map<std::string, VnVParameter> parameterMap;
 
   /**
    * @brief addTest Add a test Config to that injection point. Note: This function

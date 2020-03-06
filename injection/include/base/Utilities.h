@@ -42,6 +42,7 @@ int StringSplit(const std::string& s, const char* delim,
                 std::vector<std::string>& result);
 }
 
+std::vector<std::pair<std::string,std::string>> bfs(std::map<std::string,std::map<std::string, std::string>> &m, std::string start, std::string end);
 
 namespace JsonUtilities {
 

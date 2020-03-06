@@ -128,13 +128,15 @@ TestConfig TestStore::validateTest(json &testJson) {
   throw "test not found";
 }
 
-ITest* TestStore::getTest(TestConfig& config) {
+std::shared_ptr<ITest> TestStore::getTest(TestConfig& config) {
   std::string name = config.getName();
 
   auto it = test_factory.find(name);
   if (it != test_factory.end()) {
     ITest * t = it->second.first(config);
-    return t;
+    std::shared_ptr<ITest> ptr;
+    ptr.reset(t);
+    return ptr;
   }
   return nullptr;
 }

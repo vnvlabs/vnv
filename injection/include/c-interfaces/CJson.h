@@ -9,12 +9,17 @@ struct _c_json {
     void* data;
 };
 typedef struct _c_json c_json;
+typedef void options_callback_ptr(c_json info);
+typedef char* options_schema_ptr();
 
 #if __cplusplus
    #include "json-schema.hpp"
    using nlohmann::json;
    namespace VnV {
         json* asJson(c_json json);
+        typedef void options_cpp_callback_ptr(json &info);
+        void RegisterOptions(std::string packageName, std::string schema, options_cpp_callback_ptr *callback);
+        void RegisterOptions(std::string packageName, json &schema, options_cpp_callback_ptr *callback);
    };
    #define EXTERNC extern "C"
 #else
@@ -46,14 +51,18 @@ EXTERNC void VnV_CJson_getBoolean(c_json json, bool *result, int *err);
 EXTERNC void VnV_CJson_printJson(c_json json, int *err);
 EXTERNC void VnV_CJson_getErrorMessage(int err, char** message);
 
-typedef void options_callback_ptr(c_json info);
-typedef char* options_schema_ptr();
 
-EXTERNC void _VnV_registerOptions(const char *packageName, options_schema_ptr *sptr, options_callback_ptr *ptr);
+EXTERNC void _VnV_registerOptions(const char *packageName, const char* sptr, options_callback_ptr *ptr);
 
+#if __cplusplus
+
+#define VnV_Register_Options(schema, callback) \
+    VnV::RegisterOptions(PACKAGENAME_S,schema,callback);
+#else
 #define VnV_Register_Options(schema, callback) \
     _VnV_registerOptions(PACKAGENAME_S, schema, callback)
 #undef EXTERNC
+#endif
 
 #else
 #define VnV_Register_Options(...)

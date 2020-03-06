@@ -29,6 +29,7 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/TestStore.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/TransformStore.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/UnitTestStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/transformer.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/SerializerStore.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/JsonSchema.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/OptionsParserStore.cpp

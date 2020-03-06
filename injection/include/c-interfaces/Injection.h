@@ -41,7 +41,6 @@ VNVEXTERNC void _VnV_injectionPoint_loop(const char * packageName, const char* i
     _VnV_registerInjectionPoint(CONFIG);
 VNVEXTERNC void _VnV_registerInjectionPoint(const char *json_str);
 
-
 #else
 
 #  define INJECTION_POINT(...)

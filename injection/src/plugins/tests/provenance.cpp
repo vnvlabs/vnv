@@ -24,7 +24,7 @@ class provenance : public ITest {
 
     }
 
-    TestStatus runTest(IOutputEngine* engine, int argc, char** argv,
+    TestStatus getProvHistory(IOutputEngine* engine, int argc, char** argv,
                      std::string configFile) {
 
     {
@@ -118,17 +118,17 @@ class provenance : public ITest {
        // which output files are generated during the Current looped injection point.
    }
 
-   virtual TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId,
-                             std::map<std::string, void*>& parameters) override {
+   virtual TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId) override {
       TestStatus r = SUCCESS;
-       
+
       if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
             
             VnV_Debug("RUNNING PROVENANCE TEST");
-            char*** v = *static_cast<char****>(parameters["argv"]);
-            int* c = *static_cast<int**>(parameters["argc"]);
-            std::string f = *static_cast<std::string*>(parameters["config"]);
-            r = runTest(engine, *c, *v, f);
+            //Get the variables.
+            GetRef(c,"argc",int*);
+            GetRef(f,"config",std::string);
+            GetRef(v,"argv",char***);
+            r = getProvHistory(engine, *c, *v, f);
      }
      if ( type == InjectionPointType::Begin) {
         logTree();

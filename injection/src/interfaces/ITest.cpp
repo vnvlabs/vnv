@@ -11,11 +11,11 @@ using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
 const json& TestConfig::getAdditionalParameters() const {
-    return additionalParameters;
+    return testConfigJson["additionalParameters"];
 }
 
 const json& TestConfig::getExpectedResult() const {
-    return expectedResult;
+    return testConfigJson["expectedResult"];
 }
 
 const json& ITest::getExpectedResultJson() const {
@@ -30,17 +30,13 @@ void TestConfig::setName(std::string name) { testName = name; }
 
 std::string TestConfig::getName() const { return testName; }
 
-
-
-
-
 void TestConfig::print() {
     int a = VnV_BeginStage("Test Configuration %s", getName().c_str());
     VnV_Info("Expected Result: %s", getExpectedResult().dump().c_str());
     VnV_Info("Configuration Options: %s", getAdditionalParameters().dump().c_str());
     int b = VnV_BeginStage("Injection Point Mapping");
-    for ( auto it : parameterMap ) {
-        VnV_Info("%s(%s) -> %s [%d]", it.first.c_str(), it.second.parameterType.c_str(), it.second.injectionPointParameter.c_str(), it.second.required);
+    for ( auto it : parameters ) {
+        VnV_Info("(Name, type, rtti) = (%s, %s, %s) ", it.first.c_str(), it.second.getType().c_str(), it.second.getRtti().c_str());
     }
     VnV_EndStage(b);
     VnV_EndStage(a);
@@ -48,86 +44,87 @@ void TestConfig::print() {
 
 TestConfig::TestConfig(std::string name, json &testConfigJson, json &testDeclarationJson) {
   setName(name);
-  additionalParameters = testConfigJson["configuration"];
-  expectedResult = testConfigJson["expectedResult"];
+  this->testConfigJson = testConfigJson;
+  this->testDeclarationJson = testDeclarationJson;
+}
 
-  for (auto& param : testConfigJson["parameters"].items()) {
-       std::string testParameter = param.key();
-       std::string injectionParameter = param.value();
-       std::string testParameterType = testDeclarationJson["parameters"][testParameter].get<std::string>();
-       bool required = (testDeclarationJson["requiredParameters"].find(testParameter) != testDeclarationJson["requiredParameters"].end());
-       parameterMap[testParameter] = { injectionParameter, required, testParameterType };
-  }
+void TestConfig::setParameterMap(VnVParameterSet &args) {
+    //Create a parameterMap For this one.
+    parameters.clear();
+    json j = testConfigJson["parameters"];
+    for (auto &param : j.items()) {
+        std::string testParameter = param.key();
+        std::string injectionParam = param.value();
+        std::string testParamType = testDeclarationJson["parameters"][testParameter].get<std::string>();
+        auto injection = args.find(injectionParam);
+        if (injection == args.end()) {
+            if (isRequired(testParameter)) {
+                throw "Required parameter missing";
+            }
+        } else {
+            std::string s = injection->second.getRtti();
+
+            auto it = transformers.find(testParameter);
+            if (it != transformers.end()) {
+                parameters.insert(std::make_pair(testParameter, VnVParameter(it->second->Transform(injection->second.getRawPtr(),s),testParamType,s)));
+            } else {
+                // In a test where "isMappingValidFor..." is called, this shoud never happen.
+                std::shared_ptr<Transformer> p = TransformStore::getTransformStore().getTransformer(injection->second.getType(),testParamType);
+                parameters.insert(std::make_pair(testParameter, VnVParameter(it->second->Transform(injection->second.getRawPtr(),s),testParamType,s)));
+                transformers.insert(std::make_pair(testParameter,std::move(p)));
+                VnV_Error("Transform for a test parameter was not pregenerated %s:%s", getName().c_str(), testParameter.c_str());
+            }
+        }
+    }
 }
 
 
-bool TestConfig::isRequired(std::string name) const {
-    auto it = parameterMap.find(name);
-    if (it != parameterMap.end()) {
-        return it->second.required;
-    }
-    return false;
+const std::map<std::string,VnVParameter>& TestConfig::getParameterMap() const {
+    return parameters;
+}
+
+
+bool TestConfig::isRequired(std::string testParameter) const {
+    return testDeclarationJson["requiredParameters"].find(testParameter) != testDeclarationJson["requiredParameters"].end();
 }
 
 
 ITest::ITest(TestConfig &config) : m_config(config)   {
 }
 
-ParameterMapping TestConfig::getMapping(std::string parmaeterName) const {
-    auto it = parameterMap.find(parmaeterName);
-    if (it != parameterMap.end()) {
-        return it->second;
-    }
-    throw "Parameter Not Found";
-}
 
-bool TestConfig::isMappingValidForParameterSet(NTV &parameters) const {
-    // Loop over all test parameters.
-    for (auto it : parameterMap ) {
-        // If the parameter is not required, then it is ok.
-        auto p = parameters.find(it.second.injectionPointParameter);
-        if ( p == parameters.end() && it.second.required ){
-               return false; //Could not find required parameter.
-        } else if (p->second.first != it.second.parameterType) {
-            return false;
+bool TestConfig::preLoadParameterSet(std::map<std::string, std::string> &parameters)  {
+    // Need to check if we can properly map the test, as declared, to this injection point.
+    json j = testConfigJson["parameters"];
+    for (auto &param : j.items()) {
+        std::string testParameter = param.key();
+        std::string injectionParam = param.value();
+        std::string testParamType = testDeclarationJson["parameters"][testParameter].get<std::string>();
+        bool required = isRequired(testParameter);
+        auto injection = parameters.find(injectionParam);
+        if (injection == parameters.end()) {
+            if (isRequired(testParameter)) {
+                return false;
+            }
+        } else {
+                std::shared_ptr<Transformer> p = TransformStore::getTransformStore().getTransformer(injection->second,testParamType);
+                if (p == nullptr && required) {
+                    return false;
+                }
+                transformers.insert(std::make_pair(testParameter, std::move(p)));
+
         }
     }
     return true;
 }
 
-void* TestConfig::mapParameter(std::string parameterName, NTV &parameters) const {
-  ParameterMapping mapping = getMapping(parameterName);
-
-  //Pull the associated Injection point param from the NTV.
-  auto ip_parameter = parameters.find(mapping.injectionPointParameter);
-  if (ip_parameter == parameters.end() || ip_parameter->second.second == nullptr) {
-      if ( mapping.required) {
-          throw "Required Parameter was not found";
-      } else {
-          return nullptr;
-      }
-  }
-
-  // Transform the injection point parameter into the test parameter
-  return TransformStore::getTransformStore().getTransform(mapping.parameterType, ip_parameter->second.first, ip_parameter->second.second);
-}
-
-std::map<std::string, void*> TestConfig::mapParameters(NTV &parameters) const {
-    std::map<std::string, void*> rparameters;
-    for (auto it: parameterMap) {
-        rparameters.insert(std::make_pair(it.first,mapParameter(it.first,parameters)));
-    }
-    return rparameters;
-}
-
 // Index is the injection point index. That is, the injection
 // point that this test is being run inside.
-TestStatus ITest::_runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId, NTV &parameters) {
+TestStatus ITest::_runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId) {
     VnV_Debug("Runnnig Test %s " , m_config.getName().c_str());
 
     OutputEngineStore::getOutputEngineStore().getEngineManager()->testStartedCallBack(m_config.getName());
-    std::map<std::string,void*> p = m_config.mapParameters(parameters);
-    TestStatus s = runTest(engine,type,stageId, p);
+    TestStatus s = runTest(engine,type,stageId );
     OutputEngineStore::getOutputEngineStore().getEngineManager()->testFinishedCallBack(
         (s == SUCCESS) ? true : false);
     return s;

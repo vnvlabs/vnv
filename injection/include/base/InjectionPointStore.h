@@ -14,6 +14,7 @@
 #include <vector>
 #include "interfaces/IOutputEngine.h"
 #include "base/InjectionPoint.h"
+#include "base/Runtime.h"
 
 namespace VnV {
 /**
@@ -124,8 +125,6 @@ class InjectionPointStore {
   // point schema OR an array of objects that individually validate against that same
   // schema.
   void registerInjectionPoint(std::string json_str);
-
-  void logInjectionPoint(std::string package, std::string name, NTV &args);
 
   json getInjectionPointRegistrationJson(std::string name);
   /**

@@ -6,48 +6,15 @@
 #include "base/Runtime.h"
 #include "base/InjectionPointStore.h"
 #include "c-interfaces/PackageName.h"
+#include "interfaces/ITest.h"
 
-typedef std::map<std::string,std::pair<std::string, void*>> NTV;
+#include "c-interfaces/CppInjection.h"
 
-/** For another time -- We should implement a test parameter class.
-class TestParameter  {
-private:
-    void *ptr;
-    std::string type;
-    std::string rtti;
-public:
-    TestParameter(std::string type, std::string rtti, void *ptr) {
-        this->ptr = ptr;
-        this->type = type;
-        this->rtti = rtti;
-    }
-
-    template <typename T>
-    TestParameter(std::string type, const T& object) :
-        TestParameter(type, typeid(object).name(), rtti,static_cast<void*>(&object)){}
-
-    bool isType(std::string type) {
-        return (this->type == type);
-    }
-
-    std::string getType() {
-        return type;
-    }
-
-    std::string getRTTI() {
-        return rtti;
-    }
-
-    template <typename T>
-    const T* get() {
-        return static_cast<T*>(ptr);
-    }
-};*/
-
+using namespace VnV;
 
 // Private function -- Never exposed to the C interface.
 NTV VnV_UnwrapVariadicArgs(va_list argp) {
-    NTV ntv;
+    NTV parameterSet;
     while (1) {
       std::string variableName = va_arg(argp, char*);
       if (variableName == VNV_END_PARAMETERS_S) {
@@ -55,15 +22,11 @@ NTV VnV_UnwrapVariadicArgs(va_list argp) {
       }
       void* variablePtr = va_arg(argp, void*);
 
-      auto it = ntv.find(variableName);
-      if (it!=ntv.end()) {
-          it->second.second = variablePtr;
-      } else {
-          //variable was not registered, add it with a type void*
-          ntv.insert(std::make_pair(variableName, std::make_pair("void*", variablePtr)));
-      }
+      //variable was not registered, add it with a type void*
+      parameterSet.insert(std::make_pair(variableName, std::make_pair("void*", variablePtr)));
+
     }
-    return ntv;
+    return parameterSet;
 }
 
 extern "C" {

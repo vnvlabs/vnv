@@ -46,10 +46,8 @@ namespace VnV {
 class RunTimeOptions {
  public:
     bool logUnhandled = false;
-
-    void fromJson(json jsonObject);
-    static char* getSchema();
-    static void callback(c_json j);
+    void fromJson(json& jsonObject);
+    static void callback(json &j);
 };
 
 

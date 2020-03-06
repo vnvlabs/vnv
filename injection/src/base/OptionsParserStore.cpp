@@ -15,20 +15,30 @@ using namespace VnV;
 OptionsParserStore::OptionsParserStore(){
 }
 
-void OptionsParserStore::add(std::string name, options_schema_ptr *m, options_callback_ptr *v){
-    factory.insert(std::make_pair(name,std::make_pair(m,v)));
+void OptionsParserStore::add(std::string name, json &schema, options_callback_ptr *v){
+    std::pair<options_callback_ptr*, options_cpp_callback_ptr*> x = {v,nullptr};
+    factory[name] = {schema,x};
+}
+void OptionsParserStore::add(std::string name, json &schema, options_cpp_callback_ptr *v){
+    std::pair<options_callback_ptr*, options_cpp_callback_ptr*> x = {nullptr,v};
+    factory[name] = {schema,x};
 }
 
 void OptionsParserStore::callBack(std::string name, json info){
 
     auto it = factory.find(name);
     if ( it != factory.end() ) {
-       json schema = json::parse(it->second.first());
        nlohmann::json_schema::json_validator validator;
-       validator.set_root_schema(schema);
+       validator.set_root_schema(it->second.first);
        validator.validate(info);
-       c_json j = {&info};
-       it->second.second(j);
+
+       // Pass it back to the callback -- Pick the C or C++ interface depending.
+       if ( it->second.second.first != nullptr) {
+            c_json j = {&info};
+            it->second.second.first(j);
+       } else if (it->second.second.second != nullptr) {
+            it->second.second.second(info);
+       }
     } else {
         VnV_Warn("Unknown Options Configuration Name %s", name.c_str());
     }
@@ -42,7 +52,6 @@ OptionsParserStore& OptionsParserStore::instance(){
 void OptionsParserStore::parse(json info) {
 
     for ( auto &it : factory ) {
-       std::cout << "it: " << it.first << std::endl;
        auto found = info.find(it.first);
        if (found != info.end()) {
           callBack(it.first, found.value());

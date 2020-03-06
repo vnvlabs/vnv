@@ -29,6 +29,8 @@ using namespace clang::tooling;
 using namespace clang;
 using namespace llvm;
 
+
+
 class VnVPrinter : public MatchFinder::MatchCallback {
 private: 
    json& ip_json;
@@ -47,6 +49,7 @@ public:
             return ((const clang::StringLiteral*)a)->getString();
         } else {
                 llvm::errs() << "Error Not a String Literal ";
+                a->dump();
                 return "";
         }
    }
@@ -74,6 +77,8 @@ public:
        unsigned int count = 0;
        std::string package =  getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts());
 
+
+
        // Get the id, and create a new object in the main json for it, if needed.
        // Note: it might already be there (from Docs, or another iterations, stage, etc)
        id = VnV::StringUtils::trim_copy(getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts()));
@@ -84,17 +89,32 @@ public:
    }
 
 
-   json extractParameters(const CallExpr *E, unsigned int count)
+   bool extractParameters(const CallExpr *E, unsigned int count, json &parameters)
    {
-       json parameters;
+       bool ret = false;
        while (count < E->getNumArgs()-1) {
            const clang::Expr *a = E->getArg(count++)->IgnoreParenCasts();
            std::string xs=getValueFromStringLiteral(a);
            const clang::Expr *aa = E->getArg(count++)->IgnoreParenCasts();
+           
+           if (aa->getType()->isDependentType())
+               ret = true;
+           
            std::string ax = aa->getType().getAsString();
-           parameters[xs] = ax;
+           parameters[xs] = ax ;
        }
-       return parameters;
+       return ret;
+   }
+
+   void addParameters(const CallExpr *E, json &idJson, unsigned int count) {
+      json params;
+      if ( extractParameters(E,count, params) ) {
+        idJson["templateParameters"] = params;
+      } else {
+          json &possibleParams = VnV::JsonUtilities::getOrCreate(idJson, "parameters", VnV::JsonUtilities::CreateType::Array);
+          possibleParams.push_back(params);
+      }
+
    }
 
    // ** id -> {"linenumber, filename, columnnumber caller, callline, callfunc, parameters[...] , stages[iterid][info]
@@ -103,11 +123,7 @@ public:
 
        std::string id;
        json info;
-
        const FunctionDecl *FF = Result.Nodes.getNodeAs<clang::FunctionDecl>("function");
-
-
-
 
        json &idJson = VnV::JsonUtilities::getOrCreate(ip_json, id, VnV::JsonUtilities::CreateType::Object);
        if (const CallExpr *E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite")) {   
@@ -115,15 +131,16 @@ public:
             json &idJson = VnV::JsonUtilities::getOrCreate(ip_json, id, VnV::JsonUtilities::CreateType::Object);
             json &singleJson = VnV::JsonUtilities::getOrCreate(idJson, "Single", VnV::JsonUtilities::CreateType::Object);
             singleJson["Info"] = info;
-            idJson["parameters"] = extractParameters(E,count);
+            addParameters(E,idJson,count);
        }
        else if (const CallExpr *E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_begin")) {
             unsigned int count = getInfo(E,FF,Result,info, id);
             json &idJson = VnV::JsonUtilities::getOrCreate(ip_json, id, VnV::JsonUtilities::CreateType::Object);
             json &singleJson = VnV::JsonUtilities::getOrCreate(idJson, "Begin", VnV::JsonUtilities::CreateType::Object);
             singleJson["Info"] = info;
-            idJson["parameters"] = extractParameters(E,count);
+            addParameters(E,idJson,count);
        } else if (const CallExpr *E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iter")) {
+
             unsigned int count = getInfo(E,FF,Result,info, id);
             std::string iterid = VnV::StringUtils::trim_copy(getValueFromStringLiteral(E->getArg(count++)->IgnoreParenCasts()));
             json &idJson = VnV::JsonUtilities::getOrCreate(ip_json, id, VnV::JsonUtilities::CreateType::Object);
@@ -135,8 +152,8 @@ public:
            json &idJson = VnV::JsonUtilities::getOrCreate(ip_json, id, VnV::JsonUtilities::CreateType::Object);
            json &singleJson = VnV::JsonUtilities::getOrCreate(idJson, "End", VnV::JsonUtilities::CreateType::Object);
            singleJson["Info"] = info;
+       
        }
-       std::cout << id << "Is a template " << FF->isTemplateInstantiation() <<  std::endl << ip_json[id].dump(3) << std::endl;;
 
    }
   
@@ -240,8 +257,9 @@ static cl::extrahelp MoreHelp("\nMore help text...");
  * Main Executable for VnV Processor. 
  */
 int main(int argc, const char **argv) {
-  CommonOptionsParser OptionsParser(argc, argv, MyToolCategory);
 
+
+  CommonOptionsParser OptionsParser(argc, argv, MyToolCategory);
 
   VnVCommentParser parser;
   json info = parser.parseFiles(OptionsParser.getCompilations().getAllFiles());
@@ -251,11 +269,15 @@ int main(int argc, const char **argv) {
 
   ClangTool Tool(OptionsParser.getCompilations(), s);
 
+  void* xd;
+  void* ff = nullptr;
+  double *xxx;
+  std::cout << "The type ID of this thing is " << typeid(xxx).name() <<  " " << typeid(ff).name() << "  " <<  typeid(xd).name() << std::endl;;
 
 
   VnVPrinter Printer(info);
   MatchFinder Finder;
-
+  /** C Matchers **/
   StatementMatcher functionMatcher = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_VnV_injectionPoint")))).bind("callsite");
   StatementMatcher functionMatcher1 = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_VnV_injectionPoint_begin")))).bind("callsite_begin");
   StatementMatcher functionMatcher2 = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_VnV_injectionPoint_loop")))).bind("callsite_iter");
@@ -264,7 +286,22 @@ int main(int argc, const char **argv) {
   Finder.addMatcher(functionMatcher1, &Printer);
   Finder.addMatcher(functionMatcher2, &Printer);
   Finder.addMatcher(functionMatcher3, &Printer);
+
+  /** Cpp Matchers **/
+  StatementMatcher functionMatcherC = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_CppInjectionPoint")))).bind("callsite");
+  StatementMatcher functionMatcher1C = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_CppInjectionPoint_Begin")))).bind("callsite_begin");
+  StatementMatcher functionMatcher2C = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("CppInjectionPoint_Iter")))).bind("callsite_iter");
+  StatementMatcher functionMatcher3C = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("CppInjectionPoint_End")))).bind("callsite_end");
+  Finder.addMatcher(functionMatcherC, &Printer);
+  Finder.addMatcher(functionMatcher1C, &Printer);
+  Finder.addMatcher(functionMatcher2C, &Printer);
+  Finder.addMatcher(functionMatcher3C, &Printer);
+
+
   int x = Tool.run(newFrontendActionFactory(&Finder).get());
+
+
+  std::cout << Printer.get().dump(3) << std::endl;
 
   return 1;//x;
 

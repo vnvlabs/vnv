@@ -21,9 +21,6 @@ void VnV_runUnitTests() {
   VnV::RunTime::instance().runUnitTests();
 }
 
-void _VnV_registerOptions(const char* name, options_schema_ptr s, options_callback_ptr v) {
-   VnV::OptionsParserStore::instance().add(name,s,v);
-}
 
 
 }

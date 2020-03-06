@@ -68,7 +68,7 @@ class TestStore {
    * @param config
    * @return
    */
-  ITest* getTest(TestConfig& config);
+  std::shared_ptr<ITest> getTest(TestConfig& config);
 
   std::vector<TestConfig> validateTests(std::vector<json> &configs);
 
