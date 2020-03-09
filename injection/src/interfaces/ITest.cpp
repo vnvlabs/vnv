@@ -11,7 +11,7 @@ using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
 const json& TestConfig::getAdditionalParameters() const {
-    return testConfigJson["additionalParameters"];
+    return testConfigJson["configuration"];
 }
 
 const json& TestConfig::getExpectedResult() const {

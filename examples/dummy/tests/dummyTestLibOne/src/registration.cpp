@@ -13,7 +13,7 @@ static json options_schema = R"({"type":"object"})"_json;
 
 
 void options_callback(json &callbackJson) {
-    VnV_Info("DummyTestLibrary options callback: %s", callbackJson.dump());
+    VnV_Info("DummyTestLibrary options callback: %s", callbackJson.dump().c_str());
 }
 
 

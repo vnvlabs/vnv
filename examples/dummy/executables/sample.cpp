@@ -64,7 +64,7 @@ int function1(int x) {
 
 // Write the injection point registation -- we use the array form to specify multiple points
 // in a single string.
-static const json injectionPoints = R"(
+static const std::string injectionPoints = R"(
    [
        {
           "name" : "Function1",
@@ -79,7 +79,7 @@ static const json injectionPoints = R"(
           "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" , "samplePoints3" : "std::vector<double>" }
        }
    ]
-)"_json;
+)";
 
 void callback() {
    // Here is where we would register all the injection points.

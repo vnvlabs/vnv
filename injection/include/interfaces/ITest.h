@@ -72,7 +72,7 @@ class VnVParameter {
 
     template<typename T>
     T* getPtr(std::string type, bool checkRtti) const  {
-        if ( !type.empty() != getType().compare(type)!=0 ) {
+        if ( !type.empty() && getType().compare(type)!=0 ) {
             throw "type information incorrect";
         }
        if (hasRtti && checkRtti) {
