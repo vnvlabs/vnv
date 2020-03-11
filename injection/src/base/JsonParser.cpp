@@ -4,17 +4,8 @@
 **/
 
 
-#include <fstream>
-#include <iostream>
-#include <string>
-
-#include "base/InjectionPoint.h"
-#include "base/Logger.h"
-#include "base/OutputEngineStore.h"
-#include "base/JsonSchema.h"
-#include "base/TestStore.h"
-#include "base/Utilities.h"
-#include "base/JsonParser.h"
+#include "base/JsonParser.h" // Prototype
+#include "base/JsonSchema.h" // ValidationSchema()
 
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
@@ -38,23 +29,28 @@ void JsonParser::addTest(const json& testJson,
 
 void JsonParser::addInjectionPoint(
     const json& ip, std::set<std::string>& runScopes,
-    std::map<std::string, std::vector<json>>& ips) {
+    std::map<std::string, InjectionPointInfo> &ips) {
   for (auto& it : ip.items()) {
     std::string name = it.value()["name"].get<std::string>();
 
     auto aip = ips.find(name);
     if (aip != ips.end()) {
       for (auto& test : it.value()["tests"].items()) {
-        addTest(test.value(), aip->second, runScopes);
+        addTest(test.value(), aip->second.tests, runScopes);
       }
     } else {
-      std::vector<json> testConfigs;
+      InjectionPointInfo ipInfo;
       for (auto test : it.value()["tests"].items()) {
-        addTest(test.value(), testConfigs, runScopes);
+        addTest(test.value(), ipInfo.tests, runScopes);
+      }
+      if (it.value().contains("runInternal")) {
+          ipInfo.runInternal = it.value()["runInternal"].get<bool>();
+      } else {
+         ipInfo.runInternal = true;
       }
 
-      if (testConfigs.size() > 0) {
-        ips.insert(std::make_pair(name, testConfigs));
+      if (ipInfo.tests.size() > 0 || ipInfo.runInternal ) {
+        ips.insert(std::make_pair(name, ipInfo));
       }
     }
   }

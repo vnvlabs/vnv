@@ -1,6 +1,8 @@
 #ifndef PACKAGENAME_H
 #define PACKAGENAME_H
 
+#include <stdarg.h>
+
 #ifndef PACKAGENAME
 #  error "VnV: PACKAGENAME is not defined. Please Ensure a Macro called PACKAGENAME is defined before VnV.h is loaded"
 #endif
@@ -16,6 +18,8 @@
 #endif
 
 #define PACKAGENAME_S  VNV_STR(PACKAGENAME)
+
+//C Injection Macros.
 
 #define FE_0(WHAT)
 #define FE_1(WHAT, X) WHAT(X)
@@ -52,5 +56,6 @@
 
 #define VNV_END_PARAMETERS __vnv_end_parameters__
 #define VNV_END_PARAMETERS_S VNV_STR(VNV_END_PARAMETERS)
+
 
 #endif // PACKAGENAME_H

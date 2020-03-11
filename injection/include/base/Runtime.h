@@ -19,7 +19,9 @@
 #include "base/InjectionPoint.h"
 #include "c-interfaces/RunTime.h"
 #include "c-interfaces/CJson.h"
-#include "c-interfaces/CppInjection.h"
+#include "c-interfaces/wrappers.h"
+
+#include "interfaces/CppInjection.h"
 /**
  * VnV Namespace
  */
@@ -77,8 +79,8 @@ private:
   void loadRunInfo(RunInfo &info, registrationCallBack *callback);
   void makeLibraryRegistrationCallbacks(std::map<std::string,std::string> packageNames);
 
-  void getNewInjectionPoint(std::string pname, std::string id, InjectionPointType type, NTV &args);
-  void getExistingInjectionPoint(std::string pname, std::string id, InjectionPointType type, std::string stageId);
+  std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string pname, std::string id, InjectionPointType type, NTV &args);
+  std::shared_ptr<InjectionPoint> getExistingInjectionPoint(std::string pname, std::string id, InjectionPointType type, std::string stageId);
 
   // TODO Getter and setter.
   RunTimeOptions runTimeOptions;
@@ -111,20 +113,14 @@ private:
 
   void processToolConfig(json config);
 
-  /**
-   * @brief injectionPoint
-   * @param injectionIndex The stage of the injection point to be run
-   * @param id The name of the injection point to be run
-   * @param argp The va_list containing all the arguements supplied at the
-   * injection point.
-   *
-   * This function is called (eventually) whenever an INJECTION_POINT is found.
-   * Here, we are responsibe for pulling the correct IP from the IPStore, and
-   * running it with the given parameters.
-   *
-   */
-  void injectionPoint(std::string pname, std::string id, NTV &args);
-  void injectionPoint_begin(std::string pname, std::string id, NTV &args);
+  // Cpp interface.
+  void injectionPoint(std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args);
+  void injectionPoint_begin(std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args);
+
+  //C Interface
+  void injectionPoint(std::string pname, std::string id, injectionDataCallback *callback, NTV &args);
+  void injectionPoint_begin(std::string pname, std::string id, injectionDataCallback *callback, NTV &args);
+
   void injectionPoint_end(std::string pname, std::string id);
   void injectionPoint_iter(std::string pname, std::string id, std::string iterid);
 

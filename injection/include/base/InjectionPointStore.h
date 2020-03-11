@@ -12,11 +12,18 @@
 #include <stack>
 #include <string>
 #include <vector>
-#include "interfaces/IOutputEngine.h"
-#include "base/InjectionPoint.h"
-#include "base/Runtime.h"
+
+#include "json-schema.hpp"
+using nlohmann::json;
 
 namespace VnV {
+
+//Forward Declare
+typedef std::map<std::string,std::pair<std::string,void*>> NTV;
+class InjectionPoint;
+class TestConfig;
+enum class InjectionPointType;
+
 /**
  * \class InjectionPointStore
  * @brief The InjectionPointStore class
@@ -37,12 +44,14 @@ namespace VnV {
  * creating an InjectionPoint. This would allow the user to turn on/off testing
  * while the program is running...
  */
+
+
 class InjectionPointStore {
  private:
   std::map<std::string, std::stack<std::shared_ptr<InjectionPoint>>>
       active; /**< Active injection point stack*/
 
-  std::map<std::string, std::vector<TestConfig>>
+  std::map<std::string, std::pair<bool,std::vector<TestConfig>>>
       injectionPoints; /**< The stored configurations */
 
   std::map<std::string, json> registeredInjectionPoints;
@@ -106,7 +115,7 @@ class InjectionPointStore {
    * Add an injection point to the store. In the case that an injection point
    * already exists in the store, the test configuration will be overwritten.
    */
-  void addInjectionPoint(std::string name, std::vector<TestConfig>& tests);
+  void addInjectionPoint(std::string name, std::pair<bool , std::vector<TestConfig>>& tests);
 
   /**
    * @brief addInjectionPoints
@@ -119,7 +128,7 @@ class InjectionPointStore {
    * std::map insert operations.
    */
   void addInjectionPoints(
-      std::map<std::string, std::vector<TestConfig>>& injectionPoints);
+      std::map<std::string, std::pair<bool,std::vector<TestConfig>>>& injectionPoints);
 
   // Register Injection point. JsonStr must be json that validates against the injection
   // point schema OR an array of objects that individually validate against that same
@@ -145,4 +154,5 @@ class InjectionPointStore {
 };  // end InjectionPointStore
 
 }  // namespace VnV
+
 #endif // INJECTIONPOINTSTORE_H

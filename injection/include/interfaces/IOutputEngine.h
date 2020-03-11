@@ -75,6 +75,10 @@ public:
 
   virtual void Log(const char * packageName, int stage, std::string level, std::string message);
 
+
+
+  void Data(std::string packageName, std::string ip, std::string dataTag, std::string format, va_list args );
+
     /**
    * @brief Define IO variables that will be written.
    * @param type

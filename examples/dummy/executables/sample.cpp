@@ -102,7 +102,6 @@ int main(int argc, char** argv) {
   struct xx{
       int y;
   };
-  xx ten;
 
   templateFnc(1,1.0, "sdfsdf");
   templateFnc(1,"","");

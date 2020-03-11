@@ -12,7 +12,7 @@ using namespace VnV;
 class BFSTester : public IUnitTester { 
 
 public:
-
+    // Test the Breadth first search algorithm.
     BFSTester( ){
 
     }
@@ -66,7 +66,6 @@ public:
         } catch (...) {
             results["Loops"]=false;
         }
-
 
         return results;
     }

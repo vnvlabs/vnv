@@ -43,8 +43,8 @@ class VnVParameter {
         hasRtti = copy.hasRtti;
     }
 
-    VnVParameter(void* obj, std::string type_, std::string rtti) {
-        rtti = rtti;
+    VnVParameter(void* obj, std::string type_, std::string rtti_) {
+        rtti = rtti_;
         type = type_;
         ptr = obj;
         hasRtti = (rtti.size()>0);

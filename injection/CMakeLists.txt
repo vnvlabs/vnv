@@ -29,7 +29,6 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/TestStore.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/TransformStore.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/UnitTestStore.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/transformer.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/SerializerStore.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/JsonSchema.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/OptionsParserStore.cpp
@@ -37,12 +36,15 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Runtime.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/CJson.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Logging.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/PackageName.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Injection.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/CppInjection.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/wrappers.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/CppInjection.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/IOutputEngine.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ISerializer.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITest.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITransform.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/IOutputReader.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/Registration.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/DebugOutputEngineImpl.cpp)
 

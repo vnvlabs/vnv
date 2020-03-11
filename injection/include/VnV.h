@@ -12,7 +12,7 @@
 
 // Cpp Injection Includes. Allows specification of Injection points with Runtime type info
 #ifdef __cplusplus
-#include "c-interfaces/CppInjection.h"
+#include "interfaces/CppInjection.h"
 #else
 #include "c-interfaces/Injection.h"
 #endif

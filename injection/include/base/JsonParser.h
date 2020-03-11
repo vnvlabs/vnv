@@ -15,8 +15,6 @@
 #include <map>
 
 #include "json-schema.hpp"
-#include "base/TestStore.h"
-#include "base/Logger.h"
 using nlohmann::json;
 
 /**
@@ -41,6 +39,11 @@ struct EngineInfo {
   json engineConfig;      /**< additional parameters provided by the user */
 };
 
+struct InjectionPointInfo {
+   std::vector<json> tests;
+   bool runInternal;
+};
+
 /**
  * @brief The EngineInfo struct
  *
@@ -49,7 +52,7 @@ struct EngineInfo {
 struct RunInfo {
   bool runTests; /**< Should any tests be run */
   std::map<std::string,std::string> testLibraries; /*< List of file paths to included plugin libraries */
-  std::map<std::string, std::vector<json>> injectionPoints; /**< all injection points with tests */
+  std::map<std::string, InjectionPointInfo> injectionPoints; /**< all injection points with tests */
   json toolConfig;
 
   LoggerInfo logInfo;
@@ -143,7 +146,7 @@ class JsonParser {
    */
   void addInjectionPoint(const json& injectionPointJson,
                          std::set<std::string>& runScopes,
-                         std::map<std::string, std::vector<json>>& ips);
+                         std::map<std::string, InjectionPointInfo> &ips);
 
   /**
    * @brief addTestLibrary

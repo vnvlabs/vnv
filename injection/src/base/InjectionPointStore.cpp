@@ -3,14 +3,12 @@
   base/InjectionPointStore.h.
 **/
 
-#include <iostream>
-#include "json-schema.hpp"
-#include "base/Logger.h"
-#include "base/OutputEngineStore.h"
-#include "base/TestStore.h"
-#include "base/JsonSchema.h"
 #include "base/InjectionPointStore.h"
-#include "c-interfaces/Logging.h"
+
+#include "base/JsonSchema.h"   // getInjectionPointDeclarationSchema
+#include "c-interfaces/Logging.h" //Logging Statements (VnV_Debug, etc)
+#include "interfaces/ITest.h"     // TestConfig
+#include "base/InjectionPoint.h"   // InjectionPoint.
 
 using namespace VnV;
 
@@ -29,9 +27,10 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
     std::shared_ptr<InjectionPoint> injectionPoint;
     injectionPoint.reset( new InjectionPoint(reg->second, args));
 
-    for (auto& test : it->second) {
+    for (auto& test : it->second.second) {
       injectionPoint->addTest(test);
     }
+    injectionPoint->runInternal = it->second.first;
     return injectionPoint;
   }
   return nullptr;
@@ -147,7 +146,7 @@ InjectionPointStore& InjectionPointStore::getInjectionPointStore() {
 }
 
 void InjectionPointStore::addInjectionPoint(std::string name,
-                                            std::vector<TestConfig>& tests) {
+                                            std::pair<bool,std::vector<TestConfig>>& tests) {
     auto reg = registeredInjectionPoints.find(name);
     if ( reg!=registeredInjectionPoints.end()) {
 
@@ -161,14 +160,14 @@ void InjectionPointStore::addInjectionPoint(std::string name,
             parameterMap[it.key()] = it.value().get<std::string>();
         }
 
-        tests.erase(std::remove_if(tests.begin(), tests.end(), [&](TestConfig &t){
+        tests.second.erase(std::remove_if(tests.second.begin(), tests.second.end(), [&](TestConfig &t){
            if (t.preLoadParameterSet(parameterMap)) {
              VnV_Debug("Test Added Successfully %s" , t.getName().c_str());
              return false;
            }
            VnV_Warn("Test Config is Invalid %s", t.getName().c_str());
            return true;
-        }), tests.end());
+        }), tests.second.end());
 
      } else {
         VnV_Warn("The injection point %s has not been registered with the Injection point store", name.c_str());
@@ -177,7 +176,7 @@ void InjectionPointStore::addInjectionPoint(std::string name,
 }
 
 void InjectionPointStore::addInjectionPoints(
-    std::map<std::string, std::vector<TestConfig>>& injectionPoints) {
+    std::map<std::string, std::pair<bool,std::vector<TestConfig>>>& injectionPoints) {
     for (auto it : injectionPoints) {
         addInjectionPoint(it.first,it.second);
     }
@@ -194,7 +193,8 @@ void InjectionPointStore::print() {
     int ups = VnV_BeginStage("InjectionPointStore Configuration");
     for ( auto it: injectionPoints) {
         int s = VnV_BeginStage("Name: %s", it.first.c_str());
-        for ( auto itt : it.second ) {
+        VnV_Info("Iternal Run Configuration is %s", (it.second.first) ? "On" : "Off" );
+        for ( auto itt : it.second.second ) {
             auto ss = VnV_BeginStage("Test %s:", itt.getName().c_str());
             itt.print();
             VnV_EndStage(ss);

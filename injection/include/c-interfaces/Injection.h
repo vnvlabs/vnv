@@ -4,42 +4,59 @@
 #ifndef WITHOUT_VNV
 
 #include "c-interfaces/PackageName.h"
+#include "c-interfaces/wrappers.h"
+
+VNVEXTERNC int _VnV_injectionPoint_end(const char * packageName, const char* id);
+VNVEXTERNC void _VnV_injectionPoint_loop(const char * packageName, const char* id, const char* stageId);
+VNVEXTERNC void _VnV_registerInjectionPoint(const char *json_str);
+VNVEXTERNC void _VnV_injectionPoint_begin(const char * packageName, const char* id, injectionDataCallback *callback, ...);
+VNVEXTERNC void _VnV_injectionPoint(const char * packageName, const char* id, injectionDataCallback *callback, ...);
+
 
 #define DOIT(X)  #X, (void*)(&X),
 #define EVERYONE(...) FOR_EACH(DOIT,__VA_ARGS__)
 
-/**
- * Call the Runtime VnV_InjectionPoint function. This runs the tests.
-*/
 
+// Macro for an injection point with a callback
+#define INJECTION_POINT_C(NAME, callback, ...)        \
+   _VnV_injectionPoint(VNV_STR(PACKAGENAME),#NAME, callback, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
-
-
-// SINGULAR INJECTION POINT.
+// Injection point without a data callback.
 #define INJECTION_POINT(NAME, ...)        \
-   _VnV_injectionPoint(VNV_STR(PACKAGENAME),#NAME, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
-VNVEXTERNC void _VnV_injectionPoint(const char * packageName, const char* id, ...);
+   INJECTION_POINT_C(NAME,NULL,__VA_ARGS__)
 
-// BEGIN A LOOPED INJECTION POINT
+// BEGIN A LOOPED INJECTION POINT with a callback
+#define INJECTION_LOOP_BEGIN_C(NAME, callback, ...)        \
+    _VnV_injectionPoint_begin(VNV_STR(PACKAGENAME), #NAME, callback, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
+
+//Begin a looped injection point without a data callback.
 #define INJECTION_LOOP_BEGIN(NAME, ...)        \
-    _VnV_injectionPoint_begin(VNV_STR(PACKAGENAME), #NAME, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
-VNVEXTERNC void _VnV_injectionPoint_begin(const char * packageName, const char* id, ...);
+   INJECTION_LOOP_BEGIN_C(NAME,NULL,__VA_ARGS__)
 
 
 // END A LOOPED INJECTION POINT.
 #define INJECTION_LOOP_END(NAME) \
     _VnV_injectionPoint_end(VNV_STR(PACKAGENAME), #NAME );
-VNVEXTERNC void _VnV_injectionPoint_end(const char * packageName, const char* id);
+
+#define INJECTION_FUNCTION_WRAPPER_C(NAME, function, callback, ...) \
+    INJECTION_LOOP_BEGIN_C(NAME,__VA_ARGS__);\
+    function(__VA_ARGS__);\
+    INJECTION_LOOP_END(NAME)
+
+
+#define INJECTION_FUNCTION_WRAPPER(NAME,function,...) \
+    INJECTION_FUNCTION_WRAPPER_C(NAME,function,NULL,__VA_ARGS__);
+
 
 // INTERNAL ITERATION OF A LOOPED INJECTION POINT.
 #define INJECTION_LOOP_ITER(NAME,STAGE) \
     _VnV_injectionPoint_loop(VNV_STR(PACKAGENAME),#NAME,#STAGE);
-VNVEXTERNC void _VnV_injectionPoint_loop(const char * packageName, const char* id, const char* stageId);
+
 
 //REGISTER AN INJECTION POINT
 #define Register_Injection_Point(CONFIG) \
     _VnV_registerInjectionPoint(CONFIG);
-VNVEXTERNC void _VnV_registerInjectionPoint(const char *json_str);
+
 
 #else
 

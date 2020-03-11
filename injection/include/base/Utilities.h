@@ -47,7 +47,6 @@ std::vector<std::pair<std::string,std::string>> bfs(std::map<std::string,std::ma
 namespace JsonUtilities {
 
  enum class CreateType { Object, Array, String, Float, Integer };
-
  nlohmann::json& getOrCreate(nlohmann::json& parent, std::string key, CreateType type );
 
 

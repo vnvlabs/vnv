@@ -3,7 +3,6 @@
     base/JsonSchema.h
 **/
 #include "base/JsonSchema.h"
-#include <iostream>
 
 namespace VnV {
 static const json __vv_schema__ = R"(
@@ -112,6 +111,9 @@ static const json __vv_schema__ = R"(
       "properties": {
         "name": {
           "type": "string"
+        },
+        "runInternal": {
+           "type" : "boolean"
         },
         "tests": {
           "type": "array",

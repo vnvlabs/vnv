@@ -11,20 +11,19 @@
 #include <link.h>
 #endif
 
-#include <unistd.h>
+//#include <unistd.h>
+#include "base/Runtime.h"
+#include "base/TestStore.h"
+#include "base/DistUtils.h"
+#include "base/InjectionPointStore.h"
+#include "base/JsonSchema.h"
+#include "base/OutputEngineStore.h"
+#include "base/OptionsParserStore.h"
+#include "base/UnitTestStore.h"
+
+#include "Registration.h"
 
 #include "c-interfaces/Logging.h"
-#include "base/InjectionPoint.h"
-#include "base/InjectionPointStore.h"
-#include "base/OutputEngineStore.h"
-#include "base/UnitTestStore.h"
-#include "base/DistUtils.h"
-#include "base/OptionsParserStore.h"
-#include "base/Runtime.h"
-#include "Registration.h"
-#include "base/JsonSchema.h"
-
-#include "c-interfaces/CppInjection.h"
 
 using namespace VnV;
 
@@ -55,44 +54,79 @@ void RunTime::logUnhandled(std::string name, std::string id, NTV &args) {
     VnV_EndStage(a);
 }
 
-void RunTime::getNewInjectionPoint(std::string pname, std::string id, InjectionPointType type, NTV &args) {
+std::shared_ptr<InjectionPoint> RunTime::getNewInjectionPoint(std::string pname, std::string id, InjectionPointType type, NTV &args) {
   if (runTests) {
 
     std::shared_ptr<InjectionPoint> ipd =
         InjectionPointStore::getInjectionPointStore().getNewInjectionPoint(id,type,args);
     if (ipd != nullptr) {
         ipd->setInjectionPointType(type,"Begin");
-        ipd->runTests();
+        return ipd;
     } else if (runTimeOptions.logUnhandled) {
         logUnhandled(pname,id,args);
     }
   }
+  return nullptr;
 }
 
-void RunTime::getExistingInjectionPoint(std::string pname, std::string id, InjectionPointType type, std::string stageId) {
+std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(std::string pname, std::string id, InjectionPointType type, std::string stageId) {
   if (runTests) {
     std::shared_ptr<InjectionPoint> ipd =
         InjectionPointStore::getInjectionPointStore().getExistingInjectionPoint( id,type);
     if (ipd != nullptr) {
         ipd->setInjectionPointType(type,stageId);
-        ipd->runTests();
+        return ipd;
     }
   }
+  return nullptr;
+}
+
+
+// Cpp interface.
+void RunTime::injectionPoint(std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args) {
+    auto it = getNewInjectionPoint(pname,id,InjectionPointType::Single,args);
+    if ( it != nullptr) {
+        it->setCallBack(callback);
+        it->runTests();
+    }
+}
+
+void RunTime::injectionPoint_begin(std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args) {
+    auto it  =getNewInjectionPoint(pname,id,InjectionPointType::Begin,args);
+    if ( it != nullptr) {
+        it->setCallBack(callback);
+        it->runTests();
+    }
+}
+
+void RunTime::injectionPoint(std::string pname, std::string id, injectionDataCallback *callback, NTV &args) {
+    auto it = getNewInjectionPoint(pname,id,InjectionPointType::Single,args);
+    if ( it != nullptr) {
+        it->setCallBack(callback);
+        it->runTests();
+    }
+}
+
+void RunTime::injectionPoint_begin(std::string pname, std::string id, injectionDataCallback *callback, NTV &args) {
+    auto it  =getNewInjectionPoint(pname,id,InjectionPointType::Begin,args);
+    if ( it != nullptr) {
+        it->setCallBack(callback);
+        it->runTests();
+    }
+}
+
+void RunTime::injectionPoint_iter(std::string pname, std::string id,std::string stageId) {
+    auto it = getExistingInjectionPoint(pname,id,InjectionPointType::Iter,stageId);
+    if (it!=nullptr) {
+        it->runTests();
+    }
 }
 
 void RunTime::injectionPoint_end(std::string pname, std::string id) {
-    getExistingInjectionPoint(pname,id,InjectionPointType::End,"End");
-}
-
-void RunTime::injectionPoint_begin(std::string pname, std::string id, NTV &argp) {
-    getNewInjectionPoint(pname,id,InjectionPointType::Begin,argp);
-}
-
-void RunTime::injectionPoint(std::string pname, std::string id, NTV &argp) {
-    getNewInjectionPoint(pname,id,InjectionPointType::Single,argp);
-}
-void RunTime::injectionPoint_iter(std::string pname, std::string id,std::string stageId) {
-    getExistingInjectionPoint(pname,id,InjectionPointType::Iter,stageId);
+    auto it= getExistingInjectionPoint(pname,id,InjectionPointType::End,"End");
+    if (it != nullptr) {
+        it->runTests();
+    }
 }
 
 RunTime& RunTime::instance() {
@@ -163,10 +197,10 @@ void RunTime::loadRunInfo(RunInfo &info, registrationCallBack *callback) {
       VnV_Debug("Output Engine Configuration Successful");
   }
 
-  std::map<std::string, std::vector<TestConfig>> configs;
+  std::map<std::string, std::pair<bool, std::vector<TestConfig>>> configs;
   VnV_Debug("Validating Json Test Configuration Input and converting to TestConfig objects");
   for ( auto it : info.injectionPoints) {
-      configs.insert(std::make_pair(it.first, TestStore::getTestStore().validateTests(it.second))) ;
+      configs.insert(std::make_pair(it.first, std::make_pair(it.second.runInternal, TestStore::getTestStore().validateTests(it.second.tests)))) ;
   }
   // Load the injection Points and create all the tests.
   VnV_Debug("Loading Injection Points into Injection Point Store");
@@ -203,11 +237,14 @@ bool RunTime::Init(int* argc, char*** argv, std::string configFile, registration
    loadRunInfo(info,callback);
    printRunTimeInformation();
 
-   /**
-    * INJECTION POINT FOR INITIALIZATION.
-    *
-    **/
-   INJECTION_POINT(initialization, argc, argv, configFile);
+       /**
+       * INJECTION POINT FOR INITIALIZATION.
+       *
+       **/
+       INJECTION_POINT_C(initialization, [&](VnVParameterSet& , IOutputEngine *e){
+           double x = 10;
+           e->Put("Test This Thing out", x);
+       } , argc, argv, configFile);
   } else if (info.error) {
     runTests = false;
     processToolConfig(info.toolConfig);
@@ -245,6 +282,8 @@ bool RunTime::isRunTests() { return runTests; }
 void RunTime::log(std::string pname, std::string level, std::string message, va_list args) {
     logger.log_c(pname, level, message, args);
 }
+
+
 
 int RunTime::beginStage(std::string pname, std::string message, va_list args) {
  return   logger.beginStage(pname, message, args);

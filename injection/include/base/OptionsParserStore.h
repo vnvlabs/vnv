@@ -10,6 +10,9 @@
 #include <map>
 #include <string>
 
+#include "json-schema.hpp"
+using nlohmann::json;
+
 #include "c-interfaces/CJson.h"
 
 namespace VnV {

@@ -60,16 +60,38 @@ void InjectionPoint::setInjectionPointType(InjectionPointType type_, std::string
 
 bool InjectionPoint::hasTests() { return m_tests.size() > 0; }
 
+void InjectionPoint::setCallBack(injectionDataCallback *callback) {
+    if (runInternal && cCallback != nullptr) {
+        cCallback = callback;
+        callbackType = 1;
+    }
+}
+void InjectionPoint::setCallBack(const CppInjection::DataCallback &callback) {
+    if (runInternal && callback != nullptr) {
+        cppCallback = callback;
+        callbackType = 2;
+    }
+}
 
 void InjectionPoint::runTests() {
   OutputEngineManager* wrapper = OutputEngineStore::getOutputEngineStore().getEngineManager();
-  // Call the method to write this injection point to file.
-
   wrapper->injectionPointStartedCallBack(getScope(), type, stageId);
+  if ( callbackType > 0  ) {
+      wrapper->testStartedCallBack("__internal__");
+      if (callbackType == 1) {
+          OutputEngineWrapper engineWraper = {static_cast<void*>(wrapper->getOutputEngine())};
+          ParameterSetWrapper paramWrapper = {static_cast<void*>(&parameterMap)};
+         (*cCallback)(&paramWrapper,&engineWraper);
+      } else {
+         cppCallback(parameterMap,wrapper->getOutputEngine());
+      }
+      wrapper->testFinishedCallBack(true);//TODO callback should return bool "__internal__");
+  }
   for (auto it : m_tests) {
       it->_runTest(wrapper->getOutputEngine(), type, stageId );
   }
   wrapper->injectionPointEndedCallBack(getScope(), type,stageId);
 }
+
 
 

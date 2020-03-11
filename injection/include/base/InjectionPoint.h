@@ -12,11 +12,11 @@
 #include <stack>
 #include <string>
 #include <vector>
-#include "interfaces/IOutputEngine.h"
-#include "interfaces/ITest.h"
-#include "base/Runtime.h"
-#include "c-interfaces/CppInjection.h"
+#include "json-schema.hpp"
+#include "interfaces/CppInjection.h"
+#include "c-interfaces/wrappers.h"
 
+using nlohmann::json;
 /**
 
  * \file Header file for the InjectionPoint and InjectionPointStore classes.
@@ -28,21 +28,15 @@
  */
 namespace VnV {
 
-// Forward delclare
+//Forward declare.
+class InjectionPointStore;
+class TestConfig;
+class ITest;
+class VnVParameter;
+class RunTime;
+typedef std::map<std::string, std::pair<std::string,void*>> NTV;
+enum class InjectionPointType;
 
-class InjectionPointStore;  // defined below.
-
-
-
-/**
- * \typedef
- * @brief NTV
- *
- * The NTV object is passed to all ITest implementations. The structure of the
- * NTV map when recieved is <name>->pair(<type>,<ptr>) for each parameter. This
- * is intended to give the ITest implementation enough information to cast the
- * void* pointer back to its intended form.
- */
 
 /**
  * \class InjectionPoint
@@ -66,6 +60,8 @@ class InjectionPoint {
    * InjectionPoints.
    */
   friend class InjectionPointStore;
+  friend class RunTime;
+
   std::string  m_scope; /**< The name of the Injection point. (TODO change name) */
   std::vector<std::shared_ptr<ITest>> m_tests; /**< Vector of tests given to this injection point */
 
@@ -74,6 +70,10 @@ class InjectionPoint {
 
   std::map<std::string, VnVParameter> parameterMap;
 
+  bool runInternal = false;
+  int callbackType = 0;
+  CppInjection::DataCallback cppCallback = nullptr;
+  injectionDataCallback *cCallback = nullptr;
   /**
    * @brief addTest Add a test Config to that injection point. Note: This function
    * simply adds the test. It does not validate it. It is a private function only
@@ -98,6 +98,9 @@ class InjectionPoint {
    **/
   InjectionPoint(json registrationJson, NTV &args);
 
+  void setInjectionPointType(InjectionPointType type, std::string stageId);
+  void setCallBack(injectionDataCallback *callback);
+  void setCallBack(const CppInjection::DataCallback &callback);
 
 public:
 
@@ -127,7 +130,6 @@ public:
    **/
   void runTests();
 
-  void setInjectionPointType(InjectionPointType type, std::string stageId);
 
   /**
    * @brief hasTests

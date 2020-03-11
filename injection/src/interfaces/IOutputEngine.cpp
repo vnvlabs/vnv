@@ -53,6 +53,13 @@ void IOutputEngine::Put(std::string /*variableName*/, long& /**value**/){throw "
 void IOutputEngine::Put(std::string /*variableName*/, std::string& /**value**/){throw "Engine Does not support type string";}
 void IOutputEngine::Log(const char *, int, std::string, std::string) { throw "Engine does not support in engine logging";}
 
+#include<stdarg.h>
+
+void IOutputEngine::Data(std::string package, std::string ip, std::string tag, std::string format, va_list lst) {
+
+}
+
+
 void IOutputEngine::Put(std::string variableName, std::string serializer, std::string inputType, void* object) {
     std::string s = SerializerStore::getSerializerStore().getSerializer(serializer)->Serialize(inputType,object);
     Put(variableName,s);

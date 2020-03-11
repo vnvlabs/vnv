@@ -11,12 +11,21 @@
 #define VNV_REGISTRATION_CALLBACK_NAME REG_HELPER(__vnv_registration_callback__,PACKAGENAME)
 #define VNV_GET_REGISTRATION "__vnv_registration_callback__"
 
-
 #  ifdef __cplusplus
 #   define REGISTER_VNV extern "C" void VNV_REGISTRATION_CALLBACK_NAME
 #  else
 #    define REGISTER_VNV_CALLBACK void VNV_REGISTATION_CALLBACK_NAME
-#  endif
+#endif
+
+#define VNV_INIT(argc,argv,filename,callback) \
+    while(true) {\
+    VnV_init(argc,argv,filename, callback);
+
+
+
+#define VNV_FINALIZE() \
+    if (VnV_finalize()){break;}}
+
 
 // This structure can be used to register VnV objects. Basically, the functions
 // should return valid json strings, in the correct formats, for declaring objects. This
@@ -53,6 +62,7 @@ VNVEXTERNC void VnV_finalize();
 */
 
 VNVEXTERNC void VnV_runUnitTests();
+
 
 
 #else // WITHOUT_VNV

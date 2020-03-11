@@ -67,7 +67,6 @@ void TransformStore::print() {
     for ( auto it : trans_factory) {
         VnV_Info("Transform: %s", it.first.c_str());
     }
-
     VnV_EndStage(a);
 }
 

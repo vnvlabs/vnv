@@ -4,15 +4,14 @@
 **/
 #include <stdarg.h>
 #include "base/Runtime.h"
-#include "base/InjectionPointStore.h"
 #include "c-interfaces/PackageName.h"
-#include "interfaces/ITest.h"
-
-#include "c-interfaces/CppInjection.h"
+#include "c-interfaces/wrappers.h"
+#include "base/InjectionPointStore.h"
 
 using namespace VnV;
 
-// Private function -- Never exposed to the C interface.
+namespace {
+// Private function -- Never used outside this n. .
 NTV VnV_UnwrapVariadicArgs(va_list argp) {
     NTV parameterSet;
     while (1) {
@@ -29,34 +28,37 @@ NTV VnV_UnwrapVariadicArgs(va_list argp) {
     return parameterSet;
 }
 
+}
+
 extern "C" {
 
-void _VnV_injectionPoint(const char *package, const char* id, ...) {
+void _VnV_injectionPoint(const char *package,const char* id, injectionDataCallback *callback, ...) {
   va_list argp;
-  va_start(argp, id);
+  va_start(argp, callback);
   NTV map = VnV_UnwrapVariadicArgs(argp);
-  VnV::RunTime::instance().injectionPoint(package, id, map);
+  VnV::RunTime::instance().injectionPoint(package, id, callback, map);
   va_end(argp);
 }
 
-void _VnV_injectionPoint_begin(const char *package, const char* id, ...) {
+void _VnV_injectionPoint_begin(const char *package, const char* id, injectionDataCallback *callback, ...) {
   va_list argp;
-  va_start(argp, id);
+  va_start(argp, callback);
   NTV map = VnV_UnwrapVariadicArgs(argp);
-  VnV::RunTime::instance().injectionPoint_begin(package, id, map);
+  VnV::RunTime::instance().injectionPoint_begin(package, id, callback, map);
   va_end(argp);
 }
 
-void _VnV_injectionPoint_end(const char * package, const char* id){
+int _VnV_injectionPoint_end(const char * package, const char* id){
   VnV::RunTime::instance().injectionPoint_end(package, id);
+  return true;
 }
 
 void _VnV_injectionPoint_loop(const char * package, const char* id, const char* stageId){
   VnV::RunTime::instance().injectionPoint_iter(package, id, stageId);
 }
 
-void _VnV_registerInjectionPoint( const char *json_str) {
-   VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint(json_str);
+void _VnV_registerInjectionPoint(const char *config) {
+    VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint(config);
 }
 
 

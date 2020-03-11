@@ -2,17 +2,12 @@
 /** @file Logger.cpp Implementation of the Logger class as defined in
     base/Logger.h
 **/
-# include "base/Logger.h"
+# include "base/Logger.h" //Prototype.
 
-# include <fstream>
-# include <iostream>
-# include <stdio.h>
-# include <stdarg.h>
-# include <sstream>
-
-# include "base/OutputEngineStore.h"
-# include "base/Runtime.h"
-# include "c-interfaces/Logging.h"
+# include <sstream> //stringstream
+# include "base/OutputEngineStore.h" // OutputEngineStore
+# include "base/Runtime.h" // RunTime.
+# include "c-interfaces/Logging.h" // Logging macros
 using namespace VnV;
 
 namespace {

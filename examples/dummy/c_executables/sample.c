@@ -19,7 +19,7 @@ int function1(int x) {
 }
 
 
-static char* schemaCallback = "{\"type\": \"object\", \"required\":[]}";
+static const char* schemaCallback = "{\"type\": \"object\", \"required\":[]}";
 
 void optionsCallback(c_json json) {
 

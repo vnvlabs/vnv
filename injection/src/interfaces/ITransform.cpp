@@ -17,6 +17,5 @@ void* ITransform::Transform(std::string from, std::string to, void* ptr, std::st
 }
 
 
-
 ITransform::ITransform(){};
 ITransform::~ITransform(){};

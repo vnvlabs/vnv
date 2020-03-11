@@ -10,6 +10,7 @@
 
 VNVEXTERNC void _VnV_registerLogLevel(const char *name, const char *color);
 VNVEXTERNC void _VnV_Log(const char *p, const char * level, const char * message, ... ) __attribute__((format(printf,3,4)));
+VNVEXTERNC void _VnV_Tagged_Log(const char *p, const char *tag, const char * message, ... ) __attribute__((format(printf,3,4)));
 VNVEXTERNC int _VnV_BeginStage(const char *p, const char * message, ...) __attribute__((format(printf,2,3)));
 VNVEXTERNC void _VnV_EndStage(int ref);
 
@@ -21,6 +22,8 @@ VNVEXTERNC void _VnV_EndStage(int ref);
 #define VnV_Log(level,...) _VnV_Log(PACKAGENAME_S,level,__VA_ARGS__)
 #define VnV_BeginStage(...) _VnV_BeginStage(PACKAGENAME_S,__VA_ARGS__)
 #define VnV_EndStage(ref) _VnV_EndStage(ref)
+
+#define VnV_Data(tag,...) _VnV_Tagged_Log(PACKAGENAME_S,tag,__VA_ARGS__)
 
 #else
 #  define VnV_Debug(...)

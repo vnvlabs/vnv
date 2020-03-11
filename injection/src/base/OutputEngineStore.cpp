@@ -3,10 +3,7 @@
  * base/OutputEngineStore.h"
  **/
 
-#include <iostream>
-#include <string>
 #include "base/OutputEngineStore.h"
-
 #include "c-interfaces/Logging.h"
 
 using namespace VnV;

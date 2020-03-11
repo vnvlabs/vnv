@@ -5,9 +5,8 @@
 //Core VnV Registration functions.
 
 #include "Registration.h"
-
+#include "base/InjectionPointStore.h"
 #include "interfaces/ITest.h"
-#include "c-interfaces/CppInjection.h"
 
 #ifdef WITH_ADIOS
   #include "plugins/engines/AdiosOutputEngineImpl.h"
@@ -60,8 +59,7 @@ namespace VnV {
         //Register the tests.
         VnV::registerTest("provenance", ProvenanceTest::maker, ProvenanceTest::declare );
 
-        //Register the injection points hard coded into the code.
-        Register_Injection_Point(initializationConfig);
+        VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint(initializationConfig);
     }
   }
 }
