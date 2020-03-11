@@ -43,7 +43,6 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ISerializer.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITest.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITransform.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/IOutputReader.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/Registration.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/DebugOutputEngineImpl.cpp)
 
