@@ -36,7 +36,6 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Runtime.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/CJson.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Logging.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/PackageName.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Injection.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/wrappers.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/CppInjection.cpp
