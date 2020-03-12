@@ -241,10 +241,7 @@ bool RunTime::Init(int* argc, char*** argv, std::string configFile, registration
        * INJECTION POINT FOR INITIALIZATION.
        *
        **/
-       INJECTION_POINT_C(initialization, [&](VnVParameterSet& , IOutputEngine *e){
-           double x = 10;
-           e->Put("Test This Thing out", x);
-       } , argc, argv, configFile);
+       INJECTION_LOOP_BEGIN(initialization, argc, argv, configFile);
   } else if (info.error) {
     runTests = false;
     processToolConfig(info.toolConfig);
@@ -261,6 +258,7 @@ void RunTime::processToolConfig(json config) {
 
 bool RunTime::Finalize() {
   if (runTests) {
+    INJECTION_LOOP_END(initialization);
     OutputEngineStore::getOutputEngineStore().getEngineManager()->finalize();
 #ifdef WITH_MPI
     if (finalize_mpi) {

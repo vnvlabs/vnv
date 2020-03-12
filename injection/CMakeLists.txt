@@ -40,6 +40,7 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/wrappers.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/CppInjection.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/IOutputEngine.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/IOutputReader.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ISerializer.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITest.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITransform.cpp
