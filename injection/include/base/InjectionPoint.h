@@ -14,7 +14,7 @@
 #include <vector>
 #include "json-schema.hpp"
 #include "interfaces/CppInjection.h"
-#include "c-interfaces/wrappers.h"
+#include "c-interfaces/Wrappers.h"
 
 using nlohmann::json;
 /**

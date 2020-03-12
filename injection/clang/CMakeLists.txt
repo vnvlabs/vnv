@@ -12,8 +12,8 @@ add_executable(vnv-matcher
 #target_compile_options(vnv-matcher PRIVATE -fno-rtti)
 
 target_include_directories(vnv-matcher PRIVATE ${CLANG_INCLUDE_DIRS})
-
-target_link_libraries(vnv-matcher PRIVATE  
+target_compile_definitions(vnv-matcher PRIVATE -DPACKAGENAME=VnVProcessor )
+target_link_libraries(vnv-matcher PRIVATE
   clangAST
   clangASTMatchers
   clangBasic

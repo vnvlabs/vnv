@@ -17,13 +17,17 @@ namespace VnV {
 class SerializerStore {
 
  private:
-  std::map<std::string, std::pair<serializer_ptr*, declare_serializer_ptr*>, std::less<std::string>> serializer_factory;
+  std::map<std::string, serializer_ptr* , std::less<std::string> > serializer_factory;
+  std::map<std::string, serializer_ptr*, std::less<std::string> > deserializer_factory;
+  std::map<std::string, serializer_ptr*, std::less<std::string> > serializer_name;
   SerializerStore();
 
  public:
   void addSerializer(std::string name, serializer_ptr m, declare_serializer_ptr v);
 
-  ISerializer* getSerializer(std::string name);
+  ISerializer* getSerializerFor(std::string name);
+  ISerializer* getDeSerializerFor(std::string name);
+  ISerializer* getSerializerByName(std::string name);
 
   static SerializerStore& getSerializerStore();
 

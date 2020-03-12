@@ -10,6 +10,7 @@
 
 #include "base/Utilities.h"
 #include "c-interfaces/Logging.h"
+#include "base/InjectionPoint.h"
 
 using nlohmann::json;
 
@@ -116,6 +117,22 @@ std::string VnV::hashfile( std::string filename) {
 
    return std::to_string(hash);
 
+}
+
+VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp) {
+    VnV::NTV parameterSet;
+    while (1) {
+      std::string variableName = va_arg(argp, char*);
+      if (variableName == VNV_END_PARAMETERS_S) {
+        break;
+      }
+      void* variablePtr = va_arg(argp, void*);
+
+      //variable was not registered, add it with a type void*
+      parameterSet.insert(std::make_pair(variableName, std::make_pair("void*", variablePtr)));
+
+    }
+    return parameterSet;
 }
 
 #include <set>

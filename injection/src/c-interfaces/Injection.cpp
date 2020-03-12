@@ -5,37 +5,18 @@
 #include <stdarg.h>
 #include "base/Runtime.h"
 #include "c-interfaces/PackageName.h"
-#include "c-interfaces/wrappers.h"
+#include "c-interfaces/Wrappers.h"
 #include "base/InjectionPointStore.h"
+#include "base/Utilities.h"
 
 using namespace VnV;
-
-namespace {
-// Private function -- Never used outside this n. .
-NTV VnV_UnwrapVariadicArgs(va_list argp) {
-    NTV parameterSet;
-    while (1) {
-      std::string variableName = va_arg(argp, char*);
-      if (variableName == VNV_END_PARAMETERS_S) {
-        break;
-      }
-      void* variablePtr = va_arg(argp, void*);
-
-      //variable was not registered, add it with a type void*
-      parameterSet.insert(std::make_pair(variableName, std::make_pair("void*", variablePtr)));
-
-    }
-    return parameterSet;
-}
-
-}
 
 extern "C" {
 
 void _VnV_injectionPoint(const char *package,const char* id, injectionDataCallback *callback, ...) {
   va_list argp;
   va_start(argp, callback);
-  NTV map = VnV_UnwrapVariadicArgs(argp);
+  NTV map = VariadicUtils::UnwrapVariadicArgs(argp);
   VnV::RunTime::instance().injectionPoint(package, id, callback, map);
   va_end(argp);
 }
@@ -43,7 +24,7 @@ void _VnV_injectionPoint(const char *package,const char* id, injectionDataCallba
 void _VnV_injectionPoint_begin(const char *package, const char* id, injectionDataCallback *callback, ...) {
   va_list argp;
   va_start(argp, callback);
-  NTV map = VnV_UnwrapVariadicArgs(argp);
+  NTV map = VariadicUtils::UnwrapVariadicArgs(argp);
   VnV::RunTime::instance().injectionPoint_begin(package, id, callback, map);
   va_end(argp);
 }

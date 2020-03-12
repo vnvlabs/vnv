@@ -41,6 +41,8 @@ json getInjectionPointDeclarationSchema();
 
 json& getBaseOptionsSchema();
 
+json& getDocumentationSchema();
+
 //json getTestMappingSchema(json injectionPointDeclaration);
 
 }

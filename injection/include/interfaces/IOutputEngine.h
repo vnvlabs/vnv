@@ -3,6 +3,7 @@
 
 #include <string>
 #include "json-schema.hpp"
+//#include "base/InjectionPoint.h"
 /**
  * @brief The IOutputEngine class
  */
@@ -73,11 +74,15 @@ public:
    */
   virtual void Put(std::string variableName, std::string& value);
 
+  /**
+   * @brief Log a message to the engine logs.
+   * @param packageName
+   * @param stage
+   * @param level
+   * @param message
+   */
   virtual void Log(const char * packageName, int stage, std::string level, std::string message);
 
-
-
-  void Data(std::string packageName, std::string ip, std::string dataTag, std::string format, va_list args );
 
     /**
    * @brief Define IO variables that will be written.
@@ -133,6 +138,19 @@ class OutputEngineManager {
    */
   virtual void injectionPointStartedCallBack(std::string id, InjectionPointType type, std::string stageId) = 0;
 
+  /**
+   * @brief endInjectionPoint
+   * @param id
+   * @param stageVal
+   */
+  virtual void documentationEndedCallBack(std::string pname, std::string id);
+
+  /**
+   * @brief startInjectionPoint
+   * @param id
+   * @param stageVal
+   */
+  virtual void documentationStartedCallBack(std::string pname, std::string id);
 
   /**
    * @brief startTest
@@ -156,6 +174,8 @@ class OutputEngineManager {
    * @brief finalize
    */
   virtual void finalize() = 0;
+
+  virtual void document(std::string pname, std::string id, std::map<std::string,std::pair<std::string,void*>> &map);
 
   /**
    * @brief getOutputEngine

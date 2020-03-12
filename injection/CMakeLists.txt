@@ -30,6 +30,7 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/TransformStore.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/UnitTestStore.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/SerializerStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/DocumentationStore.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/JsonSchema.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/OptionsParserStore.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/Logger.cpp
@@ -37,7 +38,8 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/CJson.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Logging.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Injection.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/wrappers.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Wrappers.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Documentation.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/CppInjection.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/IOutputEngine.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/IOutputReader.cpp
@@ -74,7 +76,7 @@ target_include_directories(injection PRIVATE
                             $<INSTALL_INTERFACE:include>
                           )
 
-target_compile_definitions(injection PRIVATE -DPACKAGENAME=VnV Framework)
+target_compile_definitions(injection PRIVATE -DPACKAGENAME=VnV )
 
 if(WITH_ADIOS_ENGINE)
 find_package(ADIOS2)

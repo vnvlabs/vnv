@@ -19,7 +19,7 @@
 #include "base/InjectionPoint.h"
 #include "c-interfaces/RunTime.h"
 #include "c-interfaces/CJson.h"
-#include "c-interfaces/wrappers.h"
+#include "c-interfaces/Wrappers.h"
 
 #include "interfaces/CppInjection.h"
 /**
@@ -123,6 +123,8 @@ private:
 
   void injectionPoint_end(std::string pname, std::string id);
   void injectionPoint_iter(std::string pname, std::string id, std::string iterid);
+
+  void documentationPoint(std::string pname, std::string id, NTV &map);
 
   /**
    * @brief Finalize

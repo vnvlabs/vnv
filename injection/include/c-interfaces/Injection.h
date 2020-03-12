@@ -4,7 +4,7 @@
 #ifndef WITHOUT_VNV
 
 #include "c-interfaces/PackageName.h"
-#include "c-interfaces/wrappers.h"
+#include "c-interfaces/Wrappers.h"
 
 VNVEXTERNC int _VnV_injectionPoint_end(const char * packageName, const char* id);
 VNVEXTERNC void _VnV_injectionPoint_loop(const char * packageName, const char* id, const char* stageId);

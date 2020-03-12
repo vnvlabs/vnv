@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include "json-schema.hpp"
+#include "base/InjectionPoint.h"
 
 namespace VnV {
 
@@ -52,8 +53,9 @@ namespace JsonUtilities {
 
 
 }
-
-
+namespace VariadicUtils {
+    NTV UnwrapVariadicArgs(va_list argp);
+}
 /**
  * @brief getFileExtension
  * @param fileName

@@ -181,6 +181,30 @@ static json __test_declaration_schema__ = R"(
 }
 )"_json ;
 
+
+static json __doc_declaration_schema__ = R"(
+{
+ "$schema": "http://json-schema.org/draft-07/schema#",
+ "$id": "http://rnet-tech.net/vv.schema.json",
+ "title": "doc declaration schema",
+ "type": "array",
+ "items" : {
+    "type":"object",
+    "properties" : {
+     "name" : {"type" : "string"},
+     "parameters" :{ "type": "object",
+                     "additionalProperties" : { "type" : "string" }
+                   }
+      },
+      "required" : ["name"]
+  }
+}
+)"_json ;
+
+json& getDocumentationSchema() {
+    return __doc_declaration_schema__;
+}
+
 //Get rid of this
 static json __base_options_schema__ = R"({
          "type" : "object",
@@ -205,6 +229,8 @@ static json __transform_declaration_schema__ = R"({
  "additionalProperties" : {"type" : "array" , "items" : { "type" : "string" } }
 }
 )"_json ;
+
+
 
 json getTransformDeclarationSchema() {
     return __transform_declaration_schema__;

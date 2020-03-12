@@ -31,9 +31,15 @@ int templateFnc(int x, T y, X xx) {
 
 
 class test1 {
-
+public:
 int function1(int x) {
   std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
+
+  /** Documentation for the documentation point below */
+  VNV_DOCUMENT(HelloDocument);
+
+  /** Documentation for the doucmetiaotn below **/
+  VNV_DOCUMENT_P(HelloDocument1, x);
 
   INJECTION_LOOP_BEGIN(Function1Class1, samplePoints, samplePoints1, samplePoints3)
   for (int i = 0; i < 10; i++) {
@@ -81,10 +87,24 @@ static const std::string injectionPoints = R"(
    ]
 )";
 
+static const std::string documentation = R"([
+  {
+     "name" : "HelloDocument"
+  },
+  {
+     "name" : "HelloDocument1",
+     "parameters" : {
+        "x" : "int"
+     }
+  }
+])";
+
 void callback() {
    // Here is where we would register all the injection points.
    VnV_Debug("Inside the Executable Call Back.");
    Register_Injection_Point(injectionPoints);
+   std::map<std::string,std::string> m;
+   Register_Documentation(documentation.c_str());
 };
 
 int main(int argc, char** argv) {
@@ -108,6 +128,9 @@ int main(int argc, char** argv) {
 
  // hello<int> whyint;
  // whyint.function1(1,1.0);
+
+  test1 a;
+  a.function1(10);
 
   class1 sample_class_1;
   class2 sample_class_2;

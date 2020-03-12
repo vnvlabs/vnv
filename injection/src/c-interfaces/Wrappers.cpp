@@ -1,6 +1,6 @@
 
 
-#include "c-interfaces/wrappers.h"
+#include "c-interfaces/Wrappers.h"
 #include "base/InjectionPoint.h"
 #include "interfaces/ITest.h"
 #include <map>
@@ -21,9 +21,16 @@ namespace {
 extern "C" {
 
 // Do most of the Put Commands using X Macros.
-#define X(type) void VnV_Output_Put_##type(OutputEngineWrapper *wrapper, const char* name, type* value) { VnV::EngineWrapperCast(wrapper)->Put(name,*value); }
+#define X(type) \
+    void VnV_Output_Put_##type(OutputEngineWrapper *wrapper, const char* name, type* value) {\
+    VnV::EngineWrapperCast(wrapper)->Put(name,*value);\
+}
+
 OUTPUTENGINESUPPORTEDTYPES
+
 #undef X
+
+//An extra one to handle char*
 void VnV_Output_Put_String(OutputEngineWrapper *wrapper, const char *name, const char* value) {
     // TODO add "const" to the def on Put(std::string &string);
     std::string nameS = name;
