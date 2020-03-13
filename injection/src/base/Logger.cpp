@@ -68,7 +68,30 @@ void Logger::log(std::string pname, std::string level, std::string format) {
     if (it != logs.end() && !it->second) return;
 
     if ( engine ) {
-       OutputEngineStore::getOutputEngineStore().getEngineManager()->getOutputEngine()->Log(pname.c_str(), stage.size(), level, format );
+        try {
+            // Next statement throws if true.
+            IOutputEngine *eng = OutputEngineStore::getOutputEngineStore().getEngineManager()->getOutputEngine();
+
+            //Clear any saved logs.
+            while (savedLogs.size()>0 ){
+                auto &t = savedLogs.front();
+                eng->Log(std::get<0>(t).c_str(),std::get<1>(t),std::get<2>(t),std::get<3>(t));
+                savedLogs.pop();
+            }
+
+            eng->Log(pname.c_str(), stage.size(), level, format );
+        } catch (...) {
+            // Logging statements that occur prior to the engine being configured at written to std::out.
+            if (savedLogs.size() > MAXSAVED_LOGS ) {
+                std::cout << "To Many Logs before engine configuration: Dumping to stdout instead" << std::endl;
+                auto &t = savedLogs.front();
+                std::ostringstream oss;
+                oss << "[" << std::get<0>(t) << ":" << std::get<2>(t) << "] ";
+                std::cout << getIndent(std::get<1>(t)) << logLevelToColor(std::get<2>(t),oss.str()) << std::get<3>(t) << std::endl;
+                savedLogs.pop();
+            }
+            savedLogs.push(std::make_tuple(pname, stage.size(),level, format));
+        }
     } else {
         std::ostringstream oss;
         oss << "[" << pname << ":" << level << "] ";
@@ -128,7 +151,7 @@ void Logger::addToBlackList(std::string packageName){
 
 void Logger::setLog(const std::string& filename) {
   outFileName = filename;
-    if (locked) {
+  if (locked) {
     if (fileptr != nullptr && fileptr != &std::cout && fileptr != &std::cerr) {
       dynamic_cast<std::ofstream*>(fileptr)->close();
     }

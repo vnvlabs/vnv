@@ -33,20 +33,23 @@ AdiosEngine::AdiosEngine(adios2::Engine& e, adios2::IO& w)
     Define(VariableEnum::String, "LOGS");
 }
 
-void AdiosEngine::Put(std::string variableName, double& value) {
+void AdiosEngine::Put(std::string variableName, const double& value) {
   engine.Put(variableName, value);
 }
-void AdiosEngine::Put(std::string variableName, int& value) {
+void AdiosEngine::Put(std::string variableName, const int& value) {
   engine.Put(variableName, value);
 }
-void AdiosEngine::Put(std::string variableName, float& value) {
+void AdiosEngine::Put(std::string variableName, const float& value) {
   engine.Put(variableName, value);
 }
-void AdiosEngine::Put(std::string variableName, long& value) {
+void AdiosEngine::Put(std::string variableName, const long& value) {
   engine.Put(variableName, value);
+}
+void AdiosEngine::Put(std::string variableName, const json& value) {
+  engine.Put(variableName, value.dump());
 }
 
-void AdiosEngine::Put(std::string variableName, std::string& value) {
+void AdiosEngine::Put(std::string variableName, const std::string& value) {
   engine.Put(variableName, value);
 }
 
@@ -128,6 +131,32 @@ void AdiosWrapper::injectionPointStartedCallBack(std::string id, InjectionPointT
     std::string ss = InjectionPointTypeUtils::getType(type_,stageId);
     engine.Put(stage, ss);
     std::string s = "StartIP";
+    engine.Put(type, s);
+    engine.EndStep();
+  } else {
+    throw "Engine not initialized";
+  }
+}
+
+void AdiosWrapper::documentationStartedCallBack(std::string pname, std::string id) {
+  if (engine) {
+    engine.BeginStep();
+    std::string s = pname + ":" + id;
+    engine.Put(identifier, s);
+    std::string ss = "StartDoc";
+    engine.Put(type, s);
+    engine.EndStep();
+  } else {
+    throw "Engine not initialized";
+  }
+}
+
+void AdiosWrapper::documentationEndedCallBack(std::string pname, std::string id) {
+  if (engine) {
+    engine.BeginStep();
+    std::string s = pname + ":" + id;
+    engine.Put(identifier, s);
+    std::string ss = "EndDoc";
     engine.Put(type, s);
     engine.EndStep();
   } else {

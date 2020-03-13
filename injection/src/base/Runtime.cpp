@@ -154,7 +154,8 @@ void RunTimeOptions::fromJson(json& j) {
 
 void RunTime::loadRunInfo(RunInfo &info, registrationCallBack *callback) {
 
-  // Set up the logger.
+  // Set up the logger. This occurs as early as possible to allow log messages
+  // to be caught int the registration objects.
   if (info.logInfo.on) {
        logger.setLog(info.logInfo.filename);
      for (auto it: info.logInfo.logs) {
@@ -241,7 +242,12 @@ bool RunTime::Init(int* argc, char*** argv, std::string configFile, registration
        * INJECTION POINT FOR INITIALIZATION.
        *
        **/
-       INJECTION_LOOP_BEGIN(initialization, argc, argv, configFile);
+       INJECTION_LOOP_BEGIN_C(initialization, [&](VnVParameterSet &p, IOutputEngine *engine){
+           for (auto it : p ) {
+               std::string t = it.second.getType() + "(rtti:" + it.second.getRtti() + ")";
+               engine->Put(it.first, t);
+           }
+       },argc, argv, configFile);
   } else if (info.error) {
     runTests = false;
     processToolConfig(info.toolConfig);

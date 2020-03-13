@@ -62,8 +62,7 @@ class provenance : public ITest {
         //Add all the libraries and the current exe to the json
         json exe_info = DistUtils::getLibInfo(exe.c_str(),0);
         exe_info["libs"] = libNames.libs;
-        std::string exe_i = exe_info.dump(2);
-        engine->Put("exe-info",exe_i);
+        engine->Put("exe-info",exe_info);
     }
     {
        // The configuration allows the user to specify additional files
@@ -89,8 +88,7 @@ class provenance : public ITest {
                }
          }
          json x = ins;
-         std::string xx = x.dump();
-         engine->Put("input-files",xx);
+         engine->Put("input-files",x);
 
       }
    }
@@ -101,9 +99,7 @@ class provenance : public ITest {
 
      std::ifstream ff(configFile);
      conf["file"] = json::parse(ff);
-
-     std::string confx = conf.dump(2);
-     engine->Put("vnv-config", confx);
+     engine->Put("vnv-config", conf);
     }
 
     return SUCCESS;

@@ -13,6 +13,7 @@
 #endif
 
 #include "plugins/engines/DebugOutputEngineImpl.h"
+#include "plugins/engines/jsonoutputengine.h"
 
 namespace VnV {
  namespace {
@@ -20,6 +21,7 @@ namespace VnV {
     OutputEngineManager* AdiosEngineBuilder() { return new AdiosWrapper(); }
 #endif
     OutputEngineManager* DebugEngineBuilder() { return new DebugEngineWrapper();}
+    OutputEngineManager* JsonEngineBuilder() { return new JsonEngineWrapper();}
  }
 }
 
@@ -56,6 +58,7 @@ namespace VnV {
 #endif
         VnV::registerEngine("debug",VnV::DebugEngineBuilder);
 
+        VnV::registerEngine("json", VnV::JsonEngineBuilder);
         //Register the tests.
         VnV::registerTest("provenance", ProvenanceTest::maker, ProvenanceTest::declare );
 

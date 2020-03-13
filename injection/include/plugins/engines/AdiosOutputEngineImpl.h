@@ -36,35 +36,42 @@ class AdiosEngine : public IOutputEngine {
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, double& value);
+  void Put(std::string variableName, const double& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, int& value);
+  void Put(std::string variableName, const int& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, float& value);
+  void Put(std::string variableName, const float& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, long& value);
+  void Put(std::string variableName, const json& value) override;
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, std::string& value);
+  void Put(std::string variableName, const long& value);
+
+  /**
+   * @brief Put
+   * @param variableName
+   * @param value
+   */
+  void Put(std::string variableName, const std::string& value);
 
   /**
    * @brief Define IO Variable
@@ -151,6 +158,10 @@ class AdiosWrapper : public OutputEngineManager {
    * @return
    */
   IOutputEngine* getOutputEngine();
+
+  void documentationStartedCallBack(std::string pname, std::string id) override;
+  void documentationEndedCallBack(std::string pname, std::string id) override;
+
 };
 
 }  // namespace VnV

@@ -50,11 +50,12 @@ std::string VariableEnumFactory::toString(VariableEnum e) {
         throw "VariableEnumFactory::toString: Unhandled Variable Enum Type";
 }
 
-void IOutputEngine::Put(std::string /*variableName*/, double& /**value**/){throw "Engine Does not support type double";}
-void IOutputEngine::Put(std::string /*variableName*/, int& /**value**/){throw "Engine Does not support type int";}
-void IOutputEngine::Put(std::string /*variableName*/, float& /**value**/){throw "Engine Does not support type float";}
-void IOutputEngine::Put(std::string /*variableName*/, long& /**value**/){throw "Engine Does not support type long";}
-void IOutputEngine::Put(std::string /*variableName*/, std::string& /**value**/){throw "Engine Does not support type string";}
+void IOutputEngine::Put(std::string /*variableName*/, const double& /**value**/){throw "Engine Does not support type double";}
+void IOutputEngine::Put(std::string /*variableName*/, const int& /**value**/){throw "Engine Does not support type int";}
+void IOutputEngine::Put(std::string /*variableName*/, const float& /**value**/){throw "Engine Does not support type float";}
+void IOutputEngine::Put(std::string /*variableName*/, const long& /**value**/){throw "Engine Does not support type long";}
+void IOutputEngine::Put(std::string /*variableName*/, const std::string& /**value**/){throw "Engine Does not support type string";}
+void IOutputEngine::Put(std::string /*variableName*/, const json& /**value**/){throw "Engine Does not support type json";}
 void IOutputEngine::Log(const char *, int, std::string, std::string) { throw "Engine does not support in engine logging";}
 
 #include<stdarg.h>

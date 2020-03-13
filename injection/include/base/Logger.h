@@ -12,6 +12,9 @@
 #  include <set>
 #  include <iostream>
 # include <stack>
+# include <queue>
+
+#define MAXSAVED_LOGS 1024
 
 #define MAX_LOG_SIZE 2048
 
@@ -55,10 +58,7 @@ class Logger {
 
    std::map<std::string, std::string> logLevelsToColor;
    std::map<std::string, bool> logs; /**< Switches for the different log levels */
-
-
-
-
+   std::queue<std::tuple<std::string,int,std::string,std::string>> savedLogs; /** logging statements that occur before engine config. **/
    Logger();
    bool engine = false; /**< True if this logger writes to the output engine. */
    std::stack<std::pair<int,std::string>> stage;

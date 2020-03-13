@@ -47,8 +47,8 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITest.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITransform.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/Registration.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/DebugOutputEngineImpl.cpp)
-
+                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/DebugOutputEngineImpl.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/jsonoutputengine.cpp)
 if (APPLE)
     target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/macos/DistUtils.cpp)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")

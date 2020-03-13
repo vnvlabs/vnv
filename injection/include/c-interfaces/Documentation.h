@@ -6,23 +6,10 @@
 // Simple functionality. This allows users to place a single VNV_DOCUMENT macro at any
 // point in the code. This macro pings the VnVRuntime and indicates that a documentation
 // object should be written at this point.
-
-// The Documentation that gets injected will be parsed from the source code as part of the
-// VnV Registration parser.
-
-// TODO -- Currently a documentaiton point is static. That means the string is fixed. Ideally
-// a docuemntation point would allow the user to supply variables. Something like
-// this would be pretty cool
-
-        //This sum is  $sum($x,$y,$z)
-//      VNV_DOCUMENT(x,y,z)
-
-// The functionality of VnV_DOcument would then be to write the variables and link them to
+// The functionality of VnV_DOcument is to write the variables and link them to
 // the documentation that was entered in the source code. Assuming we have the type information (from
-// parsing the source code), we could link the x,y,z types to a serializer for automated writing.
+// parsing the source code), we can also link the types to a serializer for automated writing.
 
-// The result would be the same as a Log, but the string itself would not be hardcoded into
-// the executable.
 
 #ifdef __cplusplus
 #include "interfaces/CppInjection.h"

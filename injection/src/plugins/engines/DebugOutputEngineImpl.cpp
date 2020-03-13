@@ -20,20 +20,24 @@ static json __debug_engine_schema__ = R"(
 
 DebugEngine::DebugEngine() {}
 
-void DebugEngine::Put(std::string variableName, double& value) {
+void DebugEngine::Put(std::string variableName, const double& value) {
   printf("DEBUG ENGINE PUT %s = %f\n", variableName.c_str(), value);
 }
-void DebugEngine::Put(std::string variableName, int& value) {
+void DebugEngine::Put(std::string variableName, const int& value) {
   printf("DEBUG ENGINE PUT %s = %d\n", variableName.c_str(), value);
 }
-void DebugEngine::Put(std::string variableName, float& value) {
+void DebugEngine::Put(std::string variableName, const float& value) {
   printf("DEBUG ENGINE PUT %s = %f\n", variableName.c_str(), value);
 }
-void DebugEngine::Put(std::string variableName, long& value) {
+void DebugEngine::Put(std::string variableName, const long& value) {
   printf("DEBUG ENGINE PUT %s = %ld\n", variableName.c_str(), value);
 }
 
-void DebugEngine::Put(std::string variableName, std::string& value) {
+void DebugEngine::Put(std::string variableName, const json& value) {
+ printf("DEBUG ENGINE PUT %s = %s\n" , variableName.c_str(), value.dump(3).c_str());
+}
+
+void DebugEngine::Put(std::string variableName, const std::string& value) {
   printf("DEBUG ENGINE PUT %s = %s\n", variableName.c_str(), value.c_str());
 }
 
@@ -89,6 +93,22 @@ void DebugEngineWrapper::testStartedCallBack(std::string testName) {
 void DebugEngineWrapper::testFinishedCallBack(bool result_) {
   if (debugEngine) {
     printf("DEBUG ENGINE Stop Test. Test Was Successful-> %d\n", result_);
+  } else {
+    throw "Engine not initialized";
+  }
+}
+
+void DebugEngineWrapper::documentationStartedCallBack(std::string pname, std::string id) {
+  if (debugEngine) {
+    printf("DEBUG ENGINE Start Docs %s:%s \n", pname.c_str(),id.c_str() );
+  } else {
+    throw "Engine not initialized";
+  }
+}
+
+void DebugEngineWrapper::documentationEndedCallBack(std::string pname, std::string id) {
+  if (debugEngine) {
+    printf("DEBUG ENGINE Stop Docs %s:%s", pname.c_str(),id.c_str());
   } else {
     throw "Engine not initialized";
   }

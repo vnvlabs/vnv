@@ -33,29 +33,35 @@ public:
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, double& value);
+  virtual void Put(std::string variableName, const double& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, int& value);
+  virtual void Put(std::string variableName, const int& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, float& value);
+  virtual void Put(std::string variableName, const float& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, long& value);
+  virtual void Put(std::string variableName, const long& value);
 
+  /**
+   * @brief Put
+   * @param variableName
+   * @param value
+   */
+  virtual void Put(std::string variableName, const json& value);
 
    /**
    * @brief Put a variable using a registered serializer. Serializers are objects that allow
@@ -72,7 +78,7 @@ public:
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, std::string& value);
+  virtual void Put(std::string variableName, const std::string& value);
 
   /**
    * @brief Log a message to the engine logs.

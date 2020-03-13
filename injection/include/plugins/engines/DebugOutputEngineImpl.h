@@ -34,35 +34,42 @@ class DebugEngine : public IOutputEngine {
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, double& value);
+  void Put(std::string variableName, const double& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, int& value);
+  void Put(std::string variableName, const int& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, float& value);
+  void Put(std::string variableName, const float& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, long& value);
+  void Put(std::string variableName, const long& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, std::string& value);
+  void Put(std::string variableName, const std::string& value);
+
+  /**
+   * @brief Put
+   * @param variableName
+   * @param value
+   */
+  void Put(std::string variableName, const json& value) override;
 
   /**
    * @brief Define IO Variable
@@ -135,6 +142,12 @@ class DebugEngineWrapper : public OutputEngineManager {
   void unitTestStartedCallBack(std::string unitTestName) override;
 
   void unitTestFinishedCallBack(std::map<std::string,bool> &results) override;
+
+  void documentationStartedCallBack(std::string pname, std::string id) override;
+
+  void documentationEndedCallBack(std::string pname, std::string id) override;
+
+
   /**
    * @brief getOutputEngine
    * @return
