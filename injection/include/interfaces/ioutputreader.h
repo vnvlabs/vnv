@@ -1,0 +1,4 @@
+#ifndef IOUTPUTREADER_H
+#define IOUTPUTREADER_H
+
+#endif // IOUTPUTREADER_H
