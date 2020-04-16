@@ -3,6 +3,7 @@
   @file ITransform.cpp
 **/
 #include "interfaces/ITransform.h"
+#include "base/exceptions.h"
 
 using namespace VnV;
 
@@ -12,7 +13,7 @@ void* ITransform::Transform(std::string from, std::string to, void* ptr, std::st
         rtti = ""; // Don't know the rtti of this one.
         return ptr;
     } else {
-        throw "Input Type Does not match output type when using Default Transform.";
+        throw VnVExceptionBase("Input Type Does not match output type when using Default Transform.");
     }
 }
 

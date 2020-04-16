@@ -73,12 +73,12 @@ void getAllLinkedLibraryData(libData *data) {
 
 void * loadLibrary(std::string name) {
     if ( name.empty()) {
-        throw "File Name invalid";
+        throw VnVExceptionBase("File Name invalid");
     }
     void* dllib = dlopen(name.c_str(), RTLD_NOW);
 
     if (dllib == nullptr) {
-        throw "Could not open shared library";
+        throw VnVExceptionBase("Could not open shared library");
     }
     return dllib;
 }

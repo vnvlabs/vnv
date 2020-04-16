@@ -6,7 +6,7 @@
 
 #include "base/JsonParser.h" // Prototype
 #include "base/JsonSchema.h" // ValidationSchema()
-
+#include "base/exceptions.h"
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
@@ -152,13 +152,13 @@ RunInfo JsonParser::parse(std::ifstream &fstream) {
  	 
   json mainJson;
   if (!fstream.good()) {
-    throw "Invalid Input File Stream";
+    throw VnVExceptionBase("Invalid Input File Stream");
   }
 
   try {
      mainJson = json::parse(fstream);
   } catch (json::exception e) {
-     throw;
+     throw VnVExceptionBase(e.what());
   }
   return parse(mainJson);
 }
@@ -170,7 +170,7 @@ RunInfo JsonParser::parse(const json& _json) {
   try {
     validator.validate(_json);
   } catch (std::exception e) {
-    throw;
+    throw VnVExceptionBase(e.what());
   }
   return _parse(_json);
 }

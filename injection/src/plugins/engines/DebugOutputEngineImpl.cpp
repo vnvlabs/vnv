@@ -4,6 +4,7 @@
 #include "plugins/engines/DebugOutputEngineImpl.h"
 #include "c-interfaces/Logging.h"
 #include <iostream>
+#include "base/exceptions.h"
 
 using namespace VnV;
 
@@ -70,7 +71,7 @@ void DebugEngineWrapper::injectionPointEndedCallBack(VnV_Comm comm,std::string i
   if (debugEngine) {
     printf("DEBUG ENGINE End Injection Point %s : %s \n", id.c_str(), InjectionPointTypeUtils::getType(type,stageVal).c_str());
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -78,7 +79,7 @@ void DebugEngineWrapper::injectionPointStartedCallBack(VnV_Comm comm,std::string
   if (debugEngine) {
     printf("DEBUG ENGINE Start Injection Point %s : %s \n", id.c_str(),InjectionPointTypeUtils::getType(type,stageVal).c_str());
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -86,7 +87,7 @@ void DebugEngineWrapper::testStartedCallBack(VnV_Comm comm,std::string testName)
   if (debugEngine) {
     printf("DEBUG ENGINE Start Test %s \n", testName.c_str() );
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -94,7 +95,7 @@ void DebugEngineWrapper::testFinishedCallBack(VnV_Comm comm,bool result_) {
   if (debugEngine) {
     printf("DEBUG ENGINE Stop Test. Test Was Successful-> %d\n", result_);
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -102,7 +103,7 @@ void DebugEngineWrapper::documentationStartedCallBack(VnV_Comm comm,std::string 
   if (debugEngine) {
     printf("DEBUG ENGINE Start Docs %s:%s \n", pname.c_str(),id.c_str() );
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -110,7 +111,7 @@ void DebugEngineWrapper::documentationEndedCallBack(VnV_Comm comm,std::string pn
   if (debugEngine) {
     printf("DEBUG ENGINE Stop Docs %s:%s", pname.c_str(),id.c_str());
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -118,7 +119,7 @@ void DebugEngineWrapper::unitTestStartedCallBack(VnV_Comm comm,std::string unitT
     if  (debugEngine) {
         printf("DEBUG ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
     } else {
-        throw "Engine not initialized";
+        throw VnVExceptionBase("Engine not initialized");
     }
 }
 
@@ -134,7 +135,7 @@ void DebugEngineWrapper::unitTestFinishedCallBack(VnV_Comm comm,std::map<std::st
         }
         printf("DEBUG ENGINE Test Suite Completed : %s\n", (suiteSuccessful) ? "Successfully" : "Unsuccessfully");
     } else {
-        throw "Engine Not Initialized";
+        throw VnVExceptionBase("Engine Not Initialized");
     }
 }
 

@@ -6,6 +6,7 @@
 #include "base/OutputReaderStore.h"
 #include "c-interfaces/Logging.h"
 #include "json-schema.hpp"
+#include "base/exceptions.h"
 
 using namespace VnV;
 using nlohmann::json;
@@ -34,7 +35,7 @@ std::unique_ptr<Reader::ITreeGenerator> OutputReaderStore::getTreeGenerator(std:
     if (it != registeredGenerators.end()) {
          return std::unique_ptr<Reader::ITreeGenerator>(it->second());
     }
-    throw "No Generator Exists with that name";
+    throw VnVExceptionBase("No Generator Exists with that name");
 }
 
 std::unique_ptr<Reader::IReader> OutputReaderStore::getReader(std::string reader) {
@@ -42,7 +43,7 @@ std::unique_ptr<Reader::IReader> OutputReaderStore::getReader(std::string reader
      if (it != registeredReaders.end()) {
           return std::unique_ptr<Reader::IReader>(it->second());
      }
-     throw "No Reader Exists";
+     throw VnVExceptionBase("No Reader Exists");
 }
 
 void VnV::registerReader(std::string name, reader_register_ptr r) {

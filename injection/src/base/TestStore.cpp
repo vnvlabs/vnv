@@ -61,7 +61,7 @@ TestConfig TestStore::validateTest(json &testJson) {
 
   if ( testJson.find("name") == testJson.end() ) {
       // This should be impossible. Input Validation should detect test blocks incorretly specified.
-      throw "Test Declaration does not contain Test Name";
+      throw VnVExceptionBase("Test Declaration does not contain Test Name");
   }
   std::string name = testJson["name"].get<std::string>();
 
@@ -125,7 +125,7 @@ TestConfig TestStore::validateTest(json &testJson) {
     // Create the Test Config File
     return TestConfig(name, testConfigJson,testDeclaration );
   }
-  throw "test not found";
+  throw VnVExceptionBase("test not found");
 }
 
 std::shared_ptr<ITest> TestStore::getTest(TestConfig& config) {

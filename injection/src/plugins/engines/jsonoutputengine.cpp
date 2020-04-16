@@ -2,6 +2,7 @@
 #include "c-interfaces/Logging.h"
 #include <iostream>
 #include <fstream>
+#include "base/exceptions.h"
 
 using namespace VnV;
 
@@ -106,7 +107,7 @@ void JsonEngineWrapper::injectionPointEndedCallBack(VnV_Comm comm,std::string id
           jsonEngine->pop(2);
       }
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -131,7 +132,7 @@ void JsonEngineWrapper::injectionPointStartedCallBack(VnV_Comm comm,std::string 
         jsonEngine->push(stage,json::json_pointer("/children"));
     }
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -143,7 +144,7 @@ void JsonEngineWrapper::testStartedCallBack(VnV_Comm comm,std::string testName) 
     j["children"] = json::array();
     jsonEngine->push(j,json::json_pointer("/children"));
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -151,7 +152,7 @@ void JsonEngineWrapper::testFinishedCallBack(VnV_Comm comm,bool result_) {
   if (jsonEngine) {
     jsonEngine->pop(2);
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -164,7 +165,7 @@ void JsonEngineWrapper::documentationStartedCallBack(VnV_Comm comm,std::string p
       j["children"] = json::array();
       jsonEngine->push(j,json::json_pointer("/children"));
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -172,7 +173,7 @@ void JsonEngineWrapper::documentationEndedCallBack(VnV_Comm comm,std::string pna
   if (jsonEngine) {
     jsonEngine->pop(2);
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -184,7 +185,7 @@ void JsonEngineWrapper::unitTestStartedCallBack(VnV_Comm comm,std::string unitTe
         j["children"] = json::array();
         jsonEngine->push(j,json::json_pointer("/children"));
     } else {
-        throw "Engine not initialized";
+        throw VnVExceptionBase("Engine not initialized");
     }
 }
 
@@ -198,7 +199,7 @@ void JsonEngineWrapper::unitTestFinishedCallBack(VnV_Comm comm,std::map<std::str
         jsonEngine->append(j);
         jsonEngine->pop(2);
     } else {
-        throw "Engine Not Initialized";
+        throw VnVExceptionBase("Engine Not Initialized");
     }
 }
 

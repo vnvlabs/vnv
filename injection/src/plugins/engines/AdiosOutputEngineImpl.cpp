@@ -2,6 +2,7 @@
 /** @file AdiosOutputEngineImpl.cpp **/
 
 #include "plugins/engines/AdiosOutputEngineImpl.h"
+#include "base/exceptions.h"
 
 using namespace VnV;
 using nlohmann::json;
@@ -67,7 +68,7 @@ void AdiosEngine::Define(VariableEnum type, std::string name) {
         case VariableEnum::Int: writer.DefineVariable<int>(name); break;
         case VariableEnum::Float: writer.DefineVariable<float>(name); break;
         case VariableEnum::String: writer.DefineVariable<std::string>(name); break;
-        default: throw "Adios Engine Does not handle Variable Enum Type " + VariableEnumFactory::toString(type);
+        default: throw VnVExceptionBase("Adios Engine Does not handle Variable Enum Type ") + VariableEnumFactory::toString(type);
     }
 }
 
@@ -120,7 +121,7 @@ void AdiosWrapper::injectionPointEndedCallBack(std::string id, InjectionPointTyp
     engine.Put(type, s);
     engine.EndStep();
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -134,7 +135,7 @@ void AdiosWrapper::injectionPointStartedCallBack(std::string id, InjectionPointT
     engine.Put(type, s);
     engine.EndStep();
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -147,7 +148,7 @@ void AdiosWrapper::documentationStartedCallBack(std::string pname, std::string i
     engine.Put(type, s);
     engine.EndStep();
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -160,7 +161,7 @@ void AdiosWrapper::documentationEndedCallBack(std::string pname, std::string id)
     engine.Put(type, s);
     engine.EndStep();
   } else {
-    throw "Engine not initialized";
+    throw VnVExceptionBase("Engine not initialized");
   }
 }
 
@@ -172,7 +173,7 @@ void AdiosWrapper::testStartedCallBack(std::string testName) {
     std::string test = "StartTest";
     engine.Put(type, test);
   } else {
-    throw "Engine not setup correctly";
+    throw VnVExceptionBase("Engine not setup correctly");
   }
 }
 
@@ -191,7 +192,7 @@ void AdiosWrapper::unitTestStartedCallBack(std::string unitTestName) {
         std::string test = "StartUnitTest";
         engine.Put(type,test);
     } else {
-        throw "Engine not setup correctly.";
+        throw VnVExceptionBase("Engine not setup correctly.");
     }
 
 }

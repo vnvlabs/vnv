@@ -5,6 +5,7 @@
 
 #include "base/OutputEngineStore.h"
 #include "c-interfaces/Logging.h"
+#include "base/exceptions.h"
 
 using namespace VnV;
 using nlohmann::json;
@@ -28,7 +29,7 @@ void OutputEngineStore::setEngineManager(std::string type, json& config) {
   //VnV_Error("Invalid Engine Name: {}", type);
   printAvailableEngines();
 
-  throw "Invalid Engine Name";
+  throw VnVExceptionBase("Invalid Engine Name");
 }
 
 void OutputEngineStore::printAvailableEngines() {
@@ -68,5 +69,5 @@ void OutputEngineStore::registerEngine(std::string name,
 
 OutputEngineManager* OutputEngineStore::getEngineManager() {
   if (manager != nullptr) return manager;
-  throw "Engine Not Initialized Error";
+  throw VnVExceptionBase("Engine Not Initialized Error");
 }

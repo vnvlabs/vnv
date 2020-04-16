@@ -47,16 +47,16 @@ std::string VariableEnumFactory::toString(VariableEnum e) {
           case VariableEnum::String: return "String";
         }
 
-        throw "VariableEnumFactory::toString: Unhandled Variable Enum Type";
+        throw VnVExceptionBase("VariableEnumFactory::toString: Unhandled Variable Enum Type");
 }
 
-void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const double& /**value**/){throw "Engine Does not support type double";}
-void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const int& /**value**/){throw "Engine Does not support type int";}
-void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const float& /**value**/){throw "Engine Does not support type float";}
-void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const long& /**value**/){throw "Engine Does not support type long";}
-void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const std::string& /**value**/){throw "Engine Does not support type string";}
-void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const json& /**value**/){throw "Engine Does not support type json";}
-void IOutputEngine::Log(VnV_Comm comm,const char *, int, std::string, std::string) { throw "Engine does not support in engine logging";}
+void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const double& /**value**/){throw VnVExceptionBase("Engine Does not support type double");}
+void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const int& /**value**/){throw VnVExceptionBase("Engine Does not support type int");}
+void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const float& /**value**/){throw VnVExceptionBase("Engine Does not support type float");}
+void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const long& /**value**/){throw VnVExceptionBase("Engine Does not support type long");}
+void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const std::string& /**value**/){throw VnVExceptionBase("Engine Does not support type string");}
+void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const json& /**value**/){throw VnVExceptionBase("Engine Does not support type json");}
+void IOutputEngine::Log(VnV_Comm comm,const char *, int, std::string, std::string) { throw VnVExceptionBase("Engine does not support in engine logging");}
 
 #include<stdarg.h>
 

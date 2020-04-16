@@ -147,7 +147,7 @@ std::vector<std::pair<std::string,std::string>> VnV::bfs(std::map<std::string,st
     if (start == end) {
         return {}; // Nothing to be done.
     } else if (m.find(start) == m.end()) {
-        throw "From not in graph";
+        throw VnVExceptionBase("From not in graph");
     } else {
         bool yes = false;
         for (auto &t : m ) {
@@ -157,7 +157,7 @@ std::vector<std::pair<std::string,std::string>> VnV::bfs(std::map<std::string,st
             }
         }
         if (!yes) {
-            throw "End node is not in the graph";
+            throw VnVExceptionBase("End node is not in the graph");
         }
     }
     while (!queue.empty()) {
@@ -191,5 +191,5 @@ std::vector<std::pair<std::string,std::string>> VnV::bfs(std::map<std::string,st
             }
         }
     }
-    throw "No Path";
+    throw VnVExceptionBase("No Path");
 }

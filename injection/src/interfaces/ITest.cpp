@@ -59,7 +59,7 @@ void TestConfig::setParameterMap(VnVParameterSet &args) {
         auto injection = args.find(injectionParam);
         if (injection == args.end()) {
             if (isRequired(testParameter)) {
-                throw "Required parameter missing";
+                throw VnVExceptionBase("Required parameter missing");
             }
         } else {
             std::string s = injection->second.getRtti();
