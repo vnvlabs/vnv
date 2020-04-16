@@ -3,6 +3,7 @@
 
 #include <string>
 #include "json-schema.hpp"
+#include "c-interfaces/PackageName.h"
 //#include "base/InjectionPoint.h"
 /**
  * @brief The IOutputEngine class
@@ -33,35 +34,35 @@ public:
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, const double& value);
+  virtual void Put(VnV_Comm comm, std::string variableName, const double& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, const int& value);
+  virtual void Put(VnV_Comm comm, std::string variableName, const int& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, const float& value);
+  virtual void Put(VnV_Comm comm, std::string variableName, const float& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, const long& value);
+  virtual void Put(VnV_Comm comm,std::string variableName, const long& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, const json& value);
+  virtual void Put(VnV_Comm comm,std::string variableName, const json& value);
 
    /**
    * @brief Put a variable using a registered serializer. Serializers are objects that allow
@@ -71,14 +72,14 @@ public:
    * @param inputType
    * @param object
    */
-  void Put(std::string variableName, std::string serializer, std::string inputType, void* object);
+  void Put(VnV_Comm comm,std::string variableName, std::string serializer, std::string inputType, void* object);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  virtual void Put(std::string variableName, const std::string& value);
+  virtual void Put(VnV_Comm comm,std::string variableName, const std::string& value);
 
   /**
    * @brief Log a message to the engine logs.
@@ -87,7 +88,7 @@ public:
    * @param level
    * @param message
    */
-  virtual void Log(const char * packageName, int stage, std::string level, std::string message);
+  virtual void Log(VnV_Comm comm,const char * packageName, int stage, std::string level, std::string message);
 
 
     /**
@@ -110,7 +111,14 @@ public:
  * @brief The OutputEngineManager class
  */
 class OutputEngineManager {
- public:
+   friend class RunTime;
+   friend class UnitTestStore;
+   friend class InjectionPoint;
+   friend class OutputEngineStore;
+   friend class Logger;
+   friend class ITest;
+
+private:
   /**
    * @brief _set
    * @param configuration
@@ -135,63 +143,66 @@ class OutputEngineManager {
    * @param id
    * @param stageVal
    */
-  virtual void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageId) = 0;
+  virtual void injectionPointEndedCallBack(VnV_Comm comm,std::string id, InjectionPointType type, std::string stageId) = 0;
 
   /**
    * @brief startInjectionPoint
    * @param id
    * @param stageVal
    */
-  virtual void injectionPointStartedCallBack(std::string id, InjectionPointType type, std::string stageId) = 0;
+  virtual void injectionPointStartedCallBack(VnV_Comm comm, std::string id, InjectionPointType type, std::string stageId) = 0;
 
   /**
    * @brief endInjectionPoint
    * @param id
    * @param stageVal
    */
-  virtual void documentationEndedCallBack(std::string pname, std::string id);
+  virtual void documentationEndedCallBack(VnV_Comm comm,std::string pname, std::string id);
 
   /**
    * @brief startInjectionPoint
    * @param id
    * @param stageVal
    */
-  virtual void documentationStartedCallBack(std::string pname, std::string id);
+  virtual void documentationStartedCallBack(VnV_Comm comm, std::string pname, std::string id);
 
   /**
    * @brief startTest
    * @param testName
    * @param testStageVal
    */
-  virtual void testStartedCallBack(std::string testName) = 0;
+  virtual void testStartedCallBack(VnV_Comm comm,std::string testName) = 0;
 
   /**
    * @brief stopTest
    * @param result_
    */
-  virtual void testFinishedCallBack(bool result_) = 0;
+  virtual void testFinishedCallBack(VnV_Comm comm,bool result_) = 0;
 
 
-  virtual void unitTestStartedCallBack(std::string unitTestName) = 0;
+  virtual void unitTestStartedCallBack(VnV_Comm comm, std::string unitTestName) = 0;
 
-  virtual void unitTestFinishedCallBack(std::map<std::string,bool> &results) = 0;
+  virtual void unitTestFinishedCallBack(VnV_Comm comm,std::map<std::string,bool> &results) = 0;
 
   /**
    * @brief finalize
    */
   virtual void finalize() = 0;
 
-  virtual void document(std::string pname, std::string id, std::map<std::string,std::pair<std::string,void*>> &map);
+  virtual void document(VnV_Comm comm, std::string pname, std::string id, std::map<std::string,std::pair<std::string,void*>> &map);
 
-  /**
-   * @brief getOutputEngine
-   * @return
-   */
+  virtual void Log(VnV_Comm comm,const char * packageName, int stage, std::string level, std::string message);
   virtual IOutputEngine* getOutputEngine() = 0;
 
-  /**
-   * @brief ~OutputEngineManager
-   */
+public:
+
+  virtual void Put(VnV_Comm comm, std::string variableName, const double& value);
+  virtual void Put(VnV_Comm comm, std::string variableName, const int& value);
+  virtual void Put(VnV_Comm comm, std::string variableName, const float& value);
+  virtual void Put(VnV_Comm comm,std::string variableName, const long& value);
+  virtual void Put(VnV_Comm comm,std::string variableName, const json& value);
+  virtual void Put(VnV_Comm comm,std::string variableName, std::string serializer, std::string inputType, void* object);
+  virtual void Put(VnV_Comm comm,std::string variableName, const std::string& value);
   virtual ~OutputEngineManager();
 };
 

@@ -8,13 +8,13 @@
 
 int function1(int x) {
 
-  INJECTION_LOOP_BEGIN(CFunction, x)
+  INJECTION_LOOP_BEGIN(VnV_Comm_Self, CFunction, x)
   for (int i = 0; i < 10; i++) {
     x += i;	    
-    INJECTION_LOOP_ITER(CFunction, inner)
+    INJECTION_LOOP_ITER(CFunction, inner);
   }
 
-  INJECTION_LOOP_END(CFunction)
+  INJECTION_LOOP_END(CFunction);
   return x;
 }
 

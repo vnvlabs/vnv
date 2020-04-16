@@ -16,14 +16,14 @@ class EuclideanError : public ITest {
 
     EuclideanError(TestConfig config) : ITest(config) {}
 
-  TestStatus runTest(IOutputEngine* engine, int testStage,
+  TestStatus runTest(VnV_Comm comm,OutputEngineManager* engine, int testStage,
                      std::vector<double> measured,
                      std::vector<double> exact) {
     if (measured.size() != exact.size()) {
       double m1 = -1;
-      engine->Put("l2_error", m1);
-      engine->Put("l1_error", m1);
-      engine->Put("linf_error", m1);
+      engine->Put(comm,"l2_error", m1);
+      engine->Put(comm,"l1_error", m1);
+      engine->Put(comm,"linf_error", m1);
       return FAILURE;
     }
 
@@ -36,18 +36,18 @@ class EuclideanError : public ITest {
     }
 
     l2 = sqrt(l2);
-    engine->Put("l2_error", l2);
-    engine->Put("l1_error", l1);
-    engine->Put("linf_error", linf);
+    engine->Put(comm,"l2_error", l2);
+    engine->Put(comm,"l1_error", l1);
+    engine->Put(comm,"linf_error", linf);
     return SUCCESS;
   }
 
 
 
-  TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId) {
+  TestStatus runTest(VnV_Comm comm,OutputEngineManager *engine, InjectionPointType type, std::string stageId) {
     GetRef(x,"measured",std::vector<double>);
     GetRef(y,"exact", std::vector<double>);
-    return runTest(engine, 0, x, y);
+    return runTest(comm,engine, 0, x, y);
   }
 };
 

@@ -20,13 +20,13 @@ namespace VnV {
 namespace CppInjection {
 
 typedef std::map<std::string, std::pair<std::string,void*>> NTV;
-typedef std::function<void(std::map<std::string,VnVParameter> &ntv, IOutputEngine *engine)> DataCallback;
+typedef std::function<void(VnV_Comm comm, std::map<std::string,VnVParameter> &ntv, OutputEngineManager *engine)> DataCallback;
 
-void defaultCallBack(std::map<std::string,VnVParameter> &ntv, IOutputEngine* engine);
+void defaultCallBack(VnV_Comm comm, std::map<std::string,VnVParameter> &ntv, OutputEngineManager* engine);
 
 void UnwrapParameterPack(NTV &m);
-void BeginPoint(const char* package, const char * id, const DataCallback& callback, NTV &map);
-void BeginLoop(const char *package, const char * id, const DataCallback&callback , NTV &map);
+void BeginPoint(VnV_Comm comm, const char* package, const char * id, const DataCallback& callback, NTV &map);
+void BeginLoop(VnV_Comm comm, const char *package, const char * id, const DataCallback&callback , NTV &map);
 bool EndLoop(const char* package, const char* id);
 void IterLoop(const char* package, const char * id, const char* iterId);
 void Register(std::string json_str);
@@ -38,13 +38,13 @@ void UnwrapParameterPack(NTV &m, V& name, T& first, Args&&...args) {
 }
 
 template<typename ...Args>
-void Begin(const char* package, const char * id, bool loop, const DataCallback &callback, Args&&...args) {
+void Begin(VnV_Comm comm, const char* package, const char * id, bool loop, const DataCallback &callback, Args&&...args) {
     std::map<std::string,std::pair<std::string,void*>> m;
     UnwrapParameterPack(m,std::forward<Args>(args)...);
     if (loop) {
-        BeginLoop(package,id, callback,m);
+        BeginLoop(comm,package,id, callback,m);
     } else {
-        BeginPoint(package,id,callback, m);
+        BeginPoint(comm,package,id,callback, m);
     }
 }
 
@@ -52,18 +52,18 @@ void Begin(const char* package, const char * id, bool loop, const DataCallback &
 }
 
 // SINGULAR INJECTION POINT.
-#define INJECTION_POINT(NAME, ...)        \
-    VnV::CppInjection::Begin(VNV_STR(PACKAGENAME),#NAME,false, &VnV::CppInjection::defaultCallBack EVERYONE(__VA_ARGS__));
+#define INJECTION_POINT(COMM, NAME, ...)        \
+    VnV::CppInjection::Begin(COMM, VNV_STR(PACKAGENAME),#NAME,false, &VnV::CppInjection::defaultCallBack EVERYONE(__VA_ARGS__));
 
-#define INJECTION_POINT_C(NAME, callback, ...)        \
-    VnV::CppInjection::Begin(VNV_STR(PACKAGENAME),#NAME, false, callback EVERYONE(__VA_ARGS__));
+#define INJECTION_POINT_C(COMM, NAME, callback, ...)        \
+    VnV::CppInjection::Begin(COMM,VNV_STR(PACKAGENAME),#NAME, false, callback EVERYONE(__VA_ARGS__));
 
 // BEGIN A LOOPED INJECTION POINT
-#define INJECTION_LOOP_BEGIN_C(NAME, callback, ...)        \
-    VnV::CppInjection::Begin(VNV_STR(PACKAGENAME), #NAME,true, callback EVERYONE(__VA_ARGS__));
+#define INJECTION_LOOP_BEGIN_C(COMM,NAME, callback, ...)        \
+    VnV::CppInjection::Begin(COMM,VNV_STR(PACKAGENAME), #NAME,true, callback EVERYONE(__VA_ARGS__));
 
-#define INJECTION_LOOP_BEGIN(NAME, ...)        \
-    VnV::CppInjection::Begin(VNV_STR(PACKAGENAME), #NAME, true, &VnV::CppInjection::defaultCallBack EVERYONE(__VA_ARGS__));
+#define INJECTION_LOOP_BEGIN(COMM,NAME, ...)        \
+    VnV::CppInjection::Begin(COMM, VNV_STR(PACKAGENAME), #NAME, true, &VnV::CppInjection::defaultCallBack EVERYONE(__VA_ARGS__));
 
 
 // END A LOOPED INJECTION POINT.
@@ -74,8 +74,8 @@ void Begin(const char* package, const char * id, bool loop, const DataCallback &
 #define INJECTION_LOOP_ITER(NAME,STAGE) \
     VnV::CppInjection::IterLoop(VNV_STR(PACKAGENAME),#NAME,#STAGE);
 
-#define INJECTION_FUNCTION_WRAPPER(NAME, function,...) \
-   INJECTION_LOOP_BEGIN(NAME,__VA_ARGS__) \
+#define INJECTION_FUNCTION_WRAPPER(COMM, NAME, function,...) \
+   INJECTION_LOOP_BEGIN(COMM,NAME,__VA_ARGS__) \
    function(__VA_ARGS__); \
    INJECTION_LOOP_END(NAME,__VA_ARGS__);
 

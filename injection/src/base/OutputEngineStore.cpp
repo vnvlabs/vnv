@@ -19,7 +19,7 @@ void OutputEngineStore::setEngineManager(std::string type, json& config) {
   auto it = registeredEngines.find(type);
   if (it != registeredEngines.end()) {
     manager = it->second();
-    manager->_set(config);
+    manager->set(config);
     initialized = true;
     engineName = type;
     return;

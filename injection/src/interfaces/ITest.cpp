@@ -120,12 +120,12 @@ bool TestConfig::preLoadParameterSet(std::map<std::string, std::string> &paramet
 
 // Index is the injection point index. That is, the injection
 // point that this test is being run inside.
-TestStatus ITest::_runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId) {
-    VnV_Debug("Runnnig Test %s " , m_config.getName().c_str());
+TestStatus ITest::_runTest(VnV_Comm comm, OutputEngineManager* engine, InjectionPointType type, std::string stageId) {
+    VnV_Debug_MPI(comm,"Runnnig Test %s " , m_config.getName().c_str());
 
-    OutputEngineStore::getOutputEngineStore().getEngineManager()->testStartedCallBack(m_config.getName());
-    TestStatus s = runTest(engine,type,stageId );
-    OutputEngineStore::getOutputEngineStore().getEngineManager()->testFinishedCallBack(
+    OutputEngineStore::getOutputEngineStore().getEngineManager()->testStartedCallBack(comm,m_config.getName());
+    TestStatus s = runTest(comm,engine,type,stageId );
+    OutputEngineStore::getOutputEngineStore().getEngineManager()->testFinishedCallBack(comm,
         (s == SUCCESS) ? true : false);
     return s;
 }

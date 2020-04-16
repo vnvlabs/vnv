@@ -59,7 +59,7 @@ void Logger::setLogLevel(std::string level, bool on) {
   logs.insert(std::make_pair(level, on));
 }
 
-void Logger::log(std::string pname, std::string level, std::string format) {
+void Logger::log(VnV_Comm comm, std::string pname, std::string level, std::string format) {
     if (!locked) return;
     if (packageBlackList.find(pname) != packageBlackList.end()) {
         return;
@@ -70,16 +70,16 @@ void Logger::log(std::string pname, std::string level, std::string format) {
     if ( engine ) {
         try {
             // Next statement throws if true.
-            IOutputEngine *eng = OutputEngineStore::getOutputEngineStore().getEngineManager()->getOutputEngine();
+            OutputEngineManager *eng = OutputEngineStore::getOutputEngineStore().getEngineManager();
 
             //Clear any saved logs.
             while (savedLogs.size()>0 ){
                 auto &t = savedLogs.front();
-                eng->Log(std::get<0>(t).c_str(),std::get<1>(t),std::get<2>(t),std::get<3>(t));
+                eng->Log(std::get<4>(t), std::get<0>(t).c_str(),std::get<1>(t),std::get<2>(t),std::get<3>(t));
                 savedLogs.pop();
             }
 
-            eng->Log(pname.c_str(), stage.size(), level, format );
+            eng->Log(comm, pname.c_str(), stage.size(), level, format );
         } catch (...) {
             // Logging statements that occur prior to the engine being configured at written to std::out.
             if (savedLogs.size() > MAXSAVED_LOGS ) {
@@ -90,7 +90,7 @@ void Logger::log(std::string pname, std::string level, std::string format) {
                 std::cout << getIndent(std::get<1>(t)) << logLevelToColor(std::get<2>(t),oss.str()) << std::get<3>(t) << std::endl;
                 savedLogs.pop();
             }
-            savedLogs.push(std::make_tuple(pname, stage.size(),level, format));
+            savedLogs.push(std::make_tuple( pname, stage.size(),level, format, comm));
         }
     } else {
         std::ostringstream oss;
@@ -107,14 +107,13 @@ void Logger::log(std::string pname, std::string level, std::string format) {
 
 
 
-int Logger::beginStage(std::string pname, std::string format, va_list args) {
-    log_c(pname,"STAGE_START", format, args);
+int Logger::beginStage(VnV_Comm comm, std::string pname, std::string format, va_list args) {
+    log_c(comm, pname,"STAGE_START", format, args);
     stage.push({refcount,pname});
-
     return refcount++;
 }
 
-void Logger::endStage(int ref ) {
+void Logger::endStage(VnV_Comm comm, int ref ) {
     if ( stage.size() == 0) return;
 
     std::pair<int,std::string> cStage = stage.top();
@@ -129,10 +128,10 @@ void Logger::endStage(int ref ) {
      }
      if ( stage.size() > 0 )
          stage.pop();
-      log(cStage.second,"STAGE_END", "");
+      log(comm,cStage.second,"STAGE_END", "");
 }
 
-void Logger::log_c(std::string pname, std::string level, std::string format, va_list args) {
+void Logger::log_c(VnV_Comm comm, std::string pname, std::string level, std::string format, va_list args) {
 
       char buff[MAX_LOG_SIZE];
       int j = vsnprintf(buff,MAX_LOG_SIZE,format.c_str(), args);
@@ -140,9 +139,9 @@ void Logger::log_c(std::string pname, std::string level, std::string format, va_
       std::string message(buff);
 
       if ( j > MAX_LOG_SIZE) {
-          log(pname, level, "Following message has been truncated due to buffer overflow");
+          log(comm, pname, level, "Following message has been truncated due to buffer overflow");
       }
-      log(pname,level,message);
+      log(comm,pname,level,message);
 }
 
 void Logger::addToBlackList(std::string packageName){

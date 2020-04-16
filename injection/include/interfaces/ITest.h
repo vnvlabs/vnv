@@ -6,6 +6,7 @@
 #include "json-schema.hpp"
 #include "interfaces/IOutputEngine.h"
 #include "base/TransformStore.h"
+#include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
 using nlohmann::json;
 /**
@@ -73,14 +74,14 @@ class VnVParameter {
     template<typename T>
     T* getPtr(std::string type, bool checkRtti) const  {
         if ( !type.empty() && getType().compare(type)!=0 ) {
-            throw "type information incorrect";
+            throw VnVExceptionBase("type information incorrect");
         }
        if (hasRtti && checkRtti) {
             T* tempPtr = static_cast<T*>(getRawPtr());
             std::string typeId = typeid(tempPtr).name();
             if (typeId.compare(rtti) != 0) {
                 VnV_Warn("Unmatched RTTI %s: %s", typeId.c_str(), rtti.c_str());
-                throw "Rtti information does not match";
+                throw VnVExceptionBase("Rtti information does not match");
             } else {
                 return tempPtr;
             }
@@ -171,7 +172,7 @@ class ITest {
    * @param params
    * @return
    */
-  TestStatus _runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId);
+  TestStatus _runTest(VnV_Comm comm, OutputEngineManager *engine, InjectionPointType type, std::string stageId);
 
   /**
    * @brief runTest
@@ -180,7 +181,7 @@ class ITest {
    * @param params
    * @return
    */
-  virtual TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId) = 0;
+  virtual TestStatus runTest(VnV_Comm comm, OutputEngineManager* engine, InjectionPointType type, std::string stageId) = 0;
 
   /**
    * @brief getConfigurationJson
@@ -201,7 +202,7 @@ class ITest {
       if ( it!= m_config.getParameterMap().end()) {
         return it->second.getRef<T>(type,true);
       }
-      throw "Parameter Mapping Error.";
+      throw VnVExceptionBase("Parameter Mapping Error.");
   }
 
 private:

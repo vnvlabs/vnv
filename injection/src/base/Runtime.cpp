@@ -20,7 +20,7 @@
 #include "base/OutputEngineStore.h"
 #include "base/OptionsParserStore.h"
 #include "base/UnitTestStore.h"
-
+#include "base/OutputReaderStore.h"
 #include "Registration.h"
 
 #include "c-interfaces/Logging.h"
@@ -83,34 +83,38 @@ std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(std::string p
 
 
 // Cpp interface.
-void RunTime::injectionPoint(std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args) {
+void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args) {
     auto it = getNewInjectionPoint(pname,id,InjectionPointType::Single,args);
     if ( it != nullptr) {
         it->setCallBack(callback);
+        it->setComm(comm);
         it->runTests();
     }
 }
 
-void RunTime::injectionPoint_begin(std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args) {
+void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args) {
     auto it  =getNewInjectionPoint(pname,id,InjectionPointType::Begin,args);
     if ( it != nullptr) {
         it->setCallBack(callback);
+        it->setComm(comm);
         it->runTests();
     }
 }
 
-void RunTime::injectionPoint(std::string pname, std::string id, injectionDataCallback *callback, NTV &args) {
+void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id, injectionDataCallback *callback, NTV &args) {
     auto it = getNewInjectionPoint(pname,id,InjectionPointType::Single,args);
     if ( it != nullptr) {
         it->setCallBack(callback);
+        it->setComm(comm);
         it->runTests();
     }
 }
 
-void RunTime::injectionPoint_begin(std::string pname, std::string id, injectionDataCallback *callback, NTV &args) {
+void RunTime::injectionPoint_begin(VnV_Comm comm,std::string pname, std::string id, injectionDataCallback *callback, NTV &args) {
     auto it  =getNewInjectionPoint(pname,id,InjectionPointType::Begin,args);
     if ( it != nullptr) {
         it->setCallBack(callback);
+        it->setComm(comm);
         it->runTests();
     }
 }
@@ -242,10 +246,10 @@ bool RunTime::Init(int* argc, char*** argv, std::string configFile, registration
        * INJECTION POINT FOR INITIALIZATION.
        *
        **/
-       INJECTION_LOOP_BEGIN_C(initialization, [&](VnVParameterSet &p, IOutputEngine *engine){
+       INJECTION_LOOP_BEGIN_C(VnV_Comm_World, initialization, [&](VnV_Comm comm, VnVParameterSet &p, OutputEngineManager *engine){
            for (auto it : p ) {
                std::string t = it.second.getType() + "(rtti:" + it.second.getRtti() + ")";
-               engine->Put(it.first, t);
+               engine->Put(comm, it.first, t);
            }
        },argc, argv, configFile);
   } else if (info.error) {
@@ -282,26 +286,32 @@ bool RunTime::Finalize() {
 
 bool RunTime::isRunTests() { return runTests; }
 
-void RunTime::documentationPoint(std::string pname, std::string id, NTV &map){
-    OutputEngineStore::getOutputEngineStore().getEngineManager()->document(pname, id, map);
+void RunTime::documentationPoint(VnV_Comm comm, std::string pname, std::string id, NTV &map){
+    OutputEngineStore::getOutputEngineStore().getEngineManager()->document(comm, pname, id, map);
 }
 
-void RunTime::log(std::string pname, std::string level, std::string message, va_list args) {
-    logger.log_c(pname, level, message, args);
+void RunTime::log(VnV_Comm comm, std::string pname, std::string level, std::string message, va_list args) {
+    logger.log_c(comm,pname, level, message, args);
 }
 
 
 
-int RunTime::beginStage(std::string pname, std::string message, va_list args) {
- return   logger.beginStage(pname, message, args);
+int RunTime::beginStage(VnV_Comm comm, std::string pname, std::string message, va_list args) {
+ return   logger.beginStage(comm,pname, message, args);
 }
 
-void RunTime::endStage(int ref) {
-    logger.endStage(ref);
+void RunTime::endStage(VnV_Comm comm, int ref) {
+    logger.endStage(comm,ref);
 }
 
-void RunTime::runUnitTests() {
-  UnitTestStore::getUnitTestStore().runAll(false);
+void RunTime::runUnitTests(VnV_Comm comm) {
+  UnitTestStore::getUnitTestStore().runAll(comm, false);
+}
+
+void RunTime::generateOutputTree(VnV_Comm comm, std::string config, std::string generator, std::string readerName) {
+    std::unique_ptr<Reader::ITreeGenerator> treeGen = OutputReaderStore::instance().getTreeGenerator(generator);
+    std::unique_ptr<Reader::IReader> reader = OutputReaderStore::instance().getReader(readerName);
+    treeGen->generateTree(reader->readFromFile(config), config);
 }
 
 void RunTime::printRunTimeInformation() {

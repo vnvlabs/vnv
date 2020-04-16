@@ -7,19 +7,19 @@ void VnV::CppInjection::UnwrapParameterPack(NTV &/*m*/) {
 }
 
 
-void VnV::CppInjection::defaultCallBack(std::map<std::string,VnVParameter> &/*params*/, IOutputEngine* /*engine*/) {
+void VnV::CppInjection::defaultCallBack(VnV_Comm /*comm*/, std::map<std::string,VnVParameter> &/*params*/, OutputEngineManager* /*engine*/) {
 
 }
 
-void VnV::CppInjection::BeginLoop(const char* package, const char* id, const CppInjection::DataCallback &callback, NTV &map) {
-    VnV::RunTime::instance().injectionPoint_begin(package,id,callback, map);
+void VnV::CppInjection::BeginLoop(VnV_Comm comm, const char* package, const char* id, const CppInjection::DataCallback &callback, NTV &map) {
+    VnV::RunTime::instance().injectionPoint_begin(comm, package,id,callback, map);
 }
 
-void VnV::CppInjection::BeginPoint(const char* package, const char* id, const CppInjection::DataCallback &callback, NTV &map) {
-    VnV::RunTime::instance().injectionPoint(package,id,callback, map);
+void VnV::CppInjection::BeginPoint(VnV_Comm comm, const char* package, const char* id, const CppInjection::DataCallback &callback, NTV &map) {
+    VnV::RunTime::instance().injectionPoint(comm,package,id,callback, map);
 }
 
-bool VnV::CppInjection::EndLoop(const char* package, const char* id) {
+bool VnV::CppInjection::EndLoop( const char* package, const char* id) {
     VnV::RunTime::instance().injectionPoint_end(package,id);
     return true;
 }

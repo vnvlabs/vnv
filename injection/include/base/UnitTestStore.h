@@ -17,7 +17,7 @@ class UnitTestStore {
   std::map<std::string, std::map<std::string, tester_ptr*, std::less<std::string>>> tester_factory;
   UnitTestStore();
 
-  void runTest(std::string Name, IUnitTester *tester);
+  void runTest(VnV_Comm comm,std::string Name, IUnitTester *tester);
 
  public:
   void addUnitTester(std::string packageName, std::string name, tester_ptr m);
@@ -27,11 +27,11 @@ class UnitTestStore {
   static UnitTestStore& getUnitTestStore();
 
 
-  void runTest(std::string packageName, std::string testName);
+  void runTest(VnV_Comm comm,std::string packageName, std::string testName);
 
-  void runPackageTests(std::string packageName);
+  void runPackageTests(VnV_Comm comm,std::string packageName);
 
-  void runAll(bool stopOnFail);
+  void runAll(VnV_Comm comm, bool stopOnFail);
 
   void print();
 

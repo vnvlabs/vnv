@@ -62,6 +62,8 @@ class InjectionPoint {
   friend class InjectionPointStore;
   friend class RunTime;
 
+  VnV_Comm comm;
+
   std::string  m_scope; /**< The name of the Injection point. (TODO change name) */
   std::vector<std::shared_ptr<ITest>> m_tests; /**< Vector of tests given to this injection point */
 
@@ -101,7 +103,7 @@ class InjectionPoint {
   void setInjectionPointType(InjectionPointType type, std::string stageId);
   void setCallBack(injectionDataCallback *callback);
   void setCallBack(const CppInjection::DataCallback &callback);
-
+  void setComm(VnV_Comm comm);
 public:
 
 

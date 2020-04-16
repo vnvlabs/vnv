@@ -16,7 +16,7 @@ public:
     T gg;
     int ggg;
     int getF(int t) {
-        INJECTION_POINT(sdfsdf, ff, gg, ggg );
+        INJECTION_POINT(VnV_Comm_Self, sdfsdf, ff, gg, ggg );
         return 1;
     }
 };
@@ -25,7 +25,7 @@ public:
 
 template <typename T, typename X>
 int templateFnc(int x, T y, X xx) {
-    INJECTION_POINT(templateFn,x,y,xx);
+    INJECTION_POINT(VnV_Comm_Self,templateFn,x,y,xx);
     return 0;
 }
 
@@ -36,12 +36,12 @@ int function1(int x) {
   std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
 
   /** Documentation for the documentation point below */
-  VNV_DOCUMENT(HelloDocument);
+  VNV_DOCUMENT(VnV_Comm_Self,HelloDocument);
 
   /** Documentation for the doucmetiaotn below **/
-  VNV_DOCUMENT_P(HelloDocument1, x);
+  VNV_DOCUMENT_P(VnV_Comm_Self, HelloDocument1, x);
 
-  INJECTION_LOOP_BEGIN(Function1Class1, samplePoints, samplePoints1, samplePoints3)
+  INJECTION_LOOP_BEGIN(VnV_Comm_Self, Function1Class1, samplePoints, samplePoints1, samplePoints3)
   for (int i = 0; i < 10; i++) {
     samplePoints.push_back(i);
     INJECTION_LOOP_ITER(Function1Class1, inner)
@@ -57,7 +57,7 @@ int function1(int x) {
 int function1(int x) {
   std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
 
-  INJECTION_LOOP_BEGIN(Function1, samplePoints, samplePoints1, samplePoints3)
+  INJECTION_LOOP_BEGIN(VnV_Comm_Self, Function1, samplePoints, samplePoints1, samplePoints3)
   for (int i = 0; i < 10; i++) {
     samplePoints.push_back(i);
     INJECTION_LOOP_ITER(Function1, inner)

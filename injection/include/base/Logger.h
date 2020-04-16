@@ -13,6 +13,7 @@
 #  include <iostream>
 # include <stack>
 # include <queue>
+# include "c-interfaces/PackageName.h"
 
 #define MAXSAVED_LOGS 1024
 
@@ -58,7 +59,7 @@ class Logger {
 
    std::map<std::string, std::string> logLevelsToColor;
    std::map<std::string, bool> logs; /**< Switches for the different log levels */
-   std::queue<std::tuple<std::string,int,std::string,std::string>> savedLogs; /** logging statements that occur before engine config. **/
+   std::queue<std::tuple<std::string,int,std::string,std::string, VnV_Comm>> savedLogs; /** logging statements that occur before engine config. **/
    Logger();
    bool engine = false; /**< True if this logger writes to the output engine. */
    std::stack<std::pair<int,std::string>> stage;
@@ -75,7 +76,7 @@ class Logger {
    *
    * The Log function.
    */
-   void log(std::string pname, std::string level, std::string format);
+   void log(VnV_Comm comm, std::string pname, std::string level, std::string format);
 
   /**
    * @brief setLog
@@ -112,11 +113,11 @@ class Logger {
    *
    * Standard C Style logging.
    */
-   void log_c(std::string pname, std::string level, std::string format, va_list args);
+   void log_c(VnV_Comm comm, std::string pname, std::string level, std::string format, va_list args);
 
 
-   int beginStage(std::string pname, std::string format, va_list args);
-   void endStage(int ref);
+   int beginStage(VnV_Comm comm, std::string pname, std::string format, va_list args);
+   void endStage(VnV_Comm comm, int ref);
    /**
     * @brief print
     * Print out Logger configuration information.

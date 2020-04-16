@@ -8,12 +8,15 @@
 #include "base/InjectionPointStore.h"
 #include "interfaces/ITest.h"
 
+#include "base/OutputReaderStore.h"
+
 #ifdef WITH_ADIOS
   #include "plugins/engines/AdiosOutputEngineImpl.h"
 #endif
 
 #include "plugins/engines/DebugOutputEngineImpl.h"
 #include "plugins/engines/jsonoutputengine.h"
+#include "plugins/readers/BasicOutputReaderImpl.h"
 
 namespace VnV {
  namespace {
@@ -22,13 +25,14 @@ namespace VnV {
 #endif
     OutputEngineManager* DebugEngineBuilder() { return new DebugEngineWrapper();}
     OutputEngineManager* JsonEngineBuilder() { return new JsonEngineWrapper();}
+    Reader::IReader* BasicReaderBuilder() { return new BasicOutputReaderImpl();}
  }
 }
 
 namespace ProvenanceTest {
     VnV::ITest* maker(VnV::TestConfig config);
     json declare();
-};
+}
 
 
 static const std::string initializationConfig = R"(
@@ -61,6 +65,8 @@ namespace VnV {
         VnV::registerEngine("json", VnV::JsonEngineBuilder);
         //Register the tests.
         VnV::registerTest("provenance", ProvenanceTest::maker, ProvenanceTest::declare );
+
+        VnV::registerReader("basic", VnV::BasicReaderBuilder);
 
         VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint(initializationConfig);
     }

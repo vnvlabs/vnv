@@ -18,11 +18,16 @@ set_target_properties(injection
 
 add_library(Injection::Injection ALIAS injection)
 
+add_subdirectory(python)
+
+
 #Add the Base files to the injection target
 target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/InjectionPoint.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/InjectionPointStore.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/OutputEngineStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/OutputReaderStore.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/base/exceptions.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/JsonParser.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/Runtime.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/base/Utilities.cpp
@@ -48,7 +53,9 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITransform.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/Registration.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/DebugOutputEngineImpl.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/jsonoutputengine.cpp)
+                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/jsonoutputengine.cpp
+                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/readers/BasicOutputReaderImpl.cpp)
+
 if (APPLE)
     target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/macos/DistUtils.cpp)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")

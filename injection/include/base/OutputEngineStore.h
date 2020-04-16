@@ -3,8 +3,8 @@
   @file OutputEngineStore.h
 **/
 
-#ifndef VV_OUTPUT_HEADER
-#define VV_OUTPUT_HEADER
+#ifndef VV_OUTPUTREADER_HEADER
+#define VV_OUTPUTREADER_HEADER
 
 #include <map>
 #include <string>

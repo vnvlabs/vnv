@@ -61,7 +61,7 @@ VNVEXTERNC void VnV_finalize();
  * Calls RunTime::instance().runUnitTests().
 */
 
-VNVEXTERNC void VnV_runUnitTests();
+VNVEXTERNC void VnV_runUnitTests(VnV_Comm comm);
 
 
 

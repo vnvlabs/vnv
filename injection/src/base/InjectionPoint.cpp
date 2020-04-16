@@ -73,24 +73,28 @@ void InjectionPoint::setCallBack(const CppInjection::DataCallback &callback) {
     }
 }
 
+void InjectionPoint::setComm(VnV_Comm comm) {
+    this->comm = comm;
+}
+
 void InjectionPoint::runTests() {
   OutputEngineManager* wrapper = OutputEngineStore::getOutputEngineStore().getEngineManager();
-  wrapper->injectionPointStartedCallBack(getScope(), type, stageId);
+  wrapper->injectionPointStartedCallBack(comm, getScope(), type, stageId);
   if ( callbackType > 0  ) {
-      wrapper->testStartedCallBack("__internal__");
+      wrapper->testStartedCallBack(comm, "__internal__");
       if (callbackType == 1) {
-          OutputEngineWrapper engineWraper = {static_cast<void*>(wrapper->getOutputEngine())};
+          OutputEngineWrapper engineWraper = {static_cast<void*>(wrapper)};
           ParameterSetWrapper paramWrapper = {static_cast<void*>(&parameterMap)};
-         (*cCallback)(&paramWrapper,&engineWraper);
+         (*cCallback)(comm, &paramWrapper,&engineWraper);
       } else {
-         cppCallback(parameterMap,wrapper->getOutputEngine());
+         cppCallback(comm,parameterMap,wrapper);
       }
-      wrapper->testFinishedCallBack(true);//TODO callback should return bool "__internal__");
+      wrapper->testFinishedCallBack(comm, true);//TODO callback should return bool "__internal__");
   }
   for (auto it : m_tests) {
-      it->_runTest(wrapper->getOutputEngine(), type, stageId );
+      it->_runTest(comm, wrapper, type, stageId );
   }
-  wrapper->injectionPointEndedCallBack(getScope(), type,stageId);
+  wrapper->injectionPointEndedCallBack(comm, getScope(), type,stageId);
 }
 
 

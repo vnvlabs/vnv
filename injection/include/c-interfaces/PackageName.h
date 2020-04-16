@@ -7,6 +7,14 @@
 #  error "VnV: PACKAGENAME is not defined. Please Ensure a Macro called PACKAGENAME is defined before VnV.h is loaded"
 #endif
 
+struct VnV_Comm_ {
+    void* MPI; // TODO
+};
+typedef struct VnV_Comm_ VnV_Comm ;
+
+static VnV_Comm VnV_Comm_Self = {};
+static VnV_Comm VnV_Comm_World = {};
+
 #define VnV_E_STR(x) #x
 #define VNV_STR(x) VnV_E_STR(x)
 #define VNV_EX(x) x

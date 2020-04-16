@@ -30,6 +30,10 @@ using nlohmann::json;
 
 namespace VnV {
 
+
+
+
+
 /**
  * @brief The RunTime clas
  *
@@ -114,17 +118,17 @@ private:
   void processToolConfig(json config);
 
   // Cpp interface.
-  void injectionPoint(std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args);
-  void injectionPoint_begin(std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args);
+  void injectionPoint(VnV_Comm comm,std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args);
+  void injectionPoint_begin(VnV_Comm comm,std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args);
 
   //C Interface
-  void injectionPoint(std::string pname, std::string id, injectionDataCallback *callback, NTV &args);
-  void injectionPoint_begin(std::string pname, std::string id, injectionDataCallback *callback, NTV &args);
+  void injectionPoint(VnV_Comm comm,std::string pname, std::string id, injectionDataCallback *callback, NTV &args);
+  void injectionPoint_begin(VnV_Comm comm,std::string pname, std::string id, injectionDataCallback *callback, NTV &args);
 
   void injectionPoint_end(std::string pname, std::string id);
   void injectionPoint_iter(std::string pname, std::string id, std::string iterid);
 
-  void documentationPoint(std::string pname, std::string id, NTV &map);
+  void documentationPoint(VnV_Comm comm, std::string pname, std::string id, NTV &map);
 
   /**
    * @brief Finalize
@@ -155,14 +159,14 @@ private:
    *
    *
    */
-  void log(std::string pname, std::string level, std::string message, va_list args);
+  void log(VnV_Comm comm, std::string pname, std::string level, std::string message, va_list args);
 
   void logUnhandled(std::string name, std::string id, NTV &args);
 
   void registerLogLevel(std::string logLevel, std::string color);
 
-  int beginStage(std::string pname, std::string message, va_list args);
-  void endStage(int ref);
+  int beginStage(VnV_Comm comm,std::string pname, std::string message, va_list args);
+  void endStage(VnV_Comm comm, int ref);
 
   /**
    * @brief instance
@@ -191,7 +195,10 @@ private:
    *
    * Run all user configured unit testers.
    */
-  void runUnitTests();
+  void runUnitTests(VnV_Comm comm);
+
+  void generateOutputTree(VnV_Comm comm, std::string config, std::string gener, std::string reader);
+
 };
 }  // namespace VnV
 

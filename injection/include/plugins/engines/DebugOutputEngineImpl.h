@@ -26,7 +26,7 @@ class DebugEngine : public IOutputEngine {
    * @brief Log
    * @param log
    */
-  void Log(const char * package, int stage, std::string level, std::string message);
+  void Log(VnV_Comm comm,const char * package, int stage, std::string level, std::string message);
 
 
   /**
@@ -34,42 +34,42 @@ class DebugEngine : public IOutputEngine {
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, const double& value);
+  void Put(VnV_Comm comm,std::string variableName, const double& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, const int& value);
+  void Put(VnV_Comm comm,std::string variableName, const int& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, const float& value);
+  void Put(VnV_Comm comm,std::string variableName, const float& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, const long& value);
+  void Put(VnV_Comm comm,std::string variableName, const long& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, const std::string& value);
+  void Put(VnV_Comm comm,std::string variableName, const std::string& value);
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, const json& value) override;
+  void Put(VnV_Comm comm,std::string variableName, const json& value) override;
 
   /**
    * @brief Define IO Variable
@@ -116,7 +116,7 @@ class DebugEngineWrapper : public OutputEngineManager {
    * @param id
    * @param stageVal
    */
-  void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageVal) override;
+  void injectionPointEndedCallBack(VnV_Comm comm, std::string id, InjectionPointType type, std::string stageVal) override;
 
 
   /**
@@ -124,28 +124,28 @@ class DebugEngineWrapper : public OutputEngineManager {
    * @param id
    * @param stageVal
    */
-  void injectionPointStartedCallBack(std::string id, InjectionPointType type, std::string stageVal) override;
+  void injectionPointStartedCallBack(VnV_Comm comm,std::string id, InjectionPointType type, std::string stageVal) override;
 
   /**
    * @brief startTest
    * @param testName
    * @param testStageVal
    */
-  void testStartedCallBack(std::string testName ) override;
+  void testStartedCallBack(VnV_Comm comm,std::string testName ) override;
 
   /**
    * @brief stopTest
    * @param result_
    */
-  void testFinishedCallBack(bool result_) override;
+  void testFinishedCallBack(VnV_Comm comm,bool result_) override;
 
-  void unitTestStartedCallBack(std::string unitTestName) override;
+  void unitTestStartedCallBack(VnV_Comm comm,std::string unitTestName) override;
 
-  void unitTestFinishedCallBack(std::map<std::string,bool> &results) override;
+  void unitTestFinishedCallBack(VnV_Comm comm,std::map<std::string,bool> &results) override;
 
-  void documentationStartedCallBack(std::string pname, std::string id) override;
+  void documentationStartedCallBack(VnV_Comm comm,std::string pname, std::string id) override;
 
-  void documentationEndedCallBack(std::string pname, std::string id) override;
+  void documentationEndedCallBack(VnV_Comm comm,std::string pname, std::string id) override;
 
 
   /**

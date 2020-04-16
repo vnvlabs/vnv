@@ -50,21 +50,21 @@ std::string VariableEnumFactory::toString(VariableEnum e) {
         throw "VariableEnumFactory::toString: Unhandled Variable Enum Type";
 }
 
-void IOutputEngine::Put(std::string /*variableName*/, const double& /**value**/){throw "Engine Does not support type double";}
-void IOutputEngine::Put(std::string /*variableName*/, const int& /**value**/){throw "Engine Does not support type int";}
-void IOutputEngine::Put(std::string /*variableName*/, const float& /**value**/){throw "Engine Does not support type float";}
-void IOutputEngine::Put(std::string /*variableName*/, const long& /**value**/){throw "Engine Does not support type long";}
-void IOutputEngine::Put(std::string /*variableName*/, const std::string& /**value**/){throw "Engine Does not support type string";}
-void IOutputEngine::Put(std::string /*variableName*/, const json& /**value**/){throw "Engine Does not support type json";}
-void IOutputEngine::Log(const char *, int, std::string, std::string) { throw "Engine does not support in engine logging";}
+void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const double& /**value**/){throw "Engine Does not support type double";}
+void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const int& /**value**/){throw "Engine Does not support type int";}
+void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const float& /**value**/){throw "Engine Does not support type float";}
+void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const long& /**value**/){throw "Engine Does not support type long";}
+void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const std::string& /**value**/){throw "Engine Does not support type string";}
+void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const json& /**value**/){throw "Engine Does not support type json";}
+void IOutputEngine::Log(VnV_Comm comm,const char *, int, std::string, std::string) { throw "Engine does not support in engine logging";}
 
 #include<stdarg.h>
 
-void IOutputEngine::Put(std::string variableName, std::string serializer, std::string inputType, void* object) {
+void IOutputEngine::Put(VnV_Comm comm, std::string variableName, std::string serializer, std::string inputType, void* object) {
     auto it = SerializerStore::getSerializerStore().getSerializerByName(serializer);
     if (it != nullptr){
       std::string s =  it->Serialize(inputType,object);
-      Put(variableName,s);
+      Put(comm, variableName,s);
     } else {
         VnV_Error("Could not Put variable %s because serializer %s was not found", variableName.c_str(), serializer.c_str());
     }
@@ -107,32 +107,32 @@ void OutputEngineManager::_set(json& inputjson) {
   set(inputjson);
 }
 
-void OutputEngineManager::document(std::string pname, std::string id, NTV &map) {
-    documentationStartedCallBack(pname, id);
+void OutputEngineManager::document(VnV_Comm comm,std::string pname, std::string id, NTV &map) {
+    documentationStartedCallBack(comm,pname, id);
     VnVParameterSet parameterSet = DocumentationStore::instance().getParameterMap(pname, id, map);
     for (auto it : parameterSet) {
         if (it.second.getType() == "double") {
             double t = *(it.second.getPtr<double>("double",false));
-            getOutputEngine()->Put(it.first,t);
+            Put(comm,it.first,t);
         } else if (it.second.getType() == "int") {
             int t = *(it.second.getPtr<int>("int",false));
-            getOutputEngine()->Put(it.first,t);
+            Put(comm,it.first,t);
         } else if (it.second.getType() == "float") {
             float t = *(it.second.getPtr<float>("double",false));
-            getOutputEngine()->Put(it.first,t);
+            Put(comm,it.first,t);
         } else if (it.second.getType() == "char*") {
             std::string  t = *(it.second.getPtr<char*>("char*",false));
-            getOutputEngine()->Put(it.first,t);
+            Put(comm,it.first,t);
         } else  if (it.second.getType() == "long") {
             long t = *(it.second.getPtr<long>("long",false));
-            getOutputEngine()->Put(it.first,t);
+            Put(comm,it.first,t);
         } else if (it.second.getType() == "VnV::CppDocumentaiton::Serializer") {
             // Allow for a custom serializer.
             CppDocumentation::Serialize *ss = it.second.getPtr<CppDocumentation::Serialize>(it.second.getType(),false);
             ISerializer* serialize = SerializerStore::getSerializerStore().getSerializerByName(ss->name);
             if (serialize!=nullptr) {
                 std::string s = serialize->Serialize(it.second.getType(),ss->ptr);
-                getOutputEngine()->Put(it.first,s);
+                Put(comm,it.first,s);
             }
         }
         else {
@@ -140,18 +140,18 @@ void OutputEngineManager::document(std::string pname, std::string id, NTV &map) 
             ISerializer* serialize = SerializerStore::getSerializerStore().getSerializerFor(it.second.getType());
             if (serialize!=nullptr) {
                 std::string s = serialize->Serialize(it.second.getType(),it.second.getRawPtr());
-                getOutputEngine()->Put(it.first,s);
+                Put(comm,it.first,s);
             }
         }
     }
-    documentationEndedCallBack(pname,id);
+    documentationEndedCallBack(comm,pname,id);
 }
 
-void OutputEngineManager::documentationStartedCallBack(std::string pname, std::string id) {
+void OutputEngineManager::documentationStartedCallBack(VnV_Comm comm,std::string pname, std::string id) {
     VnV_Info("Starting Documentation For %s:%s", pname.c_str(), id.c_str());
     VnV_Warn("Documentation Started Callback not implemented for the Engine Manager.");
 }
-void OutputEngineManager::documentationEndedCallBack(std::string pname, std::string id) {
+void OutputEngineManager::documentationEndedCallBack(VnV_Comm comm, std::string pname, std::string id) {
     VnV_Info("Ending Documentation For %s:%s", pname.c_str(), id.c_str());
     VnV_Warn("Documentation Ended Callback not implemented for the Engine Manager.");
 }
@@ -159,6 +159,33 @@ void OutputEngineManager::documentationEndedCallBack(std::string pname, std::str
 void OutputEngineManager::print() {
     VnV_Info("Print not implemented for this Output Engine Manager");
 }
+
+void OutputEngineManager::Put(VnV_Comm comm, std::string variableName, const double& value) {
+   getOutputEngine()->Put(comm,variableName,value);
+}
+void OutputEngineManager::Put(VnV_Comm comm, std::string variableName, const int& value) {
+   getOutputEngine()->Put(comm,variableName,value);
+}
+void OutputEngineManager::Put(VnV_Comm comm, std::string variableName, const float& value) {
+   getOutputEngine()->Put(comm,variableName,value);
+}
+void OutputEngineManager::Put(VnV_Comm comm,std::string variableName, const long& value) {
+   getOutputEngine()->Put(comm,variableName,value);
+}
+void OutputEngineManager::Put(VnV_Comm comm,std::string variableName, const json& value) {
+    getOutputEngine()->Put(comm,variableName,value);
+}
+void OutputEngineManager::Put(VnV_Comm comm,std::string variableName, std::string serializer, std::string inputType, void* object) {
+   getOutputEngine()->Put(comm,variableName,serializer,inputType, object);
+}
+void OutputEngineManager::Put(VnV_Comm comm,std::string variableName, const std::string& value) {
+   getOutputEngine()->Put(comm,variableName,value);
+}
+void OutputEngineManager::Log(VnV_Comm comm,const char * packageName, int stage, std::string level, std::string message) {
+   getOutputEngine()->Log(comm,packageName,stage,level, message);
+}
+
+
 
 void VnV::registerEngine(std::string name, engine_register_ptr r) {
   OutputEngineStore::getOutputEngineStore().registerEngine(name, r);

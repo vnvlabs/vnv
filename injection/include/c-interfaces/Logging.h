@@ -9,21 +9,27 @@
 #ifndef WITHOUT_LOGGING
 
 VNVEXTERNC void _VnV_registerLogLevel(const char *name, const char *color);
-VNVEXTERNC void _VnV_Log(const char *p, const char * level, const char * message, ... ) __attribute__((format(printf,3,4)));
-VNVEXTERNC void _VnV_Tagged_Log(const char *p, const char *tag, const char * message, ... ) __attribute__((format(printf,3,4)));
-VNVEXTERNC int _VnV_BeginStage(const char *p, const char * message, ...) __attribute__((format(printf,2,3)));
-VNVEXTERNC void _VnV_EndStage(int ref);
+VNVEXTERNC void _VnV_Log(VnV_Comm comm, const char *p, const char * level, const char * message, ... ) __attribute__((format(printf,4,5)));
+VNVEXTERNC int _VnV_BeginStage(VnV_Comm comm, const char *p, const char * message, ...) __attribute__((format(printf,3,4)));
+VNVEXTERNC void _VnV_EndStage(VnV_Comm comm, int ref);
 
 #define Register_Log_Level(NAME, COLOR) _VnV_registerLogLevel(NAME, COLOR);
-#define VnV_Debug(...) _VnV_Log(PACKAGENAME_S,"DEBUG",__VA_ARGS__)
-#define VnV_Warn(...) _VnV_Log(PACKAGENAME_S,"WARN",__VA_ARGS__)
-#define VnV_Error(...) _VnV_Log(PACKAGENAME_S,"ERROR",__VA_ARGS__)
-#define VnV_Info(...) _VnV_Log(PACKAGENAME_S,"INFO",__VA_ARGS__)
-#define VnV_Log(level,...) _VnV_Log(PACKAGENAME_S,level,__VA_ARGS__)
-#define VnV_BeginStage(...) _VnV_BeginStage(PACKAGENAME_S,__VA_ARGS__)
-#define VnV_EndStage(ref) _VnV_EndStage(ref)
+#define VnV_Debug_MPI(comm,...) _VnV_Log(comm,PACKAGENAME_S,"DEBUG",__VA_ARGS__)
+#define VnV_Warn_MPI(comm,...) _VnV_Log(comm,PACKAGENAME_S,"WARN",__VA_ARGS__)
+#define VnV_Error_MPI(comm,...) _VnV_Log(comm,PACKAGENAME_S,"ERROR",__VA_ARGS__)
+#define VnV_Info_MPI(comm,...) _VnV_Log(comm,PACKAGENAME_S,"INFO",__VA_ARGS__)
+#define VnV_Log_MPI(level,...) _VnV_Log(comm,PACKAGENAME_S,level,__VA_ARGS__)
+#define VnV_BeginStage_MPI(comm,...) _VnV_BeginStage(comm,PACKAGENAME_S,__VA_ARGS__)
+#define VnV_EndStage_MPI(comm,ref) _VnV_EndStage(comm,ref)
 
-#define VnV_Data(tag,...) _VnV_Tagged_Log(PACKAGENAME_S,tag,__VA_ARGS__)
+#define VnV_Debug(...) VnV_Debug_MPI(VnV_Comm_Self,__VA_ARGS__)
+#define VnV_Warn(...) VnV_Warn_MPI(VnV_Comm_Self,__VA_ARGS__)
+#define VnV_Error(...) VnV_Error_MPI(VnV_Comm_Self,__VA_ARGS__)
+#define VnV_Info(...) VnV_Info_MPI(VnV_Comm_Self,__VA_ARGS__)
+#define VnV_Log(...) VnV_Log_MPI(VnV_Comm_Self,__VA_ARGS__)
+#define VnV_BeginStage(...) VnV_BeginStage_MPI(VnV_Comm_Self,__VA_ARGS__)
+#define VnV_EndStage(...) VnV_EndStage_MPI(VnV_Comm_Self,__VA_ARGS__)
+
 
 #else
 #  define VnV_Debug(...)

@@ -24,13 +24,13 @@ class provenance : public ITest {
 
     }
 
-    TestStatus getProvHistory(IOutputEngine* engine, int argc, char** argv,
+    TestStatus getProvHistory(VnV_Comm comm, OutputEngineManager* engine, int argc, char** argv,
                      std::string configFile) {
 
     {
         // Add the current working directory
         std::string currentWorkingDirectory(DistUtils::getCurrentDirectory());
-        engine->Put("cwd", currentWorkingDirectory);
+        engine->Put(comm,"cwd", currentWorkingDirectory);
     }
 
     {
@@ -40,7 +40,7 @@ class provenance : public ITest {
           std::string v(argv[i]);
           commandline += " " + std::string(argv[i]);
         }
-        engine->Put("command-line", commandline);
+        engine->Put(comm,"command-line", commandline);
     }
 
     {
@@ -50,7 +50,7 @@ class provenance : public ITest {
         std::ostringstream oss;
         oss << std::put_time(&tm, "%Y-%m-%d %H-%M-%S");
         std::string time = oss.str();
-        engine->Put("time", time);
+        engine->Put(comm,"time", time);
      }
 
      {
@@ -62,7 +62,7 @@ class provenance : public ITest {
         //Add all the libraries and the current exe to the json
         json exe_info = DistUtils::getLibInfo(exe.c_str(),0);
         exe_info["libs"] = libNames.libs;
-        engine->Put("exe-info",exe_info);
+        engine->Put(comm,"exe-info",exe_info);
     }
     {
        // The configuration allows the user to specify additional files
@@ -88,7 +88,7 @@ class provenance : public ITest {
                }
          }
          json x = ins;
-         engine->Put("input-files",x);
+         engine->Put(comm,"input-files",x);
 
       }
    }
@@ -99,13 +99,13 @@ class provenance : public ITest {
 
      std::ifstream ff(configFile);
      conf["file"] = json::parse(ff);
-     engine->Put("vnv-config", conf);
+     engine->Put(comm,"vnv-config", conf);
     }
 
     return SUCCESS;
   }
 
-   void writeTree(IOutputEngine *engine) {
+   void writeTree(OutputEngineManager *engine) {
        // TODO -- If the stage is looped. We can track changes to the file tree on output and
        // use that to track the outputs of the execution from the current working directory.
    }
@@ -114,7 +114,7 @@ class provenance : public ITest {
        // which output files are generated during the Current looped injection point.
    }
 
-   virtual TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId) override {
+   virtual TestStatus runTest(VnV_Comm comm, OutputEngineManager* engine, InjectionPointType type, std::string stageId) override {
       TestStatus r = SUCCESS;
 
       if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
@@ -124,7 +124,7 @@ class provenance : public ITest {
             GetRef(c,"argc",int*);
             GetRef(f,"config",std::string);
             GetRef(v,"argv",char***);
-            r = getProvHistory(engine, *c, *v, f);
+            r = getProvHistory(comm,engine, *c, *v, f);
      }
      if ( type == InjectionPointType::Begin) {
         logTree();

@@ -17,8 +17,8 @@ void VnV_finalize() {
   VnV::RunTime::instance().Finalize();
 }
 
-void VnV_runUnitTests() {
-  VnV::RunTime::instance().runUnitTests();
+void VnV_runUnitTests(VnV_Comm comm ) {
+  VnV::RunTime::instance().runUnitTests(comm);
 }
 
 

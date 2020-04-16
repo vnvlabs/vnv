@@ -6,19 +6,19 @@
 
 using nlohmann::json;
 
-void VnV::CppDocumentation::Document(const char* package, const char * id, std::map<std::string,std::pair<std::string,void*>> &map) {
-    VnV::RunTime::instance().documentationPoint(package, id, map);
+void VnV::CppDocumentation::Document(VnV_Comm comm, const char* package, const char * id, std::map<std::string,std::pair<std::string,void*>> &map) {
+    VnV::RunTime::instance().documentationPoint(comm, package, id, map);
 }
 
 
 extern "C" {
 
-void _VnV_Document(const char *packageName, const char *name, ...) {
+void _VnV_Document(VnV_Comm comm, const char *packageName, const char *name, ...) {
 
    va_list args;
    va_start(args, name);
    auto ntv = VnV::VariadicUtils::UnwrapVariadicArgs(args);
-   VnV::RunTime::instance().documentationPoint(packageName, name, ntv);
+   VnV::RunTime::instance().documentationPoint(comm, packageName, name, ntv);
    va_end(args);
 
 }

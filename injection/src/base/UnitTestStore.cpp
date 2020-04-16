@@ -40,37 +40,37 @@ IUnitTester* UnitTestStore::getUnitTester(std::string packageName, std::string n
   return nullptr;
 }
 
-void UnitTestStore::runTest(std::string name, IUnitTester *tester) {
+void UnitTestStore::runTest(VnV_Comm comm, std::string name, IUnitTester *tester) {
     OutputEngineManager *engineManager = OutputEngineStore::getOutputEngineStore().getEngineManager();
-    engineManager->unitTestStartedCallBack(name);
+    engineManager->unitTestStartedCallBack(comm, name);
     std::map<std::string,bool> r = tester->run(engineManager->getOutputEngine());
-    engineManager->unitTestFinishedCallBack(r);
+    engineManager->unitTestFinishedCallBack(comm,r);
 }
 
-void UnitTestStore::runTest(std::string packageName, std::string name) {
+void UnitTestStore::runTest(VnV_Comm comm, std::string packageName, std::string name) {
     auto it = tester_factory.find(packageName);
     if (it!=tester_factory.end()) {
         auto itt = it->second.find(name);
         if (itt != it->second.end()) {
-            runTest(packageName + ":" + name, itt->second());
+            runTest(comm, packageName + ":" + name, itt->second());
         }
     }
 }
 
-void UnitTestStore::runPackageTests(std::string packageName) {
+void UnitTestStore::runPackageTests(VnV_Comm comm, std::string packageName) {
     auto it = tester_factory.find(packageName);
     if (it != tester_factory.end()) {
         for (auto &it : it->second) {
-            runTest(packageName + ":" + it.first, it.second());
+            runTest(comm, packageName + ":" + it.first, it.second());
         }
     }
 }
 
 
-void UnitTestStore::runAll(bool /*stopOnFail*/) {
+void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
     for (auto& it : tester_factory) {
         for (auto itt : it.second) {
-            runTest(it.first + ":" + itt.first, itt.second());
+            runTest(comm, it.first + ":" + itt.first, itt.second());
         }
     }
 }

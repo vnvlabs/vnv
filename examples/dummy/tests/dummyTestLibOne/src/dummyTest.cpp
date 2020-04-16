@@ -14,20 +14,20 @@ class dummyTest : public ITest {
     }
 
 
-    TestStatus runTest(IOutputEngine* engine, int testStage, double slope,
+    TestStatus runTest(VnV_Comm comm,OutputEngineManager *engine, int testStage, double slope,
                      double intersection) {
 
     std::string s;
     // Write the slope and the intersection point to the  output file.
-    engine->Put("slope", slope);
-    engine->Put("intersection", intersection);
+    engine->Put(comm,"slope", slope);
+    engine->Put(comm,"intersection", intersection);
     return SUCCESS;
   }
 
-  TestStatus runTest(IOutputEngine* engine, InjectionPointType type, std::string stageId) {
+  TestStatus runTest(VnV_Comm comm, OutputEngineManager* engine, InjectionPointType type, std::string stageId) {
     GetRef(x,"slope",double);
     GetRef(y,"intersection",double);
-    return runTest(engine, 0, x, y);
+    return runTest(comm, engine, 0, x, y);
   }
 };
 

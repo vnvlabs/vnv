@@ -28,7 +28,7 @@ JsonEngine::JsonEngine() {
 
 #define LTypes X(double) X(int) X(float) X(long) X(std::string) X(json)
 #define X(type) \
-void JsonEngine::Put(std::string variableName, const type& value) {\
+void JsonEngine::Put(VnV_Comm comm,std::string variableName, const type& value) {\
     json j;\
     j["name"] = variableName;\
     j["type"] = #type;\
@@ -58,7 +58,7 @@ void JsonEngine::push(json &jsonOb, json::json_pointer ptr) {
     this->ptr /= ptr;
 }
 
-void JsonEngine::Log(const char *package, int stage,  std::string level, std::string message) {
+void JsonEngine::Log(VnV_Comm comm,const char *package, int stage,  std::string level, std::string message) {
     json log = json::object();
     log["package"] = package;
     log["stage"] = stage;
@@ -98,7 +98,7 @@ void JsonEngineWrapper::set(json& config) {
     jsonEngine = new JsonEngine();
 }
 
-void JsonEngineWrapper::injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageVal) {
+void JsonEngineWrapper::injectionPointEndedCallBack(VnV_Comm comm,std::string id, InjectionPointType type, std::string stageVal) {
   if (jsonEngine) {
       if (type == InjectionPointType::End) {
           jsonEngine->pop(4);
@@ -110,7 +110,7 @@ void JsonEngineWrapper::injectionPointEndedCallBack(std::string id, InjectionPoi
   }
 }
 
-void JsonEngineWrapper::injectionPointStartedCallBack(std::string id, InjectionPointType type, std::string stageVal) {
+void JsonEngineWrapper::injectionPointStartedCallBack(VnV_Comm comm,std::string id, InjectionPointType type, std::string stageVal) {
   if (jsonEngine) {
     json ip;
 
@@ -135,7 +135,7 @@ void JsonEngineWrapper::injectionPointStartedCallBack(std::string id, InjectionP
   }
 }
 
-void JsonEngineWrapper::testStartedCallBack(std::string testName) {
+void JsonEngineWrapper::testStartedCallBack(VnV_Comm comm,std::string testName) {
   if (jsonEngine) {
     json j;
     j["Name"] = testName;
@@ -147,7 +147,7 @@ void JsonEngineWrapper::testStartedCallBack(std::string testName) {
   }
 }
 
-void JsonEngineWrapper::testFinishedCallBack(bool result_) {
+void JsonEngineWrapper::testFinishedCallBack(VnV_Comm comm,bool result_) {
   if (jsonEngine) {
     jsonEngine->pop(2);
   } else {
@@ -155,7 +155,7 @@ void JsonEngineWrapper::testFinishedCallBack(bool result_) {
   }
 }
 
-void JsonEngineWrapper::documentationStartedCallBack(std::string pname, std::string id) {
+void JsonEngineWrapper::documentationStartedCallBack(VnV_Comm comm,std::string pname, std::string id) {
   if (jsonEngine) {
       json j;
       j["Node"] = "Docs";
@@ -168,7 +168,7 @@ void JsonEngineWrapper::documentationStartedCallBack(std::string pname, std::str
   }
 }
 
-void JsonEngineWrapper::documentationEndedCallBack(std::string pname, std::string id) {
+void JsonEngineWrapper::documentationEndedCallBack(VnV_Comm comm,std::string pname, std::string id) {
   if (jsonEngine) {
     jsonEngine->pop(2);
   } else {
@@ -176,7 +176,7 @@ void JsonEngineWrapper::documentationEndedCallBack(std::string pname, std::strin
   }
 }
 
-void JsonEngineWrapper::unitTestStartedCallBack(std::string unitTestName) {
+void JsonEngineWrapper::unitTestStartedCallBack(VnV_Comm comm,std::string unitTestName) {
     if  (jsonEngine) {
         json j;
         j["Node"] = "UnitTest";
@@ -188,7 +188,7 @@ void JsonEngineWrapper::unitTestStartedCallBack(std::string unitTestName) {
     }
 }
 
-void JsonEngineWrapper::unitTestFinishedCallBack(std::map<std::string, bool> &results){
+void JsonEngineWrapper::unitTestFinishedCallBack(VnV_Comm comm,std::map<std::string, bool> &results){
     if (jsonEngine) {
         json j;
         j["Node"]  = "UnitTestResults";

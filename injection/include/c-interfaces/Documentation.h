@@ -28,13 +28,13 @@ public:
     std::string name;
 };
 
-void Document(const char* package, const char * id, std::map<std::string,std::pair<std::string,void*>> &map);
+void Document(VnV_Comm comm, const char* package, const char * id, std::map<std::string,std::pair<std::string,void*>> &map);
 
 template<typename ...Args>
-void DocumentPack(const char* package, const char * name, Args&&...args) {
+void DocumentPack(VnV_Comm comm, const char* package, const char * name, Args&&...args) {
     std::map<std::string,std::pair<std::string,void*>> m;
     CppInjection::UnwrapParameterPack(m,std::forward<Args>(args)...);
-    Document(package, name, m);
+    Document(comm,package, name, m);
 }
 
 void RegisterDocumentation(std::string packageName, std::string name, std::map<std::string, std::string> &m);
@@ -45,20 +45,18 @@ void RegisterDocumentation(std::string packageName, std::string name, std::map<s
 
 #define DOIT_DOC(X) , #X, X
 #define EVERYONE_DOC(...) FOR_EACH(DOIT_DOC,__VA_ARGS__)
-#define VNV_DOCUMENT(name) VnV::CppDocumentation::DocumentPack(VNV_STR(PACKAGENAME),#name) ;
-#define VNV_DOCUMENT_P(name, ...) VnV::CppDocumentation::DocumentPack(VNV_STR(PACKAGENAME), #name EVERYONE_DOC(__VA_ARGS__));
-
-
+#define VNV_DOCUMENT(comm, name) VnV::CppDocumentation::DocumentPack(comm,VNV_STR(PACKAGENAME),#name) ;
+#define VNV_DOCUMENT_P(comm, name, ...) VnV::CppDocumentation::DocumentPack(comm,VNV_STR(PACKAGENAME), #name EVERYONE_DOC(__VA_ARGS__));
 
 #else
 
-#define VNV_DOCUMENT(name) _VnV_Document(VNV_STR(PACKAGENAME),#name, __FILE__,__LINE__, VNV_END_PARAMETERS_S ) ;
+#define VNV_DOCUMENT(comm,name) _VnV_Document(comm,VNV_STR(PACKAGENAME),#name, __FILE__,__LINE__, VNV_END_PARAMETERS_S ) ;
 
 #define DOIT_DOC(X) , #X, (void*) &X
 #define EVERYONE_DOC(...) FOR_EACH(DOIT_DOC,__VA_ARGS__)
-#define VNV_DOCUMENT_P(name, ...) _VnV_Document(VNV_STR(PACKAGENAME), #name, __FILE__,__LINE__ EVERYONE_DOC(__VA_ARGS__), VNV_END_PARAMETERS_S);
+#define VNV_DOCUMENT_P(comm,name, ...) _VnV_Document(comm,VNV_STR(PACKAGENAME), #name, __FILE__,__LINE__ EVERYONE_DOC(__VA_ARGS__), VNV_END_PARAMETERS_S);
 
-VNVEXTERNC void _VnV_Document(const char *pname, const char* name, const char *file, int line, ...);
+VNVEXTERNC void _VnV_Document(VnV_Comm comm, const char *pname, const char* name, const char *file, int line, ...);
 
 #endif
 

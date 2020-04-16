@@ -20,28 +20,28 @@ static json __debug_engine_schema__ = R"(
 
 DebugEngine::DebugEngine() {}
 
-void DebugEngine::Put(std::string variableName, const double& value) {
+void DebugEngine::Put(VnV_Comm comm,std::string variableName, const double& value) {
   printf("DEBUG ENGINE PUT %s = %f\n", variableName.c_str(), value);
 }
-void DebugEngine::Put(std::string variableName, const int& value) {
+void DebugEngine::Put(VnV_Comm comm,std::string variableName, const int& value) {
   printf("DEBUG ENGINE PUT %s = %d\n", variableName.c_str(), value);
 }
-void DebugEngine::Put(std::string variableName, const float& value) {
+void DebugEngine::Put(VnV_Comm comm,std::string variableName, const float& value) {
   printf("DEBUG ENGINE PUT %s = %f\n", variableName.c_str(), value);
 }
-void DebugEngine::Put(std::string variableName, const long& value) {
+void DebugEngine::Put(VnV_Comm comm,std::string variableName, const long& value) {
   printf("DEBUG ENGINE PUT %s = %ld\n", variableName.c_str(), value);
 }
 
-void DebugEngine::Put(std::string variableName, const json& value) {
+void DebugEngine::Put(VnV_Comm comm,std::string variableName, const json& value) {
  printf("DEBUG ENGINE PUT %s = %s\n" , variableName.c_str(), value.dump(3).c_str());
 }
 
-void DebugEngine::Put(std::string variableName, const std::string& value) {
+void DebugEngine::Put(VnV_Comm comm,std::string variableName, const std::string& value) {
   printf("DEBUG ENGINE PUT %s = %s\n", variableName.c_str(), value.c_str());
 }
 
-void DebugEngine::Log(const char *package, int stage,  std::string level, std::string message) {
+void DebugEngine::Log(VnV_Comm comm,const char *package, int stage,  std::string level, std::string message) {
 
     std::string s = getIndent(stage);
     printf("%s[%s:%s]: %s\n", s.c_str(), package, level.c_str(), message.c_str() );
@@ -66,7 +66,7 @@ void DebugEngineWrapper::set(json& config) {
   debugEngine = new DebugEngine();
 }
 
-void DebugEngineWrapper::injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageVal) {
+void DebugEngineWrapper::injectionPointEndedCallBack(VnV_Comm comm,std::string id, InjectionPointType type, std::string stageVal) {
   if (debugEngine) {
     printf("DEBUG ENGINE End Injection Point %s : %s \n", id.c_str(), InjectionPointTypeUtils::getType(type,stageVal).c_str());
   } else {
@@ -74,7 +74,7 @@ void DebugEngineWrapper::injectionPointEndedCallBack(std::string id, InjectionPo
   }
 }
 
-void DebugEngineWrapper::injectionPointStartedCallBack(std::string id, InjectionPointType type, std::string stageVal) {
+void DebugEngineWrapper::injectionPointStartedCallBack(VnV_Comm comm,std::string id, InjectionPointType type, std::string stageVal) {
   if (debugEngine) {
     printf("DEBUG ENGINE Start Injection Point %s : %s \n", id.c_str(),InjectionPointTypeUtils::getType(type,stageVal).c_str());
   } else {
@@ -82,7 +82,7 @@ void DebugEngineWrapper::injectionPointStartedCallBack(std::string id, Injection
   }
 }
 
-void DebugEngineWrapper::testStartedCallBack(std::string testName) {
+void DebugEngineWrapper::testStartedCallBack(VnV_Comm comm,std::string testName) {
   if (debugEngine) {
     printf("DEBUG ENGINE Start Test %s \n", testName.c_str() );
   } else {
@@ -90,7 +90,7 @@ void DebugEngineWrapper::testStartedCallBack(std::string testName) {
   }
 }
 
-void DebugEngineWrapper::testFinishedCallBack(bool result_) {
+void DebugEngineWrapper::testFinishedCallBack(VnV_Comm comm,bool result_) {
   if (debugEngine) {
     printf("DEBUG ENGINE Stop Test. Test Was Successful-> %d\n", result_);
   } else {
@@ -98,7 +98,7 @@ void DebugEngineWrapper::testFinishedCallBack(bool result_) {
   }
 }
 
-void DebugEngineWrapper::documentationStartedCallBack(std::string pname, std::string id) {
+void DebugEngineWrapper::documentationStartedCallBack(VnV_Comm comm,std::string pname, std::string id) {
   if (debugEngine) {
     printf("DEBUG ENGINE Start Docs %s:%s \n", pname.c_str(),id.c_str() );
   } else {
@@ -106,7 +106,7 @@ void DebugEngineWrapper::documentationStartedCallBack(std::string pname, std::st
   }
 }
 
-void DebugEngineWrapper::documentationEndedCallBack(std::string pname, std::string id) {
+void DebugEngineWrapper::documentationEndedCallBack(VnV_Comm comm,std::string pname, std::string id) {
   if (debugEngine) {
     printf("DEBUG ENGINE Stop Docs %s:%s", pname.c_str(),id.c_str());
   } else {
@@ -114,7 +114,7 @@ void DebugEngineWrapper::documentationEndedCallBack(std::string pname, std::stri
   }
 }
 
-void DebugEngineWrapper::unitTestStartedCallBack(std::string unitTestName) {
+void DebugEngineWrapper::unitTestStartedCallBack(VnV_Comm comm,std::string unitTestName) {
     if  (debugEngine) {
         printf("DEBUG ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
     } else {
@@ -122,7 +122,7 @@ void DebugEngineWrapper::unitTestStartedCallBack(std::string unitTestName) {
     }
 }
 
-void DebugEngineWrapper::unitTestFinishedCallBack(std::map<std::string, bool> &results){
+void DebugEngineWrapper::unitTestFinishedCallBack(VnV_Comm comm,std::map<std::string, bool> &results){
     if (debugEngine) {
         printf("Test Results\n");
         bool suiteSuccessful = true;

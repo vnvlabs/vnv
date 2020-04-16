@@ -81,11 +81,11 @@ TestConfig TestStore::validateTest(json &testJson) {
       validator.set_root_schema(getTestDelcarationJsonSchema());
       validator.validate(testDeclaration);
 
-      //Define the variables listed in the test.
+      /*Define the variables listed in the test.
       IOutputEngine* engine = OutputEngineStore::getOutputEngineStore().getEngineManager()->getOutputEngine();
       for ( auto it : testDeclaration["io-variables"].items()) {
           engine->Define(VariableEnumFactory::fromString(it.value().get<std::string>()),it.key());
-      }
+      }*/
 
       test_schema = getTestValidationSchema(testDeclaration);
       registeredTests.insert(std::make_pair(name, std::make_pair(test_schema,testDeclaration)));
