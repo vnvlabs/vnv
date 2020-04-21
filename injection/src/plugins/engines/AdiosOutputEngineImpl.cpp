@@ -68,7 +68,7 @@ void AdiosEngine::Define(VariableEnum type, std::string name) {
         case VariableEnum::Int: writer.DefineVariable<int>(name); break;
         case VariableEnum::Float: writer.DefineVariable<float>(name); break;
         case VariableEnum::String: writer.DefineVariable<std::string>(name); break;
-        default: throw VnVExceptionBase("Adios Engine Does not handle Variable Enum Type ") + VariableEnumFactory::toString(type);
+        default: throw VnVExceptionBase("Adios Engine Does not handle Variable Enum Type" + VariableEnumFactory::toString(type));
     }
 }
 

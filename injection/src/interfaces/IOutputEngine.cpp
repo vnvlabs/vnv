@@ -35,7 +35,7 @@ VariableEnum VariableEnumFactory::fromString(std::string s) {
         else if (s.compare("Long") == 0) return VariableEnum::Long;
 
         s= "VariableEnumFactory::fromString: Unknown Variable Type" + s;
-        throw s.c_str();
+        throw VnVExceptionBase(s.c_str());
 }
 
 std::string VariableEnumFactory::toString(VariableEnum e) {
