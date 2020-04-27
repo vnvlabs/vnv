@@ -29,7 +29,7 @@
 %include "interfaces/IOutputReader.h"
 
 namespace std {
-    %template(charVector) vector<char*>;
+    %template(charVector) vector<string>;
 }
 
 
@@ -61,7 +61,7 @@ class mapclassIterator:
          if (self.iterCounter < len(self.iterData)):
            key = self.iterData[self.iterCounter]
            self.iterCounter += 1
-           return [key,self.obj[key]]
+           return key
          else:
            raise StopIteration
 
@@ -72,7 +72,9 @@ class listclassIterator :
         
          def __next__(self):
            if (self.iterCounter) < len(self.obj):
-              return self.obj[self.iterCounter]
+                self.iterCounter += 1
+                return self.obj[self.iterCounter - 1]
+
            else:
               raise StopIteration
 
@@ -93,8 +95,33 @@ dataBaseCastMap = {
     DataBase.DataType_UnitTest : "AsUnitTestNode",
 }
 
+type2Str = {
+    DataBase.DataType_Bool : "Bool",
+    DataBase.DataType_Integer : "Integer",
+    DataBase.DataType_Float : "Float",
+    DataBase.DataType_Double : "DoubleNode",
+    DataBase.DataType_String : "StringNode",
+    DataBase.DataType_Long : "Long",
+    DataBase.DataType_Array : "Array",
+    DataBase.DataType_Map : "Map",
+    DataBase.DataType_Log : "Log",
+    DataBase.DataType_Documentation : "Documentation",
+    DataBase.DataType_InjectionPoint : "InjectionPoint",
+    DataBase.DataType_Info : "Info",
+    DataBase.DataType_Test : "Test",
+    DataBase.DataType_UnitTest : "UnitTest",
+}
+
 def Initialize(args, config):
-   VnVInit(charVector(args),config)
+    
+   r = charVector()
+   r.push_back(__file__)
+   for i in args:
+
+     if isinstance(i,str):
+       r.push_back(i)
+
+   VnVInit(r,config)
 def Finalize():
    VnVFinalize()
 
@@ -197,7 +224,7 @@ PY_GETATTRLIST(VnV::Reader::IArrayNode)
 %extend Typename {
     %pythoncode %{
         def __getitem__(self,key):
-            if isinstance(key,string) and self.contains(key):
+            if isinstance(key,str) and self.contains(key):
                 return castDataBase(self.get(key))
             raise KeyError("not a valid key")
 

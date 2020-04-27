@@ -5,11 +5,15 @@
 namespace VnV {
 namespace Reader {
 
+std::string DataBase::getId() {
+    return id;
+}
+
 bool DataBase::check(DataType type) { return type == dataType ; }
 
 DataBase::DataType DataBase::getType() {return dataType;}
 
-DataBase::DataBase(DataType type) : dataType(type) {}
+DataBase::DataBase(std::string id_, DataType type) : dataType(type), id(id_) {}
 
 IBoolNode *DataBase::getAsBoolNode() { return (check(DataType::Bool)) ? dynamic_cast<IBoolNode*>(this) : nullptr;}
 
@@ -45,83 +49,89 @@ ITestNode *DataBase::getAsTestNode() { return (check(DataType::Test)) ? dynamic_
 
 IUnitTestNode *DataBase::getAsUnitTestNode() { return (check(DataType::UnitTest)) ? dynamic_cast<IUnitTestNode*>(this) : nullptr ;}
 
-ReaderWrapper::ReaderWrapper(std::string readerName) {
+ReaderWrapper::ReaderWrapper(std::string readerName, std::string filename_, std::string config) : filename(filename_), readerConfig(config) {
     reader = VnV::OutputReaderStore::instance().getReader(readerName);
 }
 
-IRootNode *ReaderWrapper::get(std::string config) { return reader->readFromFile(config); }
+IRootNode *ReaderWrapper::get() { return reader->readFromFile(filename, readerConfig); }
 
-TreeWrapper::TreeWrapper(std::string name) {
+TreeWrapper::TreeWrapper(std::string name,std::string config) {
     generator = OutputReaderStore::instance().getTreeGenerator(name);
+    treeConfig = config;
 }
 
-void TreeWrapper::generateTree(std::string config, IRootNode *node) {
-    generator->generateTree(node,config);
+void TreeWrapper::generateTree(std::string outputDirectory, IRootNode *node) {
+    generator->generateTree(outputDirectory, node,this->treeConfig);
 }
 
 void VnVFinalize() {
     RunTime::instance().Finalize();
 }
 
-void VnVInit(std::vector<char*> args, std::string config) {
-    int argv = args.size();
-    char** argc = args.data();
-    RunTime::instance().Init(&argv, &argc, config, nullptr);
+void VnVInit(std::vector<std::string> args, std::string config) {
+    int argc = args.size();
+    std::vector<char*> cstrings ;
+    cstrings.reserve(args.size());
+    for (int i = 0; i < args.size(); i++) {
+        cstrings.push_back(const_cast<char*>(args[i].c_str()));
+    }
+    char** argv = &cstrings[0];
+    RunTime::instance().Init(&argc, &argv, config, nullptr);
 }
 
-IMapNode::IMapNode() : DataBase(DataBase::DataType::Map) {}
+IMapNode::IMapNode(std::string id ) : DataBase(id, DataBase::DataType::Map) {}
 
 IMapNode::~IMapNode(){}
 
-IArrayNode::IArrayNode() : DataBase(DataBase::DataType::Array) {}
+IArrayNode::IArrayNode(std::string id ) : DataBase(id,DataBase::DataType::Array) {}
 
 IArrayNode::~IArrayNode(){}
 
-IBoolNode::IBoolNode() : DataBase(DataBase::DataType::Bool) {}
+IBoolNode::IBoolNode(std::string id ) : DataBase(id,DataBase::DataType::Bool) {}
 
 IBoolNode::~IBoolNode(){}
 
-IDoubleNode::IDoubleNode() : DataBase(DataBase::DataType::Double) {}
+IDoubleNode::IDoubleNode(std::string id ) : DataBase(id,DataBase::DataType::Double) {}
 
 IDoubleNode::~IDoubleNode(){}
 
-IIntegerNode::IIntegerNode() : DataBase(DataBase::DataType::Integer) {}
+IIntegerNode::IIntegerNode(std::string id ) : DataBase(id,DataBase::DataType::Integer) {}
 
 IIntegerNode::~IIntegerNode(){}
 
-ILongNode::ILongNode() : DataBase(DataBase::DataType::Long) {}
+ILongNode::ILongNode(std::string id ) : DataBase(id,DataBase::DataType::Long) {}
 
 ILongNode::~ILongNode(){}
 
-IStringNode::IStringNode() : DataBase(DataBase::DataType::String) {}
+IStringNode::IStringNode(std::string id ) : DataBase(id,DataBase::DataType::String) {}
 
 IStringNode::~IStringNode(){}
 
-IFloatNode::IFloatNode() : DataBase(DataBase::DataType::Float) {}
+IFloatNode::IFloatNode(std::string id ) : DataBase(id,DataBase::DataType::Float) {}
 
 IFloatNode::~IFloatNode(){}
 
-IInfoNode::IInfoNode() : DataBase(DataBase::DataType::Info) {}
+IInfoNode::IInfoNode(std::string id ) : DataBase(id,DataBase::DataType::Info) {}
 
 IInfoNode::~IInfoNode(){}
 
-ITestNode::ITestNode() : DataBase(DataBase::DataType::Test) {}
+ITestNode::ITestNode(std::string id ) : DataBase(id,DataBase::DataType::Test) {}
 
 ITestNode::~ITestNode(){}
 
-IInjectionPointNode::IInjectionPointNode() : DataBase(DataBase::DataType::InjectionPoint) {}
+IInjectionPointNode::IInjectionPointNode(std::string id ) : DataBase(id,DataBase::DataType::InjectionPoint) {}
 
 IInjectionPointNode::~IInjectionPointNode(){}
 
-IDocumentationNode::IDocumentationNode() : DataBase(DataBase::DataType::Documentation) {}
+IDocumentationNode::IDocumentationNode(std::string id ) : DataBase(id,DataBase::DataType::Documentation) {}
 
 IDocumentationNode::~IDocumentationNode(){}
 
-ILogNode::ILogNode() : DataBase(DataBase::DataType::Log) {}
+ILogNode::ILogNode(std::string id ) : DataBase(id,DataBase::DataType::Log) {}
 
 ILogNode::~ILogNode(){}
 
-IUnitTestNode::IUnitTestNode() : DataBase(DataBase::DataType::UnitTest) {}
+IUnitTestNode::IUnitTestNode(std::string id ) : DataBase(id,DataBase::DataType::UnitTest) {}
 
 IUnitTestNode::~IUnitTestNode(){}
 

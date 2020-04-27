@@ -1,20 +1,21 @@
-import sys
-
-try:
-  import VnVReader as OR
-except:
-  print("Failed to Load VnVReader -- Are you using the python3?")
-  exit()
+from vnv import VnVReader
+import json
+from basic_tree import VnVTreeGenerator
 
 
-import jmespath
-import RootNodeVisitor as RI
-X = OR.getRootNode()#readOutputFile("sfsdfsdf","sfsdfsdf")
+VnVReader.Initialize([],"./vv-input.json")
 
-c = jmespath.compile("Children[1]")
-print(RI.search(c,X))
+reader = VnVReader.ReaderWrapper("basic","dummy",json.dumps({}))
+
+rootNode = reader.get()
+
+tree = VnVTreeGenerator.VnVTreeGenerator()
+
+print(tree.generateConfigFile(rootNode))
+
+tree.config(quickstart={}, build=True, build_opts=["html"])
+tree.generateTree("./test-output", rootNode)
 
 
-
-
+VnVReader.Finalize()
 

@@ -197,7 +197,7 @@ private:
    */
   void runUnitTests(VnV_Comm comm);
 
-  void generateOutputTree(VnV_Comm comm, std::string config, std::string gener, std::string reader);
+  void generateOutputTree(VnV_Comm comm, std::string outDir, std::string filename, std::string config, std::string gener, std::string reader);
 
 };
 }  // namespace VnV

@@ -308,10 +308,10 @@ void RunTime::runUnitTests(VnV_Comm comm) {
   UnitTestStore::getUnitTestStore().runAll(comm, false);
 }
 
-void RunTime::generateOutputTree(VnV_Comm comm, std::string config, std::string generator, std::string readerName) {
+void RunTime::generateOutputTree(VnV_Comm comm, std::string outDir , std::string filename, std::string config, std::string generator, std::string readerName) {
     std::unique_ptr<Reader::ITreeGenerator> treeGen = OutputReaderStore::instance().getTreeGenerator(generator);
     std::unique_ptr<Reader::IReader> reader = OutputReaderStore::instance().getReader(readerName);
-    treeGen->generateTree(reader->readFromFile(config), config);
+    treeGen->generateTree(outDir, reader->readFromFile(filename, config), config);
 }
 
 void RunTime::printRunTimeInformation() {

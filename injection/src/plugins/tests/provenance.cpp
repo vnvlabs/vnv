@@ -30,6 +30,7 @@ class provenance : public ITest {
     {
         // Add the current working directory
         std::string currentWorkingDirectory(DistUtils::getCurrentDirectory());
+
         engine->Put(comm,"cwd", currentWorkingDirectory);
     }
 

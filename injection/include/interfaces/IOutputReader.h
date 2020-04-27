@@ -29,11 +29,14 @@ class IInjectionPointNode;
 class IUnitTestNode;
 
 class DataBase {
+private:
+    std::string id;
+
 public:
     enum class DataType { Bool, Integer, Float, Double, String, Long, Array, Map, Log, Documentation, InjectionPoint, Info, Test, UnitTest };
     DataType dataType;	
     bool check(DataType type);
-    DataBase(DataType type);
+    DataBase(std::string id, DataType type);
     DataType getType();
     IBoolNode* getAsBoolNode();
     IDoubleNode* getAsDoubleNode();
@@ -49,6 +52,8 @@ public:
     ITestNode* getAsTestNode();
     IUnitTestNode* getAsUnitTestNode();
     IMapNode* getAsMapNode();
+
+    std::string getId();
     virtual ~DataBase();
     virtual std::string toString();
 
@@ -56,7 +61,7 @@ public:
 
 class IMapNode : public DataBase {
 public:
-     IMapNode();
+     IMapNode(std::string id);
      virtual DataBase* get(std::string key) = 0;
      virtual IMapNode* add(std::string key, std::shared_ptr<DataBase> v) = 0;
      virtual bool contains(std::string key) = 0;
@@ -69,7 +74,7 @@ public:
 // ArrayNode is an array of DataNodes.
 class IArrayNode : public DataBase {
 public:
-     IArrayNode();
+     IArrayNode(std::string id);
      virtual DataBase* get(std::size_t idx) = 0;
      virtual std::size_t size() = 0;
      virtual IArrayNode* add(std::shared_ptr<DataBase> data) = 0;
@@ -78,49 +83,49 @@ public:
 
 class IBoolNode : public DataBase {
 public:
-     IBoolNode();
+     IBoolNode(std::string id);
     virtual bool getValue() = 0;
      virtual ~IBoolNode();
 };
 
 class IDoubleNode : public DataBase {
 public:
-     IDoubleNode();
+     IDoubleNode(std::string id);
      virtual double getValue()=0;
      virtual ~IDoubleNode();
 };
 
 class IIntegerNode : public DataBase {
  public:
-     IIntegerNode();
+     IIntegerNode(std::string id);
      virtual int getValue()=0;
      virtual ~IIntegerNode();
 } ;
 
 class ILongNode : public DataBase {
 public:
-     ILongNode();
+     ILongNode(std::string id);
      virtual long getValue()=0;
      virtual ~ILongNode();
 } ;
 
 class IStringNode : public DataBase {
 public:
-     IStringNode();
+     IStringNode(std::string id);
      virtual std::string getValue()=0;
      virtual ~IStringNode();
 } ;
 
 class IFloatNode : public DataBase {
 public:
-     IFloatNode();
+     IFloatNode(std::string id);
      virtual float getValue()=0;
      virtual ~IFloatNode();
 } ;
 
 class IInfoNode : public DataBase {
 public:
-     IInfoNode();
+     IInfoNode(std::string id);
      virtual std::string getTitle()=0;
      virtual long getDate()=0;
      virtual ~IInfoNode();
@@ -128,7 +133,7 @@ public:
 
 class ITestNode : public DataBase {
 public:
-     ITestNode();
+     ITestNode(std::string id);
      virtual std::string getPackage()=0;
      virtual std::string getName()=0;
      virtual IArrayNode* getData()=0;
@@ -138,7 +143,7 @@ public:
 
 class IInjectionPointNode : public DataBase {
 public:
-     IInjectionPointNode();
+     IInjectionPointNode(std::string id);
      virtual std::string getPackage() = 0;
      virtual std::string getName() = 0;
      virtual IArrayNode* getTests() = 0;
@@ -148,7 +153,7 @@ public:
 
 class IDocumentationNode : public DataBase {
 public:
-    IDocumentationNode();
+    IDocumentationNode(std::string id);
     virtual std::string getPackage()=0;
     virtual std::string getName()=0;
     virtual IArrayNode* getData()=0;
@@ -157,7 +162,7 @@ public:
 
 class ILogNode : public DataBase {
 public:
-    ILogNode();
+    ILogNode(std::string id);
     virtual std::string getPackage()=0;
     virtual std::string getLevel()=0;
     virtual std::string getMessage()=0;
@@ -168,7 +173,7 @@ public:
 
 class IUnitTestNode  : public DataBase {
 public:
-    IUnitTestNode();
+    IUnitTestNode(std::string id);
     virtual std::string getName() =0;
     virtual std::string getPackage()=0;
     virtual IArrayNode* getChildren()= 0;
@@ -189,32 +194,35 @@ public:
 class ITreeGenerator {
 public:
     //virtual void generateTree(std::shared_ptr<IRootNode> root, nlohmann::json &config) = 0;
-    virtual void generateTree(const IRootNode* root, std::string config) = 0;
+    virtual void generateTree(std::string outputDirectory, const IRootNode* root, std::string config) = 0;
 };
 
 class IReader {
 public:
-    virtual IRootNode* readFromFile(std::string config) = 0;
+    virtual IRootNode* readFromFile(std::string filename, std::string config) = 0;
     //virtual std::shared_ptr<IRootNode> readFromFile(nlohmann::json config) = 0;
 };
 
 class ReaderWrapper {
 private:
+    std::string filename;
+    std::string readerConfig;
     std::unique_ptr<IReader> reader;
 public:
-    ReaderWrapper(std::string readerName);
-    IRootNode* get(std::string config);
+    ReaderWrapper(std::string readerName, std::string filename, std::string config);
+    IRootNode* get();
 };
 
 class TreeWrapper {
 private:
+    std::string treeConfig;
     std::unique_ptr<ITreeGenerator> generator;
 public:
-    TreeWrapper(std::string name);
-    void generateTree(std::string config, IRootNode* node);
+    TreeWrapper(std::string name,std::string config);
+    void generateTree(std::string outputDirectory, IRootNode* node);
 };
 
-void VnVInit(std::vector<char*> args, std::string config);
+void VnVInit(std::vector<std::string> args, std::string config);
 void VnVFinalize();
 
 }

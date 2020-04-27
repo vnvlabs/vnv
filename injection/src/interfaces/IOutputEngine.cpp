@@ -163,24 +163,31 @@ void OutputEngineManager::print() {
 void OutputEngineManager::Put(VnV_Comm comm, std::string variableName, const double& value) {
    getOutputEngine()->Put(comm,variableName,value);
 }
+
 void OutputEngineManager::Put(VnV_Comm comm, std::string variableName, const int& value) {
    getOutputEngine()->Put(comm,variableName,value);
 }
+
 void OutputEngineManager::Put(VnV_Comm comm, std::string variableName, const float& value) {
    getOutputEngine()->Put(comm,variableName,value);
 }
+
 void OutputEngineManager::Put(VnV_Comm comm,std::string variableName, const long& value) {
    getOutputEngine()->Put(comm,variableName,value);
 }
+
 void OutputEngineManager::Put(VnV_Comm comm,std::string variableName, const json& value) {
-    getOutputEngine()->Put(comm,variableName,value);
+   getOutputEngine()->Put(comm,variableName,value);
 }
+
 void OutputEngineManager::Put(VnV_Comm comm,std::string variableName, std::string serializer, std::string inputType, void* object) {
    getOutputEngine()->Put(comm,variableName,serializer,inputType, object);
 }
+
 void OutputEngineManager::Put(VnV_Comm comm,std::string variableName, const std::string& value) {
    getOutputEngine()->Put(comm,variableName,value);
 }
+
 void OutputEngineManager::Log(VnV_Comm comm,const char * packageName, int stage, std::string level, std::string message) {
    getOutputEngine()->Log(comm,packageName,stage,level, message);
 }
