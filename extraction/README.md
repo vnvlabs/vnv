@@ -1,5 +1,12 @@
 # VnV Processor
 
+install clang on ubuntu:
+
+sudo apt install clang-9 (not sure if needed) 
+sudo apt install libclang-9-dev (definetly needed) 
+
+
+
 This is a first attempt at writing a clang tool for 
 - checking that the types passed as parameters are correct
 - generating a injection point configuration file for a library. 

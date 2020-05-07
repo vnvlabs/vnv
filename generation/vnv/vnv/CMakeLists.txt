@@ -1,18 +1,7 @@
 
 
-# SWIG: use standard target name.
-if(POLICY CMP0078)
-  cmake_policy(SET CMP0078 NEW)
-endif()
 
-# SWIG: use SWIG_MODULE_NAME property.
-if(POLICY CMP0086)
-  cmake_policy(SET CMP0086 NEW)
-endif()
-
-find_package(SWIG REQUIRED)
 include(${SWIG_USE_FILE})
-find_package(PythonLibs)
 
 set_property(SOURCE IOutputReader.i PROPERTY CPLUSPLUS ON)
 set_property(SOURCE IOutputReader.i PROPERTY SWIG_MODULE_NAME VnVReader)
