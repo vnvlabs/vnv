@@ -72,7 +72,9 @@ void Logger::log(std::string pname, std::string level, std::string format) {
     auto it = logs.find(level);
     if (it != logs.end() && !it->second) return;
 
-    if ( engine ) {
+    // If we're logging using an output engine, make sure that it is initialized before trying to use it.
+    // If it's not then log to fileptr.
+    if ( engine && OutputEngineStore::getOutputEngineStore().isInitialized() ) {
        OutputEngineStore::getOutputEngineStore().getEngineManager()->getOutputEngine()->Log(pname.c_str(), stage.size(), level, format );
     } else {
         std::ostringstream oss;
@@ -144,7 +146,7 @@ void Logger::setLog(const std::string& filename) {
   } else if (filename.compare("stderr") == 0) {
     fileptr = &std::cerr;
   } else if (filename.compare("engine") == 0) {
-    fileptr = nullptr;
+    fileptr = &std::cerr; // Log to stderr until engine is configured
     engine = true;
   } else {
     std::ofstream fp;
