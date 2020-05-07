@@ -19,7 +19,7 @@ In this project, RNET and ORNL are developing **VnV: a C/C++ software package th
 - **Efficiency:** Performing V&V tests in a distributed environment will be expensive, both computationally and due to the data movement required to support generic domain decomposition. The VnV framework will offer functionality for offloading tests to external processes. This will significantly reduce the run time costs of completing V&V using the VnV framework.
 - **Documentation Generation:** With software packages under almost constant development, and new and improved packages being released on a regular basis, keeping an up-to-date V&V report is an almost impossible task. The VnV toolkit will include automatic VnV report generation in the form of a server-less HTML web page. The report will be built using an extended markdown format with support for standard markdown formatting, latex formatting, images, videos, self-sorting tables, two-dimensional charts, and three-dimensional visualization.
  
-![](figures/VnVOut.png)
+![](docs/figures/VnVOut.png)
 
 *The VnV toolkit. Here, green boxes represent core functionalities. Developer interactions are shown in blue, runtime interactions are shown in orange and post-processing interactions are shown in black.*
 
