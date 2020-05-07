@@ -30,7 +30,7 @@
 namespace VnV {
 
 
-   /**
+/**
  *  Internal. An internal namespace is used in a effort to "hide"
  * the Logger class. All logging should go through the Logging macros defined
  * above. (so they can be removed at compile time when needed)
@@ -66,8 +66,6 @@ class Logger {
    bool locked = false; /**< has the logger been configured */
    std::set<std::string> packageBlackList;
    std::string outFileName;
-   /**
-
 
   /**
    * @arg level The level to which this log should be written.
