@@ -7,10 +7,6 @@
 #  include <mpi.h>
 #endif
 
-#if defined(__APPLE__)
-#include <link.h>
-#endif
-
 #include <unistd.h>
 
 #include "c-interfaces/Logging.h"
