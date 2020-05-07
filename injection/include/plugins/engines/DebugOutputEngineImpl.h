@@ -96,13 +96,13 @@ class DebugEngineWrapper : public OutputEngineManager {
   /**
    * @brief finalize
    */
-  void finalize();
+  void finalize() override;
 
   /**
    * @brief set
    * @param config
    */
-  void set(json& config);
+  void set(json& config) override;
 
   /**
    * @brief endInjectionPoint
@@ -139,7 +139,7 @@ class DebugEngineWrapper : public OutputEngineManager {
    * @brief getOutputEngine
    * @return
    */
-  IOutputEngine* getOutputEngine();
+  IOutputEngine* getOutputEngine() override;
 };
 
 }  // namespace VnV
