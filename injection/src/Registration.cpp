@@ -3,37 +3,9 @@
   @file Registration.cpp
 **/
 //Core VnV Registration functions.
-
-#include "Registration.h"
+#include <string>
 #include "base/InjectionPointStore.h"
-#include "interfaces/ITest.h"
-
-#include "base/OutputReaderStore.h"
-
-#ifdef WITH_ADIOS
-  #include "plugins/engines/AdiosOutputEngineImpl.h"
-#endif
-
-#include "plugins/engines/DebugOutputEngineImpl.h"
-#include "plugins/engines/jsonoutputengine.h"
-#include "plugins/readers/BasicOutputReaderImpl.h"
-
-namespace VnV {
- namespace {
-#ifdef WITH_ADIOS
-    OutputEngineManager* AdiosEngineBuilder() { return new AdiosWrapper(); }
-#endif
-    OutputEngineManager* DebugEngineBuilder() { return new DebugEngineWrapper();}
-    OutputEngineManager* JsonEngineBuilder() { return new JsonEngineWrapper();}
-    Reader::IReader* BasicReaderBuilder() { return new BasicOutputReaderImpl();}
- }
-}
-
-namespace ProvenanceTest {
-    VnV::ITest* maker(VnV::TestConfig config);
-    json declare();
-}
-
+#include "Registration.h"
 
 static const std::string initializationConfig = R"(
 {
@@ -41,7 +13,7 @@ static const std::string initializationConfig = R"(
    "parameters" : {
         "argc" : "int*" ,
         "argv" : "char***" ,
-        "configFile" : "std::string"
+        "config" : "json"
    },
    "documentation" : {
       "type" : "SINGLE",
@@ -54,21 +26,18 @@ static const std::string initializationConfig = R"(
 
 namespace VnV {
   namespace Registration {
+    void RegisterBuiltinEngines();
+    void RegisterBuiltinTests();
+    void RegisterBuiltinUnitTests();
+    
     void registerVnV() {
-
-        // Register the engines.
-#ifdef WITH_ADIOS
-        VnV::registerEngine("adios", VnV::AdiosEngineBuilder);
-#endif
-        VnV::registerEngine("debug",VnV::DebugEngineBuilder);
-
-        VnV::registerEngine("json", VnV::JsonEngineBuilder);
-        //Register the tests.
-        VnV::registerTest("provenance", ProvenanceTest::maker, ProvenanceTest::declare );
-
-        VnV::registerReader("basic", VnV::BasicReaderBuilder);
-
-        VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint(initializationConfig);
+         //Register the engines
+         RegisterBuiltinEngines();
+         RegisterBuiltinTests();
+         RegisterBuiltinUnitTests();
+ 
+         //Register the injection points.
+         VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint(initializationConfig);
     }
   }
 }

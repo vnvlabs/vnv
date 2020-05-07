@@ -19,6 +19,9 @@ static const json __vv_schema__ = R"(
     "logging" : {
        "$ref": "#/definitions/logger"
     },
+    "unit-testing" : {
+       "$ref" : "#/definitions/unit-testing"
+    },
     "testLibraries": {
       "$ref": "#/definitions/testLibraries"
     },
@@ -81,6 +84,14 @@ static const json __vv_schema__ = R"(
           "run"
         ]
       }
+    },
+    "unit-testing" : {
+       "type" : "object",
+       "properties" : {
+          "runTests" : {"type" : "boolean"},
+          "config" : {"type" : "object"}
+       },
+       "required" : ["runTests","config"]
     },
     "logger": {
     "description" : "VnV Logging Configuration",

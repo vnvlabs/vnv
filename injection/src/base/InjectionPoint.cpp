@@ -83,7 +83,7 @@ void InjectionPoint::runTests() {
   if ( callbackType > 0  ) {
       wrapper->testStartedCallBack(comm, "__internal__");
       if (callbackType == 1) {
-          OutputEngineWrapper engineWraper = {static_cast<void*>(wrapper)};
+          IOutputEngineWrapper engineWraper = {static_cast<void*>(wrapper->getOutputEngine())};
           ParameterSetWrapper paramWrapper = {static_cast<void*>(&parameterMap)};
          (*cCallback)(comm, &paramWrapper,&engineWraper);
       } else {

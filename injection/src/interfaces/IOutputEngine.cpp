@@ -10,6 +10,8 @@
 #include "base/InjectionPoint.h"
 #include "base/DocumentationStore.h"
 #include "c-interfaces/Documentation.h"
+#include "base/exceptions.h"
+#include<stdarg.h>
 
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
@@ -50,15 +52,6 @@ std::string VariableEnumFactory::toString(VariableEnum e) {
         throw VnVExceptionBase("VariableEnumFactory::toString: Unhandled Variable Enum Type");
 }
 
-void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const double& /**value**/){throw VnVExceptionBase("Engine Does not support type double");}
-void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const int& /**value**/){throw VnVExceptionBase("Engine Does not support type int");}
-void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const float& /**value**/){throw VnVExceptionBase("Engine Does not support type float");}
-void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const long& /**value**/){throw VnVExceptionBase("Engine Does not support type long");}
-void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const std::string& /**value**/){throw VnVExceptionBase("Engine Does not support type string");}
-void IOutputEngine::Put(VnV_Comm comm,std::string /*variableName*/, const json& /**value**/){throw VnVExceptionBase("Engine Does not support type json");}
-void IOutputEngine::Log(VnV_Comm comm,const char *, int, std::string, std::string) { throw VnVExceptionBase("Engine does not support in engine logging");}
-
-#include<stdarg.h>
 
 void IOutputEngine::Put(VnV_Comm comm, std::string variableName, std::string serializer, std::string inputType, void* object) {
     auto it = SerializerStore::getSerializerStore().getSerializerByName(serializer);
@@ -70,33 +63,7 @@ void IOutputEngine::Put(VnV_Comm comm, std::string variableName, std::string ser
     }
 }
 
-
-IOutputEngine::~IOutputEngine() {}
-
-
-std::string IOutputEngine::getIndent(int stage) {
-    std::string s = "";
-    for ( int i = 0; i < std::max(0,stage); i++) s+= "\t";
-    return s;
-}
-
-static json __default_configuration_schema__ = R"(
-
-{
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://rnet-tech.net/vv.schema.json",
-  "title": "Basic VV RunTime Schema",
-  "description": "Schema for a VnV runtime Configuration file",
-  "type": "object"
-})"_json;
-
-
-
-json OutputEngineManager::getConfigurationSchema() {
-    return __default_configuration_schema__;
-}
-
-void OutputEngineManager::_set(json& inputjson) {
+void OutputEngineManager::set(json& inputjson) {
   json schema = getConfigurationSchema();
 
   if (!schema.empty()) {
@@ -104,7 +71,7 @@ void OutputEngineManager::_set(json& inputjson) {
     validator.set_root_schema(schema);
     validator.validate(inputjson);
   }
-  set(inputjson);
+  setFromJson(inputjson);
 }
 
 void OutputEngineManager::document(VnV_Comm comm,std::string pname, std::string id, NTV &map) {
@@ -147,55 +114,13 @@ void OutputEngineManager::document(VnV_Comm comm,std::string pname, std::string 
     documentationEndedCallBack(comm,pname,id);
 }
 
-void OutputEngineManager::documentationStartedCallBack(VnV_Comm comm,std::string pname, std::string id) {
-    VnV_Info("Starting Documentation For %s:%s", pname.c_str(), id.c_str());
-    VnV_Warn("Documentation Started Callback not implemented for the Engine Manager.");
+IOutputEngine* OutputEngineManager::getOutputEngine() {
+    return dynamic_cast<IOutputEngine*>(this);
 }
-void OutputEngineManager::documentationEndedCallBack(VnV_Comm comm, std::string pname, std::string id) {
-    VnV_Info("Ending Documentation For %s:%s", pname.c_str(), id.c_str());
-    VnV_Warn("Documentation Ended Callback not implemented for the Engine Manager.");
-}
-
-void OutputEngineManager::print() {
-    VnV_Info("Print not implemented for this Output Engine Manager");
-}
-
-void OutputEngineManager::Put(VnV_Comm comm, std::string variableName, const double& value) {
-   getOutputEngine()->Put(comm,variableName,value);
-}
-
-void OutputEngineManager::Put(VnV_Comm comm, std::string variableName, const int& value) {
-   getOutputEngine()->Put(comm,variableName,value);
-}
-
-void OutputEngineManager::Put(VnV_Comm comm, std::string variableName, const float& value) {
-   getOutputEngine()->Put(comm,variableName,value);
-}
-
-void OutputEngineManager::Put(VnV_Comm comm,std::string variableName, const long& value) {
-   getOutputEngine()->Put(comm,variableName,value);
-}
-
-void OutputEngineManager::Put(VnV_Comm comm,std::string variableName, const json& value) {
-   getOutputEngine()->Put(comm,variableName,value);
-}
-
-void OutputEngineManager::Put(VnV_Comm comm,std::string variableName, std::string serializer, std::string inputType, void* object) {
-   getOutputEngine()->Put(comm,variableName,serializer,inputType, object);
-}
-
-void OutputEngineManager::Put(VnV_Comm comm,std::string variableName, const std::string& value) {
-   getOutputEngine()->Put(comm,variableName,value);
-}
-
-void OutputEngineManager::Log(VnV_Comm comm,const char * packageName, int stage, std::string level, std::string message) {
-   getOutputEngine()->Log(comm,packageName,stage,level, message);
-}
-
-
 
 void VnV::registerEngine(std::string name, engine_register_ptr r) {
   OutputEngineStore::getOutputEngineStore().registerEngine(name, r);
 }
 
-OutputEngineManager::~OutputEngineManager() {}
+
+

@@ -7,6 +7,9 @@ set(PROJECT_VERSION 1.0.0)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 14)
 
+if(POLICY CMP0079)
+  cmake_policy(SET CMP0079 NEW)
+endif()
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type selected, default to RelWithDebInfo")
@@ -14,16 +17,19 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 option(BUILD_EXAMPLES "Build the examples" ON)
+
 option(BUILD_TESTS "Build the test runner" ON)
+if (BUILD_TESTS) 
+  add_subdirectory(test)
+endif()
 
 add_subdirectory(injection)
+add_subdirectory(extraction)
+add_subdirectory(generation)
 
 if (BUILD_EXAMPLES) 
   add_subdirectory(examples)
 endif()
 
-if (BUILD_TESTS) 
-  add_subdirectory(test)
-endif()
 
 add_subdirectory(docs)

@@ -13,7 +13,8 @@
 #include "interfaces/ITest.h"
 #include "c-interfaces/Logging.h"
 
-using namespace VnV;
+namespace  VnV {
+
 
 namespace ProvenanceTest {
 
@@ -24,8 +25,8 @@ class provenance : public ITest {
 
     }
 
-    TestStatus getProvHistory(VnV_Comm comm, OutputEngineManager* engine, int argc, char** argv,
-                     std::string configFile) {
+    TestStatus getProvHistory(VnV_Comm comm, IOutputEngine* engine, int argc, char** argv,
+                     json configFile) {
 
     {
         // Add the current working directory
@@ -90,23 +91,17 @@ class provenance : public ITest {
          }
          json x = ins;
          engine->Put(comm,"input-files",x);
-
       }
    }
    {
      //Throw the VnV configuration file into the output as well.
-     json conf;
-     conf["name"] = DistUtils::getAbsolutePath(configFile);
-
-     std::ifstream ff(configFile);
-     conf["file"] = json::parse(ff);
-     engine->Put(comm,"vnv-config", conf);
+     engine->Put(comm,"vnv-config", configFile);
     }
 
     return SUCCESS;
   }
 
-   void writeTree(OutputEngineManager *engine) {
+   void writeTree(IOutputEngine *engine) {
        // TODO -- If the stage is looped. We can track changes to the file tree on output and
        // use that to track the outputs of the execution from the current working directory.
    }
@@ -115,7 +110,7 @@ class provenance : public ITest {
        // which output files are generated during the Current looped injection point.
    }
 
-   virtual TestStatus runTest(VnV_Comm comm, OutputEngineManager* engine, InjectionPointType type, std::string stageId) override {
+   virtual TestStatus runTest(VnV_Comm comm, IOutputEngine* engine, InjectionPointType type, std::string stageId) override {
       TestStatus r = SUCCESS;
 
       if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
@@ -123,7 +118,7 @@ class provenance : public ITest {
             VnV_Debug("RUNNING PROVENANCE TEST");
             //Get the variables.
             GetRef(c,"argc",int*);
-            GetRef(f,"config",std::string);
+            GetRef(f,"config",json);
             GetRef(v,"argv",char***);
             r = getProvHistory(comm,engine, *c, *v, f);
      }
@@ -158,12 +153,12 @@ json declare() {
             "parameters" : {
                "argc" : "int*",
                "argv" : "char***",
-               "config" : "std::string"
+               "config" : "json"
             },
             "requiredParameters" : ["argc","argv","config"],
             "io-variables" : {}
     })"_json;
 }
 }
-
+}
 #endif

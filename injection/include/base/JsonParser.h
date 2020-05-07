@@ -44,6 +44,11 @@ struct InjectionPointInfo {
    bool runInternal;
 };
 
+struct UnitTestInfo {
+    bool runUnitTests;
+    json unitTestConfig;
+};
+
 /**
  * @brief The EngineInfo struct
  *
@@ -55,11 +60,13 @@ struct RunInfo {
   std::map<std::string, InjectionPointInfo> injectionPoints; /**< all injection points with tests */
   json toolConfig;
 
+  UnitTestInfo unitTestInfo;
   LoggerInfo logInfo;
   EngineInfo engineInfo; /**< Information about the IO engine */
 
   bool error; /**< Was there an error when parsing */
   std::string errorMessage; /**< What was the error message (if there was one) */
+
 };
 
 /**
@@ -115,6 +122,14 @@ class JsonParser {
    * Load the information about the engine.
    */
   EngineInfo getEngineInfo(const json& engineJson);
+
+  /**
+   * @brief getUnitTestInfo
+   * @param unitTestJson The json found in main["unit-testing"]
+   * @return
+   */
+  UnitTestInfo getUnitTestInfo(const json& unitTestJson);
+
 
   /**
    * @brief addTest

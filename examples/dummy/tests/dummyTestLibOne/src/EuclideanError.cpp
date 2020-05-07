@@ -16,7 +16,7 @@ class EuclideanError : public ITest {
 
     EuclideanError(TestConfig config) : ITest(config) {}
 
-  TestStatus runTest(VnV_Comm comm,OutputEngineManager* engine, int testStage,
+  TestStatus runTest(VnV_Comm comm,IOutputEngine* engine, int testStage,
                      std::vector<double> measured,
                      std::vector<double> exact) {
     if (measured.size() != exact.size()) {
@@ -44,7 +44,7 @@ class EuclideanError : public ITest {
 
 
 
-  TestStatus runTest(VnV_Comm comm,OutputEngineManager *engine, InjectionPointType type, std::string stageId) {
+  TestStatus runTest(VnV_Comm comm, IOutputEngine *engine, InjectionPointType type, std::string stageId) {
     GetRef(x,"measured",std::vector<double>);
     GetRef(y,"exact", std::vector<double>);
     return runTest(comm,engine, 0, x, y);

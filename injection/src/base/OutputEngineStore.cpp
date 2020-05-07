@@ -17,17 +17,19 @@ bool OutputEngineStore::isInitialized(){
 }
 
 void OutputEngineStore::setEngineManager(std::string type, json& config) {
+  if (manager != nullptr) {
+        manager->finalize();
+        manager.reset();
+  }
+
   auto it = registeredEngines.find(type);
   if (it != registeredEngines.end()) {
-    manager = it->second();
+    manager.reset(it->second());
     manager->set(config);
     initialized = true;
     engineName = type;
     return;
   }
-
-  //VnV_Error("Invalid Engine Name: {}", type);
-  printAvailableEngines();
 
   throw VnVExceptionBase("Invalid Engine Name");
 }
@@ -66,8 +68,19 @@ void OutputEngineStore::registerEngine(std::string name,
   registeredEngines.insert(std::make_pair(name, engine_ptr));
 }
 
+Nodes::IRootNode* OutputEngineStore::readFile(std::string filename, std::string engineType, json& config) {
+      auto it = registeredEngines.find(engineType);
+      if (it != registeredEngines.end()) {
+         std::unique_ptr<OutputEngineManager> engine(it->second());
+         engine->set(config);
+         Nodes::IRootNode* rootNode = engine->readFromFile(filename);
+         engine->finalize();
+         return rootNode;
+      }
+      throw VnVExceptionBase("Invalid Engine Name");
+}
 
 OutputEngineManager* OutputEngineStore::getEngineManager() {
-  if (manager != nullptr) return manager;
+  if (manager != nullptr) return manager.get();
   throw VnVExceptionBase("Engine Not Initialized Error");
 }

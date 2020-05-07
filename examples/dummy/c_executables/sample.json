@@ -33,7 +33,7 @@
 				    "parameters": {
 					    "argc" : "argc",
 					    "argv" : "argv",
-					    "config" : "configFile"
+					    "config" : "config"
 				    }
 				}
 			}

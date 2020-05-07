@@ -10,7 +10,7 @@
 extern "C" {
 
 void  VnV_init(int* argc, char*** argv, const char* filename, registrationCallBack callback) {
-  VnV::RunTime::instance().Init(argc, argv, filename,&callback);
+  VnV::RunTime::instance().InitFromFile(argc, argv, filename,&callback);
 }
 
 void VnV_finalize() {
@@ -21,6 +21,8 @@ void VnV_runUnitTests(VnV_Comm comm ) {
   VnV::RunTime::instance().runUnitTests(comm);
 }
 
-
+void VnV_readFile(const char* filename) {
+    VnV::RunTime::instance().readFile(filename);
+}
 
 }

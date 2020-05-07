@@ -89,9 +89,16 @@ EngineInfo JsonParser::getEngineInfo(const json& engine) {
   return einfo;
 }
 
+UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json &unitTestJson) {
+    UnitTestInfo info;
+    info.runUnitTests = unitTestJson["runTests"].get<bool>();
+    info.unitTestConfig = unitTestJson["config"];
+    return info;
+}
+
+
 RunInfo JsonParser::_parse(const json& main) {
   RunInfo info;
-
   if (main.find("logging") != main.end())
     info.logInfo = getLoggerInfo(main["logging"]);
   else {
@@ -134,6 +141,14 @@ RunInfo JsonParser::_parse(const json& main) {
   } else {
     info.engineInfo = getEngineInfo(
         R"({"type" : "debug" , "config" : {} })"_json);
+  }
+
+  // Get the output Engine information.
+  if (main.find("unit-testing") != main.end()) {
+    info.unitTestInfo = getUnitTestInfo(main["unit-testing"]);
+  } else {
+    info.unitTestInfo = getUnitTestInfo(
+        R"({"runTests" : false , "config" : {} })"_json);
   }
 
   // Get the test libraries infomation.

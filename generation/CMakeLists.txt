@@ -1,0 +1,3 @@
+add_subdirectory(vnv)
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/example DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

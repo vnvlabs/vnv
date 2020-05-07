@@ -63,14 +63,6 @@ namespace VariadicUtils {
  */
 std::string getFileExtension(const std::string& fileName);
 
-/**
- * @brief MD5
- * @param filename
- * @return
- *
- * @todo A really bad hash algo for testing.
- */
-std::string hashfile(std::string filename);
 
 
 }  // namespace VnV

@@ -20,7 +20,6 @@
 #include "base/OutputEngineStore.h"
 #include "base/OptionsParserStore.h"
 #include "base/UnitTestStore.h"
-#include "base/OutputReaderStore.h"
 #include "Registration.h"
 
 #include "c-interfaces/Logging.h"
@@ -220,43 +219,71 @@ void RunTime::loadInjectionPoints(json _json) {
   loadRunInfo(info,nullptr);
 }
 
-bool RunTime::Init(int* argc, char*** argv, std::string configFile, registrationCallBack *callback) {
+namespace {
+bool initMPI(int* argc, char*** argv) {
   int flag = 0;
 
 #ifdef WITH_MPI
   MPI_Initialized(&flag);
   if (!flag) {
     MPI_Init(argc, argv);
-
-    // Note that we initialized MPI, so, we should finalize it as well.
-    finalize_mpi = true;
+    return true;
   }
+  return false;
 #endif
 
+}
+
+}
+// Cant overload the name because "json" can be a "string".
+bool RunTime::InitFromJson(int* argc, char*** argv, json& config, registrationCallBack *callback) {
+  finalize_mpi = initMPI(argc,argv);
+
   JsonParser parser;
-  std::ifstream in(configFile);
-  RunInfo info = parser.parse(in);
+  RunInfo info = parser.parse(config);
+  runTests = configure(info,callback);
 
-  runTests = info.runTests;
-  if (runTests) {
-   loadRunInfo(info,callback);
-   printRunTimeInformation();
-
-       /**
-       * INJECTION POINT FOR INITIALIZATION.
-       *
-       **/
-       INJECTION_LOOP_BEGIN_C(VnV_Comm_World, initialization, [&](VnV_Comm comm, VnVParameterSet &p, OutputEngineManager *engine){
+  INJECTION_LOOP_BEGIN_C(VnV_Comm_World, initialization, [&](VnV_Comm comm, VnVParameterSet &p, OutputEngineManager *engine){
            for (auto it : p ) {
                std::string t = it.second.getType() + "(rtti:" + it.second.getRtti() + ")";
                engine->Put(comm, it.first, t);
            }
-       },argc, argv, configFile);
+  },argc, argv, config);
+}
+
+bool RunTime::InitFromFile(int* argc, char*** argv, std::string configFile, registrationCallBack *callback) {
+
+  std::ifstream fstream(configFile);
+
+  json mainJson;
+  if (!fstream.good()) {
+    throw VnVExceptionBase("Invalid Input File Stream");
+  }
+
+  try {
+     mainJson = json::parse(fstream);
+  } catch (json::exception e) {
+     throw VnVExceptionBase(e.what());
+  }
+
+  return InitFromJson(argc,argv,mainJson,callback);
+
+}
+
+bool RunTime::configure(RunInfo info, registrationCallBack *callback) {
+
+  runTests = info.runTests;
+  if (runTests) {
+      loadRunInfo(info,callback);
+
+      if (info.unitTestInfo.runUnitTests) {
+          runUnitTests(VnV_Comm_World);
+      }
+
   } else if (info.error) {
     runTests = false;
     processToolConfig(info.toolConfig);
   }
-
 
   return runTests;
 }
@@ -308,12 +335,9 @@ void RunTime::runUnitTests(VnV_Comm comm) {
   UnitTestStore::getUnitTestStore().runAll(comm, false);
 }
 
-void RunTime::generateOutputTree(VnV_Comm comm, std::string outDir , std::string filename, std::string config, std::string generator, std::string readerName) {
-    std::unique_ptr<Reader::ITreeGenerator> treeGen = OutputReaderStore::instance().getTreeGenerator(generator);
-    std::unique_ptr<Reader::IReader> reader = OutputReaderStore::instance().getReader(readerName);
-    treeGen->generateTree(outDir, reader->readFromFile(filename, config), config);
+void RunTime::readFile(std::string filename){
+    OutputEngineStore::getOutputEngineStore().getEngineManager()->readFromFile(filename);
 }
-
 void RunTime::printRunTimeInformation() {
         int a = VnV_BeginStage("Runtime Configuration");
         logger.print();

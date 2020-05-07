@@ -7,7 +7,7 @@ void VnV::CppInjection::UnwrapParameterPack(NTV &/*m*/) {
 }
 
 
-void VnV::CppInjection::defaultCallBack(VnV_Comm /*comm*/, std::map<std::string,VnVParameter> &/*params*/, OutputEngineManager* /*engine*/) {
+void VnV::CppInjection::defaultCallBack(VnV_Comm /*comm*/, std::map<std::string,VnVParameter> &/*params*/, IOutputEngine* /*engine*/) {
 
 }
 

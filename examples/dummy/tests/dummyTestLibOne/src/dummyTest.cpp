@@ -14,7 +14,7 @@ class dummyTest : public ITest {
     }
 
 
-    TestStatus runTest(VnV_Comm comm,OutputEngineManager *engine, int testStage, double slope,
+    TestStatus runTest(VnV_Comm comm,IOutputEngine *engine, int testStage, double slope,
                      double intersection) {
 
     std::string s;
@@ -24,7 +24,7 @@ class dummyTest : public ITest {
     return SUCCESS;
   }
 
-  TestStatus runTest(VnV_Comm comm, OutputEngineManager* engine, InjectionPointType type, std::string stageId) {
+  TestStatus runTest(VnV_Comm comm, IOutputEngine* engine, InjectionPointType type, std::string stageId) {
     GetRef(x,"slope",double);
     GetRef(y,"intersection",double);
     return runTest(comm, engine, 0, x, y);

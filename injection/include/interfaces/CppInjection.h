@@ -22,7 +22,7 @@ namespace CppInjection {
 typedef std::map<std::string, std::pair<std::string,void*>> NTV;
 typedef std::function<void(VnV_Comm comm, std::map<std::string,VnVParameter> &ntv, OutputEngineManager *engine)> DataCallback;
 
-void defaultCallBack(VnV_Comm comm, std::map<std::string,VnVParameter> &ntv, OutputEngineManager* engine);
+void defaultCallBack(VnV_Comm comm, std::map<std::string,VnVParameter> &ntv, IOutputEngine* engine);
 
 void UnwrapParameterPack(NTV &m);
 void BeginPoint(VnV_Comm comm, const char* package, const char * id, const DataCallback& callback, NTV &map);

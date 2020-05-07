@@ -123,9 +123,9 @@ bool TestConfig::preLoadParameterSet(std::map<std::string, std::string> &paramet
 TestStatus ITest::_runTest(VnV_Comm comm, OutputEngineManager* engine, InjectionPointType type, std::string stageId) {
     VnV_Debug_MPI(comm,"Runnnig Test %s " , m_config.getName().c_str());
 
-    OutputEngineStore::getOutputEngineStore().getEngineManager()->testStartedCallBack(comm,m_config.getName());
-    TestStatus s = runTest(comm,engine,type,stageId );
-    OutputEngineStore::getOutputEngineStore().getEngineManager()->testFinishedCallBack(comm,
+    engine->testStartedCallBack(comm,m_config.getName());
+    TestStatus s = runTest(comm,engine->getOutputEngine(),type,stageId );
+    engine->testFinishedCallBack(comm,
         (s == SUCCESS) ? true : false);
     return s;
 }

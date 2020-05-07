@@ -181,7 +181,7 @@ class ITest {
    * @param params
    * @return
    */
-  virtual TestStatus runTest(VnV_Comm comm, OutputEngineManager* engine, InjectionPointType type, std::string stageId) = 0;
+  virtual TestStatus runTest(VnV_Comm comm, IOutputEngine* engine, InjectionPointType type, std::string stageId) = 0;
 
   /**
    * @brief getConfigurationJson

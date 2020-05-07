@@ -7,14 +7,9 @@
 
 #include "interfaces/IUnitTester.h"
 
-void parser_callBack();
-void BFSTester_callBack(); 
 //<callback-declare-needle>
 
-
 void callback() {
-    parser_callBack();
-    BFSTester_callBack(); 
     //<callback-generation-needle> 
 }
 

@@ -1,13 +1,8 @@
 
 #Add the adios engine to the target
-option(WITH_ADIOS_ENGINE "Use the Adios Engine" ON)
-option(WITH_BUILT_IN_TESTS "Build the VnV test libraries" ON)
 
 #Add the third party targets ( json-schema-validator TODO github-link)
 add_subdirectory(third-party)
-
-add_subdirectory(clang)
-
 
 add_library(injection SHARED "")
 
@@ -18,63 +13,6 @@ set_target_properties(injection
 
 add_library(Injection::Injection ALIAS injection)
 
-add_subdirectory(python)
-
-
-#Add the Base files to the injection target
-target_sources(injection PRIVATE
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/InjectionPoint.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/InjectionPointStore.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/OutputEngineStore.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/OutputReaderStore.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/exceptions.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/JsonParser.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/Runtime.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/Utilities.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/TestStore.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/TransformStore.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/UnitTestStore.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/SerializerStore.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/DocumentationStore.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/JsonSchema.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/OptionsParserStore.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/base/Logger.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Runtime.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/CJson.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Logging.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Injection.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Wrappers.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/c-interfaces/Documentation.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/CppInjection.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/IOutputEngine.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/IOutputReader.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ISerializer.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITest.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITransform.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/Registration.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/DebugOutputEngineImpl.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/jsonoutputengine.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/readers/BasicOutputReaderImpl.cpp)
-
-if (APPLE)
-    target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/macos/DistUtils.cpp)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/linux/DistUtils.cpp)
-else()
-    message(FATAL_ERROR "Dist is not MACOS or Linux")
-endif()
-
-target_link_libraries(injection PRIVATE dl)
-target_link_libraries(injection PUBLIC jsv::jsv)
-target_link_libraries(injection PRIVATE xxhash::xxhash)
-
-
-if ( WITH_BUILT_IN_TESTS)
-target_sources(injection PRIVATE 
-    ${CMAKE_CURRENT_LIST_DIR}/src/plugins/tests/provenance.cpp)
-endif()
-
-
 
 target_include_directories(injection PRIVATE
                             ${CMAKE_CURRENT_LIST_DIR}/include
@@ -82,17 +20,9 @@ target_include_directories(injection PRIVATE
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
                             $<INSTALL_INTERFACE:include>
                           )
-
 target_compile_definitions(injection PRIVATE -DPACKAGENAME=VnV )
 
-if(WITH_ADIOS_ENGINE)
-find_package(ADIOS2)
-if (ADIOS2_FOUND) 
-  target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/AdiosOutputEngineImpl.cpp)
-  target_link_libraries(injection PRIVATE adios2::adios2 )
-  target_compile_definitions(injection PRIVATE WITH_MPI=1 PRIVATE WITH_ADIOS=1)
-endif()
-endif()
+add_subdirectory(src)
 
 include(GNUInstallDirs)
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/Injection)

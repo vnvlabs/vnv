@@ -8,8 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(test-runner)
 target_sources(test-runner PRIVATE "test-runner.cpp")
-target_sources(test-runner PRIVATE "unit-testers/parser.cpp")
-target_sources(test-runner PRIVATE "./unit-testers/BFSTester.cpp")
 #<needle>
 
 

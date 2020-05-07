@@ -63,7 +63,7 @@ VNVEXTERNC void VnV_finalize();
 
 VNVEXTERNC void VnV_runUnitTests(VnV_Comm comm);
 
-
+VNVEXTERNC void VnV_readFile(const char* filename);
 
 #else // WITHOUT_VNV
 #  define VnV_init(...)

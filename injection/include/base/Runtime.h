@@ -89,6 +89,8 @@ private:
   // TODO Getter and setter.
   RunTimeOptions runTimeOptions;
 
+  bool configure(RunInfo info, registrationCallBack *callback);
+
  public:
   /**
    * @brief Init
@@ -106,7 +108,8 @@ private:
    * information. The Provenance test included in the tests/provenance is
    * designed to work with this injection point in mind.
    */
-  bool Init(int* argc, char*** argv, std::string configFile, registrationCallBack *callback);
+  bool InitFromFile(int* argc, char*** argv, std::string configFile, registrationCallBack *callback);
+  bool InitFromJson(int* argc, char*** argv, json& configFile, registrationCallBack *callback);
 
   bool useAsciiColors();
   /**
@@ -197,8 +200,7 @@ private:
    */
   void runUnitTests(VnV_Comm comm);
 
-  void generateOutputTree(VnV_Comm comm, std::string outDir, std::string filename, std::string config, std::string gener, std::string reader);
-
+  void readFile(std::string filename);
 };
 }  // namespace VnV
 

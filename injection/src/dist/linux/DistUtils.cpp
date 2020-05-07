@@ -24,7 +24,6 @@ json getLibInfo(std::string filepath, unsigned long add) {
     json libJson;
     libJson["name"] = getAbsolutePath(filepath);
     libJson["add"] = add;
-    libJson["hash"] = hashfile(filepath);
     libJson["st_dev"] = result.st_dev;
     libJson["st_gid"] = result.st_gid;
     libJson["st_ino"] = result.st_ino;
