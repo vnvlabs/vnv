@@ -1,19 +1,22 @@
-#include "base/vv-dist-utils.h"
-#include "base/vv-utils.h"
+#include "base/DistUtils.h"
+#include "base/Utilities.h"
 #include <sys/stat.h>
 #include <unistd.h>
+#include <mach-o/dyld.h>
+#include <dlfcn.h>
 
 #include "json-schema.hpp"
-#include "c-interfaces/logging-interface.h"
+#include "c-interfaces/Logging.h"
+#include "c-interfaces/RunTime.h"
 
 using nlohmann::json;
 namespace VnV {
-  namespace DistUtils {
+namespace DistUtils {
 
 json getLibInfo(std::string filepath, unsigned long add) {
 
     struct stat result;
-    stat(filepath.c_str(),&result);
+    stat(filepath.c_str(), &result);
     json libJson;
     libJson["name"] = getAbsolutePath(filepath);
     libJson["add"] = add;
@@ -38,18 +41,91 @@ json getLibInfo(std::string filepath, unsigned long add) {
 }
 
 char* getCurrentDirectory() {
-    return getcwd(NULL,0);
+    return getcwd(NULL, 0);
 }
 
 std::string getAbsolutePath(std::string filename) {
-    VnV_Warn("TODO MacOS function to convert to absoulte file path.");
+    char *x = realpath(filename.c_str(), nullptr);
+    if (x != nullptr) {
+        std::string path(x);
+        free(x);
+        return path;
+    }
     return filename;
 }
 
 void getAllLinkedLibraryData(libData *data) {
-    VnV_Error("Get Linked Libraries Not implemented for MacOs");
+    uint32_t count = _dyld_image_count();
+    for (uint32_t i = 0; i < count; i++) {
+        const char *img_name = _dyld_get_image_name(i);
+        std::string name(img_name);
+        if (name.empty())
+            return;
+        intptr_t img_addr = _dyld_get_image_vmaddr_slide(i);
+        unsigned long add(img_addr);
+        libData *x = static_cast<libData*>(data);
+        x->libs.push_back(DistUtils::getLibInfo(name, add));
+    }
 }
 
+void* loadLibrary(std::string name) {
+    if (name.empty()) {
+        throw "File Name invalid";
+    }
+    void *dllib = dlopen(name.c_str(), RTLD_NOW);
+
+    if (dllib == nullptr) {
+        throw "Could not open shared library";
+    }
+    return dllib;
+}
+
+bool searchLibrary(void *dylib, std::string packageName) {
+    bool ret = false;
+    std::string s = VNV_GET_REGISTRATION + packageName;
+    auto a = VnV_BeginStage(
+            "Searching for VnV Registration Callback with name %s", s.c_str())
+    ;
+
+    void *callback = dlsym(dylib, s.c_str());
+    if (callback != nullptr) {
+        ((registrationCallBack) callback)();
+        ret = true;
+        VnV_Debug("Found it");
+    } else {
+        ret = false;
+    }
+    VnV_EndStage(a);
+    return ret;
+}
+
+bool searchLibrary(std::string name, std::set<std::string> &packageNames) {
+    void *dylib = loadLibrary(name);
+    for (auto it : packageNames) {
+        searchLibrary(dylib, it);
+    }
+    dlclose(dylib);
+    return false;
+}
+
+void callAllLibraryRegistrationFunctions(
+        std::map<std::string, std::string> packageNames) {
+    std::set<std::string> linked;
+    for (auto it : packageNames) {
+        linked.insert(it.first);
+    }
+    uint32_t count = _dyld_image_count();
+    for (uint32_t i = 0; i < count; i++) {
+        const char *img_name = _dyld_get_image_name(i);
+        std::string name(img_name);
+        try {
+            searchLibrary(name, linked);
+        } catch (...) {
+            // VnV_Error("Could not load Shared Library %s", name.c_str());
+            return;
+        }
+    }
+}
 } //namespace Dynamic
 } //namespace VnV
 
