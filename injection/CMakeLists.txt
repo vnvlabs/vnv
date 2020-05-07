@@ -40,8 +40,7 @@ target_sources(injection PRIVATE
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ISerializer.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITest.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/interfaces/ITransform.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/Registration.cpp
-                         ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/DebugOutputEngineImpl.cpp)
+                         ${CMAKE_CURRENT_LIST_DIR}/src/Registration.cpp)
 
 if (APPLE)
     target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/dist/macos/DistUtils.cpp)
@@ -55,14 +54,6 @@ target_link_libraries(injection PRIVATE dl)
 target_link_libraries(injection PUBLIC jsv::jsv)
 target_link_libraries(injection PRIVATE xxhash::xxhash)
 
-
-if ( WITH_BUILT_IN_TESTS)
-target_sources(injection PRIVATE 
-    ${CMAKE_CURRENT_LIST_DIR}/src/plugins/tests/provenance.cpp)
-endif()
-
-
-
 target_include_directories(injection PRIVATE
                             ${CMAKE_CURRENT_LIST_DIR}/include
                             PUBLIC
@@ -72,14 +63,7 @@ target_include_directories(injection PRIVATE
 
 target_compile_definitions(injection PRIVATE -DPACKAGENAME=VnV Framework)
 
-if(WITH_ADIOS_ENGINE)
-find_package(ADIOS2)
-if (ADIOS2_FOUND) 
-  target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src/plugins/engines/AdiosOutputEngineImpl.cpp)
-  target_link_libraries(injection PRIVATE adios2::adios2 )
-  target_compile_definitions(injection PRIVATE WITH_MPI=1 PRIVATE WITH_ADIOS=1)
-endif()
-endif()
+add_subdirectory(src/plugins)
 
 include(GNUInstallDirs)
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/Injection)
