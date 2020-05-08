@@ -60,7 +60,7 @@ class TestStore {
    * @param m
    * @param v
    */
-  void addTest(std::string name, maker_ptr m, declare_test_ptr v);
+  void addTest(std::string package, std::string name, maker_ptr m, declare_test_ptr v);
 
 
   /**

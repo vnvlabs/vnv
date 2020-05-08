@@ -32,7 +32,8 @@ void JsonParser::addInjectionPoint(
     std::map<std::string, InjectionPointInfo> &ips) {
   for (auto& it : ip.items()) {
     std::string name = it.value()["name"].get<std::string>();
-
+    std::string package = it.value()["package"].get<std::string>();
+    std::string key = package + ":" + name;
     auto aip = ips.find(name);
     if (aip != ips.end()) {
       for (auto& test : it.value()["tests"].items()) {
@@ -40,6 +41,8 @@ void JsonParser::addInjectionPoint(
       }
     } else {
       InjectionPointInfo ipInfo;
+      ipInfo.name = name;
+      ipInfo.package = package;
       for (auto test : it.value()["tests"].items()) {
         addTest(test.value(), ipInfo.tests, runScopes);
       }
@@ -50,7 +53,7 @@ void JsonParser::addInjectionPoint(
       }
 
       if (ipInfo.tests.size() > 0 || ipInfo.runInternal ) {
-        ips.insert(std::make_pair(name, ipInfo));
+        ips.insert(std::make_pair(key, ipInfo));
       }
     }
   }

@@ -57,7 +57,7 @@ std::shared_ptr<InjectionPoint> RunTime::getNewInjectionPoint(std::string pname,
   if (runTests) {
 
     std::shared_ptr<InjectionPoint> ipd =
-        InjectionPointStore::getInjectionPointStore().getNewInjectionPoint(id,type,args);
+        InjectionPointStore::getInjectionPointStore().getNewInjectionPoint(pname, id,type,args);
     if (ipd != nullptr) {
         ipd->setInjectionPointType(type,"Begin");
         return ipd;
@@ -71,7 +71,7 @@ std::shared_ptr<InjectionPoint> RunTime::getNewInjectionPoint(std::string pname,
 std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(std::string pname, std::string id, InjectionPointType type, std::string stageId) {
   if (runTests) {
     std::shared_ptr<InjectionPoint> ipd =
-        InjectionPointStore::getInjectionPointStore().getExistingInjectionPoint( id,type);
+        InjectionPointStore::getInjectionPointStore().getExistingInjectionPoint(pname,id,type);
     if (ipd != nullptr) {
         ipd->setInjectionPointType(type,stageId);
         return ipd;
@@ -201,14 +201,12 @@ void RunTime::loadRunInfo(RunInfo &info, registrationCallBack *callback) {
       VnV_Debug("Output Engine Configuration Successful");
   }
 
-  std::map<std::string, std::pair<bool, std::vector<TestConfig>>> configs;
   VnV_Debug("Validating Json Test Configuration Input and converting to TestConfig objects");
   for ( auto it : info.injectionPoints) {
-      configs.insert(std::make_pair(it.first, std::make_pair(it.second.runInternal, TestStore::getTestStore().validateTests(it.second.tests)))) ;
-  }
-  // Load the injection Points and create all the tests.
-  VnV_Debug("Loading Injection Points into Injection Point Store");
-  InjectionPointStore::getInjectionPointStore().addInjectionPoints(configs);
+      auto x = std::make_pair(it.second.runInternal,TestStore::getTestStore().validateTests(it.second.tests));
+      InjectionPointStore::getInjectionPointStore().addInjectionPoint(
+                  it.second.package, it.second.name,x);
+      }
 
 }
 

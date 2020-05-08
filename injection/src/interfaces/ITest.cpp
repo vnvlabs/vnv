@@ -29,6 +29,7 @@ const json& ITest::getConfigurationJson() const {
 void TestConfig::setName(std::string name) { testName = name; }
 
 std::string TestConfig::getName() const { return testName; }
+std::string TestConfig::getPackage() const { return package; }
 
 void TestConfig::print() {
     int a = VnV_BeginStage("Test Configuration %s", getName().c_str());
@@ -42,8 +43,9 @@ void TestConfig::print() {
     VnV_EndStage(a);
 }
 
-TestConfig::TestConfig(std::string name, json &testConfigJson, json &testDeclarationJson) {
+TestConfig::TestConfig(std::string package, std::string name, json &testConfigJson, json &testDeclarationJson) {
   setName(name);
+  this->package = package;
   this->testConfigJson = testConfigJson;
   this->testDeclarationJson = testDeclarationJson;
 }

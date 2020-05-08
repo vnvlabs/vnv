@@ -22,12 +22,14 @@
   "injectionPoints": [
 	  {
 		"name" : "initialization",
-		"tests" : [	
+        "package" : "VnV",
+        "tests" : [
 			{
-				"name" : "provenance",
-				"runScope" : ["all"],
+                "name" : "provenance",
+                "package" : "VnV",
+                "runScope" : ["all"],
 				"config" : {
-                                    "expectedResult" : {},
+                    "expectedResult" : {},
 				    "configuration": {
 				    },
 				    "parameters": {

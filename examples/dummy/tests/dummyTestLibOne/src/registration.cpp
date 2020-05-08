@@ -23,8 +23,8 @@ REGISTER_VNV() {
     VnV_Register_Options(options_schema, options_callback );
 
     // Register the tests.
-    VnV::registerTest("EuclideanError", euclideanError_maker,euclideanError_declare);
-    VnV::registerTest("DummyTest", dummyTest_maker,dummyTest_declare);
+    VnV::registerTest(PACKAGENAME_S, "EuclideanError", euclideanError_maker,euclideanError_declare);
+    VnV::registerTest(PACKAGENAME_S, "DummyTest", dummyTest_maker,dummyTest_declare);
 
 
 }

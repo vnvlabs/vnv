@@ -10,6 +10,7 @@
 static const std::string initializationConfig = R"(
 {
    "name" : "initialization",
+   "package" : "VnV",
    "parameters" : {
         "argc" : "int*" ,
         "argv" : "char***" ,

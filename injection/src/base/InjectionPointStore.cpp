@@ -44,8 +44,9 @@ void InjectionPointStore::registerInjectionPoint(json &jsonObject) {
 
     // Register the injection point in the store:(Validation throws)
     std::string name = jsonObject.find("name").value().get<std::string>();
-    VnV_Debug("NAME: %s", name.c_str());
-    registeredInjectionPoints.insert(std::make_pair(name,jsonObject));
+    std::string package = jsonObject.find("package").value().get<std::string>();
+    VnV_Debug("NAME: %s:%s", name.c_str(),package.c_str());
+    registeredInjectionPoints.insert(std::make_pair(package + ":" + name,jsonObject));
 
 }
 
@@ -76,16 +77,8 @@ void InjectionPointStore::registerInjectionPoint(std::string json_str) {
     }
 }
 
-json InjectionPointStore::getInjectionPointRegistrationJson(std::string name) {
-    auto it = registeredInjectionPoints.find(name);
-    if ( it != registeredInjectionPoints.end()) {
-        return it->second;
-    }
-    return json(nullptr);
-}
-
-std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::string key, InjectionPointType type, NTV &args) {
-
+std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::string package, std::string name, InjectionPointType type, NTV &args) {
+  std::string key = package + ":" + name;
   std::shared_ptr<InjectionPoint> ptr;
   if (injectionPoints.find(key) == injectionPoints.end()) {
     return nullptr;  // Not configured
@@ -101,8 +94,8 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::s
   return ptr; 
 }
 
-std::shared_ptr<InjectionPoint> InjectionPointStore::getExistingInjectionPoint(std::string key, InjectionPointType type) {
-
+std::shared_ptr<InjectionPoint> InjectionPointStore::getExistingInjectionPoint(std::string package, std::string name, InjectionPointType type) {
+  std::string key = package + ":" + name;
   std::shared_ptr<InjectionPoint> ptr;
   if (injectionPoints.find(key) == injectionPoints.end()) {
     return nullptr;  // Not configured
@@ -145,9 +138,10 @@ InjectionPointStore& InjectionPointStore::getInjectionPointStore() {
   return store;
 }
 
-void InjectionPointStore::addInjectionPoint(std::string name,
+void InjectionPointStore::addInjectionPoint(std::string package, std::string name,
                                             std::pair<bool,std::vector<TestConfig>>& tests) {
-    auto reg = registeredInjectionPoints.find(name);
+    std::string key = package + ":" + name;
+    auto reg = registeredInjectionPoints.find(key);
     if ( reg!=registeredInjectionPoints.end()) {
 
         // Validate the test configs against the registered Json.
@@ -170,17 +164,9 @@ void InjectionPointStore::addInjectionPoint(std::string name,
         }), tests.second.end());
 
      } else {
-        VnV_Warn("The injection point %s has not been registered with the Injection point store", name.c_str());
+        VnV_Warn("The injection point %s has not been registered with the Injection point store", key.c_str());
     }
-    injectionPoints.insert(std::make_pair(name, tests));
-}
-
-void InjectionPointStore::addInjectionPoints(
-    std::map<std::string, std::pair<bool,std::vector<TestConfig>>>& injectionPoints) {
-    for (auto it : injectionPoints) {
-        addInjectionPoint(it.first,it.second);
-    }
-    this->injectionPoints.insert(injectionPoints.begin(), injectionPoints.end());
+    injectionPoints.insert(std::make_pair(key, tests));
 }
 
 void InjectionPointStore::print() {
@@ -192,7 +178,7 @@ void InjectionPointStore::print() {
 
     int ups = VnV_BeginStage("InjectionPointStore Configuration");
     for ( auto it: injectionPoints) {
-        int s = VnV_BeginStage("Name: %s", it.first.c_str());
+        int s = VnV_BeginStage("Key: %s", it.first.c_str());
         VnV_Info("Iternal Run Configuration is %s", (it.second.first) ? "On" : "Off" );
         for ( auto itt : it.second.second ) {
             auto ss = VnV_BeginStage("Test %s:", itt.getName().c_str());

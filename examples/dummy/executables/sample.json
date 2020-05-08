@@ -12,8 +12,9 @@
     "logs" : {}
   },
   "testLibraries": {
-    "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so"
-  },
+    "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so",
+    "DummyLibOne" : ""
+    },
   "outputEngine": {
     "type": "debug",
     "config": {
@@ -22,9 +23,11 @@
   "injectionPoints": [
 	  {
 		"name" : "initialization",
-		"tests" : [	
+        "package" : "VnV",
+        "tests" : [
 			{
-				"name" : "provenance",
+                "name" : "provenance",
+                "package" : "VnV",
 				"runScope" : ["all"],
 				"config" : {
                                     "expectedResult" : {},

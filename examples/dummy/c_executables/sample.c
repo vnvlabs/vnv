@@ -29,6 +29,7 @@ void optionsCallback(c_json json) {
 static const char* injectionPoints = "\
 {\
  \"name\" : \"CFunction\",\
+ \"package\" : \"CSampleExecutable\",\
  \"parameters\" : {\
    \"x\" : \"int\"\
  }\

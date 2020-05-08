@@ -30,6 +30,7 @@ REGISTER_VNV() {
     const char* config1 = R"(
   {
    "name" : "class2_function1",
+   "package" : "DummyTestLibOne",
    "parameters" : {
       "x" : "int"
     }
@@ -41,7 +42,8 @@ Register_Injection_Point(config1);
 const char* config = R"(
 {
    "name" : "Hello_temp_sub",
-   "parameters" : {
+   "package" : "DummyTestLibOne",
+    "parameters" : {
       "slope" : "double",
       "intersection" : "double",
       "x" : "int",

@@ -68,14 +68,17 @@ static const std::string injectionPoints = R"(
    [
        {
           "name" : "Function1",
+          "package" : "SampleExecutable",
           "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" , "samplePoints3" : "std::vector<double>" }
        },
        {
           "name" : "Function1Class1",
+          "package" : "SampleExecutable",
           "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" , "samplePoints3" : "std::vector<double>" }
        },
        {
           "name" : "Function_In_Template",
+          "package" : "SampleExecutable",
           "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" , "samplePoints3" : "std::vector<double>" }
        }
    ]

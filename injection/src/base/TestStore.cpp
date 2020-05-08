@@ -41,9 +41,9 @@ void TestStore::addTestLibrary(std::string libraryPath) {
   }
 }
 
-void TestStore::addTest(std::string name, maker_ptr m,
+void TestStore::addTest(std::string package, std::string name, maker_ptr m,
                         declare_test_ptr v) {
-  test_factory[name] = std::make_pair(m, v);
+  test_factory[package + ":" + name] = std::make_pair(m, v);
 }
 
 
@@ -64,12 +64,13 @@ TestConfig TestStore::validateTest(json &testJson) {
       throw VnVExceptionBase("Test Declaration does not contain Test Name");
   }
   std::string name = testJson["name"].get<std::string>();
-
-  auto it = test_factory.find(name);
+  std::string package = testJson["package"].get<std::string>();
+  std::string key = package + ":" + name;
+  auto it = test_factory.find(key);
   if (it != test_factory.end()) {
 
     json test_schema, testDeclaration;
-    auto itt = registeredTests.find(name);
+    auto itt = registeredTests.find(key);
     if (itt == registeredTests.end()) {
 
       // This is the first time we have encountered this test.
@@ -88,7 +89,7 @@ TestConfig TestStore::validateTest(json &testJson) {
       }*/
 
       test_schema = getTestValidationSchema(testDeclaration);
-      registeredTests.insert(std::make_pair(name, std::make_pair(test_schema,testDeclaration)));
+      registeredTests.insert(std::make_pair(key, std::make_pair(test_schema,testDeclaration)));
     } else {
       test_schema = itt->second.first;
       testDeclaration = itt->second.second;
@@ -123,15 +124,15 @@ TestConfig TestStore::validateTest(json &testJson) {
     validator.validate(testConfigJson);
 
     // Create the Test Config File
-    return TestConfig(name, testConfigJson,testDeclaration );
+    return TestConfig(package, name, testConfigJson,testDeclaration );
   }
   throw VnVExceptionBase("test not found");
 }
 
 std::shared_ptr<ITest> TestStore::getTest(TestConfig& config) {
-  std::string name = config.getName();
+  std::string key = config.getPackage() + ":" + config.getName();
 
-  auto it = test_factory.find(name);
+  auto it = test_factory.find(key);
   if (it != test_factory.end()) {
     ITest * t = it->second.first(config);
     std::shared_ptr<ITest> ptr;
@@ -164,7 +165,7 @@ void TestStore::print() {
 }
 
 
-void VnV::registerTest(std::string name, maker_ptr m, declare_test_ptr v) {
-  TestStore::getTestStore().addTest(name, m, v);
+void VnV::registerTest(std::string package, std::string name, maker_ptr m, declare_test_ptr v) {
+  TestStore::getTestStore().addTest(package, name, m, v);
 }
 

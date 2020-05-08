@@ -100,10 +100,10 @@ class InjectionPointStore {
    * an empty queue is considered invalid and will return a nullptr.
    *
    */
-  std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string key, InjectionPointType type, NTV& args);
+  std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string package, std::string name, InjectionPointType type, NTV& args);
 
 
-  std::shared_ptr<InjectionPoint> getExistingInjectionPoint(std::string key, InjectionPointType type);
+  std::shared_ptr<InjectionPoint> getExistingInjectionPoint(std::string package, std::string name, InjectionPointType type);
 
 
   /**
@@ -115,27 +115,13 @@ class InjectionPointStore {
    * Add an injection point to the store. In the case that an injection point
    * already exists in the store, the test configuration will be overwritten.
    */
-  void addInjectionPoint(std::string name, std::pair<bool , std::vector<TestConfig>>& tests);
-
-  /**
-   * @brief addInjectionPoints
-   * @param injectionPoints A map of injection point configurations to be added
-   * to the store
-   *
-   * Add a set of injection point configurations to the store. This function
-   * uses std::map::insert to insert all elements of the input map into the
-   * existing store. Overriding of existing entries is consistent with general
-   * std::map insert operations.
-   */
-  void addInjectionPoints(
-      std::map<std::string, std::pair<bool,std::vector<TestConfig>>>& injectionPoints);
+  void addInjectionPoint(std::string package, std::string name,   std::pair<bool , std::vector<TestConfig>>& tests);
 
   // Register Injection point. JsonStr must be json that validates against the injection
   // point schema OR an array of objects that individually validate against that same
   // schema.
   void registerInjectionPoint(std::string json_str);
 
-  json getInjectionPointRegistrationJson(std::string name);
   /**
    * @brief getInjectionPointStore
    * @return The InjectionPointStore

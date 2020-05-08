@@ -40,6 +40,8 @@ struct EngineInfo {
 };
 
 struct InjectionPointInfo {
+   std::string name;
+   std::string package;
    std::vector<json> tests;
    bool runInternal;
 };

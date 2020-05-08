@@ -17,7 +17,7 @@ using nlohmann::json_schema::json_validator;
 InjectionPoint::InjectionPoint(json registrationJson, NTV &args) {
 
      //RegistrationJson is a validated InjectionPoint Registration json object.
-     m_scope = registrationJson["name"].get<std::string>();
+     name = registrationJson["name"].get<std::string>();
      json parameters = registrationJson["parameters"];
 
      for (auto it : args ) {
@@ -25,13 +25,13 @@ InjectionPoint::InjectionPoint(json registrationJson, NTV &args) {
          if (rparam != parameters.end()) {
             parameterMap[it.first] = VnVParameter(it.second.second, rparam.value().get<std::string>(),it.second.first);
          } else {
-            VnV_Warn("Injection Point %s is not configured Correctly. Unrecognized parameter %s", m_scope.c_str(), it.first.c_str());
+            VnV_Warn("Injection Point %s is not configured Correctly. Unrecognized parameter %s", name.c_str(), it.first.c_str());
             parameterMap[it.first] = VnVParameter(it.second.second, "void*", it.second.first);
          }
     }
  }
 
-std::string InjectionPoint::getScope() const { return m_scope; }
+std::string InjectionPoint::getScope() const { return name; }
 
 std::string InjectionPoint::getParameterRTTI(std::string key)  const {
     auto it = parameterMap.find(key);

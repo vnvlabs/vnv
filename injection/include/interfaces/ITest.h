@@ -104,13 +104,14 @@ class TestConfig {
   VnVParameterSet parameters;
 
   std::string testName;
+  std::string package;
   json testConfigJson;
   json testDeclarationJson;
 
 
  public:
 
-  TestConfig(std::string name, json &usersConfig, json &testSpec);
+  TestConfig(std::string package, std::string name, json &usersConfig, json &testSpec);
 
   
   bool isRequired(std::string parmaeterName) const;
@@ -140,7 +141,7 @@ class TestConfig {
    * @return
    */
   std::string getName() const ;
-
+  std::string getPackage() const ;
   /**
    * @brief print out configuration information.
    */
@@ -227,7 +228,7 @@ private:
 
 typedef ITest* maker_ptr(TestConfig config);
 typedef json declare_test_ptr();
-void registerTest(std::string name, VnV::maker_ptr m, VnV::declare_test_ptr v);
+void registerTest(std::string package, std::string name, VnV::maker_ptr m, VnV::declare_test_ptr v);
 
 }
 

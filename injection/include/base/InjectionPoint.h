@@ -64,7 +64,8 @@ class InjectionPoint {
 
   VnV_Comm comm;
 
-  std::string  m_scope; /**< The name of the Injection point. (TODO change name) */
+  std::string  name;
+  std::string package;
   std::vector<std::shared_ptr<ITest>> m_tests; /**< Vector of tests given to this injection point */
 
   InjectionPointType type;

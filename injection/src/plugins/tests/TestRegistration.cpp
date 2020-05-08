@@ -9,7 +9,7 @@ namespace VnV {
 
  namespace Registration {
   void RegisterBuiltinTests() {
-    VnV::registerTest("provenance",VnV::ProvenanceTest::maker, VnV::ProvenanceTest::declare);
+    VnV::registerTest("VnV", "provenance",VnV::ProvenanceTest::maker, VnV::ProvenanceTest::declare);
   }
  }
 

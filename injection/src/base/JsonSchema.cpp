@@ -123,6 +123,9 @@ static const json __vv_schema__ = R"(
         "name": {
           "type": "string"
         },
+        "package" : {
+          "type" : "string"
+        },
         "runInternal": {
            "type" : "boolean"
         },
@@ -134,7 +137,7 @@ static const json __vv_schema__ = R"(
         }
       },
       "required": [
-        "name","tests"
+        "name","package","tests"
       ]
     },
     "test": {
@@ -143,6 +146,9 @@ static const json __vv_schema__ = R"(
       "properties": {
         "name": {
           "type": "string"
+        },
+        "package" : {
+          "type" : "string"
         },
         "config" : {
             "type" : "object"
@@ -157,6 +163,7 @@ static const json __vv_schema__ = R"(
       },
       "required": [
         "name",
+        "package",
         "runScope"
       ],
       "additionalProperties": false
@@ -232,10 +239,11 @@ static json __injectionPoint_declaration_schema__ = R"({
 "type": "object",
 "properties" : {
      "name" : {"type":"string"},
+     "package" : {"type":"string"},
      "parameters" : {"$ref" : "#/definitions/parameters"},
      "documentation" : {"$ref" : "#/definitions/documentation"}
 },
-"required" : ["name","parameters"],
+"required" : ["name","package","parameters"],
 "additionalProperties" : false,
 "definitions" : {
     "parameters" : {
