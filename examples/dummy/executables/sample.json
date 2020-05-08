@@ -38,6 +38,23 @@
 				}
 			}
 		]
-	  }
+	  },
+	  {
+        "name": "Function1",
+        "tests": [
+          {
+            "name": "EuclideanError",
+            "runScope": ["all"],
+            "config": {
+               "expectedResult" : {},
+				"configuration": {},
+              	"parameters": {
+                  "measured": "samplePoints",
+                  "exact": "samplePoints1"
+                }
+              }
+            }
+         ]
+      }
   ]	  
 }

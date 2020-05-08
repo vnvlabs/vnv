@@ -32,10 +32,10 @@ int function1(int x) {
                   samplePoints3)
   for (int i = 0; i < 10; i++) {
     samplePoints.push_back(i);
+    samplePoints1.push_back(i * i);
     INJECTION_LOOP_ITER(Function1Class1, inner, std::vector<double>, samplePoints,
                   std::vector<double>, samplePoints1, std::vector<double>,
                   samplePoints3)
-    samplePoints1.push_back(i * i);
   }
 
   INJECTION_LOOP_END(Function1Class1, std::vector<double>, samplePoints,
@@ -54,10 +54,10 @@ int function1(int x) {
                   samplePoints3)
   for (int i = 0; i < 10; i++) {
     samplePoints.push_back(i);
+    samplePoints1.push_back(i * i);
     INJECTION_LOOP_ITER(Function1, inner, std::vector<double>, samplePoints,
                   std::vector<double>, samplePoints1, std::vector<double>,
                   samplePoints3)
-    samplePoints1.push_back(i * i);
   }
 
   INJECTION_LOOP_END(Function1, std::vector<double>, samplePoints,
