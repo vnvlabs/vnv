@@ -3,6 +3,10 @@
 option(WITH_ADIOS_ENGINE "Use the Adios Engine" ON)
 option(WITH_BUILT_IN_TESTS "Build the VnV test libraries" ON)
 
+if (WITH_MPI)
+	find_package(MPI REQUIRED) 
+endif()
+
 #Add the third party targets ( json-schema-validator TODO github-link)
 add_subdirectory(third-party)
 
@@ -54,12 +58,25 @@ target_link_libraries(injection PRIVATE dl)
 target_link_libraries(injection PUBLIC jsv::jsv)
 target_link_libraries(injection PRIVATE xxhash::xxhash)
 
-target_include_directories(injection PRIVATE
-                            ${CMAKE_CURRENT_LIST_DIR}/include
-                            PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
-                            $<INSTALL_INTERFACE:include>
-                          )
+if (WITH_MPI)
+	target_include_directories(injection PRIVATE
+	                            ${CMAKE_CURRENT_LIST_DIR}/include
+	                            PUBLIC
+	                            ${MPI_CXX_INCLUDE_PATH}
+	                            $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+	                            $<INSTALL_INTERFACE:include>
+	                          )
+	target_compile_options(injection PRIVATE ${MPI_CXX_COMPILE_FLAGS})
+	target_compile_definitions(injection PRIVATE -DWITH_MPI=1)
+	target_link_libraries(injection PRIVATE ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS})
+else()
+	target_include_directories(injection PRIVATE
+	                            ${CMAKE_CURRENT_LIST_DIR}/include
+	                            PUBLIC
+	                            $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+	                            $<INSTALL_INTERFACE:include>
+	                          )
+endif()
 
 target_compile_definitions(injection PRIVATE -DPACKAGENAME=VnV Framework)
 

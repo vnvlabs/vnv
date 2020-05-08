@@ -11,6 +11,12 @@ target_link_libraries(sample.a dummyLibOne dummyLibTwo Injection::Injection)
 
 target_compile_definitions(sample.a PRIVATE -DPACKAGENAME=SampleExecutable)
 
+if (WITH_MPI)
+	target_include_directories(sample.a PRIVATE ${MPI_CXX_INCLUDE_PATH})
+	target_compile_options(sample.a PRIVATE ${MPI_CXX_COMPILE_FLAGS})
+	target_link_libraries(sample.a ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS})
+endif()
+
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json ${CMAKE_CURRENT_BINARY_DIR}/vv-input.json COPYONLY)
 
 # We place the test libs in a strange directory. So, for this case, we will 
