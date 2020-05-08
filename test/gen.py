@@ -110,6 +110,10 @@ def removeFromRunner(runFile, name, fname, full ):
 if len(sys.argv) == 2:
     name = sys.argv[1]
     fname = "./unit-testers/" + name + ".cpp"
+    
+    if not os.path.exists("./unit-testers"):
+        os.makedirs("./unit-testers")
+    
     if os.path.exists(fname):
         sys.exit("Test suite with that name already exists")
 
