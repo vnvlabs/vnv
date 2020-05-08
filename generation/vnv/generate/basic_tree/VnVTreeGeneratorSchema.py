@@ -203,9 +203,6 @@ vnvTreeSchema = {
                 "$ref": "#/definitions/LogNode"
               },
               {
-                "$ref": "#/definitions/DocNode"
-              },
-              {
                 "$ref": "#/definitions/InjectionPointNode"
               }
             ]
@@ -237,17 +234,6 @@ vnvTreeSchema = {
         "properties": {
           "display": {
             "type": "boolean"
-          }
-        }
-      },
-      "DocNode": {
-        "type": "object",
-        "properties": {
-          "display": {
-            "type": "boolean"
-          },
-          "template": {
-            "type": "string"
           }
         }
       },

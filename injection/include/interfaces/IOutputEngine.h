@@ -47,8 +47,6 @@ public:
     virtual json getConfigurationSchema() = 0;
     virtual void injectionPointStartedCallBack(VnV_Comm comm, std::string id, InjectionPointType type, std::string stageId) = 0;
     virtual void injectionPointEndedCallBack(VnV_Comm comm,std::string id, InjectionPointType type, std::string stageId) = 0;
-    virtual void documentationEndedCallBack(VnV_Comm comm,std::string pname, std::string id) = 0;
-    virtual void documentationStartedCallBack(VnV_Comm comm, std::string pname, std::string id) = 0;
     virtual void testStartedCallBack(VnV_Comm comm,std::string testName) = 0;
     virtual void testFinishedCallBack(VnV_Comm comm,bool result_) = 0;
     virtual void unitTestStartedCallBack(VnV_Comm comm, std::string unitTestName) = 0;
@@ -67,7 +65,6 @@ class OutputEngineManager : public IInternalOutputEngine {
 public:
 
   void set(json& configuration);
-  void document(VnV_Comm comm, std::string pname, std::string id, std::map<std::string,std::pair<std::string,void*>> &map);
   IOutputEngine* getOutputEngine();
   virtual ~OutputEngineManager() = default;
 };

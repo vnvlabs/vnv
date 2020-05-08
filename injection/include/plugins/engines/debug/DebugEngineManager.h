@@ -44,10 +44,6 @@ public:
 
    void testFinishedCallBack(VnV_Comm comm,bool result_) override;
 
-   void documentationStartedCallBack(VnV_Comm comm,std::string pname, std::string id)override;
-
-   void documentationEndedCallBack(VnV_Comm comm,std::string pname, std::string id) override;
-
    void unitTestStartedCallBack(VnV_Comm comm,std::string unitTestName) override;
 
    void unitTestFinishedCallBack(VnV_Comm comm,std::map<std::string, bool> &results)override;

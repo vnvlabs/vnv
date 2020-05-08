@@ -115,22 +115,6 @@ std::string LogNode::toString() {
     return oss.str();
 }
 
-DocumentationNode::DocumentationNode() : IDocumentationNode() {}
-
-std::string DocumentationNode::getPackage(){ return package;}
-
-IArrayNode *DocumentationNode::getData() {return data.get();}
-
-std::string DocumentationNode::toString() {
-    std::ostringstream oss;
-    oss << "Documentation Point: " << getPackage() << " : " << getName() << "\n";
-    oss << "Available Data:\n\n";
-    if (getData() != nullptr)
-        oss << getData()->toString();
-
-    return oss.str();
-}
-
 InjectionPointNode::InjectionPointNode() : IInjectionPointNode() {}
 
 std::string InjectionPointNode::getPackage() {return package;}

@@ -87,14 +87,6 @@ void DebugEngineManager::testFinishedCallBack(VnV_Comm comm, bool result_){
     printf("DEBUG ENGINE Stop Test. Test Was Successful-> %d\n", result_);
 }
 
-void DebugEngineManager::documentationStartedCallBack(VnV_Comm comm, std::string pname, std::string id) {
-    printf("DEBUG ENGINE Start Docs %s:%s \n", pname.c_str(),id.c_str() );
-}
-
-void DebugEngineManager::documentationEndedCallBack(VnV_Comm comm, std::string pname, std::string id){
-    printf("DEBUG ENGINE Stop Docs %s:%s", pname.c_str(),id.c_str());
-}
-
 void DebugEngineManager::unitTestStartedCallBack(VnV_Comm comm, std::string unitTestName){
     printf("DEBUG ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
 }

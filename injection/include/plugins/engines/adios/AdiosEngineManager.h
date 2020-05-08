@@ -49,10 +49,6 @@ public:
 
     void injectionPointStartedCallBack(VnV_Comm /** comm **/, std::string id, InjectionPointType type_, std::string stageId)override;
 
-    void documentationStartedCallBack(VnV_Comm /** comm **/, std::string pname, std::string id)override;
-
-    void documentationEndedCallBack(VnV_Comm /** comm **/, std::string pname, std::string id)override;
-
     void testStartedCallBack(VnV_Comm /** comm **/, std::string testName)override;
 
     void testFinishedCallBack(VnV_Comm /** comm **/, bool result_)override;

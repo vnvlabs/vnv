@@ -25,8 +25,5 @@
 // C Interface for the Logging components of VnV
 #include "c-interfaces/Logging.h"
 
-// C/C++ Interface for entering a documetation Point in the code.
-#include "c-interfaces/Documentation.h"
-
 
 #endif // GAURD

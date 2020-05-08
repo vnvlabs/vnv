@@ -168,20 +168,6 @@ void JsonEngineManager::testFinishedCallBack(VnV_Comm /**comm**/, bool result_) 
     pop(2);
 }
 
-void JsonEngineManager::documentationStartedCallBack(VnV_Comm /**comm**/, std::string pname, std::string id) {
-    json j;
-    j["id"] = getId();
-    j["node"] = "Documentation";
-    j["name"] = id;
-    j["package"] = pname;
-    j["children"] = json::array();
-    push(j,json::json_pointer("/children"));
-}
-
-void JsonEngineManager::documentationEndedCallBack(VnV_Comm /**comm**/, std::string pname, std::string id) {
-    pop(2);
-}
-
 void JsonEngineManager::unitTestStartedCallBack(VnV_Comm /**comm**/, std::string unitTestName) {
     json j;
 

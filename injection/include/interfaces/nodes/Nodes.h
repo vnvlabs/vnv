@@ -22,14 +22,13 @@ class IBoolNode;
 class IMapNode;
 class IInfoNode;
 class ITestNode;
-class IDocumentationNode;
 class IInjectionPointNode;
 class IUnitTestNode;
 
 class DataBase {
 public:
 
-    enum class DataType { Bool, Integer, Float, Double, String, Long, Array, Map, Log, Documentation, InjectionPoint, Info, Test, UnitTest };
+    enum class DataType { Bool, Integer, Float, Double, String, Long, Array, Map, Log, InjectionPoint, Info, Test, UnitTest };
 
     std::string id;
     std::string name; // name can be assigned, default is to use id (which is unique).
@@ -45,7 +44,6 @@ public:
     IFloatNode* getAsFloatNode();
     IArrayNode* getAsArrayNode();
     ILogNode* getAsLogNode();
-    IDocumentationNode* getAsDocumentationNode();
     IInjectionPointNode* getAsInjectionPointNode();
     IInfoNode* getAsInfoNode();
     ITestNode* getAsTestNode();
@@ -152,14 +150,6 @@ public:
      virtual IArrayNode* getTests() = 0;
      virtual IArrayNode* getChildren() = 0;
      virtual ~IInjectionPointNode();
-};
-
-class IDocumentationNode : public DataBase {
-public:
-    IDocumentationNode();
-    virtual std::string getPackage()=0;
-    virtual IArrayNode* getData()=0;
-    virtual ~IDocumentationNode();
 };
 
 class ILogNode : public DataBase {

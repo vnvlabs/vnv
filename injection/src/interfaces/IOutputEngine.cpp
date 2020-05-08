@@ -8,8 +8,6 @@
 #include "base/OutputEngineStore.h"
 #include "base/SerializerStore.h"
 #include "base/InjectionPoint.h"
-#include "base/DocumentationStore.h"
-#include "c-interfaces/Documentation.h"
 #include "base/exceptions.h"
 #include<stdarg.h>
 
@@ -72,46 +70,6 @@ void OutputEngineManager::set(json& inputjson) {
     validator.validate(inputjson);
   }
   setFromJson(inputjson);
-}
-
-void OutputEngineManager::document(VnV_Comm comm,std::string pname, std::string id, NTV &map) {
-    documentationStartedCallBack(comm,pname, id);
-    VnVParameterSet parameterSet = DocumentationStore::instance().getParameterMap(pname, id, map);
-    for (auto it : parameterSet) {
-        if (it.second.getType() == "double") {
-            double t = *(it.second.getPtr<double>("double",false));
-            Put(comm,it.first,t);
-        } else if (it.second.getType() == "int") {
-            int t = *(it.second.getPtr<int>("int",false));
-            Put(comm,it.first,t);
-        } else if (it.second.getType() == "float") {
-            float t = *(it.second.getPtr<float>("double",false));
-            Put(comm,it.first,t);
-        } else if (it.second.getType() == "char*") {
-            std::string  t = *(it.second.getPtr<char*>("char*",false));
-            Put(comm,it.first,t);
-        } else  if (it.second.getType() == "long") {
-            long t = *(it.second.getPtr<long>("long",false));
-            Put(comm,it.first,t);
-        } else if (it.second.getType() == "VnV::CppDocumentaiton::Serializer") {
-            // Allow for a custom serializer.
-            CppDocumentation::Serialize *ss = it.second.getPtr<CppDocumentation::Serialize>(it.second.getType(),false);
-            ISerializer* serialize = SerializerStore::getSerializerStore().getSerializerByName(ss->name);
-            if (serialize!=nullptr) {
-                std::string s = serialize->Serialize(it.second.getType(),ss->ptr);
-                Put(comm,it.first,s);
-            }
-        }
-        else {
-            // Check to see if we have a serializer that will work.
-            ISerializer* serialize = SerializerStore::getSerializerStore().getSerializerFor(it.second.getType());
-            if (serialize!=nullptr) {
-                std::string s = serialize->Serialize(it.second.getType(),it.second.getRawPtr());
-                Put(comm,it.first,s);
-            }
-        }
-    }
-    documentationEndedCallBack(comm,pname,id);
 }
 
 IOutputEngine* OutputEngineManager::getOutputEngine() {

@@ -130,17 +130,6 @@ public:
     virtual std::string toString();
 };
 
-class DocumentationNode : public IDocumentationNode {
-public:
-    std::shared_ptr<ArrayNode> data;
-    std::string name;
-    std::string package;
-    DocumentationNode();
-    virtual std::string getPackage() override;
-    virtual IArrayNode* getData() override;
-
-    virtual std::string toString();
-};
 
 class LogNode : public ILogNode {
 public:

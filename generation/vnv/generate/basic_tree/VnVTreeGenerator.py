@@ -161,32 +161,6 @@ class VnVTreeGenerator:
           #stream.write("[{}:{}] {}".format(node.getPackage(),node.getStage(),node.getMessage()))
           return RestUtils.writeFile(outputDirectory,node.getId(), stream.getvalue())
 
-     def visitDocumentationNode(self,outputDirectory, node, jmespath, userArgs):
-          if not userArgs.get("display",True):
-               return None
-
-          stream = StringIO()
-          stream.write(RestUtils.getHeader(userArgs.get("title","Documetation Point: {}::{}".format(node.getPackage(),node.getName()))))
-          stream.write(JMES(jmespath))
-
-          template = userArgs.get("template")
-          if template is None:
-               template  = self.getTemplate("Documentation",node.getPackage,node.getName(),node.getId())
-
-          if template is None:
-               stream.write("Undocumented Documentation point from Package {}".format(node.getPackage()))
-               stream.write("Available Data Points are:")
-               darray = node.getData()
-               if darray is not None:
-                    data = []
-                    for d in node.getData():
-                         data.append("Name: {}, Type: {}".format(d.getName(),VnVReader.type2Str[d.getType()]))
-                    stream.write(RestUtils.htmllist(data))
-          else:
-               stream.write(template)
-
-          return RestUtils.writeFile(outputDirectory,userArgs.get("filename",node.getId()), stream.getvalue())
-
      def visitChildren(self, outputDirectory, node, jmespath, userArgs):
           if not userArgs.get("display",True):
                return None
@@ -202,8 +176,6 @@ class VnVTreeGenerator:
                outDir = os.path.join(outputDirectory,child.getId())
                if VnVReader.type2Str[child.getType()] == "Log":
                     tocTree.append(self.ftt(child.getId(),self.visitLogNode(outDir, child, jmes, cargs.get(child.getId(),{}))))
-               elif VnVReader.type2Str[child.getType()] == "Documentation":
-                    tocTree.append(self.ftt(child.getId(),self.visitDocumentationNode(outDir, child, jmes, cargs.get(child.getId(),{}))))
                elif VnVReader.type2Str[child.getType()] == "InjectionPoint":
                     tocTree.append(self.ftt(child.getId(),self.visitInjectionPointNode(outDir, child, jmes, cargs.get(child.getId(),{}))))
                else:
@@ -425,8 +397,6 @@ class VnVTreeGenerator:
 
      def genChildConfigNode(self, node):
         if VnVReader.type2Str[node.getType()] == "Log":
-             return { "display" : True }
-        elif VnVReader.type2Str[node.getType()] == "Documentation" :
              return { "display" : True }
         else:
              children = []

@@ -74,13 +74,6 @@ std::shared_ptr<MapNode> genMapNode(const json &j, std::string name, std::string
     return n;
 }
 
-std::shared_ptr<DocumentationNode> genDocNode(const json& j){
-     auto n = mks<DocumentationNode>(j);
-     n->package = j["package"].get<std::string>();
-     n->data = genArrayNode(j["children"], "data", j["id"].get<std::string>() + "-data");
-     return n;
-}
-
 std::shared_ptr<UnitTestNode> genUnitTestNode(const json& j) {
      auto n = mks<UnitTestNode>(j);
      n->package = j["package"];
@@ -182,7 +175,6 @@ std::shared_ptr<DataBase> nodeDispatcher(const json& j) {
     else if (node == "Test")  return genTestNode(j);
     else if (node == "UnitTest")  return genUnitTestNode(j);
     else if (node == "InjectionPoint")  return genInjectionPointNode(j);
-    else if (node == "Documentation")  return genDocNode(j);
     else throw VnVExceptionBase("Unknown Node type");
 
 }

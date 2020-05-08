@@ -313,9 +313,6 @@ bool RunTime::Finalize() {
 
 bool RunTime::isRunTests() { return runTests; }
 
-void RunTime::documentationPoint(VnV_Comm comm, std::string pname, std::string id, NTV &map){
-    OutputEngineStore::getOutputEngineStore().getEngineManager()->document(comm, pname, id, map);
-}
 
 void RunTime::log(VnV_Comm comm, std::string pname, std::string level, std::string message, va_list args) {
     logger.log_c(comm,pname, level, message, args);

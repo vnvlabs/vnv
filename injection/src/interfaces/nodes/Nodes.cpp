@@ -31,7 +31,6 @@ std::string DataBase::getTypeStr(){
        case DataType::Array : return "Array";
        case DataType::Map : return "Map";
        case DataType::Log : return "Log";
-       case DataType::Documentation : return "Documentation";
        case DataType::Info : return "Info";
        case DataType::Test : return "Test";
        case DataType::UnitTest : return "UnitTest";
@@ -67,7 +66,6 @@ std::string DataBase::toString() {
 
 ILogNode *DataBase::getAsLogNode() { return (check(DataType::Log)) ? dynamic_cast<ILogNode*>(this) : nullptr ;}
 
-IDocumentationNode *DataBase::getAsDocumentationNode() { return (check(DataType::Documentation)) ? dynamic_cast<IDocumentationNode*>(this) : nullptr ;}
 
 IInjectionPointNode *DataBase::getAsInjectionPointNode() { return (check(DataType::InjectionPoint)) ? dynamic_cast<IInjectionPointNode*>(this) : nullptr ;}
 
@@ -126,10 +124,6 @@ ITestNode::~ITestNode(){}
 IInjectionPointNode::IInjectionPointNode() : DataBase(DataBase::DataType::InjectionPoint) {}
 
 IInjectionPointNode::~IInjectionPointNode(){}
-
-IDocumentationNode::IDocumentationNode( ) : DataBase(DataBase::DataType::Documentation) {}
-
-IDocumentationNode::~IDocumentationNode(){}
 
 ILogNode::ILogNode( ) : DataBase(DataBase::DataType::Log) {}
 

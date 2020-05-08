@@ -132,32 +132,6 @@ void AdiosEngineManager::injectionPointStartedCallBack(VnV_Comm, std::string id,
     }
 }
 
-void AdiosEngineManager::documentationStartedCallBack(VnV_Comm, std::string pname, std::string id) {
-    if (engine) {
-        engine.BeginStep();
-        std::string s = pname + ":" + id;
-        engine.Put(identifier, s);
-        std::string ss = "StartDoc";
-        engine.Put(type, s);
-        engine.EndStep();
-    } else {
-        throw VnVExceptionBase("Engine not initialized");
-    }
-}
-
-void AdiosEngineManager::documentationEndedCallBack(VnV_Comm, std::string pname, std::string id) {
-    if (engine) {
-        engine.BeginStep();
-        std::string s = pname + ":" + id;
-        engine.Put(identifier, s);
-        std::string ss = "EndDoc";
-        engine.Put(type, s);
-        engine.EndStep();
-    } else {
-        throw VnVExceptionBase("Engine not initialized");
-    }
-}
-
 void AdiosEngineManager::testStartedCallBack(VnV_Comm, std::string testName) {
 
     if (engine) {

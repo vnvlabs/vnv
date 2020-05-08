@@ -35,12 +35,6 @@ public:
 int function1(int x) {
   std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
 
-  /** Documentation for the documentation point below */
-  VNV_DOCUMENT(VnV_Comm_Self,HelloDocument);
-
-  /** Documentation for the doucmetiaotn below **/
-  VNV_DOCUMENT_P(VnV_Comm_Self, HelloDocument1, x);
-
   INJECTION_LOOP_BEGIN(VnV_Comm_Self, Function1Class1, samplePoints, samplePoints1, samplePoints3)
   for (int i = 0; i < 10; i++) {
     samplePoints.push_back(i);
@@ -87,24 +81,11 @@ static const std::string injectionPoints = R"(
    ]
 )";
 
-static const std::string documentation = R"([
-  {
-     "name" : "HelloDocument"
-  },
-  {
-     "name" : "HelloDocument1",
-     "parameters" : {
-        "x" : "int"
-     }
-  }
-])";
-
 void callback() {
    // Here is where we would register all the injection points.
    VnV_Debug("Inside the Executable Call Back.");
    Register_Injection_Point(injectionPoints);
    std::map<std::string,std::string> m;
-   Register_Documentation(documentation.c_str());
 };
 
 int main(int argc, char** argv) {

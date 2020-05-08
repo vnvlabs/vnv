@@ -282,10 +282,13 @@ int main(int argc, const char **argv) {
   StatementMatcher functionMatcher1 = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_VnV_injectionPoint_begin")))).bind("callsite_begin");
   StatementMatcher functionMatcher2 = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_VnV_injectionPoint_loop")))).bind("callsite_iter");
   StatementMatcher functionMatcher3 = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_VnV_injectionPoint_end")))).bind("callsite_end");
+  StatementMatcher functionMatcher4 = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_VnV_Document")))).bind("callsite_document");
+
   Finder.addMatcher(functionMatcher, &Printer);
   Finder.addMatcher(functionMatcher1, &Printer);
   Finder.addMatcher(functionMatcher2, &Printer);
   Finder.addMatcher(functionMatcher3, &Printer);
+  Finder.addMatcher(functionMatcher4, &Printer);
 
   /** Cpp Matchers **/
   StatementMatcher functionMatcherC = callExpr(hasAncestor(functionDecl().bind("function")),callee(functionDecl(hasName("_CppInjectionPoint")))).bind("callsite");

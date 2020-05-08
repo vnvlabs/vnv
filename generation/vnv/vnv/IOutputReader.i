@@ -89,7 +89,6 @@ dataBaseCastMap = {
     DataBase.DataType_Array : "AsArrayNode",
     DataBase.DataType_Map : "AsMapNode",
     DataBase.DataType_Log : "AsLogNode",
-    DataBase.DataType_Documentation : "AsDocumentationNode",
     DataBase.DataType_InjectionPoint : "AsInjectionPointNode",
     DataBase.DataType_Info : "AsInfoNode",
     DataBase.DataType_Test : "AsTestNode",
@@ -106,7 +105,6 @@ type2Str = {
     DataBase.DataType_Array : "Array",
     DataBase.DataType_Map : "Map",
     DataBase.DataType_Log : "Log",
-    DataBase.DataType_Documentation : "Documentation",
     DataBase.DataType_InjectionPoint : "InjectionPoint",
     DataBase.DataType_Info : "Info",
     DataBase.DataType_Test : "Test",
@@ -212,7 +210,6 @@ def castDataBase(obj) :
 
 PY_GETATTR(VnV::Nodes::IRootNode)
 PY_GETATTR(VnV::Nodes::IUnitTestNode)
-PY_GETATTR(VnV::Nodes::IDocumentationNode)
 PY_GETATTR(VnV::Nodes::ILogNode)
 PY_GETATTR(VnV::Nodes::IInjectionPointNode)
 PY_GETATTR(VnV::Nodes::ITestNode)

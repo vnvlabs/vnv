@@ -131,8 +131,6 @@ private:
   void injectionPoint_end(std::string pname, std::string id);
   void injectionPoint_iter(std::string pname, std::string id, std::string iterid);
 
-  void documentationPoint(VnV_Comm comm, std::string pname, std::string id, NTV &map);
-
   /**
    * @brief Finalize
    * @return
