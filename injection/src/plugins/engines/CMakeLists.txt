@@ -8,3 +8,7 @@ if (WITH_ADIOS_ENGINE)
 	  target_compile_definitions(injection PRIVATE WITH_MPI=1 PRIVATE WITH_ADIOS=1)
 	endif()
 endif()
+
+if (WITH_MPI)
+	add_subdirectory(ParallelOutputEngine)
+endif()

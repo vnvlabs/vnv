@@ -14,6 +14,9 @@
 #endif
 
 #include "plugins/engines/DebugOutputEngineImpl.h"
+#ifdef WITH_MPI
+	#include "plugins/engines/ParallelOutputEngine/ParallelOutputEngineImpl.h"
+#endif
 
 namespace VnV {
  namespace {
@@ -21,6 +24,9 @@ namespace VnV {
     OutputEngineManager* AdiosEngineBuilder() { return new AdiosWrapper(); }
 #endif
     OutputEngineManager* DebugEngineBuilder() { return new DebugEngineWrapper();}
+#ifdef WITH_MPI
+    OutputEngineManager* ParallelEngineBuilder() { return new ParallelEngineWrapper();}
+#endif
  }
 }
 
@@ -67,6 +73,9 @@ namespace VnV {
         VnV::registerEngine("adios", VnV::AdiosEngineBuilder);
 #endif
         VnV::registerEngine("debug",VnV::DebugEngineBuilder);
+#ifdef WITH_MPI
+        VnV::registerEngine("parallel", VnV::ParallelEngineBuilder);
+#endif
 
         //Register the tests.
         VnV::registerTest("provenance", ProvenanceTest::maker, ProvenanceTest::declare );

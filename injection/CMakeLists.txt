@@ -55,6 +55,7 @@ else()
 endif()
 
 target_link_libraries(injection PRIVATE dl)
+target_link_libraries(injection PRIVATE msgpack)
 target_link_libraries(injection PUBLIC jsv::jsv)
 target_link_libraries(injection PRIVATE xxhash::xxhash)
 
