@@ -102,13 +102,14 @@ void DebugEngineWrapper::unitTestStartedCallBack(std::string unitTestName) {
     }
 }
 
-void DebugEngineWrapper::unitTestFinishedCallBack(std::map<std::string, bool> &results){
+void DebugEngineWrapper::unitTestFinishedCallBack(IUnitTest *tester) {
     if (debugEngine) {
         printf("Test Results\n");
         bool suiteSuccessful = true;
-        for ( auto it : results ) {
-            printf("\t%s : %s\n", it.first.c_str(), (it.second) ? "Successful" : "Failed");
-            if (suiteSuccessful && !it.second) {
+        for ( auto it : tester->getResults() ) {
+            printf("\t%s : %s\n", std::get<0>(it).c_str(), std::get<2>(it) ? "Successful" : "Failed");
+            if (!std::get<2>(it)) {
+                printf("\t\t%s\n", std::get<1>(it).c_str());
                 suiteSuccessful = false;
            }
         }

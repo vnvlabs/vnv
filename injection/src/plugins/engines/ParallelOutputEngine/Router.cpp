@@ -6,33 +6,24 @@
 #include "plugins/engines/ParallelOutputEngine/Router.h"
 #include <msgpack.hpp>
 
-int Router::parent_of(int node) {
-    return (node - 1) / m_fanout;
+int Router::parent_of(int id, int root, int fanout) {
+    if (id == root) {
+        return root;
+    }
+    return (id - 1) / fanout;
 }
 
-Route Router::children_of(int node) {
-    SparseBitVector children;
+Route Router::children_of(int id, int root, int fanout) {
+    Route children;
 
     for (int c = 1; c <= m_fanout; c++) {
-        int child = m_fanout * node + c;
+        int child = m_fanout * id + c;
         if (child >= m_size) {
             break;
         }
         children.set(child);
     }
     return children;
-}
-
-void Router::start() {
-    if (!m_running) {
-        m_running = true;
-    }
-}
-
-void Router::stop() {
-    if (m_running) {
-        m_running = false;
-    }
 }
 
 // Send to my parent
@@ -149,22 +140,13 @@ void Router::init() {
     MPI_Comm_dup(MPI_COMM_WORLD, &m_comm);
 
     m_id = id;
-    m_root = 0;
+#endif /* WITH_MPI */
 
     // Find our parent
-    if (id > 0) {
-        m_parent = (id - 1) / m_fanout;
-    }
+    m_parent = parent_of(m_id, m_root, m_fanout);
 
     // Find our children
-    for (int c = 1; c <= m_fanout; c++) {
-        int child = m_fanout * id + c;
-        if (child >= m_size) {
-            break;
-        }
-        m_children.set(child);
-    }
-#endif /* WITH_MPI */
+    m_children = children_of(m_id, m_root, m_fanout);
 }
 
 Router::Router() {
@@ -176,7 +158,9 @@ Router::Router(int fanout) {
     init();
 }
 
-Router::~Router() {
-    stop();
+Router::Router(int id, int root, int fanout) {
+    m_id = id;
+    m_root = root;
+    m_fanout = fanout;
+    init();
 }
-

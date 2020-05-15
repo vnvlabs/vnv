@@ -7,6 +7,7 @@
 
 #include <string>
 #include "interfaces/IOutputEngine.h"
+
 /**
  * VnV Namespace
  */
@@ -134,7 +135,7 @@ class DebugEngineWrapper : public OutputEngineManager {
 
   void unitTestStartedCallBack(std::string unitTestName) override;
 
-  void unitTestFinishedCallBack(std::map<std::string,bool> &results) override;
+  void unitTestFinishedCallBack(IUnitTest *tester) override;
   /**
    * @brief getOutputEngine
    * @return

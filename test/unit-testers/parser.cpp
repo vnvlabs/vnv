@@ -2,12 +2,12 @@
 #define _EuclideanError_H 
 
 #include "VnV.h"
-#include "interfaces/IUnitTester.h"
-
 #include <sstream>
+
+#include "../../injection/include/interfaces/IUnitTest.h"
 using namespace VnV;
 
-class ParserUnitTests : public IUnitTester { 
+class ParserUnitTests : public IUnitTest { 
 
    int x,y;	
 public:
@@ -16,10 +16,7 @@ public:
 
     }
 
-    std::map<std::string,bool> run(IOutputEngine* /* engine */) {
-        
-        std::map<std::string, bool> results;
-
+    void run() {
         std::string xstr = std::to_string(x);
         std::string ystr = std::to_string(y);
         std::ostringstream t1,t2,t3;
@@ -28,12 +25,15 @@ public:
         t2 << "x(" << x << ") - y(" << y << ") == 0 (" << x-y << ")";
         t3 << "x(" << x << ") != y(" << y << ")";
 
-        results[t1.str()] = ( (x + y) == 20 );
-        results[t2.str()] = ( (x - y) == 0 );
-        results[t3.str()] = ( x == y );
-        results["x == 10"] = (x==10);
-        results["y == 10"] = (y==10);
-        return results;
+        TEST_ASSERT_EQUALS(t1.str(), 20, x + y);
+
+        TEST_ASSERT_EQUALS(t2.str(), 0, x - y);
+
+        TEST_ASSERT_EQUALS(t3.str(), x, y);
+
+        TEST_ASSERT_EQUALS("x == 10", 10, x);
+
+        TEST_ASSERT_EQUALS("y == 10", 10, y);
     }
 
     ~ParserUnitTests();
@@ -41,11 +41,11 @@ public:
 
 ParserUnitTests::~ParserUnitTests(){};
 
-IUnitTester* parser_maker() {
+IUnitTest* parser_maker() {
     return new ParserUnitTests(10,10);
 }
 
-void parser_callBack() {
+void register_parser_tests() {
     VnV::registerUnitTester("parser_10_10", parser_maker);
 }
 

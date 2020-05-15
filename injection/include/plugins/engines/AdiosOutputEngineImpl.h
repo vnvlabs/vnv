@@ -139,7 +139,7 @@ class AdiosWrapper : public OutputEngineManager {
 
   void unitTestStartedCallBack(std::string unitTestName) override;
 
-  void unitTestFinishedCallBack(std::map<std::string,bool> &results) override;
+  void unitTestFinishedCallBack(IUnitTest *tester) override;
 
   /**
    * @brief get the configuration schema for the adios engine. 

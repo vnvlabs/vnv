@@ -3,6 +3,8 @@
 
 #include <string>
 #include "json-schema.hpp"
+#include "interfaces/IUnitTest.h"
+
 /**
  * @brief The IOutputEngine class
  */
@@ -146,7 +148,7 @@ class OutputEngineManager {
 
   virtual void unitTestStartedCallBack(std::string unitTestName) = 0;
 
-  virtual void unitTestFinishedCallBack(std::map<std::string,bool> &results) = 0;
+  virtual void unitTestFinishedCallBack(IUnitTest *tester) = 0;
 
   /**
    * @brief finalize

@@ -3,13 +3,15 @@
 #include <iostream>
 #include <vector>
 
+#include "../injection/include/interfaces/IUnitTest.h"
 #include "VnV.h"
-#include "interfaces/IUnitTester.h"
 
-void parser_callBack();
+void register_parser_tests();
+void register_bitvector_tests();
 
 void callback() {
-    parser_callBack();
+    register_parser_tests();
+    register_bitvector_tests();
 }
 
 int main(int argc, char** argv) {

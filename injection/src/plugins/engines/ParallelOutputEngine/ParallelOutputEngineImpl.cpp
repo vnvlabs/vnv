@@ -121,18 +121,17 @@ void ParallelEngineWrapper::unitTestStartedCallBack(std::string unitTestName) {
 	}
 }
 
-void ParallelEngineWrapper::unitTestFinishedCallBack(
-		std::map<std::string, bool> &results) {
+void ParallelEngineWrapper::unitTestFinishedCallBack(IUnitTest *tester) {
 	if (engine) {
 		printf("Test Results\n");
 		bool suiteSuccessful = true;
-		for (auto it : results) {
-			printf("\t%s : %s\n", it.first.c_str(),
-					(it.second) ? "Successful" : "Failed");
-			if (suiteSuccessful && !it.second) {
-				suiteSuccessful = false;
-			}
-		}
+        for ( auto it : tester->getResults() ) {
+            printf("\t%s : %s\n", std::get<0>(it).c_str(), std::get<2>(it) ? "Successful" : "Failed");
+            if (!std::get<2>(it)) {
+                printf("\t\t%s\n", std::get<1>(it).c_str());
+                suiteSuccessful = false;
+           }
+        }
 		printf("PARALLEL ENGINE Test Suite Completed : %s\n",
 				(suiteSuccessful) ? "Successfully" : "Unsuccessfully");
 	} else {

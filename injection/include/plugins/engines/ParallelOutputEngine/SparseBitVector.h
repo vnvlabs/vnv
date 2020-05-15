@@ -1079,19 +1079,4 @@ inline SparseBitVector operator-(
     return Result;
 }
 
-//namespace msgpack {
-//MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS) {
-//namespace adaptor {
-//
-//template <>
-//struct pack<SparseBitVector> {
-//    template <typename Stream>
-//    msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& o, SparseBitVector const& v) const {
-//        v->pack(o);
-//        return o;
-//    }
-//};
-//} // namespace adaptor
-//} // MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
-//} // namespace msgpack
 #endif /* _SPARSEBITVECTOR_H_ */
