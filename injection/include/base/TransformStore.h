@@ -56,7 +56,7 @@ private:
    * @param name
    * @param p
    */
-  void addTransform(std::string name, trans_ptr p, declare_transform_ptr v);
+  void addTransform(std::string name, trans_ptr p, std::string from, std::string to);
 
   /**
    * @brief getTransform

@@ -1,4 +1,4 @@
-
+﻿
 #include <iostream>
 #include <vector>
 
@@ -62,41 +62,28 @@ int function1(int x) {
   return 11;
 };
 
-// Write the injection point registation -- we use the array form to specify multiple points
-// in a single string.
-static const std::string injectionPoints = R"(
-   [
-       {
-          "name" : "Function1",
-          "package" : "SampleExecutable",
-          "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" , "samplePoints3" : "std::vector<double>" }
-       },
-       {
-          "name" : "Function1Class1",
-          "package" : "SampleExecutable",
-          "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" , "samplePoints3" : "std::vector<double>" }
-       },
-       {
-          "name" : "Function_In_Template",
-          "package" : "SampleExecutable",
-          "parameters" : { "samplePoints" : "std::vector<double>", "samplePoints1" : "std::vector<double>" , "samplePoints3" : "std::vector<double>" }
-       }
-   ]
-)";
+namespace {
+static const std::string params = R"({
+                                     "samplePoints" :  "std::vector<double>",
+                                     "samplePoints1" : "std::vector<double>",
+                                     "samplePoints3" : "std::vector<double>"
+                                  })";
+}
 
-void callback() {
+INJECTION_REGISTRATION() {
    // Here is where we would register all the injection points.
    VnV_Debug("Inside the Executable Call Back.");
-   Register_Injection_Point(injectionPoints);
-   std::map<std::string,std::string> m;
+   Register_Injection_Point("Function1Class1", params);
+   Register_Injection_Point("Function_In_Template", params);
+   Register_Injection_Point("Function1", params);
 };
 
 int main(int argc, char** argv) {
 
-  VnV_init(&argc, &argv, (argc==2) ? argv[1] : "./vv-input.json", callback);
+  INJECTION_INITIALIZE(&argc, &argv, (argc==2) ? argv[1] : "./vv-input.json");
 
   function1(10);
- 
+
   f<double> why;
   why.getF(1);
 
@@ -129,5 +116,5 @@ int main(int argc, char** argv) {
   sample_class_3.function1(10);
   sample_class_4.function1(10);
 
-  VnV_finalize();
+  INJECTION_FINALIZE();
 }

@@ -1,4 +1,4 @@
-#ifndef CPPINJECTIONPOINTINTERFACE_H
+﻿#ifndef CPPINJECTIONPOINTINTERFACE_H
 #define CPPINJECTIONPOINTINTERFACE_H
 
 #ifndef WITHOUT_VNV
@@ -29,7 +29,7 @@ void BeginPoint(VnV_Comm comm, const char* package, const char * id, const DataC
 void BeginLoop(VnV_Comm comm, const char *package, const char * id, const DataCallback&callback , NTV &map);
 bool EndLoop(const char* package, const char* id);
 void IterLoop(const char* package, const char * id, const char* iterId);
-void Register(std::string json_str);
+void Register(const char* package, const char* id, std::string parameters_str);
 
 template<typename T, typename V,  typename ...Args>
 void UnwrapParameterPack(NTV &m, V& name, T& first, Args&&...args) {
@@ -37,34 +37,38 @@ void UnwrapParameterPack(NTV &m, V& name, T& first, Args&&...args) {
     UnwrapParameterPack(m,std::forward<Args>(args)...);
 }
 
+
 template<typename ...Args>
-void Begin(VnV_Comm comm, const char* package, const char * id, bool loop, const DataCallback &callback, Args&&...args) {
+void BeginLoopPack(VnV_Comm comm, const char* package, const char * id, const DataCallback &callback, Args&&...args) {
     std::map<std::string,std::pair<std::string,void*>> m;
     UnwrapParameterPack(m,std::forward<Args>(args)...);
-    if (loop) {
-        BeginLoop(comm,package,id, callback,m);
-    } else {
-        BeginPoint(comm,package,id,callback, m);
-    }
+    BeginLoop(comm,package,id, callback,m);
 }
+
+template<typename ...Args>
+void BeginPack(VnV_Comm comm, const char* package, const char * id, const DataCallback &callback, Args&&...args) {
+    std::map<std::string,std::pair<std::string,void*>> m;
+    UnwrapParameterPack(m,std::forward<Args>(args)...);
+    BeginPoint(comm,package,id, callback,m);
+}
+
 
 }
 }
 
 // SINGULAR INJECTION POINT.
 #define INJECTION_POINT(COMM, NAME, ...)        \
-    VnV::CppInjection::Begin(COMM, VNV_STR(PACKAGENAME),#NAME,false, &VnV::CppInjection::defaultCallBack EVERYONE(__VA_ARGS__));
+    VnV::CppInjection::BeginLoopPack(COMM, VNV_STR(PACKAGENAME),#NAME, &VnV::CppInjection::defaultCallBack EVERYONE(__VA_ARGS__));
 
 #define INJECTION_POINT_C(COMM, NAME, callback, ...)        \
-    VnV::CppInjection::Begin(COMM,VNV_STR(PACKAGENAME),#NAME, false, callback EVERYONE(__VA_ARGS__));
+    VnV::CppInjection::BeginLoopPack(COMM,VNV_STR(PACKAGENAME),#NAME,  callback EVERYONE(__VA_ARGS__));
 
 // BEGIN A LOOPED INJECTION POINT
 #define INJECTION_LOOP_BEGIN_C(COMM,NAME, callback, ...)        \
-    VnV::CppInjection::Begin(COMM,VNV_STR(PACKAGENAME), #NAME,true, callback EVERYONE(__VA_ARGS__));
+    VnV::CppInjection::BeginPack(COMM,VNV_STR(PACKAGENAME), #NAME, callback EVERYONE(__VA_ARGS__));
 
 #define INJECTION_LOOP_BEGIN(COMM,NAME, ...)        \
-    VnV::CppInjection::Begin(COMM, VNV_STR(PACKAGENAME), #NAME, true, &VnV::CppInjection::defaultCallBack EVERYONE(__VA_ARGS__));
-
+    VnV::CppInjection::BeginPack(COMM, VNV_STR(PACKAGENAME), #NAME, &VnV::CppInjection::defaultCallBack EVERYONE(__VA_ARGS__));
 
 // END A LOOPED INJECTION POINT.
 #define INJECTION_LOOP_END(NAME) \
@@ -74,15 +78,18 @@ void Begin(VnV_Comm comm, const char* package, const char * id, bool loop, const
 #define INJECTION_LOOP_ITER(NAME,STAGE) \
     VnV::CppInjection::IterLoop(VNV_STR(PACKAGENAME),#NAME,#STAGE);
 
-#define INJECTION_FUNCTION_WRAPPER(COMM, NAME, function,...) \
-   INJECTION_LOOP_BEGIN(COMM,NAME,__VA_ARGS__) \
-   function(__VA_ARGS__); \
-   INJECTION_LOOP_END(NAME,__VA_ARGS__);
+#define INJECTION_FUNCTION_WRAPPER_C(COMM,NAME, function, callback, ...) \
+    INJECTION_LOOP_BEGIN_C(COMM,NAME,function,__VA_ARGS__);\
+    function(__VA_ARGS__);\
+    INJECTION_LOOP_END(COMM,NAME)
 
+
+#define INJECTION_FUNCTION_WRAPPER(COMM,NAME,function,...) \
+    INJECTION_FUNCTION_WRAPPER_C(COMM,NAME,function,&VnV::CppInjection::defaultCallBack,__VA_ARGS__);
 
 //REGISTER AN INJECTION POINT
-#define Register_Injection_Point(CONFIG) \
-    VnV::CppInjection::Register(CONFIG);
+#define Register_Injection_Point(NAME, PARAMETERS) \
+    VnV::CppInjection::Register(PACKAGENAME_S, NAME, PARAMETERS);
 
 #else
 
@@ -92,7 +99,8 @@ void Begin(VnV_Comm comm, const char* package, const char * id, bool loop, const
 #  define INJECTION_LOOP_ITER(...)
 #  define Register_Injection_Point(...)
 
-#endif
 
+
+#endif
 #endif // CPPINJECTION_H
 

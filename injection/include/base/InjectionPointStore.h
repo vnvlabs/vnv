@@ -1,4 +1,4 @@
-
+﻿
 /**
   @file InjectionPointStore.h
 **/
@@ -78,7 +78,7 @@ class InjectionPointStore {
 
 
   // JsonObject is a json object that validates againt the Injection point schema.
-  void registerInjectionPoint(json &jsonObject);
+  void registerInjectionPoint(std::string packageName, std::string id, json &jsonObject);
 
  public:
   /**
@@ -120,7 +120,7 @@ class InjectionPointStore {
   // Register Injection point. JsonStr must be json that validates against the injection
   // point schema OR an array of objects that individually validate against that same
   // schema.
-  void registerInjectionPoint(std::string json_str);
+  void registerInjectionPoint(std::string packageName, std::string name, std::string json_str);
 
   /**
    * @brief getInjectionPointStore

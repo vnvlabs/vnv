@@ -20,7 +20,7 @@ target_include_directories(injection PRIVATE
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
                             $<INSTALL_INTERFACE:include>
                           )
-target_compile_definitions(injection PRIVATE -DPACKAGENAME=VnV )
+		  target_compile_definitions(injection PRIVATE -DPACKAGENAME=VNV )
 
 add_subdirectory(src)
 

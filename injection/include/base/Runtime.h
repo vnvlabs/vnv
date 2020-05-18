@@ -1,4 +1,4 @@
-
+﻿
 /**
   @file Runtime.h
 **/
@@ -73,12 +73,15 @@ private:
 
   int* argc;    /**< Store the input parameters -- no idea why TODO*/
   char*** argv; /**< Stored args list for command line */
+  std::set<std::string> plugins;
+  std::set<std::string> packages;
 
   bool runTests; /**< Should tests be run */
   bool finalize_mpi = false; /**< Are we responsible for calling MPI_Finalize) */
   bool logUnhandledInjectionPoints = true;
   bool terminalSupportsAsciiColors = true;
 
+  void loadPlugin(std::string filename);
 
   void loadRunInfo(RunInfo &info, registrationCallBack *callback);
   void makeLibraryRegistrationCallbacks(std::map<std::string,std::string> packageNames);
@@ -118,7 +121,9 @@ private:
    */
   void printRunTimeInformation();
 
-  void processToolConfig(json config);
+   RunTimeOptions* getRunTimeOptions();
+
+   void processToolConfig(json config);
 
   // Cpp interface.
   void injectionPoint(VnV_Comm comm,std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args);

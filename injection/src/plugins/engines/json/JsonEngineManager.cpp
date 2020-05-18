@@ -1,4 +1,4 @@
-#include "plugins/engines/json/JsonEngineManager.h"
+﻿#include "plugins/engines/json/JsonEngineManager.h"
 #include "plugins/engines/json/JsonOutputReader.h"
 #include "c-interfaces/Logging.h"
 #include <iostream>
@@ -21,7 +21,18 @@ static json __json_engine_schema__ = R"(
 }
 )"_json;
 
+/**
+
+  This is the documentation.
+
+**/
+INJECTION_ENGINE(json) {
+   return new VnV::PACKAGENAME::Engines::JsonEngineManager();
+}
+
+
 namespace VnV {
+namespace PACKAGENAME {
 namespace Engines {
 
 #define LTypes X(double) X(int) X(bool) X(float) X(long) X(std::string) X(json)
@@ -39,7 +50,6 @@ LTypes
 #undef X
 #undef LTypes
 
-OutputEngineManager* JsonEngineBuilder() { return new JsonEngineManager(); }
 
 std::string JsonEngineManager::getId() {
     return std::to_string(id++);
@@ -198,12 +208,13 @@ void JsonEngineManager::unitTestFinishedCallBack(VnV_Comm comm, std::map<std::st
 }
 
 Nodes::IRootNode *JsonEngineManager::readFromFile(std::string file) {
-    return VnV::Engines::JsonReader::parse(file);
+    return VnV::PACKAGENAME::Engines::JsonReader::parse(file);
 }
 
 std::string JsonEngineManager::print() {
     return "VnV Json Engine Manager" ;
 }
 
+}
 }
 }

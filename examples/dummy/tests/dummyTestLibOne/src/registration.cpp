@@ -1,32 +1,21 @@
-
+﻿
 
 #include "VnV.h"
 #include "interfaces/ITest.h"
 
-VnV::ITest* euclideanError_maker(VnV::TestConfig config);
-json euclideanError_declare();
-
-VnV::ITest* dummyTest_maker(VnV::TestConfig config);
-json dummyTest_declare();
-
 static json options_schema = R"({"type":"object"})"_json;
 
-
-void options_callback(json &callbackJson) {
-    VnV_Info("DummyTestLibrary options callback: %s", callbackJson.dump().c_str());
+INJECTION_OPTIONS(options_schema) {
+    VnV_Info("DummyTestLibrary options callback: %s", config.dump().c_str());
 }
 
-
-REGISTER_VNV() {
-
-    // Register some options.
-    VnV_Register_Options(options_schema, options_callback );
-
-    // Register the tests.
-    VnV::registerTest(PACKAGENAME_S, "EuclideanError", euclideanError_maker,euclideanError_declare);
-    VnV::registerTest(PACKAGENAME_S, "DummyTest", dummyTest_maker,dummyTest_declare);
-
-
+DECLARETEST(dummyTest)
+DECLARETEST(EuclideanError)
+INJECTION_REGISTRATION() {
+    REGISTER_OPTIONS
+    REGISTERTEST(dummyTest)
+    REGISTERTEST(EuclideanError)
 }
+
 
 

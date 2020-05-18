@@ -1,4 +1,4 @@
-{
+﻿{
   "runTests": true,
   "runScopes": [
     {
@@ -7,7 +7,7 @@
     }
   ],
   "logging": {
-   	"on" : true,
+    "on" : true,
     "filename" : "stdout",
     "logs" : {}
   },
@@ -20,26 +20,26 @@
     }
   },
   "injectionPoints": [
-	  {
-		"name" : "initialization",
-        "package" : "VnV",
+      {
+        "name" : "initialization",
+        "package" : "VNV",
         "tests" : [
-			{
+            {
                 "name" : "provenance",
-                "package" : "VnV",
+                "package" : "VNV",
                 "runScope" : ["all"],
-				"config" : {
+                "config" : {
                     "expectedResult" : {},
-				    "configuration": {
-				    },
-				    "parameters": {
-					    "argc" : "argc",
-					    "argv" : "argv",
-					    "config" : "config"
-				    }
-				}
-			}
-		]
-	  }
-  ]	  
+                    "configuration": {
+                    },
+                    "parameters": {
+                        "argc" : "argc",
+                        "argv" : "argv",
+                        "config" : "config"
+                    }
+                }
+            }
+        ]
+      }
+  ]
 }

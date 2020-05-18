@@ -3,6 +3,7 @@
 #include <iostream>
 
 namespace VnV{
+namespace PACKAGENAME {
 namespace Engines {
 namespace JsonReader {
 
@@ -243,7 +244,7 @@ IMapNode* MapNode::add(std::string key, std::shared_ptr<DataBase> v) {
      return this;
 }
 
-
+}
 }
 }
 }

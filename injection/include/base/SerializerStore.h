@@ -18,15 +18,13 @@ class SerializerStore {
 
  private:
   std::map<std::string, serializer_ptr* , std::less<std::string> > serializer_factory;
-  std::map<std::string, serializer_ptr*, std::less<std::string> > deserializer_factory;
   std::map<std::string, serializer_ptr*, std::less<std::string> > serializer_name;
   SerializerStore();
 
  public:
-  void addSerializer(std::string name, serializer_ptr m, declare_serializer_ptr v);
+  void addSerializer(std::string name, serializer_ptr m, std::string type);
 
   ISerializer* getSerializerFor(std::string name);
-  ISerializer* getDeSerializerFor(std::string name);
   ISerializer* getSerializerByName(std::string name);
 
   static SerializerStore& getSerializerStore();

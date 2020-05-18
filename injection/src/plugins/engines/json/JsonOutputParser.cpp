@@ -1,4 +1,4 @@
-#include "plugins/engines/json/JsonOutputReader.h"
+﻿#include "plugins/engines/json/JsonOutputReader.h"
 #include "json-schema.hpp"
 #include "base/exceptions.h"
 
@@ -7,6 +7,7 @@
 using nlohmann::json;
 
 namespace  VnV {
+namespace PACKAGENAME {
 namespace Engines {
 namespace JsonReader {
 
@@ -210,6 +211,7 @@ IRootNode* parse(std::string filename) {
      return genRootNode(j);
 }
 
+}
 }
 }
 }

@@ -1,4 +1,4 @@
-#ifndef JSONINTERFACE_H
+﻿#ifndef JSONINTERFACE_H
 #define JSONINTERFACE_H
 
 #ifndef WITHOUT_VNV
@@ -56,11 +56,31 @@ EXTERNC void _VnV_registerOptions(const char *packageName, const char* sptr, opt
 
 #if __cplusplus
 
-#define VnV_Register_Options(schema, callback) \
-    VnV::RegisterOptions(PACKAGENAME_S,schema,callback);
+#define INJECTION_OPTIONS(schema) \
+    namespace VnV {\
+     namespace PACKAGENAME {\
+       void optionsCallback(json& config);\
+       void registerOptions() {\
+          VnV::RegisterOptions(PACKAGENAME_S, schema, optionsCallback);\
+       }\
+      }\
+    }\
+    void VnV::PACKAGENAME::optionsCallback(json& config)
+
+#define DECLARE_OPTIONS \
+  namespace VnV { namespace PACKAGENAME { void registerOptions(); } }
+
+#define REGISTER_OPTIONS \
+  VnV::PACKAGENAME::registerOptions();
+
 #else
-#define VnV_Register_Options(schema, callback) \
-    _VnV_registerOptions(PACKAGENAME_S, schema, callback)
+#define INJECTION_OPTIONS(schema) \
+   void _VnV_options_callback_##PACKAGENAME(c_json json); \
+   void _VnV_register_options_##PACKAGENAME() { \
+      _VnV_registerOptions(PACKAGENAME_S, schema, _VnV_options_callback_##PACKAGENAME);\
+   }\
+   void _VnV_options_callback_##PACKAGENAME(c_json json)
+#define REGISTER_OPTIONS _VnV_register_options_##PACKAGENAME();
 #undef EXTERNC
 #endif
 

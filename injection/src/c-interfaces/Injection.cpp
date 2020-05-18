@@ -1,4 +1,4 @@
-
+﻿
 /**
   @file Injection.cpp
 **/
@@ -38,8 +38,8 @@ void _VnV_injectionPoint_loop(const char * package, const char* id, const char* 
   VnV::RunTime::instance().injectionPoint_iter( package, id, stageId);
 }
 
-void _VnV_registerInjectionPoint(const char *config) {
-    VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint(config);
+void _VnV_registerInjectionPoint(const char* package, const char * id, const char *parameters) {
+    VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint(package,id,parameters);
 }
 
 

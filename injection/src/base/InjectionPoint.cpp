@@ -1,4 +1,4 @@
-
+﻿
 /** @file InjectionPoint.cpp Implementation of InjectionPoint class as defined in InjectionPoint.h **/
 
 #include <iostream>
@@ -10,22 +10,20 @@
 #include "base/InjectionPointStore.h"
 #include "c-interfaces/Logging.h"
 
+
 using namespace VnV;
 
 using nlohmann::json_schema::json_validator;
 
-InjectionPoint::InjectionPoint(json registrationJson, NTV &args) {
+InjectionPoint::InjectionPoint(std::string name, json registrationJson, NTV &args) {
 
-     //RegistrationJson is a validated InjectionPoint Registration json object.
-     name = registrationJson["name"].get<std::string>();
-     json parameters = registrationJson["parameters"];
 
      for (auto it : args ) {
-         auto rparam = parameters.find(it.first); // Find a parameter with this name.
-         if (rparam != parameters.end()) {
+         auto rparam = registrationJson.find(it.first); // Find a parameter with this name.
+         if (rparam != registrationJson.end()) {
             parameterMap[it.first] = VnVParameter(it.second.second, rparam.value().get<std::string>(),it.second.first);
          } else {
-            VnV_Warn("Injection Point %s is not configured Correctly. Unrecognized parameter %s", name.c_str(), it.first.c_str());
+            VnV_Warn("Injection Point is not configured Correctly. Unrecognized parameter %s", it.first.c_str());
             parameterMap[it.first] = VnVParameter(it.second.second, "void*", it.second.first);
          }
     }
@@ -41,10 +39,11 @@ std::string InjectionPoint::getParameterRTTI(std::string key)  const {
     return "";
 }
 
-void InjectionPoint::addTest(TestConfig config) { 
+
+void InjectionPoint::addTest(TestConfig config) {
      config.setParameterMap(parameterMap);
      std::shared_ptr<ITest> test = TestStore::getTestStore().getTest(config);
-     
+
      if (test != nullptr) {
         m_tests.push_back(test);
         return;

@@ -1,4 +1,4 @@
-
+﻿
 /**
   @file Utilities.h
 **/
@@ -10,10 +10,13 @@
  */
 #include <string>
 #include <vector>
-#include "json-schema.hpp"
-#include "base/InjectionPoint.h"
+#include <stack>
+#include <map>
 
+#include "json-schema.hpp"
+//#include "base/InjectionPoint.h"
 namespace VnV {
+typedef std::map<std::string, std::pair<std::string,void*>> NTV;
 
 namespace StringUtils {
 void ltrim(std::string &s) ;
@@ -31,6 +34,14 @@ std::string rtrim_copy(std::string s);
 
 // trim from both ends (copying)
 std::string trim_copy(std::string s);
+
+std::vector<std::string> process_variadic(const char * args);
+
+std::pair<std::string,std::string> splitCppArgString(std::string str_);
+
+std::map<std::string, std::string> variadicProcess(const char* mess);
+
+bool balancedParenthesis(std::string expr);
 
 /**
  * @brief StringSplit
@@ -53,6 +64,7 @@ namespace JsonUtilities {
 
 
 }
+
 namespace VariadicUtils {
     NTV UnwrapVariadicArgs(va_list argp);
 }

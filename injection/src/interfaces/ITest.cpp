@@ -1,4 +1,4 @@
-
+﻿
 /**
   @file ITest.cpp
 **/
@@ -13,14 +13,6 @@ using nlohmann::json_schema::json_validator;
 const json& TestConfig::getAdditionalParameters() const {
     return testConfigJson["configuration"];
 }
-
-const json& TestConfig::getExpectedResult() const {
-    return testConfigJson["expectedResult"];
-}
-
-const json& ITest::getExpectedResultJson() const {
-    return m_config.getExpectedResult();
-}
 const json& ITest::getConfigurationJson() const {
     return m_config.getAdditionalParameters();
 }
@@ -33,7 +25,6 @@ std::string TestConfig::getPackage() const { return package; }
 
 void TestConfig::print() {
     int a = VnV_BeginStage("Test Configuration %s", getName().c_str());
-    VnV_Info("Expected Result: %s", getExpectedResult().dump().c_str());
     VnV_Info("Configuration Options: %s", getAdditionalParameters().dump().c_str());
     int b = VnV_BeginStage("Injection Point Mapping");
     for ( auto it : parameters ) {
@@ -43,11 +34,11 @@ void TestConfig::print() {
     VnV_EndStage(a);
 }
 
-TestConfig::TestConfig(std::string package, std::string name, json &testConfigJson, json &testDeclarationJson) {
+TestConfig::TestConfig(std::string package, std::string name, json &testConfigJson, std::map<std::string,std::string> &params) {
   setName(name);
   this->package = package;
   this->testConfigJson = testConfigJson;
-  this->testDeclarationJson = testDeclarationJson;
+  this->testParameters = params;
 }
 
 void TestConfig::setParameterMap(VnVParameterSet &args) {
@@ -57,9 +48,10 @@ void TestConfig::setParameterMap(VnVParameterSet &args) {
     for (auto &param : j.items()) {
         std::string testParameter = param.key();
         std::string injectionParam = param.value();
-        std::string testParamType = testDeclarationJson["parameters"][testParameter].get<std::string>();
+        std::string testParamType = testParameters[testParameter];
         auto injection = args.find(injectionParam);
         if (injection == args.end()) {
+            //The parameter specified in args, was not found.
             if (isRequired(testParameter)) {
                 throw VnVExceptionBase("Required parameter missing");
             }
@@ -87,35 +79,54 @@ const std::map<std::string,VnVParameter>& TestConfig::getParameterMap() const {
 
 
 bool TestConfig::isRequired(std::string testParameter) const {
-    return testDeclarationJson["requiredParameters"].find(testParameter) != testDeclarationJson["requiredParameters"].end();
+    // TODO Tests could have optional parameters. We should define a way to declare
+    // a variable as optional. A typed solution might be the best approach. I.e.,
+    // test variables that end with _opt, or something like that. For now, all
+    // test parameters are required parameters.
+    return  true;
+
 }
 
 
 ITest::ITest(TestConfig &config) : m_config(config)   {
 }
 
-
+//parameters is a map of injectionpoint name to injection point type.
 bool TestConfig::preLoadParameterSet(std::map<std::string, std::string> &parameters)  {
     // Need to check if we can properly map the test, as declared, to this injection point.
-    json j = testConfigJson["parameters"];
+    json j = testConfigJson["parameters"]; // maps testParam to injection point param.
     for (auto &param : j.items()) {
-        std::string testParameter = param.key();
-        std::string injectionParam = param.value();
-        std::string testParamType = testDeclarationJson["parameters"][testParameter].get<std::string>();
-        bool required = isRequired(testParameter);
-        auto injection = parameters.find(injectionParam);
-        if (injection == parameters.end()) {
-            if (isRequired(testParameter)) {
-                return false;
-            }
-        } else {
-                std::shared_ptr<Transformer> p = TransformStore::getTransformStore().getTransformer(injection->second,testParamType);
-                if (p == nullptr && required) {
-                    return false;
-                }
-                transformers.insert(std::make_pair(testParameter, std::move(p)));
 
+        // Get the information about the test parameter
+        std::string testParameter = param.key();   // The parameter in the test.
+        auto testParameterType = testParameters.find(testParameter);
+        if ( testParameterType == testParameters.end() ) {
+            return false; // Test parameter does not exist (invalid config, should never happen if json is validated).
         }
+        bool required = isRequired(testParameter);
+
+
+        // Get the information about the injection point parameter.
+        std::string injectionParam = param.value(); // The parameter in the injection point.
+        auto injectionParamType = parameters.find(injectionParam); //
+
+        std::shared_ptr<Transformer> tran;
+        if (injectionParamType == parameters.end() && required ) {
+            if (parameters.size() == 0 ) {
+               /** This is an unknown injection point (it has parameters maybe, but we dont know them **/
+               VnV_Warn("Injection point parameters unknown. Parameters will be passed without type checking");
+               tran = TransformStore::getTransformStore().getTransformer(testParameterType->second,testParameterType->second);
+              } else {
+                 return false; //required parameter not found.
+              }
+        } else {
+          tran = TransformStore::getTransformStore().getTransformer(injectionParamType->second,testParameterType->second);
+        }
+
+        if (tran == nullptr && required) {
+            return false;
+        }
+        transformers.insert(std::make_pair(testParameter, std::move(tran)));
     }
     return true;
 }
@@ -133,3 +144,19 @@ TestStatus ITest::_runTest(VnV_Comm comm, OutputEngineManager* engine, Injection
 }
 
 ITest::~ITest() {}
+
+/**
+ * @brief INJECTION_TEST
+ * @param argv
+ * @param argc
+ * @param config
+ *
+ * This is the way
+ */
+INJECTION_TEST(test1,int argv, char** argc, std::string config) {
+  engine->Put(comm, "hello", 10.0);
+  engine->Put(comm,"argv",get<int>("argv"));
+  engine->Put(comm,"argc",*get<char**>("argc"));
+  return SUCCESS;
+}
+

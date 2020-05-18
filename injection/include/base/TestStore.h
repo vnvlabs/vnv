@@ -1,4 +1,4 @@
-
+﻿
 /**
   @file TestStore.h
 **/
@@ -34,12 +34,13 @@ class TestStore {
 
    * @brief registeredTests
    */
-  std::map<std::string, std::pair<json,json>> registeredTests;
+  std::map<std::string,json> registeredTests;
 
   /**
    * @brief test_factory
    */
-  std::map<std::string, std::pair<maker_ptr*, declare_test_ptr*>, std::less<std::string>>
+  std::map<std::string, std::pair<maker_ptr*, std::map<std::string,std::string>>, std::less<std::string>>
+
       test_factory;
 
   /**
@@ -60,7 +61,7 @@ class TestStore {
    * @param m
    * @param v
    */
-  void addTest(std::string package, std::string name, maker_ptr m, declare_test_ptr v);
+  void addTest(std::string package, std::string name, maker_ptr m, std::map<std::string,std::string> v);
 
 
   /**

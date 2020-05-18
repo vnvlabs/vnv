@@ -1,4 +1,4 @@
-
+﻿
 /** @file Utilities.cpp **/
 
 #include <fstream>
@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <type_traits>
+#include <map>
 
 #include "base/Utilities.h"
 #include "c-interfaces/Logging.h"
@@ -94,7 +95,8 @@ VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp) {
       }
       void* variablePtr = va_arg(argp, void*);
 
-      //variable was not registered, add it with a type void*
+      //add it to the list. In C, we do not have typeId, so we cannot get the rtti info.
+      // Just set it to void*.
       parameterSet.insert(std::make_pair(variableName, std::make_pair("void*", variablePtr)));
 
     }
@@ -158,4 +160,82 @@ std::vector<std::pair<std::string,std::string>> VnV::bfs(std::map<std::string,st
         }
     }
     throw VnVExceptionBase("No Path");
+}
+
+std::map<std::string, std::string> VnV::StringUtils::variadicProcess(const char *mess) {
+    std::map<std::string,std::string> res;
+    std::vector<std::string> pmess = process_variadic(mess);
+    for (auto it : pmess) {
+        std::pair<std::string, std::string> p = splitCppArgString(it);
+        res[trim_copy(p.second)] = trim_copy(p.first);
+    }
+    return res;
+}
+
+std::pair<std::string, std::string> VnV::StringUtils::splitCppArgString(std::string str_) {
+    std::string str = VnV::StringUtils::trim_copy(str_);
+    std::size_t last = str.find_last_of("&*> ");
+    return std::make_pair(str.substr(0,last+1), str.substr(last+1));
+}
+
+std::vector<std::string> VnV::StringUtils::process_variadic(const char *args) {
+    std::string mess = args;
+    std::vector<std::string> res;
+    StringSplit(mess,",",res);
+    return res;
+}
+
+bool VnV::StringUtils::balancedParenthesis(std::string expr) {
+    std::stack<char> s;
+    char x;
+
+    // Traversing the Expression
+    for (int i=0; i<expr.length(); i++)
+    {
+        if (expr[i]=='('||expr[i]=='['||expr[i]=='{')
+        {
+            // Push the element in the stack
+            s.push(expr[i]);
+            continue;
+        }
+
+        // IF current current character is not opening
+        // bracket, then it must be closing. So stack
+        // cannot be empty at this point.
+        if (s.empty())
+            return false;
+
+        switch (expr[i])
+        {
+        case ')':
+
+            // Store the top element in a
+            x = s.top();
+            s.pop();
+            if (x=='{' || x=='[')
+                return false;
+            break;
+
+        case '}':
+
+            // Store the top element in b
+            x = s.top();
+            s.pop();
+            if (x=='(' || x=='[')
+                return false;
+            break;
+
+        case ']':
+
+            // Store the top element in c
+            x = s.top();
+            s.pop();
+            if (x =='(' || x == '{')
+                return false;
+            break;
+        }
+    }
+
+    // Check Empty Stack
+    return (s.empty());
 }

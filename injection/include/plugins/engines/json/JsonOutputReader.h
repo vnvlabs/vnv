@@ -1,10 +1,11 @@
-#ifndef OUTPUTREADERIMPLB_H
+﻿#ifndef OUTPUTREADERIMPLB_H
 #define OUTPUTREADERIMPLB_H
 
 #include <sstream>
 #include "interfaces/nodes/Nodes.h"
 
 namespace VnV {
+namespace PACKAGENAME {
 namespace Engines {
 namespace JsonReader {
 
@@ -172,9 +173,8 @@ public:
 IRootNode* parse(std::string filename);
 
 }
-
 }
-
+}
 }
 
 #endif // OUTPUTREADERIMPL_H

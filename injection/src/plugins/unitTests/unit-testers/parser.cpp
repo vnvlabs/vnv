@@ -1,23 +1,14 @@
-#ifndef _EuclideanError_H 
-#define _EuclideanError_H 
+﻿#ifndef _EuclideanError_H
+#define _EuclideanError_H
 
 #include "VnV.h"
 #include "interfaces/IUnitTester.h"
 
 #include <sstream>
-using namespace VnV;
 
-class ParserUnitTests : public IUnitTester { 
-
-   int x,y;	
-public:
-
-    ParserUnitTests(int _x, int _y ) : x(_x), y(_y) {
-
-    }
-
-    std::map<std::string,bool> run(IOutputEngine* /* engine */) {
-        
+INJECTION_UNITTEST(Demo) {
+        int x = 10;
+        int y = 10;
         std::map<std::string, bool> results;
 
         std::string xstr = std::to_string(x);
@@ -34,19 +25,7 @@ public:
         results["x == 10"] = (x==10);
         results["y == 10"] = (y==10);
         return results;
-    }
-
-    ~ParserUnitTests();
-};
-
-ParserUnitTests::~ParserUnitTests(){};
-
-IUnitTester* parser_maker() {
-    return new ParserUnitTests(10,10);
 }
 
-void parser_callBack() {
-    VnV::registerUnitTester("parser_10_10", parser_maker);
-}
 
 #endif

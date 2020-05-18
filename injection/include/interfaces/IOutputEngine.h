@@ -1,4 +1,4 @@
-#ifndef IOUTPUTENGINE_H
+﻿#ifndef IOUTPUTENGINE_H
 #define IOUTPUTENGINE_H
 
 #include <string>
@@ -75,6 +75,19 @@ void registerEngine(std::string name, VnV::engine_register_ptr r);
 
 }
 
+#define INJECTION_ENGINE(name) \
+  namespace VnV { namespace PACKAGENAME { namespace Engines { \
+    OutputEngineManager* declare_##name(); \
+    void register_##name(){ \
+       registerEngine(#name, declare_##name);\
+    }\
+  }}}\
+  VnV::OutputEngineManager* VnV::PACKAGENAME::Engines::declare_##name()
+
+#define DECLAREENGINE(name) namespace VnV { namespace PACKAGENAME { namespace Engines {\
+  void register_##name(); \
+ } } }
+#define REGISTERENGINE(name) VnV::PACKAGENAME::Engines::register_##name();
 
 
 #endif // IOUTPUTENGINE_H

@@ -1,8 +1,9 @@
-#ifndef JSONENGINEMANAGER_H
+﻿#ifndef JSONENGINEMANAGER_H
 #define JSONENGINEMANAGER_H
 
 #include "interfaces/IOutputEngine.h"
 namespace VnV {
+namespace PACKAGENAME {
 namespace Engines {
 
 class JsonEngineManager : public OutputEngineManager {
@@ -62,6 +63,7 @@ public:
     // IInternalOutputEngine interface
     std::string print();
 };
+}
 }
 }
 #endif // JSONENGINEMANAGER_H

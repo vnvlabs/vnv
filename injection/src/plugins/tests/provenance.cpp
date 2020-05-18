@@ -1,4 +1,4 @@
-/** @file provenance.cpp */
+﻿/** @file provenance.cpp */
 
 #ifndef _provenance_H
 #define _provenance_H
@@ -13,25 +13,24 @@
 #include "interfaces/ITest.h"
 #include "c-interfaces/Logging.h"
 
-namespace  VnV {
+using namespace VnV;
 
+namespace {
 
-namespace ProvenanceTest {
-
-class provenance : public ITest {
+/**
+ * This test is a test that checks the provenance of the file.
+ */
+class provenanceRunner {
  public:
 
-    provenance(TestConfig config) : ITest(config) {
-
-    }
+    provenanceRunner() {}
 
     TestStatus getProvHistory(VnV_Comm comm, IOutputEngine* engine, int argc, char** argv,
-                     json configFile) {
+                     json configFile, json& inputFiles) {
 
     {
         // Add the current working directory
         std::string currentWorkingDirectory(DistUtils::getCurrentDirectory());
-
         engine->Put(comm,"cwd", currentWorkingDirectory);
     }
 
@@ -71,13 +70,13 @@ class provenance : public ITest {
        // that should be included in the output section. This allows for versioning
        // of things like input files. In this case, we load the entire file into the
        // output.
-       const json extra = getConfigurationJson();
+       //const json extra = getConfigurationJson();
 
-       if ( extra.find("input-files") != extra.end() ) {
+       //if ( extra.find("input-files") != extra.end() ) {
 
-         json a = extra["input-files"];
-         std::vector<json> ins;
-         for ( auto itt: a ) {
+        // json a = extra["input-files"];
+         json ins = json::array();
+         for ( auto itt: inputFiles ) {
                std::ifstream f(itt.get<std::string>());
                if (f.is_open())	{
                    json r;
@@ -88,9 +87,8 @@ class provenance : public ITest {
                    r["info"] = DistUtils::getLibInfo(itt.get<std::string>(),0);
                    ins.push_back(r);
                }
-         }
-         json x = ins;
-         engine->Put(comm,"input-files",x);
+         //}
+           engine->Put(comm,"input-files",ins);
       }
    }
    {
@@ -110,55 +108,31 @@ class provenance : public ITest {
        // which output files are generated during the Current looped injection point.
    }
 
-   virtual TestStatus runTest(VnV_Comm comm, IOutputEngine* engine, InjectionPointType type, std::string stageId) override {
-      TestStatus r = SUCCESS;
-
-      if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
-            
-            VnV_Debug("RUNNING PROVENANCE TEST");
-            //Get the variables.
-            GetRef(c,"argc",int*);
-            GetRef(f,"config",json);
-            GetRef(v,"argv",char***);
-            r = getProvHistory(comm,engine, *c, *v, f);
-     }
-     if ( type == InjectionPointType::Begin) {
-        logTree();
-     }
-     else if (type == InjectionPointType::End){
-        writeTree(engine);
-     }
-     return r;
-  }
-
-  virtual ~provenance() override;
+   virtual ~provenanceRunner();
 };
 
-provenance::~provenance() {}
+provenanceRunner::~provenanceRunner() {}
 
-ITest* maker(TestConfig config) { return new provenance(config); }
+}
 
-json declare() {
-    return R"({
-            "name" : "provenance",
-            "title" : "Provenance Tracking.",
-            "description" : "This test tracks provenance for the executable, including info about all linked libraries",
-            "expectedResult" : {"type" : "object" },
-            "configuration" : {
-               "type" : "object",
-               "properties" : {
-                  "input-files" : { "type" : "array" , "items" : {"type" : "string"} }
-               }
-            },
-            "parameters" : {
-               "argc" : "int*",
-               "argv" : "char***",
-               "config" : "json"
-            },
-            "requiredParameters" : ["argc","argv","config"],
-            "io-variables" : {}
-    })"_json;
+INJECTION_TEST_R(provenance, provenanceRunner, int* argc, char*** argv, json config) {
+   if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
+       GetRef(c,"argc",int*);
+       GetRef(f,"config",json);
+       GetRef(v,"argv",char***);
+       json confj = getConfigurationJson();
+       auto it = confj.find("inputFiles");
+       json inputFiles = (it==confj.end()) ? json::array() : it.value();
+       return runner->getProvHistory(comm,engine, *c, *v, f,inputFiles);
+    }
+    else if ( type == InjectionPointType::Begin) {
+       runner->logTree();
+
+     }
+    else if (type == InjectionPointType::End){
+       runner->writeTree(engine);
+    }
+    return SUCCESS;
 }
-}
-}
+
 #endif

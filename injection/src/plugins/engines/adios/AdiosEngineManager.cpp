@@ -1,4 +1,4 @@
-
+﻿
 /** @file AdiosOutputEngineImpl.cpp **/
 #include "plugins/engines/adios/AdiosEngineManager.h"
 
@@ -25,7 +25,12 @@ static json __adios_input_schema__ = R"(
     "additionalProperties": false
 })"_json;
 
+INJECTION_ENGINE(adios) {
+  return new VnV::PACKAGENAME::Engines::AdiosEngineManager();
+}
+
 namespace VnV {
+namespace PACKAGENAME {
 namespace Engines {
 
 OutputEngineManager* AdiosEngineBuilder() {
@@ -191,5 +196,6 @@ Nodes::IRootNode *AdiosEngineManager::readFromFile(std::string) {
     throw VnVExceptionBase("Reader Not Implemented for Adios Engine");
 }
 
+}
 }
 }

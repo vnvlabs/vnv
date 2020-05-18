@@ -1,4 +1,4 @@
-
+﻿
 /** @file DebugOutputEngineImpl.cpp **/
 
 #include "plugins/engines/debug/DebugEngineManager.h"
@@ -18,7 +18,12 @@ static json __debug_engine_schema__ = R"(
 }
 )"_json;
 
+INJECTION_ENGINE(debug) {
+   return new VnV::PACKAGENAME::Engines::DebugEngineManager();
+}
+
 namespace VnV {
+namespace PACKAGENAME {
 namespace Engines {
 
 OutputEngineManager* DebugEngineBuilder() { return new DebugEngineManager(); }
@@ -113,4 +118,4 @@ std::string DebugEngineManager::print() {
 
 }
 }
-
+}

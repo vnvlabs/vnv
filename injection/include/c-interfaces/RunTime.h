@@ -1,4 +1,4 @@
-#ifndef RUNTIMEINTERFACE_H
+﻿#ifndef RUNTIMEINTERFACE_H
 #define RUNTIMEINTERFACE_H
 
 #ifndef WITHOUT_VNV
@@ -12,19 +12,22 @@
 #define VNV_GET_REGISTRATION "__vnv_registration_callback__"
 
 #  ifdef __cplusplus
-#   define REGISTER_VNV extern "C" void VNV_REGISTRATION_CALLBACK_NAME
+#   define INJECTION_REGISTRATION extern "C" void VNV_REGISTRATION_CALLBACK_NAME
 #  else
-#    define REGISTER_VNV_CALLBACK void VNV_REGISTATION_CALLBACK_NAME
+#    define INJECTION_REGISTRATION void VNV_REGISTRATION_CALLBACK_NAME
 #endif
+#   define INJECTION_REGISTRATION_CALL VNV_REGISTRATION_CALLBACK_NAME();
 
-#define VNV_INIT(argc,argv,filename,callback) \
-    while(true) {\
-    VnV_init(argc,argv,filename, callback);
+// We are going to forward declare a registration function for any package that includes
+// VnV.h. That way, the code will not compile if the registration function is missing.
+INJECTION_REGISTRATION();
 
 
+#define INJECTION_INITIALIZE(argc,argv,filename) \
+    VnV_init(argc,argv,filename, VNV_REGISTRATION_CALLBACK_NAME);
 
-#define VNV_FINALIZE() \
-    if (VnV_finalize()){break;}}
+#define INJECTION_FINALIZE() \
+    VnV_finalize();
 
 
 // This structure can be used to register VnV objects. Basically, the functions

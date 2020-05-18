@@ -1,4 +1,4 @@
-
+﻿
 /**
   @file InjectionPoint.h
 **/
@@ -99,7 +99,7 @@ class InjectionPoint {
    *support names of the form "a::b::c"
    *
    **/
-  InjectionPoint(json registrationJson, NTV &args);
+  InjectionPoint(std::string name, json registrationJson, NTV &args);
 
   void setInjectionPointType(InjectionPointType type, std::string stageId);
   void setCallBack(injectionDataCallback *callback);

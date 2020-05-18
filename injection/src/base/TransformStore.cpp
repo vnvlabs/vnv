@@ -1,4 +1,4 @@
-
+﻿
 /** @file TransformStore.cpp Implementation of the TransformStore class as defined in
  * base/TransformStore.h"
  **/
@@ -70,23 +70,16 @@ void TransformStore::print() {
     VnV_EndStage(a);
 }
 
-void TransformStore::addTransform(std::string name, trans_ptr t, declare_transform_ptr v) {
+void TransformStore::addTransform(std::string name, trans_ptr t, std::string from, std::string to ) {
   trans_factory.insert(std::make_pair(name,t));
-  json x = v();
-  json_validator validator;
-  validator.set_root_schema(getTransformDeclarationSchema());
-  validator.validate(x);
-
-  for( auto from : x.items() ) {
-      std::string fromStr = from.key();
-      auto from_trans = trans_map.insert(std::make_pair(fromStr,std::map<std::string,std::string>())).first->second;
-      for ( auto to : from.value().items() ){
-          from_trans.insert(std::make_pair(to.value(),name));
-      }
+  auto it = trans_map.find(from);
+  if (it == trans_map.end() ) {
+      trans_map.insert(std::make_pair(from,std::map<std::string,std::string>()));
   }
+  trans_map[from][to] = name;
 }
 
-void VnV::registerTransform(std::string name, trans_ptr t, declare_transform_ptr v) {
-  TransformStore::getTransformStore().addTransform(name, t,v);
+void VnV::registerTransform(std::string name, trans_ptr t, std::string from, std::string to) {
+  TransformStore::getTransformStore().addTransform(name, t,from,to);
 
 }

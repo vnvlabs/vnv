@@ -295,7 +295,7 @@ json getTestDelcarationJsonSchema() {
     return __test_declaration_schema__;
 }
 
-json getTestValidationSchema(json &testDeclaration) {
+json getTestValidationSchema(std::map<std::string, std::string> &params) {
     json schema = R"(
     {
        "$schema": "http://json-schema.org/draft-07/schema#",
@@ -303,22 +303,22 @@ json getTestValidationSchema(json &testDeclaration) {
        "type": "object"
     })"_json;
 
-    schema["title"] = testDeclaration["title"];
-    schema["description"] = testDeclaration["description"];
+    schema["title"] = "Test Declaration Schema";
+    schema["description"] = "Schema for verifying test. ";
 
     json properties = R"({})"_json;
-    properties["expectedResult"] = testDeclaration["expectedResult"];
-    properties["configuration"] = testDeclaration["configuration"];
+    properties["configuration"] = R"({"type":"object"})"_json;
 
     json parameters = R"({"type":"object" ,"properties" : {}, "additionalProperties" : false})"_json;
-    parameters["required"] = testDeclaration["requiredParameters"];
-    for ( auto it : testDeclaration["parameters"].items()) {
-        parameters["properties"][it.key()] = R"({"type":"string"})"_json;
+    parameters["required"] = json::array();
+    for ( auto it : params) {
+        parameters["properties"][it.first] = R"({"type":"string"})"_json;
+        parameters["required"].push_back(it.first);
     }
 
     properties["parameters"] = parameters;
     schema["properties"] = properties;
-    schema["required"] = R"(["expectedResult","configuration","parameters"])"_json;
+    schema["required"] = R"(["configuration","parameters"])"_json;
     return schema;
 }
 

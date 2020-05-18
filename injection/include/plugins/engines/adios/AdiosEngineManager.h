@@ -1,4 +1,4 @@
-#ifndef ADIOSENGINEMANAGER_H
+﻿#ifndef ADIOSENGINEMANAGER_H
 #define ADIOSENGINEMANAGER_H
 
 #include "base/exceptions.h"
@@ -14,6 +14,7 @@ using nlohmann::json;
 
 
 namespace VnV {
+namespace PACKAGENAME {
 namespace Engines {
 
 class AdiosEngineManager : public OutputEngineManager {
@@ -65,6 +66,7 @@ public:
 
 OutputEngineManager* AdiosEngineBuilder();
 
+}
 }
 }
 #endif // ADIOSENGINEMANAGER_H

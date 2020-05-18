@@ -1,6 +1,6 @@
-
-#ifndef BFSTester_H 
-#define BFSTester_H 
+﻿
+#ifndef BFSTester_H
+#define BFSTester_H
 
 #include "VnV.h"
 #include "interfaces/IUnitTester.h"
@@ -9,16 +9,7 @@
 #include <sstream>
 using namespace VnV;
 
-class BFSTester : public IUnitTester { 
-
-public:
-    // Test the Breadth first search algorithm.
-    BFSTester( ){
-
-    }
-
-    std::map<std::string,bool> run(IOutputEngine* /* engine */) {
-        
+INJECTION_UNITTEST(BFSTester) {
         std::map<std::string, bool> results;
 
         std::map<std::string, std::map<std::string,std::string>> graph;
@@ -46,7 +37,12 @@ public:
         try { VnV::bfs(graph,"from","to"); results["To not in set"] = false; } catch (...) {results["To not in set"] = true;}
 
         // Go from "from" to "a", a one level jump.
-        try { auto x = VnV::bfs(graph,"from","a"); std::cout << x[0].first << " " << x[0].second << std::endl; results["One Level"] = (x.size()==1 && x[0].first== "a" && x[0].second == "1"); } catch (...) {results["One Level"]=false;}
+        try {
+          auto x = VnV::bfs(graph,"from","a");
+          results["One Level"] = (x.size()==1 && x[0].first== "a" && x[0].second == "1");
+        } catch (...) {
+          results["One Level"]=false;
+        }
 
         // Go from "from" to "f" --> from->b->f
         try { auto x = VnV::bfs(graph,"from","e");
@@ -68,19 +64,6 @@ public:
         }
 
         return results;
-    }
-
-    ~BFSTester();
-};
-
-BFSTester::~BFSTester(){};
-
-IUnitTester* BFSTester_maker() {
-    return new BFSTester();
-}
-
-void BFSTester_callBack() {
-    VnV::registerUnitTester("BFSTester ", BFSTester_maker);
 }
 
 #endif

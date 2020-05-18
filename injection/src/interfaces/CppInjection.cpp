@@ -1,4 +1,4 @@
-#include "interfaces/CppInjection.h"
+﻿#include "interfaces/CppInjection.h"
 #include "base/Runtime.h"
 #include "base/InjectionPointStore.h"
 
@@ -27,6 +27,6 @@ void VnV::CppInjection::IterLoop(const char* package, const char* id, const char
     VnV::RunTime::instance().injectionPoint_iter(package,id,iterId);
 }
 
-void VnV::CppInjection::Register(std::string json){
-    VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint(json);
+void VnV::CppInjection::Register(const char * package, const char* id, std::string json){
+    VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint(package,id,json);
 }

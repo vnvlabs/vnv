@@ -1,4 +1,4 @@
-
+﻿
 /** @file TestStore.cpp **/
 
 
@@ -27,27 +27,11 @@ TestStore& TestStore::getTestStore() {
   return store;
 }
 
-void TestStore::addTestLibrary(std::string libraryPath) {
-  try {
-    void* dllib = dlopen(libraryPath.c_str(), RTLD_NOW);
-    if (dllib == nullptr)
-      std::cerr << dlerror();
-    else {
-      testLibraries.push_back(dllib);
-      testLibraryPaths.push_back(libraryPath);
-    }
-  } catch (...) {
-    std::cout << "Library not found: " << libraryPath << "\n";
-  }
-}
 
 void TestStore::addTest(std::string package, std::string name, maker_ptr m,
-                        declare_test_ptr v) {
+                        std::map<std::string,std::string> v) {
   test_factory[package + ":" + name] = std::make_pair(m, v);
 }
-
-
-
 
 std::vector<TestConfig> TestStore::validateTests(std::vector<json> &configs) {
     std::vector<TestConfig> conf;
@@ -69,30 +53,16 @@ TestConfig TestStore::validateTest(json &testJson) {
   auto it = test_factory.find(key);
   if (it != test_factory.end()) {
 
-    json test_schema, testDeclaration;
+    json test_schema;
     auto itt = registeredTests.find(key);
     if (itt == registeredTests.end()) {
 
-      // This is the first time we have encountered this test.
-      // So, we need to build the schema for it, and validate.
-      testDeclaration = it->second.second();
+      //THe test is not yet registered.
 
-      //Validate the testDeclaration itself
-      json_validator validator;
-      validator.set_root_schema(getTestDelcarationJsonSchema());
-      validator.validate(testDeclaration);
-
-      /*Define the variables listed in the test.
-      IOutputEngine* engine = OutputEngineStore::getOutputEngineStore().getEngineManager()->getOutputEngine();
-      for ( auto it : testDeclaration["io-variables"].items()) {
-          engine->Define(VariableEnumFactory::fromString(it.value().get<std::string>()),it.key());
-      }*/
-
-      test_schema = getTestValidationSchema(testDeclaration);
-      registeredTests.insert(std::make_pair(key, std::make_pair(test_schema,testDeclaration)));
+      test_schema = getTestValidationSchema(it->second.second);
+      registeredTests.insert(std::make_pair(key, test_schema));
     } else {
-      test_schema = itt->second.first;
-      testDeclaration = itt->second.second;
+      test_schema = itt->second;
     }
 
     // Validate the config file.
@@ -110,13 +80,8 @@ TestConfig TestStore::validateTest(json &testJson) {
     } else {
         testConfigJson = *itc;
     }
-
-
     if ( testConfigJson.find("configuration") == testConfigJson.end() ) {
         testConfigJson["configuration"] = R"({})"_json;
-    }
-    if ( testConfigJson.find("expectedResult") == testConfigJson.end() ) {
-        testConfigJson["expectedResult"] = R"({})"_json;
     }
     if ( testConfigJson.find("parameters") == testConfigJson.end() ) {
         testConfigJson["parameters"] = R"({})"_json;
@@ -124,7 +89,7 @@ TestConfig TestStore::validateTest(json &testJson) {
     validator.validate(testConfigJson);
 
     // Create the Test Config File
-    return TestConfig(package, name, testConfigJson,testDeclaration );
+    return TestConfig(package, name, testConfigJson, it->second.second);
   }
   throw VnVExceptionBase("test not found");
 }
@@ -146,26 +111,17 @@ std::shared_ptr<ITest> TestStore::getTest(TestConfig& config) {
 void TestStore::print() {
     auto a = VnV_BeginStage("Test Store Configuration");
 
-    auto b =VnV_BeginStage("Loaded Libraries");
-    for ( auto it : testLibraryPaths) {
-        VnV_Info("%s",it.c_str());
-    }
-    VnV_EndStage(b);
-
-    b = VnV_BeginStage("Loaded Tests");
+    auto b = VnV_BeginStage("Loaded Tests");
     for ( auto it : test_factory ) {
         auto c = VnV_BeginStage("Test: %s" , it.first.c_str());
-        VnV_Info("Schema %s", it.second.second().dump().c_str());
         VnV_EndStage(c);
     }
     VnV_EndStage(b);
-
-
     VnV_EndStage(a);
 }
 
 
-void VnV::registerTest(std::string package, std::string name, maker_ptr m, declare_test_ptr v) {
-  TestStore::getTestStore().addTest(package, name, m, v);
+void VnV::registerTest(std::string package, std::string name, maker_ptr m, std::map<std::string, std::string> map) {
+  TestStore::getTestStore().addTest(package, name, m, map);
 }
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
   @file InjectionPointStore.cpp Implementation of the injection point store as defined in
   base/InjectionPointStore.h.
 **/
@@ -25,7 +25,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
 
     // Construct and reset because InjectionPoint ctor is only accessible in InjectionPointStore.
     std::shared_ptr<InjectionPoint> injectionPoint;
-    injectionPoint.reset( new InjectionPoint(reg->second, args));
+    injectionPoint.reset( new InjectionPoint(key, reg->second, args));
 
     for (auto& test : it->second.second) {
       injectionPoint->addTest(test);
@@ -36,44 +36,22 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
   return nullptr;
 }
 
-void InjectionPointStore::registerInjectionPoint(json &jsonObject) {
-    // Validate it against the schema for defining an injection point.
-    nlohmann::json_schema::json_validator validator;
-    validator.set_root_schema(getInjectionPointDeclarationSchema());
-    validator.validate(jsonObject);
+void InjectionPointStore::registerInjectionPoint(std::string packageName, std::string id, json &jsonObject) {
 
     // Register the injection point in the store:(Validation throws)
-    std::string name = jsonObject.find("name").value().get<std::string>();
-    std::string package = jsonObject.find("package").value().get<std::string>();
-    VnV_Debug("NAME: %s:%s", name.c_str(),package.c_str());
-    registeredInjectionPoints.insert(std::make_pair(package + ":" + name,jsonObject));
-
+    VnV_Debug("NAME: %s:%s", packageName.c_str(),id.c_str());
+    registeredInjectionPoints.insert(std::make_pair(packageName + ":" + id,jsonObject));
 }
 
-void InjectionPointStore::registerInjectionPoint(std::string json_str) {
+void InjectionPointStore::registerInjectionPoint(std::string packageName, std::string id, std::string parameters_str) {
 
-    VnV_Debug("Registering %s " , json_str.c_str());
+    VnV_Debug("Registering %s:%s " , packageName.c_str(),id.c_str());
     // Parse the json. We support a single injection point and an array of injection points.
     try {
-        json x = json::parse(json_str);
-        if (x.is_array()) {
-            for ( auto it : x.items() ) {
-                 try {
-                    registerInjectionPoint(it.value());
-                } catch (...) {
-                    VnV_Warn("Could not register Injection Point. Invalid Json. %s", it.value().dump().c_str());
-                }
-            }
-        } else {
-            try {
-                registerInjectionPoint(x);
-            } catch(...) {
-                 VnV_Warn("Could not register Injection Point. Invalid Json. %s", x.dump().c_str());
-
-            }
-        }
+        json x = json::parse(parameters_str);
+        registerInjectionPoint(packageName, id, x);
     } catch(...) {
-        VnV_Warn("Could not register Injection Point. Invalid Json. %s", json_str.c_str());
+        VnV_Warn("Could not register Injection Point. Invalid Json. %s", parameters_str.c_str());
     }
 }
 
@@ -91,7 +69,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::s
       //Should never happen.
      return fetchFromQueue(key, type);
   }
-  return ptr; 
+  return ptr;
 }
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::getExistingInjectionPoint(std::string package, std::string name, InjectionPointType type) {
@@ -108,14 +86,14 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getExistingInjectionPoint(s
 
 void InjectionPointStore::registerLoopedInjectionPoint(std::string key, std::shared_ptr<InjectionPoint>&ptr) {
      auto it = active.find(key);
-     if (it == active.end()) {       
+     if (it == active.end()) {
       std::stack<std::shared_ptr<InjectionPoint>> s;
       s.push(ptr);
       active.insert(std::make_pair(key, s));
     } else {
       it->second.push(ptr);
     }
-    
+
 }
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::fetchFromQueue(std::string key, InjectionPointType stage) {
@@ -142,37 +120,30 @@ void InjectionPointStore::addInjectionPoint(std::string package, std::string nam
                                             std::pair<bool,std::vector<TestConfig>>& tests) {
     std::string key = package + ":" + name;
     auto reg = registeredInjectionPoints.find(key);
-    if ( reg!=registeredInjectionPoints.end()) {
+    json parameters = (reg == registeredInjectionPoints.end()) ? json::object() : (reg->second);
 
-        // Validate the test configs against the registered Json.
-        json regJson = reg->second;
-        json parameters = regJson["parameters"];
-
-        // Build an empty parameter map for the InjectionPoint.
-        std::map<std::string,std::string> parameterMap;
-        for ( auto it : parameters.items()) {
-            parameterMap[it.key()] = it.value().get<std::string>();
-        }
-
-        tests.second.erase(std::remove_if(tests.second.begin(), tests.second.end(), [&](TestConfig &t){
-           if (t.preLoadParameterSet(parameterMap)) {
-             VnV_Debug("Test Added Successfully %s" , t.getName().c_str());
-             return false;
-           }
-           VnV_Warn("Test Config is Invalid %s", t.getName().c_str());
-           return true;
-        }), tests.second.end());
-
-     } else {
-        VnV_Warn("The injection point %s has not been registered with the Injection point store", key.c_str());
+    // Build an empty parameter map for the InjectionPoint.
+    std::map<std::string,std::string> parameterMap; // maps injection point parameter to parameter type.
+    for ( auto it : parameters.items()) {
+       parameterMap[it.key()] = it.value().get<std::string>();
     }
+
+    tests.second.erase(std::remove_if(tests.second.begin(), tests.second.end(), [&](TestConfig &t){
+       if (t.preLoadParameterSet(parameterMap)) {
+          VnV_Debug("Test Added Successfully %s" , t.getName().c_str());
+          return false;
+       }
+       VnV_Warn("Test Config is Invalid %s", t.getName().c_str());
+       return true;
+    }), tests.second.end());
+
     injectionPoints.insert(std::make_pair(key, tests));
 }
 
 void InjectionPointStore::print() {
     auto rip = VnV_BeginStage("Registered Injection Points");
     for (auto it : registeredInjectionPoints) {
-        VnV_Info("%s: %s", it.first.c_str(), it.second.dump().c_str());
+        VnV_Info("%s(%s)", it.first.c_str(), it.second.dump().c_str());
     }
     VnV_EndStage(rip);
 

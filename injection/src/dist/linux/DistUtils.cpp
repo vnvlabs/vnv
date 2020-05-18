@@ -9,7 +9,7 @@
 #include <link.h>
 #include "base/DistUtils.h"
 #include "base/Utilities.h"
-
+#include "base/exceptions.h"
 #include "c-interfaces/RunTime.h"
 #include "c-interfaces/Logging.h"
 using nlohmann::json;
@@ -126,7 +126,7 @@ int load_callback(struct dl_phdr_info* info, size_t /*size*/, void* data) {
     for (auto it : packageNames) {
        linked.insert(it.first);
     }
-    dl_iterate_phdr(load_callback, &packageNames);
+    dl_iterate_phdr(load_callback, &linked);
 }
 
 

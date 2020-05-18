@@ -1,4 +1,4 @@
-
+﻿
 /** @file Runtime.cpp Implementation of the Runtime class as defined in
  * base/Runtime.h"
  **/
@@ -11,6 +11,8 @@
 #include <link.h>
 #endif
 
+#include <dlfcn.h>
+
 //#include <unistd.h>
 #include "base/Runtime.h"
 #include "base/TestStore.h"
@@ -20,18 +22,33 @@
 #include "base/OutputEngineStore.h"
 #include "base/OptionsParserStore.h"
 #include "base/UnitTestStore.h"
-#include "Registration.h"
-
 #include "c-interfaces/Logging.h"
 
 using namespace VnV;
 
 
-
+INJECTION_OPTIONS(getBaseOptionsSchema()) {
+  RunTime::instance().getRunTimeOptions()->fromJson(config);
+}
 /**
  * Anon Namespace to house ld iterate callback code used in fetchInjectionPoint information. (only accesible in this file).
  */
 
+void RunTime::loadPlugin(std::string libraryPath) {
+  try {
+    auto it = plugins.find(libraryPath);
+    if (it == plugins.end() ) {
+        void* dllib = dlopen(libraryPath.c_str(), RTLD_NOW);
+        if (dllib == nullptr)
+            std::cerr << dlerror();
+        else {
+            plugins.insert(libraryPath);
+        }
+    }
+  } catch (...) {
+    VnV_Warn("Library not found: %s",libraryPath.c_str());
+  }
+}
 
 void RunTime::makeLibraryRegistrationCallbacks(std::map<std::string, std::string> packageNames) {
    DistUtils::callAllLibraryRegistrationFunctions(packageNames);
@@ -78,6 +95,10 @@ std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(std::string p
     }
   }
   return nullptr;
+}
+
+RunTimeOptions *RunTime::getRunTimeOptions() {
+  return &runTimeOptions;
 }
 
 
@@ -170,18 +191,19 @@ void RunTime::loadRunInfo(RunInfo &info, registrationCallBack *callback) {
   }
 
   //Call this libraries registration callback object (defined in vv-registration.cpp) .
-  VnV::Registration::registerVnV();
-  VnV_Register_Options(getBaseOptionsSchema(), RunTimeOptions::callback);
+  INJECTION_REGISTRATION_CALL;
+
+  //VnV::Registration::registerVnV();
 
   // Load the test libraries ( plugins -- This could include a custom engine )
-  VnV_Debug("Loading Test Libraries");
+  VnV_Debug("Loading Plugins");
   for (auto it : info.testLibraries) {
       if (!it.second.empty()) {
-        TestStore::getTestStore().addTestLibrary(it.second);
+         loadPlugin(it.second);
       }
-      VnV_Debug("\t Loaded Test Library %s" , it.second.c_str());
   }
   // Now we need to call the library registration functions.
+
   makeLibraryRegistrationCallbacks(info.testLibraries);
 
   // Call the executables registration callback.
@@ -241,13 +263,19 @@ bool RunTime::InitFromJson(int* argc, char*** argv, json& config, registrationCa
   RunInfo info = parser.parse(config);
   runTests = configure(info,callback);
 
+  /**
+   * I FOUND IT BEN
+   *
+   **/
   INJECTION_LOOP_BEGIN_C(VnV_Comm_World, initialization, [&](VnV_Comm comm, VnVParameterSet &p, OutputEngineManager *engine){
            for (auto it : p ) {
                std::string t = it.second.getType() + "(rtti:" + it.second.getRtti() + ")";
                engine->Put(comm, it.first, t);
            }
   },argc, argv, config);
-}
+
+  return runTests;
+};
 
 bool RunTime::InitFromFile(int* argc, char*** argv, std::string configFile, registrationCallBack *callback) {
 
@@ -333,6 +361,7 @@ void RunTime::runUnitTests(VnV_Comm comm) {
 void RunTime::readFile(std::string filename){
     OutputEngineStore::getOutputEngineStore().getEngineManager()->readFromFile(filename);
 }
+
 void RunTime::printRunTimeInformation() {
         int a = VnV_BeginStage("Runtime Configuration");
         logger.print();
@@ -341,8 +370,6 @@ void RunTime::printRunTimeInformation() {
         InjectionPointStore::getInjectionPointStore().print();
         VnV_EndStage(a);
 }
-
-
 
 
 

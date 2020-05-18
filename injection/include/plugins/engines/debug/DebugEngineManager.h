@@ -1,9 +1,10 @@
-#ifndef DEBUGENGINEMANAGER_H
+﻿#ifndef DEBUGENGINEMANAGER_H
 #define DEBUGENGINEMANAGER_H
 
 #include "interfaces/IOutputEngine.h"
 
 namespace VnV {
+namespace PACKAGENAME {
 namespace Engines {
 
 
@@ -55,6 +56,6 @@ public:
 };
 
 }
-
+}
 }
 #endif // DEBUGENGINEMANAGER_H

@@ -1,12 +1,14 @@
-#ifndef ITEST_H
+﻿#ifndef ITEST_H
 #define ITEST_H
 
 #include <map>
 #include <string>
 #include "json-schema.hpp"
 #include "interfaces/IOutputEngine.h"
+#include "interfaces/ITransform.h"
 #include "base/TransformStore.h"
 #include "base/exceptions.h"
+#include "base/Utilities.h"
 #include "c-interfaces/Logging.h"
 using nlohmann::json;
 /**
@@ -102,18 +104,17 @@ class TestConfig {
 
   std::map<std::string, std::shared_ptr<Transformer> > transformers;
   VnVParameterSet parameters;
-
+  std::map<std::string, std::string> testParameters;
   std::string testName;
   std::string package;
   json testConfigJson;
-  json testDeclarationJson;
 
 
  public:
 
-  TestConfig(std::string package, std::string name, json &usersConfig, json &testSpec);
+  TestConfig(std::string package, std::string name, json &usersConfig, std::map<std::string,std::string> &params);
 
-  
+
   bool isRequired(std::string parmaeterName) const;
   /**
    * @brief getAdditionalParameters
@@ -125,7 +126,6 @@ class TestConfig {
   bool preLoadParameterSet(std::map<std::string,std::string> &parameters) ;
 
 
-  const json& getExpectedResult() const;
   /**
    * @brief setName
    * @param name
@@ -135,7 +135,7 @@ class TestConfig {
   const std::map<std::string,VnVParameter>& getParameterMap() const  ;
 
   void setParameterMap(std::map<std::string, VnVParameter> &args);
-  
+
   /**
    * @brief getName
    * @return
@@ -147,6 +147,7 @@ class TestConfig {
    */
   void print();
 
+  void setUnknownInjectionPoint();
 };
 
 
@@ -190,12 +191,14 @@ class ITest {
    */
   const json& getConfigurationJson() const ;
 
-  /**
-   * @brief getExpectedResultJson
-   * @return
-   */
-  const json& getExpectedResultJson() const ;
-
+  template <typename T>
+  T* getPtr(std::string name, std::string type) const {
+      auto it = m_config.getParameterMap().find(name);
+      if ( it!= m_config.getParameterMap().end()) {
+        return it->second.getPtr<T>(type,true);
+      }
+      return nullptr;
+  }
 
   template <typename T>
   T& getReference(std::string name, std::string type) const {
@@ -225,11 +228,55 @@ private:
 #define GetRef(a,name,T) T& a = getReference<T>(name,#T);
 
 
-
 typedef ITest* maker_ptr(TestConfig config);
-typedef json declare_test_ptr();
-void registerTest(std::string package, std::string name, VnV::maker_ptr m, VnV::declare_test_ptr v);
+
+void registerTest(std::string package, std::string name, VnV::maker_ptr m, std::map<std::string,std::string> parameters);
 
 }
+
+/// Macros to make it easier to define one.
+
+// Process a list of comma seperated variadic args into a map.
+
+
+#define VNVVARSTR(...) StringUtils::variadicProcess(#__VA_ARGS__)
+
+#define INJECTION_TEST_R(name, Runner, ...) \
+namespace VnV{ \
+namespace PACKAGENAME { \
+namespace Tests {\
+class name : public ITest { \
+public:\
+    std::map<std::string, std::string> parameters;\
+    std::shared_ptr<Runner> runner; \
+    name(TestConfig &config) : ITest(config) { \
+        parameters = VNVVARSTR(__VA_ARGS__); \
+        runner.reset(new Runner()); \
+    }\
+    template<typename T> \
+    T* get(std::string param) { \
+       std::string type = parameters[param]; \
+       return getPtr<T>(param,type);  \
+    } \
+    \
+    TestStatus runTest(VnV_Comm comm, IOutputEngine* engine, InjectionPointType type, std::string stageId); \
+\
+}; \
+ITest* declare_##name(TestConfig config) { return new name(config); } \
+void register_##name() { \
+    registerTest(PACKAGENAME_S, #name, declare_##name, VNVVARSTR(__VA_ARGS__)); \
+}\
+}\
+}\
+}\
+VnV::TestStatus VnV::PACKAGENAME::Tests::name::runTest(VnV_Comm comm, VnV::IOutputEngine *engine, VnV::InjectionPointType type, std::string stageId)
+
+#define INJECTION_TEST(name,...) INJECTION_TEST_R(name,int,__VA_ARGS__)
+
+#define DECLARETEST(name) \
+  namespace VnV { namespace PACKAGENAME { namespace Tests { void register_##name(); } } }
+#define REGISTERTEST(name) \
+  VnV::PACKAGENAME::Tests::register_##name();
+
 
 #endif // ITEST_H
