@@ -83,8 +83,6 @@ int function1(int x) {
   INJECTION_LOOP_BEGIN(VnV_Comm_Self, Function1, samplePoints)
   for (int i = 0; i < 10; i++) {
     samplePoints[i] = i ;
-    samplePoints.push_back(i);
-    samplePoints1.push_back(i * i);
     INJECTION_LOOP_ITER(Function1, inner)
   }
   INJECTION_LOOP_END(Function1)

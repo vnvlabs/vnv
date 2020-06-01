@@ -13,13 +13,10 @@ target_link_libraries(sample.a dummyLibOne dummyLibTwo)
 add_executable(read.a "read.cpp")
 register_and_link_vnv_cpp(read.a SampleReader ${PROJECT_SOURCE_DIR}/registration/)
 
-
-target_compile_definitions(read.a PRIVATE -DPACKAGENAME=SampleReader)
-
 if (WITH_MPI)
-	target_include_directories(sample.a PRIVATE ${MPI_CXX_INCLUDE_PATH})
-	target_compile_options(sample.a PRIVATE ${MPI_CXX_COMPILE_FLAGS})
-	target_link_libraries(sample.a ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS})
+        target_include_directories(sample.a PRIVATE ${MPI_CXX_INCLUDE_PATH})
+        target_compile_options(sample.a PRIVATE ${MPI_CXX_COMPILE_FLAGS})
+        target_link_libraries(sample.a ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS})
 endif()
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json ${CMAKE_CURRENT_BINARY_DIR}/vv-input.json COPYONLY)

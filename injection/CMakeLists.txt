@@ -39,8 +39,8 @@ endif()
 
 
 add_subdirectory(src)
-target_compile_definitions(injection PRIVATE -DPACKAGENAME=VNV)
 generate_vnv_registration(injection VNV ${PROJECT_SOURCE_DIR}/registration/ cpp)
+target_compile_definitions(injection PRIVATE -DPACKAGENAME=VNV)
 
 
 include(GNUInstallDirs)
