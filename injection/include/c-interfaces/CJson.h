@@ -19,7 +19,7 @@ typedef char* options_schema_ptr();
         json* asJson(c_json json);
         typedef void options_cpp_callback_ptr(json &info);
         void RegisterOptions(std::string packageName, std::string schema, options_cpp_callback_ptr *callback);
-        void RegisterOptions(std::string packageName, json &schema, options_cpp_callback_ptr *callback);
+        void RegisterOptions_Json(std::string packageName, json &schema, options_cpp_callback_ptr *callback);
    };
    #define EXTERNC extern "C"
 #else
@@ -67,10 +67,10 @@ EXTERNC void _VnV_registerOptions(const char *packageName, const char* sptr, opt
     }\
     void VnV::PACKAGENAME::optionsCallback(json& config)
 
-#define DECLARE_OPTIONS \
+#define DECLAREOPTIONS \
   namespace VnV { namespace PACKAGENAME { void registerOptions(); } }
 
-#define REGISTER_OPTIONS \
+#define REGISTEROPTIONS \
   VnV::PACKAGENAME::registerOptions();
 
 #else
@@ -80,7 +80,9 @@ EXTERNC void _VnV_registerOptions(const char *packageName, const char* sptr, opt
       _VnV_registerOptions(PACKAGENAME_S, schema, _VnV_options_callback_##PACKAGENAME);\
    }\
    void _VnV_options_callback_##PACKAGENAME(c_json json)
-#define REGISTER_OPTIONS _VnV_register_options_##PACKAGENAME();
+#define REGISTEROPTIONS _VnV_register_options_##PACKAGENAME();
+#define DECLAREOPTIONS void _VnV_register_options_##PACKAGENAME();
+
 #undef EXTERNC
 #endif
 

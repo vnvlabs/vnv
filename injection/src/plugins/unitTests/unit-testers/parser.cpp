@@ -2,7 +2,6 @@
 #define _EuclideanError_H
 
 #include "VnV.h"
-#include "interfaces/IUnitTester.h"
 
 #include <sstream>
 

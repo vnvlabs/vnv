@@ -1,28 +1,28 @@
+﻿
+cmake_minimum_required(VERSION 3.6)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-cmake_minimum_required(VERSION 3.6)                                                                           
-set(CMAKE_CXX_STANDARD 11)                                                                                    
-set(CMAKE_CXX_STANDARD_REQUIRED ON)                                                                           
- 
 # Not needed inside the build tree
 #find_package(Injection)
 
 add_executable(sample.a "sample.cpp")
-target_link_libraries(sample.a dummyLibOne dummyLibTwo Injection::Injection)
-
-target_compile_definitions(sample.a PRIVATE -DPACKAGENAME=SampleExecutable)
+register_and_link_vnv_cpp(sample.a SampleExecutable ${CMAKE_CURRENT_LIST_DIR}/registration/)
+target_link_libraries(sample.a dummyLibOne dummyLibTwo)
 
 add_executable(read.a "read.cpp")
-target_link_libraries(read.a Injection::Injection)
+register_and_link_vnv_cpp(read.a SampleReader ${CMAKE_CURRENT_LIST_DIR}/registration/ Hello There There)
+
 
 target_compile_definitions(read.a PRIVATE -DPACKAGENAME=SampleReader)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json ${CMAKE_CURRENT_BINARY_DIR}/vv-input.json COPYONLY)
 
-# We place the test libs in a strange directory. So, for this case, we will 
+# We place the test libs in a strange directory. So, for this case, we will
 # set the RPATH to those libs directory. There must be a way to set the target
-# up to inherit the RPATH from the linked library. But, 
+# up to inherit the RPATH from the linked library. But,
 set_target_properties(sample.a PROPERTIES
-	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/examples/dummy/lib
+        INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/examples/dummy/lib
 )
 install(TARGETS sample.a DESTINATION examples/dummy/executables)
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/sample.json DESTINATION examples/dummy/executables RENAME vv-input.json)

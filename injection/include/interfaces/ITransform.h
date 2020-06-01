@@ -4,6 +4,8 @@
 #include <string>
 #include "json-schema.hpp"
 #include "base/Utilities.h"
+#include "base/exceptions.h"
+
 using nlohmann::json;
 
 namespace VnV {
@@ -38,50 +40,44 @@ private:
 typedef ITransform* trans_ptr();
 void registerTransform(std::string name, VnV::trans_ptr t, std::string from, std::string to);
 
-namespace{
-template<typename T> struct argument_type;
-template<typename T, typename U> struct argument_type<T(U)> { typedef U type; };
-}
+template <typename To, typename From, typename Runner>
+class Transform_T : public ITransform {
+public:
+    std::string from;
+    std::string to;
+    std::shared_ptr<Runner> runner;
+    Transform_T(std::string to, std::string from) : ITransform() {
+        from = VnV::StringUtils::get_type(from);
+        to = VnV::StringUtils::get_type(to);
+        runner.reset(new Runner());
+    }
+
+    virtual To* Transform(From* ptr)=0;
+    void* Transform(std::string from_, std::string to_, void* ptr, std::string &rtti) {
+       if (from == from_ && to == to_ ) {
+          rtti = typeid(To).name();
+          return (void*) Transform( (From*) ptr );
+       }
+       throw VnVExceptionBase("Bad Transform");
+    }
+};
 
 }
 
-
-
-#define INJECTION_TRANSFORM_R(NAME, Runner, FROM, TO ) \
+#define INJECTION_TRANSFORM_R(NAME, Runner, To, From) \
 namespace VnV{ \
 namespace PACKAGENAME {\
-namespace Transforms {\
-class NAME : public ITransform { \
-public:\
-    std::string from; \
-    std::string to; \
-    std::shared_ptr<Runner> runner; \
-    NAME() : ITransform() { \
-        from = VnV::StringUtils::trim_copy(#FROM);\
-        to = VnV::StringUtils::trim_copy(#TO);\
-        if ( from[0] == '(' && from[from.size()-1] == ')' ) {\
-            from = from.substr(1,from.size()-1);}\
-        if ( to[0] == '(' && to[to.size()-1] == ')' ) {\
-            to = to.substr(1,to.size()-1);}\
-        runner.reset(new Runner()); \
-    }\
-    \
-    argument_type<void(TO)>::type* Transform(argument_type<void(FROM)>::type *ptr);\
-    void* Transform(std::string from_, std::string to_, void* ptr, std::string &rtti) {\
-       if (from == from_ && to == to_ ) {\
-          rtti = typeid(argument_type<void(TO)>::type).name();\
-          return (void*) Transform( (argument_type<void(FROM)>::type *) ptr );\
-       }\
-    }\
-}; \
+namespace Transforms { \
+  class NAME : public VnV::Transform_T<VnV_Arg_Type(To),VnV_Arg_Type(From),VnV_Arg_Type(Runner)> {\
+  public:\
+  NAME() : Transform_T<VnV_Arg_Type(To),VnV_Arg_Type(From),VnV_Arg_Type(Runner)>(#To,#From) {}\
+  VnV_Arg_Type(To)* Transform(VnV_Arg_Type(From)* ptr);\
+};\
 ITransform* declare_##NAME() { return new NAME(); } \
 void register_##NAME() { \
-    VnV::registerTransform(#NAME, declare_##NAME, VnV::StringUtils::trim_copy(#FROM), VnV::StringUtils::trim_copy(#TO)); \
-} \
-} \
-} \
-} \
-VnV::argument_type<void(TO)>::type* VnV::PACKAGENAME::Transforms::NAME::Transform(VnV::argument_type<void(FROM)>::type *ptr)
+    registerTransform( #NAME, declare_##NAME, VnV::StringUtils::get_type(#From), VnV::StringUtils::get_type(#To)); \
+}}}}\
+VnV_Arg_Type(To)* VnV::PACKAGENAME::Transforms::NAME::Transform(VnV_Arg_Type(From)* ptr)
 
 #define INJECTION_TRANSFORM(name,from, to) INJECTION_TRANSFORM_R(name,int,from,to)
 

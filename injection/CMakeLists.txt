@@ -1,4 +1,4 @@
-
+﻿
 #Add the adios engine to the target
 
 #Add the third party targets ( json-schema-validator TODO github-link)
@@ -20,9 +20,13 @@ target_include_directories(injection PRIVATE
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
                             $<INSTALL_INTERFACE:include>
                           )
-		  target_compile_definitions(injection PRIVATE -DPACKAGENAME=VNV )
+                  target_compile_definitions(injection PRIVATE -DPACKAGENAME=VNV )
 
 add_subdirectory(src)
+
+#Generate the VNV Registration code
+generate_vnv_registration(injection VNV ${CMAKE_CURRENT_LIST_DIR}/registration/ cpp)
+
 
 include(GNUInstallDirs)
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/Injection)
@@ -34,11 +38,11 @@ install(TARGETS injection
         RUNTIME DESTINATION bin
        )
 
-set_target_properties(injection PROPERTIES 
+set_target_properties(injection PROPERTIES
   EXPORT_NAME Injection
 )
 
-install(EXPORT injection-targets 
+install(EXPORT injection-targets
   FILE
     InjectionTargets.cmake
   NAMESPACE

@@ -3,7 +3,6 @@
 #define Sample2_H
 
 #include "VnV.h"
-#include "interfaces/IUnitTester.h"
 
 #include <sstream>
 using namespace VnV;

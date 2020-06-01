@@ -11,12 +11,22 @@
 
 using namespace VnV;
 
-INJECTION_TEST(EuclideanError, std::vector<double> measured, std::vector<double> exact) {
+/**
+  Euclidean Error. Docuementation is Fun
 
-    const std::vector<double>* measured = get<std::vector<double>>("measured");
-    const std::vector<double>* exact = get<std::vector<double>>("exact");
+  This is some more.
 
-    if (measured->size() != exact->size()) {
+
+  This is the rest.
+
+
+**/
+INJECTION_TEST(EuclideanError, std::vector<double> measured, (std::vector<double>) exact_test) {
+
+    const std::vector<double> measured = get<std::vector<double>>("measured");
+    const std::vector<double> exact = get<std::vector<double>>("exact");
+
+    if (measured.size() != exact.size()) {
       double m1 = -1;
       engine->Put(comm,"l2_error", m1);
       engine->Put(comm,"l1_error", m1);
@@ -25,8 +35,8 @@ INJECTION_TEST(EuclideanError, std::vector<double> measured, std::vector<double>
     }
 
     double l2(0), l1(0), linf(0);
-    for (std::size_t i = 0; i < measured->size(); i++) {
-      double diff = fabs((*measured)[i] - (*exact)[i]);
+    for (std::size_t i = 0; i < measured.size(); i++) {
+      double diff = fabs(measured[i] - exact[i]);
       l1 += diff;
       l2 += diff * diff;
       linf = (diff > linf) ? diff : linf;

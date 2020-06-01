@@ -9,8 +9,16 @@
 
 extern "C" {
 
-void  VnV_init(int* argc, char*** argv, const char* filename, registrationCallBack callback) {
-  VnV::RunTime::instance().InitFromFile(argc, argv, filename,&callback);
+void  VnV_init(const char* packageName, int* argc, char*** argv, const char* filename, registrationCallBack callback) {
+  VnV::RunTime::instance().InitFromFile(packageName, argc, argv, filename,&callback);
+}
+
+void VnV_Register_Subpackage(const char *packageName, const char *subPackageName, registrationCallBack callback) {
+  VnV::RunTime::instance().runTimePackageRegistration(subPackageName, callback);
+}
+
+void VnV_declarePackageJson(const char* packageName, vnvFullJsonStrCallback callback) {
+  VnV::RunTime::instance().declarePackageJson(packageName, callback);
 }
 
 void VnV_finalize() {

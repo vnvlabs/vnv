@@ -1,4 +1,4 @@
-
+﻿
 /** @file Logger.cpp Implementation of the Logger class as defined in
     base/Logger.h
 **/
@@ -36,16 +36,16 @@ std::string VnV::Logger::logLevelToColor(std::string level, std::string message)
 
 
 Logger::Logger(){
-    registerLogLevel("STAGE_START",yellow);
-    registerLogLevel("STAGE_END", yellow);
-    registerLogLevel("INFO", green);
-    registerLogLevel("DEBUG", cyan);
-    registerLogLevel("WARN", magenta);
-    registerLogLevel("ERROR", red);
+    registerLogLevel(PACKAGENAME_S,"STAGE_START",yellow);
+    registerLogLevel(PACKAGENAME_S,"STAGE_END", yellow);
+    registerLogLevel(PACKAGENAME_S,"INFO", green);
+    registerLogLevel(PACKAGENAME_S,"DEBUG", cyan);
+    registerLogLevel(PACKAGENAME_S,"WARN", magenta);
+    registerLogLevel(PACKAGENAME_S,"ERROR", red);
 };
 
-void Logger::registerLogLevel(std::string name, std::string color) {
-    logLevelsToColor[name] = color;
+void Logger::registerLogLevel(std::string packageName, std::string name, std::string color) {
+    logLevelsToColor[packageName + ":" + name] = color;
 }
 
 
@@ -64,7 +64,7 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level, std::strin
     if (packageBlackList.find(pname) != packageBlackList.end()) {
         return;
     }
-    auto it = logs.find(level);
+    auto it = logs.find(pname + ":" + level);
     if (it != logs.end() && !it->second) return;
 
     if ( engine ) {

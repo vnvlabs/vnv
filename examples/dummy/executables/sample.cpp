@@ -1,6 +1,7 @@
 ﻿
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 #include "VnV.h"
 #include "class1.h"
@@ -8,6 +9,8 @@
 #include "dlclass1.h"
 #include "dlclass2.h"
 #include <typeinfo>
+
+
 
 template<typename T>
 class f {
@@ -21,14 +24,38 @@ public:
     }
 };
 
+/**
+ * Create a custom log level with stanadrd coloring.
+**/
+INJECTION_LOGLEVEL(custom,)
 
+/**
+ * Let the VnV Toolkit know there is a subpackage linked to this executable.
+ */
+INJECTION_SUBPACKAGE(DummyLibOne)
+
+INJECTION_TRANSFORM(sampleTransform, std::vector<double>, double) {
+  return NULL;
+}
+
+/**
+ * @brief INJECTION_TEST
+ * @param vals
+ */
+INJECTION_TEST(sampleTest, std::vector<double> vals) {
+   auto vals = get<std::vector<double>>("vals");
+   for (auto &it : vals) {
+     engine->Put(comm,"Key" , it);
+     engine->Put(comm,"Value",it);
+   }
+   return SUCCESS;
+}
 
 template <typename T, typename X>
 int templateFnc(int x, T y, X xx) {
     INJECTION_POINT(VnV_Comm_Self,templateFn,x,y,xx);
     return 0;
 }
-
 
 class test1 {
 public:
@@ -48,35 +75,26 @@ int function1(int x) {
 
 };
 
-int function1(int x) {
-  std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
+#include <map>
 
-  INJECTION_LOOP_BEGIN(VnV_Comm_Self, Function1, samplePoints, samplePoints1, samplePoints3)
+int function1(int x) {
+  std::map<double,double> samplePoints;
+
+  INJECTION_LOOP_BEGIN(VnV_Comm_Self, Function1, samplePoints)
   for (int i = 0; i < 10; i++) {
-    samplePoints.push_back(i);
+    samplePoints[i] = i ;
     INJECTION_LOOP_ITER(Function1, inner)
-    samplePoints1.push_back(i * i);
   }
   INJECTION_LOOP_END(Function1)
 
   return 11;
-};
-
-namespace {
-static const std::string params = R"({
-                                     "samplePoints" :  "std::vector<double>",
-                                     "samplePoints1" : "std::vector<double>",
-                                     "samplePoints3" : "std::vector<double>"
-                                  })";
 }
 
-INJECTION_REGISTRATION() {
-   // Here is where we would register all the injection points.
-   VnV_Debug("Inside the Executable Call Back.");
-   Register_Injection_Point("Function1Class1", params);
-   Register_Injection_Point("Function_In_Template", params);
-   Register_Injection_Point("Function1", params);
-};
+static const char* schemaCallback = "{\"type\": \"object\", \"required\":[]}";
+
+INJECTION_OPTIONS(schemaCallback) {
+
+}
 
 int main(int argc, char** argv) {
 

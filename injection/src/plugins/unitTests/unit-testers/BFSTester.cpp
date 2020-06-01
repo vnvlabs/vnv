@@ -3,8 +3,8 @@
 #define BFSTester_H
 
 #include "VnV.h"
-#include "interfaces/IUnitTester.h"
 #include "base/Utilities.h"
+#include "plugins/engines/debug/DebugEngineManager.h"
 
 #include <sstream>
 using namespace VnV;

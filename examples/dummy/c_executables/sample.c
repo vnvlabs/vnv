@@ -24,13 +24,6 @@ INJECTION_OPTIONS(schemaCallback) {
 
 }
 
-INJECTION_REGISTRATION() {
-   // Here is where we would register all the injection points.
-   VnV_Debug("Inside the Executable Call Back from C executable");
-   REGISTER_OPTIONS
-   Register_Injection_Point("CFunction","{\"x\":\"int\"}");
-}
-
 int main(int argc, char** argv) {
 
   INJECTION_INITIALIZE(&argc, &argv, (argc==2) ? argv[1] : "./sample.json");

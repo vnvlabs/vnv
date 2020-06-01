@@ -1,4 +1,4 @@
-#include "python/PythonInterface.h"
+﻿#include "python/PythonInterface.h"
 #include "base/OutputEngineStore.h"
 #include "base/Runtime.h"
 namespace VnV {
@@ -54,7 +54,7 @@ void VnVInit_Str(std::vector<std::string> args, std::string configStr) {
     int argc = args.size();
     std::vector<char*> cstrings = stringsToChars(args);
     char** argv = &cstrings[0];
-    RunTime::instance().InitFromJson(&argc, &argv, conf, nullptr);
+    RunTime::instance().InitFromJson("PYTHON_READER",&argc, &argv, conf, nullptr);
 
 }
 
@@ -62,7 +62,7 @@ void VnVInit(std::vector<std::string> args, std::string config) {
     int argc = args.size();
     std::vector<char*> cstrings = stringsToChars(args);
     char** argv = &cstrings[0];
-    RunTime::instance().InitFromFile(&argc, &argv, config, nullptr);
+    RunTime::instance().InitFromFile("PYTHON_READER",&argc, &argv, config, nullptr);
 }
 
 }

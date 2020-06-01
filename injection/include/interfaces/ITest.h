@@ -4,12 +4,14 @@
 #include <map>
 #include <string>
 #include "json-schema.hpp"
+#include "interfaces/argType.h"
 #include "interfaces/IOutputEngine.h"
 #include "interfaces/ITransform.h"
+#include "c-interfaces/Logging.h"
 #include "base/TransformStore.h"
 #include "base/exceptions.h"
 #include "base/Utilities.h"
-#include "c-interfaces/Logging.h"
+//#include "c-interfaces/Logging.h"
 using nlohmann::json;
 /**
  * @brief The TestConfig class
@@ -75,19 +77,19 @@ class VnVParameter {
 
     template<typename T>
     T* getPtr(std::string type, bool checkRtti) const  {
-        if ( !type.empty() && getType().compare(type)!=0 ) {
-            throw VnVExceptionBase("type information incorrect");
-        }
+       //If we have RTTI and it matches, then that is good enough.
        if (hasRtti && checkRtti) {
             T* tempPtr = static_cast<T*>(getRawPtr());
             std::string typeId = typeid(tempPtr).name();
             if (typeId.compare(rtti) != 0) {
                 VnV_Warn("Unmatched RTTI %s: %s", typeId.c_str(), rtti.c_str());
-                throw VnVExceptionBase("Rtti information does not match");
             } else {
                 return tempPtr;
             }
        }
+       if ( !type.empty() && getType().compare(type)!=0 ) {
+            throw VnVExceptionBase("type information incorrect");
+        }
        return static_cast<T*>(getRawPtr());
     }
 
@@ -193,6 +195,7 @@ class ITest {
 
   template <typename T>
   T* getPtr(std::string name, std::string type) const {
+      StringUtils::squash(type);
       auto it = m_config.getParameterMap().find(name);
       if ( it!= m_config.getParameterMap().end()) {
         return it->second.getPtr<T>(type,true);
@@ -202,6 +205,8 @@ class ITest {
 
   template <typename T>
   T& getReference(std::string name, std::string type) const {
+      StringUtils::squash(type);
+
       auto it = m_config.getParameterMap().find(name);
       if ( it!= m_config.getParameterMap().end()) {
         return it->second.getRef<T>(type,true);
@@ -232,39 +237,54 @@ typedef ITest* maker_ptr(TestConfig config);
 
 void registerTest(std::string package, std::string name, VnV::maker_ptr m, std::map<std::string,std::string> parameters);
 
-}
+
 
 /// Macros to make it easier to define one.
 
 // Process a list of comma seperated variadic args into a map.
 
-
 #define VNVVARSTR(...) StringUtils::variadicProcess(#__VA_ARGS__)
+
+template <typename Runner>
+
+class Test_T : public ITest {
+public:
+   std::map<std::string,std::string> parameters;
+   std::shared_ptr<Runner> runner;
+
+   Test_T(TestConfig &config, const char* params) : ITest(config) {
+      runner.reset(new Runner());
+      parameters = StringUtils::variadicProcess(params);
+   }
+   template <typename T>
+   T& get(std::string param) {
+      auto it = parameters.find(param);
+      if (it != parameters.end()) {
+         return *getPtr<T>(param, it->second);
+      }
+      throw VnV::VnVExceptionBase("Parameter does not exist");
+   }
+
+   static void registerTest(std::string name, maker_ptr* maker, const char* params) {
+      VnV::registerTest(PACKAGENAME_S,name,maker,StringUtils::variadicProcess(params) );
+   }
+
+};
+
+}
 
 #define INJECTION_TEST_R(name, Runner, ...) \
 namespace VnV{ \
 namespace PACKAGENAME { \
 namespace Tests {\
-class name : public ITest { \
+class name : public Test_T<VnV_Arg_Type(Runner)> { \
 public:\
-    std::map<std::string, std::string> parameters;\
-    std::shared_ptr<Runner> runner; \
-    name(TestConfig &config) : ITest(config) { \
-        parameters = VNVVARSTR(__VA_ARGS__); \
-        runner.reset(new Runner()); \
-    }\
-    template<typename T> \
-    T* get(std::string param) { \
-       std::string type = parameters[param]; \
-       return getPtr<T>(param,type);  \
-    } \
-    \
+    name(TestConfig &config) : Test_T<VnV_Arg_Type(Runner)>(config, #__VA_ARGS__) {}\
     TestStatus runTest(VnV_Comm comm, IOutputEngine* engine, InjectionPointType type, std::string stageId); \
-\
 }; \
 ITest* declare_##name(TestConfig config) { return new name(config); } \
 void register_##name() { \
-    registerTest(PACKAGENAME_S, #name, declare_##name, VNVVARSTR(__VA_ARGS__)); \
+   name::registerTest(#name, declare_##name, #__VA_ARGS__); \
 }\
 }\
 }\

@@ -71,17 +71,21 @@ private:
    */
   RunTime();
 
+  std::string mainPackageName;
   int* argc;    /**< Store the input parameters -- no idea why TODO*/
   char*** argv; /**< Stored args list for command line */
   std::set<std::string> plugins;
   std::set<std::string> packages;
+  std::map<std::string, vnvFullJsonStrCallback> jsonCallbacks;
+
+  std::set<std::string> registeredPackages;
 
   bool runTests; /**< Should tests be run */
   bool finalize_mpi = false; /**< Are we responsible for calling MPI_Finalize) */
   bool logUnhandledInjectionPoints = true;
   bool terminalSupportsAsciiColors = true;
 
-  void loadPlugin(std::string filename);
+  void loadPlugin(std::string filename, std::string packageName);
 
   void loadRunInfo(RunInfo &info, registrationCallBack *callback);
   void makeLibraryRegistrationCallbacks(std::map<std::string,std::string> packageNames);
@@ -111,8 +115,10 @@ private:
    * information. The Provenance test included in the tests/provenance is
    * designed to work with this injection point in mind.
    */
-  bool InitFromFile(int* argc, char*** argv, std::string configFile, registrationCallBack *callback);
-  bool InitFromJson(int* argc, char*** argv, json& configFile, registrationCallBack *callback);
+  bool InitFromFile(const char* packageName, int* argc, char*** argv, std::string configFile, registrationCallBack *callback);
+  bool InitFromJson(const char* packageName, int* argc, char*** argv, json& configFile, registrationCallBack *callback);
+
+  void declarePackageJson(std::string pname, vnvFullJsonStrCallback callback) ;
 
   bool useAsciiColors();
   /**
@@ -124,6 +130,8 @@ private:
    RunTimeOptions* getRunTimeOptions();
 
    void processToolConfig(json config);
+
+   void runTimePackageRegistration(std::string packageName, vnv_registration_function reg);
 
   // Cpp interface.
   void injectionPoint(VnV_Comm comm,std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args);
@@ -169,7 +177,7 @@ private:
 
   void logUnhandled(std::string name, std::string id, NTV &args);
 
-  void registerLogLevel(std::string logLevel, std::string color);
+  void registerLogLevel(std::string packageName, std::string logLevel, std::string color);
 
   int beginStage(VnV_Comm comm,std::string pname, std::string message, va_list args);
   void endStage(VnV_Comm comm, int ref);

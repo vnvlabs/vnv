@@ -28,20 +28,26 @@ class IUnitTester {
 typedef IUnitTester* tester_ptr();
 void registerUnitTester(std::string name, VnV::tester_ptr ptr);
 
+template <typename Runner>
+class UnitTester_T : public IUnitTester {
+public:
+  std::shared_ptr<Runner> runner;
+  UnitTester_T() {
+     runner.reset(new Runner());
+  }
+};
+
+
 }
 
 #define INJECTION_UNITTEST_R(name, Runner) \
 namespace VnV{ \
 namespace PACKAGENAME {\
 namespace UnitTests {\
-class name : public IUnitTester { \
+class name : public VnV::UnitTester_T<VnV_Arg_Type(Runner)> { \
 public:\
-    std::shared_ptr<Runner> runner; \
-    name() : IUnitTester() { \
-        runner.reset(new Runner()); \
-    }\
-    std::map<std::string,bool> run(IOutputEngine *engine) override; \
-\
+    name() : VnV::UnitTester_T<VnV_Arg_Type(Runner)>() {}\
+    virtual std::map<std::string,bool> run(IOutputEngine *engine) override; \
 }; \
 IUnitTester* declare_##name() { return new name(); } \
 void register_##name() { \

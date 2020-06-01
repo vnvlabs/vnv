@@ -119,14 +119,20 @@ InjectionPointStore& InjectionPointStore::getInjectionPointStore() {
 void InjectionPointStore::addInjectionPoint(std::string package, std::string name,
                                             std::pair<bool,std::vector<TestConfig>>& tests) {
     std::string key = package + ":" + name;
+
+    std::cout << "Registering " << key  << std::endl;
+
     auto reg = registeredInjectionPoints.find(key);
     json parameters = (reg == registeredInjectionPoints.end()) ? json::object() : (reg->second);
+    std::cout << "The Parameters are: " << parameters.dump(3) << std::endl;
+
 
     // Build an empty parameter map for the InjectionPoint.
     std::map<std::string,std::string> parameterMap; // maps injection point parameter to parameter type.
     for ( auto it : parameters.items()) {
-       parameterMap[it.key()] = it.value().get<std::string>();
+       parameterMap[StringUtils::squash_copy(it.key())] = StringUtils::squash_copy(it.value().get<std::string>());
     }
+
 
     tests.second.erase(std::remove_if(tests.second.begin(), tests.second.end(), [&](TestConfig &t){
        if (t.preLoadParameterSet(parameterMap)) {

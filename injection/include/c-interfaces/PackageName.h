@@ -1,4 +1,4 @@
-#ifndef PACKAGENAME_H
+﻿#ifndef PACKAGENAME_H
 #define PACKAGENAME_H
 
 #include <stdarg.h>
@@ -6,6 +6,8 @@
 #ifndef PACKAGENAME
 #  error "VnV: PACKAGENAME is not defined. Please Ensure a Macro called PACKAGENAME is defined before VnV.h is loaded"
 #endif
+
+#define PACKAGENAME_FOUND PACKAGENAME
 
 struct VnV_Comm_ {
     void* MPI; // TODO
@@ -18,6 +20,8 @@ static VnV_Comm VnV_Comm_World = {};
 #define VnV_E_STR(x) #x
 #define VNV_STR(x) VnV_E_STR(x)
 #define VNV_EX(x) x
+
+#define VNVREGNAME __vnv_registration_callback__
 
 #if __cplusplus
   #define VNVEXTERNC extern "C"
@@ -65,5 +69,23 @@ static VnV_Comm VnV_Comm_World = {};
 #define VNV_END_PARAMETERS __vnv_end_parameters__
 #define VNV_END_PARAMETERS_S VNV_STR(VNV_END_PARAMETERS)
 
+#define REG_HELPER_(X,Y) X ## Y
+#define REG_HELPER(X,Y) REG_HELPER_(X,Y)
+
+#define VNV_REGISTRATION_CALLBACK_NAME REG_HELPER(VNVREGNAME,PACKAGENAME)
+#define VNV_GET_REGISTRATION "__vnv_registration_callback__"
+
+#  ifdef __cplusplus
+#   define INJECTION_REGISTRATION extern "C" void VNV_REGISTRATION_CALLBACK_NAME
+#  else
+#   define INJECTION_REGISTRATION void VNV_REGISTRATION_CALLBACK_NAME
+#endif
+
+#define INJECTION_REGISTRATION_CALL VNV_REGISTRATION_CALLBACK_NAME();
+#define INJECTION_REGISTRATION_PTR &VNV_REGISTRATION_CALLBACK_NAME
+
+// We are going to forward declare a registration function for any package that includes
+// VnV.h. That way, the code will not compile if the registration function is missing.
+INJECTION_REGISTRATION();
 
 #endif // PACKAGENAME_H

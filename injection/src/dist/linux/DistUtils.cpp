@@ -1,4 +1,4 @@
-
+﻿
 /**
   @file DistUtils.cpp
 **/
@@ -82,19 +82,16 @@ void * loadLibrary(std::string name) {
     return dllib;
 }
 
-bool searchLibrary(void *dylib, std::string packageName) {
+registrationCallBack searchLibrary(void *dylib, std::string packageName) {
 
     bool ret = false;
     std::string s = VNV_GET_REGISTRATION + packageName;
 
     void* callback = dlsym(dylib,s.c_str() );
     if ( callback != nullptr ) {
-       ((registrationCallBack) callback)();
-       ret = true;
-    } else {
-       ret = false;
+       return ((registrationCallBack) callback);
     }
-    return ret;
+    throw VnVExceptionBase("Library Registration symbol not found");
 }
 
 bool searchLibrary(std::string name,  std::set<std::string> &packageNames) {

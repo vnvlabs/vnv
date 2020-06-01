@@ -1,4 +1,4 @@
-
+﻿
 /** @file JsonSchema.cpp Implementation of the JsonSchema class as defined in
     base/JsonSchema.h
 **/
@@ -212,7 +212,6 @@ static json __base_options_schema__ = R"({
 )"_json;
 
 json& getBaseOptionsSchema() {
-    __base_options_schema__.dump(3);
     return __base_options_schema__;
 }
 

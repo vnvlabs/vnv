@@ -7,12 +7,26 @@
 #include <iomanip>
 #include <type_traits>
 #include <map>
+#include <algorithm>
 
 #include "base/Utilities.h"
 #include "c-interfaces/Logging.h"
 #include "base/InjectionPoint.h"
 
 using nlohmann::json;
+
+std::string VnV::StringUtils::escapeQuotes(std::string str, bool escapeFullString) {
+   std::ostringstream oss;
+   if (escapeFullString) oss << "\"";
+   for (int i = 0; i < str.size(); i++ ) {
+     if  (str[i] == '"' && (i==0||str[i-1] != '\\'))
+       oss << "\\\"";
+     else
+       oss << str[i];
+   }
+   if (escapeFullString) oss << "\"";
+   return oss.str();
+}
 
 // trim from start (in place)
 void VnV::StringUtils::ltrim(std::string &s) {
@@ -50,6 +64,28 @@ std::string VnV::StringUtils::rtrim_copy(std::string s) {
 std::string VnV::StringUtils::trim_copy(std::string s) {
     trim(s);
     return s;
+}
+
+std::string VnV::StringUtils::squash(std::string &str) {
+  std::string::iterator end_pos = std::remove(str.begin(), str.end(), ' ');
+  str.erase(end_pos, str.end());
+  return str;
+}
+
+std::string VnV::StringUtils::squash_copy(std::string s) {
+  squash(s);
+  return s;
+}
+
+std::string VnV::StringUtils::get_type(std::string s){
+   squash(s);
+   if (s.empty()) {
+     return s;
+   } else if (s[0] == '(' && s[s.size()-1] == ')') {
+         return s.substr(1,s.size()-1);
+   } else {
+        return s;
+   }
 }
 
 int VnV::StringUtils::StringSplit(const std::string& s, const char* delim,
@@ -165,9 +201,21 @@ std::vector<std::pair<std::string,std::string>> VnV::bfs(std::map<std::string,st
 std::map<std::string, std::string> VnV::StringUtils::variadicProcess(const char *mess) {
     std::map<std::string,std::string> res;
     std::vector<std::string> pmess = process_variadic(mess);
-    for (auto it : pmess) {
-        std::pair<std::string, std::string> p = splitCppArgString(it);
-        res[trim_copy(p.second)] = trim_copy(p.first);
+    //We need to support class types with commas in the name. To support that, the
+    //simplest way is to require classes with a comma be wrapped up inside a pair of
+    //parenthesis. So, we dont consider an entry finished until we balanence the parenthesis
+    int count = 0;
+    std::string curr = "";
+    while (count < pmess.size()) {
+
+       curr += ((curr.empty()) ? "" : "," ) + pmess[count++];
+       if (balancedParenthesis(curr)) {
+           std::pair<std::string, std::string> p = splitCppArgString(curr);
+           res[squash_copy(p.second)] = squash_copy(p.first);
+           curr = "";
+       } else if (count == pmess.size()) {
+          throw VnVExceptionBase("Unbalenced parenthesis in class name");
+       }
     }
     return res;
 }
@@ -199,16 +247,12 @@ bool VnV::StringUtils::balancedParenthesis(std::string expr) {
             continue;
         }
 
-        // IF current current character is not opening
-        // bracket, then it must be closing. So stack
-        // cannot be empty at this point.
-        if (s.empty())
-            return false;
 
         switch (expr[i])
         {
         case ')':
-
+            if (s.empty())
+               return false;
             // Store the top element in a
             x = s.top();
             s.pop();
@@ -217,7 +261,7 @@ bool VnV::StringUtils::balancedParenthesis(std::string expr) {
             break;
 
         case '}':
-
+            if (s.empty()) return false;
             // Store the top element in b
             x = s.top();
             s.pop();
@@ -226,13 +270,15 @@ bool VnV::StringUtils::balancedParenthesis(std::string expr) {
             break;
 
         case ']':
-
+            if (s.empty()) return false;
             // Store the top element in c
             x = s.top();
             s.pop();
             if (x =='(' || x == '{')
                 return false;
             break;
+        default:
+             continue;
         }
     }
 

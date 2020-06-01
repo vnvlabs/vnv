@@ -115,10 +115,11 @@ provenanceRunner::~provenanceRunner() {}
 
 }
 
-INJECTION_TEST_R(provenance, provenanceRunner, int* argc, char*** argv, json config) {
+/** sdfsdfsdfsdf **/
+INJECTION_TEST_R(provenance, provenanceRunner, int* argc, char*** argv, nlohmann::json config) {
    if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
        GetRef(c,"argc",int*);
-       GetRef(f,"config",json);
+       GetRef(f,"config",nlohmann::json);
        GetRef(v,"argv",char***);
        json confj = getConfigurationJson();
        auto it = confj.find("inputFiles");

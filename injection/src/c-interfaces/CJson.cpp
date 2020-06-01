@@ -1,4 +1,4 @@
-/**
+﻿/**
   @file CJson.cpp
 **/
 
@@ -258,10 +258,11 @@ void _VnV_registerOptions(const char* name, const char* s, options_callback_ptr 
 
 
 void VnV::RegisterOptions(std::string packageName, std::string schema, options_cpp_callback_ptr callback) {
-   VnV::RegisterOptions(packageName, json::parse(schema), callback);
+   json j = json::parse(schema);
+   VnV::RegisterOptions_Json(packageName, j, callback);
 }
 
-void VnV::RegisterOptions(std::string name, json &schema, options_cpp_callback_ptr callback) {
+void VnV::RegisterOptions_Json(std::string name, json &schema, options_cpp_callback_ptr callback) {
    VnV::OptionsParserStore::instance().add(name, schema, callback);
 }
 

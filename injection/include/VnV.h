@@ -1,4 +1,4 @@
-
+﻿
 
 #ifndef VV_VNV_H
 #define VV_VNV_H
@@ -12,7 +12,16 @@
 
 // Cpp Injection Includes. Allows specification of Injection points with Runtime type info
 #ifdef __cplusplus
+
+
+#include "interfaces/argType.h"
 #include "interfaces/CppInjection.h"
+#include "interfaces/ITest.h"
+#include "interfaces/ISerializer.h"
+#include "interfaces/ITransform.h"
+#include "interfaces/IOutputEngine.h"
+#include "interfaces/IUnitTester.h"
+
 #else
 #include "c-interfaces/Injection.h"
 #endif

@@ -1,4 +1,4 @@
-#include "base/DistUtils.h"
+﻿#include "base/DistUtils.h"
 #include "base/Utilities.h"
 #include <sys/stat.h>
 #include <unistd.h>
@@ -79,23 +79,13 @@ void* loadLibrary(std::string name) {
     return dllib;
 }
 
-bool searchLibrary(void *dylib, std::string packageName) {
-    bool ret = false;
+registrationCallBack searchLibrary(void *dylib, std::string packageName) {
     std::string s = VNV_GET_REGISTRATION + packageName;
-    auto a = VnV_BeginStage(
-            "Searching for VnV Registration Callback with name %s", s.c_str())
-    ;
-
     void *callback = dlsym(dylib, s.c_str());
     if (callback != nullptr) {
-        ((registrationCallBack) callback)();
-        ret = true;
-        VnV_Debug("Found it");
-    } else {
-        ret = false;
+        return ((registrationCallBack) callback);
     }
-    VnV_EndStage(a);
-    return ret;
+    throw VnVExceptionBase("Library Registration Symbol not found");
 }
 
 bool searchLibrary(std::string name, std::set<std::string> &packageNames) {

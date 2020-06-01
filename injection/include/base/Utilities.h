@@ -19,6 +19,9 @@ namespace VnV {
 typedef std::map<std::string, std::pair<std::string,void*>> NTV;
 
 namespace StringUtils {
+
+std::string escapeQuotes(std::string str, bool escapeFullString);
+
 void ltrim(std::string &s) ;
 
 // trim from end (in place)
@@ -34,6 +37,12 @@ std::string rtrim_copy(std::string s);
 
 // trim from both ends (copying)
 std::string trim_copy(std::string s);
+
+std::string squash_copy(std::string s);
+
+std::string squash(std::string &s);
+
+std::string get_type(std::string s);
 
 std::vector<std::string> process_variadic(const char * args);
 
@@ -52,6 +61,16 @@ bool balancedParenthesis(std::string expr);
  */
 int StringSplit(const std::string& s, const char* delim,
                 std::vector<std::string>& result);
+
+template< typename ContainerT, typename PredicateT >
+  void erase_if( ContainerT& items, const PredicateT& predicate ) {
+    for( auto it = items.begin(); it != items.end(); ) {
+      if( predicate(*it) ) it = items.erase(it);
+      else ++it;
+    }
+  }
+
+
 }
 
 std::vector<std::pair<std::string,std::string>> bfs(std::map<std::string,std::map<std::string, std::string>> &m, std::string start, std::string end);

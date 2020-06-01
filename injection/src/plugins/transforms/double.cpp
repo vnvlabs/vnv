@@ -7,7 +7,7 @@
 
 #include <sstream>
 
-INJECTION_TRANSFORM_R(doubleToInt, int, double, int) {
+INJECTION_TRANSFORM_R(doubleToInt, double, double, int) {
      *runner = *ptr;
      return runner.get();
 }

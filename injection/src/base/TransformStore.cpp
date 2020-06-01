@@ -20,7 +20,7 @@ using nlohmann::json_schema::json_validator;
 using namespace VnV;
 
 Transformer::Transformer(std::string from_, std::vector<std::pair<std::string,ITransform*>> &trans) {
-   from = from_;
+   from = StringUtils::squash_copy(from_);
    transPath = trans;
 }
 
@@ -49,6 +49,10 @@ TransformStore& TransformStore::getTransformStore() {
 
 std::shared_ptr<Transformer> TransformStore::getTransformer(std::string from, std::string to) {
 
+   //Squash the types to remove any whitespace.
+   StringUtils::squash(from);
+   StringUtils::squash(to);
+
    std::vector<std::pair<std::string,ITransform*>> m;
    try {
        std::vector<std::pair<std::string,std::string>> r = bfs(trans_map,from,to);
@@ -71,6 +75,9 @@ void TransformStore::print() {
 }
 
 void TransformStore::addTransform(std::string name, trans_ptr t, std::string from, std::string to ) {
+  StringUtils::squash(from);
+  StringUtils::squash(to);
+
   trans_factory.insert(std::make_pair(name,t));
   auto it = trans_map.find(from);
   if (it == trans_map.end() ) {

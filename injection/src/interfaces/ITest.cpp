@@ -95,15 +95,21 @@ ITest::ITest(TestConfig &config) : m_config(config)   {
 bool TestConfig::preLoadParameterSet(std::map<std::string, std::string> &parameters)  {
     // Need to check if we can properly map the test, as declared, to this injection point.
     json j = testConfigJson["parameters"]; // maps testParam to injection point param.
+    std::cout << "Test config params are " << j.dump(3) << std::endl;
     for (auto &param : j.items()) {
 
         // Get the information about the test parameter
         std::string testParameter = param.key();   // The parameter in the test.
+
+        std::cout << "Looking for test Parameter " << testParameter << std::endl;
+
         auto testParameterType = testParameters.find(testParameter);
         if ( testParameterType == testParameters.end() ) {
+            std::cout << "Could not find test Parameter Type " << testParameter << std::endl;
             return false; // Test parameter does not exist (invalid config, should never happen if json is validated).
         }
         bool required = isRequired(testParameter);
+
 
 
         // Get the information about the injection point parameter.
@@ -117,13 +123,16 @@ bool TestConfig::preLoadParameterSet(std::map<std::string, std::string> &paramet
                VnV_Warn("Injection point parameters unknown. Parameters will be passed without type checking");
                tran = TransformStore::getTransformStore().getTransformer(testParameterType->second,testParameterType->second);
               } else {
-                 return false; //required parameter not found.
+                  std::cout << "Could not find " << injectionParam << std::endl;
+                  return false; //required parameter not found.
               }
         } else {
-          tran = TransformStore::getTransformStore().getTransformer(injectionParamType->second,testParameterType->second);
+            std::cout << "Loojing for transform " << injectionParamType->second << " -> " << testParameterType->second << std::endl;
+            tran = TransformStore::getTransformStore().getTransformer(StringUtils::squash_copy(injectionParamType->second),StringUtils::squash_copy(testParameterType->second));
         }
 
         if (tran == nullptr && required) {
+
             return false;
         }
         transformers.insert(std::make_pair(testParameter, std::move(tran)));

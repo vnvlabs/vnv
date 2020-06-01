@@ -22,16 +22,3 @@ int class1::function1(int x) {
   return static_cast<int>(value);
 }
 
-INJECTION_REGISTRATION() {
-    VnV_Debug("Inside the Registration Callback for the DummyLibOne");
-
-    Register_Injection_Point("class2_function1", R"({"x":"int"})");
-    Register_Injection_Point("Hello_temp_sub",R"({"slope":"double",
-                                              "intersection":"double",
-                                              "x":"int",
-                                              "value":"double"
-                                              })");
-
-
-}
-

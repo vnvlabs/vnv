@@ -1,12 +1,13 @@
-
+﻿
 add_library(dummyTestLibOne SHARED "")
 
 target_sources(dummyTestLibOne PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/src/dummyTest.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/EuclideanError.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/registration.cpp
-    )
-target_compile_definitions(dummyTestLibOne PRIVATE -DPACKAGENAME=DummyTestLibOne )
-target_link_libraries(dummyTestLibOne Injection::Injection)
+)
+
+
+##Generate the VNV Registration code
+register_and_link_vnv_cpp(dummyTestLibOne DummyTestLibOne ${CMAKE_CURRENT_LIST_DIR}/registration/)
 install(TARGETS dummyTestLibOne DESTINATION examples/dummy/test-libs)
 

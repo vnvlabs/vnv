@@ -27,23 +27,25 @@
 using namespace VnV;
 
 
-INJECTION_OPTIONS(getBaseOptionsSchema()) {
+INJECTION_OPTIONS(getBaseOptionsSchema().dump().c_str()) {
   RunTime::instance().getRunTimeOptions()->fromJson(config);
 }
-/**
- * Anon Namespace to house ld iterate callback code used in fetchInjectionPoint information. (only accesible in this file).
- */
 
-void RunTime::loadPlugin(std::string libraryPath) {
+void RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
   try {
     auto it = plugins.find(libraryPath);
     if (it == plugins.end() ) {
-        void* dllib = dlopen(libraryPath.c_str(), RTLD_NOW);
-        if (dllib == nullptr)
-            std::cerr << dlerror();
-        else {
-            plugins.insert(libraryPath);
-        }
+        void* dllib = DistUtils::loadLibrary(libraryPath);
+        if (dllib != nullptr) {
+           registrationCallBack reg =  DistUtils::searchLibrary(dllib, packageName);
+           if (reg != nullptr) {
+              runTimePackageRegistration(packageName,reg);
+           }  else {
+              std::cout << "GERE" << std::endl;
+           }
+          } else {
+            VnV_Warn("Library not found");
+          }
     }
   } catch (...) {
     VnV_Warn("Library not found: %s",libraryPath.c_str());
@@ -51,7 +53,9 @@ void RunTime::loadPlugin(std::string libraryPath) {
 }
 
 void RunTime::makeLibraryRegistrationCallbacks(std::map<std::string, std::string> packageNames) {
-   DistUtils::callAllLibraryRegistrationFunctions(packageNames);
+  for ( auto it : packageNames) {
+     loadPlugin(it.second,it.first);
+  }
 }
 
 bool RunTime::useAsciiColors() {
@@ -104,6 +108,7 @@ RunTimeOptions *RunTime::getRunTimeOptions() {
 
 // Cpp interface.
 void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args) {
+    std::cout << "INJECTION " << pname << " : " << id << std::endl;
     auto it = getNewInjectionPoint(pname,id,InjectionPointType::Single,args);
     if ( it != nullptr) {
         it->setCallBack(callback);
@@ -113,6 +118,7 @@ void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id, c
 }
 
 void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args) {
+    std::cout << "INJECTION " << pname << " : " << id << std::endl;
     auto it  =getNewInjectionPoint(pname,id,InjectionPointType::Begin,args);
     if ( it != nullptr) {
         it->setCallBack(callback);
@@ -122,6 +128,7 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname, std::string
 }
 
 void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id, injectionDataCallback *callback, NTV &args) {
+    std::cout << "INJECTION " << pname << " : " << id << std::endl;
     auto it = getNewInjectionPoint(pname,id,InjectionPointType::Single,args);
     if ( it != nullptr) {
         it->setCallBack(callback);
@@ -153,6 +160,10 @@ void RunTime::injectionPoint_end(std::string pname, std::string id) {
     }
 }
 
+void RunTime::declarePackageJson(std::string pname, vnvFullJsonStrCallback callback) {
+   jsonCallbacks.insert(std::make_pair(pname,callback));
+}
+
 RunTime& RunTime::instance() {
   static RunTime store;
   return store;
@@ -160,8 +171,8 @@ RunTime& RunTime::instance() {
 
 RunTime::RunTime() {}
 
-void RunTime::registerLogLevel(std::string name, std::string color) {
-    logger.registerLogLevel(name,color);
+void RunTime::registerLogLevel(std::string packageName, std::string name, std::string color) {
+    logger.registerLogLevel(packageName, name,color);
 }
 
 void RunTimeOptions::callback(json &j) {
@@ -190,26 +201,19 @@ void RunTime::loadRunInfo(RunInfo &info, registrationCallBack *callback) {
      }
   }
 
-  //Call this libraries registration callback object (defined in vv-registration.cpp) .
-  INJECTION_REGISTRATION_CALL;
+  //Register this library -- the VnV Toolkit.
+  runTimePackageRegistration(PACKAGENAME_S,INJECTION_REGISTRATION_PTR);
 
-  //VnV::Registration::registerVnV();
-
-  // Load the test libraries ( plugins -- This could include a custom engine )
-  VnV_Debug("Loading Plugins");
-  for (auto it : info.testLibraries) {
-      if (!it.second.empty()) {
-         loadPlugin(it.second);
-      }
+  //Register the Executable.
+  if (callback != nullptr) {
+      runTimePackageRegistration(mainPackageName, *callback);
   }
-  // Now we need to call the library registration functions.
 
+  //Register the plugins specified in the input file. In this case,
+  //we use dlopen to open the library dynamically, then search the library
+  //for a registration function called VNV_REGISTRATION_NAME_<PACKAGENAME>
   makeLibraryRegistrationCallbacks(info.testLibraries);
 
-  // Call the executables registration callback.
-  if (callback != nullptr) {
-      (*callback)();
-  }
 
   // Process the configs (wait until now because it allows loaded test libraries
   // to register options objects.
@@ -228,7 +232,7 @@ void RunTime::loadRunInfo(RunInfo &info, registrationCallBack *callback) {
       auto x = std::make_pair(it.second.runInternal,TestStore::getTestStore().validateTests(it.second.tests));
       InjectionPointStore::getInjectionPointStore().addInjectionPoint(
                   it.second.package, it.second.name,x);
-      }
+  }
 
 }
 
@@ -256,7 +260,8 @@ bool initMPI(int* argc, char*** argv) {
 
 }
 // Cant overload the name because "json" can be a "string".
-bool RunTime::InitFromJson(int* argc, char*** argv, json& config, registrationCallBack *callback) {
+bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, json& config, registrationCallBack *callback) {
+  mainPackageName = packageName;
   finalize_mpi = initMPI(argc,argv);
 
   JsonParser parser;
@@ -264,8 +269,7 @@ bool RunTime::InitFromJson(int* argc, char*** argv, json& config, registrationCa
   runTests = configure(info,callback);
 
   /**
-   * I FOUND IT BEN
-   *
+   * Injection point documentation.
    **/
   INJECTION_LOOP_BEGIN_C(VnV_Comm_World, initialization, [&](VnV_Comm comm, VnVParameterSet &p, OutputEngineManager *engine){
            for (auto it : p ) {
@@ -275,9 +279,9 @@ bool RunTime::InitFromJson(int* argc, char*** argv, json& config, registrationCa
   },argc, argv, config);
 
   return runTests;
-};
+}
 
-bool RunTime::InitFromFile(int* argc, char*** argv, std::string configFile, registrationCallBack *callback) {
+bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv, std::string configFile, registrationCallBack *callback) {
 
   std::ifstream fstream(configFile);
 
@@ -292,7 +296,7 @@ bool RunTime::InitFromFile(int* argc, char*** argv, std::string configFile, regi
      throw VnVExceptionBase(e.what());
   }
 
-  return InitFromJson(argc,argv,mainJson,callback);
+  return InitFromJson(packageName, argc,argv,mainJson,callback);
 
 }
 
@@ -319,18 +323,28 @@ void RunTime::processToolConfig(json config) {
    OptionsParserStore::instance().parse(config);
 }
 
+void RunTime::runTimePackageRegistration(std::string packageName, vnv_registration_function reg) {
+
+  auto it = plugins.find(packageName);
+  if ( it == plugins.end() ) {
+      VnV_Debug("Registering a new Package %s" , packageName.c_str());
+      plugins.insert(packageName);
+      reg() ; // could be recursive.
+    }
+}
+
 bool RunTime::Finalize() {
   if (runTests) {
-    INJECTION_LOOP_END(initialization);
-    OutputEngineStore::getOutputEngineStore().getEngineManager()->finalize();
+      INJECTION_LOOP_END(initialization);
+      OutputEngineStore::getOutputEngineStore().getEngineManager()->finalize();
 #ifdef WITH_MPI
-    if (finalize_mpi) {
-      int flag = 0;
-      MPI_Finalized(&flag);
-      if (!flag) {
-        MPI_Finalize();
-      }
-    }
+      if (finalize_mpi) {
+          int flag = 0;
+          MPI_Finalized(&flag);
+          if (!flag) {
+              MPI_Finalize();
+            }
+        }
 #endif
     return true;
   }

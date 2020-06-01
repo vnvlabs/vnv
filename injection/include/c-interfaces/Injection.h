@@ -6,11 +6,13 @@
 #include "c-interfaces/PackageName.h"
 #include "c-interfaces/Wrappers.h"
 
+typedef void (*vnv_registration_function)();
+
 VNVEXTERNC int _VnV_injectionPoint_end(const char * packageName, const char* id);
 VNVEXTERNC void _VnV_injectionPoint_loop(const char * packageName, const char* id, const char* stageId);
 VNVEXTERNC void _VnV_registerInjectionPoint(const char* packageName, const char* id, const char *parameters_str);
-VNVEXTERNC void _VnV_injectionPoint_begin(VnV_Comm comm, const char * packageName, const char* id, injectionDataCallback *callback, ...);
-VNVEXTERNC void _VnV_injectionPoint(VnV_Comm comm, const char * packageName, const char* id, injectionDataCallback *callback, ...);
+VNVEXTERNC void _VnV_injectionPoint_begin(VnV_Comm comm, vnv_registration_function reg, const char * packageName, const char* id, injectionDataCallback *callback, ...);
+VNVEXTERNC void _VnV_injectionPoint(VnV_Comm comm, vnv_registration_function reg, const char * packageName, const char* id, injectionDataCallback *callback, ...);
 
 
 #define DOIT(X)  #X, (void*)(&X),
@@ -19,7 +21,7 @@ VNVEXTERNC void _VnV_injectionPoint(VnV_Comm comm, const char * packageName, con
 
 // Macro for an injection point with a callback
 #define INJECTION_POINT_C(COMM,NAME, callback, ...)        \
-   _VnV_injectionPoint(COMM,PACKAGENAME_S,#NAME, callback, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
+   _VnV_injectionPoint(COMM,INJECTION_REGISTRATION_PTR, PACKAGENAME_S,#NAME, callback, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
 // Injection point without a data callback.
 #define INJECTION_POINT(COMM,NAME, ...)        \
@@ -27,7 +29,7 @@ VNVEXTERNC void _VnV_injectionPoint(VnV_Comm comm, const char * packageName, con
 
 // BEGIN A LOOPED INJECTION POINT with a callback
 #define INJECTION_LOOP_BEGIN_C(COMM, NAME, callback, ...)        \
-    _VnV_injectionPoint_begin(COMM, PACKAGENAME_S, #NAME, callback, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
+    _VnV_injectionPoint_begin(COMM, INJECTION_REGISTRATION_PTR, PACKAGENAME_S, #NAME, callback, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
 //Begin a looped injection point without a data callback.
 #define INJECTION_LOOP_BEGIN(COMM,NAME, ...)        \
@@ -54,7 +56,7 @@ VNVEXTERNC void _VnV_injectionPoint(VnV_Comm comm, const char * packageName, con
 
 //REGISTER AN INJECTION POINT
 #define Register_Injection_Point(NAME, PARAMETERS) \
-    _VnV_registerInjectionPoint(PACKAGENAME_S, NAME, PARAMETERS);
+    _VnV_registerInjectionPoint(PACKAGENAME_S, #NAME, PARAMETERS);
 
 
 #else

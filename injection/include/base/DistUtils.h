@@ -1,4 +1,4 @@
-
+﻿
 
 /**
   @file DistUtils.h
@@ -8,7 +8,10 @@
 #define _VV_DYNAMIC_H
 #include <set>
 #include "json-schema.hpp"
+
 using nlohmann::json;
+
+typedef void (*registrationCallback)();
 
 namespace VnV {
   namespace DistUtils {
@@ -18,6 +21,8 @@ struct libData {
 };
 
 
+void* loadLibrary(std::string libraryPath);
+registrationCallback searchLibrary(void* dllib, std::string packageName);
 /**
  * Get "stat" information for the file. Here add is the "address".
  **/

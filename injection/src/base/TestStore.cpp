@@ -89,6 +89,7 @@ TestConfig TestStore::validateTest(json &testJson) {
     validator.validate(testConfigJson);
 
     // Create the Test Config File
+    std::cout << "HHHHHHHHHHHHHH" << package << " " << name << " " << testConfigJson.dump(3) << std::endl;
     return TestConfig(package, name, testConfigJson, it->second.second);
   }
   throw VnVExceptionBase("test not found");
@@ -122,6 +123,7 @@ void TestStore::print() {
 
 
 void VnV::registerTest(std::string package, std::string name, maker_ptr m, std::map<std::string, std::string> map) {
+  for (auto op : map) std::cout << "TEST P " << op.first << " :  " << op.second << std::endl;
   TestStore::getTestStore().addTest(package, name, m, map);
 }
 

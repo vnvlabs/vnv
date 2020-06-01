@@ -5,38 +5,35 @@
 
 #include "c-interfaces/PackageName.h"
 
-#define REG_HELPER_(X,Y) X ## Y
-#define REG_HELPER(X,Y) REG_HELPER_(X,Y)
-
-#define VNV_REGISTRATION_CALLBACK_NAME REG_HELPER(__vnv_registration_callback__,PACKAGENAME)
-#define VNV_GET_REGISTRATION "__vnv_registration_callback__"
-
-#  ifdef __cplusplus
-#   define INJECTION_REGISTRATION extern "C" void VNV_REGISTRATION_CALLBACK_NAME
-#  else
-#    define INJECTION_REGISTRATION void VNV_REGISTRATION_CALLBACK_NAME
-#endif
-#   define INJECTION_REGISTRATION_CALL VNV_REGISTRATION_CALLBACK_NAME();
-
-// We are going to forward declare a registration function for any package that includes
-// VnV.h. That way, the code will not compile if the registration function is missing.
-INJECTION_REGISTRATION();
-
+// All packages can register a function that returns a char* with the package json.
+#define REGISTER_FULL_JSON(callback)\
+    VnV_declarePackageJson(PACKAGENAME_S,callback);
 
 #define INJECTION_INITIALIZE(argc,argv,filename) \
-    VnV_init(argc,argv,filename, VNV_REGISTRATION_CALLBACK_NAME);
+    VnV_init(PACKAGENAME_S, argc,argv,filename, VNV_REGISTRATION_CALLBACK_NAME);
 
 #define INJECTION_FINALIZE() \
     VnV_finalize();
 
 
-// This structure can be used to register VnV objects. Basically, the functions
-// should return valid json strings, in the correct formats, for declaring objects. This
-// is an alternative to using the static initialization approach in C++ codes, which results
-// in objects being registered upon loading of the shared library. The goal will be to have
-// the compiler generate the code (and json) required to populate this structure. In the VnV
-// code, we will search the json for the export VnV_Registration_impl;
+#  ifdef __cplusplus
+#   define DECLARESUBPACKAGE(NAME) extern "C" void REG_HELPER(VNVREGNAME,NAME)();
+#  else
+#   define DECLARESUBPACKAGE(NAME) void VNVREGNAME##NAME();
+#endif
+
+#define REGISTERSUBPACKAGE(NAME) VnV_Register_Subpackage(PACKAGENAME_S, #NAME, REG_HELPER(VNVREGNAME,NAME));
+
+// This doesn't expand to anything, just tells the VNV Registration generator to include a
+// subpackage.
+#define INJECTION_SUBPACKAGE(NAME)
+
 typedef void (*registrationCallBack)();
+VNVEXTERNC void VnV_Register_Subpackage(const char* packageName, const char* Name, registrationCallBack callback);
+
+typedef const char * (*vnvFullJsonStrCallback)();
+VNVEXTERNC void VnV_declarePackageJson(const char* packageName, vnvFullJsonStrCallback callback);
+
 
 /**
  * @brief VnV_init
@@ -48,7 +45,7 @@ typedef void (*registrationCallBack)();
  * Initialize the VnV library. If this function is not called, no injection
  * point testing will take place.
  */
-VNVEXTERNC void VnV_init(int* argc, char*** argv, const char* filename, registrationCallBack callback);
+VNVEXTERNC void VnV_init(const char* packageName, int* argc, char*** argv, const char* filename, registrationCallBack callback);
 /**
  * @brief VnV_finalize
  * @return todo
