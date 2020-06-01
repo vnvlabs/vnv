@@ -25,7 +25,7 @@ target_include_directories(injection PRIVATE
 add_subdirectory(src)
 
 #Generate the VNV Registration code
-generate_vnv_registration(injection VNV ${CMAKE_CURRENT_LIST_DIR}/registration/ cpp)
+generate_vnv_registration(injection VNV ${PROJECT_SOURCE_DIR}/registration/ cpp)
 
 
 include(GNUInstallDirs)

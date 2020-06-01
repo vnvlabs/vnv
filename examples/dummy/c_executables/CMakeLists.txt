@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #find_package(Injection)
 
 add_executable(csample.a "sample.c")
-register_and_link_vnv_c(csample.a CSampleExecutable ${CMAKE_CURRENT_LIST_DIR}/registration/)
+register_and_link_vnv_c(csample.a CSampleExecutable ${PROJECT_SOURCE_DIR}/registration/)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json ${CMAKE_CURRENT_BINARY_DIR}/sample.json COPYONLY)
 

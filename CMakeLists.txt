@@ -38,7 +38,7 @@ function(generate_vnv_registration targetName packageName distPath extension)
      #)
      add_custom_target(vnv_${targetName}_generation
         COMMAND vnv-matcher ARGS --package ${packageName} --output ${CMAKE_CURRENT_BINARY_DIR}/Registration_${packageName}.${extension} ${CMAKE_BINARY_DIR}/compile_commands.json
-        #COMMAND cp ARGS ${CMAKE_CURRENT_BINARY_DIR}/Registration_${packageName}.${extension} ${distPath}/Registration_${packageName}.${extension}
+        COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/Registration_${packageName}.${extension} ${distPath}
         BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/Registration_${packageName}.${extension} ${CMAKE_CURRENT_BINARY_DIR}/Registration_${packageName}.${extension}.__cache__
       )
     add_dependencies(${targetName} vnv_${targetName}_generation)

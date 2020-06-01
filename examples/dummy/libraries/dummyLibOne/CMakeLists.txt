@@ -13,7 +13,7 @@ target_sources(dummyLibOne PRIVATE
 
 target_include_directories(dummyLibOne PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include)
 
-register_and_link_vnv_cpp(dummyLibOne DummyLibOne ${CMAKE_CURRENT_LIST_DIR})
+register_and_link_vnv_cpp(dummyLibOne DummyLibOne ${PROJECT_SOURCE_DIR}/registration)
 
 
 set_target_properties(dummyLibOne PROPERTIES

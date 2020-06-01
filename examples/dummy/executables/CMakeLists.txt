@@ -7,11 +7,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #find_package(Injection)
 
 add_executable(sample.a "sample.cpp")
-register_and_link_vnv_cpp(sample.a SampleExecutable ${CMAKE_CURRENT_LIST_DIR}/registration/)
+register_and_link_vnv_cpp(sample.a SampleExecutable ${PROJECT_SOURCE_DIR}/registration/)
 target_link_libraries(sample.a dummyLibOne dummyLibTwo)
 
 add_executable(read.a "read.cpp")
-register_and_link_vnv_cpp(read.a SampleReader ${CMAKE_CURRENT_LIST_DIR}/registration/ Hello There There)
+register_and_link_vnv_cpp(read.a SampleReader ${PROJECT_SOURCE_DIR}/registration/)
 
 
 target_compile_definitions(read.a PRIVATE -DPACKAGENAME=SampleReader)

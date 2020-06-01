@@ -8,6 +8,6 @@ target_sources(dummyTestLibOne PRIVATE
 
 
 ##Generate the VNV Registration code
-register_and_link_vnv_cpp(dummyTestLibOne DummyTestLibOne ${CMAKE_CURRENT_LIST_DIR}/registration/)
+register_and_link_vnv_cpp(dummyTestLibOne DummyTestLibOne ${PROJECT_SOURCE_DIR}/registration/)
 install(TARGETS dummyTestLibOne DESTINATION examples/dummy/test-libs)
 
