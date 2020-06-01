@@ -161,7 +161,7 @@ void Logger::setLog(const std::string& filename) {
   } else if (filename.compare("stderr") == 0) {
     fileptr = &std::cerr;
   } else if (filename.compare("engine") == 0) {
-    fileptr = nullptr;
+    fileptr = &std::cerr; // Log to stderr until engine is configured
     engine = true;
   } else {
     std::ofstream fp;

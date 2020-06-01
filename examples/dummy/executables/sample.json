@@ -30,7 +30,7 @@
                 "package" : "VNV",
                 "runScope" : ["all"],
                 "config" : {
-                                    "expectedResult" : {},
+                    "expectedResult" : {},
                     "configuration": {
                     },
                     "parameters": {

@@ -34,7 +34,7 @@
 namespace VnV {
 
 
-   /**
+/**
  *  Internal. An internal namespace is used in a effort to "hide"
  * the Logger class. All logging should go through the Logging macros defined
  * above. (so they can be removed at compile time when needed)

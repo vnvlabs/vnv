@@ -13,6 +13,12 @@ if(POLICY CMP0079)
   cmake_policy(SET CMP0079 NEW)
 endif()
 
+option(WITH_MPI "Build using MPI" OFF)
+
+if (WITH_MPI)
+        find_package(MPI REQUIRED)
+endif()
+
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type selected, default to RelWithDebInfo")
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type (default RelWitDebInfo)")

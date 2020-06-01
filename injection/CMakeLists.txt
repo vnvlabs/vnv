@@ -1,6 +1,10 @@
 ﻿
 #Add the adios engine to the target
 
+if (WITH_MPI)
+        find_package(MPI REQUIRED)
+endif()
+
 #Add the third party targets ( json-schema-validator TODO github-link)
 add_subdirectory(third-party)
 
@@ -13,18 +17,29 @@ set_target_properties(injection
 
 add_library(Injection::Injection ALIAS injection)
 
+if (WITH_MPI)
+        target_include_directories(injection PRIVATE
+                                    ${CMAKE_CURRENT_LIST_DIR}/include
+                                    PUBLIC
+                                    ${MPI_CXX_INCLUDE_PATH}
+                                    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+                                    $<INSTALL_INTERFACE:include>
+                                  )
+        target_compile_options(injection PRIVATE ${MPI_CXX_COMPILE_FLAGS})
+        target_compile_definitions(injection PRIVATE -DWITH_MPI=1)
+        target_link_libraries(injection PRIVATE ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS})
+else()
+        target_include_directories(injection PRIVATE
+                                    ${CMAKE_CURRENT_LIST_DIR}/include
+                                    PUBLIC
+                                    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+                                    $<INSTALL_INTERFACE:include>
+                                  )
+endif()
 
-target_include_directories(injection PRIVATE
-                            ${CMAKE_CURRENT_LIST_DIR}/include
-                            PUBLIC
-                            $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
-                            $<INSTALL_INTERFACE:include>
-                          )
-                  target_compile_definitions(injection PRIVATE -DPACKAGENAME=VNV )
 
 add_subdirectory(src)
-
-#Generate the VNV Registration code
+target_compile_definitions(injection PRIVATE -DPACKAGENAME=VNV)
 generate_vnv_registration(injection VNV ${PROJECT_SOURCE_DIR}/registration/ cpp)
 
 

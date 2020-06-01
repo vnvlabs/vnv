@@ -7,11 +7,7 @@
 #  include <mpi.h>
 #endif
 
-#if defined(__APPLE__)
-#include <link.h>
-#endif
-
-#include <dlfcn.h>
+#include <unistd.h>
 
 //#include <unistd.h>
 #include "base/Runtime.h"
