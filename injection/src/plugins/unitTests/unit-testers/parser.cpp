@@ -2,8 +2,8 @@
 #define _EuclideanError_H
 
 #include "VnV.h"
-
 #include <sstream>
+
 
 INJECTION_UNITTEST(Demo) {
         int x = 10;
@@ -18,13 +18,17 @@ INJECTION_UNITTEST(Demo) {
         t2 << "x(" << x << ") - y(" << y << ") == 0 (" << x-y << ")";
         t3 << "x(" << x << ") != y(" << y << ")";
 
-        results[t1.str()] = ( (x + y) == 20 );
-        results[t2.str()] = ( (x - y) == 0 );
-        results[t3.str()] = ( x == y );
-        results["x == 10"] = (x==10);
-        results["y == 10"] = (y==10);
-        return results;
+        TEST_ASSERT_EQUALS(t1.str(), 20, x + y);
+
+        TEST_ASSERT_EQUALS(t2.str(), 0, x - y);
+
+        TEST_ASSERT_EQUALS(t3.str(), x, y);
+
+        TEST_ASSERT_EQUALS("x == 10", 10, x);
+
+        TEST_ASSERT_EQUALS("y == 10", 10, y);
 }
+
 
 
 #endif

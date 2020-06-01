@@ -14,8 +14,8 @@ using namespace VnV;
 
 UnitTestStore::UnitTestStore() {}
 
-IUnitTester::IUnitTester(){};
-IUnitTester::~IUnitTester(){};
+IUnitTest::IUnitTest(){};
+IUnitTest::~IUnitTest(){};
 
 UnitTestStore& UnitTestStore::getUnitTestStore() {
   static UnitTestStore store;
@@ -29,7 +29,7 @@ void UnitTestStore::addUnitTester(std::string packageName, std::string name, tes
   tester_factory[packageName][name] = m;
 }
 
-IUnitTester* UnitTestStore::getUnitTester(std::string packageName, std::string name) {
+IUnitTest* UnitTestStore::getUnitTester(std::string packageName, std::string name) {
   auto it = tester_factory.find(packageName);
   if (it != tester_factory.end()) {
     auto itt = it->second.find(name);
@@ -40,11 +40,11 @@ IUnitTester* UnitTestStore::getUnitTester(std::string packageName, std::string n
   return nullptr;
 }
 
-void UnitTestStore::runTest(VnV_Comm comm, std::string name, IUnitTester *tester) {
+void UnitTestStore::runTest(VnV_Comm comm, std::string name, IUnitTest *tester) {
     OutputEngineManager *engineManager = OutputEngineStore::getOutputEngineStore().getEngineManager();
     engineManager->unitTestStartedCallBack(comm, name);
-    std::map<std::string,bool> r = tester->run(engineManager->getOutputEngine());
-    engineManager->unitTestFinishedCallBack(comm,r);
+    tester->run();
+    engineManager->unitTestFinishedCallBack(comm,tester);
 }
 
 void UnitTestStore::runTest(VnV_Comm comm, std::string packageName, std::string name) {

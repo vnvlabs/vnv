@@ -16,6 +16,7 @@ set_target_properties(injection
                       SOVERSION 1)
 
 add_library(Injection::Injection ALIAS injection)
+target_link_libraries(injection PRIVATE msgpack)
 
 if (WITH_MPI)
         target_include_directories(injection PRIVATE

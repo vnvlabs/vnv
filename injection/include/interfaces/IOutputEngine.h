@@ -6,8 +6,8 @@
 #include "c-interfaces/PackageName.h"
 #include "interfaces/nodes/Nodes.h"
 #include "python/PythonInterface.h"
+#include "interfaces/IUnitTest.h"
 
-//#include "base/InjectionPoint.h"
 /**
  * @brief The IOutputEngine class
  */

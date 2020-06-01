@@ -8,7 +8,7 @@
 #include <map>
 #include <string>
 
-#include "interfaces/IUnitTester.h"
+#include "../interfaces/IUnitTest.h"
 
 namespace VnV {
 
@@ -17,12 +17,12 @@ class UnitTestStore {
   std::map<std::string, std::map<std::string, tester_ptr*, std::less<std::string>>> tester_factory;
   UnitTestStore();
 
-  void runTest(VnV_Comm comm,std::string Name, IUnitTester *tester);
+  void runTest(VnV_Comm comm, std::string Name, IUnitTest *tester);
 
  public:
   void addUnitTester(std::string packageName, std::string name, tester_ptr m);
 
-  IUnitTester* getUnitTester(std::string packageName, std::string name);
+  IUnitTest* getUnitTester(std::string packageName, std::string name);
 
   static UnitTestStore& getUnitTestStore();
 
