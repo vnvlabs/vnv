@@ -56,4 +56,17 @@ void registerUnitTester(std::string name, VnV::tester_ptr ptr);
         }                                                               \
     }
 
+#define TEST_ASSERT_NOT_EQUALS(name, expected, got)                         \
+    {                                                                   \
+        if (((got) == (expected)))                                      \
+        {                                                               \
+            std::stringstream tmpstream;                                \
+            tmpstream << "Got " << (got) << ", expected " << (expected);\
+            results.emplace_back((name), tmpstream.str(), false);       \
+            if (!continue_on_fail) throw std::runtime_error((name));    \
+        } else {                                                        \
+            results.emplace_back((name), "", true);                     \
+        }                                                               \
+    }
+
 #endif // IUNITTESTER_H

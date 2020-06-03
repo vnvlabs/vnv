@@ -4,8 +4,8 @@
 #include "VnV.h"
 #include <sstream>
 
-#include "../../injection/include/interfaces/IUnitTest.h"
-#include "../../injection/include/plugins/engines/ParallelOutputEngine/SparseBitVector.h"
+#include "interfaces/IUnitTest.h"
+#include "plugins/engines/ParallelOutputEngine/SparseBitVector.h"
 
 using namespace VnV;
 
@@ -83,7 +83,7 @@ private:
 
 SparseBitVectorUnitTests::~SparseBitVectorUnitTests(){};
 
-IUnitTest* factory() {
+static IUnitTest* factory() {
     return new SparseBitVectorUnitTests();
 }
 

@@ -4,7 +4,7 @@
 #include "VnV.h"
 #include <sstream>
 
-#include "../../injection/include/interfaces/IUnitTest.h"
+#include "interfaces/IUnitTest.h"
 using namespace VnV;
 
 class ParserUnitTests : public IUnitTest { 

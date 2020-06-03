@@ -37,7 +37,7 @@ private:
 public:
     Router();
     Router(int fanout);
-    Router(int id, int root, int fanout);
+    Router(int id, int root, int size, int fanout);
     ~Router() {};
     int send(std::string name, std::string value);
     int forward();

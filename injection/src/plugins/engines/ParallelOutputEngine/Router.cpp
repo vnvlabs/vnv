@@ -6,22 +6,26 @@
 #include "plugins/engines/ParallelOutputEngine/Router.h"
 #include <msgpack.hpp>
 
+#define modulo(x, N) (((x) % (N) + (N)) % (N))
+
 int Router::parent_of(int id, int root, int fanout) {
     if (id == root) {
         return root;
     }
-    return (id - 1) / fanout;
+    int mid = modulo(id - root, m_size);
+    return modulo((mid - 1) / fanout + root, m_size);
 }
 
 Route Router::children_of(int id, int root, int fanout) {
     Route children;
+    int mid = modulo(id - root, m_size);
 
     for (int c = 1; c <= m_fanout; c++) {
-        int child = m_fanout * id + c;
+        int child = m_fanout * mid + c;
         if (child >= m_size) {
             break;
         }
-        children.set(child);
+        children.set(modulo(child + root, m_size));
     }
     return children;
 }
@@ -158,9 +162,15 @@ Router::Router(int fanout) {
     init();
 }
 
-Router::Router(int id, int root, int fanout) {
+Router::Router(int id, int root, int size, int fanout) {
     m_id = id;
     m_root = root;
+    m_size = size;
     m_fanout = fanout;
-    init();
+
+    // Find our parent
+    m_parent = parent_of(m_id, m_root, m_fanout);
+
+    // Find our children
+    m_children = children_of(m_id, m_root, m_fanout);
 }

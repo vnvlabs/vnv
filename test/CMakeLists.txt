@@ -10,6 +10,7 @@ add_executable(test-runner "test-runner.cpp")
 
 target_sources(test-runner PRIVATE  "unit-testers/parser.cpp")
 target_sources(test-runner PRIVATE  "unit-testers/bitvector.cpp")
+target_sources(test-runner PRIVATE  "unit-testers/router.cpp")
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/test-config.json ${CMAKE_CURRENT_BINARY_DIR}/test-config.json COPYONLY)
 target_link_libraries(test-runner Injection::Injection msgpack)
