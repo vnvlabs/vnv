@@ -10,6 +10,4 @@ if (WITH_ADIOS_ENGINE)
 	endif()
 endif()
 
-if (WITH_MPI)
-	add_subdirectory(ParallelOutputEngine)
-endif()
+add_subdirectory(ParallelOutputEngine)

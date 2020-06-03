@@ -3,7 +3,6 @@
 #include "plugins/engines/ParallelOutputEngine/ParallelOutputEngineImpl.h"
 #include "c-interfaces/Logging.h"
 #include <iostream>
-#include <mpi.h>
 #include <unistd.h>
 
 using namespace VnV;

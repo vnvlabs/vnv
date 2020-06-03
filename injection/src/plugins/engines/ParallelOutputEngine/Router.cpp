@@ -74,6 +74,7 @@ int Router::forward() {
     // end message from them all
     while (!children.empty()) {
         for (const int child : children) {
+#ifdef WITH_MPI
             // Check for a message from the child
             MPI_Iprobe(child, MPI_ANY_TAG, m_comm, &msg_avail, &status);
             if (msg_avail) {
@@ -113,6 +114,7 @@ int Router::forward() {
                     map_route |= route;
                 }
             }
+#endif /* WITH_MPI */
         }
     }
 
@@ -130,8 +132,10 @@ int Router::forward() {
 
     put_map.clear();
 
+#ifdef WITH_MPI
     // Tell parent we have finished sending
     MPI_Send(&m_id, 1, MPI_INTEGER, m_parent, 1, m_comm);
+#endif /* WITH_MPI */
 
     return 0;
 }
