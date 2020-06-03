@@ -8,7 +8,9 @@
 #ifndef VV_PARALLELOUTPUTENGINE_ROUTER_H_
 #define VV_PARALLELOUTPUTENGINE_ROUTER_H_
 
+#ifdef WITH_MPI
 #include <mpi.h>
+#endif /* WITH_MPI */
 
 #include <vector>
 #include <thread>
@@ -26,7 +28,7 @@ private:
     int m_root = 0;
     Route m_children;
     std::unordered_map<std::string, std::unordered_map<std::string, Route>> put_map;
-#if WITH_MPI
+#ifdef WITH_MPI
     MPI_Comm m_comm;
 #endif /* WITH_MPI */
     int parent_of(int id, int root, int fanout);
