@@ -68,7 +68,9 @@ int Router::forward() {
     std::string name;
     std::string value;
     std::unordered_map<std::string, std::unordered_map<std::string, Route>> name_map;
+#ifdef WITH_MPI
     MPI_Status status;
+#endif /* WITH_MPI */
 
     // Check for messages until we've received an
     // end message from them all
