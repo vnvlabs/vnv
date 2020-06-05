@@ -10,19 +10,18 @@
 using namespace VnV;
 
 INJECTION_UNITTEST(BFSTester) {
-        std::map<std::string, bool> results;
 
         std::map<std::string, std::map<std::string,std::string>> graph;
 
         // Test: Pass in a from that is not in the map --> should throw.
         try {
             VnV::bfs(graph,"from","to");
-            results["FromNotInMap"] = false;
+            TEST_ASSERT_EQUALS("FromNotInMap",false,true);
         } catch (...) {
-            results["FromNotInMap"] = true;
+            TEST_ASSERT_EQUALS("FromNotInMap",true,true);
         }
         // Test: Pass in a from == to -> should return empty vector:
-        results["Empty Set When From == To "] = (0 == VnV::bfs(graph,"from","from").size());
+        TEST_ASSERT_EQUALS("Empty Set When From == To ", (0 == VnV::bfs(graph,"from","from").size()),true);
 
         // Test Pass in a from that is in the map, but a to that is not.
         std::map<std::string,std::string> ss = {{"a" , "1"},{"b","2"}};
@@ -34,36 +33,33 @@ INJECTION_UNITTEST(BFSTester) {
         graph["b"] = ss2;
         graph["e"] = ss3;
         // To not in graph, so should fail.
-        try { VnV::bfs(graph,"from","to"); results["To not in set"] = false; } catch (...) {results["To not in set"] = true;}
+        try { VnV::bfs(graph,"from","to"); TEST_ASSERT_EQUALS("To not in set", false, true); } catch (...) {
+          TEST_ASSERT_EQUALS("To not in set",true,true);
+        }
 
         // Go from "from" to "a", a one level jump.
         try {
           auto x = VnV::bfs(graph,"from","a");
-          results["One Level"] = (x.size()==1 && x[0].first== "a" && x[0].second == "1");
-        } catch (...) {
-          results["One Level"]=false;
+          TEST_ASSERT_EQUALS("One Level", (x.size()==1 && x[0].first== "a" && x[0].second == "1"), true);
+        } catch (...){
+          TEST_ASSERT_EQUALS("One Level", false, true);
         }
 
         // Go from "from" to "f" --> from->b->f
         try { auto x = VnV::bfs(graph,"from","e");
-            results["Two Level"] = (x.size()==2 && x[0].first== "b" && x[1].first == "e");
-        } catch (...) {results["Two Level"]=false;}
-
-        // Go from "from" to "h" --> from->b->f
-        try { auto x = VnV::bfs(graph,"from","h");
-            results["Three Level"] = (x.size()==3 && x[0].first== "b" && x[1].first == "e" && x[2].first == "h");
-        } catch (...) {results["Three Level"]=false;}
+          TEST_ASSERT_EQUALS("Two Level", (x.size()==2 && x[0].first== "b" && x[1].first == "e"), true);
+        } catch (...) {
+          TEST_ASSERT_EQUALS("Two Level", false, true);
+        }
 
         // Add in some loops
         std::map<std::string,std::string> ss4 = {{"h", "10"},{"b","3"},{"i","44"}};
         graph["h"] = ss4;
         try { auto x = VnV::bfs(graph,"from","i");
-            results["Loops"] = (x.size()==4 && x[0].first== "b" && x[1].first == "e" && x[2].first == "h" && x[3].first == "i");
+            TEST_ASSERT_EQUALS("Loops", (x.size()==4 && x[0].first== "b" && x[1].first == "e" && x[2].first == "h" && x[3].first == "i"),true);
         } catch (...) {
-            results["Loops"]=false;
+            TEST_ASSERT_EQUALS("Loops",false,true);
         }
-
-        return results;
 }
 
 #endif

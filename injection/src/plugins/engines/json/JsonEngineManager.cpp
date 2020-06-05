@@ -190,16 +190,15 @@ void JsonEngineManager::unitTestStartedCallBack(VnV_Comm /**comm**/, std::string
     push(j,json::json_pointer("/children"));
 }
 
-void JsonEngineManager::unitTestFinishedCallBack(VnV_Comm comm, std::map<std::string, bool> &results){
+void JsonEngineManager::unitTestFinishedCallBack(VnV_Comm comm, IUnitTest *tester){
     // pop the children node
     pop(1);
 
     //push to the results node
     append(json::json_pointer("/results"));
-    for (auto it : results) {
-        Put(comm, it.first, (bool) it.second);
+    for (auto it : tester->getResults()) {
+        Put(comm, std::get<0>(it), std::get<2>(it));
     }
-
 
     // pop the results and the unit-test itself.
     pop(2);

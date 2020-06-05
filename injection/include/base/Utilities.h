@@ -50,6 +50,10 @@ std::pair<std::string,std::string> splitCppArgString(std::string str_);
 
 std::map<std::string, std::string> variadicProcess(const char* mess);
 
+std::string getIndent(int level, std::string space = "\t");
+
+long long simpleHash(const std::string &str);
+
 bool balancedParenthesis(std::string expr);
 
 /**

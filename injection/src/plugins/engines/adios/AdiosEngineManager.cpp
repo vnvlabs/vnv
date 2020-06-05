@@ -169,14 +169,14 @@ void AdiosEngineManager::unitTestStartedCallBack(VnV_Comm, std::string unitTestN
 
 }
 
-void AdiosEngineManager::unitTestFinishedCallBack(VnV_Comm, std::map<std::string, bool> &results) {
-    if ( engine ) {
+void AdiosEngineManager::unitTestFinishedCallBack(VnV_Comm, IUnitTest* tester) {
+  if ( engine ) {
         int suiteSuccess = 1;
-        for ( auto it: results) {
-            int res = (it.second) ? 1 : 0;
-            engine.Put(identifier,it.first);
+        for ( auto it: tester->getResults()) {
+            int res = (std::get<2>(it)) ? 1 : 0;
+            engine.Put(identifier,std::get<0>(it));
             engine.Put(result, res);
-            if (suiteSuccess && !it.second)
+            if (suiteSuccess && !std::get<2>(it))
                 suiteSuccess = false;
         }
         engine.Put(result,suiteSuccess);

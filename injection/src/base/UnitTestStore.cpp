@@ -1,4 +1,4 @@
-
+﻿
 /** @file UnitTestStore.cpp **/
 
 
@@ -14,8 +14,8 @@ using namespace VnV;
 
 UnitTestStore::UnitTestStore() {}
 
-IUnitTest::IUnitTest(){};
-IUnitTest::~IUnitTest(){};
+IUnitTest::IUnitTest(){}
+IUnitTest::~IUnitTest(){}
 
 UnitTestStore& UnitTestStore::getUnitTestStore() {
   static UnitTestStore store;

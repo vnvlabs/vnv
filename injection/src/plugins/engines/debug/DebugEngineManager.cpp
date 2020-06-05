@@ -96,14 +96,15 @@ void DebugEngineManager::unitTestStartedCallBack(VnV_Comm comm, std::string unit
     printf("DEBUG ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
 }
 
-void DebugEngineManager::unitTestFinishedCallBack(VnV_Comm comm, std::map<std::string, bool> &results){
+void DebugEngineManager::unitTestFinishedCallBack(VnV_Comm comm, IUnitTest *tester){
     printf("Test Results\n");
     bool suiteSuccessful = true;
-    for ( auto it : results ) {
-        printf("\t%s : %s\n", it.first.c_str(), (it.second) ? "Successful" : "Failed");
-        if (suiteSuccessful && !it.second) {
-            suiteSuccessful = false;
-        }
+    for ( auto it : tester->getResults() ) {
+       printf("\t%s : %s\n", std::get<0>(it).c_str(), std::get<2>(it) ? "Successful" : "Failed");
+       if (!std::get<2>(it)) {
+          printf("\t\t%s\n", std::get<1>(it).c_str());
+          suiteSuccessful = false;
+       }
     }
     printf("DEBUG ENGINE Test Suite Completed : %s\n", (suiteSuccessful) ? "Successfully" : "Unsuccessfully");
 }

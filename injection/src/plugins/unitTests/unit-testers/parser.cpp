@@ -8,7 +8,6 @@
 INJECTION_UNITTEST(Demo) {
         int x = 10;
         int y = 10;
-        std::map<std::string, bool> results;
 
         std::string xstr = std::to_string(x);
         std::string ystr = std::to_string(y);

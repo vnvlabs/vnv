@@ -55,7 +55,7 @@ public:
     void testFinishedCallBack(VnV_Comm /** comm **/, bool result_)override;
 
     void unitTestStartedCallBack(VnV_Comm /** comm **/, std::string unitTestName)override;
-    void unitTestFinishedCallBack(VnV_Comm /** comm **/,std::map<std::string,bool> &results)override;
+    void unitTestFinishedCallBack(VnV_Comm /** comm **/,IUnitTest *tester) override;
 
     json getConfigurationSchema()override;
 

@@ -47,7 +47,7 @@ public:
 
    void unitTestStartedCallBack(VnV_Comm comm,std::string unitTestName) override;
 
-   void unitTestFinishedCallBack(VnV_Comm comm,std::map<std::string, bool> &results)override;
+   void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest *tester) override;
 
 
   Nodes::IRootNode *readFromFile(std::string file) override;

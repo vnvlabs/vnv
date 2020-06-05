@@ -548,7 +548,7 @@ namespace {
          } else if ( nae == "INJECTION_SUBPACKAGE") {
            json& jj = getDef("SubPackages", Args->getUnexpArgument(0));
            jj["docs"] = getDocs(Range);
-         } else if ( nae == "INJECTION_UNITTEST_R") {
+         } else if ( nae == "INJECTION_UNITTEST_R" || nae == "INJECTION_UNITTEST_RAW") {
            json &jj = getDef("UnitTests", Args->getUnexpArgument(0));
            jj["docs"] = getDocs(Range);
          } else if ( nae == "INJECTION_ENGINE") {

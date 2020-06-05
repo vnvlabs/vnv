@@ -1,12 +1,16 @@
-/** @file vv-debug-engine.cpp **/
+﻿/** @file vv-debug-engine.cpp **/
 
 #include "plugins/engines/ParallelOutputEngine/ParallelOutputEngineImpl.h"
 #include "c-interfaces/Logging.h"
 #include <iostream>
 #include <mpi.h>
 #include <unistd.h>
+#include "base/Utilities.h"
+namespace VnV {
+  namespace PACKAGENAME {
+    namespace Engines {
 
-using namespace VnV;
+
 
 static json __parallel_engine_schema__ =
 		R"(
@@ -19,134 +23,112 @@ static json __parallel_engine_schema__ =
 }
 )"_json;
 
-ParallelEngine::ParallelEngine(ParallelEngineWrapper *wrapper) : wrapper(wrapper){
+ParallelEngine::ParallelEngine(){
 }
 
-void ParallelEngine::Put(std::string variableName, double &value) {
+void ParallelEngine::Put(VnV_Comm comm, std::string variableName, const double &value) {
     std::string str = std::to_string(value);
-    Put(variableName, str);
+    Put(comm,variableName, str);
 }
-void ParallelEngine::Put(std::string variableName, int &value) {
+void ParallelEngine::Put(VnV_Comm comm, std::string variableName, const int &value) {
     std::string str = std::to_string(value);
-    Put(variableName, str);
+    Put(comm,variableName, str);
 }
-void ParallelEngine::Put(std::string variableName, float &value) {
+void ParallelEngine::Put(VnV_Comm comm,std::string variableName, const float &value) {
     std::string str = std::to_string(value);
-    Put(variableName, str);
+    Put(comm,variableName, str);
 }
-void ParallelEngine::Put(std::string variableName, long &value) {
+void ParallelEngine::Put(VnV_Comm comm,std::string variableName, const long &value) {
     std::string str = std::to_string(value);
-    Put(variableName, str);
+    Put(comm,variableName, str);
 }
 
-void ParallelEngine::Put(std::string variableName, std::string &value) {
-	wrapper->getRouter()->send(variableName, value);
+void ParallelEngine::Put(VnV_Comm comm,std::string variableName, const bool &value) {
+    std::string str = std::to_string(value);
+    Put(comm,variableName, str);
 }
 
-void ParallelEngine::Log(const char *package, int stage, std::string level,
+void ParallelEngine::Put(VnV_Comm comm,std::string variableName, const json &value) {
+    Put(comm,variableName, value.dump());
+}
+
+void ParallelEngine::Put(VnV_Comm comm,std::string variableName, const std::string &value) {
+        getRouter()->send(variableName, value);
+}
+
+void ParallelEngine::Log(VnV_Comm comm,const char *package, int stage, std::string level,
 		std::string message) {
-	if (wrapper->getRouter()->isRoot()) {
-		std::string s = getIndent(stage);
+	if (getRouter()->isRoot()) {
+		std::string s = VnV::StringUtils::getIndent(stage);
 		printf("%s[%s:%s]: %s\n", s.c_str(), package, level.c_str(),
 				message.c_str());
 	}
 }
 
-void ParallelEngine::Define(VariableEnum type, std::string variableName) {
-	printf("PARALLEL ENGINE DEFINE %s = %s\n", variableName.c_str(),
-			VariableEnumFactory::toString(type).c_str());
-}
 
-ParallelEngineWrapper::ParallelEngineWrapper() {
-}
-
-json ParallelEngineWrapper::getConfigurationSchema() {
+json ParallelEngine::getConfigurationSchema() {
 	return __parallel_engine_schema__;
 }
 
-void ParallelEngineWrapper::finalize() {
+void ParallelEngine::finalize() {
 	VnV_Info("PARALLEL ENGINE: FINALIZE");
 }
 
-void ParallelEngineWrapper::set(json &config) {
+void ParallelEngine::setFromJson(json &config) {
 	printf("PARALLEL ENGINE WRAPPER Init with file %s\n",
 			config.dump().c_str());
-	engine = new ParallelEngine(this);
 	router = new Router();
 }
 
-void ParallelEngineWrapper::injectionPointEndedCallBack(std::string id,
+void ParallelEngine::injectionPointEndedCallBack(VnV_Comm comm,std::string id,
 		InjectionPointType type, std::string stageVal) {
-	if (engine) {
 		printf("PARALLEL ENGINE End Injection Point %s : %s \n", id.c_str(),
 				InjectionPointTypeUtils::getType(type, stageVal).c_str());
 		router->forward();
-	} else {
-		throw "Engine not initialized";
-	}
 }
 
-void ParallelEngineWrapper::injectionPointStartedCallBack(std::string id,
+void ParallelEngine::injectionPointStartedCallBack(VnV_Comm comm,std::string id,
 		InjectionPointType type, std::string stageVal) {
-	if (engine) {
 		printf("PARALLEL ENGINE Start Injection Point %s : %s \n", id.c_str(),
 				InjectionPointTypeUtils::getType(type, stageVal).c_str());
-	} else {
-		throw "Engine not initialized";
-	}
 }
 
-void ParallelEngineWrapper::testStartedCallBack(std::string testName) {
-	if (engine) {
-		printf("PARALLEL ENGINE Start Test %s \n", testName.c_str());
-	} else {
-		throw "Engine not initialized";
-	}
+void ParallelEngine::testStartedCallBack(VnV_Comm comm,std::string testName) {
+      printf("PARALLEL ENGINE Start Test %s \n", testName.c_str());
 }
 
-void ParallelEngineWrapper::testFinishedCallBack(bool result_) {
-	if (engine) {
+void ParallelEngine::testFinishedCallBack(VnV_Comm comm,bool result_) {
 		printf("PARALLEL ENGINE Stop Test. Test Was Successful-> %d\n",
 				result_);
-	} else {
-		throw "Engine not initialized";
-	}
 }
 
-void ParallelEngineWrapper::unitTestStartedCallBack(std::string unitTestName) {
-	if (engine) {
+void ParallelEngine::unitTestStartedCallBack(VnV_Comm comm,std::string unitTestName) {
 		printf("PARALLEL ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
-	} else {
-		throw "Engine not initialized";
-	}
 }
 
-void ParallelEngineWrapper::unitTestFinishedCallBack(IUnitTest *tester) {
-	if (engine) {
+void ParallelEngine::unitTestFinishedCallBack(VnV_Comm comm,IUnitTest *tester) {
 		printf("Test Results\n");
 		bool suiteSuccessful = true;
-        for ( auto it : tester->getResults() ) {
-            printf("\t%s : %s\n", std::get<0>(it).c_str(), std::get<2>(it) ? "Successful" : "Failed");
-            if (!std::get<2>(it)) {
-                printf("\t\t%s\n", std::get<1>(it).c_str());
-                suiteSuccessful = false;
-           }
-        }
+	for ( auto it : tester->getResults() ) {
+	    printf("\t%s : %s\n", std::get<0>(it).c_str(), std::get<2>(it) ? "Successful" : "Failed");
+	    if (!std::get<2>(it)) {
+		printf("\t\t%s\n", std::get<1>(it).c_str());
+		suiteSuccessful = false;
+	   }
+	}
 		printf("PARALLEL ENGINE Test Suite Completed : %s\n",
 				(suiteSuccessful) ? "Successfully" : "Unsuccessfully");
-	} else {
-		throw "Engine Not Initialized";
-	}
 }
 
-IOutputEngine* ParallelEngineWrapper::getOutputEngine() {
-	return engine;
-}
-
-Router * ParallelEngineWrapper::getRouter() {
+Router * ParallelEngine::getRouter() {
     return router;
 }
 
-OutputEngineManager* ParallelEngineBuilder() {
-	return new ParallelEngineWrapper();
 }
+}
+}
+
+INJECTION_ENGINE(Parallel) {
+  return new VnV::PACKAGENAME::Engines::ParallelEngine();
+}
+

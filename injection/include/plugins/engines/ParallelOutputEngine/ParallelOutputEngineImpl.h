@@ -1,4 +1,4 @@
-#ifndef VV_PARALLELENGINE_HEADER
+﻿#ifndef VV_PARALLELENGINE_HEADER
 #define VV_PARALLELENGINE_HEADER
 
 /**
@@ -13,144 +13,143 @@
  * VnV Namespace
  */
 namespace VnV {
-class ParallelEngineWrapper;
+namespace PACKAGENAME{
+namespace Engines {
 
-/**
- * @brief The DebugEngine class
- */
-class ParallelEngine: public IOutputEngine {
+
+class ParallelEngine: public OutputEngineManager {
 private:
-	ParallelEngineWrapper *wrapper;
-
+        Router *router;
 public:
-	/**
-	 * @brief ParallelgEngine
-	 */
-	ParallelEngine(ParallelEngineWrapper *wrapper);
+        /**
+         * @brief ParallelgEngine
+         */
+        ParallelEngine();
 
-	/**
-	 * @brief Log
-	 * @param log
-	 */
-	void Log(const char *package, int stage, std::string level,
-			std::string message);
+        /**
+         * @brief Log
+         * @param log
+         */
+        void Log(VnV_Comm comm, const char *package, int stage, std::string level,
+                        std::string message);
 
-	/**
-	 * @brief Put
-	 * @param variableName
-	 * @param value
-	 */
-	void Put(std::string variableName, double &value);
+        /**
+         * @brief Put
+         * @param variableName
+         * @param value
+         */
+        void Put(VnV_Comm comm, std::string variableName, const double &value) override;
 
-	/**
-	 * @brief Put
-	 * @param variableName
-	 * @param value
-	 */
-	void Put(std::string variableName, int &value);
+        /**
+         * @brief Put
+         * @param variableName
+         * @param value
+         */
+        void Put(VnV_Comm comm,std::string variableName, const int &value) override;
 
-	/**
-	 * @brief Put
-	 * @param variableName
-	 * @param value
-	 */
-	void Put(std::string variableName, float &value);
+        /**
+         * @brief Put
+         * @param variableName
+         * @param value
+         */
+        void Put(VnV_Comm comm,std::string variableName, const float &value) override;
 
-	/**
-	 * @brief Put
-	 * @param variableName
-	 * @param value
-	 */
-	void Put(std::string variableName, long &value);
+        /**
+         * @brief Put
+         * @param variableName
+         * @param value
+         */
+        void Put(VnV_Comm comm,std::string variableName, const long &value) override;
 
-	/**
-	 * @brief Put
-	 * @param variableName
-	 * @param value
-	 */
-	void Put(std::string variableName, std::string &value);
+        /**
+         * @brief Put
+         * @param variableName
+         * @param value
+         */
+        void Put(VnV_Comm comm,std::string variableName, const bool &value) override;
 
-	/**
-	 * @brief Define IO Variable
-	 * @param name
-	 */
-	void Define(VariableEnum type, std::string name);
+        /**
+         * @brief Put
+         * @param variableName
+         * @param value
+         */
+        void Put(VnV_Comm comm,std::string variableName, const json &value) override;
 
-};
+        /**
+         * @brief Put
+         * @param variableName
+         * @param value
+         */
+        void Put(VnV_Comm comm,std::string variableName, const std::string &value);
 
-/**
- * @brief The DebugEngineWrapper class
- */
-class ParallelEngineWrapper: public OutputEngineManager {
-private:
-	ParallelEngine *engine; /**< @todo */
-	Router *router;
+        std::string getIndent(int stage);
 
-public:
-	/**
-	 * @brief ParallelgEngineWrapper
-	 */
-	ParallelEngineWrapper();
+        /**
+         * @brief Get the configuration Schema for the Debug engine.
+         */
+        json getConfigurationSchema() override;
 
-	std::string getIndent(int stage);
+        /**
+         * @brief finalize
+         */
+        void finalize() override;
 
-	/**
-	 * @brief Get the configuration Schema for the Debug engine.
-	 */
-	json getConfigurationSchema() override;
+        /**
+         * @brief set
+         * @param config
+         */
+        void setFromJson(json &config) override;
 
-	/**
-	 * @brief finalize
-	 */
-	void finalize() override;
+        /**
+         * @brief endInjectionPoint
+         * @param id
+         * @param stageVal
+         */
+        void injectionPointEndedCallBack(VnV_Comm comm, std::string id, InjectionPointType type,
+                        std::string stageVal) override;
 
-	/**
-	 * @brief set
-	 * @param config
-	 */
-	void set(json &config) override;
+        /**
+         * @brief startInjectionPoint
+         * @param id
+         * @param stageVal
+         */
+        void injectionPointStartedCallBack(VnV_Comm comm,std::string id, InjectionPointType type,
+                        std::string stageVal) override;
 
-	/**
-	 * @brief endInjectionPoint
-	 * @param id
-	 * @param stageVal
-	 */
-	void injectionPointEndedCallBack(std::string id, InjectionPointType type,
-			std::string stageVal) override;
+        /**
+         * @brief startTest
+         * @param testName
+         * @param testStageVal
+         */
+        void testStartedCallBack(VnV_Comm comm,std::string testName) override;
 
-	/**
-	 * @brief startInjectionPoint
-	 * @param id
-	 * @param stageVal
-	 */
-	void injectionPointStartedCallBack(std::string id, InjectionPointType type,
-			std::string stageVal) override;
+        /**
+         * @brief stopTest
+         * @param result_
+         */
+        void testFinishedCallBack(VnV_Comm comm,bool result_) override;
 
-	/**
-	 * @brief startTest
-	 * @param testName
-	 * @param testStageVal
-	 */
-	void testStartedCallBack(std::string testName) override;
+        void unitTestStartedCallBack(VnV_Comm comm,std::string unitTestName) override;
 
-	/**
-	 * @brief stopTest
-	 * @param result_
-	 */
-	void testFinishedCallBack(bool result_) override;
+        void unitTestFinishedCallBack(VnV_Comm comm,IUnitTest *tester) override;
+        /**
+         * @brief getOutputEngine
+         * @return
+         */
+        Nodes::IRootNode* readFromFile(std::string file) override {
+           throw VnV::VnVExceptionBase("Read From File Not implemented for Parallel Output Engine");
 
-	void unitTestStartedCallBack(std::string unitTestName) override;
+        }
 
-	void unitTestFinishedCallBack(IUnitTest *tester) override;
-	/**
-	 * @brief getOutputEngine
-	 * @return
-	 */
-	IOutputEngine* getOutputEngine() override;
+        std::string print() override {
+              printf("Print not implemented for Parallel Output Engine");
+        }
 
-	Router *getRouter();
+
+        Router *getRouter();
 };
 
 }  // namespace VnV
-
+}
+}
 #endif

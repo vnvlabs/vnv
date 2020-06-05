@@ -20,7 +20,7 @@
 #include "interfaces/ISerializer.h"
 #include "interfaces/ITransform.h"
 #include "interfaces/IOutputEngine.h"
-#include "interfaces/IUnitTester.h"
+#include "interfaces/IUnitTest.h"
 
 #else
 #include "c-interfaces/Injection.h"

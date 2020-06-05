@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Not needed inside the build tree
 #find_package(Injection)
 
-<<<<<<< HEAD
 add_executable(test-runner)
 target_sources(test-runner PRIVATE "test-runner.cpp")
 #<needle>

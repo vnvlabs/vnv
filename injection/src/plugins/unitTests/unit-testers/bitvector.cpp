@@ -1,11 +1,10 @@
-#ifndef _EuclideanError_H 
-#define _EuclideanError_H 
+﻿#ifndef _EuclideanError_H
+#define _EuclideanError_H
 
 #include "VnV.h"
 #include <sstream>
 
-#include "../../injection/include/interfaces/IUnitTest.h"
-#include "../../injection/include/plugins/engines/ParallelOutputEngine/SparseBitVector.h"
+#include "plugins/engines/ParallelOutputEngine/SparseBitVector.h"
 
 using namespace VnV;
 
@@ -81,14 +80,11 @@ private:
    }
 };
 
-SparseBitVectorUnitTests::~SparseBitVectorUnitTests(){};
+SparseBitVectorUnitTests::~SparseBitVectorUnitTests(){}
 
-IUnitTest* factory() {
-    return new SparseBitVectorUnitTests();
-}
-
-void register_bitvector_tests() {
-    VnV::registerUnitTester("bitvector", factory);
-}
+/**
+ * SOME DOCUMENTATION
+**/
+INJECTION_UNITTEST_RAW(SparseBitVectorUnitTests)
 
 #endif

@@ -56,7 +56,7 @@ public:
 
     void unitTestStartedCallBack(VnV_Comm comm,std::string unitTestName);
 
-    void unitTestFinishedCallBack(VnV_Comm comm,std::map<std::string, bool> &results);
+    void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest *tester);
 
     Nodes::IRootNode* readFromFile(std::string file);
 

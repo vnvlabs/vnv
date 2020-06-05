@@ -50,7 +50,7 @@ public:
     virtual void testStartedCallBack(VnV_Comm comm,std::string testName) = 0;
     virtual void testFinishedCallBack(VnV_Comm comm,bool result_) = 0;
     virtual void unitTestStartedCallBack(VnV_Comm comm, std::string unitTestName) = 0;
-    virtual void unitTestFinishedCallBack(VnV_Comm comm,std::map<std::string,bool> &results) = 0;
+    virtual void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest *tester) = 0;
 
     virtual Nodes::IRootNode*  readFromFile(std::string file) = 0;
     virtual std::string print() = 0;

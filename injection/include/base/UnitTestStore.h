@@ -1,4 +1,4 @@
-
+﻿
 /**
   @file UnitTestStore.h
 **/
@@ -8,7 +8,8 @@
 #include <map>
 #include <string>
 
-#include "../interfaces/IUnitTest.h"
+#include "interfaces/IUnitTest.h"
+#include "c-interfaces/PackageName.h"
 
 namespace VnV {
 
