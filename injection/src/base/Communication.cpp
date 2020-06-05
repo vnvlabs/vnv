@@ -4,38 +4,33 @@
 
 using namespace VnV::Communication;
 
-IStatus_ptr VnV::Communication::DataTypeCommunication::Probe(int source,
-                                                             int tag) {
+IStatus_ptr DataTypeCommunication::Probe(int source, int tag) {
   return comm->Probe(source, tag);
 }
 
-std::pair<IStatus_ptr, int> VnV::Communication::DataTypeCommunication::IProbe(
-    int source, int tag) {
+std::pair<IStatus_ptr, int> DataTypeCommunication::IProbe(int source, int tag) {
   return comm->IProbe(source, tag);
 }
 
-IStatus_ptr VnV::Communication::DataTypeCommunication::Wait(IRequest_ptr ptr) {
+IStatus_ptr DataTypeCommunication::Wait(IRequest_ptr ptr) {
   auto s = comm->Wait(ptr);
   ptr->ready = true;
   return s;
 }
 
-IStatus_vec VnV::Communication::DataTypeCommunication::WaitAll(
-    IRequest_vec& vec) {
+IStatus_vec DataTypeCommunication::WaitAll(IRequest_vec& vec) {
   auto s = comm->WaitAll(vec);
   for (auto it : vec) it->ready = true;
   return s;
 }
 
-std::pair<IStatus_vec, int> VnV::Communication::DataTypeCommunication::WaitAny(
-    IRequest_vec& vec) {
+std::pair<IStatus_vec, int> DataTypeCommunication::WaitAny(IRequest_vec& vec) {
   auto s = comm->WaitAny(vec);
   vec[s.second]->ready = true;
   return s;
 }
 
-std::pair<IStatus_ptr, int> VnV::Communication::DataTypeCommunication::Test(
-    IRequest_ptr ptr) {
+std::pair<IStatus_ptr, int> DataTypeCommunication::Test(IRequest_ptr ptr) {
   auto s = comm->Test(ptr);
   if (s.second) {
     ptr->ready = true;
@@ -43,8 +38,8 @@ std::pair<IStatus_ptr, int> VnV::Communication::DataTypeCommunication::Test(
   return s;
 }
 
-std::vector<std::pair<IStatus_ptr, int> >
-VnV::Communication::DataTypeCommunication::TestAll(IRequest_vec& vec) {
+std::vector<std::pair<IStatus_ptr, int> > DataTypeCommunication::TestAll(
+    IRequest_vec& vec) {
   auto s = comm->TestAll(vec);
   for (int i = 0; i < s.size(); i++) {
     if (s[i].second) vec[i]->ready = true;
@@ -53,7 +48,7 @@ VnV::Communication::DataTypeCommunication::TestAll(IRequest_vec& vec) {
 }
 
 std::pair<std::vector<std::pair<IStatus_ptr, int> >, int>
-VnV::Communication::DataTypeCommunication::TestAny(IRequest_vec& vec) {
+DataTypeCommunication::TestAny(IRequest_vec& vec) {
   auto s = comm->TestAny(vec);
   for (int i = 0; i < s.first.size(); i++) {
     if (s.first[i].second) {
@@ -63,8 +58,8 @@ VnV::Communication::DataTypeCommunication::TestAny(IRequest_vec& vec) {
   return s;
 }
 
-ISendRequest_ptr VnV::Communication::DataTypeCommunication::Send(
-    IDataType_vec& data, int dest, int tag, bool blocking) {
+ISendRequest_ptr DataTypeCommunication::Send(IDataType_vec& data, int dest,
+                                             int tag, bool blocking) {
   long dataSize = data[0]->maxSize() + sizeof(long long);
   char* buffer = (char*)malloc(dataSize * data.size());
   long long dataKey = data[0]->getKey();
@@ -84,9 +79,8 @@ ISendRequest_ptr VnV::Communication::DataTypeCommunication::Send(
   }
 }
 
-std::pair<IDataType_vec, IStatus_ptr>
-VnV::Communication::DataTypeCommunication::Recv(int count, long long dataType,
-                                                int dest, int tag) {
+std::pair<IDataType_vec, IStatus_ptr> DataTypeCommunication::Recv(
+    int count, long long dataType, int dest, int tag) {
   IDataType_ptr ptr = CommunicationStore::instance().getDataType(dataType);
   long dataSize = ptr->maxSize() + sizeof(long long);
   char* buffer = (char*)malloc(count * dataSize);
@@ -104,8 +98,8 @@ VnV::Communication::DataTypeCommunication::Recv(int count, long long dataType,
   return std::make_pair(results, status);
 }
 
-IRecvRequest_ptr VnV::Communication::DataTypeCommunication::IRecv(
-    int count, long long dataType, int dest, int tag) {
+IRecvRequest_ptr DataTypeCommunication::IRecv(int count, long long dataType,
+                                              int dest, int tag) {
   IDataType_ptr dptr = CommunicationStore::instance().getDataType(dataType);
   long dataSize = dptr->maxSize() + sizeof(long long);
   char* buffer = (char*)malloc(count * dataSize);
@@ -115,8 +109,8 @@ IRecvRequest_ptr VnV::Communication::DataTypeCommunication::IRecv(
   return ptr;
 }
 
-std::pair<IDataType_vec, IStatus_ptr>
-VnV::Communication::DataTypeCommunication::Recv(int source, int tag) {
+std::pair<IDataType_vec, IStatus_ptr> DataTypeCommunication::Recv(int source,
+                                                                  int tag) {
   // Recv without knowing the DataType.
   IStatus_ptr status = Probe(source, tag);
   // Get the size of the message in bytes. Because we don't know the data type,
@@ -152,8 +146,8 @@ VnV::Communication::DataTypeCommunication::Recv(int source, int tag) {
   return std::make_pair(results, status);
 }
 
-IDataType_vec VnV::Communication::DataTypeCommunication::BroadCast(
-    IDataType_vec& data, int count, int root, bool allToAll) {
+IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data, int count,
+                                               int root, bool allToAll) {
   int rank = comm->Rank();
   int size = comm->Size();
 
@@ -206,8 +200,8 @@ IDataType_vec VnV::Communication::DataTypeCommunication::BroadCast(
   return results;
 }
 
-IDataType_vec VnV::Communication::DataTypeCommunication::Gather(
-    IDataType_vec& data, int root, bool allGather) {
+IDataType_vec DataTypeCommunication::Gather(IDataType_vec& data, int root,
+                                            bool allGather) {
   int rank = comm->Rank();
   int size = comm->Size();
 
@@ -248,8 +242,8 @@ IDataType_vec VnV::Communication::DataTypeCommunication::Gather(
   return results;
 }
 
-IDataType_vec VnV::Communication::DataTypeCommunication::Scatter(
-    IDataType_vec& data, int root, int count) {
+IDataType_vec DataTypeCommunication::Scatter(IDataType_vec& data, int root,
+                                             int count) {
   int rank = comm->Rank();
   int size = comm->Size();
 
@@ -290,8 +284,9 @@ IDataType_vec VnV::Communication::DataTypeCommunication::Scatter(
   return results;
 }
 
-IDataType_vec VnV::Communication::DataTypeCommunication::Reduce(
-    IDataType_vec& data, IReduction_ptr reduction, int root) {
+IDataType_vec DataTypeCommunication::Reduce(IDataType_vec& data,
+                                            IReduction_ptr reduction,
+                                            int root) {
   int rank = comm->Rank();
 
   // Pop the send buffer
