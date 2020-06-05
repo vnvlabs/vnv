@@ -7,63 +7,67 @@ namespace PACKAGENAME {
 namespace Engines {
 
 class JsonEngineManager : public OutputEngineManager {
+  json mainJson;
+  json::json_pointer ptr;
+  long id = 0;
+  std::string outputFile;
 
-   json mainJson ;
-   json::json_pointer ptr;
-   long id = 0;
-   std::string outputFile;
+  std::string getId();
 
+  void append(json& jsonOb);
 
-   std::string getId();
+  void pop(int num);
 
-   void append(json& jsonOb);
+  void push(json& jsonOb);
 
-   void pop(int num);
+  void append(json::json_pointer ptr);
 
-   void push(json &jsonOb);
+  void push(json& jsonOb, json::json_pointer ptr);
 
-   void append(json::json_pointer ptr);
+  std::string Dump(int d);
 
-   void push(json &jsonOb, json::json_pointer ptr);
+ public:
+  JsonEngineManager();
 
-   std::string Dump(int d);
+#define LTypes X(double) X(int) X(bool) X(float) X(long) X(std::string) X(json)
+#define X(type) \
+  void Put(VnV_Comm comm, std::string variableName, const type& value);
+  LTypes
+#undef X
+#undef LTypes
 
-public:
-   JsonEngineManager();
+      void
+      Log(VnV_Comm comm, const char* package, int stage, std::string level,
+          std::string message);
 
-   #define LTypes X(double) X(int) X(bool) X(float) X(long) X(std::string) X(json)
-   #define X(type) \
-   void Put(VnV_Comm comm,std::string variableName, const type& value);
-   LTypes
-   #undef X
-   #undef LTypes
+  json getConfigurationSchema();
 
-   void Log(VnV_Comm comm,const char *package, int stage,  std::string level, std::string message);
+  void finalize();
 
-   json getConfigurationSchema();
+  void setFromJson(json& config);
 
-   void finalize();
+  void injectionPointEndedCallBack(VnV_Comm comm, std::string id,
+                                   InjectionPointType type,
+                                   std::string stageVal);
 
-    void setFromJson(json& config);
+  void injectionPointStartedCallBack(VnV_Comm comm, std::string id,
+                                     InjectionPointType type,
+                                     std::string stageVal);
 
-    void injectionPointEndedCallBack(VnV_Comm comm,std::string id, InjectionPointType type, std::string stageVal);
+  void testStartedCallBack(VnV_Comm comm, std::string testName);
 
-    void injectionPointStartedCallBack(VnV_Comm comm,std::string id, InjectionPointType type, std::string stageVal);
+  void testFinishedCallBack(VnV_Comm comm, bool result_);
 
-    void testStartedCallBack(VnV_Comm comm,std::string testName);
+  void unitTestStartedCallBack(VnV_Comm comm, std::string unitTestName);
 
-    void testFinishedCallBack(VnV_Comm comm,bool result_);
+  void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester);
 
-    void unitTestStartedCallBack(VnV_Comm comm,std::string unitTestName);
+  Nodes::IRootNode* readFromFile(std::string file);
 
-    void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest *tester);
-
-    Nodes::IRootNode* readFromFile(std::string file);
-
-    // IInternalOutputEngine interface
-    std::string print();
+  // IInternalOutputEngine interface
+  std::string print();
 };
-}
-}
-}
-#endif // JSONENGINEMANAGER_H
+}  // namespace Engines
+}  // namespace PACKAGENAME
+}  // namespace VnV
+#endif  // JSONENGINEMANAGER_H

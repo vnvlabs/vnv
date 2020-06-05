@@ -12,9 +12,10 @@
 #include <stack>
 #include <string>
 #include <vector>
-#include "json-schema.hpp"
-#include "interfaces/CppInjection.h"
+
 #include "c-interfaces/Wrappers.h"
+#include "interfaces/CppInjection.h"
+#include "json-schema.hpp"
 
 using nlohmann::json;
 /**
@@ -28,15 +29,14 @@ using nlohmann::json;
  */
 namespace VnV {
 
-//Forward declare.
+// Forward declare.
 class InjectionPointStore;
 class TestConfig;
 class ITest;
 class VnVParameter;
 class RunTime;
-typedef std::map<std::string, std::pair<std::string,void*>> NTV;
+typedef std::map<std::string, std::pair<std::string, void*>> NTV;
 enum class InjectionPointType;
-
 
 /**
  * \class InjectionPoint
@@ -64,9 +64,10 @@ class InjectionPoint {
 
   VnV_Comm comm;
 
-  std::string  name;
+  std::string name;
   std::string package;
-  std::vector<std::shared_ptr<ITest>> m_tests; /**< Vector of tests given to this injection point */
+  std::vector<std::shared_ptr<ITest>>
+      m_tests; /**< Vector of tests given to this injection point */
 
   InjectionPointType type;
   std::string stageId;
@@ -76,16 +77,16 @@ class InjectionPoint {
   bool runInternal = false;
   int callbackType = 0;
   CppInjection::DataCallback cppCallback = nullptr;
-  injectionDataCallback *cCallback = nullptr;
+  injectionDataCallback* cCallback = nullptr;
   /**
-   * @brief addTest Add a test Config to that injection point. Note: This function
-   * simply adds the test. It does not validate it. It is a private function only
-   * called by the InjectionPointStore (friend class).
+   * @brief addTest Add a test Config to that injection point. Note: This
+   * function simply adds the test. It does not validate it. It is a private
+   * function only called by the InjectionPointStore (friend class).
    * @param c
    */
   void addTest(TestConfig c);
 
- /**
+  /**
    * @brief InjectionPoint
    * @param scope The unique name of this injection point.
    *
@@ -99,15 +100,14 @@ class InjectionPoint {
    *support names of the form "a::b::c"
    *
    **/
-  InjectionPoint(std::string name, json registrationJson, NTV &args);
+  InjectionPoint(std::string name, json registrationJson, NTV& args);
 
   void setInjectionPointType(InjectionPointType type, std::string stageId);
-  void setCallBack(injectionDataCallback *callback);
-  void setCallBack(const CppInjection::DataCallback &callback);
+  void setCallBack(injectionDataCallback* callback);
+  void setCallBack(const CppInjection::DataCallback& callback);
   void setComm(VnV_Comm comm);
-public:
 
-
+ public:
   /**
    * @brief getScope
    * @return the name of this injection point
@@ -117,7 +117,8 @@ public:
   std::string getScope() const;
 
   /**
-   * @brief getParameterRTTI Get the RTTI for a parameter if we have it (C++ INjectionPoints only).
+   * @brief getParameterRTTI Get the RTTI for a parameter if we have it (C++
+   * INjectionPoints only).
    * @param key
    * @return
    */
@@ -133,7 +134,6 @@ public:
    **/
   void runTests();
 
-
   /**
    * @brief hasTests
    * @return ( tests.size() > 0 )
@@ -143,7 +143,6 @@ public:
   bool hasTests();
 
 };  // end InjectionPoint.
-
 
 }  // namespace VnV
 

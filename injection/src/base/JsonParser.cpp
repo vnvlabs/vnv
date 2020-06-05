@@ -3,15 +3,14 @@
     base/JsonParser.h
 **/
 
+#include "base/JsonParser.h"  // Prototype
 
-#include "base/JsonParser.h" // Prototype
-#include "base/JsonSchema.h" // ValidationSchema()
+#include "base/JsonSchema.h"  // ValidationSchema()
 #include "base/exceptions.h"
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
-void JsonParser::addTest(const json& testJson,
-                         std::vector<json>& testConfigs,
+void JsonParser::addTest(const json& testJson, std::vector<json>& testConfigs,
                          std::set<std::string>& runScopes) {
   std::string testName = testJson["name"].get<std::string>();
   if (runScopes.size() != 0) {
@@ -29,7 +28,7 @@ void JsonParser::addTest(const json& testJson,
 
 void JsonParser::addInjectionPoint(
     const json& ip, std::set<std::string>& runScopes,
-    std::map<std::string, InjectionPointInfo> &ips) {
+    std::map<std::string, InjectionPointInfo>& ips) {
   for (auto& it : ip.items()) {
     std::string name = it.value()["name"].get<std::string>();
     std::string package = it.value()["package"].get<std::string>();
@@ -47,26 +46,26 @@ void JsonParser::addInjectionPoint(
         addTest(test.value(), ipInfo.tests, runScopes);
       }
       if (it.value().contains("runInternal")) {
-          ipInfo.runInternal = it.value()["runInternal"].get<bool>();
+        ipInfo.runInternal = it.value()["runInternal"].get<bool>();
       } else {
-         ipInfo.runInternal = true;
+        ipInfo.runInternal = true;
       }
 
-      if (ipInfo.tests.size() > 0 || ipInfo.runInternal ) {
+      if (ipInfo.tests.size() > 0 || ipInfo.runInternal) {
         ips.insert(std::make_pair(key, ipInfo));
       }
     }
   }
 }
 
-void JsonParser::addTestLibrary(const json& lib, std::map<std::string, std::string>& libs) {
+void JsonParser::addTestLibrary(const json& lib,
+                                std::map<std::string, std::string>& libs) {
   for (auto& it : lib.items()) {
     libs.insert(std::make_pair(it.key(), it.value().get<std::string>()));
   }
 }
 
 LoggerInfo JsonParser::getLoggerInfo(const json& logging) {
-
   LoggerInfo info;
   info.on = logging["on"].get<bool>();
   if (info.on) {
@@ -75,12 +74,11 @@ LoggerInfo JsonParser::getLoggerInfo(const json& logging) {
       info.logs.insert(std::make_pair(it.key(), it.value().get<bool>()));
     }
     auto it = logging.find("blackList");
-    if ( it != logging.end() ) {
-        for (auto itt : logging["blackList"].items()) {
-            info.blackList.insert(itt.value().get<std::string>());
-        }
+    if (it != logging.end()) {
+      for (auto itt : logging["blackList"].items()) {
+        info.blackList.insert(itt.value().get<std::string>());
+      }
     }
-
   }
   return info;
 }
@@ -92,25 +90,24 @@ EngineInfo JsonParser::getEngineInfo(const json& engine) {
   return einfo;
 }
 
-UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json &unitTestJson) {
-    UnitTestInfo info;
-    info.runUnitTests = unitTestJson["runTests"].get<bool>();
-    info.unitTestConfig = unitTestJson["config"];
-    return info;
+UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json& unitTestJson) {
+  UnitTestInfo info;
+  info.runUnitTests = unitTestJson["runTests"].get<bool>();
+  info.unitTestConfig = unitTestJson["config"];
+  return info;
 }
-
 
 RunInfo JsonParser::_parse(const json& main) {
   RunInfo info;
   if (main.find("logging") != main.end())
     info.logInfo = getLoggerInfo(main["logging"]);
   else {
-      info.logInfo.filename = "stdout";
-      info.logInfo.on = true;
+    info.logInfo.filename = "stdout";
+    info.logInfo.on = true;
   }
 
   if (main.find("toolConfig") != main.end()) {
-      info.toolConfig = main.find("toolConfig").value();
+    info.toolConfig = main.find("toolConfig").value();
   }
 
   // Get the run information and the scopes.
@@ -142,16 +139,16 @@ RunInfo JsonParser::_parse(const json& main) {
   if (main.find("outputEngine") != main.end()) {
     info.engineInfo = getEngineInfo(main["outputEngine"]);
   } else {
-    info.engineInfo = getEngineInfo(
-        R"({"type" : "debug" , "config" : {} })"_json);
+    info.engineInfo =
+        getEngineInfo(R"({"type" : "debug" , "config" : {} })"_json);
   }
 
   // Get the output Engine information.
   if (main.find("unit-testing") != main.end()) {
     info.unitTestInfo = getUnitTestInfo(main["unit-testing"]);
   } else {
-    info.unitTestInfo = getUnitTestInfo(
-        R"({"runTests" : false , "config" : {} })"_json);
+    info.unitTestInfo =
+        getUnitTestInfo(R"({"runTests" : false , "config" : {} })"_json);
   }
 
   // Get the test libraries infomation.
@@ -165,24 +162,21 @@ RunInfo JsonParser::_parse(const json& main) {
   return info;
 }
 
-RunInfo JsonParser::parse(std::ifstream &fstream) {
-  
- 	 
+RunInfo JsonParser::parse(std::ifstream& fstream) {
   json mainJson;
   if (!fstream.good()) {
     throw VnVExceptionBase("Invalid Input File Stream");
   }
 
   try {
-     mainJson = json::parse(fstream);
+    mainJson = json::parse(fstream);
   } catch (json::exception e) {
-     throw VnVExceptionBase(e.what());
+    throw VnVExceptionBase(e.what());
   }
   return parse(mainJson);
 }
 
 RunInfo JsonParser::parse(const json& _json) {
-
   json_validator validator;
   validator.set_root_schema(getVVSchema());
   try {

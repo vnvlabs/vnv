@@ -3,24 +3,24 @@
   @file Runtime.h
 **/
 
-
 #ifndef VV_RUNTIME_HEADER
 #define VV_RUNTIME_HEADER
 
 /**
   \file VV-Runtime class.
   */
-#include <map>
 #include <stdarg.h>
-#include <string>
+
 #include <json-schema.hpp>
+#include <map>
+#include <string>
+
+#include "base/InjectionPoint.h"
 #include "base/JsonParser.h"
 #include "base/Logger.h"
-#include "base/InjectionPoint.h"
-#include "c-interfaces/RunTime.h"
 #include "c-interfaces/CJson.h"
+#include "c-interfaces/RunTime.h"
 #include "c-interfaces/Wrappers.h"
-
 #include "interfaces/CppInjection.h"
 /**
  * VnV Namespace
@@ -29,10 +29,6 @@
 using nlohmann::json;
 
 namespace VnV {
-
-
-
-
 
 /**
  * @brief The RunTime clas
@@ -47,23 +43,20 @@ namespace VnV {
  *
  */
 
-
-
 class RunTimeOptions {
  public:
-    bool logUnhandled = false;
-    void fromJson(json& jsonObject);
-    static void callback(json &j);
+  bool logUnhandled = false;
+  void fromJson(json& jsonObject);
+  static void callback(json& j);
 };
 
-
 class RunTime {
-    friend class RunTimeOptions;
-private:
+  friend class RunTimeOptions;
 
-    Logger logger;
+ private:
+  Logger logger;
 
-   /**
+  /**
    * @brief RunTime
    *
    * Private Constructor -- Called used the getRunTime() function.
@@ -81,22 +74,29 @@ private:
   std::set<std::string> registeredPackages;
 
   bool runTests; /**< Should tests be run */
-  bool finalize_mpi = false; /**< Are we responsible for calling MPI_Finalize) */
+  bool finalize_mpi =
+      false; /**< Are we responsible for calling MPI_Finalize) */
   bool logUnhandledInjectionPoints = true;
   bool terminalSupportsAsciiColors = true;
 
   void loadPlugin(std::string filename, std::string packageName);
 
-  void loadRunInfo(RunInfo &info, registrationCallBack *callback);
-  void makeLibraryRegistrationCallbacks(std::map<std::string,std::string> packageNames);
+  void loadRunInfo(RunInfo& info, registrationCallBack* callback);
+  void makeLibraryRegistrationCallbacks(
+      std::map<std::string, std::string> packageNames);
 
-  std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string pname, std::string id, InjectionPointType type, NTV &args);
-  std::shared_ptr<InjectionPoint> getExistingInjectionPoint(std::string pname, std::string id, InjectionPointType type, std::string stageId);
+  std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string pname,
+                                                       std::string id,
+                                                       InjectionPointType type,
+                                                       NTV& args);
+  std::shared_ptr<InjectionPoint> getExistingInjectionPoint(
+      std::string pname, std::string id, InjectionPointType type,
+      std::string stageId);
 
   // TODO Getter and setter.
   RunTimeOptions runTimeOptions;
 
-  bool configure(RunInfo info, registrationCallBack *callback);
+  bool configure(RunInfo info, registrationCallBack* callback);
 
  public:
   /**
@@ -115,10 +115,12 @@ private:
    * information. The Provenance test included in the tests/provenance is
    * designed to work with this injection point in mind.
    */
-  bool InitFromFile(const char* packageName, int* argc, char*** argv, std::string configFile, registrationCallBack *callback);
-  bool InitFromJson(const char* packageName, int* argc, char*** argv, json& configFile, registrationCallBack *callback);
+  bool InitFromFile(const char* packageName, int* argc, char*** argv,
+                    std::string configFile, registrationCallBack* callback);
+  bool InitFromJson(const char* packageName, int* argc, char*** argv,
+                    json& configFile, registrationCallBack* callback);
 
-  void declarePackageJson(std::string pname, vnvFullJsonStrCallback callback) ;
+  void declarePackageJson(std::string pname, vnvFullJsonStrCallback callback);
 
   bool useAsciiColors();
   /**
@@ -127,22 +129,29 @@ private:
    */
   void printRunTimeInformation();
 
-   RunTimeOptions* getRunTimeOptions();
+  RunTimeOptions* getRunTimeOptions();
 
-   void processToolConfig(json config);
+  void processToolConfig(json config);
 
-   void runTimePackageRegistration(std::string packageName, vnv_registration_function reg);
+  void runTimePackageRegistration(std::string packageName,
+                                  vnv_registration_function reg);
 
   // Cpp interface.
-  void injectionPoint(VnV_Comm comm,std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args);
-  void injectionPoint_begin(VnV_Comm comm,std::string pname, std::string id, const CppInjection::DataCallback &callback, NTV &args);
+  void injectionPoint(VnV_Comm comm, std::string pname, std::string id,
+                      const CppInjection::DataCallback& callback, NTV& args);
+  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id,
+                            const CppInjection::DataCallback& callback,
+                            NTV& args);
 
-  //C Interface
-  void injectionPoint(VnV_Comm comm,std::string pname, std::string id, injectionDataCallback *callback, NTV &args);
-  void injectionPoint_begin(VnV_Comm comm,std::string pname, std::string id, injectionDataCallback *callback, NTV &args);
+  // C Interface
+  void injectionPoint(VnV_Comm comm, std::string pname, std::string id,
+                      injectionDataCallback* callback, NTV& args);
+  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id,
+                            injectionDataCallback* callback, NTV& args);
 
   void injectionPoint_end(std::string pname, std::string id);
-  void injectionPoint_iter(std::string pname, std::string id, std::string iterid);
+  void injectionPoint_iter(std::string pname, std::string id,
+                           std::string iterid);
 
   /**
    * @brief Finalize
@@ -169,17 +178,21 @@ private:
    * @param message
    * @param args
    *
-   * Log a message with the logger. Note. Individual libraries can also use the logger.
+   * Log a message with the logger. Note. Individual libraries can also use the
+   * logger.
    *
    *
    */
-  void log(VnV_Comm comm, std::string pname, std::string level, std::string message, va_list args);
+  void log(VnV_Comm comm, std::string pname, std::string level,
+           std::string message, va_list args);
 
-  void logUnhandled(std::string name, std::string id, NTV &args);
+  void logUnhandled(std::string name, std::string id, NTV& args);
 
-  void registerLogLevel(std::string packageName, std::string logLevel, std::string color);
+  void registerLogLevel(std::string packageName, std::string logLevel,
+                        std::string color);
 
-  int beginStage(VnV_Comm comm,std::string pname, std::string message, va_list args);
+  int beginStage(VnV_Comm comm, std::string pname, std::string message,
+                 va_list args);
   void endStage(VnV_Comm comm, int ref);
 
   /**
@@ -202,7 +215,7 @@ private:
    *
    *
    */
-   void loadInjectionPoints(json _json);
+  void loadInjectionPoints(json _json);
 
   /**
    * @brief runUnitTests
@@ -214,6 +227,5 @@ private:
   void readFile(std::string filename);
 };
 }  // namespace VnV
-
 
 #endif

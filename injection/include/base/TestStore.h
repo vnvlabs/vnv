@@ -9,16 +9,15 @@
  */
 
 #include <iostream>
+#include <list>
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
-#include <list>
 
 #include "interfaces/ITest.h"
 
 namespace VnV {
-
 
 /**
  * @brief The TestStore class
@@ -34,12 +33,14 @@ class TestStore {
 
    * @brief registeredTests
    */
-  std::map<std::string,json> registeredTests;
+  std::map<std::string, json> registeredTests;
 
   /**
    * @brief test_factory
    */
-  std::map<std::string, std::pair<maker_ptr*, std::map<std::string,std::string>>, std::less<std::string>>
+  std::map<std::string,
+           std::pair<maker_ptr*, std::map<std::string, std::string>>,
+           std::less<std::string>>
 
       test_factory;
 
@@ -61,8 +62,8 @@ class TestStore {
    * @param m
    * @param v
    */
-  void addTest(std::string package, std::string name, maker_ptr m, std::map<std::string,std::string> v);
-
+  void addTest(std::string package, std::string name, maker_ptr m,
+               std::map<std::string, std::string> v);
 
   /**
    * @brief getTest
@@ -71,10 +72,9 @@ class TestStore {
    */
   std::shared_ptr<ITest> getTest(TestConfig& config);
 
-  std::vector<TestConfig> validateTests(std::vector<json> &configs);
+  std::vector<TestConfig> validateTests(std::vector<json>& configs);
 
-
-  TestConfig validateTest(json &config);
+  TestConfig validateTest(json& config);
 
   /**
    * @brief getTestStore
@@ -86,7 +86,6 @@ class TestStore {
    * @brief print out test store configuration information.
    */
   void print();
-
 };
 
 }  // namespace VnV

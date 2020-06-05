@@ -1,5 +1,5 @@
 #ifndef DLCLASS1_H
-#  define DLCLASS1_H
+#define DLCLASS1_H
 
 namespace dummyLibOne {
 

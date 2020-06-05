@@ -4,193 +4,210 @@
 
 using namespace VnV::Communication;
 
-IStatus_ptr VnV::Communication::DataTypeCommunication::Probe(int source, int tag) {
-  return comm->Probe(source,tag);
+IStatus_ptr VnV::Communication::DataTypeCommunication::Probe(int source,
+                                                             int tag) {
+  return comm->Probe(source, tag);
 }
 
-std::pair<IStatus_ptr, int> VnV::Communication::DataTypeCommunication::IProbe(int source, int tag) {
+std::pair<IStatus_ptr, int> VnV::Communication::DataTypeCommunication::IProbe(
+    int source, int tag) {
   return comm->IProbe(source, tag);
 }
 
 IStatus_ptr VnV::Communication::DataTypeCommunication::Wait(IRequest_ptr ptr) {
-  auto s =  comm->Wait(ptr);
+  auto s = comm->Wait(ptr);
   ptr->ready = true;
   return s;
 }
 
-IStatus_vec VnV::Communication::DataTypeCommunication::WaitAll(IRequest_vec &vec) {
+IStatus_vec VnV::Communication::DataTypeCommunication::WaitAll(
+    IRequest_vec& vec) {
   auto s = comm->WaitAll(vec);
-  for (auto it : vec ) it->ready = true;
+  for (auto it : vec) it->ready = true;
   return s;
 }
 
-std::pair<IStatus_vec, int> VnV::Communication::DataTypeCommunication::WaitAny(IRequest_vec &vec) {
+std::pair<IStatus_vec, int> VnV::Communication::DataTypeCommunication::WaitAny(
+    IRequest_vec& vec) {
   auto s = comm->WaitAny(vec);
   vec[s.second]->ready = true;
   return s;
 }
 
-std::pair<IStatus_ptr, int> VnV::Communication::DataTypeCommunication::Test(IRequest_ptr ptr) {
+std::pair<IStatus_ptr, int> VnV::Communication::DataTypeCommunication::Test(
+    IRequest_ptr ptr) {
   auto s = comm->Test(ptr);
   if (s.second) {
-      ptr->ready = true;
-    }
-  return s;
-}
-
-std::vector<std::pair<IStatus_ptr, int> > VnV::Communication::DataTypeCommunication::TestAll(IRequest_vec &vec) {
-  auto s = comm->TestAll(vec);
-  for (int i = 0; i < s.size(); i++ ) {
-      if ( s[i].second ) vec[i]->ready = true;
-    }
-  return s;
-}
-
-std::pair<std::vector<std::pair<IStatus_ptr, int> >, int> VnV::Communication::DataTypeCommunication::TestAny(IRequest_vec &vec) {
-  auto s =  comm->TestAny(vec);
-  for (int i = 0; i < s.first.size(); i++) {
-     if (s.first[i].second) {
-        vec[i]->ready = true;
-     }
+    ptr->ready = true;
   }
   return s;
 }
 
-ISendRequest_ptr VnV::Communication::DataTypeCommunication::Send(IDataType_vec &data, int dest, int tag, bool blocking) {
+std::vector<std::pair<IStatus_ptr, int> >
+VnV::Communication::DataTypeCommunication::TestAll(IRequest_vec& vec) {
+  auto s = comm->TestAll(vec);
+  for (int i = 0; i < s.size(); i++) {
+    if (s[i].second) vec[i]->ready = true;
+  }
+  return s;
+}
+
+std::pair<std::vector<std::pair<IStatus_ptr, int> >, int>
+VnV::Communication::DataTypeCommunication::TestAny(IRequest_vec& vec) {
+  auto s = comm->TestAny(vec);
+  for (int i = 0; i < s.first.size(); i++) {
+    if (s.first[i].second) {
+      vec[i]->ready = true;
+    }
+  }
+  return s;
+}
+
+ISendRequest_ptr VnV::Communication::DataTypeCommunication::Send(
+    IDataType_vec& data, int dest, int tag, bool blocking) {
   long dataSize = data[0]->maxSize() + sizeof(long long);
-  char* buffer =  (char*) malloc(dataSize*data.size());
+  char* buffer = (char*)malloc(dataSize * data.size());
   long long dataKey = data[0]->getKey();
   for (int i = 0; i < data.size(); i++) {
-      long long * buff = (long long*) &(buffer[i*dataSize]);
-      buff[0] = dataKey;
-      data[i]->pack(&(buff[1]));
-    }
+    long long* buff = (long long*)&(buffer[i * dataSize]);
+    buff[0] = dataKey;
+    data[i]->pack(&(buff[1]));
+  }
   if (blocking) {
-      comm->Send(buffer, data.size(), dest, tag, dataSize );
-      return nullptr;
-    } else {
-      ISendRequest_ptr ptr = comm->ISend(buffer, data.size(), dest, tag, dataSize );
-      ptr->buffer = buffer; // set the buffer so we can free on destruction.
-      return ptr;
-    }
+    comm->Send(buffer, data.size(), dest, tag, dataSize);
+    return nullptr;
+  } else {
+    ISendRequest_ptr ptr =
+        comm->ISend(buffer, data.size(), dest, tag, dataSize);
+    ptr->buffer = buffer;  // set the buffer so we can free on destruction.
+    return ptr;
+  }
 }
 
-std::pair<IDataType_vec, IStatus_ptr> VnV::Communication::DataTypeCommunication::Recv(int count, long long dataType, int dest, int tag) {
+std::pair<IDataType_vec, IStatus_ptr>
+VnV::Communication::DataTypeCommunication::Recv(int count, long long dataType,
+                                                int dest, int tag) {
   IDataType_ptr ptr = CommunicationStore::instance().getDataType(dataType);
   long dataSize = ptr->maxSize() + sizeof(long long);
-  char* buffer = (char*) malloc(count*dataSize);
-  IStatus_ptr status = comm->Recv(buffer,count, dest,tag, dataSize );
+  char* buffer = (char*)malloc(count * dataSize);
+  IStatus_ptr status = comm->Recv(buffer, count, dest, tag, dataSize);
 
-  //Unwrap.
+  // Unwrap.
   IDataType_vec results;
-  for (int i = 0; i < count; i++ ) {
-      IDataType_ptr ptr = CommunicationStore::instance().getDataType(dataType);
-      long long *buff = (long long*) &(buffer[i*dataSize]);
-      ptr->unpack(&(buff[1]));
-      results.push_back(ptr);
-    }
+  for (int i = 0; i < count; i++) {
+    IDataType_ptr ptr = CommunicationStore::instance().getDataType(dataType);
+    long long* buff = (long long*)&(buffer[i * dataSize]);
+    ptr->unpack(&(buff[1]));
+    results.push_back(ptr);
+  }
   free(buffer);
-  return std::make_pair(results,status);
-
+  return std::make_pair(results, status);
 }
 
-IRecvRequest_ptr VnV::Communication::DataTypeCommunication::IRecv(int count, long long dataType, int dest, int tag) {
+IRecvRequest_ptr VnV::Communication::DataTypeCommunication::IRecv(
+    int count, long long dataType, int dest, int tag) {
   IDataType_ptr dptr = CommunicationStore::instance().getDataType(dataType);
   long dataSize = dptr->maxSize() + sizeof(long long);
-  char* buffer = (char*) malloc(count*dataSize);
-  IRecvRequest_ptr ptr = comm->IRecv(buffer,count, dest,tag, dataSize );
+  char* buffer = (char*)malloc(count * dataSize);
+  IRecvRequest_ptr ptr = comm->IRecv(buffer, count, dest, tag, dataSize);
   ptr->buffer = buffer;
   ptr->count = count;
   return ptr;
 }
 
-std::pair<IDataType_vec, IStatus_ptr> VnV::Communication::DataTypeCommunication::Recv(int source, int tag) {
+std::pair<IDataType_vec, IStatus_ptr>
+VnV::Communication::DataTypeCommunication::Recv(int source, int tag) {
   // Recv without knowing the DataType.
   IStatus_ptr status = Probe(source, tag);
   // Get the size of the message in bytes. Because we don't know the data type,
   // we will have to recieve this one in bytes.
   int byteSize = comm->Count(status, sizeof(char));
-  char * buffer = (char*) malloc(byteSize);
-  status = comm->Recv(buffer, byteSize, status->source(), status->tag(), sizeof(char));
+  char* buffer = (char*)malloc(byteSize);
+  status = comm->Recv(buffer, byteSize, status->source(), status->tag(),
+                      sizeof(char));
 
   IDataType_vec results;
-  if (byteSize > sizeof(long long )) {
-
-      long long * buff = (long long*) buffer;
-      long long dataType = buff[0];
-      IDataType_ptr ptr = CommunicationStore::instance().getDataType(dataType);
-      long dataSize = ptr->maxSize() + sizeof(long long);
-      if ( byteSize % dataSize != 0 ) {
-          throw VnV::VnVExceptionBase("Invalid Recv Data Found. Recv is not some multiple of data size. ");
-        }
-      int count = byteSize / dataSize ;
-      for (int i = 0; i < count; i++ ) {
-          IDataType_ptr ptr = CommunicationStore::instance().getDataType(dataType);
-          long long *buff = (long long*) &(buffer[i*dataSize]);
-          ptr->unpack(&(buff[1]));
-          results.push_back(ptr);
-      }
-      free(buffer);
-    } else if (byteSize == 0) {
-    } else {
-      throw VnV::VnVExceptionBase("Invalid message recieved -- message to small to be from VnV");
+  if (byteSize > sizeof(long long)) {
+    long long* buff = (long long*)buffer;
+    long long dataType = buff[0];
+    IDataType_ptr ptr = CommunicationStore::instance().getDataType(dataType);
+    long dataSize = ptr->maxSize() + sizeof(long long);
+    if (byteSize % dataSize != 0) {
+      throw VnV::VnVExceptionBase(
+          "Invalid Recv Data Found. Recv is not some multiple of data size. ");
     }
-    return std::make_pair(results,status);
+    int count = byteSize / dataSize;
+    for (int i = 0; i < count; i++) {
+      IDataType_ptr ptr = CommunicationStore::instance().getDataType(dataType);
+      long long* buff = (long long*)&(buffer[i * dataSize]);
+      ptr->unpack(&(buff[1]));
+      results.push_back(ptr);
+    }
+    free(buffer);
+  } else if (byteSize == 0) {
+  } else {
+    throw VnV::VnVExceptionBase(
+        "Invalid message recieved -- message to small to be from VnV");
+  }
+  return std::make_pair(results, status);
 }
 
-IDataType_vec VnV::Communication::DataTypeCommunication::BroadCast(IDataType_vec &data, int count, int root, bool allToAll) {
+IDataType_vec VnV::Communication::DataTypeCommunication::BroadCast(
+    IDataType_vec& data, int count, int root, bool allToAll) {
   int rank = comm->Rank();
   int size = comm->Size();
 
-  //First, need to broadcast the data type.
+  // First, need to broadcast the data type.
   long long key = (rank == root) ? data[0]->getKey() : 0;
   long long recvKey = -1;
-  comm->BroadCast(&key, 1, &recvKey, sizeof(long long), root );
-  long dataSize = CommunicationStore::instance().getDataType(recvKey)->maxSize();
+  comm->BroadCast(&key, 1, &recvKey, sizeof(long long), root);
+  long dataSize =
+      CommunicationStore::instance().getDataType(recvKey)->maxSize();
 
   // Now pop the send buffer
   char* sendBuffer;
-  if ( rank == root || allToAll ) {
-      long dataSize = data[0] -> maxSize() ;
-      sendBuffer = (char*) malloc( data.size()*dataSize );
-      for (int i = 0; i < data.size(); i++ ) {
-          data[i]->pack(&(sendBuffer[i*dataSize]));
-        }
+  if (rank == root || allToAll) {
+    long dataSize = data[0]->maxSize();
+    sendBuffer = (char*)malloc(data.size() * dataSize);
+    for (int i = 0; i < data.size(); i++) {
+      data[i]->pack(&(sendBuffer[i * dataSize]));
+    }
   }
 
   // Call the methods
   IDataType_vec results;
   if (allToAll) {
-      results.reserve(size*count);
-      char* recvBuffer = (char*) malloc(size * count * dataSize );
-      comm->AllToAll(sendBuffer, count, recvBuffer, dataSize);
-      free(sendBuffer);
+    results.reserve(size * count);
+    char* recvBuffer = (char*)malloc(size * count * dataSize);
+    comm->AllToAll(sendBuffer, count, recvBuffer, dataSize);
+    free(sendBuffer);
 
-      //Unwrap.
-      for (int i = 0; i < size * count; i++ ) {
-          IDataType_ptr ptr = CommunicationStore::instance().getDataType(recvKey);
-          ptr->unpack(&(recvBuffer[i*dataSize]));
-          results.push_back(ptr);
-        }
-      free(recvBuffer);
-    } else {
-      results.reserve(count);
-      char* recvBuffer = (char*) malloc( count * dataSize) ;
-      comm->BroadCast(sendBuffer, count, recvBuffer, dataSize, root );
-      free(sendBuffer);
-
-      //Unwrap
-      for (int i = 0; i < count; i++ ) {
-          IDataType_ptr ptr = CommunicationStore::instance().getDataType(recvKey);
-          ptr->unpack(&(recvBuffer[i*dataSize]));
-          results.push_back(ptr);
-        }
-      free(recvBuffer);
+    // Unwrap.
+    for (int i = 0; i < size * count; i++) {
+      IDataType_ptr ptr = CommunicationStore::instance().getDataType(recvKey);
+      ptr->unpack(&(recvBuffer[i * dataSize]));
+      results.push_back(ptr);
     }
+    free(recvBuffer);
+  } else {
+    results.reserve(count);
+    char* recvBuffer = (char*)malloc(count * dataSize);
+    comm->BroadCast(sendBuffer, count, recvBuffer, dataSize, root);
+    free(sendBuffer);
+
+    // Unwrap
+    for (int i = 0; i < count; i++) {
+      IDataType_ptr ptr = CommunicationStore::instance().getDataType(recvKey);
+      ptr->unpack(&(recvBuffer[i * dataSize]));
+      results.push_back(ptr);
+    }
+    free(recvBuffer);
+  }
   return results;
 }
 
-IDataType_vec VnV::Communication::DataTypeCommunication::Gather(IDataType_vec &data, int root, bool allGather) {
+IDataType_vec VnV::Communication::DataTypeCommunication::Gather(
+    IDataType_vec& data, int root, bool allGather) {
   int rank = comm->Rank();
   int size = comm->Size();
 
@@ -198,116 +215,123 @@ IDataType_vec VnV::Communication::DataTypeCommunication::Gather(IDataType_vec &d
   char* sendbuffer = nullptr;
   long long key = data[0]->getKey();
   long dataSize = data[0]->maxSize();
-  sendbuffer = (char*) malloc(dataSize*data.size());
-  for ( int i = 0; i < data.size(); i++ ) {
-      data[i]->pack(&(sendbuffer[i*dataSize]));
+  sendbuffer = (char*)malloc(dataSize * data.size());
+  for (int i = 0; i < data.size(); i++) {
+    data[i]->pack(&(sendbuffer[i * dataSize]));
   }
 
-  //Alloc the recv buffer on any rank that needs it.
+  // Alloc the recv buffer on any rank that needs it.
   char* recvBuffer;
-  if (rank == root || allGather ) {
-      recvBuffer = (char*) malloc(dataSize*data.size()*size);
+  if (rank == root || allGather) {
+    recvBuffer = (char*)malloc(dataSize * data.size() * size);
   }
 
   // Call the Gather
-  if ( allGather ) {
-      comm->AllGather(sendbuffer, data.size(), recvBuffer, dataSize);
-    } else {
-      comm->Gather(sendbuffer, data.size(), recvBuffer, dataSize, root);
-    }
+  if (allGather) {
+    comm->AllGather(sendbuffer, data.size(), recvBuffer, dataSize);
+  } else {
+    comm->Gather(sendbuffer, data.size(), recvBuffer, dataSize, root);
+  }
 
-  //Unwrap
+  // Unwrap
   IDataType_vec results;
-  results.reserve(dataSize*data.size());
-      if (rank == root || allGather ) {
-    for (int i = 0; i < dataSize*data.size(); i++) {
-        IDataType_ptr dptr = CommunicationStore::instance().getDataType(key);
-        dptr->unpack(&(recvBuffer[i*dataSize]));
-        results.push_back(dptr);
-      }
+  results.reserve(dataSize * data.size());
+  if (rank == root || allGather) {
+    for (int i = 0; i < dataSize * data.size(); i++) {
+      IDataType_ptr dptr = CommunicationStore::instance().getDataType(key);
+      dptr->unpack(&(recvBuffer[i * dataSize]));
+      results.push_back(dptr);
+    }
     free(recvBuffer);
   }
   free(sendbuffer);
   return results;
 }
 
-IDataType_vec VnV::Communication::DataTypeCommunication::Scatter(IDataType_vec &data, int root, int count) {
+IDataType_vec VnV::Communication::DataTypeCommunication::Scatter(
+    IDataType_vec& data, int root, int count) {
   int rank = comm->Rank();
   int size = comm->Size();
 
-  //First, need to scatter the data type.
+  // First, need to scatter the data type.
   long long key = (rank == root) ? data[0]->getKey() : 0;
   long long recvKey = -1;
-  comm->BroadCast(&key, 1, &recvKey, sizeof(long long), root );
-  long dataSize = CommunicationStore::instance().getDataType(recvKey)->maxSize();
+  comm->BroadCast(&key, 1, &recvKey, sizeof(long long), root);
+  long dataSize =
+      CommunicationStore::instance().getDataType(recvKey)->maxSize();
 
   // Now pop the send buffer
   char* buffer = nullptr;
-  if ( rank == root && data.size() != count*size )  {
-      buffer = (char*) malloc(dataSize*data.size());
-      for ( int i = 0; i < data.size(); i++ ) {
-          data[i]->pack(&(buffer[i*dataSize]));
-        }
+  if (rank == root && data.size() != count * size) {
+    buffer = (char*)malloc(dataSize * data.size());
+    for (int i = 0; i < data.size(); i++) {
+      data[i]->pack(&(buffer[i * dataSize]));
     }
+  }
 
   // Alloc the recv buffer and perform the scatter.
-  char* recvBuffer = (char*) malloc(count*dataSize);
+  char* recvBuffer = (char*)malloc(count * dataSize);
   comm->Scatter(buffer, count, recvBuffer, dataSize, root);
 
   // Unwrap.
   IDataType_vec results;
   for (int i = 0; i < count; i++) {
-      long long * lptr = (long long *) &(recvBuffer[i*dataSize]);
-      IDataType_ptr dptr = CommunicationStore::instance().getDataType(recvKey);
-      dptr->unpack(&(recvBuffer[i*dataSize]));
-      results.push_back(dptr);
-    }
+    long long* lptr = (long long*)&(recvBuffer[i * dataSize]);
+    IDataType_ptr dptr = CommunicationStore::instance().getDataType(recvKey);
+    dptr->unpack(&(recvBuffer[i * dataSize]));
+    results.push_back(dptr);
+  }
 
-  //Free
+  // Free
   free(recvBuffer);
   if (rank == root) {
-      free(buffer);
-    }
+    free(buffer);
+  }
   return results;
 }
 
-IDataType_vec VnV::Communication::DataTypeCommunication::Reduce(IDataType_vec &data, IReduction_ptr reduction, int root) {
+IDataType_vec VnV::Communication::DataTypeCommunication::Reduce(
+    IDataType_vec& data, IReduction_ptr reduction, int root) {
   int rank = comm->Rank();
 
   // Pop the send buffer
   long long dataKey = data[0]->getKey();
   long long reducerKey = reduction->getKey();
-  long dataSize = data[0]->maxSize() + 2*sizeof(long long);
-  char* buffer = (char*) malloc(data.size()*dataSize);
-  for (int i = 0; i < data.size(); i++ ) {
-      long long * lptr = (long long*) &(buffer[i*dataSize]);
-      lptr[0] = reducerKey; // reducer
-      lptr[1] = dataKey; // key
-      data[i]->pack(&(lptr[2])); // data
-    }
+  long dataSize = data[0]->maxSize() + 2 * sizeof(long long);
+  char* buffer = (char*)malloc(data.size() * dataSize);
+  for (int i = 0; i < data.size(); i++) {
+    long long* lptr = (long long*)&(buffer[i * dataSize]);
+    lptr[0] = reducerKey;       // reducer
+    lptr[1] = dataKey;          // key
+    data[i]->pack(&(lptr[2]));  // data
+  }
 
   // Call the reduction operation
-  OpType op = (reduction->communitive()) ? OpType::ENCODED_COMMUTE : OpType::ENCODED_NONCOMMUTE;
-  long long * recvBuffer = (root < 0 || rank==root ) ? (long long*) malloc(data.size()*dataSize) : nullptr;
-  if (root == -1 ) {
-      comm->AllReduce(buffer, data.size(), recvBuffer, dataSize, op);
-    } else if (root == -2 ) {
-      comm->Scan(buffer, data.size(), recvBuffer, dataSize, op);
-    } else {
-      comm->Reduce(buffer, data.size(), recvBuffer, dataSize, op, root);
-    }
+  OpType op = (reduction->communitive()) ? OpType::ENCODED_COMMUTE
+                                         : OpType::ENCODED_NONCOMMUTE;
+  long long* recvBuffer = (root < 0 || rank == root)
+                              ? (long long*)malloc(data.size() * dataSize)
+                              : nullptr;
+  if (root == -1) {
+    comm->AllReduce(buffer, data.size(), recvBuffer, dataSize, op);
+  } else if (root == -2) {
+    comm->Scan(buffer, data.size(), recvBuffer, dataSize, op);
+  } else {
+    comm->Reduce(buffer, data.size(), recvBuffer, dataSize, op, root);
+  }
 
   // Unpack.
   IDataType_vec results;
-  if ( root < 0 || rank == root ) {
-      for (int i = 0; i < data.size(); i++ ) {
-          long long *lptr = (long long *) recvBuffer[i*dataSize];
-          IDataType_ptr result = CommunicationStore::instance().getDataType(dataKey);
-          result->unpack(&(lptr[2]));
-          results.push_back(result);
-          free(recvBuffer);
-        }
+  if (root < 0 || rank == root) {
+    for (int i = 0; i < data.size(); i++) {
+      long long* lptr = (long long*)recvBuffer[i * dataSize];
+      IDataType_ptr result =
+          CommunicationStore::instance().getDataType(dataKey);
+      result->unpack(&(lptr[2]));
+      results.push_back(result);
+      free(recvBuffer);
     }
+  }
   free(buffer);
   return results;
 }

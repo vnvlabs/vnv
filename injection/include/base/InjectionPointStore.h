@@ -3,7 +3,6 @@
   @file InjectionPointStore.h
 **/
 
-
 #ifndef INJECTIONPOINTSTORE_H
 #define INJECTIONPOINTSTORE_H
 
@@ -18,8 +17,8 @@ using nlohmann::json;
 
 namespace VnV {
 
-//Forward Declare
-typedef std::map<std::string,std::pair<std::string,void*>> NTV;
+// Forward Declare
+typedef std::map<std::string, std::pair<std::string, void*>> NTV;
 class InjectionPoint;
 class TestConfig;
 enum class InjectionPointType;
@@ -45,13 +44,12 @@ enum class InjectionPointType;
  * while the program is running...
  */
 
-
 class InjectionPointStore {
  private:
   std::map<std::string, std::stack<std::shared_ptr<InjectionPoint>>>
       active; /**< Active injection point stack*/
 
-  std::map<std::string, std::pair<bool,std::vector<TestConfig>>>
+  std::map<std::string, std::pair<bool, std::vector<TestConfig>>>
       injectionPoints; /**< The stored configurations */
 
   std::map<std::string, json> registeredInjectionPoints;
@@ -70,15 +68,17 @@ class InjectionPointStore {
    * Create a new Injection point based on the users specification.
    */
 
-
   // RTODO IMPLEMENT THIS FUNCTIONS.
-  std::shared_ptr<InjectionPoint> newInjectionPoint(std::string key, NTV &args);
-  std::shared_ptr<InjectionPoint> fetchFromQueue(std::string key, InjectionPointType stage);
-  void registerLoopedInjectionPoint(std::string key, std::shared_ptr<InjectionPoint>&ptr);
+  std::shared_ptr<InjectionPoint> newInjectionPoint(std::string key, NTV& args);
+  std::shared_ptr<InjectionPoint> fetchFromQueue(std::string key,
+                                                 InjectionPointType stage);
+  void registerLoopedInjectionPoint(std::string key,
+                                    std::shared_ptr<InjectionPoint>& ptr);
 
-
-  // JsonObject is a json object that validates againt the Injection point schema.
-  void registerInjectionPoint(std::string packageName, std::string id, json &jsonObject);
+  // JsonObject is a json object that validates againt the Injection point
+  // schema.
+  void registerInjectionPoint(std::string packageName, std::string id,
+                              json& jsonObject);
 
  public:
   /**
@@ -100,11 +100,13 @@ class InjectionPointStore {
    * an empty queue is considered invalid and will return a nullptr.
    *
    */
-  std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string package, std::string name, InjectionPointType type, NTV& args);
+  std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string package,
+                                                       std::string name,
+                                                       InjectionPointType type,
+                                                       NTV& args);
 
-
-  std::shared_ptr<InjectionPoint> getExistingInjectionPoint(std::string package, std::string name, InjectionPointType type);
-
+  std::shared_ptr<InjectionPoint> getExistingInjectionPoint(
+      std::string package, std::string name, InjectionPointType type);
 
   /**
    * @brief addInjectionPoint
@@ -115,12 +117,14 @@ class InjectionPointStore {
    * Add an injection point to the store. In the case that an injection point
    * already exists in the store, the test configuration will be overwritten.
    */
-  void addInjectionPoint(std::string package, std::string name,   std::pair<bool , std::vector<TestConfig>>& tests);
+  void addInjectionPoint(std::string package, std::string name,
+                         std::pair<bool, std::vector<TestConfig>>& tests);
 
-  // Register Injection point. JsonStr must be json that validates against the injection
-  // point schema OR an array of objects that individually validate against that same
-  // schema.
-  void registerInjectionPoint(std::string packageName, std::string name, std::string json_str);
+  // Register Injection point. JsonStr must be json that validates against the
+  // injection point schema OR an array of objects that individually validate
+  // against that same schema.
+  void registerInjectionPoint(std::string packageName, std::string name,
+                              std::string json_str);
 
   /**
    * @brief getInjectionPointStore
@@ -136,9 +140,8 @@ class InjectionPointStore {
    */
   void print();
 
-
 };  // end InjectionPointStore
 
 }  // namespace VnV
 
-#endif // INJECTIONPOINTSTORE_H
+#endif  // INJECTIONPOINTSTORE_H

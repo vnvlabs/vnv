@@ -8,6 +8,7 @@
 
 #include <map>
 #include <string>
+
 #include "interfaces/IOutputEngine.h"
 /**
   \file Headers for the Engine Store.
@@ -47,7 +48,8 @@ class OutputEngineStore {
  private:
   std::map<std::string, engine_register_ptr*>
       registeredEngines; /**< List of all registered engines */
-  std::shared_ptr<OutputEngineManager> manager; /**< The current Engine Manager being used in VnV for all IO */
+  std::shared_ptr<OutputEngineManager>
+      manager; /**< The current Engine Manager being used in VnV for all IO */
   std::string engineName;
   /**
    * @brief EngineStore
@@ -85,7 +87,8 @@ class OutputEngineStore {
    * @param config config options for the engine.
    * @return
    */
-  Nodes::IRootNode* readFile(std::string filename, std::string engine,  json& config);
+  Nodes::IRootNode* readFile(std::string filename, std::string engine,
+                             json& config);
 
   /**
    * @brief setEngineManager

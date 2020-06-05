@@ -9,36 +9,33 @@
  */
 
 #include <iostream>
+#include <list>
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
-#include <list>
 
 #include "interfaces/ITransform.h"
 
 namespace VnV {
 
 class Transformer {
+ private:
+  std::string from;
+  std::vector<std::pair<std::string, ITransform*>> transPath;
 
-private:
-    std::string from;
-    std::vector<std::pair<std::string,ITransform*>> transPath;
-
-
-public:
-    Transformer(std::string from_, std::vector<std::pair<std::string,ITransform*>> &trans);
-    virtual void* Transform(void* ptr, std::string &rtti);
-    virtual ~Transformer();
+ public:
+  Transformer(std::string from_,
+              std::vector<std::pair<std::string, ITransform*>>& trans);
+  virtual void* Transform(void* ptr, std::string& rtti);
+  virtual ~Transformer();
 };
-
 
 /**
  * @brief The TestStore class
  */
 class TransformStore {
-
-private:
+ private:
   /**
    * @brief trans_factory
    */
@@ -50,13 +47,13 @@ private:
   TransformStore();
 
  public:
-
   /**
    * @brief addTransform
    * @param name
    * @param p
    */
-  void addTransform(std::string name, trans_ptr p, std::string from, std::string to);
+  void addTransform(std::string name, trans_ptr p, std::string from,
+                    std::string to);
 
   /**
    * @brief getTransform
@@ -64,7 +61,6 @@ private:
    * @return
    */
   std::shared_ptr<Transformer> getTransformer(std::string from, std::string to);
-
 
   /**
    * @brief getTestStore
@@ -76,9 +72,8 @@ private:
    * @brief print out test store configuration information.
    */
   void print();
-
 };
 
 }  // namespace VnV
 
-#endif // VVTRANSFORM_H
+#endif  // VVTRANSFORM_H

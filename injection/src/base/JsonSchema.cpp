@@ -171,9 +171,7 @@ static const json __vv_schema__ = R"(
   }
 })"_json;
 
-const json& getVVSchema() {
-    return __vv_schema__;
-}
+const json& getVVSchema() { return __vv_schema__; }
 
 static json __test_declaration_schema__ = R"(
 {
@@ -197,11 +195,9 @@ static json __test_declaration_schema__ = R"(
   "required" : ["expectedResult","configuration","description","title","parameters","requiredParameters","io-variables"],
   "definitions" : {}
 }
-)"_json ;
+)"_json;
 
-
-
-//Get rid of this
+// Get rid of this
 static json __base_options_schema__ = R"({
          "type" : "object",
          "parameters" : {
@@ -211,10 +207,7 @@ static json __base_options_schema__ = R"({
       }
 )"_json;
 
-json& getBaseOptionsSchema() {
-    return __base_options_schema__;
-}
-
+json& getBaseOptionsSchema() { return __base_options_schema__; }
 
 static json __transform_declaration_schema__ = R"({
  "$schema": "http://json-schema.org/draft-07/schema#",
@@ -223,12 +216,10 @@ static json __transform_declaration_schema__ = R"({
  "type": "object",
  "additionalProperties" : {"type" : "array" , "items" : { "type" : "string" } }
 }
-)"_json ;
-
-
+)"_json;
 
 json getTransformDeclarationSchema() {
-    return __transform_declaration_schema__;
+  return __transform_declaration_schema__;
 }
 
 static json __injectionPoint_declaration_schema__ = R"({
@@ -284,42 +275,43 @@ static json __injectionPoint_declaration_schema__ = R"({
 })"_json;
 
 json getInjectionPointDeclarationSchema() {
-    return __injectionPoint_declaration_schema__;
+  return __injectionPoint_declaration_schema__;
 }
-
 
 json getTestDelcarationJsonSchema() {
-    if (__test_declaration_schema__.find("raw") == __test_declaration_schema__.end())
-        __test_declaration_schema__["raw"] = nlohmann::json_schema::draft7_schema_builtin;
-    return __test_declaration_schema__;
+  if (__test_declaration_schema__.find("raw") ==
+      __test_declaration_schema__.end())
+    __test_declaration_schema__["raw"] =
+        nlohmann::json_schema::draft7_schema_builtin;
+  return __test_declaration_schema__;
 }
 
-json getTestValidationSchema(std::map<std::string, std::string> &params) {
-    json schema = R"(
+json getTestValidationSchema(std::map<std::string, std::string>& params) {
+  json schema = R"(
     {
        "$schema": "http://json-schema.org/draft-07/schema#",
        "$id": "http://rnet-tech.net/vv.schema.json",
        "type": "object"
     })"_json;
 
-    schema["title"] = "Test Declaration Schema";
-    schema["description"] = "Schema for verifying test. ";
+  schema["title"] = "Test Declaration Schema";
+  schema["description"] = "Schema for verifying test. ";
 
-    json properties = R"({})"_json;
-    properties["configuration"] = R"({"type":"object"})"_json;
+  json properties = R"({})"_json;
+  properties["configuration"] = R"({"type":"object"})"_json;
 
-    json parameters = R"({"type":"object" ,"properties" : {}, "additionalProperties" : false})"_json;
-    parameters["required"] = json::array();
-    for ( auto it : params) {
-        parameters["properties"][it.first] = R"({"type":"string"})"_json;
-        parameters["required"].push_back(it.first);
-    }
+  json parameters =
+      R"({"type":"object" ,"properties" : {}, "additionalProperties" : false})"_json;
+  parameters["required"] = json::array();
+  for (auto it : params) {
+    parameters["properties"][it.first] = R"({"type":"string"})"_json;
+    parameters["required"].push_back(it.first);
+  }
 
-    properties["parameters"] = parameters;
-    schema["properties"] = properties;
-    schema["required"] = R"(["configuration","parameters"])"_json;
-    return schema;
+  properties["parameters"] = parameters;
+  schema["properties"] = properties;
+  schema["required"] = R"(["configuration","parameters"])"_json;
+  return schema;
 }
 
-
-}
+}  // namespace VnV

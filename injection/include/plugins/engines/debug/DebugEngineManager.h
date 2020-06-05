@@ -7,55 +7,60 @@ namespace VnV {
 namespace PACKAGENAME {
 namespace Engines {
 
+class DebugEngineManager : public OutputEngineManager {
+ public:
+  DebugEngineManager();
+  ~DebugEngineManager();
 
-class DebugEngineManager : public OutputEngineManager  {
-public:
+  void Put(VnV_Comm comm, std::string variableName,
+           const double& value) override;
 
-    DebugEngineManager();
-   ~DebugEngineManager();
+  void Put(VnV_Comm comm, std::string variableName, const int& value) override;
 
-   void Put(VnV_Comm comm,std::string variableName, const double& value) override;
+  void Put(VnV_Comm comm, std::string variableName,
+           const float& value) override;
 
-   void Put(VnV_Comm comm,std::string variableName, const int& value) override;
+  void Put(VnV_Comm comm, std::string variableName, const long& value) override;
 
-   void Put(VnV_Comm comm,std::string variableName, const float& value) override;
+  void Put(VnV_Comm comm, std::string variableName, const json& value) override;
 
-   void Put(VnV_Comm comm,std::string variableName, const long& value) override;
+  void Put(VnV_Comm comm, std::string variableName,
+           const std::string& value) override;
 
-   void Put(VnV_Comm comm,std::string variableName, const json& value) override;
+  void Put(VnV_Comm comm, std::string variableName, const bool& value) override;
 
-   void Put(VnV_Comm comm,std::string variableName, const std::string& value) override;
+  void Log(VnV_Comm comm, const char* package, int stage, std::string level,
+           std::string message) override;
 
-   void Put(VnV_Comm comm, std::string variableName, const bool &value) override;
+  json getConfigurationSchema() override;
 
-   void Log(VnV_Comm comm,const char *package, int stage,  std::string level, std::string message) override;
+  void finalize() override;
 
+  void setFromJson(json& config) override;
 
-   json getConfigurationSchema() override;
+  void injectionPointEndedCallBack(VnV_Comm comm, std::string id,
+                                   InjectionPointType type,
+                                   std::string stageVal) override;
 
-   void finalize() override;
+  void injectionPointStartedCallBack(VnV_Comm comm, std::string id,
+                                     InjectionPointType type,
+                                     std::string stageVal) override;
 
-   void setFromJson(json& config) override;
+  void testStartedCallBack(VnV_Comm comm, std::string testName) override;
 
-   void injectionPointEndedCallBack(VnV_Comm comm,std::string id, InjectionPointType type, std::string stageVal) override;
+  void testFinishedCallBack(VnV_Comm comm, bool result_) override;
 
-   void injectionPointStartedCallBack(VnV_Comm comm,std::string id, InjectionPointType type, std::string stageVal) override;
+  void unitTestStartedCallBack(VnV_Comm comm,
+                               std::string unitTestName) override;
 
-   void testStartedCallBack(VnV_Comm comm,std::string testName) override;
+  void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester) override;
 
-   void testFinishedCallBack(VnV_Comm comm,bool result_) override;
+  Nodes::IRootNode* readFromFile(std::string file) override;
 
-   void unitTestStartedCallBack(VnV_Comm comm,std::string unitTestName) override;
-
-   void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest *tester) override;
-
-
-  Nodes::IRootNode *readFromFile(std::string file) override;
-
-   std::string print() override;
+  std::string print() override;
 };
 
-}
-}
-}
-#endif // DEBUGENGINEMANAGER_H
+}  // namespace Engines
+}  // namespace PACKAGENAME
+}  // namespace VnV
+#endif  // DEBUGENGINEMANAGER_H

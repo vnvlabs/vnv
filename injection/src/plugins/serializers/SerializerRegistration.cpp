@@ -11,8 +11,7 @@
  *
  * Macro magic will do the rest
  */
-#define VNV_INTERNAL_SERIALIZERS \
-  X(doubleToString)
+#define VNV_INTERNAL_SERIALIZERS X(doubleToString)
 
 /** you should not need to touch anything below here. Unless your
  * test didn't use the INJECTION_TEST macro to declare it.
@@ -24,11 +23,9 @@ VNV_INTERNAL_SERIALIZERS
 #define X(name) REGISTERSERIALIZER(name)
 
 namespace VnV {
- namespace Registration {
-  void RegisterBuiltinSerializers() {
-     VNV_INTERNAL_SERIALIZERS
-  }
- }
-}
+namespace Registration {
+void RegisterBuiltinSerializers() { VNV_INTERNAL_SERIALIZERS }
+}  // namespace Registration
+}  // namespace VnV
 #undef VNV_INTERNAL_SERIALIZERS
 #undef X

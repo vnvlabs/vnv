@@ -9,10 +9,10 @@
   \file vv-parser.h Header file for the Parser.
   */
 
-#include <set>
-#include <string>
 #include <fstream>
 #include <map>
+#include <set>
+#include <string>
 
 #include "json-schema.hpp"
 using nlohmann::json;
@@ -23,10 +23,10 @@ using nlohmann::json;
 namespace VnV {
 
 struct LoggerInfo {
-    bool on;
-    std::string filename;
-    std::map<std::string, bool> logs;
-    std::set<std::string> blackList;
+  bool on;
+  std::string filename;
+  std::map<std::string, bool> logs;
+  std::set<std::string> blackList;
 };
 
 /**
@@ -40,15 +40,15 @@ struct EngineInfo {
 };
 
 struct InjectionPointInfo {
-   std::string name;
-   std::string package;
-   std::vector<json> tests;
-   bool runInternal;
+  std::string name;
+  std::string package;
+  std::vector<json> tests;
+  bool runInternal;
 };
 
 struct UnitTestInfo {
-    bool runUnitTests;
-    json unitTestConfig;
+  bool runUnitTests;
+  json unitTestConfig;
 };
 
 /**
@@ -58,8 +58,10 @@ struct UnitTestInfo {
  */
 struct RunInfo {
   bool runTests; /**< Should any tests be run */
-  std::map<std::string,std::string> testLibraries; /*< List of file paths to included plugin libraries */
-  std::map<std::string, InjectionPointInfo> injectionPoints; /**< all injection points with tests */
+  std::map<std::string, std::string>
+      testLibraries; /*< List of file paths to included plugin libraries */
+  std::map<std::string, InjectionPointInfo>
+      injectionPoints; /**< all injection points with tests */
   json toolConfig;
 
   UnitTestInfo unitTestInfo;
@@ -67,8 +69,8 @@ struct RunInfo {
   EngineInfo engineInfo; /**< Information about the IO engine */
 
   bool error; /**< Was there an error when parsing */
-  std::string errorMessage; /**< What was the error message (if there was one) */
-
+  std::string
+      errorMessage; /**< What was the error message (if there was one) */
 };
 
 /**
@@ -132,7 +134,6 @@ class JsonParser {
    */
   UnitTestInfo getUnitTestInfo(const json& unitTestJson);
 
-
   /**
    * @brief addTest
    * @param testJson[in] The json extracted from the tests section of the
@@ -163,7 +164,7 @@ class JsonParser {
    */
   void addInjectionPoint(const json& injectionPointJson,
                          std::set<std::string>& runScopes,
-                         std::map<std::string, InjectionPointInfo> &ips);
+                         std::map<std::string, InjectionPointInfo>& ips);
 
   /**
    * @brief addTestLibrary
@@ -172,7 +173,8 @@ class JsonParser {
    *
    * Here, add the newest filepath to the testLibraries set.
    */
-  void addTestLibrary(const json& testLibsJson, std::map<std::string,std::string>& libs);
+  void addTestLibrary(const json& testLibsJson,
+                      std::map<std::string, std::string>& libs);
 
   /**
    * @brief parse
@@ -196,9 +198,8 @@ class JsonParser {
    * Note, This function supports both files and json strings as input.
    * @todo Change parameter name to indicate support for json strings and files.
    */
-  RunInfo parse(std::ifstream &fstream);
+  RunInfo parse(std::ifstream& fstream);
   RunInfo parse(const json& _json);
-
 };
 
 }  // namespace VnV

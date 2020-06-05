@@ -6,13 +6,12 @@
 
 namespace VnV {
 
-struct VnVExceptionBase : public std::exception
-{
-    std::string message;
-    VnVExceptionBase(std::string message);
-    const char * what () const throw ();
+struct VnVExceptionBase : public std::exception {
+  std::string message;
+  VnVExceptionBase(std::string message);
+  const char* what() const throw();
 };
 
-}
+}  // namespace VnV
 
-#endif // EXCEPTIONS_H
+#endif  // EXCEPTIONS_H

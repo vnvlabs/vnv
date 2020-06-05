@@ -13,7 +13,6 @@
 #include "json-schema.hpp"
 using nlohmann::json;
 
-
 namespace VnV {
 
 /**
@@ -33,14 +32,14 @@ json getTestDelcarationJsonSchema();
  * @param testDeclaration
  * @return
  */
-json getTestValidationSchema(std::map<std::string,std::string> &params);
+json getTestValidationSchema(std::map<std::string, std::string>& params);
 
-json getTransformDeclarationSchema() ;
+json getTransformDeclarationSchema();
 
 json getInjectionPointDeclarationSchema();
 
 json& getBaseOptionsSchema();
 
-//json getTestMappingSchema(json injectionPointDeclaration);
+// json getTestMappingSchema(json injectionPointDeclaration);
 
-}
+}  // namespace VnV

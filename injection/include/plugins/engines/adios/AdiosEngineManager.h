@@ -1,72 +1,86 @@
 ﻿#ifndef ADIOSENGINEMANAGER_H
 #define ADIOSENGINEMANAGER_H
 
-#include "base/exceptions.h"
+#include <map>
 #include <sstream>
 #include <string>
-#include <map>
 
 #include "adios2.h"
-#include "json-schema.hpp"
+#include "base/exceptions.h"
 #include "interfaces/IOutputEngine.h"
+#include "json-schema.hpp"
 
 using nlohmann::json;
-
 
 namespace VnV {
 namespace PACKAGENAME {
 namespace Engines {
 
 class AdiosEngineManager : public OutputEngineManager {
-public:
-    adios2::ADIOS* adios; /**< @todo  */
-    adios2::IO bpWriter;                      /**< @todo  */
-    adios2::Engine engine;                    /**< @todo  */
-    adios2::Variable<std::string> identifier; /**< @todo  */
-    adios2::Variable<std::string> stage;              /**< @todo  */
-    adios2::Variable<std::string> type;       /**< @todo  */
-    adios2::Variable<std::string> markdown;   /**< @todo  */
-    adios2::Variable<int> result;             /**< @todo  */
-    unsigned int outputFile;                  /**< @todo  */
+ public:
+  adios2::ADIOS* adios;                     /**< @todo  */
+  adios2::IO bpWriter;                      /**< @todo  */
+  adios2::Engine engine;                    /**< @todo  */
+  adios2::Variable<std::string> identifier; /**< @todo  */
+  adios2::Variable<std::string> stage;      /**< @todo  */
+  adios2::Variable<std::string> type;       /**< @todo  */
+  adios2::Variable<std::string> markdown;   /**< @todo  */
+  adios2::Variable<int> result;             /**< @todo  */
+  unsigned int outputFile;                  /**< @todo  */
 
-    AdiosEngineManager();
-    ~AdiosEngineManager() override ;
+  AdiosEngineManager();
+  ~AdiosEngineManager() override;
 
-    void Put(VnV_Comm /** comm **/, std::string variableName, const double& value)override;
-    void Put(VnV_Comm /** comm **/,std::string variableName, const int& value)override;
-    void Put(VnV_Comm /** comm **/,std::string variableName, const float& value)override;
-    void Put(VnV_Comm /** comm **/,std::string variableName, const long& value)override;
-    void Put(VnV_Comm /** comm **/,std::string variableName, const bool& value)override;
-    void Put(VnV_Comm /** comm **/,std::string variableName, const json& value) override;
-    void Put(VnV_Comm /** comm **/,std::string variableName, const std::string& value)override;
+  void Put(VnV_Comm /** comm **/, std::string variableName,
+           const double& value) override;
+  void Put(VnV_Comm /** comm **/, std::string variableName,
+           const int& value) override;
+  void Put(VnV_Comm /** comm **/, std::string variableName,
+           const float& value) override;
+  void Put(VnV_Comm /** comm **/, std::string variableName,
+           const long& value) override;
+  void Put(VnV_Comm /** comm **/, std::string variableName,
+           const bool& value) override;
+  void Put(VnV_Comm /** comm **/, std::string variableName,
+           const json& value) override;
+  void Put(VnV_Comm /** comm **/, std::string variableName,
+           const std::string& value) override;
 
-    void Log(VnV_Comm /** comm **/,const char* package, int stage, std::string level, std::string message)override;
+  void Log(VnV_Comm /** comm **/, const char* package, int stage,
+           std::string level, std::string message) override;
 
-    void finalize()override;
+  void finalize() override;
 
-    void setFromJson(json& config)override;
+  void setFromJson(json& config) override;
 
-    void injectionPointEndedCallBack(VnV_Comm /** comm **/, std::string id, InjectionPointType type_, std::string stageId)override;
+  void injectionPointEndedCallBack(VnV_Comm /** comm **/, std::string id,
+                                   InjectionPointType type_,
+                                   std::string stageId) override;
 
-    void injectionPointStartedCallBack(VnV_Comm /** comm **/, std::string id, InjectionPointType type_, std::string stageId)override;
+  void injectionPointStartedCallBack(VnV_Comm /** comm **/, std::string id,
+                                     InjectionPointType type_,
+                                     std::string stageId) override;
 
-    void testStartedCallBack(VnV_Comm /** comm **/, std::string testName)override;
+  void testStartedCallBack(VnV_Comm /** comm **/,
+                           std::string testName) override;
 
-    void testFinishedCallBack(VnV_Comm /** comm **/, bool result_)override;
+  void testFinishedCallBack(VnV_Comm /** comm **/, bool result_) override;
 
-    void unitTestStartedCallBack(VnV_Comm /** comm **/, std::string unitTestName)override;
-    void unitTestFinishedCallBack(VnV_Comm /** comm **/,IUnitTest *tester) override;
+  void unitTestStartedCallBack(VnV_Comm /** comm **/,
+                               std::string unitTestName) override;
+  void unitTestFinishedCallBack(VnV_Comm /** comm **/,
+                                IUnitTest* tester) override;
 
-    json getConfigurationSchema()override;
+  json getConfigurationSchema() override;
 
-    std::string print() override;
+  std::string print() override;
 
-    Nodes::IRootNode* readFromFile(std::string /**filename**/ )override;
+  Nodes::IRootNode* readFromFile(std::string /**filename**/) override;
 };
 
 OutputEngineManager* AdiosEngineBuilder();
 
-}
-}
-}
-#endif // ADIOSENGINEMANAGER_H
+}  // namespace Engines
+}  // namespace PACKAGENAME
+}  // namespace VnV
+#endif  // ADIOSENGINEMANAGER_H

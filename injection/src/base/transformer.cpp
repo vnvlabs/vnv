@@ -1,13 +1,7 @@
 
-#include <string>
 #include <map>
+#include <string>
+
 #include "interfaces/ITransform.h"
 
-
-namespace VnV {
-
-
-
-
-
-}
+namespace VnV {}

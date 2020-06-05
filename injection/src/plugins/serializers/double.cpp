@@ -5,8 +5,6 @@
 #include "VnV.h"
 #include "interfaces/ISerializer.h"
 
-INJECTION_SERIALIZER(doubleToString,double) {
-  return std::to_string(*ptr);
-}
+INJECTION_SERIALIZER(doubleToString, double) { return std::to_string(*ptr); }
 
 #endif

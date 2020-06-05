@@ -6,7 +6,6 @@
 #ifndef VVSERIALIZERS_H
 #define VVSERIALIZERS_H
 
-
 #include <map>
 #include <string>
 
@@ -15,10 +14,11 @@
 namespace VnV {
 
 class SerializerStore {
-
  private:
-  std::map<std::string, serializer_ptr* , std::less<std::string> > serializer_factory;
-  std::map<std::string, serializer_ptr*, std::less<std::string> > serializer_name;
+  std::map<std::string, serializer_ptr*, std::less<std::string> >
+      serializer_factory;
+  std::map<std::string, serializer_ptr*, std::less<std::string> >
+      serializer_name;
   SerializerStore();
 
  public:
@@ -30,10 +30,8 @@ class SerializerStore {
   static SerializerStore& getSerializerStore();
 
   void print();
-
-
 };
 
-}
+}  // namespace VnV
 
-#endif // VVSERIALIZERS_H
+#endif  // VVSERIALIZERS_H

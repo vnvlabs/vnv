@@ -7,6 +7,7 @@
 #ifndef _VV_DYNAMIC_H
 #define _VV_DYNAMIC_H
 #include <set>
+
 #include "json-schema.hpp"
 
 using nlohmann::json;
@@ -14,12 +15,11 @@ using nlohmann::json;
 typedef void (*registrationCallback)();
 
 namespace VnV {
-  namespace DistUtils {
+namespace DistUtils {
 struct libData {
-    std::vector<json> libs;
-    libData(){}
+  std::vector<json> libs;
+  libData() {}
 };
-
 
 void* loadLibrary(std::string libraryPath);
 registrationCallback searchLibrary(void* dllib, std::string packageName);
@@ -43,18 +43,15 @@ std::string getAbsolutePath(std::string realativeFileName);
  * @param callBack
  * @param data
  *
- * Function that iterates over all linked libries and extract library data about them.
+ * Function that iterates over all linked libries and extract library data about
+ * them.
  */
-void getAllLinkedLibraryData(libData *data);
+void getAllLinkedLibraryData(libData* data);
 
+void callAllLibraryRegistrationFunctions(
+    std::map<std::string, std::string> packageNames);
 
-void callAllLibraryRegistrationFunctions(std::map<std::string,std::string> packageNames);
+}  // namespace DistUtils
+}  // namespace VnV
 
-}
-}//namespace VnV
-
-#endif //VV_DYNAMIC_H
-
-
-
-
+#endif  // VV_DYNAMIC_H

@@ -11,8 +11,7 @@
  *
  * Macro magic will do the rest
  */
-#define VNV_INTERNAL_TRANSFORMS \
-  X(doubleToInt)
+#define VNV_INTERNAL_TRANSFORMS X(doubleToInt)
 
 /** you should not need to touch anything below here. Unless your
  * test didn't use the INJECTION_TEST macro to declare it.
@@ -23,11 +22,9 @@ VNV_INTERNAL_TRANSFORMS
 
 #define X(name) REGISTERTRANSFORM(name)
 namespace VnV {
- namespace Registration {
-  void RegisterBuiltinTransforms() {
-     VNV_INTERNAL_TRANSFORMS
-  }
- }
-}
+namespace Registration {
+void RegisterBuiltinTransforms() { VNV_INTERNAL_TRANSFORMS }
+}  // namespace Registration
+}  // namespace VnV
 #undef VNV_INTERNAL_TRANSFORMS
 #undef X

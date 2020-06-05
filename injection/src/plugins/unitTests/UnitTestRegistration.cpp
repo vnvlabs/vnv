@@ -12,8 +12,8 @@
  * Macro magic will do the rest
  */
 #define VNV_INTERNAL_UNITTESTS \
-  X(BFSTester) \
-  X(Demo) \
+  X(BFSTester)                 \
+  X(Demo)                      \
   X(Sample2)
 
 /** you should not need to touch anything below here. Unless your
@@ -25,11 +25,9 @@ VNV_INTERNAL_UNITTESTS
 
 #define X(name) REGISTERUNITTEST(name)
 namespace VnV {
- namespace Registration {
-  void RegisterBuiltinUnitTests() {
-     VNV_INTERNAL_UNITTESTS
-  }
- }
-}
+namespace Registration {
+void RegisterBuiltinUnitTests() { VNV_INTERNAL_UNITTESTS }
+}  // namespace Registration
+}  // namespace VnV
 #undef VNV_INTERNAL_UNITTESTS
 #undef X

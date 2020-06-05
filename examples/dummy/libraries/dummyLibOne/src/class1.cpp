@@ -9,9 +9,11 @@ int class1::function1(int x) {
   double intersection = 3;
   double value = 0;
 
-  auto a = VnV_BeginStage("An example of a third party library using the VnV logging capabilities");
+  auto a = VnV_BeginStage(
+      "An example of a third party library using the VnV logging capabilities");
 
-  INJECTION_LOOP_BEGIN(VnV_Comm_Self,Hello_temp_sub,slope,intersection,x,value);
+  INJECTION_LOOP_BEGIN(VnV_Comm_Self, Hello_temp_sub, slope, intersection, x,
+                       value);
 
   value = slope * x + intersection;
 
@@ -21,4 +23,3 @@ int class1::function1(int x) {
 
   return static_cast<int>(value);
 }
-
