@@ -13,19 +13,19 @@ class DataTypeCommunication {
 
   IStatus_ptr Wait(IRequest_ptr ptr);
   IStatus_vec WaitAll(IRequest_vec& vec);
-  std::pair<IStatus_vec, int> WaitAny(IRequest_vec& vec);
+  std::pair<IStatus_ptr, int> WaitAny(IRequest_vec& vec);
   std::pair<IStatus_ptr, int> Test(IRequest_ptr ptr);
-  std::vector<std::pair<IStatus_ptr, int>> TestAll(IRequest_vec& vec);
-  std::pair<std::vector<std::pair<IStatus_ptr, int>>, int> TestAny(
+  std::pair<IStatus_vec, int> TestAll(IRequest_vec& vec);
+  std::tuple<IStatus_ptr, int, int> TestAny(
       IRequest_vec& vec);
 
-  ISendRequest_ptr Send(IDataType_vec& data, int dest, int tag, bool blocking);
+  IRequest_ptr Send(IDataType_vec& data, int dest, int tag, bool blocking);
 
   std::pair<IDataType_vec, IStatus_ptr> Recv(int count, long long dataType,
                                              int dest, int tag);
 
   // Recieve a data type when size and count are known.
-  IRecvRequest_ptr IRecv(int count, long long dataType, int dest, int tag);
+  IRequest_ptr IRecv(int count, long long dataType, int dest, int tag);
 
   // Recv an arbitary data type without knowing what it is.
   std::pair<IDataType_vec, IStatus_ptr> Recv(int dest, int tag);

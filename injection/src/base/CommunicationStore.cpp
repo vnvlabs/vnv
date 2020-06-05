@@ -16,7 +16,7 @@ long long CommunicationStore::getKey(IDataType_ptr ptr) {
 }
 
 void CommunicationStore::addCommunicator(std::string packageName,
-                                         std::string name, comm_factory m) {
+                                         std::string name, comm_register_ptr m) {
   communicator_factory.insert(std::make_pair(getKey(packageName, name), m));
 }
 
@@ -26,7 +26,7 @@ void CommunicationStore::addReduction(std::string packageName, std::string name,
 }
 
 void CommunicationStore::addDataType(std::string packageName, std::string name,
-                                     datatype_ptr m) {
+                                     dataType_ptr m) {
   dataType_factory.insert(std::make_pair(getKey(packageName, name), m));
 }
 

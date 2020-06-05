@@ -374,6 +374,9 @@ class RegistrationWriter {
     registerHelper(j, "UnitTests", "UNITTEST", packageName);
     registerHelper(j, "Serializers", "SERIALIZER", packageName);
     registerHelper(j, "Transforms", "TRANSFORM", packageName);
+    registerHelper(j, "Comms", "COMM", packageName);
+    registerHelper(j, "Reducers", "REDUCER", packageName);
+    registerHelper(j, "DataTypes", "DATATYPE", packageName);
 
     if (j.contains("LogLevels")) {
       for (auto it : j["LogLevels"].items()) {
@@ -566,6 +569,15 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     } else if (nae == "INJECTION_ENGINE") {
       json& jj = getDef("Engines", Args->getUnexpArgument(0));
       jj["docs"] = getDocs(Range);
+    } else if (nae == "INJECTION_DATATYPE") {
+      json& jj = getDef("DataTypes", Args->getUnexpArgument(0));
+      jj["docs"] = getDocs(Range);
+    }  else if (nae == "INJECTION_REDUCER") {
+      json& jj = getDef("Reducers", Args->getUnexpArgument(0));
+      jj["docs"] = getDocs(Range);
+    } else if (nae == "INJECTION_COMM") {
+      json& jj = getDef("Comms", Args->getUnexpArgument(0));
+      jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
       json& jj = getDef("InjectionPoints", Args->getUnexpArgument(1));
       json& stages = getOrCreate(jj, "stages");
@@ -740,7 +752,7 @@ void writeFileAndCache(json& cacheInfo, std::string outputFileName,
 
       for (std::string type :
            {"InjectionPoints", "SubPackages", "LogLevels", "Tests", "Engines",
-            "Serializers", "Transforms", "UnitTests"}) {
+            "Comms", "Reducers", "DataTypes", "Serializers", "Transforms", "UnitTests"}) {
         addAll(getOrCreate(finalJson, type), getOrCreate(it.value(), type));
       }
       if (it.value().contains("Options")) {

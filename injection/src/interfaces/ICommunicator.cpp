@@ -8,8 +8,8 @@ VnV::Communication::IRequest::~IRequest() {
   }
 }
 
-VnV::Communication::IDataType_vec VnV::Communication::IRecvRequest::unpack() {
-  if (ready && buffer) {
+VnV::Communication::IDataType_vec VnV::Communication::IRequest::unpack() {
+  if (ready && buffer && recv) {
     long long* buff = (long long*)buffer;
     long long dataType = buff[0];
     IDataType_vec vec;
@@ -30,8 +30,8 @@ VnV::Communication::IDataType_vec VnV::Communication::IRecvRequest::unpack() {
     return results;
   } else {
     throw VnV::VnVExceptionBase(
-        "Attempted to unpack RecvRequest that was not marked ready or already "
-        "unpacked.");
+        "Attempted to unpack Request that was not marked ready or already "
+        "unpacked or not a recv");
   }
 }
 
@@ -61,6 +61,8 @@ void VnV::Communication::OpTypeEncodedReduction(void* invec, void* outvec,
     reducer->reduce(in, out)->pack(&(buff[2]));
   }
 }
+VnV::Communication::IStatus::~IStatus(){}
+
 
 long long VnV::Communication::IReduction::getKey() { return key; }
 
@@ -71,3 +73,15 @@ void VnV::Communication::IDataType::setKey(long long key) { this->key = key; }
 long long VnV::Communication::IDataType::getKey() { return key; }
 
 VnV::Communication::IDataType::~IDataType() {}
+
+void VnV::Communication::registerCommunicator(std::string packageName, std::string name, VnV::Communication::comm_register_ptr ptr) {
+   VnV::CommunicationStore::instance().addCommunicator(packageName, name, ptr);
+}
+
+void VnV::Communication::registerReduction(std::string packageName, std::string name, VnV::Communication::reduction_ptr ptr) {
+  CommunicationStore::instance().addReduction(packageName, name, ptr);
+}
+
+void VnV::Communication::registerDataType(std::string packageName, std::string name, VnV::Communication::dataType_ptr ptr) {
+  VnV::CommunicationStore::instance().addDataType(packageName, name, ptr);
+}

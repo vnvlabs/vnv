@@ -24,7 +24,7 @@ IStatus_vec DataTypeCommunication::WaitAll(IRequest_vec& vec) {
   return s;
 }
 
-std::pair<IStatus_vec, int> DataTypeCommunication::WaitAny(IRequest_vec& vec) {
+std::pair<IStatus_ptr, int> DataTypeCommunication::WaitAny(IRequest_vec& vec) {
   auto s = comm->WaitAny(vec);
   vec[s.second]->ready = true;
   return s;
@@ -38,27 +38,27 @@ std::pair<IStatus_ptr, int> DataTypeCommunication::Test(IRequest_ptr ptr) {
   return s;
 }
 
-std::vector<std::pair<IStatus_ptr, int> > DataTypeCommunication::TestAll(
+std::pair<IStatus_vec, int> DataTypeCommunication::TestAll(
     IRequest_vec& vec) {
   auto s = comm->TestAll(vec);
-  for (int i = 0; i < s.size(); i++) {
-    if (s[i].second) vec[i]->ready = true;
-  }
-  return s;
-}
-
-std::pair<std::vector<std::pair<IStatus_ptr, int> >, int>
-DataTypeCommunication::TestAny(IRequest_vec& vec) {
-  auto s = comm->TestAny(vec);
-  for (int i = 0; i < s.first.size(); i++) {
-    if (s.first[i].second) {
-      vec[i]->ready = true;
+  if ( s.second ) {
+    for (int i = 0; i < s.first.size(); i++) {
+       vec[i]->ready = true;
     }
   }
   return s;
 }
 
-ISendRequest_ptr DataTypeCommunication::Send(IDataType_vec& data, int dest,
+std::tuple<IStatus_ptr, int, int>
+DataTypeCommunication::TestAny(IRequest_vec& vec) {
+  auto s = comm->TestAny(vec);
+  if ( std::get<2>(s) ) {
+     vec[std::get<1>(s)]->ready = true;
+  }
+  return s;
+}
+
+IRequest_ptr DataTypeCommunication::Send(IDataType_vec& data, int dest,
                                              int tag, bool blocking) {
   long dataSize = data[0]->maxSize() + sizeof(long long);
   char* buffer = (char*)malloc(dataSize * data.size());
@@ -72,7 +72,7 @@ ISendRequest_ptr DataTypeCommunication::Send(IDataType_vec& data, int dest,
     comm->Send(buffer, data.size(), dest, tag, dataSize);
     return nullptr;
   } else {
-    ISendRequest_ptr ptr =
+    IRequest_ptr ptr =
         comm->ISend(buffer, data.size(), dest, tag, dataSize);
     ptr->buffer = buffer;  // set the buffer so we can free on destruction.
     return ptr;
@@ -98,14 +98,15 @@ std::pair<IDataType_vec, IStatus_ptr> DataTypeCommunication::Recv(
   return std::make_pair(results, status);
 }
 
-IRecvRequest_ptr DataTypeCommunication::IRecv(int count, long long dataType,
+IRequest_ptr DataTypeCommunication::IRecv(int count, long long dataType,
                                               int dest, int tag) {
   IDataType_ptr dptr = CommunicationStore::instance().getDataType(dataType);
   long dataSize = dptr->maxSize() + sizeof(long long);
   char* buffer = (char*)malloc(count * dataSize);
-  IRecvRequest_ptr ptr = comm->IRecv(buffer, count, dest, tag, dataSize);
+  IRequest_ptr ptr = comm->IRecv(buffer, count, dest, tag, dataSize);
   ptr->buffer = buffer;
   ptr->count = count;
+  ptr->recv = true;
   return ptr;
 }
 
