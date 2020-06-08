@@ -26,8 +26,6 @@ public:
 
 class MPICommunicator : public ICommunicator {
 
-
-
   static int destMap(int dest) {
      return (dest < 0 ) ? MPI_ANY_SOURCE : dest;
   }
@@ -112,6 +110,10 @@ class MPICommunicator : public ICommunicator {
   // ICommunicator interface
 public:
   MPI_Comm comm;
+
+  int setData(void* data) override {
+    comm = *((MPI_Comm*) data);
+  }
 
   int Size() { int x; MPI_Comm_size(comm,&x); return x;}
 

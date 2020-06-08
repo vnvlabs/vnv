@@ -51,17 +51,31 @@ template <typename Runner> class UnitTester_T : public IUnitTest {
 
 }  // namespace VnV
 
-#define TEST_ASSERT_EQUALS(name, expected, got)                    \
-  {                                                                \
-    if (!((got) == (expected))) {                                  \
-      std::stringstream tmpstream;                                 \
-      tmpstream << "Got " << (got) << ", expected " << (expected); \
-      results.emplace_back((name), tmpstream.str(), false);        \
-      if (!continue_on_fail) throw std::runtime_error((name));     \
-    } else {                                                       \
-      results.emplace_back((name), "", true);                      \
-    }                                                              \
-  }
+#define TEST_ASSERT_EQUALS(name, expected, got)                         \
+    {                                                                   \
+        if (!((got) == (expected)))                                     \
+        {                                                               \
+            std::stringstream tmpstream;                                \
+            tmpstream << "Got " << (got) << ", expected " << (expected);\
+            results.emplace_back((name), tmpstream.str(), false);       \
+            if (!continue_on_fail) throw std::runtime_error((name));    \
+        } else {                                                        \
+            results.emplace_back((name), "", true);                     \
+        }                                                               \
+    }
+
+#define TEST_ASSERT_NOT_EQUALS(name, expected, got)                         \
+    {                                                                   \
+        if (((got) == (expected)))                                      \
+        {                                                               \
+            std::stringstream tmpstream;                                \
+            tmpstream << "Got " << (got) << ", expected " << (expected);\
+            results.emplace_back((name), tmpstream.str(), false);       \
+            if (!continue_on_fail) throw std::runtime_error((name));    \
+        } else {                                                        \
+            results.emplace_back((name), "", true);                     \
+        }                                                               \
+    }
 
 #define INJECTION_UNITTEST_R(name, Runner)                              \
   namespace VnV {                                                       \
@@ -81,11 +95,11 @@ template <typename Runner> class UnitTester_T : public IUnitTest {
 
 #define INJECTION_UNITTEST(name, ...) INJECTION_UNITTEST_R(name, int)
 
-#define INJECTION_UNITTEST_RAW(name)                 \
+#define INJECTION_UNITTEST_RAW(name,cls)                 \
   namespace VnV {                                    \
   namespace PACKAGENAME {                            \
   namespace UnitTests {                              \
-  IUnitTest* declare_##name() { return new name(); } \
+  IUnitTest* declare_##name() { return new cls(); } \
   void registerUnitTests_##name() {                  \
     registerUnitTester(#name, declare_##name);       \
   }                                                  \

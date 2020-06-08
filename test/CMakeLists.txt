@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(test-runner)
 target_sources(test-runner PRIVATE "test-runner.cpp")
-#<needle>
+add_subdirectory(unit-tests)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/test-config.json ${CMAKE_CURRENT_BINARY_DIR}/test-config.json COPYONLY)
 register_and_link_vnv_cpp(test-runner TestRunner ${PROJECT_SOURCE_DIR}/registration/)

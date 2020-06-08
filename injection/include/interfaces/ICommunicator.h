@@ -92,6 +92,9 @@ class IDataType {
 
 class ICommunicator {
  public:
+
+  virtual int setData(void* data)= 0; // The communicator passed in.
+
   virtual int Size() = 0;
   virtual int Rank() = 0;
   virtual void Barrier() = 0;
@@ -163,6 +166,9 @@ void registerReduction(std::string packageName, std::string name, VnV::Communica
 }  // namespace Communication
 
 }  // namespace VnV
+
+
+
 
 #define INJECTION_COMM(name)                                      \
   namespace VnV {                                                   \

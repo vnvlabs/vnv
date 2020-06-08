@@ -10,10 +10,25 @@
 
 #define PACKAGENAME_FOUND PACKAGENAME
 
+#ifdef __cplusplus
+#define VNVNULL nullptr
+#else
+#include <stddef.h>
+#define VNVNULL NULL
+#endif
+
 struct VnV_Comm_ {
-  void* MPI;  // TODO
+  const char* package;
+  const char* name; // Name of the MPI COMM.
+  void* data = VNVNULL;
+  int type = 0;
 };
 typedef struct VnV_Comm_ VnV_Comm;
+
+
+#define VnV_Comm_World(name) {#name, NULL, 0}
+#define VnV_Comm_Self(name) {#name, NULL, 1}
+#define VComm(name,comm) {#name, &comm, 2}
 
 static VnV_Comm VnV_Comm_Self = {};
 static VnV_Comm VnV_Comm_World = {};

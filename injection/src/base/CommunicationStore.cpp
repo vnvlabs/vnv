@@ -75,6 +75,16 @@ ICommunicator_ptr CommunicationStore::getCommunicator(long long key,
   throw VnV::VnVExceptionBase("Un supported Data Type)");
 }
 
+Communication::ICommunicator_ptr CommunicationStore::getCommunicator(VnV_Comm comm) {
+  std::string key = std::string(comm.package) +":" +  std::string(comm.name);
+  CommType t = (comm.type==0) ? CommType::World : (comm.type==1) ? CommType::Self : CommType::Default ;
+  auto s = getCommunicator(comm.package, comm.name, t);
+  if (t == CommType::Default) {
+      s->setData(comm.data);
+    }
+  return s;
+}
+
 CommunicationStore& CommunicationStore::instance() {
   static CommunicationStore store;
   return store;

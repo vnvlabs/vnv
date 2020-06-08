@@ -1,8 +1,8 @@
 ﻿/** @file vv-debug-engine.cpp **/
 
 #include "plugins/engines/ParallelOutputEngine/ParallelOutputEngineImpl.h"
-
-#include <mpi.h>
+#include "c-interfaces/Logging.h"
+#include <iostream>
 #include <unistd.h>
 
 #include <iostream>

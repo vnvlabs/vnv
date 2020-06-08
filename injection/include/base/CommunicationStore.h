@@ -4,6 +4,7 @@
 #include <type_traits>
 
 #include "interfaces/ICommunicator.h"
+#include "c-interfaces/PackageName.h"
 
 using VnV::Communication::ICommunicator;
 using VnV::Communication::ICommunicator_ptr;
@@ -51,6 +52,8 @@ class CommunicationStore {
                                     CommType type);
 
   ICommunicator_ptr getCommunicator(long long key, CommType type);
+
+  ICommunicator_ptr getCommunicator(VnV_Comm comm);
 
   static CommunicationStore& instance();
 };
