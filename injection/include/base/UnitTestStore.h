@@ -9,6 +9,7 @@
 #include <string>
 
 #include "c-interfaces/PackageName.h"
+#include "c-interfaces/Communication.h"
 #include "interfaces/IUnitTest.h"
 
 namespace VnV {

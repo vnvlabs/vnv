@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(sample.a "sample.cpp")
 register_and_link_vnv_cpp(sample.a SampleExecutable ${PROJECT_SOURCE_DIR}/registration/)
-target_link_libraries(sample.a dummyLibOne dummyLibTwo)
+target_link_libraries(sample.a PRIVATE dummyLibOne dummyLibTwo)
 
 add_executable(read.a "read.cpp")
 register_and_link_vnv_cpp(read.a SampleReader ${PROJECT_SOURCE_DIR}/registration/)

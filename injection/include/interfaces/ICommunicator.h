@@ -4,6 +4,8 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include "c-interfaces/PackageName.h"
+#include "c-interfaces/Communication.h"
 
 namespace VnV {
 namespace Communication {
@@ -50,7 +52,7 @@ enum class OpType {
   ENCODED_COMMUTE,
   ENCODED_NONCOMMUTE
 };
-static void OpTypeEncodedReduction(void* invec, void* outvec, int* len);
+void OpTypeEncodedReduction(void* invec, void* outvec, int* len);
 
 class ICommunicator;
 typedef std::shared_ptr<ICommunicator> ICommunicator_ptr;
@@ -83,17 +85,25 @@ class IDataType {
   virtual void setData(void* data) = 0;  // set from a raw pointer to the data.
   virtual void axpy(double alpha, IDataType* y) = 0;  // y = ax + y
   virtual int compare(IDataType* y) = 0;  // -1 less, 0 == , 1 greater.
-
+  virtual void mult(IDataType* y)=0;
   void setKey(long long key);
   long long getKey();
 
   virtual ~IDataType();
 };
 
+// Enum class to describe the different return types for a comm compare.
+// Exact means the comms have same contexts and groups
+// Group means different contexts but same groups
+// SIMILAR means different contexts but similar (same proces different order) groups
+// UN equal -- not the same.
+enum class MPICompareType { EXACT, GROUP, SIMILAR, UNEQUAL };
+
 class ICommunicator {
  public:
 
   virtual int setData(void* data)= 0; // The communicator passed in.
+  virtual void* getData() = 0;
 
   virtual int Size() = 0;
   virtual int Rank() = 0;
@@ -106,6 +116,11 @@ class ICommunicator {
   virtual ICommunicator_ptr split(int color, int key) = 0;
   virtual ICommunicator_ptr create(std::vector<int>& ranks, int stride) = 0;
   virtual ICommunicator_ptr create(int start, int end, int stride, int tag) = 0;
+
+  virtual MPICompareType compare(ICommunicator_ptr ptr)=0;
+  virtual bool contains(ICommunicator_ptr) = 0;
+
+
 
   virtual void Send(void* buffer, int count, int dest, int tag,
                     int dataTypeSize) = 0;
@@ -173,23 +188,23 @@ void registerReduction(std::string packageName, std::string name, VnV::Communica
 #define INJECTION_COMM(name)                                      \
   namespace VnV {                                                   \
   namespace PACKAGENAME {                                           \
-  namespace Commuicators {                                               \
+  namespace Communication {                                               \
   VnV::Communication::ICommunicator* declare_##name(CommType type);                            \
   void register_##name() { VnV::Communication::registerCommunicator(PACKAGENAME_S, #name, declare_##name); } \
   }                                                                 \
   }                                                                 \
   }                                                                 \
-  VnV::Communication::ICommunicator* VnV::PACKAGENAME::Communicators::declare_##name(CommType type)
+  VnV::Communication::ICommunicator* VnV::PACKAGENAME::Communication::declare_##name(CommType type)
 
 #define DECLARECOMM(name) \
   namespace VnV {           \
   namespace PACKAGENAME {   \
-  namespace Communicators {       \
+  namespace Communication {       \
   void register_##name();   \
   }                         \
   }                         \
   }
-#define REGISTERCOMM(name) VnV::PACKAGENAME::Communicators::register_##name();
+#define REGISTERCOMM(name) VnV::PACKAGENAME::Communication::register_##name();
 
 
 #define INJECTION_DATATYPE(name)                                      \

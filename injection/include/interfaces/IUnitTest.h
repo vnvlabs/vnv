@@ -100,7 +100,7 @@ template <typename Runner> class UnitTester_T : public IUnitTest {
   namespace PACKAGENAME {                            \
   namespace UnitTests {                              \
   IUnitTest* declare_##name() { return new cls(); } \
-  void registerUnitTests_##name() {                  \
+  void register_##name() {                  \
     registerUnitTester(#name, declare_##name);       \
   }                                                  \
   }                                                  \

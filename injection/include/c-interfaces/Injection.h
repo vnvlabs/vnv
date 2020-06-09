@@ -4,6 +4,7 @@
 #ifndef WITHOUT_VNV
 
 #  include "c-interfaces/PackageName.h"
+#  include "c-interfaces/Communication.h"
 #  include "c-interfaces/Wrappers.h"
 
 typedef void (*vnv_registration_function)();

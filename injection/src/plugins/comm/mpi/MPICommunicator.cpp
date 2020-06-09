@@ -114,6 +114,9 @@ public:
   int setData(void* data) override {
     comm = *((MPI_Comm*) data);
   }
+  void* getData() {
+    return &comm;
+  }
 
   int Size() { int x; MPI_Comm_size(comm,&x); return x;}
 
@@ -164,6 +167,33 @@ public:
     MPI_Group_range_incl(group, 1, range, &newGroup);
     MPI_Comm_create_group(comm, newGroup, tagMap(tag), &(p->comm));
     return ICommunicator_ptr(p);
+  }
+
+  MPICompareType compare(ICommunicator_ptr ptr){
+    int flag;
+    MPI_Comm *other = (MPI_Comm*) ptr->getData();
+    MPI_Comm_compare(comm,*other, &flag);
+    switch (flag) {
+      case MPI_IDENT: return MPICompareType::EXACT;
+      case MPI_CONGRUENT: return MPICompareType::GROUP;
+      case MPI_SIMILAR: return MPICompareType::SIMILAR;
+      case MPI_UNEQUAL: return MPICompareType::UNEQUAL;
+    }
+    return MPICompareType::UNEQUAL;
+  }
+
+  // Return true if communicator is entirly contained in this communicator.
+  bool contains(ICommunicator_ptr ptr) {
+     // If that comm is contained in this comm, then the intersection
+     // between that comm and this comm with be equal to that comm;
+     MPI_Group me, them, intersect;
+     MPI_Comm *other = (MPI_Comm*) ptr->getData();
+     MPI_Comm_group(comm,&me);
+     MPI_Comm_group(*other,&them);
+     MPI_Group_intersection(me,them,&intersect);
+     int contained;
+     MPI_Group_compare(them,intersect,&contained);
+     return contained != MPI_UNEQUAL;
   }
 
   void Send(void *buffer, int count, int dest, int tag, int dataTypeSize) {
@@ -329,3 +359,6 @@ public:
   }
 
 };
+INJECTION_COMM(mpi) {
+  return new MPICommunicator();
+}

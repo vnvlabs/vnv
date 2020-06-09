@@ -1,5 +1,5 @@
-﻿#ifndef COMMUNICATION_H
-#define COMMUNICATION_H
+﻿#ifndef COMMUNICATION_RUNTIME_H
+#define COMMUNICATION_RUNTIME_H
 #include "interfaces/ICommunicator.h"
 
 namespace VnV {

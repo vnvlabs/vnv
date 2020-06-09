@@ -16,7 +16,7 @@ template <typename T> class f {
   T gg;
   int ggg;
   int getF(int t) {
-    INJECTION_POINT(VnV_Comm_Self, sdfsdf, ff, gg, ggg);
+    INJECTION_POINT(VSELF, sdfsdf, ff, gg, ggg);
     return 1;
   }
 };
@@ -49,7 +49,7 @@ INJECTION_TEST(sampleTest, std::vector<double> vals) {
 }
 
 template <typename T, typename X> int templateFnc(int x, T y, X xx) {
-  INJECTION_POINT(VnV_Comm_Self, templateFn, x, y, xx);
+  INJECTION_POINT(VSELF, templateFn, x, y, xx);
   return 0;
 }
 
@@ -58,7 +58,7 @@ class test1 {
   int function1(int x) {
     std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
 
-    INJECTION_LOOP_BEGIN(VnV_Comm_Self, Function1Class1, samplePoints,
+    INJECTION_LOOP_BEGIN(VWORLD, Function1Class1, samplePoints,
                          samplePoints1, samplePoints3)
     for (int i = 0; i < 10; i++) {
       samplePoints.push_back(i);
@@ -76,7 +76,7 @@ class test1 {
 int function1(int x) {
   std::map<double, double> samplePoints;
 
-  INJECTION_LOOP_BEGIN(VnV_Comm_Self, Function1, samplePoints)
+  INJECTION_LOOP_BEGIN(VSELF, Function1, samplePoints)
   for (int i = 0; i < 10; i++) {
     samplePoints[i] = i;
     INJECTION_LOOP_ITER(Function1, inner)

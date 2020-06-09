@@ -14,6 +14,7 @@
 #include <string>
 
 #include "c-interfaces/PackageName.h"
+#include "c-interfaces/Communication.h"
 
 #define MAXSAVED_LOGS 1024
 

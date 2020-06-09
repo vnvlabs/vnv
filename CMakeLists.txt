@@ -71,7 +71,7 @@ endfunction()
 function(register_and_link_vnv targetName packageName distPath extension)
      generate_vnv_registration(${targetName} ${packageName} ${distPath} ${extension} )
      target_compile_definitions(${targetName} PRIVATE -DPACKAGENAME=${packageName} )
-     target_link_libraries(${targetName} Injection::Injection)
+     target_link_libraries(${targetName} PRIVATE Injection::Injection)
 endfunction()
 
 function(register_and_link_vnv_c targetName packageName distPath)

@@ -1,7 +1,8 @@
-#ifndef WRAPPERS_H
+﻿#ifndef WRAPPERS_H
 #define WRAPPERS_H
 
 #include "c-interfaces/PackageName.h"
+#include "c-interfaces/Communication.h"
 
 // Define an interface for the OutputEngineWrapper
 struct IOutputEngineWrapper {

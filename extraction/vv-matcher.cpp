@@ -420,6 +420,23 @@ class RegistrationWriter {
         if (packageName == pname) break;
       }
     }
+
+    if (j.contains("Communicator")) {
+        for (auto it : j["Communicator"].items()) {
+           std::string pname = it.key();
+           if (packageName.empty() || pname == packageName) {
+              createPackageOss(pname);
+              oss_register[pname] << "\tVnV_Declare_Communicator("
+                                  << pname << ","
+                                  << it.value()["package"].get<std::string>() << ","
+                                  << it.value()["name"].get<std::string>() << ")\n";
+          pjson[pname]["Communicator"] = it.value();
+        }
+        if (packageName == pname) break;
+
+        }
+    }
+
     // Catch the injection points
     if (j.contains("InjectionPoints")) {
       for (auto it : j["InjectionPoints"].items()) {
@@ -578,6 +595,11 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     } else if (nae == "INJECTION_COMM") {
       json& jj = getDef("Comms", Args->getUnexpArgument(0));
       jj["docs"] = getDocs(Range);
+    } else if ( nae == "INJECTION_COMMUNICATOR") {
+        json& jj = getOrCreate(thisJson,"Communicator");
+        jj["docs"] = getDocs(Range);
+        jj["package"] = pp.getSpelling(*Args->getUnexpArgument(0));
+        jj["name"] = pp.getSpelling(*Args->getUnexpArgument(1));
     } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
       json& jj = getDef("InjectionPoints", Args->getUnexpArgument(1));
       json& stages = getOrCreate(jj, "stages");
@@ -758,6 +780,10 @@ void writeFileAndCache(json& cacheInfo, std::string outputFileName,
       if (it.value().contains("Options")) {
         std::string pname = it.value()["packageName"].get<std::string>();
         getOrCreate(finalJson, "Options")[pname] = it.value()["Options"];
+      }
+      if (it.value().contains("Communicator")) {
+        std::string pname = it.value()["packageName"].get<std::string>();
+        getOrCreate(finalJson, "Communicator")[pname] = it.value()["Communicator"];
       }
     }
 

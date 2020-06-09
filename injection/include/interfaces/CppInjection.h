@@ -8,6 +8,7 @@
 #  include <string>
 
 #  include "c-interfaces/PackageName.h"
+#  include "c-interfaces/Communication.h"
 #  include "interfaces/IOutputEngine.h"
 #  include "interfaces/ITest.h"
 #  include "json-schema.hpp"

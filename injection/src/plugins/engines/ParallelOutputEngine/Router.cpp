@@ -1,4 +1,4 @@
-/*
+﻿/*
  * router.cpp
  *
  */
@@ -18,7 +18,7 @@ int Router::parent_of(int id, int root, int fanout) {
 }
 
 Route Router::children_of(int id, int root, int fanout) {
-    Route children;
+  Route children;
     int mid = modulo(id - root, m_size);
 
     for (int c = 1; c <= m_fanout; c++) {
@@ -28,9 +28,7 @@ Route Router::children_of(int id, int root, int fanout) {
         }
         children.set(modulo(child + root, m_size));
     }
-    children.set(child);
-  }
-  return children;
+    return children;
 }
 
 // Send to my parent
@@ -122,9 +120,8 @@ int Router::forward() {
             }
 #endif /* WITH_MPI */
         }
-      }
     }
-  }
+
 
   // Send all distinct messages from hash to parent
   for (auto name_it = put_map.begin(); name_it != put_map.end(); name_it++) {

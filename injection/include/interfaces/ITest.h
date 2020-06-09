@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 
+#include "c-interfaces/Communication.h"
 #include "base/TransformStore.h"
 #include "base/Utilities.h"
 #include "base/exceptions.h"

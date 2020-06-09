@@ -4,6 +4,7 @@
 #ifndef WITHOUT_VNV
 
 #  include "c-interfaces/PackageName.h"
+#  include "c-interfaces/Communication.h"
 
 // IF LOGGING IS TURNED ON.
 #  ifndef WITHOUT_LOGGING
@@ -47,13 +48,13 @@ VNVEXTERNC void _VnV_EndStage(VnV_Comm comm, int ref);
       _VnV_BeginStage(comm, PACKAGENAME_S, __VA_ARGS__)
 #    define VnV_EndStage_MPI(comm, ref) _VnV_EndStage(comm, ref)
 
-#    define VnV_Debug(...) VnV_Debug_MPI(VnV_Comm_Self, __VA_ARGS__)
-#    define VnV_Warn(...) VnV_Warn_MPI(VnV_Comm_Self, __VA_ARGS__)
-#    define VnV_Error(...) VnV_Error_MPI(VnV_Comm_Self, __VA_ARGS__)
-#    define VnV_Info(...) VnV_Info_MPI(VnV_Comm_Self, __VA_ARGS__)
-#    define VnV_Log(...) VnV_Log_MPI(VnV_Comm_Self, __VA_ARGS__)
-#    define VnV_BeginStage(...) VnV_BeginStage_MPI(VnV_Comm_Self, __VA_ARGS__)
-#    define VnV_EndStage(...) VnV_EndStage_MPI(VnV_Comm_Self, __VA_ARGS__)
+#    define VnV_Debug(...) VnV_Debug_MPI(VWORLD, __VA_ARGS__)
+#    define VnV_Warn(...) VnV_Warn_MPI(VWORLD, __VA_ARGS__)
+#    define VnV_Error(...) VnV_Error_MPI(VWORLD, __VA_ARGS__)
+#    define VnV_Info(...) VnV_Info_MPI(VWORLD, __VA_ARGS__)
+#    define VnV_Log(...) VnV_Log_MPI(VWORLD, __VA_ARGS__)
+#    define VnV_BeginStage(...) VnV_BeginStage_MPI(VWORLD, __VA_ARGS__)
+#    define VnV_EndStage(...) VnV_EndStage_MPI(VWORLD, __VA_ARGS__)
 
 #  else
 #    define VnV_Debug(...)

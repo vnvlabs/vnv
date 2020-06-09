@@ -19,6 +19,7 @@
 #include "base/TestStore.h"
 #include "base/UnitTestStore.h"
 #include "c-interfaces/Logging.h"
+#include "base/CommunicationStore.h"
 
 using namespace VnV;
 
@@ -166,6 +167,10 @@ void RunTime::injectionPoint_end(std::string pname, std::string id) {
   }
 }
 
+void RunTime::declareCommunicator(std::string packageName, std::string commpack, std::string communicator) {
+  CommunicationStore::instance().declareComm(packageName, commpack, communicator);
+}
+
 void RunTime::declarePackageJson(std::string pname,
                                  vnvFullJsonStrCallback callback) {
   jsonCallbacks.insert(std::make_pair(pname, callback));
@@ -267,17 +272,20 @@ bool initMPI(int* argc, char*** argv) {
 bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
                            json& config, registrationCallBack* callback) {
   mainPackageName = packageName;
-  finalize_mpi = initMPI(argc, argv);
+  //finalize_mpi = initMPI(argc, argv); // The MPI Comm should check the MPI is init and throw if not.
 
   JsonParser parser;
   RunInfo info = parser.parse(config);
-  runTests = configure(info, callback);
+  runTests = configure(packageName,info, callback);
 
   /**
    * Injection point documentation.
    **/
+
+  VnV_Comm comm = CommunicationStore::instance().worldData(packageName);
+
   INJECTION_LOOP_BEGIN_C(
-      VnV_Comm_World, initialization,
+      comm, initialization,
       [&](VnV_Comm comm, VnVParameterSet& p, OutputEngineManager* engine) {
         for (auto it : p) {
           std::string t =
@@ -309,13 +317,13 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv,
   return InitFromJson(packageName, argc, argv, mainJson, callback);
 }
 
-bool RunTime::configure(RunInfo info, registrationCallBack* callback) {
+bool RunTime::configure(std::string packageName, RunInfo info, registrationCallBack* callback) {
   runTests = info.runTests;
   if (runTests) {
     loadRunInfo(info, callback);
 
     if (info.unitTestInfo.runUnitTests) {
-      runUnitTests(VnV_Comm_World);
+      runUnitTests(VnV_Comm_World(packageName.c_str()));
     }
 
   } else if (info.error) {
@@ -344,6 +352,10 @@ bool RunTime::Finalize() {
   if (runTests) {
     INJECTION_LOOP_END(initialization);
     OutputEngineStore::getOutputEngineStore().getEngineManager()->finalize();
+  }
+  return true;
+}
+    /* Lets make it a requirement that MPI_Init is called before we use it.
 #ifdef WITH_MPI
     if (finalize_mpi) {
       int flag = 0;
@@ -356,7 +368,7 @@ bool RunTime::Finalize() {
     return true;
   }
   return true;
-}
+} */
 
 bool RunTime::isRunTests() { return runTests; }
 
