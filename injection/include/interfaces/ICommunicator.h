@@ -97,13 +97,20 @@ class IDataType {
 // Group means different contexts but same groups
 // SIMILAR means different contexts but similar (same proces different order) groups
 // UN equal -- not the same.
-enum class MPICompareType { EXACT, GROUP, SIMILAR, UNEQUAL };
+enum class CommCompareType { EXACT, GROUP, SIMILAR, UNEQUAL };
 
 class ICommunicator {
- public:
+private:
+  std::string packageName;
+public:
+  void setPackage(std::string package);
+  std::string getPackage();
+  VnV_Comm asComm();
 
   virtual int setData(void* data)= 0; // The communicator passed in.
   virtual void* getData() = 0;
+
+  virtual int uniqueId() = 0; //Unique id such that the same comm data returns the same comm.
 
   virtual int Size() = 0;
   virtual int Rank() = 0;
@@ -114,10 +121,10 @@ class ICommunicator {
 
   virtual ICommunicator_ptr duplicate() = 0;
   virtual ICommunicator_ptr split(int color, int key) = 0;
-  virtual ICommunicator_ptr create(std::vector<int>& ranks, int stride) = 0;
+  virtual ICommunicator_ptr create(std::vector<int>& ranks, int tag) = 0;
   virtual ICommunicator_ptr create(int start, int end, int stride, int tag) = 0;
 
-  virtual MPICompareType compare(ICommunicator_ptr ptr)=0;
+  virtual CommCompareType compare(ICommunicator_ptr ptr)=0;
   virtual bool contains(ICommunicator_ptr) = 0;
 
 
@@ -151,7 +158,7 @@ class ICommunicator {
   virtual void AllGather(void* buffer, int count, void* recvBuffer,
                          int dataTypeSize) = 0;
 
-  virtual void BroadCast(void* buffer, int count, void* recvBuffer,
+  virtual void BroadCast(void* buffer, int count,
                          int dataTypeSize, int root) = 0;
   virtual void AllToAll(void* buffer, int count, void* recvBuffer,
                         int dataTypeSize) = 0;
@@ -167,6 +174,8 @@ class ICommunicator {
 
   virtual void Abort(int errorcode) = 0;
 };
+
+
 
 enum class CommType { World, Self, Default };
 

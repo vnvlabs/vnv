@@ -15,7 +15,7 @@
     VnV_init(PACKAGENAME_S, argc, argv, filename,    \
              VNV_REGISTRATION_CALLBACK_NAME);
 
-#  define INJECTION_FINALIZE() VnV_finalize();
+#  define INJECTION_FINALIZE(...) VnV_finalize();
 
 #  ifdef __cplusplus
 #    define DECLARESUBPACKAGE(NAME) \

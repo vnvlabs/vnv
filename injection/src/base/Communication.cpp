@@ -153,17 +153,16 @@ IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data, int count,
   int size = comm->Size();
 
   // First, need to broadcast the data type.
-  long long key = (rank == root) ? data[0]->getKey() : 0;
-  long long recvKey = -1;
-  comm->BroadCast(&key, 1, &recvKey, sizeof(long long), root);
+  long long key = (rank == root) ? data[0]->getKey() : -1;
+  comm->BroadCast(&key, 1, sizeof(long long), root);
   long dataSize =
-      CommunicationStore::instance().getDataType(recvKey)->maxSize();
+      CommunicationStore::instance().getDataType(key)->maxSize();
 
   // Now pop the send buffer
   char* sendBuffer;
+  sendBuffer = (char*)malloc(data.size() * dataSize);
+
   if (rank == root || allToAll) {
-    long dataSize = data[0]->maxSize();
-    sendBuffer = (char*)malloc(data.size() * dataSize);
     for (int i = 0; i < data.size(); i++) {
       data[i]->pack(&(sendBuffer[i * dataSize]));
     }
@@ -179,24 +178,22 @@ IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data, int count,
 
     // Unwrap.
     for (int i = 0; i < size * count; i++) {
-      IDataType_ptr ptr = CommunicationStore::instance().getDataType(recvKey);
+      IDataType_ptr ptr = CommunicationStore::instance().getDataType(key);
       ptr->unpack(&(recvBuffer[i * dataSize]));
       results.push_back(ptr);
     }
     free(recvBuffer);
   } else {
     results.reserve(count);
-    char* recvBuffer = (char*)malloc(count * dataSize);
-    comm->BroadCast(sendBuffer, count, recvBuffer, dataSize, root);
-    free(sendBuffer);
+    comm->BroadCast(sendBuffer, count, dataSize, root);
 
     // Unwrap
     for (int i = 0; i < count; i++) {
-      IDataType_ptr ptr = CommunicationStore::instance().getDataType(recvKey);
-      ptr->unpack(&(recvBuffer[i * dataSize]));
+      IDataType_ptr ptr = CommunicationStore::instance().getDataType(key);
+      ptr->unpack(&(sendBuffer[i * dataSize]));
       results.push_back(ptr);
     }
-    free(recvBuffer);
+    free(sendBuffer);
   }
   return results;
 }
@@ -250,10 +247,9 @@ IDataType_vec DataTypeCommunication::Scatter(IDataType_vec& data, int root,
 
   // First, need to scatter the data type.
   long long key = (rank == root) ? data[0]->getKey() : 0;
-  long long recvKey = -1;
-  comm->BroadCast(&key, 1, &recvKey, sizeof(long long), root);
+  comm->BroadCast(&key, 1, sizeof(long long), root);
   long dataSize =
-      CommunicationStore::instance().getDataType(recvKey)->maxSize();
+      CommunicationStore::instance().getDataType(key)->maxSize();
 
   // Now pop the send buffer
   char* buffer = nullptr;
@@ -272,7 +268,7 @@ IDataType_vec DataTypeCommunication::Scatter(IDataType_vec& data, int root,
   IDataType_vec results;
   for (int i = 0; i < count; i++) {
     long long* lptr = (long long*)&(recvBuffer[i * dataSize]);
-    IDataType_ptr dptr = CommunicationStore::instance().getDataType(recvKey);
+    IDataType_ptr dptr = CommunicationStore::instance().getDataType(key);
     dptr->unpack(&(recvBuffer[i * dataSize]));
     results.push_back(dptr);
   }

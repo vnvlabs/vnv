@@ -3,9 +3,6 @@
  * base/Runtime.h"
  **/
 
-#ifdef WITH_MPI
-#  include <mpi.h>
-#endif
 
 #include <unistd.h>
 
@@ -253,26 +250,10 @@ void RunTime::loadInjectionPoints(json _json) {
   loadRunInfo(info, nullptr);
 }
 
-namespace {
-bool initMPI(int* argc, char*** argv) {
-  int flag = 0;
-
-#ifdef WITH_MPI
-  MPI_Initialized(&flag);
-  if (!flag) {
-    MPI_Init(argc, argv);
-    return true;
-  }
-  return false;
-#endif
-}
-
-}  // namespace
 // Cant overload the name because "json" can be a "string".
 bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
                            json& config, registrationCallBack* callback) {
   mainPackageName = packageName;
-  //finalize_mpi = initMPI(argc, argv); // The MPI Comm should check the MPI is init and throw if not.
 
   JsonParser parser;
   RunInfo info = parser.parse(config);
@@ -355,20 +336,6 @@ bool RunTime::Finalize() {
   }
   return true;
 }
-    /* Lets make it a requirement that MPI_Init is called before we use it.
-#ifdef WITH_MPI
-    if (finalize_mpi) {
-      int flag = 0;
-      MPI_Finalized(&flag);
-      if (!flag) {
-        MPI_Finalize();
-      }
-    }
-#endif
-    return true;
-  }
-  return true;
-} */
 
 bool RunTime::isRunTests() { return runTests; }
 

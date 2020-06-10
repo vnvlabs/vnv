@@ -1,6 +1,7 @@
 ﻿#include "base/CommunicationStore.h"
 #include "base/Utilities.h"
 #include "base/exceptions.h"
+#include <iostream>
 
 namespace VnV {
 namespace PACKAGENAME {
@@ -96,12 +97,21 @@ ICommunicator_ptr CommunicationStore::getCommunicator(long long key,
 Communication::ICommunicator_ptr CommunicationStore::getCommForPackage(std::string packageName, Communication::CommType type) {
   auto it = commMap.find(packageName);
   if (it != commMap.end()){
-      return getCommunicator(it->second.first, it->second.second, type);
-    }
-  return getCommunicator(PACKAGENAME_S, "serial", type); // Return default serial comm.
+      std::cout << "Found COmm pfor package " << packageName << std::endl;
+      auto c = getCommunicator(it->second.first, it->second.second, type);
+      c->setPackage(packageName);
+      std::cout << "Testing it" <<  std::endl;
+      c->Rank();
+      std::cout << "Worked? " << std::endl;
+      return c;
+  }
+  std::cout << "Could not find COmm pfor package " << packageName << std::endl;
+  auto c = getCommunicator(PACKAGENAME_S, "serial", type); // Return default serial comm.
+  c->setPackage(PACKAGENAME_S);
+  return c;
 }
-
 Communication::ICommunicator_ptr CommunicationStore::getCommunicator(VnV_Comm comm) {
+  std::cout << comm.name << " is the comm name " << std::endl;
   return customComm(comm.name,comm.data);
 }
 
@@ -120,15 +130,15 @@ Communication::ICommunicator_ptr CommunicationStore::customComm(std::string pack
 }
 
 VnV_Comm CommunicationStore::customData(std::string packageName, void *data) {
-  return {packageName.c_str(), data};
+  return VnV_Create_Comm(packageName.c_str(), data);
 }
 
 VnV_Comm CommunicationStore::worldData(std::string packageName) {
-  return {packageName.c_str(), worldComm(packageName)->getData()};
+  return VnV_Create_Comm(packageName.c_str(),worldComm(packageName)->getData());
 }
 
 VnV_Comm CommunicationStore::selfData(std::string packageName) {
-  return {packageName.c_str(), selfComm(packageName)->getData()};
+  return VnV_Create_Comm(packageName.c_str(), selfComm(packageName)->getData());
 }
 
 CommunicationStore& CommunicationStore::instance() {

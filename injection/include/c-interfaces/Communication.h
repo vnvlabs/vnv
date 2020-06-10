@@ -3,12 +3,15 @@
 
 #include "c-interfaces/PackageName.h"
 
+#define MAX_PACKAGE_NAME_SIZE 45
+
 struct VnV_Comm_ {
-   const char *name;
+   char name[MAX_PACKAGE_NAME_SIZE+1];
    void* data;
 };
 typedef struct VnV_Comm_ VnV_Comm;
 
+VNVEXTERNC VnV_Comm VnV_Create_Comm(const char* package, void* data);
 VNVEXTERNC VnV_Comm VnV_Comm_Self(const char* packageName);
 VNVEXTERNC VnV_Comm VnV_Comm_World(const char* packageName);
 VNVEXTERNC VnV_Comm VnV_Comm_Custom( const char* packageName, void* data );

@@ -23,9 +23,19 @@ INJECTION_OPTIONS(schemaCallback) {
 
 }
 
-int main(int argc, char** argv) {
+#ifdef WITH_MPI
+   #include <mpi.h>
+   INJECTION_COMM(mpi)
+#else
+  #define MPI_Init(...)
+  #define MPI_Finalize()
+#endif
 
+int main(int argc, char** argv) {
+  MPI_Init(&argc, &argv);
   INJECTION_INITIALIZE(&argc, &argv, (argc==2) ? argv[1] : "./sample.json");
   function1(10);
   INJECTION_FINALIZE();
+  MPI_Finalize();
+
 }

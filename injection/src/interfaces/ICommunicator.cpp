@@ -63,6 +63,17 @@ void VnV::Communication::OpTypeEncodedReduction(void* invec, void* outvec,
 }
 VnV::Communication::IStatus::~IStatus(){}
 
+void VnV::Communication::ICommunicator::setPackage(std::string package){
+     packageName = package;
+}
+
+std::string VnV::Communication::ICommunicator::getPackage() {
+     return packageName;
+}
+
+VnV_Comm VnV::Communication::ICommunicator::asComm() {
+     return VnV_Create_Comm(getPackage().c_str(), getData());
+}
 
 long long VnV::Communication::IReduction::getKey() { return key; }
 

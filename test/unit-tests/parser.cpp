@@ -8,7 +8,7 @@
 /*
  *A demo unit test.
  */
-INJECTION_UNITTEST(Demo) {
+INJECTION_UNITTEST(Demo,1) {
   int x = 10;
   int y = 10;
 
@@ -29,6 +29,13 @@ INJECTION_UNITTEST(Demo) {
   TEST_ASSERT_EQUALS("x == 10", 10, x);
 
   TEST_ASSERT_EQUALS("y == 10", 10, y);
+}
+
+INJECTION_UNITTEST(AnotherDemo,2) {
+  int rank = comm->Rank();
+  int size = comm->Size();
+
+  TEST_ASSERT_EQUALS("size==2", 2, 2)
 }
 
 #endif

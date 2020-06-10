@@ -13,7 +13,7 @@ if(POLICY CMP0079)
   cmake_policy(SET CMP0079 NEW)
 endif()
 
-option(WITH_MPI "Build using MPI" OFF)
+option(WITH_MPI "Build using MPI" ON)
 
 if (WITH_MPI)
         find_package(MPI REQUIRED)

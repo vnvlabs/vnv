@@ -39,6 +39,8 @@ class MPICommunicator : public ICommunicator {
      return (MPIStatus*) ptr.get();
   }
 
+
+
   static int getDataType(long size) {
 
     static std::map<long, int> dataTypes = {
@@ -110,12 +112,25 @@ class MPICommunicator : public ICommunicator {
   // ICommunicator interface
 public:
   MPI_Comm comm;
+  CommType mtype;
+
+  MPICommunicator(CommType type) : mtype(type) {
+    if (type == CommType::Self) {
+       comm = MPI_COMM_SELF;
+    } else if ( type == CommType::World) {
+       comm = MPI_COMM_WORLD;
+    }
+  }
 
   int setData(void* data) override {
     comm = *((MPI_Comm*) data);
   }
   void* getData() {
     return &comm;
+  }
+
+  int uniqueId() {
+     return comm;
   }
 
   int Size() { int x; MPI_Comm_size(comm,&x); return x;}
@@ -136,19 +151,19 @@ public:
   double tick() { return MPI_Wtick(); }
 
   ICommunicator_ptr duplicate() {
-     MPICommunicator *p = new MPICommunicator();
+     MPICommunicator *p = new MPICommunicator(CommType::Default);
      MPI_Comm_dup(comm, &(p->comm));
      return ICommunicator_ptr(p);
   }
 
   ICommunicator_ptr split(int color, int key) {
-    MPICommunicator *p = new MPICommunicator();
+    MPICommunicator *p = new MPICommunicator(CommType::Default);
     MPI_Comm_split(comm, color, key, &(p->comm));
     return ICommunicator_ptr(p);
   }
 
   ICommunicator_ptr create(std::vector<int> &ranks, int tag) {
-    MPICommunicator *p = new MPICommunicator();
+    MPICommunicator *p = new MPICommunicator(CommType::Default);
     MPI_Group group, newGroup;
     MPI_Comm_group(comm, &group);
     MPI_Group_incl(group, ranks.size(), &ranks[0], &newGroup);
@@ -156,30 +171,31 @@ public:
     return ICommunicator_ptr(p);
   }
 
+  // Want procs in range [start,end). Make sure to put end-1.
   ICommunicator_ptr create(int start, int end, int stride, int tag) {
-    MPICommunicator *p =  new MPICommunicator();
+    MPICommunicator *p =  new MPICommunicator(CommType::Default);
     MPI_Group group, newGroup;
     MPI_Comm_group(comm, &group);
     int range[1][3];
-    range[1][0] = start;
-    range[1][1] = end;
-    range[1][2] = stride;
+    range[0][0] = start;
+    range[0][1] = end-1;
+    range[0][2] = stride;
     MPI_Group_range_incl(group, 1, range, &newGroup);
     MPI_Comm_create_group(comm, newGroup, tagMap(tag), &(p->comm));
     return ICommunicator_ptr(p);
   }
 
-  MPICompareType compare(ICommunicator_ptr ptr){
+  CommCompareType compare(ICommunicator_ptr ptr){
     int flag;
     MPI_Comm *other = (MPI_Comm*) ptr->getData();
     MPI_Comm_compare(comm,*other, &flag);
     switch (flag) {
-      case MPI_IDENT: return MPICompareType::EXACT;
-      case MPI_CONGRUENT: return MPICompareType::GROUP;
-      case MPI_SIMILAR: return MPICompareType::SIMILAR;
-      case MPI_UNEQUAL: return MPICompareType::UNEQUAL;
+      case MPI_IDENT: return CommCompareType::EXACT;
+      case MPI_CONGRUENT: return CommCompareType::GROUP;
+      case MPI_SIMILAR: return CommCompareType::SIMILAR;
+      case MPI_UNEQUAL: return CommCompareType::UNEQUAL;
     }
-    return MPICompareType::UNEQUAL;
+    return CommCompareType::UNEQUAL;
   }
 
   // Return true if communicator is entirly contained in this communicator.
@@ -332,7 +348,7 @@ public:
      MPI_Allgather(buffer, count, getDataType(dataTypeSize), recvBuffer, count, getDataType(dataTypeSize),comm);
   }
 
-  void BroadCast(void *buffer, int count, void *recvBuffer, int dataTypeSize, int root) {
+  void BroadCast(void *buffer, int count, int dataTypeSize, int root) {
     MPI_Bcast(buffer, count, getDataType(dataTypeSize), root, comm);
   }
 
@@ -360,5 +376,5 @@ public:
 
 };
 INJECTION_COMM(mpi) {
-  return new MPICommunicator();
+  return new MPICommunicator(type);
 }

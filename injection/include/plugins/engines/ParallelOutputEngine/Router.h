@@ -8,14 +8,15 @@
 #ifndef VV_PARALLELOUTPUTENGINE_ROUTER_H_
 #define VV_PARALLELOUTPUTENGINE_ROUTER_H_
 
-#ifdef WITH_MPI
-#include <mpi.h>
-#endif /* WITH_MPI */
+//#ifdef WITH_MPI
+//#include <mpi.h>
+//#endif /* WITH_MPI */
 
 #include <thread>
 #include <vector>
 
 #include "SparseBitVector.h"
+#include "interfaces/ICommunicator.h"
 
 typedef SparseBitVector Route;
 
@@ -28,19 +29,22 @@ private:
     int m_root = 0;
     Route m_children;
     std::unordered_map<std::string, std::unordered_map<std::string, Route>> put_map;
-#ifdef WITH_MPI
-    MPI_Comm m_comm;
-#endif /* WITH_MPI */
+
+    VnV::Communication::ICommunicator_ptr m_comm;
+
+//#ifdef WITH_MPI
+//    MPI_Comm m_comm;
+//#endif /* WITH_MPI */
     int parent_of(int id, int root, int fanout);
     Route children_of(int id, int root, int fanout);
-    void init();
+    void init(VnV::Communication::ICommunicator_ptr ptr);
     int send(int id, Route route, const std::string name, const std::string value);
 
 public:
-    Router();
-    Router(int fanout);
-    Router(int id, int root, int size, int fanout);
-    ~Router() {};
+    Router(VnV::Communication::ICommunicator_ptr ptr);
+    Router(VnV::Communication::ICommunicator_ptr ptr, int fanout);
+    Router(int id, int root, int size, int fanout); // Does not set comm ?
+    ~Router() {}
     int send(std::string name, std::string value);
     int forward();
     bool isRoot() { return m_id == m_root; }

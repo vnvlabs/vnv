@@ -86,6 +86,6 @@ SparseBitVectorUnitTests::~SparseBitVectorUnitTests(){}
 /**
  * Unit tests for the sparse bit vector code.
  */
-INJECTION_UNITTEST_RAW(bitvector,SparseBitVectorUnitTests)
+INJECTION_UNITTEST_RAW(bitvector,SparseBitVectorUnitTests,1)
 
 #endif

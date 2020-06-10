@@ -420,16 +420,16 @@ class RegistrationWriter {
         if (packageName == pname) break;
       }
     }
-
+    std::cout << j.dump(4);
     if (j.contains("Communicator")) {
         for (auto it : j["Communicator"].items()) {
            std::string pname = it.key();
            if (packageName.empty() || pname == packageName) {
               createPackageOss(pname);
-              oss_register[pname] << "\tVnV_Declare_Communicator("
-                                  << pname << ","
-                                  << it.value()["package"].get<std::string>() << ","
-                                  << it.value()["name"].get<std::string>() << ")\n";
+              oss_register[pname] << "\tVnV_Declare_Communicator(\""
+                                  << pname << "\",\""
+                                  << it.value()["package"].get<std::string>() << "\",\""
+                                  << it.value()["name"].get<std::string>() << "\");\n";
           pjson[pname]["Communicator"] = it.value();
         }
         if (packageName == pname) break;

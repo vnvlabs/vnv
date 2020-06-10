@@ -9,7 +9,7 @@
 #include "plugins/engines/debug/DebugEngineManager.h"
 using namespace VnV;
 
-INJECTION_UNITTEST(BFSTester) {
+INJECTION_UNITTEST(BFSTester,1) {
   std::map<std::string, std::map<std::string, std::string>> graph;
 
   // Test: Pass in a from that is not in the map --> should throw.

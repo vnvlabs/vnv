@@ -10,6 +10,7 @@
 #include "dlclass1.h"
 #include "dlclass2.h"
 
+
 template <typename T> class f {
  public:
   T ff;
@@ -90,7 +91,21 @@ static const char* schemaCallback = "{\"type\": \"object\", \"required\":[]}";
 
 INJECTION_OPTIONS(schemaCallback) {}
 
+// If compiled with MPI, then set the comm for this package to mpi.
+#ifdef WITH_MPI
+   #include <mpi.h>
+   INJECTION_COMM(mpi)
+#else
+  #define MPI_Init(...)
+  #define MPI_Finalize()
+#endif
+
+
+
 int main(int argc, char** argv) {
+
+  MPI_Init(&argc,&argv);
+
   INJECTION_INITIALIZE(&argc, &argv, (argc == 2) ? argv[1] : "./vv-input.json");
 
   function1(10);
@@ -127,5 +142,9 @@ int main(int argc, char** argv) {
   sample_class_3.function1(10);
   sample_class_4.function1(10);
 
+
+
   INJECTION_FINALIZE();
+
+  MPI_Finalize();
 }

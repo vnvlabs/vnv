@@ -5,7 +5,7 @@
 
 #ifdef WITH_MPI
   #include <mpi.h>
-  INJECTION_COMMUNICATOR(mpi)
+  INJECTION_COMMUNICATOR(VNV, mpi)
 #endif
 
 int main(int argc, char** argv) {

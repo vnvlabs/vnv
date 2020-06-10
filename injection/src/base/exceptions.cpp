@@ -1,4 +1,7 @@
-#include "base/exceptions.h"
+﻿#include "base/exceptions.h"
+#include <cstdio>
+
+#define ERRORMESSAGEMAXSIZE 2048
 
 VnV::VnVExceptionBase::VnVExceptionBase(std::string message) {
   this->message = message;

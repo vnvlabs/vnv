@@ -9,6 +9,8 @@
 
 #include "base/OutputEngineStore.h"
 #include "c-interfaces/Logging.h"
+#include "base/CommunicationStore.h"
+#include "base/Utilities.h"
 
 using namespace VnV;
 
@@ -22,12 +24,26 @@ UnitTestStore& UnitTestStore::getUnitTestStore() {
   return store;
 }
 
+Communication::ICommunicator_ptr UnitTestStore::dispatch(VnV_Comm comm, int cores) {
+   auto c = CommunicationStore::instance().getCommunicator(comm);
+   if ( c->Rank()==0 ) {
+       if ( cores > c->Size() ) {
+          VnV_Warn_MPI(VSELF,"Test Requested %d cores but only %d are available -- skipping", cores, c->Size());
+          return nullptr;
+       }
+
+   }
+
+
+}
+
 void UnitTestStore::addUnitTester(std::string packageName, std::string name,
-                                  tester_ptr m) {
+                                  tester_ptr m, int cores) {
   if (tester_factory.find(packageName) == tester_factory.end()) {
     tester_factory[packageName] = {};
   }
   tester_factory[packageName][name] = m;
+  tester_cores[packageName + ":" + name] = cores;
 }
 
 IUnitTest* UnitTestStore::getUnitTester(std::string packageName,
@@ -42,41 +58,106 @@ IUnitTest* UnitTestStore::getUnitTester(std::string packageName,
   return nullptr;
 }
 
-void UnitTestStore::runTest(VnV_Comm comm, std::string name,
+void UnitTestStore::runTest(Communication::ICommunicator_ptr comm, std::string name,
                             IUnitTest* tester) {
-  OutputEngineManager* engineManager =
-      OutputEngineStore::getOutputEngineStore().getEngineManager();
-  engineManager->unitTestStartedCallBack(comm, name);
+
+  tester->setComm(comm);
+  OutputEngineManager* engineManager = OutputEngineStore::getOutputEngineStore().getEngineManager();
+  //TODO These callbacks should accept the ICommunicator_ptr, not the VnV_Comm (which is an interface
+  // for supporting comms in C).
+  engineManager->unitTestStartedCallBack(comm->asComm(), name);
   tester->run();
-  engineManager->unitTestFinishedCallBack(comm, tester);
+  engineManager->unitTestFinishedCallBack(comm->asComm(), tester);
 }
 
-void UnitTestStore::runTest(VnV_Comm comm, std::string packageName,
+void UnitTestStore::runTest(Communication::ICommunicator_ptr comm, std::string packageName,
                             std::string name) {
   auto it = tester_factory.find(packageName);
   if (it != tester_factory.end()) {
     auto itt = it->second.find(name);
     if (itt != it->second.end()) {
-      runTest(comm, packageName + ":" + name, itt->second());
-    }
+          runTest(comm, packageName + ":" + name, itt->second());
+      }
   }
 }
 
-void UnitTestStore::runPackageTests(VnV_Comm comm, std::string packageName) {
-  auto it = tester_factory.find(packageName);
-  if (it != tester_factory.end()) {
-    for (auto& it : it->second) {
-      runTest(comm, packageName + ":" + it.first, it.second());
-    }
-  }
-}
+// This algorithm runs all the tests in parallel (kindof) by creating
+// a subset of that spans the provided comm as best as possible.
+
+//TODO A master slave system would probably be better. In this one,
+// communicators have no way of knowing when all the other processors
+// are finished. The tests are just allocated sequentially based on
+// the available ranks and the remaining tests.
 
 void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
-  for (auto& it : tester_factory) {
-    for (auto itt : it.second) {
-      runTest(comm, it.first + ":" + itt.first, itt.second());
+
+  auto c = CommunicationStore::instance().getCommunicator(comm);
+  int size = c->Size();
+  int rank = c->Rank();
+  //Transform the tess vector of tuples and sort largest to smallest.
+  std::vector<std::tuple<int, std::string, tester_ptr*>> tests;
+  for (auto it : tester_factory) {
+    for (auto itt : it.second ) {
+        std::string key = it.first + ":" + itt.first;
+        int cores = tester_cores[key];
+        tests.push_back(std::make_tuple(cores,key, itt.second));
     }
   }
+  std::sort(tests.begin(),tests.end(), [](const std::tuple<int,std::string,tester_ptr*>&p1 ,
+            const std::tuple<int,std::string,tester_ptr*>&p2) {
+               return std::get<0>(p1) > std::get<0>(p2);
+  });
+
+  auto it = tests.begin();
+  int currentBuffer = 0;
+  int myStart = -1;
+  int myEnd = -1;
+  std::string myName;
+  tester_ptr* myTester;
+  while (tests.size() > 0) {
+     if (it == tests.end()) {
+        it = tests.begin();
+     }
+
+     int req = std::get<0>(*it); // requested processors for this iter.
+     std::string name = std::get<1>(*it);
+
+     if (req > size ) {
+        VnV_Warn("Ignoring test %s because cannot fufull requested cores of %d", name.c_str(),req);
+        it = tests.erase(it);
+      } else if (currentBuffer + req <= size ) {
+         if (rank >= currentBuffer && rank < currentBuffer + req ) {
+            myStart = currentBuffer;
+            myEnd = currentBuffer + req;
+            myName = name;
+            myTester = std::get<2>(*it);
+         }
+
+         it = tests.erase(it); // erase it because its done.
+         currentBuffer += req;
+      } else {
+         it++; // move on to the next one.
+      }
+      // If smallest left woould fill the buffer, then run. If there are no
+      // tests left, then the smallest left is set to size to trigger a run.
+      int smallestLeft = (tests.size() == 0 ) ? size : std::get<0>(tests.back());
+
+      if ( currentBuffer + smallestLeft > size ) {
+          //std::cout <<"Running " << myName << " on range [" << myStart << ", " << myEnd << ")" << rank << std::endl;
+          if ( myStart >= 0 ) {
+            // Create comm - collective on the ranks [myStart,myEnd).
+            std::cout <<"Running " << myName << " on range [" << myStart << ", " << myEnd << ")" << rank << std::endl;
+            ICommunicator_ptr p = c->create(myStart,myEnd,1,10);
+            runTest(p, name, myTester());
+         }
+         currentBuffer = 0;
+         myStart = -1;
+         myEnd = -1 ;
+      } else {
+
+      }
+  }
+  c->Barrier(); //
 }
 
 void UnitTestStore::print() {
@@ -92,6 +173,6 @@ void UnitTestStore::print() {
   VnV_EndStage(a);
 }
 
-void VnV::registerUnitTester(std::string name, tester_ptr m) {
-  UnitTestStore::getUnitTestStore().addUnitTester(PACKAGENAME_S, name, m);
+void VnV::registerUnitTester(std::string name, tester_ptr m, int cores) {
+  UnitTestStore::getUnitTestStore().addUnitTester(PACKAGENAME_S, name, m, cores);
 }

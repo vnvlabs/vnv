@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "interfaces/ICommunicator.h"
+
 namespace VnV {
 
 typedef std::vector<std::tuple<std::string, std::string, bool>> UnitTestResults;
@@ -12,7 +14,7 @@ class IUnitTest {
  protected:
   UnitTestResults results;
   bool continue_on_fail = true;
-
+  Communication::ICommunicator_ptr comm;
  public:
   /**
    * @brief IUnitTester
@@ -32,7 +34,16 @@ class IUnitTest {
   /**
    * @brief get the results from the tests
    */
-  UnitTestResults getResults() { return results; }
+  UnitTestResults getResults() {
+       return results;
+  }
+
+  void setComm(Communication::ICommunicator_ptr ptr) {
+       comm = ptr;
+  }
+  Communication::ICommunicator_ptr getComm() {
+       return comm;
+  }
 
   /**
    * @brief stop/continue on test failure
@@ -41,7 +52,7 @@ class IUnitTest {
 };
 
 typedef IUnitTest* tester_ptr();
-void registerUnitTester(std::string name, VnV::tester_ptr ptr);
+void registerUnitTester(std::string name, VnV::tester_ptr ptr, int cores);
 
 template <typename Runner> class UnitTester_T : public IUnitTest {
  public:
@@ -77,7 +88,7 @@ template <typename Runner> class UnitTester_T : public IUnitTest {
         }                                                               \
     }
 
-#define INJECTION_UNITTEST_R(name, Runner)                              \
+#define INJECTION_UNITTEST_R(name, Runner, cores)                       \
   namespace VnV {                                                       \
   namespace PACKAGENAME {                                               \
   namespace UnitTests {                                                 \
@@ -87,21 +98,21 @@ template <typename Runner> class UnitTester_T : public IUnitTest {
     virtual void run() override;                                        \
   };                                                                    \
   IUnitTest* declare_##name() { return new name(); }                    \
-  void register_##name() { registerUnitTester(#name, declare_##name); } \
+  void register_##name() { registerUnitTester(#name, declare_##name, cores); } \
   }                                                                     \
   }                                                                     \
   }                                                                     \
   void VnV::PACKAGENAME::UnitTests::name::run()
 
-#define INJECTION_UNITTEST(name, ...) INJECTION_UNITTEST_R(name, int)
+#define INJECTION_UNITTEST(name, cores) INJECTION_UNITTEST_R(name, int, cores)
 
-#define INJECTION_UNITTEST_RAW(name,cls)                 \
+#define INJECTION_UNITTEST_RAW(name,cls,cores)                 \
   namespace VnV {                                    \
   namespace PACKAGENAME {                            \
   namespace UnitTests {                              \
   IUnitTest* declare_##name() { return new cls(); } \
   void register_##name() {                  \
-    registerUnitTester(#name, declare_##name);       \
+    registerUnitTester(#name, declare_##name, cores);       \
   }                                                  \
   }                                                  \
   }                                                  \

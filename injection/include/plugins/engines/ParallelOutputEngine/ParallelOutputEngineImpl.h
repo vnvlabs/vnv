@@ -6,7 +6,7 @@
  */
 
 #include <string>
-
+#include <memory>
 #include "Router.h"
 #include "interfaces/IOutputEngine.h"
 
@@ -17,9 +17,12 @@ namespace VnV {
 namespace PACKAGENAME {
 namespace Engines {
 
+enum class RouterAction { PUSH, POP, IGNORE };
+
 class ParallelEngine : public OutputEngineManager {
  private:
-  Router* router;
+  //Router* router;
+  std::map<int, std::shared_ptr<Router>> routerMap;
 
  public:
   /**
@@ -138,6 +141,7 @@ class ParallelEngine : public OutputEngineManager {
                                std::string unitTestName) override;
 
   void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester) override;
+
   /**
    * @brief getOutputEngine
    * @return
@@ -151,7 +155,7 @@ class ParallelEngine : public OutputEngineManager {
     printf("Print not implemented for Parallel Output Engine");
   }
 
-  Router* getRouter();
+  std::shared_ptr<Router> getRouter(VnV_Comm comm, RouterAction action = RouterAction::IGNORE);
 };
 
 }  // namespace Engines

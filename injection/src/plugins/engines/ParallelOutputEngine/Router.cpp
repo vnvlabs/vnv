@@ -9,6 +9,8 @@
 
 #define modulo(x, N) (((x) % (N) + (N)) % (N))
 
+using namespace VnV::Communication;
+
 int Router::parent_of(int id, int root, int fanout) {
     if (id == root) {
         return root;
@@ -40,16 +42,21 @@ int Router::send(std::string name, std::string value) {
 
 // Send to node
 int Router::send(int id, Route route, std::string name, std::string value) {
-#ifdef WITH_MPI
+//#ifdef WITH_MPI
   if (m_id != m_root) {
     std::stringstream ss;
     msgpack::pack(ss, route);
     msgpack::pack(ss, name);
     msgpack::pack(ss, value);
-    return MPI_Send(ss.str().data(), ss.str().length(), MPI_CHAR, id, 0,
-                    m_comm);
+    std::string s = ss.str();
+
+    //TODO ICommunicator::Send should accept a const void* for the send buffer. Makes
+    // it more inline with the MPI interface.
+    m_comm->Send(&s[0],s.length(),id,0,sizeof(char));
+    //return MPI_Send(ss.str().data(), ss.str().length(), MPI_CHAR, id, 0,
+    //                m_comm);
   }
-#endif /* WITH_MPI */
+//#endif /* WITH_MPI */
   return 0;
 }
 
@@ -70,29 +77,35 @@ int Router::forward() {
     std::string name;
     std::string value;
     std::unordered_map<std::string, std::unordered_map<std::string, Route>> name_map;
-#ifdef WITH_MPI
-    MPI_Status status;
-#endif /* WITH_MPI */
+//#ifdef WITH_MPI
+//    MPI_Status status;
+//#endif /* WITH_MPI */
 
     // Check for messages until we've received an
     // end message from them all
     while (!children.empty()) {
         for (const int child : children) {
-#ifdef WITH_MPI
+//#ifdef WITH_MPI
             // Check for a message from the child
-            MPI_Iprobe(child, MPI_ANY_TAG, m_comm, &msg_avail, &status);
-            if (msg_avail) {
-                if (status.MPI_TAG == 1) {
+            std::pair<VnV::Communication::IStatus_ptr,int> s = m_comm->IProbe(child, -1 );
+            if (s.second) {
+                if (s.first->tag() == 1) {
+                    //Recieve end message
+                    m_comm->Recv(&id, 1, child, 1, sizeof(id));
+
                     // Receive end message
-                    MPI_Recv(&id, 1, MPI_INTEGER, child, 1, m_comm, &status);
+                    //MPI_Recv(&id, 1, MPI_INTEGER, child, 1, m_comm, &status);
                     children.reset(child);
                 } else {
                     // Receive a normal message. The message is variable length, so find out how long
                     // it is from the probe status
-                    MPI_Get_count(&status, MPI_CHAR, &len);
+                    m_comm->Count(s.first, sizeof(char));
+                    //MPI_Get_count(&status, MPI_CHAR, &len);
+
                     std::string buf;
                     buf.resize(len);
-                    MPI_Recv(&buf[0], len, MPI_CHAR, child, 0, m_comm, &status);
+                    m_comm->Recv(&buf[0],len,child,0,sizeof(char));
+                    //MPI_Recv(&buf[0], len, MPI_CHAR, child, 0, m_comm, &status);
 
                     // Unpack the message into: route, name, value
                     std::size_t offset = 0;
@@ -118,7 +131,7 @@ int Router::forward() {
                     map_route |= route;
                 }
             }
-#endif /* WITH_MPI */
+//#endif /* WITH_MPI */
         }
     }
 
@@ -140,23 +153,29 @@ int Router::forward() {
 
   put_map.clear();
 
-#ifdef WITH_MPI
+  // Tell parent we have finished sending
+  m_comm->Send(&m_id,1,m_parent,1,sizeof(m_id));
+  //#ifdef WITH_MPI
     // Tell parent we have finished sending
-    MPI_Send(&m_id, 1, MPI_INTEGER, m_parent, 1, m_comm);
-#endif /* WITH_MPI */
+    //MPI_Send(&m_id, 1, MPI_INTEGER, m_parent, 1, m_comm);
+  //#endif /* WITH_MPI */
 
   return 0;
 }
 
-void Router::init() {
-#ifdef WITH_MPI
-  int id;
-  MPI_Comm_rank(MPI_COMM_WORLD, &id);
-  MPI_Comm_size(MPI_COMM_WORLD, &m_size);
-  MPI_Comm_dup(MPI_COMM_WORLD, &m_comm);
+void Router::init(VnV::Communication::ICommunicator_ptr ptr) {
+//#ifdef WITH_MPI
+  m_comm = ptr->duplicate();
+  m_id = m_comm->Rank();
+  m_size = m_comm->Size();
 
-  m_id = id;
-#endif /* WITH_MPI */
+//  int id;
+//  MPI_Comm_rank(MPI_COMM_WORLD, &id);
+//  MPI_Comm_size(MPI_COMM_WORLD, &m_size);
+//  MPI_Comm_dup(MPI_COMM_WORLD, &m_comm);
+
+//  m_id = id;
+//#endif /* WITH_MPI */
 
   // Find our parent
   m_parent = parent_of(m_id, m_root, m_fanout);
@@ -165,11 +184,11 @@ void Router::init() {
   m_children = children_of(m_id, m_root, m_fanout);
 }
 
-Router::Router() { init(); }
+Router::Router(VnV::Communication::ICommunicator_ptr ptr) { init(ptr); }
 
-Router::Router(int fanout) {
+Router::Router(VnV::Communication::ICommunicator_ptr ptr, int fanout) {
   m_fanout = fanout;
-  init();
+  init(ptr);
 }
 
 Router::Router(int id, int root, int size, int fanout) {

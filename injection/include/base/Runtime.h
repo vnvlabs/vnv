@@ -74,8 +74,6 @@ class RunTime {
   std::set<std::string> registeredPackages;
 
   bool runTests; /**< Should tests be run */
-  bool finalize_mpi =
-      false; /**< Are we responsible for calling MPI_Finalize) */
   bool logUnhandledInjectionPoints = true;
   bool terminalSupportsAsciiColors = true;
 

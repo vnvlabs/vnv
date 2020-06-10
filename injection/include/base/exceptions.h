@@ -1,4 +1,4 @@
-#ifndef EXCEPTIONS_H
+﻿#ifndef EXCEPTIONS_H
 #define EXCEPTIONS_H
 
 #include <exception>
@@ -8,6 +8,7 @@ namespace VnV {
 
 struct VnVExceptionBase : public std::exception {
   std::string message;
+
   VnVExceptionBase(std::string message);
   const char* what() const throw();
 };

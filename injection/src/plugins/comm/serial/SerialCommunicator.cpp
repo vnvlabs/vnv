@@ -2,9 +2,9 @@
 #include "interfaces/ICommunicator.h"
 #include <list>
 #include <stdio.h>
-#include "base/exceptions.h"
-
 #include <cstring>
+
+#include "base/exceptions.h"
 
 using namespace VnV::Communication;
 
@@ -133,9 +133,11 @@ public:
 
      int setData(void *data) { commId = *((int*)data); }
      void* getData() {return &commId;}
-
+     int uniqueId() {
+        return commId;
+     }
      int Size() { return 1;}
-     int Rank() { return 1;}
+     int Rank() { return 0;}
      void Barrier() {}
      std::string ProcessorName() {return std::to_string(commId);}
      double time() { return -1;}
@@ -145,13 +147,13 @@ public:
      VnV::Communication::ICommunicator_ptr create(std::vector<int> &ranks, int stride) {return duplicate();}
      VnV::Communication::ICommunicator_ptr create(int start, int end, int stride, int tag) {return duplicate();}
 
-     MPICompareType compare(ICommunicator_ptr ptr){
-       return ( commId == *((int*)ptr->getData())) ? MPICompareType::EXACT : MPICompareType::UNEQUAL;
+     CommCompareType compare(ICommunicator_ptr ptr){
+       return ( commId == *((int*)ptr->getData())) ? CommCompareType::EXACT : CommCompareType::UNEQUAL;
      }
 
      // Only contains if it is itself.
      bool contains(ICommunicator_ptr ptr){
-       return compare(ptr) == MPICompareType::EXACT;
+       return compare(ptr) == CommCompareType::EXACT;
      }
 
      void Send(void *buffer, int count, int dest, int tag, int dataTypeSize) {
@@ -315,8 +317,8 @@ public:
      void AllGather(void *buffer, int count, void *recvBuffer, int dataTypeSize) {
          Gather(buffer,count, recvBuffer,dataTypeSize,0);
      }
-     void BroadCast(void *buffer, int count, void *recvBuffer, int dataTypeSize, int root) {
-         Gather(buffer,count, recvBuffer,dataTypeSize,0);
+     void BroadCast(void *buffer, int count, int dataTypeSize, int root) {
+         //Gather(buffer,count, recvBuffer,dataTypeSize,0);
      }
      void AllToAll(void *buffer, int count, void *recvBuffer, int dataTypeSize) {
          Gather(buffer,count, recvBuffer,dataTypeSize,0);
