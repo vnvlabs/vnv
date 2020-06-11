@@ -3,18 +3,24 @@ include(CMakeFindDependencyMacro)
 
 list(APPEND CMAKE_MODULE_PATH ${Injection_CMAKE_DIR})
 
+
+if (NOT TARGET jsv::jsv)
+   find_dependency(jsv)
+endif()
+
 list(REMOVE_AT CMAKE_MODULE_PATH -1)
 
-find_dependency(jsv)
-
-if NOT TARGET jsv::jsv)
-  include("${Injection_CMAKE_DIR}/jsv-targets.cmake")
-endif()
 
 if(NOT TARGET Injection::Injection)
   include("${Injection_CMAKE_DIR}/InjectionTargets.cmake")
 endif()
 
-set(Injection_LIBRARIES Injection::Injection)
+
+if (NOT TARGET Injection::Extraction)
+  message("Could not find VnV Extraction -- Registration must be completed manually.")
+else()
+        set(Injection_Extraction_Found ON)
+        set(Injection_EXTRACTION Injection::Extraction)
+endif()
 
 include("${Injection_CMAKE_DIR}/Registration.cmake")

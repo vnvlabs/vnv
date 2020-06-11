@@ -20,6 +20,8 @@ add_executable(vnv-matcher
   ${CMAKE_CURRENT_LIST_DIR}/../injection/src/base/Utilities.cpp
   ${CMAKE_CURRENT_LIST_DIR}/../injection/src/base/exceptions.cpp
 )
+add_executable(Injection::Extraction ALIAS vnv-matcher)
+
 # Strange fruit -- Clang requires runtime info to be turned of?
 # github.com/woboq/woboq_codebrowser/issues/46 <-
 #target_compile_options(vnv-matcher PRIVATE -fno-rtti)

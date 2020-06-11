@@ -420,7 +420,6 @@ class RegistrationWriter {
         if (packageName == pname) break;
       }
     }
-    std::cout << j.dump(4);
     if (j.contains("Communicator")) {
         for (auto it : j["Communicator"].items()) {
            std::string pname = it.key();
@@ -888,36 +887,34 @@ int main(int argc, const char** argv) {
   bool hasCache = (cacheInfo.contains(LAST_RUN_TIME));
   std::vector<std::string> modFiles;
   if (hasCache) {
-    std::vector<std::string> files =
-        OptionsParser.getCompilations().getAllFiles();
+    std::vector<std::string> files = OptionsParser.getCompilations().getAllFiles();
     std::string lastRunTime = cacheInfo[LAST_RUN_TIME].get<std::string>();
 
     std::map<std::string, bool> fModMap;
 
     for (auto it : cacheMap.items()) {
-      fModMap[it.key()] =
-          (timeForFile(it.value().get<std::string>()) > lastRunTime);
+      fModMap[it.key()] = (timeForFile(it.value().get<std::string>()) > lastRunTime);
     }
 
     for (auto& it : files) {  // all files to be compiled. (strings)
-
       if (cacheFiles.contains(it)) {
-        for (auto f :
-             cacheFiles[it].items()) {  // list of ids included in this file.
+        for (auto f : cacheFiles[it].items()) {
+          // list of ids included in this file.
           std::string id = f.value().get<std::string>();
           if (fModMap[id]) {
             modFiles.push_back(it);
             break;
           }
         }
+      } else {
+         modFiles.push_back(it); // New File not prev in cache.
       }
     }
     // TODO CHECK IF FILE WAS MODIFIED MANUALLY .
     if (modFiles.size() == 0) {
       if (outputFileName != cacheInfo[LAST_FILE_NAME] ||
           lastRunTime < timeForFile(outputFileName)) {
-        writeFileAndCache(cacheInfo, outputFileName, cacheFile_, packageName_,
-                          true);
+            writeFileAndCache(cacheInfo, outputFileName, cacheFile_, packageName_, true);
       }
       return 0;
     }
