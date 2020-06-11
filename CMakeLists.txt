@@ -54,7 +54,7 @@ endif()
 add_subdirectory(docs)
 
 
-
+if (Clang_FOUND)
 install(TARGETS injection vnv-matcher
         EXPORT injection-targets
         LIBRARY DESTINATION lib
@@ -62,11 +62,21 @@ install(TARGETS injection vnv-matcher
         RUNTIME DESTINATION bin
        )
 
+  set_target_properties(vnv-matcher PROPERTIES EXPORT_NAME Extraction )
+
+else()
+install(TARGETS injection
+        EXPORT injection-targets
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+       )
+endif()
+
 set_target_properties(injection PROPERTIES
   EXPORT_NAME Injection
 )
 
-set_target_properties(vnv-matcher PROPERTIES EXPORT_NAME Extraction )
 
 install(EXPORT injection-targets
   FILE
