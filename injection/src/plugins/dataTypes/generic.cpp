@@ -6,53 +6,42 @@ namespace DataTypes {
 
 // This will work with any <T> that has addition, multiplication
 // and compare operators.
-template <typename T>
-class GenericDataType : public Communication::IDataType {
-
+template <typename T> class GenericDataType : public Communication::IDataType {
   T data;
-  public:
-    T get() {
-      return data;
-    }
-    void set(T d) {
-      data = d;
-    }
 
-    long long maxSize() { return sizeof(T);}
-    long long pack(void *buffer) {
-        ((T*) buffer)[0] = data;
-    }
-    void unpack(void *buffer) {
-      data = ((T*)buffer)[0];
-    }
+ public:
+  T get() { return data; }
+  void set(T d) { data = d; }
 
-    void setData(void *dat) {
-      data = *((T*) dat);
-    }
+  long long maxSize() { return sizeof(T); }
+  long long pack(void* buffer) { ((T*)buffer)[0] = data; }
+  void unpack(void* buffer) { data = ((T*)buffer)[0]; }
 
-    void axpy(double alpha, Communication::IDataType *y) {
-       GenericDataType<T> *yy = (GenericDataType<T>*) y;
-       yy->set( yy->get() + alpha*data);
-    }
+  void setData(void* dat) { data = *((T*)dat); }
 
-    int compare(Communication::IDataType *y) {
-       GenericDataType<T> *yy = (GenericDataType<T>*) y;
-       if ( yy->get() == get() ) return 0;
-       else if ( get() < yy->get()) return -1;
-       return 1;
-    }
-    // y = xy;
-    void mult(Communication::IDataType *y) {
-       GenericDataType<T> *yy = (GenericDataType<T>*) y;
-       yy->set(yy->get()*get());
-    }
+  void axpy(double alpha, Communication::IDataType* y) {
+    GenericDataType<T>* yy = (GenericDataType<T>*)y;
+    yy->set(yy->get() + alpha * data);
+  }
 
-  };
+  int compare(Communication::IDataType* y) {
+    GenericDataType<T>* yy = (GenericDataType<T>*)y;
+    if (yy->get() == get())
+      return 0;
+    else if (get() < yy->get())
+      return -1;
+    return 1;
+  }
+  // y = xy;
+  void mult(Communication::IDataType* y) {
+    GenericDataType<T>* yy = (GenericDataType<T>*)y;
+    yy->set(yy->get() * get());
+  }
+};
 
-}
-}
-}
-
+}  // namespace DataTypes
+}  // namespace PACKAGENAME
+}  // namespace VnV
 
 INJECTION_DATATYPE(double) {
   return new VnV::PACKAGENAME::DataTypes::GenericDataType<double>();
@@ -77,12 +66,3 @@ INJECTION_DATATYPE(longlong) {
 INJECTION_DATATYPE(short) {
   return new VnV::PACKAGENAME::DataTypes::GenericDataType<short>();
 }
-
-
-
-
-
-
-
-
-

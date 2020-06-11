@@ -16,13 +16,13 @@
 #ifdef __cplusplus
 
 #  include "interfaces/CppInjection.h"
+#  include "interfaces/ICommunicator.h"
 #  include "interfaces/IOutputEngine.h"
 #  include "interfaces/ISerializer.h"
 #  include "interfaces/ITest.h"
 #  include "interfaces/ITransform.h"
 #  include "interfaces/IUnitTest.h"
 #  include "interfaces/argType.h"
-#  include "interfaces/ICommunicator.h"
 
 #else
 #  include "c-interfaces/Injection.h"

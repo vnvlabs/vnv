@@ -3,12 +3,13 @@
 
 namespace {
 
-#define SIGS                                                                  \
-  X(SIGINT)                                                                   \
-  X(SIGQUIT)                                                                  \
-  X(SIGILL) X(SIGABRT) X(SIGKILL) X(SIGSEGV) X(SIGPIPE) X(SIGALRM) X(SIGTERM) \
-      X(SIGUSR1) X(SIGUSR2) X(SIGCHLD) X(SIGCONT) X(SIGSTOP) X(SIGTSTP)       \
-          X(SIGTTIN) X(SIGTTOU) X(SIGPROF) X(SIGSYS)
+#define SIGS                                                                   \
+  X(SIGINT)                                                                    \
+  X(SIGQUIT)                                                                   \
+  X(SIGILL)                                                                    \
+  X(SIGABRT) X(SIGKILL) X(SIGSEGV) X(SIGPIPE) X(SIGALRM) X(SIGTERM) X(SIGUSR1) \
+      X(SIGUSR2) X(SIGCHLD) X(SIGCONT) X(SIGSTOP) X(SIGTSTP) X(SIGTTIN)        \
+          X(SIGTTOU) X(SIGPROF) X(SIGSYS)
 
 #define X(name) \
   , { #name, name }

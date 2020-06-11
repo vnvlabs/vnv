@@ -16,8 +16,7 @@ class DataTypeCommunication {
   std::pair<IStatus_ptr, int> WaitAny(IRequest_vec& vec);
   std::pair<IStatus_ptr, int> Test(IRequest_ptr ptr);
   std::pair<IStatus_vec, int> TestAll(IRequest_vec& vec);
-  std::tuple<IStatus_ptr, int, int> TestAny(
-      IRequest_vec& vec);
+  std::tuple<IStatus_ptr, int, int> TestAny(IRequest_vec& vec);
 
   IRequest_ptr Send(IDataType_vec& data, int dest, int tag, bool blocking);
 

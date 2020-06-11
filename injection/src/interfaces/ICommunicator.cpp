@@ -61,18 +61,18 @@ void VnV::Communication::OpTypeEncodedReduction(void* invec, void* outvec,
     reducer->reduce(in, out)->pack(&(buff[2]));
   }
 }
-VnV::Communication::IStatus::~IStatus(){}
+VnV::Communication::IStatus::~IStatus() {}
 
-void VnV::Communication::ICommunicator::setPackage(std::string package){
-     packageName = package;
+void VnV::Communication::ICommunicator::setPackage(std::string package) {
+  packageName = package;
 }
 
 std::string VnV::Communication::ICommunicator::getPackage() {
-     return packageName;
+  return packageName;
 }
 
 VnV_Comm VnV::Communication::ICommunicator::asComm() {
-     return VnV_Create_Comm(getPackage().c_str(), getData());
+  return VnV_Create_Comm(getPackage().c_str(), getData());
 }
 
 long long VnV::Communication::IReduction::getKey() { return key; }
@@ -85,14 +85,20 @@ long long VnV::Communication::IDataType::getKey() { return key; }
 
 VnV::Communication::IDataType::~IDataType() {}
 
-void VnV::Communication::registerCommunicator(std::string packageName, std::string name, VnV::Communication::comm_register_ptr ptr) {
-   VnV::CommunicationStore::instance().addCommunicator(packageName, name, ptr);
+void VnV::Communication::registerCommunicator(
+    std::string packageName, std::string name,
+    VnV::Communication::comm_register_ptr ptr) {
+  VnV::CommunicationStore::instance().addCommunicator(packageName, name, ptr);
 }
 
-void VnV::Communication::registerReduction(std::string packageName, std::string name, VnV::Communication::reduction_ptr ptr) {
+void VnV::Communication::registerReduction(
+    std::string packageName, std::string name,
+    VnV::Communication::reduction_ptr ptr) {
   CommunicationStore::instance().addReduction(packageName, name, ptr);
 }
 
-void VnV::Communication::registerDataType(std::string packageName, std::string name, VnV::Communication::dataType_ptr ptr) {
+void VnV::Communication::registerDataType(
+    std::string packageName, std::string name,
+    VnV::Communication::dataType_ptr ptr) {
   VnV::CommunicationStore::instance().addDataType(packageName, name, ptr);
 }

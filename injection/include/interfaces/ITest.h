@@ -4,10 +4,10 @@
 #include <map>
 #include <string>
 
-#include "c-interfaces/Communication.h"
 #include "base/TransformStore.h"
 #include "base/Utilities.h"
 #include "base/exceptions.h"
+#include "c-interfaces/Communication.h"
 #include "c-interfaces/Logging.h"
 #include "interfaces/IOutputEngine.h"
 #include "interfaces/ITransform.h"

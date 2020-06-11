@@ -10,7 +10,6 @@
 #include "dlclass1.h"
 #include "dlclass2.h"
 
-
 template <typename T> class f {
  public:
   T ff;
@@ -59,8 +58,8 @@ class test1 {
   int function1(int x) {
     std::vector<double> samplePoints(10), samplePoints1(10), samplePoints3(13);
 
-    INJECTION_LOOP_BEGIN(VWORLD, Function1Class1, samplePoints,
-                         samplePoints1, samplePoints3)
+    INJECTION_LOOP_BEGIN(VWORLD, Function1Class1, samplePoints, samplePoints1,
+                         samplePoints3)
     for (int i = 0; i < 10; i++) {
       samplePoints.push_back(i);
       INJECTION_LOOP_ITER(Function1Class1, inner)
@@ -93,18 +92,15 @@ INJECTION_OPTIONS(schemaCallback) {}
 
 // If compiled with MPI, then set the comm for this package to mpi.
 #ifdef WITH_MPI
-   #include <mpi.h>
-   INJECTION_COMM(mpi)
+#  include <mpi.h>
+INJECTION_COMM(mpi)
 #else
-  #define MPI_Init(...)
-  #define MPI_Finalize()
+#  define MPI_Init(...)
+#  define MPI_Finalize()
 #endif
 
-
-
 int main(int argc, char** argv) {
-
-  MPI_Init(&argc,&argv);
+  MPI_Init(&argc, &argv);
 
   INJECTION_INITIALIZE(&argc, &argv, (argc == 2) ? argv[1] : "./vv-input.json");
 
@@ -141,8 +137,6 @@ int main(int argc, char** argv) {
   sample_class_2.function1(10);
   sample_class_3.function1(10);
   sample_class_4.function1(10);
-
-
 
   INJECTION_FINALIZE();
 

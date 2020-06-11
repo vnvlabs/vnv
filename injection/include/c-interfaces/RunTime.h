@@ -3,8 +3,8 @@
 
 #ifndef WITHOUT_VNV
 
-#  include "c-interfaces/PackageName.h"
 #  include "c-interfaces/Communication.h"
+#  include "c-interfaces/PackageName.h"
 
 // All packages can register a function that returns a char* with the package
 // json.

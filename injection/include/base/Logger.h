@@ -13,8 +13,8 @@
 #include <stack>
 #include <string>
 
-#include "c-interfaces/PackageName.h"
 #include "c-interfaces/Communication.h"
+#include "c-interfaces/PackageName.h"
 
 #define MAXSAVED_LOGS 1024
 

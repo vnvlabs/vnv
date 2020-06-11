@@ -38,28 +38,27 @@ std::pair<IStatus_ptr, int> DataTypeCommunication::Test(IRequest_ptr ptr) {
   return s;
 }
 
-std::pair<IStatus_vec, int> DataTypeCommunication::TestAll(
-    IRequest_vec& vec) {
+std::pair<IStatus_vec, int> DataTypeCommunication::TestAll(IRequest_vec& vec) {
   auto s = comm->TestAll(vec);
-  if ( s.second ) {
+  if (s.second) {
     for (int i = 0; i < s.first.size(); i++) {
-       vec[i]->ready = true;
+      vec[i]->ready = true;
     }
   }
   return s;
 }
 
-std::tuple<IStatus_ptr, int, int>
-DataTypeCommunication::TestAny(IRequest_vec& vec) {
+std::tuple<IStatus_ptr, int, int> DataTypeCommunication::TestAny(
+    IRequest_vec& vec) {
   auto s = comm->TestAny(vec);
-  if ( std::get<2>(s) ) {
-     vec[std::get<1>(s)]->ready = true;
+  if (std::get<2>(s)) {
+    vec[std::get<1>(s)]->ready = true;
   }
   return s;
 }
 
-IRequest_ptr DataTypeCommunication::Send(IDataType_vec& data, int dest,
-                                             int tag, bool blocking) {
+IRequest_ptr DataTypeCommunication::Send(IDataType_vec& data, int dest, int tag,
+                                         bool blocking) {
   long dataSize = data[0]->maxSize() + sizeof(long long);
   char* buffer = (char*)malloc(dataSize * data.size());
   long long dataKey = data[0]->getKey();
@@ -72,8 +71,7 @@ IRequest_ptr DataTypeCommunication::Send(IDataType_vec& data, int dest,
     comm->Send(buffer, data.size(), dest, tag, dataSize);
     return nullptr;
   } else {
-    IRequest_ptr ptr =
-        comm->ISend(buffer, data.size(), dest, tag, dataSize);
+    IRequest_ptr ptr = comm->ISend(buffer, data.size(), dest, tag, dataSize);
     ptr->buffer = buffer;  // set the buffer so we can free on destruction.
     return ptr;
   }
@@ -99,7 +97,7 @@ std::pair<IDataType_vec, IStatus_ptr> DataTypeCommunication::Recv(
 }
 
 IRequest_ptr DataTypeCommunication::IRecv(int count, long long dataType,
-                                              int dest, int tag) {
+                                          int dest, int tag) {
   IDataType_ptr dptr = CommunicationStore::instance().getDataType(dataType);
   long dataSize = dptr->maxSize() + sizeof(long long);
   char* buffer = (char*)malloc(count * dataSize);
@@ -155,8 +153,7 @@ IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data, int count,
   // First, need to broadcast the data type.
   long long key = (rank == root) ? data[0]->getKey() : -1;
   comm->BroadCast(&key, 1, sizeof(long long), root);
-  long dataSize =
-      CommunicationStore::instance().getDataType(key)->maxSize();
+  long dataSize = CommunicationStore::instance().getDataType(key)->maxSize();
 
   // Now pop the send buffer
   char* sendBuffer;
@@ -248,8 +245,7 @@ IDataType_vec DataTypeCommunication::Scatter(IDataType_vec& data, int root,
   // First, need to scatter the data type.
   long long key = (rank == root) ? data[0]->getKey() : 0;
   comm->BroadCast(&key, 1, sizeof(long long), root);
-  long dataSize =
-      CommunicationStore::instance().getDataType(key)->maxSize();
+  long dataSize = CommunicationStore::instance().getDataType(key)->maxSize();
 
   // Now pop the send buffer
   char* buffer = nullptr;

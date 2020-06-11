@@ -11,7 +11,6 @@
 #define PACKAGENAME_FOUND PACKAGENAME
 #define VNV_PACKAGE_NAME_MAX 50
 
-
 #define VnV_E_STR(x) #x
 #define VNV_STR(x) VnV_E_STR(x)
 #define VNV_EX(x) x

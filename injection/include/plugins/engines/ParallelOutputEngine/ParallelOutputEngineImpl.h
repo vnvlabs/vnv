@@ -5,8 +5,9 @@
  * @file vv-debug-engine.h
  */
 
-#include <string>
 #include <memory>
+#include <string>
+
 #include "Router.h"
 #include "interfaces/IOutputEngine.h"
 
@@ -21,7 +22,7 @@ enum class RouterAction { PUSH, POP, IGNORE };
 
 class ParallelEngine : public OutputEngineManager {
  private:
-  //Router* router;
+  // Router* router;
   std::map<int, std::shared_ptr<Router>> routerMap;
 
  public:
@@ -155,7 +156,8 @@ class ParallelEngine : public OutputEngineManager {
     printf("Print not implemented for Parallel Output Engine");
   }
 
-  std::shared_ptr<Router> getRouter(VnV_Comm comm, RouterAction action = RouterAction::IGNORE);
+  std::shared_ptr<Router> getRouter(VnV_Comm comm,
+                                    RouterAction action = RouterAction::IGNORE);
 };
 
 }  // namespace Engines

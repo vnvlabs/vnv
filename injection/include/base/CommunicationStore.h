@@ -7,16 +7,16 @@
 #include "c-interfaces/PackageName.h"
 #include "interfaces/ICommunicator.h"
 
+using VnV::Communication::comm_register_ptr;
+using VnV::Communication::CommType;
+using VnV::Communication::dataType_ptr;
 using VnV::Communication::ICommunicator;
 using VnV::Communication::ICommunicator_ptr;
 using VnV::Communication::IDataType;
 using VnV::Communication::IDataType_ptr;
 using VnV::Communication::IReduction;
 using VnV::Communication::IReduction_ptr;
-using VnV::Communication::CommType;
-using VnV::Communication::comm_register_ptr;
 using VnV::Communication::reduction_ptr;
-using VnV::Communication::dataType_ptr;
 
 namespace VnV {
 
@@ -26,7 +26,7 @@ class CommunicationStore {
   // keys across processors in buffers. Long long avoids sending the char
   // arrays.
 
-  std::map<std::string, std::pair<std::string,std::string>> commMap;
+  std::map<std::string, std::pair<std::string, std::string>> commMap;
   std::map<long long, dataType_ptr> dataType_factory;
   std::map<long long, reduction_ptr> reduction_factory;
   std::map<long long, comm_register_ptr> communicator_factory;
@@ -35,8 +35,8 @@ class CommunicationStore {
   long long getKey(std::string packageName, std::string name);
 
  public:
-
-  void declareComm(std::string packageName, std::string commPackageName, std::string commName);
+  void declareComm(std::string packageName, std::string commPackageName,
+                   std::string commName);
 
   long long getKey(VnV::Communication::IDataType_ptr ptr);
 
@@ -77,8 +77,6 @@ class CommunicationStore {
 
   static CommunicationStore& instance();
 };
-
-
 
 }  // namespace VnV
 

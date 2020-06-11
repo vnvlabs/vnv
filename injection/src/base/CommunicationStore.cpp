@@ -1,33 +1,36 @@
 ﻿#include "base/CommunicationStore.h"
+#include <iostream>
+
 #include "base/Utilities.h"
 #include "base/exceptions.h"
-#include <iostream>
 
 namespace VnV {
 namespace PACKAGENAME {
 namespace Communication {
-   VnV::Communication::ICommunicator* declare_serial(CommType type);
-}}}
+VnV::Communication::ICommunicator* declare_serial(CommType type);
+}
+}  // namespace PACKAGENAME
+}  // namespace VnV
 
 namespace VnV {
 
-
 CommunicationStore::CommunicationStore() {
-    // Add the serial communicator on construction. This ensures the serial comm
-    // is always available. This is needed by debug statements that occur before
-    // plugin registration.
-    addCommunicator("VNV","serial", VnV::PACKAGENAME::Communication::declare_serial );
+  // Add the serial communicator on construction. This ensures the serial comm
+  // is always available. This is needed by debug statements that occur before
+  // plugin registration.
+  addCommunicator("VNV", "serial",
+                  VnV::PACKAGENAME::Communication::declare_serial);
 }
-
-
 
 long long CommunicationStore::getKey(std::string packageName,
                                      std::string name) {
   return VnV::StringUtils::simpleHash(packageName + ":" + name);
 }
 
-void CommunicationStore::declareComm(std::string packageName, std::string commPackageName, std::string commName) {
-  commMap[packageName] = {commPackageName , commName };
+void CommunicationStore::declareComm(std::string packageName,
+                                     std::string commPackageName,
+                                     std::string commName) {
+  commMap[packageName] = {commPackageName, commName};
 }
 
 long long CommunicationStore::getKey(IDataType_ptr ptr) {
@@ -35,7 +38,8 @@ long long CommunicationStore::getKey(IDataType_ptr ptr) {
 }
 
 void CommunicationStore::addCommunicator(std::string packageName,
-                                         std::string name, comm_register_ptr m) {
+                                         std::string name,
+                                         comm_register_ptr m) {
   communicator_factory.insert(std::make_pair(getKey(packageName, name), m));
 }
 
@@ -94,47 +98,54 @@ ICommunicator_ptr CommunicationStore::getCommunicator(long long key,
   throw VnV::VnVExceptionBase("Un supported Data Type)");
 }
 
-Communication::ICommunicator_ptr CommunicationStore::getCommForPackage(std::string packageName, Communication::CommType type) {
+Communication::ICommunicator_ptr CommunicationStore::getCommForPackage(
+    std::string packageName, Communication::CommType type) {
   auto it = commMap.find(packageName);
-  if (it != commMap.end()){
-      std::cout << "Found COmm pfor package " << packageName << std::endl;
-      auto c = getCommunicator(it->second.first, it->second.second, type);
-      c->setPackage(packageName);
-      std::cout << "Testing it" <<  std::endl;
-      c->Rank();
-      std::cout << "Worked? " << std::endl;
-      return c;
+  if (it != commMap.end()) {
+    std::cout << "Found COmm pfor package " << packageName << std::endl;
+    auto c = getCommunicator(it->second.first, it->second.second, type);
+    c->setPackage(packageName);
+    std::cout << "Testing it" << std::endl;
+    c->Rank();
+    std::cout << "Worked? " << std::endl;
+    return c;
   }
   std::cout << "Could not find COmm pfor package " << packageName << std::endl;
-  auto c = getCommunicator(PACKAGENAME_S, "serial", type); // Return default serial comm.
+  auto c = getCommunicator(PACKAGENAME_S, "serial",
+                           type);  // Return default serial comm.
   c->setPackage(PACKAGENAME_S);
   return c;
 }
-Communication::ICommunicator_ptr CommunicationStore::getCommunicator(VnV_Comm comm) {
+Communication::ICommunicator_ptr CommunicationStore::getCommunicator(
+    VnV_Comm comm) {
   std::cout << comm.name << " is the comm name " << std::endl;
-  return customComm(comm.name,comm.data);
+  return customComm(comm.name, comm.data);
 }
 
-Communication::ICommunicator_ptr CommunicationStore::worldComm(std::string packageName) {
+Communication::ICommunicator_ptr CommunicationStore::worldComm(
+    std::string packageName) {
   return getCommForPackage(packageName, CommType::World);
 }
 
-Communication::ICommunicator_ptr CommunicationStore::selfComm(std::string packageName) {
+Communication::ICommunicator_ptr CommunicationStore::selfComm(
+    std::string packageName) {
   return getCommForPackage(packageName, CommType::Self);
 }
 
-Communication::ICommunicator_ptr CommunicationStore::customComm(std::string packageName, void *data) {
+Communication::ICommunicator_ptr CommunicationStore::customComm(
+    std::string packageName, void* data) {
   auto c = getCommForPackage(packageName, CommType::Default);
   c->setData(data);
   return c;
 }
 
-VnV_Comm CommunicationStore::customData(std::string packageName, void *data) {
+VnV_Comm CommunicationStore::customData(std::string packageName, void* data) {
   return VnV_Create_Comm(packageName.c_str(), data);
 }
 
 VnV_Comm CommunicationStore::worldData(std::string packageName) {
-  return VnV_Create_Comm(packageName.c_str(),worldComm(packageName)->getData());
+  return VnV_Create_Comm(packageName.c_str(),
+                         worldComm(packageName)->getData());
 }
 
 VnV_Comm CommunicationStore::selfData(std::string packageName) {

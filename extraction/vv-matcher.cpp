@@ -421,19 +421,18 @@ class RegistrationWriter {
       }
     }
     if (j.contains("Communicator")) {
-        for (auto it : j["Communicator"].items()) {
-           std::string pname = it.key();
-           if (packageName.empty() || pname == packageName) {
-              createPackageOss(pname);
-              oss_register[pname] << "\tVnV_Declare_Communicator(\""
-                                  << pname << "\",\""
-                                  << it.value()["package"].get<std::string>() << "\",\""
-                                  << it.value()["name"].get<std::string>() << "\");\n";
+      for (auto it : j["Communicator"].items()) {
+        std::string pname = it.key();
+        if (packageName.empty() || pname == packageName) {
+          createPackageOss(pname);
+          oss_register[pname]
+              << "\tVnV_Declare_Communicator(\"" << pname << "\",\""
+              << it.value()["package"].get<std::string>() << "\",\""
+              << it.value()["name"].get<std::string>() << "\");\n";
           pjson[pname]["Communicator"] = it.value();
         }
         if (packageName == pname) break;
-
-        }
+      }
     }
 
     // Catch the injection points
@@ -588,17 +587,17 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     } else if (nae == "INJECTION_DATATYPE") {
       json& jj = getDef("DataTypes", Args->getUnexpArgument(0));
       jj["docs"] = getDocs(Range);
-    }  else if (nae == "INJECTION_REDUCER") {
+    } else if (nae == "INJECTION_REDUCER") {
       json& jj = getDef("Reducers", Args->getUnexpArgument(0));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_COMM") {
       json& jj = getDef("Comms", Args->getUnexpArgument(0));
       jj["docs"] = getDocs(Range);
-    } else if ( nae == "INJECTION_COMMUNICATOR") {
-        json& jj = getOrCreate(thisJson,"Communicator");
-        jj["docs"] = getDocs(Range);
-        jj["package"] = pp.getSpelling(*Args->getUnexpArgument(0));
-        jj["name"] = pp.getSpelling(*Args->getUnexpArgument(1));
+    } else if (nae == "INJECTION_COMMUNICATOR") {
+      json& jj = getOrCreate(thisJson, "Communicator");
+      jj["docs"] = getDocs(Range);
+      jj["package"] = pp.getSpelling(*Args->getUnexpArgument(0));
+      jj["name"] = pp.getSpelling(*Args->getUnexpArgument(1));
     } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
       json& jj = getDef("InjectionPoints", Args->getUnexpArgument(1));
       json& stages = getOrCreate(jj, "stages");
@@ -773,7 +772,8 @@ void writeFileAndCache(json& cacheInfo, std::string outputFileName,
 
       for (std::string type :
            {"InjectionPoints", "SubPackages", "LogLevels", "Tests", "Engines",
-            "Comms", "Reducers", "DataTypes", "Serializers", "Transforms", "UnitTests"}) {
+            "Comms", "Reducers", "DataTypes", "Serializers", "Transforms",
+            "UnitTests"}) {
         addAll(getOrCreate(finalJson, type), getOrCreate(it.value(), type));
       }
       if (it.value().contains("Options")) {
@@ -782,7 +782,8 @@ void writeFileAndCache(json& cacheInfo, std::string outputFileName,
       }
       if (it.value().contains("Communicator")) {
         std::string pname = it.value()["packageName"].get<std::string>();
-        getOrCreate(finalJson, "Communicator")[pname] = it.value()["Communicator"];
+        getOrCreate(finalJson, "Communicator")[pname] =
+            it.value()["Communicator"];
       }
     }
 
@@ -887,13 +888,15 @@ int main(int argc, const char** argv) {
   bool hasCache = (cacheInfo.contains(LAST_RUN_TIME));
   std::vector<std::string> modFiles;
   if (hasCache) {
-    std::vector<std::string> files = OptionsParser.getCompilations().getAllFiles();
+    std::vector<std::string> files =
+        OptionsParser.getCompilations().getAllFiles();
     std::string lastRunTime = cacheInfo[LAST_RUN_TIME].get<std::string>();
 
     std::map<std::string, bool> fModMap;
 
     for (auto it : cacheMap.items()) {
-      fModMap[it.key()] = (timeForFile(it.value().get<std::string>()) > lastRunTime);
+      fModMap[it.key()] =
+          (timeForFile(it.value().get<std::string>()) > lastRunTime);
     }
 
     for (auto& it : files) {  // all files to be compiled. (strings)
@@ -907,14 +910,15 @@ int main(int argc, const char** argv) {
           }
         }
       } else {
-         modFiles.push_back(it); // New File not prev in cache.
+        modFiles.push_back(it);  // New File not prev in cache.
       }
     }
     // TODO CHECK IF FILE WAS MODIFIED MANUALLY .
     if (modFiles.size() == 0) {
       if (outputFileName != cacheInfo[LAST_FILE_NAME] ||
           lastRunTime < timeForFile(outputFileName)) {
-            writeFileAndCache(cacheInfo, outputFileName, cacheFile_, packageName_, true);
+        writeFileAndCache(cacheInfo, outputFileName, cacheFile_, packageName_,
+                          true);
       }
       return 0;
     }

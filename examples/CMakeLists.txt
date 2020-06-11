@@ -1,5 +1,2 @@
-
-#Add the subs                                                                                                              
-add_subdirectory(dummy)                                                           
-
-
+# Add the subs
+add_subdirectory(dummy)

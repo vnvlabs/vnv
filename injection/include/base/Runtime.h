@@ -94,7 +94,8 @@ class RunTime {
   // TODO Getter and setter.
   RunTimeOptions runTimeOptions;
 
-  bool configure(std::string packageName, RunInfo info, registrationCallBack* callback);
+  bool configure(std::string packageName, RunInfo info,
+                 registrationCallBack* callback);
 
  public:
   /**
@@ -120,8 +121,8 @@ class RunTime {
 
   void declarePackageJson(std::string pname, vnvFullJsonStrCallback callback);
 
-  void declareCommunicator(std::string pname, std::string commPack,  std::string comm);
-
+  void declareCommunicator(std::string pname, std::string commPack,
+                           std::string comm);
 
   bool useAsciiColors();
   /**

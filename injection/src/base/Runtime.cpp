@@ -3,10 +3,10 @@
  * base/Runtime.h"
  **/
 
-
 #include <unistd.h>
 
 //#include <unistd.h>
+#include "base/CommunicationStore.h"
 #include "base/DistUtils.h"
 #include "base/InjectionPointStore.h"
 #include "base/JsonSchema.h"
@@ -16,7 +16,6 @@
 #include "base/TestStore.h"
 #include "base/UnitTestStore.h"
 #include "c-interfaces/Logging.h"
-#include "base/CommunicationStore.h"
 
 using namespace VnV;
 
@@ -164,8 +163,10 @@ void RunTime::injectionPoint_end(std::string pname, std::string id) {
   }
 }
 
-void RunTime::declareCommunicator(std::string packageName, std::string commpack, std::string communicator) {
-  CommunicationStore::instance().declareComm(packageName, commpack, communicator);
+void RunTime::declareCommunicator(std::string packageName, std::string commpack,
+                                  std::string communicator) {
+  CommunicationStore::instance().declareComm(packageName, commpack,
+                                             communicator);
 }
 
 void RunTime::declarePackageJson(std::string pname,
@@ -257,7 +258,7 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
 
   JsonParser parser;
   RunInfo info = parser.parse(config);
-  runTests = configure(packageName,info, callback);
+  runTests = configure(packageName, info, callback);
 
   /**
    * Injection point documentation.
@@ -298,7 +299,8 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv,
   return InitFromJson(packageName, argc, argv, mainJson, callback);
 }
 
-bool RunTime::configure(std::string packageName, RunInfo info, registrationCallBack* callback) {
+bool RunTime::configure(std::string packageName, RunInfo info,
+                        registrationCallBack* callback) {
   runTests = info.runTests;
   if (runTests) {
     loadRunInfo(info, callback);

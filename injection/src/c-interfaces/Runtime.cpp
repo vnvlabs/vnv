@@ -8,8 +8,8 @@
 
 #include <stdexcept>
 
-#include "base/OptionsParserStore.h"
 #include "base/CommunicationStore.h"
+#include "base/OptionsParserStore.h"
 
 extern "C" {
 
@@ -35,7 +35,6 @@ void VnV_finalize() { VnV::RunTime::instance().Finalize(); }
 void VnV_runUnitTests(VnV_Comm comm) {
   VnV::RunTime::instance().runUnitTests(comm);
 }
-
 
 void VnV_readFile(const char* filename) {
   VnV::RunTime::instance().readFile(filename);

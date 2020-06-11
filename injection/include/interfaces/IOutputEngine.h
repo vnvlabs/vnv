@@ -3,9 +3,8 @@
 
 #include <string>
 
-#include "c-interfaces/PackageName.h"
 #include "c-interfaces/Communication.h"
-
+#include "c-interfaces/PackageName.h"
 #include "interfaces/IUnitTest.h"
 #include "interfaces/nodes/Nodes.h"
 #include "json-schema.hpp"

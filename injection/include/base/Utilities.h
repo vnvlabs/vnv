@@ -92,29 +92,26 @@ nlohmann::json& getOrCreate(nlohmann::json& parent, std::string key,
 
 namespace MapUtilities {
 
-template<typename Key, typename Value>
-std::vector<Key> extractKeys(std::map<Key,Value> const &input) {
-   std::vector<Key> res;
-   res.reserve(input.size());
-   for (auto const &el : input) res.push_back(el.first);
-   return res;
+template <typename Key, typename Value>
+std::vector<Key> extractKeys(std::map<Key, Value> const& input) {
+  std::vector<Key> res;
+  res.reserve(input.size());
+  for (auto const& el : input) res.push_back(el.first);
+  return res;
 }
 
-template<typename Key, typename Value>
-const Value& maxValue(std::map<Key,Value> const &input) {
-   auto const &m = input.end();
-   for (auto &el : input) {
-      if ( m == input.end() || el.second > m.second ) {
-         m = el;
-      }
-   }
-   return m.second;
+template <typename Key, typename Value>
+const Value& maxValue(std::map<Key, Value> const& input) {
+  auto const& m = input.end();
+  for (auto& el : input) {
+    if (m == input.end() || el.second > m.second) {
+      m = el;
+    }
+  }
+  return m.second;
 }
 
-
-}
-
-
+}  // namespace MapUtilities
 
 namespace VariadicUtils {
 NTV UnwrapVariadicArgs(va_list argp);

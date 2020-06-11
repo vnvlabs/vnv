@@ -4,8 +4,9 @@
 #include <map>
 #include <memory>
 #include <vector>
-#include "c-interfaces/PackageName.h"
+
 #include "c-interfaces/Communication.h"
+#include "c-interfaces/PackageName.h"
 
 namespace VnV {
 namespace Communication {
@@ -33,7 +34,7 @@ class IStatus {
   virtual int source() = 0;
   virtual int tag() = 0;
   virtual int error() = 0;
-     virtual ~IStatus();
+  virtual ~IStatus();
 };
 typedef std::shared_ptr<IStatus> IStatus_ptr;
 typedef std::vector<IStatus_ptr> IStatus_vec;
@@ -85,7 +86,7 @@ class IDataType {
   virtual void setData(void* data) = 0;  // set from a raw pointer to the data.
   virtual void axpy(double alpha, IDataType* y) = 0;  // y = ax + y
   virtual int compare(IDataType* y) = 0;  // -1 less, 0 == , 1 greater.
-  virtual void mult(IDataType* y)=0;
+  virtual void mult(IDataType* y) = 0;
   void setKey(long long key);
   long long getKey();
 
@@ -95,22 +96,24 @@ class IDataType {
 // Enum class to describe the different return types for a comm compare.
 // Exact means the comms have same contexts and groups
 // Group means different contexts but same groups
-// SIMILAR means different contexts but similar (same proces different order) groups
-// UN equal -- not the same.
+// SIMILAR means different contexts but similar (same proces different order)
+// groups UN equal -- not the same.
 enum class CommCompareType { EXACT, GROUP, SIMILAR, UNEQUAL };
 
 class ICommunicator {
-private:
+ private:
   std::string packageName;
-public:
+
+ public:
   void setPackage(std::string package);
   std::string getPackage();
   VnV_Comm asComm();
 
-  virtual int setData(void* data)= 0; // The communicator passed in.
+  virtual int setData(void* data) = 0;  // The communicator passed in.
   virtual void* getData() = 0;
 
-  virtual int uniqueId() = 0; //Unique id such that the same comm data returns the same comm.
+  virtual int uniqueId() = 0;  // Unique id such that the same comm data returns
+                               // the same comm.
 
   virtual int Size() = 0;
   virtual int Rank() = 0;
@@ -124,20 +127,18 @@ public:
   virtual ICommunicator_ptr create(std::vector<int>& ranks, int tag) = 0;
   virtual ICommunicator_ptr create(int start, int end, int stride, int tag) = 0;
 
-  virtual CommCompareType compare(ICommunicator_ptr ptr)=0;
+  virtual CommCompareType compare(ICommunicator_ptr ptr) = 0;
   virtual bool contains(ICommunicator_ptr) = 0;
-
-
 
   virtual void Send(void* buffer, int count, int dest, int tag,
                     int dataTypeSize) = 0;
   virtual IRequest_ptr ISend(void* buffer, int count, int dest, int tag,
-                                 int dataTypeSize) = 0;
+                             int dataTypeSize) = 0;
 
   virtual IStatus_ptr Recv(void* buffer, int count, int dest, int tag,
                            int dataTypeSize) = 0;
   virtual IRequest_ptr IRecv(void* buffer, int count, int dest, int tag,
-                                 int dataTypeSize) = 0;
+                             int dataTypeSize) = 0;
 
   virtual IStatus_ptr Wait(IRequest_ptr ptr) = 0;
   virtual IStatus_vec WaitAll(IRequest_vec& vec) = 0;
@@ -148,18 +149,16 @@ public:
   virtual std::pair<IStatus_ptr, int> IProbe(int source, int tag) = 0;
 
   virtual std::pair<IStatus_ptr, int> Test(IRequest_ptr ptr) = 0;
-  virtual std::pair<IStatus_vec, int> TestAll(
-      IRequest_vec& vec) = 0;
-  virtual std::tuple<IStatus_ptr, int,int> TestAny(
-      IRequest_vec& vec) = 0;
+  virtual std::pair<IStatus_vec, int> TestAll(IRequest_vec& vec) = 0;
+  virtual std::tuple<IStatus_ptr, int, int> TestAny(IRequest_vec& vec) = 0;
 
   virtual void Gather(void* buffer, int count, void* recvBuffer,
                       int dataTypeSize, int root) = 0;
   virtual void AllGather(void* buffer, int count, void* recvBuffer,
                          int dataTypeSize) = 0;
 
-  virtual void BroadCast(void* buffer, int count,
-                         int dataTypeSize, int root) = 0;
+  virtual void BroadCast(void* buffer, int count, int dataTypeSize,
+                         int root) = 0;
   virtual void AllToAll(void* buffer, int count, void* recvBuffer,
                         int dataTypeSize) = 0;
   virtual void Scatter(void* buffer, int count, void* recvBuffer,
@@ -175,89 +174,94 @@ public:
   virtual void Abort(int errorcode) = 0;
 };
 
-
-
 enum class CommType { World, Self, Default };
 
 typedef ICommunicator* (*comm_register_ptr)(CommType);
-typedef IReduction*  (*reduction_ptr)();
+typedef IReduction* (*reduction_ptr)();
 typedef IDataType* (*dataType_ptr)();
 
-void registerCommunicator(std::string packageName, std::string name, VnV::Communication::comm_register_ptr r);
-void registerDataType(std::string packageName, std::string name, VnV::Communication::dataType_ptr r);
-void registerReduction(std::string packageName, std::string name, VnV::Communication::reduction_ptr r);
+void registerCommunicator(std::string packageName, std::string name,
+                          VnV::Communication::comm_register_ptr r);
+void registerDataType(std::string packageName, std::string name,
+                      VnV::Communication::dataType_ptr r);
+void registerReduction(std::string packageName, std::string name,
+                       VnV::Communication::reduction_ptr r);
 
 }  // namespace Communication
 
 }  // namespace VnV
 
-
-
-
-#define INJECTION_COMM(name)                                      \
+#define INJECTION_COMM(name)                                        \
   namespace VnV {                                                   \
   namespace PACKAGENAME {                                           \
-  namespace Communication {                                               \
-  VnV::Communication::ICommunicator* declare_##name(CommType type);                            \
-  void register_##name() { VnV::Communication::registerCommunicator(PACKAGENAME_S, #name, declare_##name); } \
+  namespace Communication {                                         \
+  VnV::Communication::ICommunicator* declare_##name(CommType type); \
+  void register_##name() {                                          \
+    VnV::Communication::registerCommunicator(PACKAGENAME_S, #name,  \
+                                             declare_##name);       \
   }                                                                 \
   }                                                                 \
   }                                                                 \
-  VnV::Communication::ICommunicator* VnV::PACKAGENAME::Communication::declare_##name(CommType type)
+  }                                                                 \
+  VnV::Communication::ICommunicator*                                \
+      VnV::PACKAGENAME::Communication::declare_##name(CommType type)
 
-#define DECLARECOMM(name) \
+#define DECLARECOMM(name)   \
   namespace VnV {           \
   namespace PACKAGENAME {   \
-  namespace Communication {       \
+  namespace Communication { \
   void register_##name();   \
   }                         \
   }                         \
   }
 #define REGISTERCOMM(name) VnV::PACKAGENAME::Communication::register_##name();
 
-
-#define INJECTION_DATATYPE(name)                                      \
-  namespace VnV {                                                   \
-  namespace PACKAGENAME {                                           \
-  namespace DataTypes {                                               \
-  VnV::Communication::IDataType* declare_##name();                            \
-  void register_##name() { VnV::Communication::registerDataType(PACKAGENAME_S, #name, declare_##name); } \
-  }                                                                 \
-  }                                                                 \
-  }                                                                 \
+#define INJECTION_DATATYPE(name)                               \
+  namespace VnV {                                              \
+  namespace PACKAGENAME {                                      \
+  namespace DataTypes {                                        \
+  VnV::Communication::IDataType* declare_##name();             \
+  void register_##name() {                                     \
+    VnV::Communication::registerDataType(PACKAGENAME_S, #name, \
+                                         declare_##name);      \
+  }                                                            \
+  }                                                            \
+  }                                                            \
+  }                                                            \
   VnV::Communication::IDataType* VnV::PACKAGENAME::DataTypes::declare_##name()
 
 #define DECLAREDATATYPE(name) \
-  namespace VnV {           \
-  namespace PACKAGENAME {   \
+  namespace VnV {             \
+  namespace PACKAGENAME {     \
   namespace DataTypes {       \
-  void register_##name();   \
-  }                         \
-  }                         \
+  void register_##name();     \
+  }                           \
+  }                           \
   }
 #define REGISTERDATATYPE(name) VnV::PACKAGENAME::DataTypes::register_##name();
 
-
-#define INJECTION_REDUCER(name)                                      \
-  namespace VnV {                                                   \
-  namespace PACKAGENAME {                                           \
-  namespace Reducers {                                               \
-  VnV::Communication::IReduction* declare_##name();                            \
-  void register_##name() { VnV::Communication::registerReduction(PACKAGENAME_S, #name, declare_##name); } \
-  }                                                                 \
-  }                                                                 \
-  }                                                                 \
+#define INJECTION_REDUCER(name)                                 \
+  namespace VnV {                                               \
+  namespace PACKAGENAME {                                       \
+  namespace Reducers {                                          \
+  VnV::Communication::IReduction* declare_##name();             \
+  void register_##name() {                                      \
+    VnV::Communication::registerReduction(PACKAGENAME_S, #name, \
+                                          declare_##name);      \
+  }                                                             \
+  }                                                             \
+  }                                                             \
+  }                                                             \
   VnV::Communication::IReduction* VnV::PACKAGENAME::Reducers::declare_##name()
 
 #define DECLAREREDUCER(name) \
-  namespace VnV {           \
-  namespace PACKAGENAME {   \
+  namespace VnV {            \
+  namespace PACKAGENAME {    \
   namespace Reducers {       \
-  void register_##name();   \
-  }                         \
-  }                         \
+  void register_##name();    \
+  }                          \
+  }                          \
   }
 #define REGISTERREDUCER(name) VnV::PACKAGENAME::Reducers::register_##name();
-
 
 #endif  // ICOMMUNICATOR_H
