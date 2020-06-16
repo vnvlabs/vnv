@@ -34,6 +34,8 @@ class OptionsParserStore {
 
   void parse(json info, json& cmdline);
 
+  json& getSchema(std::string package);
+
   static OptionsParserStore& instance();
 };
 

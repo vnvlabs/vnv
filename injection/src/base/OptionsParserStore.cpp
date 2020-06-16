@@ -58,3 +58,10 @@ void OptionsParserStore::parse(json info, json&cmdline) {
     callBack(it.first, found);
   }
 }
+
+nlohmann::json &OptionsParserStore::getSchema(std::string package) {
+  auto it = factory.find(package);
+  if (it != factory.end()) {
+      return it->second.first;
+    }
+}

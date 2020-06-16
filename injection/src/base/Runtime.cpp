@@ -102,10 +102,21 @@ void RunTime::writeSpecification(std::string filename) {
         json j = json::parse(package.second());
         for (auto type : j.items()) {
            json &mj = JsonUtilities::getOrCreate(main,type.key(),JsonUtilities::CreateType::Object);
-           for (auto &entry : type.value().items() ) {
-              mj[package.first + ":" + entry.key()] = entry.value();
-           }
+           if (type.key() == "Options" ) {
+               json jj = type.value();
+               jj["config"] = OptionsParserStore::instance().getSchema(package.first);
+               mj[package.first] = jj;
+             } else {
+                for (auto &entry : type.value().items() ) {
+                   mj[package.first + ":" + entry.key()] = entry.value();
+                }
+             }
         }
+     }
+     if (main.contains("Options")) {
+         for (auto opt : main["Options"].items() ) {
+
+         }
      }
      std::ofstream ofs(filename);
      if (ofs.good()) {
