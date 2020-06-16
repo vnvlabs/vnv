@@ -1,4 +1,4 @@
-
+﻿
 
 /**
   @file OptionsParserStore.h
@@ -32,7 +32,7 @@ class OptionsParserStore {
   void add(std::string name, json& m, options_cpp_callback_ptr v);
   void callBack(std::string name, json info);
 
-  void parse(json info);
+  void parse(json info, json& cmdline);
 
   static OptionsParserStore& instance();
 };

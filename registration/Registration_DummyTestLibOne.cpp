@@ -9,7 +9,7 @@
 DECLARETEST(EuclideanError)
 DECLARETEST(dummyTest)
 const char* getFullRegistrationJson_DummyTestLibOne(){
-	 return "{\"Tests\":{\"EuclideanError\":{\"docs\":\"\n  Euclidean Error. Docuementation is Fun\n\n  This is some more.\n\n\n  This is the rest.\",\"parameters\":{\"exact_test\":\"(std::vector<double>)\",\"measured\":\"std::vector<double>\"}},\"dummyTest\":{\"docs\":\"\",\"parameters\":{\"intersection\":\"double\",\"slope\":\"double\"}}}}";}
+	 return "{\"Tests\":{\"EuclideanError\":{\"docs\":\"\\n  Euclidean Error. Docuementation is Fun\\n\\n  This is some more.\\n\\n\\n  This is the rest.\",\"parameters\":{\"exact_test\":\"(std::vector<double>)\",\"measured\":\"std::vector<double>\"}},\"dummyTest\":{\"docs\":\"\",\"parameters\":{\"intersection\":\"double\",\"slope\":\"double\"}}}}";}
 
 INJECTION_REGISTRATION(){
 	REGISTERTEST(EuclideanError);

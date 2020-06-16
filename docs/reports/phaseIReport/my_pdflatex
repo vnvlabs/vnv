@@ -1,6 +1,0 @@
-#!/bin/bash
-
-TEXINPUTS="./:./style/:${TEXINPUTS}"
-export TEXINPUTS
-echo $TEXINPUTS
-pdflatex $1

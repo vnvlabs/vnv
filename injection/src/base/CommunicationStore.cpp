@@ -102,15 +102,11 @@ Communication::ICommunicator_ptr CommunicationStore::getCommForPackage(
     std::string packageName, Communication::CommType type) {
   auto it = commMap.find(packageName);
   if (it != commMap.end()) {
-    std::cout << "Found COmm pfor package " << packageName << std::endl;
     auto c = getCommunicator(it->second.first, it->second.second, type);
     c->setPackage(packageName);
-    std::cout << "Testing it" << std::endl;
     c->Rank();
-    std::cout << "Worked? " << std::endl;
     return c;
   }
-  std::cout << "Could not find COmm pfor package " << packageName << std::endl;
   auto c = getCommunicator(PACKAGENAME_S, "serial",
                            type);  // Return default serial comm.
   c->setPackage(PACKAGENAME_S);
@@ -118,7 +114,6 @@ Communication::ICommunicator_ptr CommunicationStore::getCommForPackage(
 }
 Communication::ICommunicator_ptr CommunicationStore::getCommunicator(
     VnV_Comm comm) {
-  std::cout << comm.name << " is the comm name " << std::endl;
   return customComm(comm.name, comm.data);
 }
 

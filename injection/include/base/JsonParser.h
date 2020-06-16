@@ -1,4 +1,4 @@
-/**
+﻿/**
   @file JsonParser.h
 **/
 
@@ -63,6 +63,7 @@ struct RunInfo {
   std::map<std::string, InjectionPointInfo>
       injectionPoints; /**< all injection points with tests */
   json toolConfig;
+  json cmdline;
 
   UnitTestInfo unitTestInfo;
   LoggerInfo logInfo;
@@ -187,7 +188,7 @@ class JsonParser {
    * present in the json. In most cases, those assumptions are based on the fact
    * that the parameter is marked required in the schema.
    */
-  RunInfo _parse(const json& input);
+  RunInfo _parse(const json& input, int* argc, char** argv);
 
  public:
   /**
@@ -198,8 +199,10 @@ class JsonParser {
    * Note, This function supports both files and json strings as input.
    * @todo Change parameter name to indicate support for json strings and files.
    */
-  RunInfo parse(std::ifstream& fstream);
-  RunInfo parse(const json& _json);
+
+  json commandLineParser(int* argc, char** argv);
+  RunInfo parse(std::ifstream& fstream, int* argc, char** argv);
+  RunInfo parse(const json& _json, int* argc, char** argv);
 };
 
 }  // namespace VnV

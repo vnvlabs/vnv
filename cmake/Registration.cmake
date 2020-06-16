@@ -1,6 +1,12 @@
 ﻿### MACRO TO BUILD THE REGISTRATION CPP FILE DYNAMICALLY
 option(WITH_EXTRACTION "Use extraction to generate Registration files" ON)
 
+option(REGENERATE_ALL_REGISTRATION "Regenerate all registration objects" OFF)
+
+if (REGENERATE_ALL_REGISTRATION)
+  set(VNV_REGEN --useCache )
+endif()
+
 function(generate_vnv_registration targetName packageName distPath extension)
 
   if(WITH_EXTRACTION AND TARGET Injection::Extraction)
@@ -16,8 +22,9 @@ function(generate_vnv_registration targetName packageName distPath extension)
      #   DEPENDS vnv-matcher
      #)
      add_custom_target(vnv_${targetName}_generation
-        COMMAND Injection::Extraction ARGS --package ${packageName} --output ${CMAKE_CURRENT_BINARY_DIR}/Registration_${packageName}.${extension} ${CMAKE_BINARY_DIR}/compile_commands.json
+        COMMAND Injection::Extraction ARGS ${VNV_REGEN} --package ${packageName} --output ${CMAKE_CURRENT_BINARY_DIR}/Registration_${packageName}.${extension} ${CMAKE_BINARY_DIR}/compile_commands.json
         COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/Registration_${packageName}.${extension} ${distPath}
+        COMMENT "Running VnV Registration Detection for ${packageName}"
         BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/Registration_${packageName}.${extension} ${CMAKE_CURRENT_BINARY_DIR}/Registration_${packageName}.${extension}.__cache__
       )
     add_dependencies(${targetName} vnv_${targetName}_generation)

@@ -478,6 +478,12 @@ static llvm::cl::opt<std::string> packageName("package",
                                               llvm::cl::value_desc("string"),
                                               llvm::cl::cat(VnVParserCatagory));
 
+static llvm::cl::opt<bool> useCache("useCache",
+                                   llvm::cl::desc("UseCache"),
+                                   llvm::cl::value_desc("bool"),
+                                   llvm::cl::init(true),
+                                   llvm::cl::cat(VnVParserCatagory));
+
 namespace {
 
 class PreprocessCallback : public PPCallbacks, CommentHandler {
@@ -766,6 +772,7 @@ void writeFileAndCache(json& cacheInfo, std::string outputFileName,
   // format.
   std::hash<std::string> hasher;
   if (writeFile) {
+    llvm::outs() << "Writing VnV Registration File\n";
     json finalJson = json::object();
     for (auto it : cacheInfo["data"].items()) {
       if (!it.value().contains("packageName")) continue;
@@ -803,8 +810,11 @@ void writeFileAndCache(json& cacheInfo, std::string outputFileName,
 
     oss << r.printPackage(packageName);
     oss.close();
-  }
+    } else {
+      llvm::outs() << "VnV Registration File Unchanged\n";
+    }
 
+  llvm::outs() << "Writing VnV Registration Cache\n";
   // Do some cleaning of the data for size.
   json& d = cacheInfo["data"];
   for (auto it = d.begin(); it != d.end();) {
@@ -874,10 +884,15 @@ int main(int argc, const char** argv) {
   }
   std::ifstream cache(cacheFile_.c_str());
 
+
   json cacheInfo = json ::object();
-  if (cache.good()) {
+
+
+  if (cache.good() && useCache.getValue()) {
     cacheInfo = json::parse(cache);
   }
+
+
   json& cacheMap = getOrCreate(cacheInfo, "map");
   json& cacheFiles = getOrCreate(cacheInfo, "files");
   json& cacheData = getOrCreate(cacheInfo, "data");
@@ -917,15 +932,17 @@ int main(int argc, const char** argv) {
     if (modFiles.size() == 0) {
       if (outputFileName != cacheInfo[LAST_FILE_NAME] ||
           lastRunTime < timeForFile(outputFileName)) {
-        writeFileAndCache(cacheInfo, outputFileName, cacheFile_, packageName_,
-                          true);
+        writeFileAndCache(cacheInfo, outputFileName, cacheFile_, packageName_,true);
+        llvm::outs() << "No Changes Detected But FileName Changed -->Copying from Cache.\n";
+        return 0;
       }
+      llvm::outs() << "No Changes Detected.\n";
       return 0;
     }
   } else {
     modFiles = OptionsParser.getCompilations().getAllFiles();
   }
-
+  llvm::outs() << "Changes Detected -> Regenerating VnV Registration File \n";
   // Generate the main VnV Declares object.
   ClangTool VnVTool1(OptionsParser.getCompilations(), modFiles);
   json vnvDeclares1 = json::object();
@@ -991,6 +1008,7 @@ int main(int argc, const char** argv) {
   // the filename has changed or the actual data has changed.
   bool writeFile = ((cacheInfo[LAST_FILE_NAME] != outputFileName) ||
                     hasher(cacheData.dump()) != cacheDataHash);
+
   writeFileAndCache(cacheInfo, outputFileName, cacheFile_, packageName_,
                     writeFile);
   return 0;

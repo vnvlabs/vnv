@@ -36,6 +36,10 @@ void VnV_runUnitTests(VnV_Comm comm) {
   VnV::RunTime::instance().runUnitTests(comm);
 }
 
+void VnV_Registration_Info(const char* filename) {
+    VnV::RunTime::instance().writeSpecification(filename);
+}
+
 void VnV_readFile(const char* filename) {
   VnV::RunTime::instance().readFile(filename);
 }

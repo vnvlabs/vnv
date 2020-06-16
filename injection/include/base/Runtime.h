@@ -46,6 +46,8 @@ namespace VnV {
 class RunTimeOptions {
  public:
   bool logUnhandled = false;
+  std::string dumpConfigFilename = "";
+  bool dumpConfig = false;
   void fromJson(json& jsonObject);
   static void callback(json& j);
 };
@@ -131,9 +133,12 @@ class RunTime {
    */
   void printRunTimeInformation();
 
+  void writeSpecification(std::string filename);
+
+
   RunTimeOptions* getRunTimeOptions();
 
-  void processToolConfig(json config);
+  void processToolConfig(json config, json &cmdline);
 
   void runTimePackageRegistration(std::string packageName,
                                   vnv_registration_function reg);

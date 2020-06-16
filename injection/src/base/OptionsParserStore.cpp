@@ -1,4 +1,4 @@
-
+﻿
 /** @file OptionsParserStore.cpp Implementation of the OptionsParserStore as
  *defined in base/OptionParserStore.h"
  **/
@@ -6,7 +6,9 @@
 #include "base/OptionsParserStore.h"
 
 #include "c-interfaces/Logging.h"
+#include "base/Utilities.h"
 
+#include <iostream>
 using namespace VnV;
 
 OptionsParserStore::OptionsParserStore() {}
@@ -46,14 +48,13 @@ OptionsParserStore& OptionsParserStore::instance() {
   return store;
 }
 
-void OptionsParserStore::parse(json info) {
+void OptionsParserStore::parse(json info, json&cmdline) {
   for (auto& it : factory) {
-    auto found = info.find(it.first);
-    if (found != info.end()) {
-      callBack(it.first, found.value());
-    } else {
-      json foundJson = R"({})"_json;
-      callBack(it.first, foundJson);
+    json &found = JsonUtilities::getOrCreate(info,it.first,JsonUtilities::CreateType::Object);
+    std::cout << it.first <<  " GSDGSDGSDGSDG " << cmdline.dump(3) << std::endl;;
+    if (cmdline.contains(it.first)) {
+       found["command-line"] = cmdline[it.first];
     }
+    callBack(it.first, found);
   }
 }

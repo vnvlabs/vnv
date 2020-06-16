@@ -21,10 +21,20 @@ std::string VnV::StringUtils::escapeQuotes(std::string str,
   std::ostringstream oss;
   if (escapeFullString) oss << "\"";
   for (int i = 0; i < str.size(); i++) {
-    if (str[i] == '"' && (i == 0 || str[i - 1] != '\\'))
-      oss << "\\\"";
-    else
-      oss << str[i];
+      switch (str[i]) {
+              case '\a': oss << "\\a"; break;
+              case '\b': oss << "\\b"; break;
+              case '\t': oss << "\\t"; break;
+              case '\n': oss << "\\n"; break;
+              case '\v': oss << "\\v";break;
+              case '\f': oss << "\\f";break;
+              case '\r': oss << "\\r";break;
+              case '\"': oss << "\\\"";break;
+              case '\'': oss << "\\\'";break;
+              case '\?': oss << "\\\?";break;
+              case '\\': oss << "\\\\";break;
+              default: oss << str[i];
+        }
   }
   if (escapeFullString) oss << "\"";
   return oss.str();

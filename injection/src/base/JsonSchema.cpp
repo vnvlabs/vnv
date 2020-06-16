@@ -201,7 +201,11 @@ static json __test_declaration_schema__ = R"(
 static json __base_options_schema__ = R"({
          "type" : "object",
          "parameters" : {
-             "logUnhandled" : { "type" : "boolean" }
+             "logUnhandled" : { "type" : "boolean" },
+             "dumpConfig" : {"type" : "boolean" },
+             "command-line" : {
+                "type" : "object"
+            }
          },
          "additionalParameters" : false
       }

@@ -96,6 +96,25 @@ std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(
   return nullptr;
 }
 
+void RunTime::writeSpecification(std::string filename) {
+     json main = json::object();
+     for (auto &package : jsonCallbacks) {
+        json j = json::parse(package.second());
+        for (auto type : j.items()) {
+           json &mj = JsonUtilities::getOrCreate(main,type.key(),JsonUtilities::CreateType::Object);
+           for (auto &entry : type.value().items() ) {
+              mj[package.first + ":" + entry.key()] = entry.value();
+           }
+        }
+     }
+     std::ofstream ofs(filename);
+     if (ofs.good()) {
+        ofs << main.dump(4);
+     } else {
+        std::cout << main.dump(4) << std::endl;
+     }
+}
+
 RunTimeOptions* RunTime::getRunTimeOptions() { return &runTimeOptions; }
 
 // Cpp interface.
@@ -191,8 +210,23 @@ void RunTimeOptions::callback(json& j) {
 }
 
 void RunTimeOptions::fromJson(json& j) {
+  std::cout << j.dump(3);
   if (j.contains("logUnhandled")) {
     logUnhandled = j["logUnhandled"].get<bool>();
+  }
+  if (j.contains("dumpConfig")) {
+     dumpConfigFilename = j["dumpConfig"].get<std::string>();
+     dumpConfig = true;
+  }
+  if (j.contains("command-line")) {
+     json& cmd = j["command-line"];
+     if (cmd.contains("dumpConfig")) {
+        dumpConfig = true;
+        dumpConfigFilename = cmd["dumpConfig"].get<std::string>();
+     }
+     if (cmd.contains("logUnhandled")) {
+        logUnhandled = true;
+     }
   }
 }
 
@@ -217,14 +251,16 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
     runTimePackageRegistration(mainPackageName, *callback);
   }
 
-  // Register the plugins specified in the input file. In this case,
-  // we use dlopen to open the library dynamically, then search the library
-  // for a registration function called VNV_REGISTRATION_NAME_<PACKAGENAME>
+  // Register the plugins specified in the input file.
   makeLibraryRegistrationCallbacks(info.testLibraries);
 
   // Process the configs (wait until now because it allows loaded test libraries
   // to register options objects.
-  processToolConfig(info.toolConfig);
+  processToolConfig(info.toolConfig,info.cmdline);
+
+  if (getRunTimeOptions()->dumpConfig) {
+     writeSpecification(getRunTimeOptions()->dumpConfigFilename);
+  }
 
   if (!OutputEngineStore::getOutputEngineStore().isInitialized()) {
     VnV_Debug("Configuring The Output Engine");
@@ -247,9 +283,13 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
 
 void RunTime::loadInjectionPoints(json _json) {
   JsonParser parser;
-  RunInfo info = parser.parse(_json);
+  char** argv;
+  int argc = 0;
+  RunInfo info = parser.parse(_json, &argc, argv);
   loadRunInfo(info, nullptr);
 }
+
+
 
 // Cant overload the name because "json" can be a "string".
 bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
@@ -257,7 +297,8 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
   mainPackageName = packageName;
 
   JsonParser parser;
-  RunInfo info = parser.parse(config);
+  RunInfo info = parser.parse(config,argc,*argv);
+
   runTests = configure(packageName, info, callback);
 
   /**
@@ -285,6 +326,7 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv,
                            registrationCallBack* callback) {
   std::ifstream fstream(configFile);
 
+
   json mainJson;
   if (!fstream.good()) {
     throw VnVExceptionBase("Invalid Input File Stream");
@@ -311,14 +353,14 @@ bool RunTime::configure(std::string packageName, RunInfo info,
 
   } else if (info.error) {
     runTests = false;
-    processToolConfig(info.toolConfig);
+    processToolConfig(info.toolConfig,info.cmdline);
   }
 
   return runTests;
 }
 
-void RunTime::processToolConfig(json config) {
-  OptionsParserStore::instance().parse(config);
+void RunTime::processToolConfig(json config, json& cmdline) {
+  OptionsParserStore::instance().parse(config, cmdline);
 }
 
 void RunTime::runTimePackageRegistration(std::string packageName,

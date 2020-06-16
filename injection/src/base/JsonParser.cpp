@@ -1,4 +1,4 @@
-
+﻿
 /** @file JsonParser.cpp Implementation of the JsonParser class as defined in
     base/JsonParser.h
 **/
@@ -7,6 +7,8 @@
 
 #include "base/JsonSchema.h"  // ValidationSchema()
 #include "base/exceptions.h"
+#include "base/Utilities.h"
+
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
@@ -97,7 +99,7 @@ UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json& unitTestJson) {
   return info;
 }
 
-RunInfo JsonParser::_parse(const json& main) {
+RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
   RunInfo info;
   if (main.find("logging") != main.end())
     info.logInfo = getLoggerInfo(main["logging"]);
@@ -109,6 +111,7 @@ RunInfo JsonParser::_parse(const json& main) {
   if (main.find("toolConfig") != main.end()) {
     info.toolConfig = main.find("toolConfig").value();
   }
+  info.cmdline = commandLineParser(argc,argv);
 
   // Get the run information and the scopes.
   if (main.find("runTests") != main.end()) {
@@ -162,7 +165,32 @@ RunInfo JsonParser::_parse(const json& main) {
   return info;
 }
 
-RunInfo JsonParser::parse(std::ifstream& fstream) {
+json JsonParser::commandLineParser( int* argc, char** argv) {
+  json main = json::object();
+  for ( int i = 0; i < *argc; i++ ) {
+     std::string s(argv[i]);
+     std::vector<std::string> result;
+     StringUtils::StringSplit(s,".",result);
+
+     // valid parameters are --vnv.packageName.key <value>
+     if (result.size() >= 3  && result[0].compare("--vnv") == 0 ) {
+        json & j = JsonUtilities::getOrCreate(main,result[1],JsonUtilities::CreateType::Object);
+
+        //Set the value to be argv[i+1], the next token in the command line.
+        //A bit hacky, but don't set i+=1 to skip the next parameter. This
+        // allows for parameters where there is no value. We could not know
+        // that without pre-registration, which we should probably do, but
+        // this works for now.
+        j[result[2]] = (i+1 == *argc) ? "" : argv[i+1];
+
+      }
+  }
+  return main;
+}
+
+
+
+RunInfo JsonParser::parse(std::ifstream& fstream, int *argc, char** argv) {
   json mainJson;
   if (!fstream.good()) {
     throw VnVExceptionBase("Invalid Input File Stream");
@@ -173,10 +201,10 @@ RunInfo JsonParser::parse(std::ifstream& fstream) {
   } catch (json::exception e) {
     throw VnVExceptionBase(e.what());
   }
-  return parse(mainJson);
+  return parse(mainJson,argc,argv);
 }
 
-RunInfo JsonParser::parse(const json& _json) {
+RunInfo JsonParser::parse(const json& _json, int *argc, char** argv) {
   json_validator validator;
   validator.set_root_schema(getVVSchema());
   try {
@@ -184,5 +212,5 @@ RunInfo JsonParser::parse(const json& _json) {
   } catch (std::exception e) {
     throw VnVExceptionBase(e.what());
   }
-  return _parse(_json);
+  return _parse(_json,argc,argv);
 }
