@@ -11,7 +11,7 @@
     "filename" : "stdout",
     "logs" : {}
   },
-  "testLibraries": {
+  "additionalPlugins": {
     "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so",
     "DummyLibOne" : ""
     },

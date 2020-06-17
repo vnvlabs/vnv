@@ -22,8 +22,8 @@ static const json __vv_schema__ = R"(
     "unit-testing" : {
        "$ref" : "#/definitions/unit-testing"
     },
-    "testLibraries": {
-      "$ref": "#/definitions/testLibraries"
+    "additionalPlugins": {
+      "$ref": "#/definitions/additionalPlugins"
     },
     "outputEngine": {
       "$ref": "#/definitions/outputEngine"
@@ -34,13 +34,13 @@ static const json __vv_schema__ = R"(
     "injectionPoints": {
       "$ref": "#/definitions/injectionPoints"
     },
-    "toolConfig" : {
+    "pluginConfig" : {
       "type" : "object"
     }
   },
   "additionalProperties": false,
   "definitions": {
-    "testLibraries": {
+    "additionalPlugins": {
       "description": "Map describing all plugins in the system",
       "type": "object",
       "additionalProperties" : {"type" : "string" }

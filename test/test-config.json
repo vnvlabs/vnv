@@ -1,17 +1,17 @@
-{
+﻿{
   "runTests": true,
   "runScopes": [],
   "logging": {
-   	"on" : true,
+    "on" : true,
     "filename" : "stdout",
     "logs" : {}
   },
-  "testLibraries": {},
+  "additionalPlugins": {},
   "outputEngine": {
     "type": "debug",
     "config": {
     }
   },
   "injectionPoints": [
-  ]	  
+  ]
 }

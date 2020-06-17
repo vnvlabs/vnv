@@ -263,11 +263,11 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
   }
 
   // Register the plugins specified in the input file.
-  makeLibraryRegistrationCallbacks(info.testLibraries);
+  makeLibraryRegistrationCallbacks(info.additionalPlugins);
 
   // Process the configs (wait until now because it allows loaded test libraries
   // to register options objects.
-  processToolConfig(info.toolConfig,info.cmdline);
+  processToolConfig(info.pluginConfig,info.cmdline);
 
   if (getRunTimeOptions()->dumpConfig) {
      writeSpecification(getRunTimeOptions()->dumpConfigFilename);
@@ -364,7 +364,7 @@ bool RunTime::configure(std::string packageName, RunInfo info,
 
   } else if (info.error) {
     runTests = false;
-    processToolConfig(info.toolConfig,info.cmdline);
+    processToolConfig(info.pluginConfig,info.cmdline);
   }
 
   return runTests;

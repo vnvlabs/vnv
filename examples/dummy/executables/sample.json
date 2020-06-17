@@ -11,10 +11,9 @@
     "filename" : "stdout",
     "logs" : {}
   },
-  "testLibraries": {
-    "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so",
-    "DummyLibOne" : ""
-    },
+  "additionalPlugins": {
+    "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so"
+  },
   "outputEngine": {
     "type": "debug",
     "config": {

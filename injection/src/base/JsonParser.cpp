@@ -108,8 +108,8 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
     info.logInfo.on = true;
   }
 
-  if (main.find("toolConfig") != main.end()) {
-    info.toolConfig = main.find("toolConfig").value();
+  if (main.find("pluginConfig") != main.end()) {
+    info.pluginConfig = main.find("pluginConfig").value();
   }
   info.cmdline = commandLineParser(argc,argv);
 
@@ -156,7 +156,7 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
 
   // Get the test libraries infomation.
   if (main.find("testLibraries") != main.end())
-    addTestLibrary(main["testLibraries"], info.testLibraries);
+    addTestLibrary(main["additionalPlugins"], info.additionalPlugins);
 
   // Add all the injection points;
   if (main.find("injectionPoints") != main.end()) {
