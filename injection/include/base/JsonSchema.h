@@ -1,4 +1,4 @@
-/**
+﻿/**
  *\file JsonSchema.h
  *
  * Json Schema file for the VV json format. This is stored as a string Raw
@@ -32,7 +32,7 @@ json getTestDelcarationJsonSchema();
  * @param testDeclaration
  * @return
  */
-json getTestValidationSchema(std::map<std::string, std::string>& params);
+json getTestValidationSchema(std::map<std::string, std::string>& params, json& schema);
 
 json getTransformDeclarationSchema();
 

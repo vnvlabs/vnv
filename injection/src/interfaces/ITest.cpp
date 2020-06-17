@@ -12,7 +12,7 @@ using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
 const json& TestConfig::getAdditionalParameters() const {
-  return testConfigJson["configuration"];
+  return testConfigJson["configuration"]; //JsonUtilities::getOrCreate(testConfigJson,"configuration",JsonUtilities::CreateType::Object);
 }
 const json& ITest::getConfigurationJson() const {
   return m_config.getAdditionalParameters();
@@ -105,27 +105,20 @@ bool TestConfig::preLoadParameterSet(
     std::map<std::string, std::string>& parameters) {
   // Need to check if we can properly map the test, as declared, to this
   // injection point.
-  json j =
-      testConfigJson["parameters"];  // maps testParam to injection point param.
-  std::cout << "Test config params are " << j.dump(3) << std::endl;
+  json j = testConfigJson["parameters"];  // maps testParam to injection point param.
   for (auto& param : j.items()) {
     // Get the information about the test parameter
     std::string testParameter = param.key();  // The parameter in the test.
 
-    std::cout << "Looking for test Parameter " << testParameter << std::endl;
 
     auto testParameterType = testParameters.find(testParameter);
     if (testParameterType == testParameters.end()) {
-      std::cout << "Could not find test Parameter Type " << testParameter
-                << std::endl;
-      return false;  // Test parameter does not exist (invalid config, should
-                     // never happen if json is validated).
+      return false;
     }
     bool required = isRequired(testParameter);
 
     // Get the information about the injection point parameter.
-    std::string injectionParam =
-        param.value();  // The parameter in the injection point.
+    std::string injectionParam = param.value();  // The parameter in the injection point.
     auto injectionParamType = parameters.find(injectionParam);  //
 
     std::shared_ptr<Transformer> tran;

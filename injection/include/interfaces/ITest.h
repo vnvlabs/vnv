@@ -15,6 +15,7 @@
 #include "json-schema.hpp"
 //#include "c-interfaces/Logging.h"
 using nlohmann::json;
+using nlohmann::json_schema::json_validator;
 /**
  * @brief The TestConfig class
  */
@@ -213,6 +214,7 @@ typedef ITest* maker_ptr(TestConfig config);
 
 void registerTest(std::string package, std::string name, VnV::maker_ptr m,
                   std::map<std::string, std::string> parameters);
+void registerTestSchema(std::string package, std::string name, std::string schema);
 
 /// Macros to make it easier to define one.
 
@@ -220,8 +222,7 @@ void registerTest(std::string package, std::string name, VnV::maker_ptr m,
 
 #define VNVVARSTR(...) StringUtils::variadicProcess(#__VA_ARGS__)
 
-template <typename Runner>
-
+template <typename Runner >
 class Test_T : public ITest {
  public:
   std::map<std::string, std::string> parameters;
@@ -248,20 +249,21 @@ class Test_T : public ITest {
 
 }  // namespace VnV
 
-#define INJECTION_TEST_R(name, Runner, ...)                                    \
+#define INJECTION_TEST_RS(name, Runner, schema, ...)                            \
   namespace VnV {                                                              \
   namespace PACKAGENAME {                                                      \
   namespace Tests {                                                            \
   class name : public Test_T<VnV_Arg_Type(Runner)> {                           \
    public:                                                                     \
     name(TestConfig& config)                                                   \
-        : Test_T<VnV_Arg_Type(Runner)>(config, #__VA_ARGS__) {}                \
+        : Test_T<VnV_Arg_Type(Runner)>(config, #__VA_ARGS__ ) {}                \
     TestStatus runTest(VnV_Comm comm, IOutputEngine* engine,                   \
                        InjectionPointType type, std::string stageId);          \
   };                                                                           \
   ITest* declare_##name(TestConfig config) { return new name(config); }        \
   void register_##name() {                                                     \
-    name::registerTest(#name, declare_##name, #__VA_ARGS__);                   \
+     name::registerTest(#name, declare_##name, #__VA_ARGS__);                   \
+     VnV::registerTestSchema(PACKAGENAME_S,#name, schema);                                               \
   }                                                                            \
   }                                                                            \
   }                                                                            \
@@ -270,6 +272,8 @@ class Test_T : public ITest {
       VnV_Comm comm, VnV::IOutputEngine* engine, VnV::InjectionPointType type, \
       std::string stageId)
 
+
+#define INJECTION_TEST_R(name, runner,...) INJECTION_TEST_RS(name,runner,R"({"type":"object"})",__VA_ARGS__)
 #define INJECTION_TEST(name, ...) INJECTION_TEST_R(name, int, __VA_ARGS__)
 
 #define DECLARETEST(name) \

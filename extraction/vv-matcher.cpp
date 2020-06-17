@@ -560,10 +560,10 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
 
     if (nae.substr(0, 10).compare("INJECTION_") != 0) return;
 
-    if (nae == "INJECTION_TEST_R") {
+    if (nae == "INJECTION_TEST_RS") {
       json& jj = getDef("Tests", Args->getUnexpArgument(0));
       jj["docs"] = getDocs(Range);
-      jj["parameters"] = parseArgs(pp, Args->getUnexpArgument(2));
+      jj["parameters"] = parseArgs(pp, Args->getUnexpArgument(3));
     } else if (nae == "INJECTION_SERIALIZER_R") {
       json& jj = getDef("Serializers", Args->getUnexpArgument(0));
       jj["docs"] = getDocs(Range);

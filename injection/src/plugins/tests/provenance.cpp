@@ -108,6 +108,15 @@ class provenanceRunner {
     // which output files are generated during the Current looped injection
     // point.
   }
+  static std::string provSchema() {
+  return R"({
+          "type":"object",
+          "properties" : {
+           },
+           "additionalProperties" : false
+           }
+         )";
+}
 
   virtual ~provenanceRunner();
 };
@@ -117,7 +126,9 @@ provenanceRunner::~provenanceRunner() {}
 }  // namespace
 
 /** sdfsdfsdfsdf **/
-INJECTION_TEST_R(provenance, provenanceRunner, int* argc, char*** argv,
+
+
+INJECTION_TEST_RS(provenance, provenanceRunner, provenanceRunner::provSchema(), int* argc, char*** argv,
                  nlohmann::json config) {
   if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
     GetRef(c, "argc", int*);

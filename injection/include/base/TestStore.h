@@ -24,6 +24,9 @@ namespace VnV {
  */
 class TestStore {
  private:
+
+  static json& defaultSchemaJson();
+
   /**
    * @brief testLibraries
    */
@@ -43,6 +46,8 @@ class TestStore {
            std::less<std::string>>
 
       test_factory;
+
+  std::map<std::string, json > schema_factory;
 
   /**
    * @brief TestStore
@@ -65,6 +70,9 @@ class TestStore {
   void addTest(std::string package, std::string name, maker_ptr m,
                std::map<std::string, std::string> v);
 
+  void addSchema(std::string package, std::string name, json& schema);
+  bool verifySchema(std::string package, std::string name, json& opts);
+
   /**
    * @brief getTest
    * @param config
@@ -75,6 +83,9 @@ class TestStore {
   std::vector<TestConfig> validateTests(std::vector<json>& configs);
 
   TestConfig validateTest(json& config);
+
+
+  json& getSchema(std::string package, std::string name);
 
   /**
    * @brief getTestStore

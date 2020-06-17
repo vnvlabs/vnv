@@ -20,6 +20,11 @@ using nlohmann::json_schema::json_validator;
 
 using namespace VnV;
 
+nlohmann::json &TestStore::defaultSchemaJson() {
+  static json defaultJson = json::parse(R"({"type","object"})");
+  return defaultJson;
+}
+
 TestStore::TestStore() {}
 
 TestStore& TestStore::getTestStore() {
@@ -32,20 +37,41 @@ void TestStore::addTest(std::string package, std::string name, maker_ptr m,
   test_factory[package + ":" + name] = std::make_pair(m, v);
 }
 
+void TestStore::addSchema(std::string package, std::string name, nlohmann::json &schema) {
+  schema_factory[package+":"+name] = schema;
+}
+
+bool TestStore::verifySchema(std::string package, std::string name, nlohmann::json &opts) {
+  // Validate the test configuration provided to the constructor.
+  json_validator validator;
+  auto sch = schema_factory.find(package+":"+name);
+  if (sch!=schema_factory.end()){
+      validator.set_root_schema(sch->second);
+      try {
+        validator.validate(opts);
+        return true;
+      } catch (std::exception e) {
+        return false;
+        throw VnVExceptionBase(e.what());
+      }
+    }
+  return true;
+}
+
 std::vector<TestConfig> TestStore::validateTests(std::vector<json>& configs) {
   std::vector<TestConfig> conf;
   for (auto& it : configs) {
-    conf.push_back(validateTest(it));
-  }
+      conf.push_back(validateTest(it));
+    }
   return conf;
 }
 
 TestConfig TestStore::validateTest(json& testJson) {
   if (testJson.find("name") == testJson.end()) {
-    // This should be impossible. Input Validation should detect test blocks
-    // incorretly specified.
-    throw VnVExceptionBase("Test Declaration does not contain Test Name");
-  }
+      // This should be impossible. Input Validation should detect test blocks
+      // incorretly specified.
+      throw VnVExceptionBase("Test Declaration does not contain Test Name");
+    }
   std::string name = testJson["name"].get<std::string>();
   std::string package = testJson["package"].get<std::string>();
   std::string key = package + ":" + name;
@@ -56,11 +82,12 @@ TestConfig TestStore::validateTest(json& testJson) {
     if (itt == registeredTests.end()) {
       // THe test is not yet registered.
 
-      test_schema = getTestValidationSchema(it->second.second);
+      json& sch = getSchema(package,name);
+      test_schema = getTestValidationSchema(it->second.second, sch);
       registeredTests.insert(std::make_pair(key, test_schema));
-    } else {
+   } else {
       test_schema = itt->second;
-    }
+   }
 
     // Validate the config file.
     json_validator validator;
@@ -85,12 +112,21 @@ TestConfig TestStore::validateTest(json& testJson) {
     }
     validator.validate(testConfigJson);
 
-    // Create the Test Config File
-    std::cout << "HHHHHHHHHHHHHH" << package << " " << name << " "
-              << testConfigJson.dump(3) << std::endl;
+    //Finally, if a config spec was added for the test
+
+
     return TestConfig(package, name, testConfigJson, it->second.second);
   }
   throw VnVExceptionBase("test not found");
+}
+
+nlohmann::json &TestStore::getSchema(std::string package, std::string name) {
+  auto it = schema_factory.find(package + ":" + name);
+  if (it != schema_factory.end()) {
+      return it->second;
+    } else {
+      return defaultSchemaJson();
+    }
 }
 
 std::shared_ptr<ITest> TestStore::getTest(TestConfig& config) {
@@ -98,8 +134,8 @@ std::shared_ptr<ITest> TestStore::getTest(TestConfig& config) {
 
   auto it = test_factory.find(key);
   if (it != test_factory.end()) {
-    ITest* t = it->second.first(config);
-    std::shared_ptr<ITest> ptr;
+      ITest* t = it->second.first(config);
+      std::shared_ptr<ITest> ptr;
     ptr.reset(t);
     return ptr;
   }
@@ -124,3 +160,8 @@ void VnV::registerTest(std::string package, std::string name, maker_ptr m,
     std::cout << "TEST P " << op.first << " :  " << op.second << std::endl;
   TestStore::getTestStore().addTest(package, name, m, map);
 }
+void VnV::registerTestSchema(std::string package, std::string name, std::string schema) {
+  json j = json::parse(schema);
+  TestStore::getTestStore().addSchema(package,name,j);
+}
+
