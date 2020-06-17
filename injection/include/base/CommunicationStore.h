@@ -69,6 +69,8 @@ class CommunicationStore {
 
   ICommunicator_ptr customComm(std::string packageName, void* data);
 
+  VnV_Comm toVnVComm(ICommunicator_ptr ptr);
+
   VnV_Comm customData(std::string packageName, void* data);
 
   VnV_Comm worldData(std::string packageName);

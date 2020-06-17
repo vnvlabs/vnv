@@ -134,6 +134,10 @@ Communication::ICommunicator_ptr CommunicationStore::customComm(
   return c;
 }
 
+VnV_Comm CommunicationStore::toVnVComm(Communication::ICommunicator_ptr ptr) {
+  return customData(ptr->getPackage(),ptr->getData());
+}
+
 VnV_Comm CommunicationStore::customData(std::string packageName, void* data) {
   return VnV_Create_Comm(packageName.c_str(), data);
 }

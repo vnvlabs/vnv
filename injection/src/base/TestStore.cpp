@@ -156,8 +156,6 @@ void TestStore::print() {
 
 void VnV::registerTest(std::string package, std::string name, maker_ptr m,
                        std::map<std::string, std::string> map) {
-  for (auto op : map)
-    std::cout << "TEST P " << op.first << " :  " << op.second << std::endl;
   TestStore::getTestStore().addTest(package, name, m, map);
 }
 void VnV::registerTestSchema(std::string package, std::string name, std::string schema) {

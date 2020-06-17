@@ -1,0 +1,46 @@
+﻿{
+  "runTests": true,
+  "runScopes": [
+    {
+      "name": "all",
+      "run": true
+    }
+  ],
+  "logging": {
+    "on" : true,
+    "filename" : "stdout",
+    "logs" : {}
+  },
+  "testLibraries": {
+    "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so",
+    "DummyLibOne" : ""
+    },
+  "outputEngine": {
+    "type": "debug",
+    "config": {
+    }
+  },
+  "injectionPoints": [
+      {
+        "name" : "initialization",
+        "package" : "VNV",
+        "tests" : [
+            {
+                "name" : "provenance",
+                "package" : "VNV",
+                "runScope" : ["all"],
+                "config" : {
+                    "expectedResult" : {},
+                    "configuration": {
+                    },
+                    "parameters": {
+                        "argc" : "argc",
+                        "argv" : "argv",
+                        "config" : "config"
+                    }
+                }
+            }
+        ]
+      }
+  ]
+}

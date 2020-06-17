@@ -150,9 +150,9 @@ void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
       // myEnd << ")" << rank << std::endl;
       if (myStart >= 0) {
         // Create comm - collective on the ranks [myStart,myEnd).
-        std::cout << "Running " << myName << " on range [" << myStart << ", "
-                  << myEnd << ")" << rank << std::endl;
         ICommunicator_ptr p = c->create(myStart, myEnd, 1, 10);
+        auto pcomm = CommunicationStore::instance().toVnVComm(p);
+        VnV_Debug_MPI(pcomm, "Running %s on range [%d,%d)", myName.c_str(), myStart, myEnd);
         runTest(p, name, myTester());
       }
       currentBuffer = 0;
