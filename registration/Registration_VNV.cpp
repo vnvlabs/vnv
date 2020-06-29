@@ -19,15 +19,9 @@ DECLARESERIALIZER(doubleToString)
 DECLARETRANSFORM(doubleToInt)
 DECLARECOMM(mpi)
 DECLARECOMM(serial)
-DECLAREDATATYPE(double)
-DECLAREDATATYPE(float)
-DECLAREDATATYPE(int)
-DECLAREDATATYPE(long)
-DECLAREDATATYPE(longlong)
-DECLAREDATATYPE(short)
 DECLAREOPTIONS
 const char* getFullRegistrationJson_VNV(){
-	 return "{\"Comms\":{\"mpi\":{\"docs\":\"\"},\"serial\":{\"docs\":\"\\n  A Serial communicator that implements the Comm interface for single core runs.\"}},\"DataTypes\":{\"double\":{\"docs\":\"\"},\"float\":{\"docs\":\"\"},\"int\":{\"docs\":\"\"},\"long\":{\"docs\":\"\"},\"longlong\":{\"docs\":\"\"},\"short\":{\"docs\":\"\"}},\"Engines\":{\"Parallel\":{\"docs\":\"\"},\"adios\":{\"docs\":\"\"},\"debug\":{\"docs\":\"\"},\"json\":{\"docs\":\"\\n\\n  This is the documentation.\"}},\"InjectionPoints\":{\"initialization\":{\"name\":\"initialization\",\"packageName\":\"VNV\",\"parameters\":[{\"argc\":\"int*\",\"argv\":\"char***\",\"config\":\"nlohmann::json\"}],\"stages\":{\"Begin\":{\"docs\":\"\",\"info\":{\"Calling Function\":\"InitFromJson\",\"Calling Function Column\":1,\"Calling Function Line\":306,\"filename\":\"/home/ben/wfr/vv-neams/injection/src/base/Runtime.cpp\",\"lineColumn\":5,\"lineNumber\":82}},\"End\":{\"docs\":\"\",\"info\":{\"Calling Function\":\"Finalize\",\"Calling Function Column\":1,\"Calling Function Line\":387,\"filename\":\"/home/ben/wfr/vv-neams/injection/src/base/Runtime.cpp\",\"lineColumn\":5,\"lineNumber\":91}}}}},\"Options\":{\"docs\":\"\"},\"Serializers\":{\"doubleToString\":{\"docs\":\"\",\"type\":\"double\"}},\"Tests\":{\"hardBreakpoint\":{\"docs\":\"\",\"parameters\":{\"argv\":\"int*\"}},\"printMessage\":{\"docs\":\"\\n  PRINT TEST: The message is TODO.\",\"parameters\":{}},\"provenance\":{\"docs\":\"sdfsdfsdfsdf *\",\"parameters\":{\"argc\":\"int*\",\"argv\":\"char***\",\"config\":\"nlohmann::json\"}},\"test1\":{\"docs\":\"\\n @brief INJECTION_TEST\\n @param argv\\n @param argc\\n @param config\\n\\n This is the way\\n \",\"parameters\":{\"argc\":\"char**\",\"argv\":\"int\",\"config\":\"std::string\"}}},\"Transforms\":{\"doubleToInt\":{\"docs\":\"\",\"from\":\"int\",\"to\":\"double\"}},\"UnitTests\":{\"Sample2\":{\"docs\":\"\\n  A sample unit test.\"}}}";}
+	 return "{\"Comms\":{\"mpi\":{\"docs\":\"\"},\"serial\":{\"docs\":\"\\n  A Serial communicator that implements the Comm interface for single core runs.\"}},\"Engines\":{\"Parallel\":{\"docs\":\"\"},\"adios\":{\"docs\":\"\"},\"debug\":{\"docs\":\"\"},\"json\":{\"docs\":\"\\n\\n  This is the documentation.\"}},\"InjectionPoints\":{\"initialization\":{\"name\":\"initialization\",\"packageName\":\"VNV\",\"parameters\":[{\"argc\":\"int*\",\"argv\":\"char***\",\"config\":\"nlohmann::json\"}],\"stages\":{\"Begin\":{\"docs\":\"\",\"info\":{\"Calling Function\":\"InitFromJson\",\"Calling Function Column\":1,\"Calling Function Line\":318,\"filename\":\"/home/ben/wfr/vv-neams/injection/src/base/Runtime.cpp\",\"lineColumn\":5,\"lineNumber\":82}},\"End\":{\"docs\":\"\",\"info\":{\"Calling Function\":\"Finalize\",\"Calling Function Column\":1,\"Calling Function Line\":405,\"filename\":\"/home/ben/wfr/vv-neams/injection/src/base/Runtime.cpp\",\"lineColumn\":5,\"lineNumber\":91}}}}},\"Options\":{\"docs\":\"\"},\"Serializers\":{\"doubleToString\":{\"docs\":\"\",\"type\":\"double\"}},\"Tests\":{\"hardBreakpoint\":{\"docs\":\"\",\"parameters\":{\"argv\":\"int*\"}},\"printMessage\":{\"docs\":\"\\n  PRINT TEST: The message is TODO.\",\"parameters\":{}},\"provenance\":{\"docs\":\"sdfsdfsdfsdf *\",\"parameters\":{\"argc\":\"int*\",\"argv\":\"char***\",\"config\":\"nlohmann::json\"}},\"test1\":{\"docs\":\"\\n @brief INJECTION_TEST\\n @param argv\\n @param argc\\n @param config\\n\\n This is the way\\n \",\"parameters\":{\"argc\":\"char**\",\"argv\":\"int\",\"config\":\"std::string\"}}},\"Transforms\":{\"doubleToInt\":{\"docs\":\"\",\"from\":\"int\",\"to\":\"double\"}},\"UnitTests\":{\"Sample2\":{\"docs\":\"\\n  A sample unit test.\"}}}";}
 
 INJECTION_REGISTRATION(){
 	REGISTERTEST(hardBreakpoint);
@@ -43,12 +37,6 @@ INJECTION_REGISTRATION(){
 	REGISTERTRANSFORM(doubleToInt);
 	REGISTERCOMM(mpi);
 	REGISTERCOMM(serial);
-	REGISTERDATATYPE(double);
-	REGISTERDATATYPE(float);
-	REGISTERDATATYPE(int);
-	REGISTERDATATYPE(long);
-	REGISTERDATATYPE(longlong);
-	REGISTERDATATYPE(short);
 	REGISTEROPTIONS
 	Register_Injection_Point(initialization,"{\"argc\":\"int*\",\"argv\":\"char***\",\"config\":\"nlohmann::json\"}");
 	REGISTER_FULL_JSON(getFullRegistrationJson_VNV);

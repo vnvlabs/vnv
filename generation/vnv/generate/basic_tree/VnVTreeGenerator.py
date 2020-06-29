@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import os
 from io import StringIO
 from enum import Enum
@@ -65,12 +65,14 @@ class VnVTreeGenerator:
                template = userArgs["template"]
           else:
                template = self.getTemplate("test",node.getPackage(),node.getName(),node.getId())
+          if template is None:
+               template = node.getTemplate(); # use the provided template from the node.
 
           tstream = StringIO()
           tstream.write(RestUtils.getHeader("Description"))
           tstream.write(JMES(jmespath))
 
-          if template is None:
+          if template is None or len(template) == 0:
                tstream.write("This is an undocumented test executed as part of the {} package".format(node.getPackage()))
                tstream.write("Available Data Points are:")
                data = []
@@ -128,6 +130,9 @@ class VnVTreeGenerator:
           else:
                template  = self.getTemplate("InjectionPoint",node.getPackage(), node.getName(), node.getId())
           if template is None:
+               template = node.getTemplate()
+
+          if len(template) == 0 :
                tstream.write("Undocumented Injection point from Package {}".format(node.getPackage()))
           else:
                tstream.write(template)
@@ -220,12 +225,16 @@ class VnVTreeGenerator:
               template = userArgs["template"]
          else:
              template = self.getTemplate("unit-test",node.getPackage(),node.getName(), node.getId())
+         if template is None:
+              template = node.getTemplate()
+
+
 
          tstream = StringIO()
          tstream.write(RestUtils.getHeader("Description"))
          tstream.write(JMES(jmespath))
 
-         if template is None:
+         if len(template) == 0:
               tstream.write("This is an undocumented unit test executed as part of the {} package".format(node.getPackage()))
          else:
               tstream.write(template)

@@ -15,7 +15,8 @@ namespace JsonReader {
 // them outside this unit.
 namespace {
 
-std::shared_ptr<DataBase> nodeDispatcher(const json& j);
+class JsonParserImpl {
+public:
 
 template <typename T> std::shared_ptr<T> mks(const json& json) {
   std::shared_ptr<T> base_ptr(new T());
@@ -78,6 +79,7 @@ std::shared_ptr<MapNode> genMapNode(const json& j, std::string name,
 std::shared_ptr<UnitTestNode> genUnitTestNode(const json& j) {
   auto n = mks<UnitTestNode>(j);
   n->package = j["package"];
+  n->templ = getTemplate(n->package,n->name, "Test");
   n->children = genArrayNode(j["children"], "children",
                              j["id"].get<std::string>() + "-children");
   n->resultsMap = genMapNode(j["results"], "results",
@@ -87,7 +89,7 @@ std::shared_ptr<UnitTestNode> genUnitTestNode(const json& j) {
 
 void appendTestNode(TestNode* test, const json& j) {
   for (auto it : j["children"]) {
-    if (it["node"] == "Data") {
+    if (it["node"].get<std::string>().substr(0,4) == "Data" ) {
       test->data->add(nodeDispatcher(it));
     } else {
       test->children->add(nodeDispatcher(it));
@@ -95,10 +97,24 @@ void appendTestNode(TestNode* test, const json& j) {
   }
 }
 
+std::shared_ptr<DataTypeNode> genDataTypeNode(const json& j) {
+  auto n = mks<DataTypeNode>(j);
+  n->children = std::make_shared<MapNode>();
+  n->children->id = j["id"].get<std::string>() + "-children";
+  n->children->name = "children";
+  n->dataTypeName = j["dtype"];
+  for (auto it : j["children"] ) {
+     n->children->add(it["name"],nodeDispatcher(it));
+  }
+  return n;
+
+}
+
 std::shared_ptr<TestNode> genTestNode(const json& j) {
   auto n = mks<TestNode>(j);
   n->package = j["package"].get<std::string>();
 
+  n->templ = getTemplate(n->package,n->name, "Test");
   // Pass all child type nodes to children, and all data nodes to data.
   n->children = std::make_shared<ArrayNode>();
   n->children->id = j["id"].get<std::string>() + "-children";
@@ -114,7 +130,7 @@ std::shared_ptr<TestNode> genTestNode(const json& j) {
 std::shared_ptr<InjectionPointNode> genInjectionPointNode(const json& j) {
   auto n = mks<InjectionPointNode>(j);
   n->package = j["package"].get<std::string>();
-
+  n->templ = getTemplate(n->package,n->name, "InjectionPoint");
   n->children = std::make_shared<ArrayNode>();
   n->children->id = j["id"].get<std::string>() + "-children";
   n->children->name = "children";
@@ -182,15 +198,33 @@ std::shared_ptr<DataBase> nodeDispatcher(const json& j) {
     return genTestNode(j);
   else if (node == "UnitTest")
     return genUnitTestNode(j);
+  else if (node == "DataNode")
+    return genDataTypeNode(j);
   else if (node == "InjectionPoint")
     return genInjectionPointNode(j);
   else
     throw VnVExceptionBase("Unknown Node type");
 }
 
-RootNode* genRootNode(const json& j) {
+json& mainJson;
+JsonParserImpl(json &jj) : mainJson(jj){
+}
+
+std::string getTemplate(std::string pname, std::string key, std::string type) {
+  if ( type  == "UnitTest" ) {
+     return mainJson["spec"]["UnitTests"][pname+":"+key]["docs"];
+    } else if( type == "Test") {
+     return mainJson["spec"]["Tests"][pname+":"+key]["docs"];
+    } else if (type == "InjectionPoint") {
+      return mainJson["spec"]["InjectionPoints"][pname + ":"+key]["docs"];
+    }
+    return "";
+}
+
+
+RootNode* genRootNode() {
   RootNode* root = new RootNode();
-  root->infoNode = genInfoNode(j["info"]);
+  root->infoNode = genInfoNode(mainJson["info"]);
 
   root->children = std::make_shared<ArrayNode>();
   root->children->id = "-children";
@@ -200,7 +234,7 @@ RootNode* genRootNode(const json& j) {
   root->unitTests->id = "-unitTests";
   root->children->name = "unitTests";
 
-  for (auto it : j["children"]) {
+  for (auto it : mainJson["children"]) {
     if (it["node"].get<std::string>() == "unitTest") {
       root->unitTests->add(genUnitTestNode(it));
     } else {
@@ -210,12 +244,16 @@ RootNode* genRootNode(const json& j) {
   return root;
 }
 
+};
+
 }  // namespace
 
 IRootNode* parse(std::string filename) {
+
   std::ifstream ifs(filename);
-  const json j = json::parse(ifs);
-  return genRootNode(j);
+  json j = json::parse(ifs);
+  JsonParserImpl impl(j);
+  return impl.genRootNode();
 }
 
 }  // namespace JsonReader

@@ -27,6 +27,10 @@ long long CommunicationStore::getKey(std::string packageName,
   return VnV::StringUtils::simpleHash(packageName + ":" + name);
 }
 
+long long CommunicationStore::getKey(std::string name) {
+  return getKey("",name);
+}
+
 void CommunicationStore::declareComm(std::string packageName,
                                      std::string commPackageName,
                                      std::string commName) {
@@ -50,7 +54,7 @@ void CommunicationStore::addReduction(std::string packageName, std::string name,
 
 void CommunicationStore::addDataType(std::string packageName, std::string name,
                                      dataType_ptr m) {
-  dataType_factory.insert(std::make_pair(getKey(packageName, name), m));
+  dataType_factory.insert(std::make_pair(getKey(name), m));
 }
 
 IDataType_ptr CommunicationStore::getDataType(long long key) {
@@ -63,9 +67,8 @@ IDataType_ptr CommunicationStore::getDataType(long long key) {
   throw VnV::VnVExceptionBase("Un supported Data Type");
 }
 
-IDataType_ptr CommunicationStore::getDataType(std::string packageName,
-                                              std::string name) {
-  return getDataType(getKey(packageName, name));
+IDataType_ptr CommunicationStore::getDataType(std::string name) {
+  return getDataType(getKey(name));
 }
 
 IReduction_ptr CommunicationStore::getReducer(long long key) {

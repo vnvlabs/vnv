@@ -49,6 +49,9 @@ class DebugEngineManager : public OutputEngineManager {
   void testStartedCallBack(VnV_Comm comm, std::string testName) override;
 
   void testFinishedCallBack(VnV_Comm comm, bool result_) override;
+  void dataTypeStartedCallBack(VnV_Comm /** comm **/,
+                               std::string variableName, std::string dtype) override;
+  void dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) override;
 
   void unitTestStartedCallBack(VnV_Comm comm,
                                std::string unitTestName) override;

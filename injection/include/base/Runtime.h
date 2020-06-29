@@ -135,6 +135,8 @@ class RunTime {
 
   void writeSpecification(std::string filename);
 
+  json getFullJson();
+
 
   RunTimeOptions* getRunTimeOptions();
 

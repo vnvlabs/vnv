@@ -143,6 +143,10 @@ class ParallelEngine : public OutputEngineManager {
 
   void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester) override;
 
+  void dataTypeStartedCallBack(VnV_Comm /** comm **/,
+                               std::string variableName, std::string dtype) override;
+  void dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) override;
+
   /**
    * @brief getOutputEngine
    * @return

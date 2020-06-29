@@ -6,6 +6,7 @@
 #include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
 #include "plugins/engines/json/JsonOutputReader.h"
+#include "base/Runtime.h"
 
 using nlohmann::json;
 
@@ -111,6 +112,11 @@ nlohmann::json JsonEngineManager::getConfigurationSchema() {
 }
 
 void JsonEngineManager::finalize() {
+
+  //TODO -- Could cut this down to just what we need. Right now, we export
+  //everthing.
+  mainJson["spec"] = RunTime::instance().getFullJson();
+
   if (!outputFile.empty()) {
     std::ofstream f;
     f.open(outputFile);
@@ -197,6 +203,23 @@ void JsonEngineManager::unitTestStartedCallBack(VnV_Comm /**comm**/,
   j["results"] = json::array();
   push(j, json::json_pointer("/children"));
 }
+void JsonEngineManager::dataTypeStartedCallBack(VnV_Comm /** comm **/,
+                                             std::string variableName,std::string dtype) {
+  json j;
+
+  j["id"] = getId();
+  j["node"] = "DataType";
+  j["name"] = variableName;
+  j["dtype"] = dtype;
+  j["package"] = "TODO";
+  j["children"] = json::array();
+  j["results"] = json::array();
+  push(j, json::json_pointer("/children"));
+}
+
+void JsonEngineManager::dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) {
+  pop(2);
+}
 
 void JsonEngineManager::unitTestFinishedCallBack(VnV_Comm comm,
                                                  IUnitTest* tester) {
@@ -211,7 +234,6 @@ void JsonEngineManager::unitTestFinishedCallBack(VnV_Comm comm,
 
   // pop the results and the unit-test itself.
   pop(2);
-  mainJson.at(ptr).dump(3);
 }
 
 Nodes::IRootNode* JsonEngineManager::readFromFile(std::string file) {

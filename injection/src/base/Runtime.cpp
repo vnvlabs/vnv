@@ -17,6 +17,8 @@
 #include "base/UnitTestStore.h"
 #include "c-interfaces/Logging.h"
 
+#include <iostream>
+
 using namespace VnV;
 
 INJECTION_OPTIONS(getBaseOptionsSchema().dump().c_str()) {
@@ -97,33 +99,37 @@ std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(
 }
 
 void RunTime::writeSpecification(std::string filename) {
-     json main = json::object();
-     for (auto &package : jsonCallbacks) {
-        json j = json::parse(package.second());
-        for (auto type : j.items()) {
-           json &mj = JsonUtilities::getOrCreate(main,type.key(),JsonUtilities::CreateType::Object);
-           if (type.key() == "Options" ) {
-               json jj = type.value();
-               jj["config"] = OptionsParserStore::instance().getSchema(package.first);
-               mj[package.first] = jj;
-             } else {
-                for (auto &entry : type.value().items() ) {
-                   mj[package.first + ":" + entry.key()] = entry.value();
-                }
+     std::ofstream ofs(filename);
+     if (ofs.good()) {
+        ofs << getFullJson().dump(4);
+     } else {
+        std::cout << getFullJson().dump(4) << std::endl;
+     }
+}
+
+nlohmann::json RunTime::getFullJson(){
+  json main = json::object();
+  for (auto &package : jsonCallbacks) {
+     json j = json::parse(package.second());
+     for (auto type : j.items()) {
+        json &mj = JsonUtilities::getOrCreate(main,type.key(),JsonUtilities::CreateType::Object);
+        if (type.key() == "Options" ) {
+            json jj = type.value();
+            jj["config"] = OptionsParserStore::instance().getSchema(package.first);
+            mj[package.first] = jj;
+          } else if (type.key() == "DataType") {
+            for (auto &entry : type.value().items()) {
+               mj[entry.key()] = entry.value();
+            }
+          }
+        else {
+             for (auto &entry : type.value().items() ) {
+                mj[package.first + ":" + entry.key()] = entry.value();
              }
         }
      }
-     if (main.contains("Options")) {
-         for (auto opt : main["Options"].items() ) {
-
-         }
-     }
-     std::ofstream ofs(filename);
-     if (ofs.good()) {
-        ofs << main.dump(4);
-     } else {
-        std::cout << main.dump(4) << std::endl;
-     }
+  }
+  return main;
 }
 
 RunTimeOptions* RunTime::getRunTimeOptions() { return &runTimeOptions; }
@@ -296,8 +302,14 @@ void RunTime::loadInjectionPoints(json _json) {
   JsonParser parser;
   char** argv;
   int argc = 0;
-  RunInfo info = parser.parse(_json, &argc, argv);
-  loadRunInfo(info, nullptr);
+  try {
+     RunInfo info = parser.parse(_json, &argc, argv);
+     loadRunInfo(info, nullptr);
+  } catch (VnVExceptionBase e) {
+     std::cout << "Loading of injection points failed" << std::endl;
+     std::cout << e.what() << std::endl;
+     return ;
+  }
 }
 
 
@@ -308,8 +320,14 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
   mainPackageName = packageName;
 
   JsonParser parser;
-  RunInfo info = parser.parse(config,argc,*argv);
-
+  RunInfo info;
+  try {
+    info = parser.parse(config,argc,*argv);
+  } catch (VnVExceptionBase e) {
+     std::cerr << "VnV Initialization Failed during input file validation. \n";
+     std::cerr << e.what() << std::endl;;
+     std::abort();
+  }
   runTests = configure(packageName, info, callback);
 
   /**
@@ -340,13 +358,13 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv,
 
   json mainJson;
   if (!fstream.good()) {
-    throw VnVExceptionBase("Invalid Input File Stream");
+    throw Exceptions::fileReadError(configFile);
   }
 
   try {
     mainJson = json::parse(fstream);
-  } catch (json::exception e) {
-    throw VnVExceptionBase(e.what());
+  } catch (json::parse_error e) {
+    throw Exceptions::parseError(fstream,e.byte,e.what());
   }
 
   return InitFromJson(packageName, argc, argv, mainJson, callback);
@@ -423,3 +441,5 @@ void RunTime::printRunTimeInformation() {
   InjectionPointStore::getInjectionPointStore().print();
   VnV_EndStage(a);
 }
+
+

@@ -1,4 +1,4 @@
-#ifndef NODES_H
+﻿#ifndef NODES_H
 #define NODES_H
 
 #include <functional>
@@ -24,7 +24,7 @@ class IInfoNode;
 class ITestNode;
 class IInjectionPointNode;
 class IUnitTestNode;
-
+class IDataTypeNode;
 class DataBase {
  public:
   enum class DataType {
@@ -40,7 +40,8 @@ class DataBase {
     InjectionPoint,
     Info,
     Test,
-    UnitTest
+    UnitTest,
+    DataNode
   };
 
   std::string id;
@@ -61,6 +62,7 @@ class DataBase {
   IInjectionPointNode* getAsInjectionPointNode();
   IInfoNode* getAsInfoNode();
   ITestNode* getAsTestNode();
+  IDataTypeNode* getAsDataTypeNode();
   IUnitTestNode* getAsUnitTestNode();
   IMapNode* getAsMapNode();
 
@@ -151,6 +153,8 @@ class ITestNode : public DataBase {
   ITestNode();
   virtual std::string getPackage() = 0;
   virtual IArrayNode* getData() = 0;
+  virtual std::string getTemplate() = 0;
+
   virtual IArrayNode* getChildren() = 0;
   virtual ~ITestNode();
 };
@@ -161,6 +165,7 @@ class IInjectionPointNode : public DataBase {
   virtual std::string getPackage() = 0;
   virtual IArrayNode* getTests() = 0;
   virtual IArrayNode* getChildren() = 0;
+  virtual std::string getTemplate() = 0;
   virtual ~IInjectionPointNode();
 };
 
@@ -180,7 +185,16 @@ class IUnitTestNode : public DataBase {
   virtual std::string getPackage() = 0;
   virtual IArrayNode* getChildren() = 0;
   virtual IMapNode* getResults() = 0;
+  virtual std::string getTemplate() = 0;
   virtual ~IUnitTestNode();
+};
+
+class IDataTypeNode : public DataBase {
+ public:
+  IDataTypeNode();
+  virtual IMapNode* getChildren() = 0;
+  virtual std::string getDataTypeName() = 0;
+  virtual ~IDataTypeNode();
 };
 
 class IRootNode {

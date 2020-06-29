@@ -117,6 +117,11 @@ IArrayNode* InjectionPointNode::getTests() { return tests.get(); }
 
 IArrayNode* InjectionPointNode::getChildren() { return children.get(); }
 
+std::string UnitTestNode::getTemplate(){return templ;}
+std::string TestNode::getTemplate(){return templ;}
+std::string InjectionPointNode::getTemplate(){return templ;}
+
+
 std::string InjectionPointNode::toString() {
   std::ostringstream oss;
   oss << "InjectionPoint: " << getPackage() << " : " << getName() << "\n";
@@ -233,6 +238,19 @@ IMapNode* MapNode::add(std::string key, std::shared_ptr<DataBase> v) {
   value.insert(std::make_pair(key, v));
   return this;
 }
+
+DataTypeNode::DataTypeNode() : IDataTypeNode() {}
+std::string DataTypeNode::getDataTypeName() {
+  return dataTypeName;
+}
+IMapNode* DataTypeNode::getChildren(){
+  return children.get();
+}
+
+std::string DataTypeNode::toString(){
+  return "TODO";
+}
+
 
 }  // namespace JsonReader
 }  // namespace Engines

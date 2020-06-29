@@ -1,5 +1,5 @@
 ﻿#include "interfaces/ICommunicator.h"
-
+/**
 namespace VnV {
 namespace PACKAGENAME {
 namespace DataTypes {
@@ -59,10 +59,11 @@ INJECTION_DATATYPE(long) {
   return new VnV::PACKAGENAME::DataTypes::GenericDataType<long>();
 }
 
-INJECTION_DATATYPE(longlong) {
+INJECTION_DATATYPE(long long) {
   return new VnV::PACKAGENAME::DataTypes::GenericDataType<long long>();
 }
 
 INJECTION_DATATYPE(short) {
   return new VnV::PACKAGENAME::DataTypes::GenericDataType<short>();
 }
+**/

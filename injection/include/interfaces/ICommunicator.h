@@ -9,6 +9,7 @@
 #include "c-interfaces/PackageName.h"
 
 namespace VnV {
+class IOutputEngine;
 namespace Communication {
 
 class IDataType;
@@ -87,6 +88,8 @@ class IDataType {
   virtual void axpy(double alpha, IDataType* y) = 0;  // y = ax + y
   virtual int compare(IDataType* y) = 0;  // -1 less, 0 == , 1 greater.
   virtual void mult(IDataType* y) = 0;
+  virtual void Put(VnV_Comm comm, IOutputEngine *engine) = 0;
+
   void setKey(long long key);
   long long getKey();
 
@@ -180,12 +183,21 @@ typedef ICommunicator* (*comm_register_ptr)(CommType);
 typedef IReduction* (*reduction_ptr)();
 typedef IDataType* (*dataType_ptr)();
 
+
+
+
 void registerCommunicator(std::string packageName, std::string name,
                           VnV::Communication::comm_register_ptr r);
 void registerDataType(std::string packageName, std::string name,
                       VnV::Communication::dataType_ptr r);
 void registerReduction(std::string packageName, std::string name,
                        VnV::Communication::reduction_ptr r);
+
+template<typename T>
+void registerDataType(std::string packageName, VnV::Communication::dataType_ptr ptr) {
+   std::string s = typeid(T).name();
+   VnV::Communication::registerDataType(packageName, s,ptr);
+}
 
 }  // namespace Communication
 
@@ -197,8 +209,7 @@ void registerReduction(std::string packageName, std::string name,
   namespace Communication {                                         \
   VnV::Communication::ICommunicator* declare_##name(CommType type); \
   void register_##name() {                                          \
-    VnV::Communication::registerCommunicator(PACKAGENAME_S, #name,  \
-                                             declare_##name);       \
+    VnV::Communication::registerCommunicator(PACKAGENAME_S, #name, declare_##name);       \
   }                                                                 \
   }                                                                 \
   }                                                                 \
@@ -216,14 +227,13 @@ void registerReduction(std::string packageName, std::string name,
   }
 #define REGISTERCOMM(name) VnV::PACKAGENAME::Communication::register_##name();
 
-#define INJECTION_DATATYPE(name)                               \
+#define INJECTION_DATATYPE(cls)                               \
   namespace VnV {                                              \
   namespace PACKAGENAME {                                      \
   namespace DataTypes {                                        \
   VnV::Communication::IDataType* declare_##name();             \
   void register_##name() {                                     \
-    VnV::Communication::registerDataType(PACKAGENAME_S, #name, \
-                                         declare_##name);      \
+    VnV::Communication::registerDataType<cls>(PACKAGENAME_S, declare_##name); \
   }                                                            \
   }                                                            \
   }                                                            \

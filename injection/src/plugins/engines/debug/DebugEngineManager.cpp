@@ -110,6 +110,14 @@ void DebugEngineManager::testFinishedCallBack(VnV_Comm comm, bool result_) {
   printf("DEBUG ENGINE Stop Test. Test Was Successful-> %d\n", result_);
 }
 
+void DebugEngineManager::dataTypeStartedCallBack(VnV_Comm /** comm **/,
+                                             std::string variableName, std::string dtype) {
+  printf("DEBUG ENGINE Data Type Started %s", variableName.c_str());
+}
+void DebugEngineManager::dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) {
+  printf("DEBUG ENGINE Data Type Finished %s " , variableName.c_str()) ;
+}
+
 void DebugEngineManager::unitTestStartedCallBack(VnV_Comm comm,
                                                  std::string unitTestName) {
   printf("DEBUG ENGINE START UNIT TEST: %s\n", unitTestName.c_str());

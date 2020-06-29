@@ -97,12 +97,13 @@ class InfoNode : public IInfoNode {
 
 class TestNode : public ITestNode {
  public:
-  std::string name, package;
+  std::string name, package, templ;
   std::shared_ptr<ArrayNode> data;
   std::shared_ptr<ArrayNode> children;
   TestNode();
   virtual std::string getPackage() override;
   virtual IArrayNode* getData() override;
+  virtual std::string getTemplate() override;
   virtual IArrayNode* getChildren() override;
 
   virtual std::string toString();
@@ -114,10 +115,12 @@ class InjectionPointNode : public IInjectionPointNode {
   std::shared_ptr<ArrayNode> tests;
   std::string name;
   std::string package;
+  std::string templ;
 
   InjectionPointNode();
   virtual std::string getPackage() override;
   virtual IArrayNode* getTests() override;
+  virtual std::string getTemplate() override;
   virtual IArrayNode* getChildren() override;
 
   virtual std::string toString();
@@ -135,14 +138,25 @@ class LogNode : public ILogNode {
   virtual std::string toString();
 };
 
+class DataTypeNode : public IDataTypeNode {
+ public:
+  std::string name, dataTypeName, package;
+  std::shared_ptr<MapNode> children;
+  DataTypeNode();
+  virtual std::string getDataTypeName() override;
+  virtual IMapNode* getChildren() override;
+  virtual std::string toString();
+};
+
 class UnitTestNode : public IUnitTestNode {
  public:
-  std::string name, package;
+  std::string name, package, templ;
   std::shared_ptr<ArrayNode> children;
   std::shared_ptr<MapNode> resultsMap;
   UnitTestNode();
   virtual std::string getPackage() override;
   virtual IArrayNode* getChildren() override;
+  virtual std::string getTemplate() override;
   virtual IMapNode* getResults() override;
 
   virtual std::string toString();

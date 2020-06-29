@@ -1,4 +1,4 @@
-import math
+﻿import math
 import json
 
 from jmespath import exceptions
@@ -34,11 +34,12 @@ TYPES_MAP = {
    'OutputReader.UnitTestArray' : 'array',
    'OutputReader.ChildrenArray' : 'array',
    'OutputReader.DataArray' : 'array',
+   'OutputReader.DataTypeNode' : 'object'
 }
 
 
 object_types = (
-   'OutputReader.RootNode', 
+   'OutputReader.RootNode',
    'OutputReader.UnitTestNode' ,
    'OutputReader.UnitTestResultsMap' ,
    'OutputReader.Node' ,
@@ -48,6 +49,7 @@ object_types = (
    'OutputReader.TestNode' ,
    'OutputReader.InfoNode' ,
    'OutputReader.DataNode',
+   'OutputReader.DataTypeNode',
    'dict',
    'OrderedDict',
    )

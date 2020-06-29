@@ -2,7 +2,7 @@
 /** @file JsonParser.cpp Implementation of the JsonParser class as defined in
     base/JsonParser.h
 **/
-
+#include <fstream>
 #include "base/JsonParser.h"  // Prototype
 
 #include "base/JsonSchema.h"  // ValidationSchema()
@@ -193,23 +193,28 @@ json JsonParser::commandLineParser( int* argc, char** argv) {
 RunInfo JsonParser::parse(std::ifstream& fstream, int *argc, char** argv) {
   json mainJson;
   if (!fstream.good()) {
-    throw VnVExceptionBase("Invalid Input File Stream");
+    throw VnVExceptionBase("Invalid Input File Stream. The input file stream passed "
+                           "to JsonParser::parse could not be found and/or opened");
   }
 
   try {
     mainJson = json::parse(fstream);
-  } catch (json::exception e) {
-    throw VnVExceptionBase(e.what());
+  } catch (json::parse_error e) {
+     throw Exceptions::parseError(fstream,e.byte,e.what());
   }
   return parse(mainJson,argc,argv);
 }
 
+#include <iostream>
 RunInfo JsonParser::parse(const json& _json, int *argc, char** argv) {
   json_validator validator;
   validator.set_root_schema(getVVSchema());
   try {
-    validator.validate(_json);
+    validator.validate(_json );
   } catch (std::exception e) {
+
+    std::cout << e.what() << "is the exception ";
+
     throw VnVExceptionBase(e.what());
   }
   return _parse(_json,argc,argv);

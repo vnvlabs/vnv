@@ -1,4 +1,4 @@
-#include "interfaces/nodes/Nodes.h"
+﻿#include "interfaces/nodes/Nodes.h"
 
 #include <sstream>
 
@@ -43,6 +43,8 @@ std::string DataBase::getTypeStr() {
     return "Test";
   case DataType::UnitTest:
     return "UnitTest";
+  case DataType::DataNode:
+    return "DataNode";
   default:
     return "Custom";
   }
@@ -80,6 +82,10 @@ IArrayNode* DataBase::getAsArrayNode() {
 
 IMapNode* DataBase::getAsMapNode() {
   return (check(DataType::Map)) ? dynamic_cast<IMapNode*>(this) : nullptr;
+}
+
+IDataTypeNode* DataBase::getAsDataTypeNode() {
+  return (check(DataType::DataNode)) ? dynamic_cast<IDataTypeNode*>(this) : nullptr;
 }
 
 DataBase::~DataBase() {}
@@ -159,6 +165,10 @@ IInfoNode::~IInfoNode() {}
 ITestNode::ITestNode() : DataBase(DataBase::DataType::Test) {}
 
 ITestNode::~ITestNode() {}
+
+IDataTypeNode::IDataTypeNode() : DataBase(DataBase::DataType::DataNode){}
+IDataTypeNode::~IDataTypeNode() {}
+
 
 IInjectionPointNode::IInjectionPointNode()
     : DataBase(DataBase::DataType::InjectionPoint) {}

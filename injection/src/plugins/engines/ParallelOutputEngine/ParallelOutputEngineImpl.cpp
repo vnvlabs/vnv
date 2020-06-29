@@ -106,6 +106,13 @@ void ParallelEngine::testStartedCallBack(VnV_Comm comm, std::string testName) {
 void ParallelEngine::testFinishedCallBack(VnV_Comm comm, bool result_) {
   printf("PARALLEL ENGINE Stop Test. Test Was Successful-> %d\n", result_);
 }
+void ParallelEngine::dataTypeStartedCallBack(VnV_Comm /** comm **/,
+                                             std::string variableName, std::string dtype) {
+  printf("PARALLEL ENGINE Data Type Started %s", variableName.c_str());
+}
+void ParallelEngine::dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) {
+  printf("PARALLEL ENGINE Data Type Finished %s " , variableName.c_str()) ;
+}
 
 void ParallelEngine::unitTestStartedCallBack(VnV_Comm comm,
                                              std::string unitTestName) {

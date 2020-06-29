@@ -61,6 +61,9 @@ class JsonEngineManager : public OutputEngineManager {
   void unitTestStartedCallBack(VnV_Comm comm, std::string unitTestName);
 
   void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester);
+  void dataTypeStartedCallBack(VnV_Comm /** comm **/,
+                               std::string variableName, std::string dtype) override;
+  void dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) override;
 
   Nodes::IRootNode* readFromFile(std::string file);
 

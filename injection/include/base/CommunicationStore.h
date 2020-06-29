@@ -32,8 +32,8 @@ class CommunicationStore {
   std::map<long long, comm_register_ptr> communicator_factory;
   CommunicationStore();
 
+  long long getKey(std::string name);
   long long getKey(std::string packageName, std::string name);
-
  public:
   void declareComm(std::string packageName, std::string commPackageName,
                    std::string commName);
@@ -49,7 +49,12 @@ class CommunicationStore {
 
   IDataType_ptr getDataType(long long key);
 
-  IDataType_ptr getDataType(std::string pacakgeName, std::string name);
+  IDataType_ptr getDataType(std::string name);
+
+  template<typename T>
+  IDataType_ptr getDataType() {
+     return getDataType(typeid(T).name());
+  }
 
   IReduction_ptr getReducer(long long key);
   IReduction_ptr getReducer(std::string packageName, std::string name);

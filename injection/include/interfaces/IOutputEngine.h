@@ -4,12 +4,13 @@
 #include <string>
 
 #include "c-interfaces/Communication.h"
+#include "c-interfaces/Logging.h"
 #include "c-interfaces/PackageName.h"
 #include "interfaces/IUnitTest.h"
 #include "interfaces/nodes/Nodes.h"
 #include "json-schema.hpp"
 #include "python/PythonInterface.h"
-
+#include "base/CommunicationStore.h"
 /**
  * @brief The IOutputEngine class
  */
@@ -29,7 +30,11 @@ std::string toString(VariableEnum e);
 }  // namespace VariableEnumFactory
 
 class IOutputEngine {
- public:
+protected:
+  virtual void dataTypeStartedCallBack(VnV_Comm comm, std::string variableName,std::string dtype) =0;
+  virtual void dataTypeEndedCallBack(VnV_Comm comm, std::string variableName) = 0;
+
+public:
   virtual void Put(VnV_Comm comm, std::string variableName,
                    const double& value) = 0;
   virtual void Put(VnV_Comm comm, std::string variableName,
@@ -44,10 +49,26 @@ class IOutputEngine {
                    const bool& value) = 0;
   virtual void Put(VnV_Comm comm, std::string variableName,
                    const std::string& value) = 0;
-  virtual void Log(VnV_Comm comm, const char* packageName, int stage,
-                   std::string level, std::string message) = 0;
+  virtual void Log(VnV_Comm comm, const char* packageName, int stage, std::string level, std::string message) = 0;
+
+  template<typename T>
+  void Put(VnV_Comm comm, std::string variableName, T* data) {
+    auto it = CommunicationStore::instance().getDataType(typeid(T).name());
+    if ( it != nullptr ) {
+        dataTypeStartedCallBack(comm,variableName, typeid(T).name());
+        it->setData(data);
+        it->Put(comm,this);
+        dataTypeEndedCallBack(comm, variableName);
+    } else {
+       VnV_Warn("Cannot serialize object of type %s -- no DataType implementatino found" , typeid(T).name());
+    }
+  }
+
   void Put(VnV_Comm comm, std::string variableName, std::string serializer,
            std::string inputType, void* object);
+
+
+
   virtual ~IOutputEngine() = default;
 };
 
@@ -66,6 +87,7 @@ class IInternalOutputEngine : public IOutputEngine {
   virtual void unitTestStartedCallBack(VnV_Comm comm,
                                        std::string unitTestName) = 0;
   virtual void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester) = 0;
+
 
   virtual Nodes::IRootNode* readFromFile(std::string file) = 0;
   virtual std::string print() = 0;

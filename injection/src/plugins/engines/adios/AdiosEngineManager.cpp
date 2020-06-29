@@ -191,7 +191,23 @@ void AdiosEngineManager::unitTestFinishedCallBack(VnV_Comm, IUnitTest* tester) {
     engine.EndStep();
   }
 }
+void AdiosEngineManager::dataTypeStartedCallBack(VnV_Comm,
+                                                 std::string variableName, std::string dtype) {
+  if (engine) {
+    engine.BeginStep();
+    engine.Put(identifier, variableName);
+    std::string test = "StartDataType";
+    engine.Put(type, test);
+  } else {
+    throw VnVExceptionBase("Engine not setup correctly.");
+  }
+}
 
+void AdiosEngineManager::dataTypeEndedCallBack(VnV_Comm, std::string variableName) {
+  if (engine) {
+    engine.EndStep();
+  }
+}
 nlohmann::json AdiosEngineManager::getConfigurationSchema() {
   return __adios_input_schema__;
 }

@@ -1,4 +1,4 @@
-
+﻿
 
 %module VnVReader
 
@@ -35,19 +35,19 @@ namespace std {
 
 
 %pythoncode %{
-class classIterator : 
+class classIterator :
          def __init__(self, obj):
            self.obj = obj
            self.iterData = []
            self.iterCounter = 0
            for name in dir(obj):
              if name.startswith("get"):
-               self.iterData.append(name[3:]) 
-        
+               self.iterData.append(name[3:])
+
          def __next__(self):
            if (self.iterCounter) < len(self.iterData):
               key = self.iterData[self.iterCounter]
-              self.iterCounter += 1 
+              self.iterCounter += 1
               return [key,self.obj[key]]
            else:
               raise StopIteration
@@ -66,11 +66,11 @@ class mapclassIterator:
          else:
            raise StopIteration
 
-class listclassIterator : 
+class listclassIterator :
          def __init__(self, obj):
            self.obj = obj
            self.iterCounter = 0
-        
+
          def __next__(self):
            if (self.iterCounter) < len(self.obj):
                 self.iterCounter += 1
@@ -93,6 +93,7 @@ dataBaseCastMap = {
     DataBase.DataType_Info : "AsInfoNode",
     DataBase.DataType_Test : "AsTestNode",
     DataBase.DataType_UnitTest : "AsUnitTestNode",
+    DataBase.DataType_DataNode : "AsDataTypeNode"
 }
 
 type2Str = {
@@ -109,6 +110,7 @@ type2Str = {
     DataBase.DataType_Info : "Info",
     DataBase.DataType_Test : "Test",
     DataBase.DataType_UnitTest : "UnitTest",
+    DataBase.DataType_DataNode : "DataTypeNode"
 }
 
 vnv_initialized = False
@@ -174,34 +176,34 @@ def castDataBase(obj) :
 
       def __getType__(self):
          return "dict"
-      
+
       def __len__(self):
          count = 0
          for name in dir(self):
                 if name.startswith('get'):
                      count+=1
          return count
-      
+
       def __iter__(self):
         return classIterator(self)
-      
+
       def values(self):
          res = []
          for name in dir(self):
            if name.startswith('get'):
               res.append(getattr(self,name)())
          return res
-      
+
       def keys(self):
          res = []
          for name in dir(self):
             if name.startswith('get'):
                res.append(name[3:])
          return res
-      
+
       def __contains__(self,item):
-         return hasattr(self,"get" + item)      
-      
+         return hasattr(self,"get" + item)
+
    %}
 }
 %enddef
@@ -210,6 +212,7 @@ def castDataBase(obj) :
 
 PY_GETATTR(VnV::Nodes::IRootNode)
 PY_GETATTR(VnV::Nodes::IUnitTestNode)
+PY_GETATTR(VnV::Nodes::IDataTypeNode)
 PY_GETATTR(VnV::Nodes::ILogNode)
 PY_GETATTR(VnV::Nodes::IInjectionPointNode)
 PY_GETATTR(VnV::Nodes::ITestNode)
@@ -230,16 +233,16 @@ PY_GETATTR(VnV::Nodes::IBoolNode)
            return castDataBase(self.get(key))
         print("Not a key {} {} ".format(key, self.__class__))
         raise KeyError("not a valid key")
-      
+
       def __len__(self):
-        return self.size(); 
-      
+        return self.size();
+
       def __iter__(self):
         return listclassIterator(self)
-     
+
       def __getType__(self):
-        return "list"      
-      
+        return "list"
+
       def __str__(self):
               return self.toString()
    %}
