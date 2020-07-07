@@ -1,85 +1,78 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import jmespath
-import json as jsonLoader
 import os
-import shutil
-import uuid
 
 from docutils.parsers.rst import Directive
 from docutils import nodes
+from sphinx.errors import ExtensionError
+
 from ..jmes import JmesDirective
 from ...generate import configs
 
-
 class ParaviewNode(nodes.General, nodes.Element):
-     children = ()
+    children = ()
 
-     local_attributes = ('backrefs','content','filename')
+    local_attributes = ('backrefs', 'content', 'filename')
 
-     idCount = 0;
-     def getNewId(self):
-          ParaviewNode.idCount += 1
-          return "vnv-paraview-{}".format(ParaviewNode.idCount)
-
-     script_template ='''
+script_template = '''
            <div id={id} class='vtkjs-volume-viewer' data-url="{url}" width={width} height={height}></div>
-     '''
+'''
 
-     def set(self,filename):
-          self.attributes['filename'] = filename
 
-     def getHtml(self, url  ):
-          return self.script_template.format(
-                   id=self.getNewId(),
-                   url=url,
-                   width="400",
-                   height="400"
-          )
+def getHtml(url, idV, width="400", height="400"):
+    return script_template.format(
+        id=idV,
+        url=url,
+        width=width,
+        height=height
+    )
+
 
 class VnVParaviewDirective(Directive):
-     required_arguments = 1
-     optional_arguements = 0
-     final_argument_whitespace = True
-     has_content = False
+    idCount = 0
+    required_arguments = 1
+    optional_arguments = 0
+    final_argument_whitespace = True
+    has_content = False
+    option_spec = {
+        "width": int,
+        "height": int
+    }
+    idCount = 0;
 
-     def run(self):
-          node = ParaviewNode("")
-          node.set(" ".join(self.arguments))
-          return [node]
+    def getNewId(self):
+        VnVParaviewDirective.idCount += 1
+        return "vnv-paraview-{}".format(VnVParaviewDirective.idCount)
 
-def process_paraview_nodes(app, doctree, docname):
-     #Create the directory if not already exists.
-     env = app.builder.env
+    def run(self):
+        env = self.state.document.settings.env
+        app = configs.getApp()
+        src_dir = os.path.join(app.srcdir, os.path.dirname(env.docname))
 
-     for node in doctree.traverse(ParaviewNode):
-          parents = env.vnv_all_jmes.get(docname,[])
-          srcDir = os.path.join(app.srcdir,os.path.dirname(docname))
-          filepath = JmesDirective.getFilePath(node.attributes['filename'], parents, srcDir)
-          url = JmesDirective.getUrl(filepath, app.outdir, env)
-          html = node.getHtml(url)
-          node.replace_self([nodes.raw('',html,format='html')])
+        file_path = JmesDirective.getFilePath(" ".join(self.arguments), env.vnv_current_node, src_dir)
+        url = JmesDirective.getUrl(file_path, app.outdir, env)
+        width = str(self.options.get("width", 400))
+        height = str(self.options.get("height", 400))
+        html = getHtml(url, self.getNewId(), width=width, height=height)
+        return [nodes.raw('', html, format='html')]
+
 
 def on_environment_ready(app):
-     ## Make sure the javascript is available.
-     js_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),"data")
-     js_files = ["volumeViewer.js"]
+    # Make sure the javascript is available.
+    js_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data")
+    js_files = ["volumeViewer.js"]
 
-     if not os.path.isdir(js_dir):
-          raise ExtensionError("Cannot file data directory")
-     for f in js_files:
-        if not os.path.exists(os.path.join(js_dir,f)):
-          raise ExtensionError("Cannot find {}".format(f))
+    if not os.path.isdir(js_dir):
+        raise ExtensionError("Cannot file data directory")
+    for f in js_files:
+        if not os.path.exists(os.path.join(js_dir, f)):
+            raise ExtensionError("Cannot find {}".format(f))
 
-     app.config.html_static_path.append(js_dir)
-     for js_file in js_files:
+    app.config.html_static_path.append(js_dir)
+    for js_file in js_files:
         app.add_js_file(js_file)
 
+
 def setup(app):
-     app.add_node(ParaviewNode)
-     app.add_directive("vnv-paraview", VnVParaviewDirective)
-     app.connect("doctree-resolved",process_paraview_nodes)
-     app.connect("builder-inited", on_environment_ready)
-
-
-
+    app.add_directive("vnv-paraview", VnVParaviewDirective)
+    app.connect("builder-inited", on_environment_ready)

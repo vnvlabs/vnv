@@ -42,23 +42,23 @@ class DebugEngineManager : public OutputEngineManager {
                                    InjectionPointType type,
                                    std::string stageVal) override;
 
-  void injectionPointStartedCallBack(VnV_Comm comm, std::string id,
+  void injectionPointStartedCallBack(VnV_Comm comm, std::string packageName, std::string id,
                                      InjectionPointType type,
                                      std::string stageVal) override;
 
-  void testStartedCallBack(VnV_Comm comm, std::string testName) override;
+  void testStartedCallBack(VnV_Comm comm, std::string packageName, std::string testName, bool internal) override;
 
   void testFinishedCallBack(VnV_Comm comm, bool result_) override;
   void dataTypeStartedCallBack(VnV_Comm /** comm **/,
                                std::string variableName, std::string dtype) override;
   void dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) override;
 
-  void unitTestStartedCallBack(VnV_Comm comm,
+  void unitTestStartedCallBack(VnV_Comm comm, std::string packageName,
                                std::string unitTestName) override;
 
   void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester) override;
 
-  Nodes::IRootNode* readFromFile(std::string file) override;
+  Nodes::IRootNode* readFromFile(std::string file, long&) override;
 
   std::string print() override;
 };

@@ -608,7 +608,8 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       json& jj = getDef("InjectionPoints", Args->getUnexpArgument(1));
       json& stages = getOrCreate(jj, "stages");
       json& thisStage = getOrCreate(stages, "Begin");
-      thisStage["docs"] = getDocs(Range);
+      jj["docs"] = getDocs(Range);
+      thisStage["docs"] = "";
     } else if (nae == "INJECTION_LOOP_ITER") {
       json& jj = getDef("InjectionPoints", Args->getUnexpArgument(0));
       json& stages = getOrCreate(jj, "stages");

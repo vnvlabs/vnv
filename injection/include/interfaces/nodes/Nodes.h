@@ -1,11 +1,13 @@
 ﻿#ifndef NODES_H
 #define NODES_H
 
+#include <sstream>
 #include <functional>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+
 
 namespace VnV {
 
@@ -25,6 +27,8 @@ class ITestNode;
 class IInjectionPointNode;
 class IUnitTestNode;
 class IDataTypeNode;
+class IRootNode;
+
 class DataBase {
  public:
   enum class DataType {
@@ -41,12 +45,14 @@ class DataBase {
     Info,
     Test,
     UnitTest,
-    DataNode
+    DataNode,
+    RootNode
   };
 
-  std::string id;
-  std::string
-      name;  // name can be assigned, default is to use id (which is unique).
+  long id;
+  DataBase * parent = nullptr;
+
+  std::string name;  // name can be assigned, default is to use id (which is unique).
   DataType dataType;
   bool check(DataType type);
   DataBase(DataType type);
@@ -65,13 +71,23 @@ class DataBase {
   IDataTypeNode* getAsDataTypeNode();
   IUnitTestNode* getAsUnitTestNode();
   IMapNode* getAsMapNode();
-
-  std::string getId();
+  IRootNode* getAsRootNode();
+  long getId();
   std::string getName();
 
   virtual ~DataBase();
-  virtual std::string toString();
   std::string getTypeStr();
+
+  DataBase* getParent() {
+    return parent;
+  }
+
+  virtual std::string toString(){
+      std::ostringstream oss;
+      oss << "Node: " << id << "Name: " << name << "DataType: " << getTypeStr();
+      return oss.str();
+  }
+
 };
 
 class IMapNode : public DataBase {
@@ -82,6 +98,8 @@ class IMapNode : public DataBase {
   virtual bool contains(std::string key) = 0;
   virtual std::vector<std::string> fetchkeys() = 0;
   virtual std::size_t size() = 0;
+
+  virtual std::string getValue() = 0;
   virtual ~IMapNode();
 };
 
@@ -93,6 +111,9 @@ class IArrayNode : public DataBase {
   virtual std::size_t size() = 0;
   virtual IArrayNode* add(std::shared_ptr<DataBase> data) = 0;
   virtual ~IArrayNode();
+
+  // Get the value for inserting into a text object.
+  virtual std::string getValue() = 0;
 
   void iter(std::function<void(DataBase*)>& lambda);
 };
@@ -145,6 +166,7 @@ class IInfoNode : public DataBase {
   IInfoNode();
   virtual std::string getTitle() = 0;
   virtual long getDate() = 0;
+  virtual std::string getValue() = 0;
   virtual ~IInfoNode();
 };
 
@@ -153,8 +175,7 @@ class ITestNode : public DataBase {
   ITestNode();
   virtual std::string getPackage() = 0;
   virtual IArrayNode* getData() = 0;
-  virtual std::string getTemplate() = 0;
-
+  virtual std::string getValue() = 0;
   virtual IArrayNode* getChildren() = 0;
   virtual ~ITestNode();
 };
@@ -165,9 +186,22 @@ class IInjectionPointNode : public DataBase {
   virtual std::string getPackage() = 0;
   virtual IArrayNode* getTests() = 0;
   virtual IArrayNode* getChildren() = 0;
-  virtual std::string getTemplate() = 0;
+  virtual std::string getValue() = 0;
+  virtual ITestNode*  getData() = 0;
   virtual ~IInjectionPointNode();
 };
+
+///TODO -- __internal__ test doesn't get handled very well. In particular, we
+/// need to figure out how to access the data for the injection point internal
+/// tests and get it inserted into the documentation. getData() -> Array of data
+/// elements written during the callback that can be used in the injection point
+/// documentation.
+///
+
+
+
+
+
 
 class ILogNode : public DataBase {
  public:
@@ -175,6 +209,7 @@ class ILogNode : public DataBase {
   virtual std::string getPackage() = 0;
   virtual std::string getLevel() = 0;
   virtual std::string getMessage() = 0;
+  virtual std::string getValue() = 0;
   virtual std::string getStage() = 0;
   virtual ~ILogNode();
 };
@@ -185,7 +220,7 @@ class IUnitTestNode : public DataBase {
   virtual std::string getPackage() = 0;
   virtual IArrayNode* getChildren() = 0;
   virtual IMapNode* getResults() = 0;
-  virtual std::string getTemplate() = 0;
+  virtual std::string getValue() = 0;
   virtual ~IUnitTestNode();
 };
 
@@ -194,16 +229,23 @@ class IDataTypeNode : public DataBase {
   IDataTypeNode();
   virtual IMapNode* getChildren() = 0;
   virtual std::string getDataTypeName() = 0;
+  virtual std::string getValue() = 0;
   virtual ~IDataTypeNode();
 };
 
-class IRootNode {
+class IRootNode : public DataBase {
  public:
   IRootNode();
   virtual IArrayNode* getChildren() = 0;
   virtual IArrayNode* getUnitTests() = 0;
   virtual IInfoNode* getInfoNode() = 0;
-  virtual std::string toString() = 0;
+  virtual std::string getValue() = 0;
+  virtual DataBase* findById(long id) = 0;
+
+  virtual bool hasId() {
+    return findById(id) == NULL;
+  }
+
   virtual ~IRootNode();
 };
 

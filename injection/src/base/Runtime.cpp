@@ -16,7 +16,7 @@
 #include "base/TestStore.h"
 #include "base/UnitTestStore.h"
 #include "c-interfaces/Logging.h"
-
+#include "base/Utilities.h"
 #include <iostream>
 
 using namespace VnV;
@@ -339,11 +339,20 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
   INJECTION_LOOP_BEGIN_C(
       comm, initialization,
       [&](VnV_Comm comm, VnVParameterSet& p, OutputEngineManager* engine) {
-        for (auto it : p) {
-          std::string t =
-              it.second.getType() + "(rtti:" + it.second.getRtti() + ")";
-          engine->Put(comm, it.first, t);
-        }
+         // caught everything, so internal ones can ignore parameters and put
+         // anything.
+         // Here, we do a minimal provenance history. For a full history, the
+         // user should attach the provenace test to this node.
+
+
+         std::string currTime = VnV::ProvenanceUtils::timeToString();
+         std::string commandline = VnV::ProvenanceUtils::cmdLineToString(*argc,*argv);
+         engine->Put(comm,"config",config);
+         engine->Put(comm, "command-line", commandline);
+         engine->Put(comm, "time", currTime);
+
+
+
       },
       argc, argv, config);
 
@@ -428,9 +437,9 @@ void RunTime::runUnitTests(VnV_Comm comm) {
   UnitTestStore::getUnitTestStore().runAll(comm, false);
 }
 
-void RunTime::readFile(std::string filename) {
+void RunTime::readFile(std::string filename, long& idCounter) {
   OutputEngineStore::getOutputEngineStore().getEngineManager()->readFromFile(
-      filename);
+      filename, idCounter);
 }
 
 void RunTime::printRunTimeInformation() {

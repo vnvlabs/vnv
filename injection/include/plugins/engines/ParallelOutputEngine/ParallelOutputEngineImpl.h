@@ -121,7 +121,7 @@ class ParallelEngine : public OutputEngineManager {
    * @param id
    * @param stageVal
    */
-  void injectionPointStartedCallBack(VnV_Comm comm, std::string id,
+  void injectionPointStartedCallBack(VnV_Comm comm, std::string packageName, std::string id,
                                      InjectionPointType type,
                                      std::string stageVal) override;
 
@@ -130,7 +130,7 @@ class ParallelEngine : public OutputEngineManager {
    * @param testName
    * @param testStageVal
    */
-  void testStartedCallBack(VnV_Comm comm, std::string testName) override;
+  void testStartedCallBack(VnV_Comm comm, std::string packageName, std::string testName, bool internal) override;
 
   /**
    * @brief stopTest
@@ -138,7 +138,7 @@ class ParallelEngine : public OutputEngineManager {
    */
   void testFinishedCallBack(VnV_Comm comm, bool result_) override;
 
-  void unitTestStartedCallBack(VnV_Comm comm,
+  void unitTestStartedCallBack(VnV_Comm comm, std::string packageName,
                                std::string unitTestName) override;
 
   void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester) override;
@@ -151,7 +151,7 @@ class ParallelEngine : public OutputEngineManager {
    * @brief getOutputEngine
    * @return
    */
-  Nodes::IRootNode* readFromFile(std::string file) override {
+  Nodes::IRootNode* readFromFile(std::string file, long& idCOunter) override {
     throw VnV::VnVExceptionBase(
         "Read From File Not implemented for Parallel Output Engine");
   }

@@ -14,6 +14,8 @@ using namespace VnV::Nodes;
 
 class MapNode : public IMapNode {
  public:
+  std::string templ;
+
   std::map<std::string, std::shared_ptr<DataBase>> value;
 
   MapNode();
@@ -21,18 +23,28 @@ class MapNode : public IMapNode {
   virtual IMapNode* add(std::string key, std::shared_ptr<DataBase> v) override;
   virtual bool contains(std::string key);
   virtual std::vector<std::string> fetchkeys() override;
+
+  virtual std::string getValue() {
+    return templ;
+  }
+
   virtual std::size_t size();
-  virtual std::string toString();
 };
 
 class ArrayNode : public IArrayNode {
  public:
+  std::string templ;
+
   ArrayNode();
   std::vector<std::shared_ptr<DataBase>> value;
   virtual DataBase* get(std::size_t idx) override;
   virtual std::size_t size() override;
   virtual IArrayNode* add(std::shared_ptr<DataBase> data) override;
-  virtual std::string toString();
+
+  std::string getValue() override {
+    return templ;
+  }
+
 };
 
 class BoolNode : public IBoolNode {
@@ -40,7 +52,6 @@ class BoolNode : public IBoolNode {
   bool value;
   BoolNode();
   virtual bool getValue() override;
-  virtual std::string toString();
 };
 
 class DoubleNode : public IDoubleNode {
@@ -48,7 +59,6 @@ class DoubleNode : public IDoubleNode {
   double value;
   DoubleNode();
   virtual double getValue() override;
-  virtual std::string toString();
 };
 
 class IntegerNode : public IIntegerNode {
@@ -56,7 +66,6 @@ class IntegerNode : public IIntegerNode {
   IntegerNode();
   int value;
   virtual int getValue() override;
-  virtual std::string toString();
 };
 
 class LongNode : public ILongNode {
@@ -64,7 +73,6 @@ class LongNode : public ILongNode {
   LongNode();
   long value;
   virtual long getValue() override;
-  virtual std::string toString();
 };
 
 class StringNode : public IStringNode {
@@ -74,7 +82,6 @@ class StringNode : public IStringNode {
   bool jsonString = false;
   virtual std::string getValue() override;
   virtual bool isJson() override;
-  virtual std::string toString();
 };
 
 class FloatNode : public IFloatNode {
@@ -82,17 +89,20 @@ class FloatNode : public IFloatNode {
   FloatNode();
   float value;
   virtual float getValue() override;
-  virtual std::string toString();
 };
 
 class InfoNode : public IInfoNode {
  public:
   InfoNode();
-  std::string title;
+  std::string title, templ;
   long date;
   virtual std::string getTitle() override;
+
   virtual long getDate() override;
-  virtual std::string toString();
+
+  virtual std::string getValue() override {
+    return templ;
+  }
 };
 
 class TestNode : public ITestNode {
@@ -103,16 +113,19 @@ class TestNode : public ITestNode {
   TestNode();
   virtual std::string getPackage() override;
   virtual IArrayNode* getData() override;
-  virtual std::string getTemplate() override;
   virtual IArrayNode* getChildren() override;
 
-  virtual std::string toString();
+  virtual std::string getValue() override {
+    return templ;
+  }
+
 };
 
 class InjectionPointNode : public IInjectionPointNode {
  public:
   std::shared_ptr<ArrayNode> children;
   std::shared_ptr<ArrayNode> tests;
+  std::shared_ptr<TestNode> internal;
   std::string name;
   std::string package;
   std::string templ;
@@ -120,32 +133,52 @@ class InjectionPointNode : public IInjectionPointNode {
   InjectionPointNode();
   virtual std::string getPackage() override;
   virtual IArrayNode* getTests() override;
-  virtual std::string getTemplate() override;
+  virtual ITestNode* getData() override {
+    return internal.get();
+  }
+
+  virtual std::string getValue() override {
+    return templ;
+  }
   virtual IArrayNode* getChildren() override;
 
-  virtual std::string toString();
 };
 
 class LogNode : public ILogNode {
  public:
-  std::string package, level, stage, message;
+  static std::string def;
+  std::string package, level, stage, message, templ;
   LogNode();
   virtual std::string getPackage() override;
   virtual std::string getLevel() override;
   virtual std::string getMessage() override;
-  virtual std::string getStage() override;
+  virtual std::string getValue() override {
+    if (!templ.empty()) return templ;
+    if (level == "Warning") {
+      return ".. caution::\n    " + def;
+    } else if (level == "Error") {
+      return ".. error::\n    " + def;
+    } else if (level == "Info") {
+      return ".. important::\n    " + def;
+    }
+    return ".. note::\n    " + def;
+  }
 
-  virtual std::string toString();
+  virtual std::string getStage() override;
 };
+
+
 
 class DataTypeNode : public IDataTypeNode {
  public:
-  std::string name, dataTypeName, package;
+  std::string name, dataTypeName, package, templ;
   std::shared_ptr<MapNode> children;
   DataTypeNode();
   virtual std::string getDataTypeName() override;
   virtual IMapNode* getChildren() override;
-  virtual std::string toString();
+  virtual std::string getValue() override {
+    return templ;
+  }
 };
 
 class UnitTestNode : public IUnitTestNode {
@@ -156,25 +189,41 @@ class UnitTestNode : public IUnitTestNode {
   UnitTestNode();
   virtual std::string getPackage() override;
   virtual IArrayNode* getChildren() override;
-  virtual std::string getTemplate() override;
+  virtual std::string getValue() override {
+    return templ;
+  }
   virtual IMapNode* getResults() override;
 
-  virtual std::string toString();
 };
 
 class RootNode : public IRootNode {
  public:
+
+  std::string templ;
+  std::map<long, std::shared_ptr<DataBase>> idMap;
+  long lowerId, upperId;
+
   std::shared_ptr<ArrayNode> children;
   std::shared_ptr<ArrayNode> unitTests;
   std::shared_ptr<InfoNode> infoNode;
   virtual IArrayNode* getChildren() override;
   virtual IArrayNode* getUnitTests() override;
   virtual IInfoNode* getInfoNode() override;
-  virtual std::string toString() override;
+
+  virtual DataBase* findById(long id) override;
+
+  void add(std::shared_ptr<DataBase> ptr) {
+    idMap[ptr->getId()] = ptr;
+  }
+
+
+  virtual std::string getValue() override {
+    return templ;
+  }
 };
 
 // Debug for now
-IRootNode* parse(std::string filename);
+IRootNode* parse(std::string filename, long& idCounter);
 
 }  // namespace JsonReader
 }  // namespace Engines

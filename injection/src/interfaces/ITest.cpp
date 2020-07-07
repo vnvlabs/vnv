@@ -157,7 +157,7 @@ TestStatus ITest::_runTest(VnV_Comm comm, OutputEngineManager* engine,
                            InjectionPointType type, std::string stageId) {
   VnV_Debug_MPI(comm, "Runnnig Test %s ", m_config.getName().c_str());
 
-  engine->testStartedCallBack(comm, m_config.getName());
+  engine->testStartedCallBack(comm, m_config.getPackage(), m_config.getName(),false);
   TestStatus s = runTest(comm, engine->getOutputEngine(), type, stageId);
   engine->testFinishedCallBack(comm, (s == SUCCESS) ? true : false);
   return s;

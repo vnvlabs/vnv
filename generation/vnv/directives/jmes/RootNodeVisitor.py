@@ -1,4 +1,4 @@
-import operator
+﻿import operator
 
 from . import ModifiedFunctions as functions
 from jmespath.compat import string_type
@@ -206,7 +206,7 @@ class RootInterpreter(RootNodeVisitor):
     def visit_index(self, node, value):
         # Even though we can index strings, we don't
         # want to support that.
-        
+
         if self.isDefactoList(value):
             try:
                 return value[node['value']]

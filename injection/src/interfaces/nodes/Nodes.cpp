@@ -7,11 +7,11 @@
 namespace VnV {
 namespace Nodes {
 
-std::string DataBase::getId() { return id; }
+long DataBase::getId() { return id; }
 
 bool DataBase::check(DataType type) { return type == dataType; }
 
-std::string DataBase::getName() { return (name.empty()) ? id : name; }
+std::string DataBase::getName() { return (name.empty()) ? std::to_string(id) : name; }
 
 DataBase::DataType DataBase::getType() { return dataType; }
 
@@ -50,6 +50,7 @@ std::string DataBase::getTypeStr() {
   }
   throw VnVExceptionBase("Impossible");
 }
+
 
 IBoolNode* DataBase::getAsBoolNode() {
   return (check(DataType::Bool)) ? dynamic_cast<IBoolNode*>(this) : nullptr;
@@ -90,13 +91,6 @@ IDataTypeNode* DataBase::getAsDataTypeNode() {
 
 DataBase::~DataBase() {}
 
-std::string DataBase::toString() {
-  std::ostringstream oss;
-  oss << "DataBase Object{ \"Id=" << getId() << "\" , \"type\"=\""
-      << getTypeStr() << "\"}\n";
-  return oss.str();
-}
-
 ILogNode* DataBase::getAsLogNode() {
   return (check(DataType::Log)) ? dynamic_cast<ILogNode*>(this) : nullptr;
 }
@@ -117,6 +111,11 @@ ITestNode* DataBase::getAsTestNode() {
 
 IUnitTestNode* DataBase::getAsUnitTestNode() {
   return (check(DataType::UnitTest)) ? dynamic_cast<IUnitTestNode*>(this)
+                                     : nullptr;
+}
+
+IRootNode* DataBase::getAsRootNode() {
+  return (check(DataType::RootNode)) ? dynamic_cast<IRootNode*>(this)
                                      : nullptr;
 }
 
@@ -183,7 +182,7 @@ IUnitTestNode::IUnitTestNode() : DataBase(DataBase::DataType::UnitTest) {}
 
 IUnitTestNode::~IUnitTestNode() {}
 
-IRootNode::IRootNode() {}
+IRootNode::IRootNode() : DataBase(DataBase::DataType::RootNode) {}
 
 IRootNode::~IRootNode() {}
 

@@ -144,6 +144,7 @@ void JsonEngineManager::injectionPointEndedCallBack(VnV_Comm /**comm**/,
 }
 
 void JsonEngineManager::injectionPointStartedCallBack(VnV_Comm /**comm**/,
+                                                      std::string packageName,
                                                       std::string id,
                                                       InjectionPointType type,
                                                       std::string stageVal) {
@@ -151,7 +152,7 @@ void JsonEngineManager::injectionPointStartedCallBack(VnV_Comm /**comm**/,
   json stage;
 
   stage["name"] = id;
-  stage["package"] = "TODO";
+  stage["package"] = packageName;
   stage["type"] = InjectionPointTypeUtils::getType(type, stageVal);
   stage["stageId"] = stageVal;
   stage["children"] = json::array();
@@ -162,7 +163,7 @@ void JsonEngineManager::injectionPointStartedCallBack(VnV_Comm /**comm**/,
     j["node"] = "InjectionPoint";
     j["name"] = id;
     j["id"] = getId();
-    j["package"] = "TODO";
+    j["package"] = packageName;
     j["children"] = json::array();
 
     stage["id"] = getId();
@@ -176,11 +177,14 @@ void JsonEngineManager::injectionPointStartedCallBack(VnV_Comm /**comm**/,
 }
 
 void JsonEngineManager::testStartedCallBack(VnV_Comm /**comm**/,
-                                            std::string testName) {
+                                            std::string packageName,
+                                            std::string testName,
+                                            bool internal) {
   json j;
   j["id"] = getId();
   j["name"] = testName;
-  j["package"] = "TODO";
+  j["package"] = packageName;
+  j["internal"] = internal;
   j["node"] = "Test";
   j["children"] = json::array();
   push(j, json::json_pointer("/children"));
@@ -192,13 +196,14 @@ void JsonEngineManager::testFinishedCallBack(VnV_Comm /**comm**/,
 }
 
 void JsonEngineManager::unitTestStartedCallBack(VnV_Comm /**comm**/,
+                                                std::string packageName,
                                                 std::string unitTestName) {
   json j;
 
   j["id"] = getId();
   j["node"] = "UnitTest";
   j["name"] = unitTestName;
-  j["package"] = "TODO";
+  j["package"] = packageName;
   j["children"] = json::array();
   j["results"] = json::array();
   push(j, json::json_pointer("/children"));
@@ -211,7 +216,6 @@ void JsonEngineManager::dataTypeStartedCallBack(VnV_Comm /** comm **/,
   j["node"] = "DataType";
   j["name"] = variableName;
   j["dtype"] = dtype;
-  j["package"] = "TODO";
   j["children"] = json::array();
   j["results"] = json::array();
   push(j, json::json_pointer("/children"));
@@ -236,8 +240,8 @@ void JsonEngineManager::unitTestFinishedCallBack(VnV_Comm comm,
   pop(2);
 }
 
-Nodes::IRootNode* JsonEngineManager::readFromFile(std::string file) {
-  return VnV::PACKAGENAME::Engines::JsonReader::parse(file);
+Nodes::IRootNode* JsonEngineManager::readFromFile(std::string file, long& idCounter) {
+  return VnV::PACKAGENAME::Engines::JsonReader::parse(file,idCounter);
 }
 
 std::string JsonEngineManager::print() { return "VnV Json Engine Manager"; }

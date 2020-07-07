@@ -12,11 +12,22 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <ctime>
+#include <fstream>
+#include <iomanip>
+#include <sstream>
 
 #include "json-schema.hpp"
 //#include "base/InjectionPoint.h"
 namespace VnV {
 typedef std::map<std::string, std::pair<std::string, void*>> NTV;
+
+namespace ProvenanceUtils {
+
+  std::string timeToString(std::string format = "%Y-%m-%d %H-%M-%S");
+
+  std::string cmdLineToString(int argc, char** argv);
+}
 
 namespace StringUtils {
 

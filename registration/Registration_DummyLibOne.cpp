@@ -7,7 +7,7 @@
 #define PACKAGENAME DummyLibOne
 #include "VnV.h" 
 const char* getFullRegistrationJson_DummyLibOne(){
-	 return "{\"InjectionPoints\":{\"class2_function1\":{\"name\":\"class2_function1\",\"packageName\":\"DummyLibOne\",\"parameters\":[{\"x\":\"int\"}],\"stages\":{\"Begin\":{\"docs\":\"\",\"info\":{\"Calling Function\":\"function1\",\"Calling Function Column\":1,\"Calling Function Line\":7,\"filename\":\"/home/ben/wfr/vv-neams/examples/dummy/libraries/dummyLibOne/src/class2.cpp\",\"lineColumn\":5,\"lineNumber\":72}}}}}}";}
+	 return "{\"InjectionPoints\":{\"class2_function1\":{\"docs\":\"\",\"name\":\"class2_function1\",\"packageName\":\"DummyLibOne\",\"parameters\":[{\"x\":\"int\"}],\"stages\":{\"Begin\":{\"docs\":\"\",\"info\":{\"Calling Function\":\"function1\",\"Calling Function Column\":1,\"Calling Function Line\":7,\"filename\":\"/home/ben/wfr/vv-neams/examples/dummy/libraries/dummyLibOne/src/class2.cpp\",\"lineColumn\":5,\"lineNumber\":72}}}}}}";}
 
 INJECTION_REGISTRATION(){
 	Register_Injection_Point(Hello_temp_sub,"{\"intersection\":\"double\",\"slope\":\"double\",\"value\":\"double\",\"x\":\"int\"}");

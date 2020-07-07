@@ -16,6 +16,26 @@
 
 using nlohmann::json;
 
+
+std::string VnV::ProvenanceUtils::timeToString(std::string format ) {
+         auto t = std::time(nullptr);
+         auto tm = *std::localtime(&t);
+         std::ostringstream oss;
+         oss << std::put_time(&tm, format.c_str());
+         return oss.str();
+}
+
+std::string VnV::ProvenanceUtils::cmdLineToString(int argc, char** argv) {
+
+         std::ostringstream commandline;
+         commandline << argv[0];
+           for (int i = 1; i < argc; i++) {
+             commandline <<  " " << std::string(argv[i]);
+         }
+         return commandline.str();
+}
+
+
 std::string VnV::StringUtils::escapeQuotes(std::string str,
                                            bool escapeFullString) {
   std::ostringstream oss;

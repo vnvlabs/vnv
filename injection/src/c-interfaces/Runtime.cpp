@@ -40,7 +40,7 @@ void VnV_Registration_Info(const char* filename) {
     VnV::RunTime::instance().writeSpecification(filename);
 }
 
-void VnV_readFile(const char* filename) {
-  VnV::RunTime::instance().readFile(filename);
+void VnV_readFile(const char* filename, long* idCounter) {
+  VnV::RunTime::instance().readFile(filename, *idCounter);
 }
 }

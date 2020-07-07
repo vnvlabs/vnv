@@ -1,4 +1,4 @@
-
+﻿
 /** @file OutputEngineStore.cpp Implementation of the OutputEngineStore as
  *defined in base/OutputEngineStore.h"
  **/
@@ -70,7 +70,7 @@ Nodes::IRootNode* OutputEngineStore::readFile(std::string filename,
   if (it != registeredEngines.end()) {
     std::unique_ptr<OutputEngineManager> engine(it->second());
     engine->set(config);
-    Nodes::IRootNode* rootNode = engine->readFromFile(filename);
+    Nodes::IRootNode* rootNode = engine->readFromFile(filename, idCounter);
     engine->finalize();
     return rootNode;
   }

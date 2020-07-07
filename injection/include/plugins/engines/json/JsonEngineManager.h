@@ -50,22 +50,22 @@ class JsonEngineManager : public OutputEngineManager {
                                    InjectionPointType type,
                                    std::string stageVal);
 
-  void injectionPointStartedCallBack(VnV_Comm comm, std::string id,
+  void injectionPointStartedCallBack(VnV_Comm comm, std::string packageName, std::string id,
                                      InjectionPointType type,
-                                     std::string stageVal);
+                                     std::string stageVal) override;
 
-  void testStartedCallBack(VnV_Comm comm, std::string testName);
+  void testStartedCallBack(VnV_Comm comm, std::string packageName, std::string testName, bool internal) override;
 
   void testFinishedCallBack(VnV_Comm comm, bool result_);
 
-  void unitTestStartedCallBack(VnV_Comm comm, std::string unitTestName);
+  void unitTestStartedCallBack(VnV_Comm comm, std::string packageName, std::string unitTestName);
 
   void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester);
   void dataTypeStartedCallBack(VnV_Comm /** comm **/,
                                std::string variableName, std::string dtype) override;
   void dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) override;
 
-  Nodes::IRootNode* readFromFile(std::string file);
+  Nodes::IRootNode* readFromFile(std::string file, long& idCounter);
 
   // IInternalOutputEngine interface
   std::string print();

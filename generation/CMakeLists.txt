@@ -1,4 +1,4 @@
-# SWIG: use standard target name.
+﻿# SWIG: use standard target name.
 if(POLICY CMP0078)
   cmake_policy(SET CMP0078 NEW)
 endif()

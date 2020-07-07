@@ -35,6 +35,9 @@ namespace std {
 
 
 %pythoncode %{
+
+import json
+
 class classIterator :
          def __init__(self, obj):
            self.obj = obj
@@ -129,7 +132,7 @@ def Initialize(args, config):
        r.push_back(i)
 
    if isinstance(config,dict):
-      VnVInit(r, json.dumps(config),True)
+      VnVInit_Str(r, json.dumps(config))
    else:
       VnVInit(r,config)
    vnv_initialized = True
@@ -254,6 +257,7 @@ PY_GETATTRLIST(VnV::Nodes::IArrayNode)
 %define PY_GETATTRMAP(Typename)
 %extend Typename {
     %pythoncode %{
+
         def __getitem__(self,key):
             if isinstance(key,str) and self.contains(key):
                 return castDataBase(self.get(key))

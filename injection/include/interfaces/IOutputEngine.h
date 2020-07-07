@@ -76,20 +76,20 @@ class IInternalOutputEngine : public IOutputEngine {
  public:
   virtual void setFromJson(json& configuration) = 0;
   virtual json getConfigurationSchema() = 0;
-  virtual void injectionPointStartedCallBack(VnV_Comm comm, std::string id,
+  virtual void injectionPointStartedCallBack(VnV_Comm comm, std::string packageName, std::string id,
                                              InjectionPointType type,
                                              std::string stageId) = 0;
   virtual void injectionPointEndedCallBack(VnV_Comm comm, std::string id,
                                            InjectionPointType type,
                                            std::string stageId) = 0;
-  virtual void testStartedCallBack(VnV_Comm comm, std::string testName) = 0;
+  virtual void testStartedCallBack(VnV_Comm comm, std::string packageName, std::string testName, bool internal) = 0;
   virtual void testFinishedCallBack(VnV_Comm comm, bool result_) = 0;
-  virtual void unitTestStartedCallBack(VnV_Comm comm,
+  virtual void unitTestStartedCallBack(VnV_Comm comm, std::string packageName,
                                        std::string unitTestName) = 0;
   virtual void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester) = 0;
 
 
-  virtual Nodes::IRootNode* readFromFile(std::string file) = 0;
+  virtual Nodes::IRootNode* readFromFile(std::string file, long& idCounter) = 0;
   virtual std::string print() = 0;
   virtual void finalize() = 0;
   virtual ~IInternalOutputEngine() = default;

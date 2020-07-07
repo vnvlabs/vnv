@@ -71,7 +71,7 @@ VNVEXTERNC void VnV_runUnitTests(VnV_Comm comm);
 
 VNVEXTERNC void VnV_Registration_Info(const char* filename);
 
-VNVEXTERNC void VnV_readFile(const char* filename);
+VNVEXTERNC void VnV_readFile(const char* filename, long* idCounter);
 
 #else  // WITHOUT_VNV
 #  define VnV_init(...)

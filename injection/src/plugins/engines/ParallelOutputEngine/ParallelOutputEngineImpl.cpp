@@ -91,7 +91,7 @@ void ParallelEngine::injectionPointEndedCallBack(VnV_Comm comm, std::string id,
   getRouter(comm, RouterAction::POP)->forward();
 }
 
-void ParallelEngine::injectionPointStartedCallBack(VnV_Comm comm,
+void ParallelEngine::injectionPointStartedCallBack(VnV_Comm comm, std::string packageName,
                                                    std::string id,
                                                    InjectionPointType type,
                                                    std::string stageVal) {
@@ -99,7 +99,7 @@ void ParallelEngine::injectionPointStartedCallBack(VnV_Comm comm,
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
 }
 
-void ParallelEngine::testStartedCallBack(VnV_Comm comm, std::string testName) {
+void ParallelEngine::testStartedCallBack(VnV_Comm comm, std::string packageName, std::string testName, bool internal) {
   printf("PARALLEL ENGINE Start Test %s \n", testName.c_str());
 }
 
@@ -114,7 +114,7 @@ void ParallelEngine::dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string va
   printf("PARALLEL ENGINE Data Type Finished %s " , variableName.c_str()) ;
 }
 
-void ParallelEngine::unitTestStartedCallBack(VnV_Comm comm,
+void ParallelEngine::unitTestStartedCallBack(VnV_Comm comm, std::string packageName,
                                              std::string unitTestName) {
   printf("PARALLEL ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
 }

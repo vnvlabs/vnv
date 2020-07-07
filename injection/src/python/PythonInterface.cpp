@@ -8,7 +8,9 @@ ReaderWrapper::ReaderWrapper(std::string filename)
     : ReaderWrapper(filename, "{}") {}
 
 ReaderWrapper::ReaderWrapper(std::string filename, std::string config) {
+
   json conf = json::object();
+
   auto idx = filename.rfind(".");
   if (idx != std::string::npos) {
     std::string ext = filename.substr(idx + 1);

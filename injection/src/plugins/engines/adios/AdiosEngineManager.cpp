@@ -131,7 +131,8 @@ void AdiosEngineManager::injectionPointEndedCallBack(VnV_Comm, std::string id,
   }
 }
 
-void AdiosEngineManager::injectionPointStartedCallBack(VnV_Comm, std::string id,
+void AdiosEngineManager::injectionPointStartedCallBack(VnV_Comm, std::string packageName, std::string id,
+
                                                        InjectionPointType type_,
                                                        std::string stageId) {
   if (engine) {
@@ -147,7 +148,7 @@ void AdiosEngineManager::injectionPointStartedCallBack(VnV_Comm, std::string id,
   }
 }
 
-void AdiosEngineManager::testStartedCallBack(VnV_Comm, std::string testName) {
+void AdiosEngineManager::testStartedCallBack(VnV_Comm, std::string packageName, std::string testName, bool internal) {
   if (engine) {
     engine.BeginStep();
     engine.Put(identifier, testName);
@@ -166,7 +167,7 @@ void AdiosEngineManager::testFinishedCallBack(VnV_Comm, bool result_) {
   }
 }
 
-void AdiosEngineManager::unitTestStartedCallBack(VnV_Comm,
+void AdiosEngineManager::unitTestStartedCallBack(VnV_Comm, std::string packageName,
                                                  std::string unitTestName) {
   if (engine) {
     engine.BeginStep();
@@ -214,7 +215,7 @@ nlohmann::json AdiosEngineManager::getConfigurationSchema() {
 
 std::string AdiosEngineManager::print() { return "Adios Engine Manager"; }
 
-Nodes::IRootNode* AdiosEngineManager::readFromFile(std::string) {
+Nodes::IRootNode* AdiosEngineManager::readFromFile(std::string, long&) {
   throw VnVExceptionBase("Reader Not Implemented for Adios Engine");
 }
 

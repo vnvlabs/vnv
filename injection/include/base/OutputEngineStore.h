@@ -1,4 +1,4 @@
-
+﻿
 /**
   @file OutputEngineStore.h
 **/
@@ -59,6 +59,7 @@ class OutputEngineStore {
 
   bool initialized = false; /**< Set when the Engine has been initialized */
 
+  long idCounter = 0;
  public:
   /**
    * @brief registerEngine

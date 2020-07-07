@@ -59,7 +59,7 @@ IUnitTest* UnitTestStore::getUnitTester(std::string packageName,
   return nullptr;
 }
 
-void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,
+void UnitTestStore::runTest(Communication::ICommunicator_ptr comm, std::string packageName,
                             std::string name, IUnitTest* tester) {
   tester->setComm(comm);
   OutputEngineManager* engineManager =
@@ -67,7 +67,7 @@ void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,
   // TODO These callbacks should accept the ICommunicator_ptr, not the VnV_Comm
   // (which is an interface
   // for supporting comms in C).
-  engineManager->unitTestStartedCallBack(comm->asComm(), name);
+  engineManager->unitTestStartedCallBack(comm->asComm(), packageName, name);
   tester->run();
   engineManager->unitTestFinishedCallBack(comm->asComm(), tester);
 }
@@ -78,7 +78,7 @@ void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,
   if (it != tester_factory.end()) {
     auto itt = it->second.find(name);
     if (itt != it->second.end()) {
-      runTest(comm, packageName + ":" + name, itt->second());
+      runTest(comm, packageName , name, itt->second());
     }
   }
 }
@@ -96,17 +96,17 @@ void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
   int size = c->Size();
   int rank = c->Rank();
   // Transform the tess vector of tuples and sort largest to smallest.
-  std::vector<std::tuple<int, std::string, tester_ptr*>> tests;
+  std::vector<std::tuple<int, std::string, std::string, tester_ptr*>> tests;
   for (auto it : tester_factory) {
     for (auto itt : it.second) {
       std::string key = it.first + ":" + itt.first;
       int cores = tester_cores[key];
-      tests.push_back(std::make_tuple(cores, key, itt.second));
+      tests.push_back(std::make_tuple(cores, it.first, it.first, itt.second));
     }
   }
   std::sort(tests.begin(), tests.end(),
-            [](const std::tuple<int, std::string, tester_ptr*>& p1,
-               const std::tuple<int, std::string, tester_ptr*>& p2) {
+            [](const std::tuple<int, std::string, std::string, tester_ptr*>& p1,
+               const std::tuple<int, std::string, std::string, tester_ptr*>& p2) {
               return std::get<0>(p1) > std::get<0>(p2);
             });
 
@@ -115,6 +115,7 @@ void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
   int myStart = -1;
   int myEnd = -1;
   std::string myName;
+  std::string myPackage;
   tester_ptr* myTester;
   while (tests.size() > 0) {
     if (it == tests.end()) {
@@ -122,8 +123,8 @@ void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
     }
 
     int req = std::get<0>(*it);  // requested processors for this iter.
-    std::string name = std::get<1>(*it);
-
+    std::string name = std::get<2>(*it);
+    std::string pname = std::get<1>(*it);
     if (req > size) {
       VnV_Warn("Ignoring test %s because cannot fufull requested cores of %d",
                name.c_str(), req);
@@ -133,7 +134,8 @@ void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
         myStart = currentBuffer;
         myEnd = currentBuffer + req;
         myName = name;
-        myTester = std::get<2>(*it);
+        myPackage = pname;
+        myTester = std::get<3>(*it);
       }
 
       it = tests.erase(it);  // erase it because its done.
@@ -153,7 +155,7 @@ void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
         ICommunicator_ptr p = c->create(myStart, myEnd, 1, 10);
         auto pcomm = CommunicationStore::instance().toVnVComm(p);
         VnV_Debug_MPI(pcomm, "Running %s on range [%d,%d)", myName.c_str(), myStart, myEnd);
-        runTest(p, name, myTester());
+        runTest(p, myPackage, myName, myTester());
       }
       currentBuffer = 0;
       myStart = -1;

@@ -13,104 +13,76 @@ from ..jmes import JmesDirective
 from ...generate import configs
 
 
-class TableNode(nodes.General, nodes.Element):
-     children = ()
-
-     local_attributes = ('backrefs','config','filename')
-     idCount = 0;
-
-     def getNewId(self):
-          TableNode.idCount += 1
-          return "vnv_table_{}".format(TableNode.idCount)
-
-
-     script_template ='''
-           <div id="{id}" class='vnv-table' width="{width}" height="{height}"></div>
-           <script>
-             function {id}_func() {{
-               const obj = JSON.parse('{config}')
-               var table = new Tabulator("#{id}", obj);
-               table.setData({data})
-             }}
-             {id}_func()
-           </script>
-           '''
-
-     def getHtml(self, url, width="400", height="400"):
-          id = self.getNewId()
-          return self.script_template.format(
-               id=id,
-               height=height,
-               data="'" + url + "'",
-               width=width,
-               config=jsonLoader.dumps(self.attributes['config'])
-          )
-
-     def set(self,filetype, filename, config):
-          try:
-             self.attributes['filetype'] = filetype
-             self.attributes['filename'] = filename
-             self.attributes['config'] = jsonLoader.loads("".join(config))
-          except:
-             raise RuntimeError("Invalid Json")
-
+def get_new_id():
+    VnVTableDirective.idCount += 1
+    return "vnv_table_{}".format(VnVTableDirective.idCount)
 
 
 class VnVTableDirective(Directive):
-     required_arguments = 1
-     optional_arguements = 1
-     final_argument_whitespace = True
-     has_content = True
+    required_arguments = 1
+    optional_arguments = 1
+    final_argument_whitespace = True
+    has_content = True
+    idCount = 0;
+    option_spec = {
+        "width", int,
+        "height", int
+    }
 
-     def run(self):
-          node = TableNode("")
-          node.set(self.arguments[0], "".join(self.arguments[1]), self.content)
-          return [node]
+    script_template = '''
+                   <div id="{id}" class='vnv-table' width="{width}" height="{height}"></div>
+                   <script>
+                     function {id}_func() {{
+                       const obj = JSON.parse('{config}')
+                       var table = new Tabulator("#{id}", obj);
+                       table.setData({data})
+                     }}
+                     {id}_func()
+                   </script>
+                   '''
+    def get_html(self, url):
+        return self.script_template.format(
+            id=get_new_id(),
+            height=self.options.get("height", 400),
+            data="'" + url + "'",
+            width=self.options.get("width", 400),
+            config=jsonLoader.dumps(self.content)
+        )
 
-def process_table_nodes(app, doctree, docname):
-     #Create the directory if not already exists.
-     env = app.builder.env
+    def run(self):
+        env = self.state.document.settings.env
+        file_type = self.arguments[0]
+        file_name = "".join(self.arguments[1:])
+        src_dir = os.path.join(configs.getApp().srcdir, os.path.dirname(env.docname))
+        file_path = JmesDirective.getFilePath(file_name, env.vnv_current_node, src_dir)
 
-     for node in doctree.traverse(TableNode):
+        writer = None if file_type != "csv" else convert_csv_to_json
 
-        parents = env.vnv_all_jmes.get(docname,[])
-        srcDir = os.path.join(app.srcdir,os.path.dirname(docname))
-        filepath = JmesDirective.getFilePath(node.attributes['filename'], parents, srcDir)
+        url = JmesDirective.getUrl(file_path, configs.getApp().outdir, env, writer=writer)
+        html = self.getHtml(url)
+        return [nodes.raw('', html, format='html')]
 
-        writer = None if node.attributes['filetype'] != "csv" else convertCsvToJson
 
-        print("WRITER : " , writer, node.attributes['filetype'])
-
-        url = JmesDirective.getUrl(filepath, app.outdir, env, writer=writer)
-        html = node.getHtml(url)
-        node.replace_self([nodes.raw('',html,format='html')])
-
-def convertCsvToJson(readPath, writePath):
-     print("HERE")
-     with open(readPath,'r') as f:
-          a = [ row for row in csv.DictReader(f, skipinitialspace=True)]
-          with open(writePath,'w') as f:
-               f.write(jsonLoader.dumps(a))
+def convert_csv_to_json(read_path, write_path):
+    with open(read_path, 'r') as f:
+        a = [row for row in csv.DictReader(f, skipinitialspace=True)]
+        with open(write_path, 'w') as ff:
+            ff.write(jsonLoader.dumps(a))
 
 
 def on_environment_ready(app):
-     ## Make sure the javascript is available.
-     js_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),"data")
-     js_files = ["js/tabulator.min.js"]
-     css_files = ["css/bootstrap/tabulator_bootstrap4.min.css", "css/bootstrap/tabulator_bootstrap4.min.css.map"]
+    # Make sure the javascript is available.
+    js_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data")
+    js_files = ["js/tabulator.min.js"]
+    css_files = ["css/bootstrap/tabulator_bootstrap4.min.css", "css/bootstrap/tabulator_bootstrap4.min.css.map"]
 
-     app.config.html_static_path.append(js_dir)
-     for js_file in js_files:
+    app.config.html_static_path.append(js_dir)
+    for js_file in js_files:
         app.add_js_file(js_file)
-     for css_file in css_files:
-          app.add_css_file(css_file)
+    for css_file in css_files:
+        app.add_css_file(css_file)
 
 
 def setup(app):
-     app.add_node(TableNode)
-     app.add_directive("vnv-table", VnVTableDirective)
-     app.connect("doctree-resolved",process_table_nodes)
-     app.connect("builder-inited", on_environment_ready)
-
-
-
+    app.add_directive("vnv-table", VnVTableDirective)
+    app.connect("builder-inited", on_environment_ready)

@@ -22,6 +22,7 @@
 #include "c-interfaces/RunTime.h"
 #include "c-interfaces/Wrappers.h"
 #include "interfaces/CppInjection.h"
+
 /**
  * VnV Namespace
  */
@@ -233,7 +234,7 @@ class RunTime {
    */
   void runUnitTests(VnV_Comm comm);
 
-  void readFile(std::string filename);
+  void readFile(std::string filename, long& idCounter);
 };
 }  // namespace VnV
 

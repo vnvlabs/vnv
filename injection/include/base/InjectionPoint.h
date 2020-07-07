@@ -62,6 +62,8 @@ class InjectionPoint {
   friend class InjectionPointStore;
   friend class RunTime;
 
+  static constexpr const char* internalTestName = "__internal__";
+
   VnV_Comm comm;
 
   std::string name;
@@ -100,7 +102,7 @@ class InjectionPoint {
    *support names of the form "a::b::c"
    *
    **/
-  InjectionPoint(std::string name, json registrationJson, NTV& args);
+  InjectionPoint(std::string packageName, std::string name, json registrationJson, NTV& args);
 
   void setInjectionPointType(InjectionPointType type, std::string stageId);
   void setCallBack(injectionDataCallback* callback);
@@ -108,6 +110,7 @@ class InjectionPoint {
   void setComm(VnV_Comm comm);
 
  public:
+
   /**
    * @brief getScope
    * @return the name of this injection point

@@ -11,6 +11,8 @@ namespace PACKAGENAME {
 namespace Engines {
 namespace JsonReader {
 
+#define JN(j) j["name"].get<std::string>()
+
 // Put all the parser functions in @non namespace. We don't need
 // them outside this unit.
 namespace {
@@ -18,128 +20,115 @@ namespace {
 class JsonParserImpl {
 public:
 
-template <typename T> std::shared_ptr<T> mks(const json& json) {
+template <typename T> std::shared_ptr<T> mks(const std::string& name, DataBase* parent) {
   std::shared_ptr<T> base_ptr(new T());
-  base_ptr->name = json["name"].get<std::string>();
-  base_ptr->id = json["id"].get<std::string>();
+  base_ptr->name = name;
+  base_ptr->id = idCounter++;
+  base_ptr->parent = parent;
+  rootInternal->add(base_ptr);
   return base_ptr;
 }
+
 // Generate a data node (name, value,
 template <typename T, typename V>
-std::shared_ptr<T> genDataNode(const json& j) {
-  std::shared_ptr<T> n = mks<T>(j);
+std::shared_ptr<T> genDataNode(const json& j, DataBase* parent) {
+  std::shared_ptr<T> n = mks<T>(JN(j),parent);
   n->value = j["value"].get<V>();
   return n;
 }
 
-std::shared_ptr<StringNode> genJsonNode(const json& j) {
-  std::shared_ptr<StringNode> n = mks<StringNode>(j);
+std::shared_ptr<StringNode> genJsonNode(const json& j, DataBase* parent) {
+  std::shared_ptr<StringNode> n = mks<StringNode>(JN(j),parent);
   n->value = j["value"].dump(3);
   n->jsonString = true;
   return n;
 }
 
-std::shared_ptr<InfoNode> genInfoNode(const json& j) {
-  auto n = mks<InfoNode>(j);
+std::shared_ptr<InfoNode> genInfoNode(const json& j, DataBase* parent) {
+  auto n = mks<InfoNode>(JN(j),parent);
   n->title = j["title"].get<std::string>();
   n->date = j["date"].get<long>();
   return n;
 }
 
-std::shared_ptr<LogNode> genLogNode(const json& j) {
-  auto n = mks<LogNode>(j);
+std::shared_ptr<LogNode> genLogNode(const json& j, DataBase* parent) {
+  auto n = mks<LogNode>(JN(j),parent);
   n->package = j["package"].get<std::string>();
   n->level = j["level"].get<std::string>();
   n->message = j["message"].get<std::string>();
   n->stage = j["stage"].get<int>();
   return n;
 }
-std::shared_ptr<ArrayNode> genArrayNode(const json& j, std::string name,
-                                        std::string id) {
-  auto n = std::make_shared<ArrayNode>();
-  n->name = name;
-  n->id = id;
+std::shared_ptr<ArrayNode> genArrayNode(const json& j, std::string name, DataBase* parent) {
+  auto n = mks<ArrayNode>(name,parent);
   for (auto& it : j) {
-    n->add(nodeDispatcher(it));
+    n->add(nodeDispatcher(it,n.get()));
   }
   return n;
 }
 
-std::shared_ptr<MapNode> genMapNode(const json& j, std::string name,
-                                    std::string id) {
-  auto n = std::make_shared<MapNode>();
-  n->name = name;
-  n->id = id;
+std::shared_ptr<MapNode> genMapNode(const json& j, std::string name, DataBase* parent) {
+  auto n = mks<MapNode>(name,parent);
   for (auto& it : j.items()) {
-    n->add(it.key(), nodeDispatcher(it.value()));
+    n->add(it.key(), nodeDispatcher(it.value(),n.get()));
   }
   return n;
 }
 
-std::shared_ptr<UnitTestNode> genUnitTestNode(const json& j) {
-  auto n = mks<UnitTestNode>(j);
+std::shared_ptr<UnitTestNode> genUnitTestNode(const json& j, DataBase* parent) {
+  auto n = mks<UnitTestNode>(JN(j),parent);
   n->package = j["package"];
   n->templ = getTemplate(n->package,n->name, "Test");
-  n->children = genArrayNode(j["children"], "children",
-                             j["id"].get<std::string>() + "-children");
-  n->resultsMap = genMapNode(j["results"], "results",
-                             j["id"].get<std::string>() + "-results");
+  n->children = genArrayNode(j["children"], "children",n.get());
+  n->resultsMap = genMapNode(j["results"], "results",n.get());
   return n;
 }
 
 void appendTestNode(TestNode* test, const json& j) {
   for (auto it : j["children"]) {
     if (it["node"].get<std::string>().substr(0,4) == "Data" ) {
-      test->data->add(nodeDispatcher(it));
+      test->data->add(nodeDispatcher(it,test->data.get()));
     } else {
-      test->children->add(nodeDispatcher(it));
+      test->children->add(nodeDispatcher(it,test->children.get()));
     }
   }
 }
 
-std::shared_ptr<DataTypeNode> genDataTypeNode(const json& j) {
-  auto n = mks<DataTypeNode>(j);
-  n->children = std::make_shared<MapNode>();
-  n->children->id = j["id"].get<std::string>() + "-children";
-  n->children->name = "children";
+std::shared_ptr<DataTypeNode> genDataTypeNode(const json& j, DataBase* parent) {
+  auto n = mks<DataTypeNode>(j,parent);
+
+  n->children = mks<MapNode>("children",n.get());
   n->dataTypeName = j["dtype"];
   for (auto it : j["children"] ) {
-     n->children->add(it["name"],nodeDispatcher(it));
+     n->children->add(it["name"],nodeDispatcher(it,n->children.get()));
   }
   return n;
 
 }
 
-std::shared_ptr<TestNode> genTestNode(const json& j) {
-  auto n = mks<TestNode>(j);
+std::shared_ptr<TestNode> genTestNode(const json& j, DataBase* parent) {
+  auto n = mks<TestNode>(JN(j),parent);
   n->package = j["package"].get<std::string>();
 
-  n->templ = getTemplate(n->package,n->name, "Test");
+  n->templ = (j["internal"].get<bool>()) ? "" : getTemplate(n->package,n->name, "Test");
   // Pass all child type nodes to children, and all data nodes to data.
-  n->children = std::make_shared<ArrayNode>();
-  n->children->id = j["id"].get<std::string>() + "-children";
-  n->children->name = "children";
+  n->children = mks<ArrayNode>("children",n.get());
+  n->data = mks<ArrayNode>("data",n.get());
 
-  n->data = std::make_shared<ArrayNode>();
-  n->data->id = j["id"].get<std::string>() + "-data";
-  n->data->name = "data";
   appendTestNode(n.get(), j);
   return n;
 }
 
-std::shared_ptr<InjectionPointNode> genInjectionPointNode(const json& j) {
-  auto n = mks<InjectionPointNode>(j);
+std::shared_ptr<InjectionPointNode> genInjectionPointNode(const json& j, DataBase* parent) {
+  auto n = mks<InjectionPointNode>(JN(j),parent);
   n->package = j["package"].get<std::string>();
   n->templ = getTemplate(n->package,n->name, "InjectionPoint");
-  n->children = std::make_shared<ArrayNode>();
-  n->children->id = j["id"].get<std::string>() + "-children";
-  n->children->name = "children";
 
-  n->tests = std::make_shared<ArrayNode>();
-  n->tests->id = j["id"].get<std::string>() + "-tests";
-  n->tests->name = "tests";
+  n->children = mks<ArrayNode>("children",n.get());
 
-  std::map<std::string, int> testMap;
+  n->tests = mks<ArrayNode>("tests",n.get());
+
+  std::map<std::string, std::shared_ptr<TestNode>> testMap;
 
   for (auto child : j["children"]) {
     if (child["node"] == "InjectionPointStage") {
@@ -147,100 +136,114 @@ std::shared_ptr<InjectionPointNode> genInjectionPointNode(const json& j) {
       // update my tests using it.
       for (auto sub : child["children"]) {
         if (sub["node"] == "Test") {
-          auto it = testMap.find(sub["id"].get<std::string>());
+          std::string name = sub["name"].get<std::string>();
+          std::string pname = sub["package"].get<std::string>();
+          std::string testId = pname + ":" + name;
+          auto it = testMap.find(testId);
           if (it != testMap.end()) {
-            TestNode* test = (TestNode*)n->tests->get(it->second);
-            appendTestNode(test, sub);
+            appendTestNode(it->second.get(), sub);
           } else {
-            std::shared_ptr<TestNode> test = genTestNode(sub);
-            n->tests->add(test);
-            testMap[test->getId()] = n->tests->size() - 1;
+            std::shared_ptr<TestNode> test = genTestNode(sub,n->tests.get());
+
+            if (sub["internal"].get<bool>() ) {
+                n->internal = test;
+            } else {
+                n->tests->add(test);
+            }
+            testMap[testId] = test;
           }
         } else {
-          n->children->add(nodeDispatcher(sub));
+          n->children->add(nodeDispatcher(sub,n->children.get()));
         }
       }
-
     } else {
       // This is something else (maybe a doc, log, injection point?)
-      n->children->add(nodeDispatcher(child));
+      n->children->add(nodeDispatcher(child,n->children.get()));
     }
   }
   return n;
 }
 
-std::shared_ptr<DataBase> nodeDispatcher(const json& j) {
+std::shared_ptr<DataBase> nodeDispatcher(const json& j, DataBase* parent) {
   std::string node = j["node"].get<std::string>();
 
   if (node == "Data") {
     std::string type = j["type"].get<std::string>();
     if (type == "double")
-      return genDataNode<DoubleNode, double>(j);
+      return genDataNode<DoubleNode, double>(j,parent);
     else if (type == "float")
-      return genDataNode<FloatNode, float>(j);
+      return genDataNode<FloatNode, float>(j,parent);
     else if (type == "std::string")
-      return genDataNode<StringNode, std::string>(j);
+      return genDataNode<StringNode, std::string>(j,parent);
     else if (type == "long")
-      return genDataNode<LongNode, long>(j);
+      return genDataNode<LongNode, long>(j,parent);
     else if (type == "bool")
-      return genDataNode<BoolNode, bool>(j);
+      return genDataNode<BoolNode, bool>(j,parent);
     else if (type == "int")
-      return genDataNode<IntegerNode, int>(j);
+      return genDataNode<IntegerNode, int>(j,parent);
     else if (type == "json")
-      return genJsonNode(j);
+      return genJsonNode(j,parent);
     else
       throw VnVExceptionBase("Unknown Data node type");
   } else if (node == "Log")
-    return genLogNode(j);
+    return genLogNode(j,parent);
   else if (node == "Info")
-    return genInfoNode(j);
+    return genInfoNode(j,parent);
   else if (node == "Test")
-    return genTestNode(j);
+    return genTestNode(j,parent);
   else if (node == "UnitTest")
-    return genUnitTestNode(j);
+    return genUnitTestNode(j,parent);
   else if (node == "DataNode")
-    return genDataTypeNode(j);
+    return genDataTypeNode(j,parent);
   else if (node == "InjectionPoint")
-    return genInjectionPointNode(j);
+    return genInjectionPointNode(j,parent);
   else
     throw VnVExceptionBase("Unknown Node type");
 }
 
 json& mainJson;
-JsonParserImpl(json &jj) : mainJson(jj){
+RootNode* rootInternal;
+long& idCounter;
+JsonParserImpl(json &jj, long& idStart) : mainJson(jj), idCounter(idStart){
 }
 
 std::string getTemplate(std::string pname, std::string key, std::string type) {
-  if ( type  == "UnitTest" ) {
-     return mainJson["spec"]["UnitTests"][pname+":"+key]["docs"];
+  try {
+    if ( type  == "UnitTest" ) {
+      return mainJson["spec"]["UnitTests"][pname+":"+key]["docs"];
     } else if( type == "Test") {
      return mainJson["spec"]["Tests"][pname+":"+key]["docs"];
     } else if (type == "InjectionPoint") {
       return mainJson["spec"]["InjectionPoints"][pname + ":"+key]["docs"];
+    } else if (type == "DataType") {
+      return mainJson["spec"]["DataTypes"][key]["docs"];
     }
-    return "";
+  } catch (...) {
+     // It doesn't exist because of an error
+  }
+  return "";
 }
 
 
+
 RootNode* genRootNode() {
+
   RootNode* root = new RootNode();
-  root->infoNode = genInfoNode(mainJson["info"]);
+  rootInternal = root; // For id tracking in a single loop.
+  root->infoNode = genInfoNode(mainJson["info"],root);
 
-  root->children = std::make_shared<ArrayNode>();
-  root->children->id = "-children";
-  root->children->name = "children";
+  root->children = mks<ArrayNode>("children",root);
 
-  root->unitTests = std::make_shared<ArrayNode>();
-  root->unitTests->id = "-unitTests";
-  root->children->name = "unitTests";
+  root->unitTests = mks<ArrayNode>("unitTests",root);
 
   for (auto it : mainJson["children"]) {
     if (it["node"].get<std::string>() == "unitTest") {
-      root->unitTests->add(genUnitTestNode(it));
+      root->unitTests->add(genUnitTestNode(it,root->unitTests.get()));
     } else {
-      root->children->add(nodeDispatcher(it));
+      root->children->add(nodeDispatcher(it,root->children.get()));
     }
   }
+
   return root;
 }
 
@@ -248,11 +251,11 @@ RootNode* genRootNode() {
 
 }  // namespace
 
-IRootNode* parse(std::string filename) {
+IRootNode* parse(std::string filename, long &idCounter) {
 
   std::ifstream ifs(filename);
   json j = json::parse(ifs);
-  JsonParserImpl impl(j);
+  JsonParserImpl impl(j,idCounter);
   return impl.genRootNode();
 }
 

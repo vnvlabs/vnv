@@ -17,8 +17,10 @@ using namespace VnV;
 
 using nlohmann::json_schema::json_validator;
 
-InjectionPoint::InjectionPoint(std::string name, json registrationJson,
+InjectionPoint::InjectionPoint(std::string packageName, std::string name, json registrationJson,
                                NTV& args) {
+  this->name = name;
+  this->package = packageName;
   for (auto it : args) {
     auto rparam =
         registrationJson.find(it.first);  // Find a parameter with this name.
@@ -83,9 +85,10 @@ void InjectionPoint::setComm(VnV_Comm comm) { this->comm = comm; }
 void InjectionPoint::runTests() {
   OutputEngineManager* wrapper =
       OutputEngineStore::getOutputEngineStore().getEngineManager();
-  wrapper->injectionPointStartedCallBack(comm, getScope(), type, stageId);
+
+  wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId);
   if (callbackType > 0) {
-    wrapper->testStartedCallBack(comm, "__internal__");
+    wrapper->testStartedCallBack(comm, package, "__internal__",true);
     if (callbackType == 1) {
       IOutputEngineWrapper engineWraper = {
           static_cast<void*>(wrapper->getOutputEngine())};

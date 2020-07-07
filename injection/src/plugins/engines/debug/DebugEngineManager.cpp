@@ -93,7 +93,7 @@ void DebugEngineManager::injectionPointEndedCallBack(VnV_Comm comm,
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
 }
 
-void DebugEngineManager::injectionPointStartedCallBack(VnV_Comm comm,
+void DebugEngineManager::injectionPointStartedCallBack(VnV_Comm comm, std::string packageName,
                                                        std::string id,
                                                        InjectionPointType type,
                                                        std::string stageVal) {
@@ -101,8 +101,8 @@ void DebugEngineManager::injectionPointStartedCallBack(VnV_Comm comm,
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
 }
 
-void DebugEngineManager::testStartedCallBack(VnV_Comm comm,
-                                             std::string testName) {
+void DebugEngineManager::testStartedCallBack(VnV_Comm comm, std::string packageName,
+                                             std::string testName, bool internal) {
   printf("DEBUG ENGINE Start Test %s \n", testName.c_str());
 }
 
@@ -118,7 +118,7 @@ void DebugEngineManager::dataTypeEndedCallBack(VnV_Comm /** comm **/, std::strin
   printf("DEBUG ENGINE Data Type Finished %s " , variableName.c_str()) ;
 }
 
-void DebugEngineManager::unitTestStartedCallBack(VnV_Comm comm,
+void DebugEngineManager::unitTestStartedCallBack(VnV_Comm comm, std::string packageName,
                                                  std::string unitTestName) {
   printf("DEBUG ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
 }
@@ -139,7 +139,7 @@ void DebugEngineManager::unitTestFinishedCallBack(VnV_Comm comm,
          (suiteSuccessful) ? "Successfully" : "Unsuccessfully");
 }
 
-Nodes::IRootNode* DebugEngineManager::readFromFile(std::string file) {
+Nodes::IRootNode* DebugEngineManager::readFromFile(std::string file, long&) {
   throw VnVExceptionBase("The debug engine does not support reading from file");
 }
 

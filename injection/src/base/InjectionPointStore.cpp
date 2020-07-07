@@ -15,7 +15,8 @@ using namespace VnV;
 InjectionPointStore::InjectionPointStore() {}
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
-    std::string key, NTV& args) {
+    std::string packageName, std::string name, NTV& args) {
+  std::string key = packageName + ":" + name;
   auto it = injectionPoints.find(key);
   auto reg = registeredInjectionPoints.find(key);
 
@@ -23,7 +24,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
     // Construct and reset because InjectionPoint ctor is only accessible in
     // InjectionPointStore.
     std::shared_ptr<InjectionPoint> injectionPoint;
-    injectionPoint.reset(new InjectionPoint(key, reg->second, args));
+    injectionPoint.reset(new InjectionPoint(packageName, name, reg->second, args));
 
     for (auto& test : it->second.second) {
       injectionPoint->addTest(test);
@@ -65,14 +66,14 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(
   if (injectionPoints.find(key) == injectionPoints.end()) {
     return nullptr;  // Not configured
   } else if (type == InjectionPointType::Single) {
-    ptr = newInjectionPoint(key, args);
+    ptr = newInjectionPoint(package, name, args);
   } else if (type == InjectionPointType::Begin) { /* New staged injection point.
-                                                     -- Add it to the stack */
-    ptr = newInjectionPoint(key, args); /*Not nullptr because we checked above*/
-    registerLoopedInjectionPoint(key, ptr);
+                                                  -- Add it to the stack */
+    ptr = newInjectionPoint(package,name, args); /*Not nullptr because we checked above*/
+    registerLoopedInjectionPoint(package,name, ptr);
   } else {
     // Should never happen.
-    return fetchFromQueue(key, type);
+    return fetchFromQueue(package,name, type);
   }
   return ptr;
 }
@@ -84,11 +85,12 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getExistingInjectionPoint(
   if (injectionPoints.find(key) == injectionPoints.end()) {
     return nullptr;  // Not configured
   }
-  return fetchFromQueue(key, type);
+  return fetchFromQueue(package,name, type);
 }
 
 void InjectionPointStore::registerLoopedInjectionPoint(
-    std::string key, std::shared_ptr<InjectionPoint>& ptr) {
+    std::string package, std::string name, std::shared_ptr<InjectionPoint>& ptr) {
+  std::string key = package + ":" + name;
   auto it = active.find(key);
   if (it == active.end()) {
     std::stack<std::shared_ptr<InjectionPoint>> s;
@@ -100,8 +102,9 @@ void InjectionPointStore::registerLoopedInjectionPoint(
 }
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::fetchFromQueue(
-    std::string key, InjectionPointType stage) {
+    std::string package, std::string name, InjectionPointType stage) {
   // Stage > 0 --> Fetch the queue.
+  std::string key = package + ":" + name;
   std::shared_ptr<InjectionPoint> ptr;
   auto it = active.find(key);
   if (it == active.end() || it->second.size() == 0) {
