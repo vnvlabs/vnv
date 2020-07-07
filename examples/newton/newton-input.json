@@ -12,9 +12,8 @@
     "logs" : {}
   },
   "additionalPlugins": {
-    "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so",
-    "DummyLibOne" : ""
-    },
+    "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so"
+  },
   "outputEngine": {
     "type": "debug",
     "config": {
@@ -22,7 +21,7 @@
   },
   "injectionPoints": [
       {
-        "name" : "initialization",
+        "name" : "configuration",
         "package" : "VNV",
         "tests" : [
             {
@@ -37,6 +36,24 @@
                         "argc" : "argc",
                         "argv" : "argv",
                         "config" : "config"
+                    }
+                }
+            }
+        ]
+      },
+      {
+        "name" : "initialization",
+        "package" : "VNV",
+        "tests" : [
+            {
+                "name" : "cputime",
+                "package" : "VNV",
+                "runScope" : ["all"],
+                "config" : {
+                    "expectedResult" : {},
+                    "configuration": {
+		    },
+                    "parameters": {
                     }
                 }
             }

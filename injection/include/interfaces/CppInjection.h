@@ -20,16 +20,22 @@ typedef void (*vnv_registration_function)();
 #  define EVERYONE(...) FOR_EACH(DOIT, __VA_ARGS__)
 namespace VnV {
 
+enum class InjectionPointType;
+
 namespace CppInjection {
 
 typedef std::map<std::string, std::pair<std::string, void*>> NTV;
 typedef std::function<void(VnV_Comm comm,
                            std::map<std::string, VnVParameter>& ntv,
-                           OutputEngineManager* engine)>
+                           OutputEngineManager* engine,
+                           InjectionPointType type,
+                           std::string stageId)>
     DataCallback;
 
 void defaultCallBack(VnV_Comm comm, std::map<std::string, VnVParameter>& ntv,
-                     IOutputEngine* engine);
+                     IOutputEngine* engine, InjectionPointType type, std::string stageId );
+
+#define VNVCB(capture) [capture](VnV_Comm comm, std::map<std::string,VnVParameter>& ntv,IOutputEngine* engine, InjectionPointType type, std::string stageId)
 
 void UnwrapParameterPack(NTV& m);
 void BeginPoint(VnV_Comm comm, vnv_registration_function reg,

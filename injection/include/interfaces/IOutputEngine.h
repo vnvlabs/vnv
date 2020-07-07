@@ -2,7 +2,7 @@
 #define IOUTPUTENGINE_H
 
 #include <string>
-
+#include "c-interfaces/Wrappers.h"
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/Logging.h"
 #include "c-interfaces/PackageName.h"
@@ -20,7 +20,9 @@ namespace VnV {
 
 enum class InjectionPointType { Single, Begin, End, Iter };
 namespace InjectionPointTypeUtils {
+
 std::string getType(InjectionPointType type, std::string stageId);
+int toC(InjectionPointType type);
 }
 
 enum class VariableEnum { Double, String, Int, Float, Long };

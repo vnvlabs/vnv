@@ -49,13 +49,13 @@ class VnVJsonViewerDirective(Directive):
     }
 
     script_template = '''
-    <div id="{id}" class='vnv_jsonviewer' width="{width}" height="{height}" style='{style}'></div> 
-    <script> function {id}_func() {{ 
+    <div id="{id}" class='vnv_jsonviewer' width="{width}" height="{height}" style='{style}'></div>
+    <script> function {id}_func() {{
      var open = {open};
      var data = JSON.parse('{data}');
-     var config = JSON.parse('{config}'); 
-     var table = new JSONFormatter(data,open, config); 
-     document.getElementById('{id}').appendChild(table.render()); }} 
+     var config = JSON.parse('{config}');
+     var table = new JSONFormatter(data,open, config);
+     document.getElementById('{id}').appendChild(table.render()); }}
      {id}_func();
     </script> '''
 
@@ -103,5 +103,5 @@ def on_environment_ready(app):
 
 
 def setup(app):
-    app.add_directive("vnv-jsonviewer", VnVJsonViewerDirective)
+    app.add_directive("vnv-json", VnVJsonViewerDirective)
     app.connect("builder-inited", on_environment_ready)

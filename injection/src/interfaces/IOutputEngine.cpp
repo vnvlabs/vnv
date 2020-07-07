@@ -1,4 +1,4 @@
-
+﻿
 /**
   @file IOutputEngine.cpp
 **/
@@ -27,6 +27,16 @@ std::string VnV::InjectionPointTypeUtils::getType(InjectionPointType type,
   } else {
     return stageId;
   }
+}
+
+int VnV::InjectionPointTypeUtils::toC(InjectionPointType type) {
+  switch (type) {
+    case InjectionPointType::Begin: return InjectionPointType_Begin;
+    case InjectionPointType::Single: return InjectionPointType_Single;
+    case InjectionPointType::Iter: return InjectionPointType_Iter;
+    case InjectionPointType::End: return InjectionPointType_End;
+  }
+  throw VnVExceptionBase("Someone added an injection point type without implementing an intmap for it - tisk tisk");
 }
 
 VariableEnum VariableEnumFactory::fromString(std::string s) {

@@ -8,7 +8,7 @@ if(POLICY CMP0086)
   cmake_policy(SET CMP0086 NEW)
 endif()
 
-find_package(SWIG)
+find_package(SWIG 4 )
 find_package(PythonLibs)
 if (${SWIG_FOUND} AND ${PYTHONLIBS_FOUND})
 

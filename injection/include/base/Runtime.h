@@ -14,6 +14,7 @@
 #include <json-schema.hpp>
 #include <map>
 #include <string>
+#include <chrono>
 
 #include "base/InjectionPoint.h"
 #include "base/JsonParser.h"

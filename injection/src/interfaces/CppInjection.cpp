@@ -6,7 +6,9 @@ void VnV::CppInjection::UnwrapParameterPack(NTV& /*m*/) {}
 
 void VnV::CppInjection::defaultCallBack(
     VnV_Comm /*comm*/, std::map<std::string, VnVParameter>& /*params*/,
-    IOutputEngine* /*engine*/) {}
+    IOutputEngine* /*engine*/,
+    InjectionPointType /*type*/,
+    std::string /*stageId*/) {}
 
 void VnV::CppInjection::BeginLoop(VnV_Comm comm, vnv_registration_function reg,
                                   const char* package, const char* id,

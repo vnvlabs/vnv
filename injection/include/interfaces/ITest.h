@@ -63,26 +63,38 @@ class VnVParameter {
 
   std::string getRtti() const { return rtti; }
 
-  template <typename T> T* getPtr(std::string type, bool checkRtti) const {
-    // If we have RTTI and it matches, then that is good enough.
-    if (hasRtti && checkRtti) {
+  template <typename T>
+  const T& getByRtti() const {
+    if (hasRtti) {
       T* tempPtr = static_cast<T*>(getRawPtr());
       std::string typeId = typeid(tempPtr).name();
-      if (typeId.compare(rtti) != 0) {
-        VnV_Warn("Unmatched RTTI %s: %s", typeId.c_str(), rtti.c_str());
-      } else {
-        return tempPtr;
+      if (typeId.compare(getRtti()) == 0) {
+         return *tempPtr;
       }
     }
+    throw VnVExceptionBase("Invalid Parameter conversion in test");
+  }
+
+  template <typename T>
+  const T& getByType(std::string type) const {
+    StringUtils::squash(type);
     if (!type.empty() && getType().compare(type) != 0) {
       throw VnVExceptionBase("type information incorrect");
     }
-    return static_cast<T*>(getRawPtr());
+    return *(static_cast<T*>(getRawPtr()));
   }
 
-  template <typename T> T& getRef(std::string type, bool checkRtti) const {
-    return *getPtr<T>(type, checkRtti);
+  template<typename T>
+  const T& getByRttiOrType(std::string type) const  {
+    try {
+      return getByRtti<T>();
+    } catch (...) {
+      return getByType<T>(type);
+    }
   }
+
+
+
 };
 typedef std::map<std::string, VnVParameter> VnVParameterSet;
 
@@ -173,25 +185,17 @@ class ITest {
    */
   const json& getConfigurationJson() const;
 
-  template <typename T> T* getPtr(std::string name, std::string type) const {
-    StringUtils::squash(type);
-    auto it = m_config.getParameterMap().find(name);
-    if (it != m_config.getParameterMap().end()) {
-      return it->second.getPtr<T>(type, true);
-    }
-    return nullptr;
-  }
-
   template <typename T>
-  T& getReference(std::string name, std::string type) const {
+  const T& getReference(std::string name, std::string type) const {
     StringUtils::squash(type);
-
     auto it = m_config.getParameterMap().find(name);
     if (it != m_config.getParameterMap().end()) {
-      return it->second.getRef<T>(type, true);
+      return it->second.getByRttiOrType<T>(type);
     }
     throw VnVExceptionBase("Parameter Mapping Error.");
   }
+
+
 
  private:
   const TestConfig m_config;
@@ -208,7 +212,7 @@ class ITest {
 
 // Search in s for a VnVParameter named "name". Convert the raw ptr to class T
 // with checking.
-#define GetRef(a, name, T) T& a = getReference<T>(name, #T);
+#define GetRef(a, name, T) auto a = getReference<T>(name, #T);
 
 typedef ITest* maker_ptr(TestConfig config);
 
@@ -232,10 +236,11 @@ class Test_T : public ITest {
     runner.reset(new Runner());
     parameters = StringUtils::variadicProcess(params);
   }
-  template <typename T> T& get(std::string param) {
+
+  template <typename T> const T& get(std::string param) {
     auto it = parameters.find(param);
     if (it != parameters.end()) {
-      return *getPtr<T>(param, it->second);
+      return getReference<T>(param, it->second);
     }
     throw VnV::VnVExceptionBase("Parameter does not exist");
   }

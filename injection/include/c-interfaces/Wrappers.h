@@ -32,12 +32,19 @@ struct ParameterSetWrapper {
   void* ptr;
 };
 
+#define InjectionPointType_Single 0
+#define InjectionPointType_Begin 1
+#define InjectionPointType_Iter 2
+#define InjectionPointType_End 3
+
 VNVEXTERNC struct ParameterDTO VnV_Parameter_Get(
     struct ParameterSetWrapper* wrapper, const char* name);
 
 // Define a callback that can be used to write injection point data
 typedef void (*injectionDataCallback)(VnV_Comm comm,
                                       struct ParameterSetWrapper* wrapper,
-                                      struct IOutputEngineWrapper* engine);
+                                      struct IOutputEngineWrapper* engine,
+                                      int injectionPointType,
+                                      const char* stageId);
 
 #endif  // WRAPPERS_H

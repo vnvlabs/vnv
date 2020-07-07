@@ -9,6 +9,9 @@
 #include "class2.h"
 #include "dlclass1.h"
 #include "dlclass2.h"
+#include <time.h>
+#include <thread>
+#include <chrono>
 
 template <typename T> class f {
  public:
@@ -130,7 +133,7 @@ int main(int argc, char** argv) {
 
   dummyLibOne::class1 sample_class_3;
   dummyLibOne::class1 sample_class_4;
-
+  std::this_thread::sleep_for(std::chrono::seconds(2));
   //  f2(10, 10.0);
 
   sample_class_1.function1(10);

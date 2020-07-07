@@ -336,14 +336,35 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
 
   VnV_Comm comm = CommunicationStore::instance().worldData(packageName);
 
-  INJECTION_LOOP_BEGIN_C(
-      comm, initialization,
-      [&](VnV_Comm comm, VnVParameterSet& p, OutputEngineManager* engine) {
+  /**
+   * VnV Configuration and provenance Tracking information.
+   * ======================================================
+   *
+   * The command line used to run this executable was
+   *
+   * ..codeblock::
+   *     ..vnv-data:: $.data.command-line
+   *
+   * Time of execution :vnv:`$.data.time`.
+   *
+   * The VnV Configuration file was
+   *
+   * ..vnv-json:: $.data.config
+   *
+   * This injection point is called at the end of the VnVInit function
+   * to allow users to collect provenance information about the executable.
+   *
+   */
+  INJECTION_POINT_C(
+      comm, configuration,
+      [&](VnV_Comm comm, VnVParameterSet& p, OutputEngineManager* engine, InjectionPointType type, std::string stageId) {
          // caught everything, so internal ones can ignore parameters and put
          // anything.
          // Here, we do a minimal provenance history. For a full history, the
          // user should attach the provenace test to this node.
-
+         auto config = p["config"].getByRtti<json>();
+         auto argc = p["argc"].getByRtti<int*>();
+         auto argv = p["argv"].getByRtti<char***>();
 
          std::string currTime = VnV::ProvenanceUtils::timeToString();
          std::string commandline = VnV::ProvenanceUtils::cmdLineToString(*argc,*argv);
@@ -351,10 +372,20 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
          engine->Put(comm, "command-line", commandline);
          engine->Put(comm, "time", currTime);
 
-
-
       },
       argc, argv, config);
+
+    /**
+    * VnV Application Profiling Loop.
+    * ===============================
+    *
+    * This injection point is called at the end of the VnVInit function. This is a looped
+    * injection point with no interesting parameters passed in. This injection point exists
+    * soley as a mechanism for profiling the given application between the VnVInit and VnVFinalize
+    * functions.
+    *
+    */
+    INJECTION_LOOP_BEGIN(comm, initialization, runTests);
 
   return runTests;
 }
