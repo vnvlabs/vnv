@@ -36,6 +36,7 @@ Communication::ICommunicator_ptr UnitTestStore::dispatch(VnV_Comm comm,
       return nullptr;
     }
   }
+  return c;
 }
 
 void UnitTestStore::addUnitTester(std::string packageName, std::string name,

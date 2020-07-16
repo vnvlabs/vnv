@@ -36,4 +36,5 @@ INJECTION_TEST(printMessage) {
   else {
     VnV_Log_MPI(comm, t.c_str(), m.c_str());
   }
+  return SUCCESS;
 }

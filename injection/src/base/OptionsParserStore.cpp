@@ -7,6 +7,7 @@
 
 #include "c-interfaces/Logging.h"
 #include "base/Utilities.h"
+#include "base/exceptions.h"
 
 #include <iostream>
 using namespace VnV;
@@ -63,5 +64,6 @@ nlohmann::json &OptionsParserStore::getSchema(std::string package) {
   auto it = factory.find(package);
   if (it != factory.end()) {
       return it->second.first;
-    }
+  }
+  throw VnV::VnVExceptionBase("no such package");
 }

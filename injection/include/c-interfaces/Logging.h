@@ -11,6 +11,7 @@
 
 VNVEXTERNC void _VnV_registerLogLevel(const char* packageName, const char* name,
                                       const char* color);
+    __attribute__((format (printf, 4, 5)))
 VNVEXTERNC void _VnV_Log(VnV_Comm comm, const char* p, const char* level,
                          const char* message, ...)
     __attribute__((format(printf, 4, 5)));

@@ -27,7 +27,7 @@ class cpuRunner {
  public:
 
   std::vector<std::pair<std::string, long>> vals;
-  std::chrono::system_clock::time_point startTime;
+  std::chrono::high_resolution_clock::time_point startTime;
   cpuRunner() {}
 
   std::string unit = "nanoseconds";
@@ -41,7 +41,7 @@ class cpuRunner {
   }
 
   template<typename T>
-  auto durr(std::chrono::system_clock::time_point stop) {
+  auto durr(std::chrono::high_resolution_clock::time_point stop) {
       return std::chrono::duration_cast<T>(stop- startTime).count();
   }
 

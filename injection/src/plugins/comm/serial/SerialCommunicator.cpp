@@ -90,7 +90,7 @@ class SerialCommunicator : public VnV::Communication::ICommunicator {
           recvQueue.erase(recvIt);
           sendIt = sendQueue.erase(sendIt);
           recvIt = recvQueue.begin();  // go back to start TODO
-          flag == 1;
+          flag = 1;
         } else {
           recvIt++;
         }
@@ -123,9 +123,9 @@ class SerialCommunicator : public VnV::Communication::ICommunicator {
     }
   }
 
-  int setData(void* data) { commId = *((int*)data); }
+  void setData(void* data) { commId = *((int*)data); }
   void* getData() { return &commId; }
-  int uniqueId() { return commId; }
+  int uniqueId() { return (int)(size_t)commId; }
   int Size() { return 1; }
   int Rank() { return 0; }
   void Barrier() {}
@@ -264,7 +264,7 @@ class SerialCommunicator : public VnV::Communication::ICommunicator {
         return getSP(it->m_tag, it->m_size);
       }
     }
-    VnV::VnVExceptionBase("Probe with no matching send");
+    throw VnV::VnVExceptionBase("Probe with no matching send");
   }
 
   std::pair<VnV::Communication::IStatus_ptr, int> IProbe(int source, int tag) {

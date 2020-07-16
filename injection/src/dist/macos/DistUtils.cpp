@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "base/Utilities.h"
+#include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
 #include "c-interfaces/RunTime.h"
 #include "json-schema.hpp"

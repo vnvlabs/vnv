@@ -36,7 +36,7 @@ class ParallelEngine : public OutputEngineManager {
    * @param log
    */
   void Log(VnV_Comm comm, const char* package, int stage, std::string level,
-           std::string message);
+           std::string message) override;
 
   /**
    * @brief Put
@@ -87,7 +87,7 @@ class ParallelEngine : public OutputEngineManager {
    * @param variableName
    * @param value
    */
-  void Put(VnV_Comm comm, std::string variableName, const std::string& value);
+  void Put(VnV_Comm comm, std::string variableName, const std::string& value) override;
 
   std::string getIndent(int stage);
 
@@ -157,7 +157,8 @@ class ParallelEngine : public OutputEngineManager {
   }
 
   std::string print() override {
-    printf("Print not implemented for Parallel Output Engine");
+      throw VnV::VnVExceptionBase(
+          "Print not implemented for Parallel Output Engine");
   }
 
   std::shared_ptr<Router> getRouter(VnV_Comm comm,

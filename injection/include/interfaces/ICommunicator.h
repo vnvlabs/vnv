@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <string>
 
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/PackageName.h"
@@ -68,6 +69,8 @@ class IReduction {
   long long key;
 
  public:
+  virtual ~IReduction() {}
+
   long long getKey();
   void setKey(long long key);
 
@@ -112,7 +115,9 @@ class ICommunicator {
   std::string getPackage();
   VnV_Comm asComm();
 
-  virtual int setData(void* data) = 0;  // The communicator passed in.
+  virtual ~ICommunicator() {}
+
+  virtual void setData(void* data) = 0;  // The communicator passed in.
   virtual void* getData() = 0;
 
   virtual int uniqueId() = 0;  // Unique id such that the same comm data returns

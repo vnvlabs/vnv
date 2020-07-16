@@ -9,6 +9,7 @@
  */
 #include <sys/stat.h>
 
+#include <sstream>
 #include <algorithm>
 #include <cctype>
 #include <fstream>
@@ -517,13 +518,14 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     return "";
   }
 
-  virtual bool HandleComment(Preprocessor& PP, SourceRange Comment) {
+  bool HandleComment(Preprocessor& PP, SourceRange Comment) override {
     SourceManager& SM = PP.getSourceManager();
     currComment.reset(new RawComment(SM, Comment, commentOptions, false));
     currentLoc = Comment.getEnd();
     if (!currComment->isDocumentation()) {
       currComment.reset(nullptr);
     }
+    return false;
   }
 
   json& getDef(std::string type, const Token* name) {
@@ -542,11 +544,11 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
   }
 
   void FileChanged(SourceLocation Loc, FileChangeReason Reason,
-                   SrcMgr::CharacteristicKind FileType, FileID PrevFID) {
+                   SrcMgr::CharacteristicKind FileType, FileID PrevFID) override {
     std::string fname = pp.getSourceManager().getFilename(Loc);
     if (!fname.empty()) {
-      auto f = pp.getSourceManager().getFileManager().getFile(fname);
-      if (f != nullptr) {
+      auto f = pp.getSourceManager().getFileManager().getFileRef(fname);
+      if (!f) {
         modTime.insert(fname);  // = f->getModificationTime();
       }
     }
@@ -666,7 +668,7 @@ class PreProcessVnV : public PreprocessorFrontendAction {
 
     filename = SRC.getFileEntryForID(SRC.getMainFileID())->getName();
     std::time_t lastMod =
-        SRC.getFileManager().getFile(filename)->getModificationTime();
+        SRC.getFileManager().getFileRef(filename)->getModificationTime();
     subJson = json::object();
     PP.addPPCallbacks(
         std::make_unique<PreprocessCallback>(packName, subJson, includes, PP));
@@ -695,8 +697,8 @@ class VnVPackageFinderFrontendActionFactory
   VnVPackageFinderFrontendActionFactory(json& processed, std::string pname)
       : packageName(pname), mainJson(processed) {}
 
-  FrontendAction* create() override {
-    return new PreProcessVnV(mainJson, packageName);
+  std::unique_ptr<FrontendAction> create() override {
+    return std::make_unique<PreProcessVnV>(mainJson, packageName);
   }
 
  private:

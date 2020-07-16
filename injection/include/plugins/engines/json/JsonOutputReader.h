@@ -21,14 +21,14 @@ class MapNode : public IMapNode {
   MapNode();
   virtual DataBase* get(std::string key) override;
   virtual IMapNode* add(std::string key, std::shared_ptr<DataBase> v) override;
-  virtual bool contains(std::string key);
+  virtual bool contains(std::string key) override;
   virtual std::vector<std::string> fetchkeys() override;
 
-  virtual std::string getValue() {
+  virtual std::string getValue() override {
     return templ;
   }
 
-  virtual std::size_t size();
+  virtual std::size_t size() override;
 };
 
 class ArrayNode : public IArrayNode {

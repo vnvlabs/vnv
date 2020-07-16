@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
      VnV_Debug("Up and running");
 
      int maxit = 100;
-     int eps = 1e-8;
+     double eps = 1e-8;
      int n = 100;
 
      double x[n];
