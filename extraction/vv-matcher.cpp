@@ -548,7 +548,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     std::string fname = pp.getSourceManager().getFilename(Loc);
     if (!fname.empty()) {
       auto f = pp.getSourceManager().getFileManager().getFileRef(fname);
-      if (f) {
+      if (!f) {
         modTime.insert(fname);  // = f->getModificationTime();
       }
     }
@@ -685,6 +685,8 @@ class PreProcessVnV : public PreprocessorFrontendAction {
     json j = json::array();
     for (auto& it : includes) {
       j.push_back(it);
+      std::cout << filename << ""
+              
     }
     mainJson[filename]["includes"] = j;
     includes.clear();
