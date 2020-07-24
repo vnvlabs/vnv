@@ -1,4 +1,4 @@
-﻿﻿
+﻿
 /**
  *  @file vv-matcher.cpp
  *  Clang tool to detect VnV Injection points in the Clang AST. This
@@ -685,8 +685,6 @@ class PreProcessVnV : public PreprocessorFrontendAction {
     json j = json::array();
     for (auto& it : includes) {
       j.push_back(it);
-      std::cout << filename << ""
-              
     }
     mainJson[filename]["includes"] = j;
     includes.clear();
