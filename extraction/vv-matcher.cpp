@@ -143,7 +143,7 @@ json& getOrCreate(json& j, std::string name) {
 std::string getValueFromStringLiteral(const Expr* a) {
   std::string xx = a->getStmtClassName();
   if (xx == "StringLiteral") {
-    return ((const clang::StringLiteral*)a)->getString();
+    return ((const clang::StringLiteral*)a)->getString().str();
   } else {
     llvm::errs() << "Error Not a String Literal ";
     a->dump();
@@ -545,7 +545,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
 
   void FileChanged(SourceLocation Loc, FileChangeReason Reason,
                    SrcMgr::CharacteristicKind FileType, FileID PrevFID) override {
-    std::string fname = pp.getSourceManager().getFilename(Loc);
+    std::string fname = pp.getSourceManager().getFilename(Loc).str();
     if (!fname.empty()) {
       auto f = pp.getSourceManager().getFileManager().getFileRef(fname);
       if (!f) {
@@ -666,7 +666,7 @@ class PreProcessVnV : public PreprocessorFrontendAction {
     Preprocessor& PP = getCompilerInstance().getPreprocessor();
     SourceManager& SRC = PP.getSourceManager();
 
-    filename = SRC.getFileEntryForID(SRC.getMainFileID())->getName();
+    filename = SRC.getFileEntryForID(SRC.getMainFileID())->getName().str();
     std::time_t lastMod =
         SRC.getFileManager().getFileRef(filename)->getModificationTime();
     subJson = json::object();
