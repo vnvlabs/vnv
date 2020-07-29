@@ -548,7 +548,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     std::string fname = pp.getSourceManager().getFilename(Loc).str();
     if (!fname.empty()) {
       auto f = pp.getSourceManager().getFileManager().getFileRef(fname);
-      if (!f) {
+      if (f) {
         modTime.insert(fname);  // = f->getModificationTime();
       }
     }
