@@ -8,28 +8,24 @@
 
 // All packages can register a function that returns a char* with the package
 // json.
-#  define REGISTER_FULL_JSON(callback) \
-    VnV_declarePackageJson(PACKAGENAME_S, callback);
+#  define REGISTER_FULL_JSON(PNAME, callback) \
+    VnV_declarePackageJson(VNV_STR(PNAME), callback);
 
-#  define INJECTION_INITIALIZE(argc, argv, filename) \
-    VnV_init(PACKAGENAME_S, argc, argv, filename,    \
-             VNV_REGISTRATION_CALLBACK_NAME);
+#  define INJECTION_INITIALIZE(PNAME, argc, argv, filename) \
+    VnV_init(VNV_STR(PNAME), argc, argv, filename,          \
+             VNV_REGISTRATION_CALLBACK_NAME(PNAME));
 
-#  define INJECTION_FINALIZE(...) VnV_finalize();
+#  define INJECTION_FINALIZE(PNAME) VnV_finalize();
 
-#  ifdef __cplusplus
-#    define DECLARESUBPACKAGE(NAME) \
-      extern "C" void REG_HELPER(VNVREGNAME, NAME)();
-#  else
-#    define DECLARESUBPACKAGE(NAME) void VNVREGNAME##NAME();
-#  endif
+#  define DECLARESUBPACKAGE(NAME) INJECTION_REGISTRATION(NAME);
 
-#  define REGISTERSUBPACKAGE(NAME) \
-    VnV_Register_Subpackage(PACKAGENAME_S, #NAME, REG_HELPER(VNVREGNAME, NAME));
+#  define REGISTERSUBPACKAGE(PNAME, NAME)          \
+    VnV_Register_Subpackage(VNV_STR(PNAME), #NAME, \
+                            INJECTION_REGISTRATION_PTR(NAME));
 
 // This doesn't expand to anything, just tells the VNV Registration generator to
 // include a subpackage.
-#  define INJECTION_SUBPACKAGE(NAME)
+#  define INJECTION_SUBPACKAGE(PNAME, NAME)
 
 typedef void (*registrationCallBack)();
 VNVEXTERNC void VnV_Register_Subpackage(const char* packageName,

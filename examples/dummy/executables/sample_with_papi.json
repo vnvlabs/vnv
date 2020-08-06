@@ -1,0 +1,79 @@
+﻿{
+  "runTests": true,
+  "runScopes": [
+    {
+      "name": "all",
+      "run": true
+    }
+  ],
+  "logging": {
+    "on" : true,
+    "filename" : "stdout",
+    "logs" : {}
+  },
+  "additionalPlugins": {
+    "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so",
+    "Papi" : "/home/ben/wfr/vv-neams/externalPlugins/papiTests/build/libpapiTest.so"
+  },
+  "outputEngine": {
+    "type": "json",
+    "config": {
+       "outputFile" : "vv-output.json"	    
+    }
+  },
+  "injectionPoints": [
+      {
+        "name" : "configuration",
+        "package" : "VNV",
+        "tests" : [
+            {
+                "name" : "provenance",
+                "package" : "VNV",
+                "runScope" : ["all"],
+                "config" : {
+                    "expectedResult" : {},
+                    "configuration": {
+                    },
+                    "parameters": {
+                        "argc" : "argc",
+                        "argv" : "argv",
+                        "config" : "config"
+                    }
+                }
+            }
+        ]
+      },
+      {
+        "name" : "initialization",
+        "package" : "VNV",
+        "tests" : [
+            {
+                "name" : "cputime",
+                "package" : "VNV",
+                "runScope" : ["all"],
+                "config" : {
+                    "expectedResult" : {},
+                    "configuration": {
+		    },
+                    "parameters": {
+                    }
+                }
+            }
+        ]
+      },
+      {
+	 "name" : "loopTest",
+	 "package" : "SampleExecutable",
+	 "tests" : [{
+	   "name" : "flops", 
+	   "package" : "Papi",
+           "runScope" : ["all"],
+	   "config" : {
+             "expectedResult" : {},
+	      "configuration" : {},
+	      "parameters" : {}
+	   }
+        }]
+      }	
+  ]
+}

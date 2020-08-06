@@ -8,8 +8,9 @@
   },
   "additionalPlugins": {},
   "outputEngine": {
-    "type": "debug",
+    "type": "json",
     "config": {
+       "outputFile":"test-results.json"
     }
   },
   "injectionPoints": [

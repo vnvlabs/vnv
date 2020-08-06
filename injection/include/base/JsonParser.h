@@ -58,7 +58,8 @@ struct UnitTestInfo {
  */
 struct RunInfo {
   bool runTests; /**< Should any tests be run */
-  std::map<std::string, std::string> additionalPlugins; /*< List of file paths to included plugin libraries */
+  std::map<std::string, std::string>
+      additionalPlugins; /*< List of file paths to included plugin libraries */
   std::map<std::string, InjectionPointInfo>
       injectionPoints; /**< all injection points with tests */
   json pluginConfig;

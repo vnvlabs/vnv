@@ -8,7 +8,7 @@
 /*
  *A demo unit test.
  */
-INJECTION_UNITTEST(Demo,1) {
+INJECTION_UNITTEST(VnVTestRunner,Demo,1) {
   int x = 10;
   int y = 10;
 
@@ -20,18 +20,18 @@ INJECTION_UNITTEST(Demo,1) {
   t2 << "x(" << x << ") - y(" << y << ") == 0 (" << x - y << ")";
   t3 << "x(" << x << ") != y(" << y << ")";
 
-  TEST_ASSERT_EQUALS(t1.str(), 20, x + y);
+  TEST_ASSERT_EQUALS("x+y==20", 20, x + y);
 
-  TEST_ASSERT_EQUALS(t2.str(), 0, x - y);
+  TEST_ASSERT_EQUALS("x-y==20", 0, x - y);
 
-  TEST_ASSERT_EQUALS(t3.str(), x, y);
+  TEST_ASSERT_EQUALS("x == y", x, y);
 
   TEST_ASSERT_EQUALS("x == 10", 10, x);
 
   TEST_ASSERT_EQUALS("y == 10", 10, y);
 }
 
-INJECTION_UNITTEST(AnotherDemo,2) {
+INJECTION_UNITTEST(VnVTestRunner,AnotherDemo,2) {
   int rank = comm->Rank();
   int size = comm->Size();
 

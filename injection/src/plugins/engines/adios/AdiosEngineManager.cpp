@@ -25,12 +25,12 @@ static json __adios_input_schema__ = R"(
     "additionalProperties": false
 })"_json;
 
-INJECTION_ENGINE(adios) {
-  return new VnV::PACKAGENAME::Engines::AdiosEngineManager();
+INJECTION_ENGINE(VNVPACKAGENAME, adios) {
+  return new VnV::VNVPACKAGENAME::Engines::AdiosEngineManager();
 }
 
 namespace VnV {
-namespace PACKAGENAME {
+namespace VNVPACKAGENAME {
 namespace Engines {
 
 OutputEngineManager* AdiosEngineBuilder() { return new AdiosEngineManager(); }
@@ -131,7 +131,9 @@ void AdiosEngineManager::injectionPointEndedCallBack(VnV_Comm, std::string id,
   }
 }
 
-void AdiosEngineManager::injectionPointStartedCallBack(VnV_Comm, std::string packageName, std::string id,
+void AdiosEngineManager::injectionPointStartedCallBack(VnV_Comm,
+                                                       std::string packageName,
+                                                       std::string id,
 
                                                        InjectionPointType type_,
                                                        std::string stageId) {
@@ -148,7 +150,9 @@ void AdiosEngineManager::injectionPointStartedCallBack(VnV_Comm, std::string pac
   }
 }
 
-void AdiosEngineManager::testStartedCallBack(VnV_Comm, std::string packageName, std::string testName, bool internal) {
+void AdiosEngineManager::testStartedCallBack(VnV_Comm, std::string packageName,
+                                             std::string testName,
+                                             bool internal) {
   if (engine) {
     engine.BeginStep();
     engine.Put(identifier, testName);
@@ -167,7 +171,8 @@ void AdiosEngineManager::testFinishedCallBack(VnV_Comm, bool result_) {
   }
 }
 
-void AdiosEngineManager::unitTestStartedCallBack(VnV_Comm, std::string packageName,
+void AdiosEngineManager::unitTestStartedCallBack(VnV_Comm,
+                                                 std::string packageName,
                                                  std::string unitTestName) {
   if (engine) {
     engine.BeginStep();
@@ -193,7 +198,8 @@ void AdiosEngineManager::unitTestFinishedCallBack(VnV_Comm, IUnitTest* tester) {
   }
 }
 void AdiosEngineManager::dataTypeStartedCallBack(VnV_Comm,
-                                                 std::string variableName, std::string dtype) {
+                                                 std::string variableName,
+                                                 std::string dtype) {
   if (engine) {
     engine.BeginStep();
     engine.Put(identifier, variableName);
@@ -204,7 +210,8 @@ void AdiosEngineManager::dataTypeStartedCallBack(VnV_Comm,
   }
 }
 
-void AdiosEngineManager::dataTypeEndedCallBack(VnV_Comm, std::string variableName) {
+void AdiosEngineManager::dataTypeEndedCallBack(VnV_Comm,
+                                               std::string variableName) {
   if (engine) {
     engine.EndStep();
   }
@@ -220,5 +227,5 @@ Nodes::IRootNode* AdiosEngineManager::readFromFile(std::string, long&) {
 }
 
 }  // namespace Engines
-}  // namespace PACKAGENAME
+}  // namespace VNVPACKAGENAME
 }  // namespace VnV

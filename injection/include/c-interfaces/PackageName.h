@@ -3,13 +3,8 @@
 
 #include <stdarg.h>
 
-#ifndef PACKAGENAME
-#  error \
-      "VnV: PACKAGENAME is not defined. Please Ensure a Macro called PACKAGENAME is defined before VnV.h is loaded"
-#endif
-
-#define PACKAGENAME_FOUND PACKAGENAME
-#define VNV_PACKAGE_NAME_MAX 50
+#define VNVPACKAGENAME VNV
+#define VNVPACKAGENAME_S "VNV"
 
 #define VnV_E_STR(x) #x
 #define VNV_STR(x) VnV_E_STR(x)
@@ -22,8 +17,6 @@
 #else
 #  define VNVEXTERNC
 #endif
-
-#define PACKAGENAME_S VNV_STR(PACKAGENAME)
 
 // C Injection Macros.
 
@@ -72,21 +65,27 @@
 #define REG_HELPER_(X, Y) X##Y
 #define REG_HELPER(X, Y) REG_HELPER_(X, Y)
 
-#define VNV_REGISTRATION_CALLBACK_NAME REG_HELPER(VNVREGNAME, PACKAGENAME)
+#define VNV_REGISTRATION_CALLBACK_NAME(PNAME) REG_HELPER(VNVREGNAME, PNAME)
 #define VNV_GET_REGISTRATION "__vnv_registration_callback__"
 
 #ifdef __cplusplus
-#  define INJECTION_REGISTRATION extern "C" void VNV_REGISTRATION_CALLBACK_NAME
+#  define INJECTION_REGISTRATION(PNAME) \
+    extern "C" void VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
 #else
-#  define INJECTION_REGISTRATION void VNV_REGISTRATION_CALLBACK_NAME
+#  define INJECTION_REGISTRATION(PNAME) \
+    void VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
 #endif
 
-#define INJECTION_REGISTRATION_CALL VNV_REGISTRATION_CALLBACK_NAME();
-#define INJECTION_REGISTRATION_PTR &VNV_REGISTRATION_CALLBACK_NAME
+#define INJECTION_REGISTRATION_CALL(PNAME) VNV_REGISTRATION_CALLBACK_NAME(PNAME)
+#define INJECTION_REGISTRATION_PTR(PNAME) &VNV_REGISTRATION_CALLBACK_NAME(PNAME)
 
-// We are going to forward declare a registration function for any package that
-// includes VnV.h. That way, the code will not compile if the registration
-// function is missing.
-INJECTION_REGISTRATION();
+// This macro allows the user to enter some documentation about the package to
+// be picked up by the clang parser.
+#define INJECTION_PACKAGEDOCS(PNAME)
+
+// Forward declare the VNV Registration Function.
+INJECTION_REGISTRATION(VNVPACKAGENAME);
+
+#define VNV_INCLUDED
 
 #endif  // PACKAGENAME_H

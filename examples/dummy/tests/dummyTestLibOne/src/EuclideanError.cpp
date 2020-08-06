@@ -8,6 +8,7 @@
 
 #include "VnV.h"
 #include "interfaces/ITest.h"
+#define DLT DummyTestLibOne
 
 using namespace VnV;
 
@@ -21,7 +22,7 @@ using namespace VnV;
 
 
 **/
-INJECTION_TEST(EuclideanError, std::vector<double> measured,
+INJECTION_TEST(DLT, EuclideanError, std::vector<double> measured,
                (std::vector<double>)exact_test) {
   const std::vector<double> measured = get<std::vector<double>>("measured");
   const std::vector<double> exact = get<std::vector<double>>("exact");

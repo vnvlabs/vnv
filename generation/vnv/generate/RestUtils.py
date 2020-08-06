@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
 import shutil
@@ -58,7 +58,7 @@ def indent(count):
 
 def getHeader(title, type="title", ref=None):
     if type not in headerMap:
-        raise RunTimeError("Type Does not exist")
+        raise RuntimeError("Type Does not exist")
     stream = StringIO()
 
     if ref is not None:
@@ -106,7 +106,13 @@ def tocTree(files, **kwargs):
 
     writeStream(stream, ".. toctree::")
     for i in kwargs:
-        if i in ["maxdepth", "numbered", "titlesonly", "glob", "hidden", "includehidden"]:
+        if i in [
+            "maxdepth",
+            "numbered",
+            "titlesonly",
+            "glob",
+            "hidden",
+                "includehidden"]:
             writeStream(stream, "  :{}: {}".format(i, kwargs[i]))
         else:
             raise RuntimeError("Invalid Toc Tree Parameter {}".format(i))
@@ -140,6 +146,20 @@ def codeBlock(text):
     return stream.getvalue()
 
 
+def startCollapse():
+    stream = StringIO()
+    stream.write("\n\n.. raw: html \n\n ")
+    stream.write("    <details>\n\n")
+    return stream.getvalue()
+
+
+def stopCollapse():
+    stream = StringIO()
+    stream.write("\n\n.. raw: html \n\n ")
+    stream.write("    </details>\n\n")
+    return stream.getvalue()
+
+
 def image(filename, **kwargs):
     stream = StringIO()
 
@@ -161,21 +181,16 @@ def box(text, type="seealso"):
 
 
 if __name__ == "__main__":
-    print(getHeader("sdfsdfsdf"))
-    print(getHeader("sdfsdfsdfsdf", "sub"))
-    print(getHeader("sdfsdfsdfsdf", "subsub"))
-    print(getHeader("sdfsdfsdfsdf", "subsubsub"))
-    print(getHeader("sdfsdfsdfsdf", "para"))
     try:
         print("Fail", getHeader("falillsldf", "fail"))
-    except:
+    except BaseException:
         print("Fail Header Test Passed")
     print("Box:\n", box("sdfsdfsdfSDf"))
     print("Box Note: \n", box("sdfsdfsdfSDf", type="note"))
     print("Box Warning : \n", box("sdfsdfsdfSDf", type="warning"))
     try:
         print("Fail Box: \n", box("sdfsdf", type="sdfsf"))
-    except:
+    except BaseException:
         print("Faid Box type Text Passed")
 
     tocTreeD = [["sdfs", "ssss"], "sdfsdf", ["sfsdfsdf", "sss"]]
@@ -186,4 +201,4 @@ if __name__ == "__main__":
     print(htmllist(["sdfsdf", "sfgsgdfdhdh", "sssssssss"]))
 
     print(codeBlock("sdfsdfsdfsdfsdf\nsfsdfsdfsdf\nsfsdsssssssssss"))
-    print("SDFSDF\n\n\n\SDFSDFF")
+    print(r"SDFSDF\n\n\n\SDFSDFF")

@@ -58,9 +58,9 @@ template <typename T, typename V> class Serializer_T : public ISerializer {
 
 }  // namespace VnV
 
-#define INJECTION_SERIALIZER_R(NAME, Runner, TYPE)                             \
+#define INJECTION_SERIALIZER_R(PNAME, NAME, Runner, TYPE)                      \
   namespace VnV {                                                              \
-  namespace PACKAGENAME {                                                      \
+  namespace PNAME {                                                            \
   namespace Serializer {                                                       \
   class NAME : public Serializer_T<VnV_Arg_Type(TYPE), VnV_Arg_Type(Runner)> { \
    public:                                                                     \
@@ -69,26 +69,26 @@ template <typename T, typename V> class Serializer_T : public ISerializer {
   };                                                                           \
   ISerializer* declare_##NAME() { return new NAME(); }                         \
   void register_##NAME() {                                                     \
-    registerSerializer(PACKAGENAME_S, #NAME, declare_##NAME, #TYPE);           \
+    registerSerializer(VNV_STR(PNAME), #NAME, declare_##NAME, #TYPE);          \
   }                                                                            \
   }                                                                            \
   }                                                                            \
   }                                                                            \
-  std::string VnV::PACKAGENAME::Serializer::NAME::Serialize(                   \
-      VnV_Arg_Type(TYPE) * ptr)
+  std::string VnV::PNAME::Serializer::NAME::Serialize(VnV_Arg_Type(TYPE) * ptr)
 
-#define INJECTION_SERIALIZER(name, TYPE) INJECTION_SERIALIZER_R(name, int, TYPE)
+#define INJECTION_SERIALIZER(PNAME, name, TYPE) \
+  INJECTION_SERIALIZER_R(PNAME, name, int, TYPE)
 
-#define DECLARESERIALIZER(name) \
-  namespace VnV {               \
-  namespace PACKAGENAME {       \
-  namespace Serializer {        \
-  void register_##name();       \
-  }                             \
-  }                             \
+#define DECLARESERIALIZER(PNAME, name) \
+  namespace VnV {                      \
+  namespace PNAME {                    \
+  namespace Serializer {               \
+  void register_##name();              \
+  }                                    \
+  }                                    \
   }
 
-#define REGISTERSERIALIZER(name) \
-  VnV::PACKAGENAME::Serializer::register_##name();
+#define REGISTERSERIALIZER(PNAME, name) \
+  VnV::PNAME::Serializer::register_##name();
 
 #endif  // ISERIALIZER_H

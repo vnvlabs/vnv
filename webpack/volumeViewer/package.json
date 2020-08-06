@@ -14,7 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "vtk.js": "^13.16.2"
+    "vtk.js": "^13.18.2"
   },
   "devDependencies": {
     "kw-web-suite": "^10.0.0",

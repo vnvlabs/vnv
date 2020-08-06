@@ -1,3 +1,3 @@
-﻿# Add the subs
+# Add the subs
 add_subdirectory(dummy)
 add_subdirectory(newton)

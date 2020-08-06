@@ -9,13 +9,13 @@
 #include <string>
 
 #include "Router.h"
+#include "base/exceptions.h"
 #include "interfaces/IOutputEngine.h"
-
 /**
  * VnV Namespace
  */
 namespace VnV {
-namespace PACKAGENAME {
+namespace VNVPACKAGENAME {
 namespace Engines {
 
 enum class RouterAction { PUSH, POP, IGNORE };
@@ -36,7 +36,7 @@ class ParallelEngine : public OutputEngineManager {
    * @param log
    */
   void Log(VnV_Comm comm, const char* package, int stage, std::string level,
-           std::string message);
+           std::string message) override;
 
   /**
    * @brief Put
@@ -87,7 +87,8 @@ class ParallelEngine : public OutputEngineManager {
    * @param variableName
    * @param value
    */
-  void Put(VnV_Comm comm, std::string variableName, const std::string& value);
+  void Put(VnV_Comm comm, std::string variableName,
+           const std::string& value) override;
 
   std::string getIndent(int stage);
 
@@ -121,8 +122,8 @@ class ParallelEngine : public OutputEngineManager {
    * @param id
    * @param stageVal
    */
-  void injectionPointStartedCallBack(VnV_Comm comm, std::string packageName, std::string id,
-                                     InjectionPointType type,
+  void injectionPointStartedCallBack(VnV_Comm comm, std::string packageName,
+                                     std::string id, InjectionPointType type,
                                      std::string stageVal) override;
 
   /**
@@ -130,7 +131,8 @@ class ParallelEngine : public OutputEngineManager {
    * @param testName
    * @param testStageVal
    */
-  void testStartedCallBack(VnV_Comm comm, std::string packageName, std::string testName, bool internal) override;
+  void testStartedCallBack(VnV_Comm comm, std::string packageName,
+                           std::string testName, bool internal) override;
 
   /**
    * @brief stopTest
@@ -143,9 +145,10 @@ class ParallelEngine : public OutputEngineManager {
 
   void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester) override;
 
-  void dataTypeStartedCallBack(VnV_Comm /** comm **/,
-                               std::string variableName, std::string dtype) override;
-  void dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) override;
+  void dataTypeStartedCallBack(VnV_Comm /** comm **/, std::string variableName,
+                               std::string dtype) override;
+  void dataTypeEndedCallBack(VnV_Comm /** comm **/,
+                             std::string variableName) override;
 
   /**
    * @brief getOutputEngine
@@ -157,7 +160,8 @@ class ParallelEngine : public OutputEngineManager {
   }
 
   std::string print() override {
-    printf("Print not implemented for Parallel Output Engine");
+    throw VnV::VnVExceptionBase(
+        "Print not implemented for Parallel Output Engine");
   }
 
   std::shared_ptr<Router> getRouter(VnV_Comm comm,
@@ -165,6 +169,6 @@ class ParallelEngine : public OutputEngineManager {
 };
 
 }  // namespace Engines
-}  // namespace PACKAGENAME
+}  // namespace VNVPACKAGENAME
 }  // namespace VnV
 #endif

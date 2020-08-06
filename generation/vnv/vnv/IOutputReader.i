@@ -96,7 +96,8 @@ dataBaseCastMap = {
     DataBase.DataType_Info : "AsInfoNode",
     DataBase.DataType_Test : "AsTestNode",
     DataBase.DataType_UnitTest : "AsUnitTestNode",
-    DataBase.DataType_DataNode : "AsDataTypeNode"
+    DataBase.DataType_DataNode : "AsDataTypeNode",
+    DataBase.DataType_RootNode : "AsRootNode"
 }
 
 type2Str = {
@@ -113,7 +114,8 @@ type2Str = {
     DataBase.DataType_Info : "Info",
     DataBase.DataType_Test : "Test",
     DataBase.DataType_UnitTest : "UnitTest",
-    DataBase.DataType_DataNode : "DataTypeNode"
+    DataBase.DataType_DataNode : "DataTypeNode",
+    DataBase.DataType_RootNode : "RootNode"
 }
 
 vnv_initialized = False
@@ -168,12 +170,14 @@ def castDataBase(obj) :
   %pythoncode %{
 
       def __str__(self):
-           return self.toString()
+           return str(self.getValue())
 
       def __getitem__(self,key):
          res = getattr(self,"get"+key)
          if res is not None:
-                return res()
+            if hasattr(self,"isJson") and self.isJson():
+              return json.loads(res())
+            return res()
          print("Not a key {} {} ".format(key, self.__class__))
          raise KeyError("not a valid key")
 
@@ -190,11 +194,12 @@ def castDataBase(obj) :
       def __iter__(self):
         return classIterator(self)
 
+
+
       def values(self):
          res = []
-         for name in dir(self):
-           if name.startswith('get'):
-              res.append(getattr(self,name)())
+         for name in self.keys():
+              res.append(self.__getitem__(name))
          return res
 
       def keys(self):
@@ -205,7 +210,10 @@ def castDataBase(obj) :
          return res
 
       def __contains__(self,item):
-         return hasattr(self,"get" + item)
+         res = hasattr(self,"get" + item)
+         if not res and hasattr(self,"get", item.capitalize()):
+                print("We dont have {i} but we do have {rr}".format(ii=item, rr=item.captialize()))
+         return res
 
    %}
 }
@@ -234,6 +242,17 @@ PY_GETATTR(VnV::Nodes::IBoolNode)
       def __getitem__(self,key):
         if isinstance(key,int) and key < self.size() :
            return castDataBase(self.get(key))
+        elif isinstance(key,str):
+
+           res = []
+           for i in self:
+             if i.getName() == key:
+               res.append(i)
+           if len(res) == 1:
+              return res[0]
+           elif len(res)>1:
+              return res
+
         print("Not a key {} {} ".format(key, self.__class__))
         raise KeyError("not a valid key")
 
@@ -247,7 +266,7 @@ PY_GETATTR(VnV::Nodes::IBoolNode)
         return "list"
 
       def __str__(self):
-              return self.toString()
+              return str(self.getValue())
    %}
 }
 %enddef
@@ -289,7 +308,7 @@ PY_GETATTRLIST(VnV::Nodes::IArrayNode)
              return self.contains(item)
 
         def __str__(self):
-             return self.toString()
+             return str(self.getValue())
     %}
 }
 %enddef

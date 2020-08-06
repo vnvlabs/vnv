@@ -1,0 +1,39 @@
+
+
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>The HTML5 Herald</title>
+  <meta name="description" content="The HTML5 Herald">
+  <meta name="author" content="SitePoint">
+  <script src="./json-formatter.js"></script>
+
+</head>
+
+<body>
+ 
+<div id="sdsdf"></div> 
+<script>
+const open = 1
+const config = {
+  hoverPreviewEnabled: false,
+  hoverPreviewArrayCount: 100,
+  hoverPreviewFieldCount: 5,
+  theme: "dark",
+  animateOpen: true,
+  animateClose: true,
+  useToJSON: true,
+  background: 'black'
+  
+}
+const myJSON = {ans: 42};
+const formatter = new JSONFormatter(myJSON, open, config);
+document.getElementById("sdsdf").appendChild(formatter.render());
+</script>
+
+</body>
+</html>
+

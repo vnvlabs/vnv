@@ -4,7 +4,7 @@
 #include "interfaces/IOutputEngine.h"
 
 namespace VnV {
-namespace PACKAGENAME {
+namespace VNVPACKAGENAME {
 namespace Engines {
 
 class DebugEngineManager : public OutputEngineManager {
@@ -42,16 +42,18 @@ class DebugEngineManager : public OutputEngineManager {
                                    InjectionPointType type,
                                    std::string stageVal) override;
 
-  void injectionPointStartedCallBack(VnV_Comm comm, std::string packageName, std::string id,
-                                     InjectionPointType type,
+  void injectionPointStartedCallBack(VnV_Comm comm, std::string packageName,
+                                     std::string id, InjectionPointType type,
                                      std::string stageVal) override;
 
-  void testStartedCallBack(VnV_Comm comm, std::string packageName, std::string testName, bool internal) override;
+  void testStartedCallBack(VnV_Comm comm, std::string packageName,
+                           std::string testName, bool internal) override;
 
   void testFinishedCallBack(VnV_Comm comm, bool result_) override;
-  void dataTypeStartedCallBack(VnV_Comm /** comm **/,
-                               std::string variableName, std::string dtype) override;
-  void dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) override;
+  void dataTypeStartedCallBack(VnV_Comm /** comm **/, std::string variableName,
+                               std::string dtype) override;
+  void dataTypeEndedCallBack(VnV_Comm /** comm **/,
+                             std::string variableName) override;
 
   void unitTestStartedCallBack(VnV_Comm comm, std::string packageName,
                                std::string unitTestName) override;
@@ -64,6 +66,6 @@ class DebugEngineManager : public OutputEngineManager {
 };
 
 }  // namespace Engines
-}  // namespace PACKAGENAME
+}  // namespace VNVPACKAGENAME
 }  // namespace VnV
 #endif  // DEBUGENGINEMANAGER_H

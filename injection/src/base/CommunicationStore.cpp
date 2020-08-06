@@ -4,12 +4,14 @@
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 
+using VnV::Communication::CommType;
+
 namespace VnV {
-namespace PACKAGENAME {
+namespace VNVPACKAGENAME {
 namespace Communication {
 VnV::Communication::ICommunicator* declare_serial(CommType type);
 }
-}  // namespace PACKAGENAME
+}  // namespace VNVPACKAGENAME
 }  // namespace VnV
 
 namespace VnV {
@@ -18,8 +20,8 @@ CommunicationStore::CommunicationStore() {
   // Add the serial communicator on construction. This ensures the serial comm
   // is always available. This is needed by debug statements that occur before
   // plugin registration.
-  addCommunicator("VNV", "serial",
-                  VnV::PACKAGENAME::Communication::declare_serial);
+  addCommunicator(VNV_STR(VNVPACKAGENAME), "serial",
+                  VnV::VNVPACKAGENAME::Communication::declare_serial);
 }
 
 long long CommunicationStore::getKey(std::string packageName,
@@ -28,7 +30,7 @@ long long CommunicationStore::getKey(std::string packageName,
 }
 
 long long CommunicationStore::getKey(std::string name) {
-  return getKey("",name);
+  return getKey("", name);
 }
 
 void CommunicationStore::declareComm(std::string packageName,
@@ -110,9 +112,10 @@ Communication::ICommunicator_ptr CommunicationStore::getCommForPackage(
     c->Rank();
     return c;
   }
-  auto c = getCommunicator(PACKAGENAME_S, "serial",
-                           type);  // Return default serial comm.
-  c->setPackage(PACKAGENAME_S);
+
+  // RETURN THE DEFAULT PACKAGE NAME.
+  auto c = getCommunicator(VNV_STR(VNVPACKAGENAME), "serial", type);
+  c->setPackage(VNV_STR(VNVPACKAGENAME));
   return c;
 }
 Communication::ICommunicator_ptr CommunicationStore::getCommunicator(
@@ -138,7 +141,7 @@ Communication::ICommunicator_ptr CommunicationStore::customComm(
 }
 
 VnV_Comm CommunicationStore::toVnVComm(Communication::ICommunicator_ptr ptr) {
-  return customData(ptr->getPackage(),ptr->getData());
+  return customData(ptr->getPackage(), ptr->getData());
 }
 
 VnV_Comm CommunicationStore::customData(std::string packageName, void* data) {

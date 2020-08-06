@@ -5,10 +5,11 @@
 
 #include "base/OptionsParserStore.h"
 
-#include "c-interfaces/Logging.h"
-#include "base/Utilities.h"
-
 #include <iostream>
+
+#include "base/Utilities.h"
+#include "base/exceptions.h"
+#include "c-interfaces/Logging.h"
 using namespace VnV;
 
 OptionsParserStore::OptionsParserStore() {}
@@ -39,7 +40,8 @@ void OptionsParserStore::callBack(std::string name, json info) {
       it->second.second.second(info);
     }
   } else {
-    VnV_Warn("Unknown Options Configuration Name %s", name.c_str());
+    VnV_Warn(VNVPACKAGENAME, "Unknown Options Configuration Name %s",
+             name.c_str());
   }
 }
 
@@ -48,20 +50,21 @@ OptionsParserStore& OptionsParserStore::instance() {
   return store;
 }
 
-void OptionsParserStore::parse(json info, json&cmdline) {
+void OptionsParserStore::parse(json info, json& cmdline) {
   for (auto& it : factory) {
-    json &found = JsonUtilities::getOrCreate(info,it.first,JsonUtilities::CreateType::Object);
-    std::cout << it.first <<  " GSDGSDGSDGSDG " << cmdline.dump(3) << std::endl;;
+    json& found = JsonUtilities::getOrCreate(info, it.first,
+                                             JsonUtilities::CreateType::Object);
     if (cmdline.contains(it.first)) {
-       found["command-line"] = cmdline[it.first];
+      found["command-line"] = cmdline[it.first];
     }
     callBack(it.first, found);
   }
 }
 
-nlohmann::json &OptionsParserStore::getSchema(std::string package) {
+nlohmann::json& OptionsParserStore::getSchema(std::string package) {
   auto it = factory.find(package);
   if (it != factory.end()) {
-      return it->second.first;
-    }
+    return it->second.first;
+  }
+  throw VnV::VnVExceptionBase("no such package");
 }

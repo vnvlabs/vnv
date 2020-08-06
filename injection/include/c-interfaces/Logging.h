@@ -11,12 +11,15 @@
 
 VNVEXTERNC void _VnV_registerLogLevel(const char* packageName, const char* name,
                                       const char* color);
+
 VNVEXTERNC void _VnV_Log(VnV_Comm comm, const char* p, const char* level,
                          const char* message, ...)
     __attribute__((format(printf, 4, 5)));
+
 VNVEXTERNC int _VnV_BeginStage(VnV_Comm comm, const char* p,
                                const char* message, ...)
     __attribute__((format(printf, 3, 4)));
+
 VNVEXTERNC void _VnV_EndStage(VnV_Comm comm, int ref);
 
 // This macro allows packages to define custom logging levels. Here the
@@ -24,37 +27,41 @@ VNVEXTERNC void _VnV_EndStage(VnV_Comm comm, int ref);
 // should be an ASCII color code sequence to determine the color formatting
 // of the output when writing to a terminal that supports colors. In reality,
 // the log statement is
-// cout << COLOR << message << COLOR_RESET\n ;
 // where COLOR_RESET is the ansi code to reset the terminal color to
 // the standard terminal color. See wikipedia -- ANSI escape code -- to
 // figure out the code you want to use.
 
 // To use the custom log level, call VnV_Log(name, message, args...).
-#    define INJECTION_LOGLEVEL(NAME, COLOR)
-#    define REGISTERLOGLEVEL(NAME, COLOR) \
-      _VnV_registerLogLevel(PACKAGENAME_S, #NAME, #COLOR);
+#    define INJECTION_LOGLEVEL(PNAME, NAME, COLOR)
 
-#    define VnV_Debug_MPI(comm, ...) \
-      _VnV_Log(comm, PACKAGENAME_S, "DEBUG", __VA_ARGS__)
-#    define VnV_Warn_MPI(comm, ...) \
-      _VnV_Log(comm, PACKAGENAME_S, "WARN", __VA_ARGS__)
-#    define VnV_Error_MPI(comm, ...) \
-      _VnV_Log(comm, PACKAGENAME_S, "ERROR", __VA_ARGS__)
-#    define VnV_Info_MPI(comm, ...) \
-      _VnV_Log(comm, PACKAGENAME_S, "INFO", __VA_ARGS__)
-#    define VnV_Log_MPI(comm, level, ...) \
-      _VnV_Log(comm, PACKAGENAME_S, level, __VA_ARGS__)
-#    define VnV_BeginStage_MPI(comm, ...) \
-      _VnV_BeginStage(comm, PACKAGENAME_S, __VA_ARGS__)
+#    define REGISTERLOGLEVEL(PNAME, NAME, COLOR) \
+      _VnV_registerLogLevel(VNV_STR(PNAME), #NAME, #COLOR);
+
+#    define VnV_Debug_MPI(PNAME, comm, ...) \
+      _VnV_Log(comm, VNV_STR(PNAME), "DEBUG", __VA_ARGS__)
+#    define VnV_Warn_MPI(PNAME, comm, ...) \
+      _VnV_Log(comm, VNV_STR(PNAME), "WARN", __VA_ARGS__)
+#    define VnV_Error_MPI(PNAME, comm, ...) \
+      _VnV_Log(comm, VNV_STR(PNAME), "ERROR", __VA_ARGS__)
+#    define VnV_Info_MPI(PNAME, comm, ...) \
+      _VnV_Log(comm, VNV_STR(PNAME), "INFO", __VA_ARGS__)
+#    define VnV_Log_MPI(PNAME, comm, level, ...) \
+      _VnV_Log(comm, VNV_STR(PNAME), level, __VA_ARGS__)
+#    define VnV_BeginStage_MPI(PNAME, comm, ...) \
+      _VnV_BeginStage(comm, VNV_STR(PNAME), __VA_ARGS__)
 #    define VnV_EndStage_MPI(comm, ref) _VnV_EndStage(comm, ref)
 
-#    define VnV_Debug(...) VnV_Debug_MPI(VWORLD, __VA_ARGS__)
-#    define VnV_Warn(...) VnV_Warn_MPI(VWORLD, __VA_ARGS__)
-#    define VnV_Error(...) VnV_Error_MPI(VWORLD, __VA_ARGS__)
-#    define VnV_Info(...) VnV_Info_MPI(VWORLD, __VA_ARGS__)
-#    define VnV_Log(...) VnV_Log_MPI(VWORLD, __VA_ARGS__)
-#    define VnV_BeginStage(...) VnV_BeginStage_MPI(VWORLD, __VA_ARGS__)
-#    define VnV_EndStage(...) VnV_EndStage_MPI(VWORLD, __VA_ARGS__)
+#    define VnV_Debug(PNAME, ...) \
+      VnV_Debug_MPI(PNAME, VWORLD(PNAME), __VA_ARGS__)
+#    define VnV_Warn(PNAME, ...) VnV_Warn_MPI(PNAME, VWORLD(PNAME), __VA_ARGS__)
+#    define VnV_Error(PNAME, ...) \
+      VnV_Error_MPI(PNAME, VWORLD(PNAME), __VA_ARGS__)
+#    define VnV_Info(PNAME, ...) VnV_Info_MPI(PNAME, VWORLD(PNAME), __VA_ARGS__)
+#    define VnV_Log(PNAME, ...) VnV_Log_MPI(PNAME, VWORLD(PNAME), __VA_ARGS__)
+#    define VnV_BeginStage(PNAME, ...) \
+      VnV_BeginStage_MPI(PNAME, VWORLD(PNAME), __VA_ARGS__)
+#    define VnV_EndStage(PNAME, ...) \
+      VnV_EndStage_MPI(VWORLD(PNAME), __VA_ARGS__)
 
 #  else
 #    define VnV_Debug(...)

@@ -290,7 +290,8 @@ json getTestDelcarationJsonSchema() {
   return __test_declaration_schema__;
 }
 
-json getTestValidationSchema(std::map<std::string, std::string>& params, json& optsschema) {
+json getTestValidationSchema(std::map<std::string, std::string>& params,
+                             json& optsschema) {
   json schema = R"(
     {
        "$schema": "http://json-schema.org/draft-07/schema#",

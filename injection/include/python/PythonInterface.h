@@ -20,19 +20,15 @@ class ReaderWrapper {
  private:
   std::unique_ptr<Nodes::IRootNode> rootNode;
   long lowerId, upperId;
+
  public:
   ReaderWrapper(std::string filename);
   ReaderWrapper(std::string filename, std::string config);
   ReaderWrapper(std::string filename, std::string reader, std::string config);
   Nodes::IRootNode* get();
 
-  long getLowerId() {
-    return lowerId;
-  }
-  long getUpperId() {
-    return upperId;
-  }
-
+  long getLowerId() { return lowerId; }
+  long getUpperId() { return upperId; }
 };
 
 void VnVInit(std::vector<std::string> args, std::string configFilename);

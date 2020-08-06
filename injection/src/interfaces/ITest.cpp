@@ -12,7 +12,8 @@ using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
 const json& TestConfig::getAdditionalParameters() const {
-  return testConfigJson["configuration"]; //JsonUtilities::getOrCreate(testConfigJson,"configuration",JsonUtilities::CreateType::Object);
+  return testConfigJson
+      ["configuration"];  // JsonUtilities::getOrCreate(testConfigJson,"configuration",JsonUtilities::CreateType::Object);
 }
 const json& ITest::getConfigurationJson() const {
   return m_config.getAdditionalParameters();
@@ -24,16 +25,18 @@ std::string TestConfig::getName() const { return testName; }
 std::string TestConfig::getPackage() const { return package; }
 
 void TestConfig::print() {
-  int a = VnV_BeginStage("Test Configuration %s", getName().c_str());
-  VnV_Info("Configuration Options: %s",
+  int a = VnV_BeginStage(VNVPACKAGENAME, "Test Configuration %s",
+                         getName().c_str());
+  VnV_Info(VNVPACKAGENAME, "Configuration Options: %s",
            getAdditionalParameters().dump().c_str());
-  int b = VnV_BeginStage("Injection Point Mapping");
+  int b = VnV_BeginStage(VNVPACKAGENAME, "Injection Point Mapping");
   for (auto it : parameters) {
-    VnV_Info("(Name, type, rtti) = (%s, %s, %s) ", it.first.c_str(),
-             it.second.getType().c_str(), it.second.getRtti().c_str());
+    VnV_Info(VNVPACKAGENAME, "(Name, type, rtti) = (%s, %s, %s) ",
+             it.first.c_str(), it.second.getType().c_str(),
+             it.second.getRtti().c_str());
   }
-  VnV_EndStage(b);
-  VnV_EndStage(a);
+  VnV_EndStage(VNVPACKAGENAME, b);
+  VnV_EndStage(VNVPACKAGENAME, a);
 }
 
 TestConfig::TestConfig(std::string package, std::string name,
@@ -79,7 +82,8 @@ void TestConfig::setParameterMap(VnVParameterSet& args) {
                                             injection->second.getRawPtr(), s),
                                         testParamType, s)));
         transformers.insert(std::make_pair(testParameter, std::move(p)));
-        VnV_Error("Transform for a test parameter was not pregenerated %s:%s",
+        VnV_Error(VNVPACKAGENAME,
+                  "Transform for a test parameter was not pregenerated %s:%s",
                   getName().c_str(), testParameter.c_str());
       }
     }
@@ -105,11 +109,11 @@ bool TestConfig::preLoadParameterSet(
     std::map<std::string, std::string>& parameters) {
   // Need to check if we can properly map the test, as declared, to this
   // injection point.
-  json j = testConfigJson["parameters"];  // maps testParam to injection point param.
+  json j =
+      testConfigJson["parameters"];  // maps testParam to injection point param.
   for (auto& param : j.items()) {
     // Get the information about the test parameter
     std::string testParameter = param.key();  // The parameter in the test.
-
 
     auto testParameterType = testParameters.find(testParameter);
     if (testParameterType == testParameters.end()) {
@@ -118,7 +122,8 @@ bool TestConfig::preLoadParameterSet(
     bool required = isRequired(testParameter);
 
     // Get the information about the injection point parameter.
-    std::string injectionParam = param.value();  // The parameter in the injection point.
+    std::string injectionParam =
+        param.value();  // The parameter in the injection point.
     auto injectionParamType = parameters.find(injectionParam);  //
 
     std::shared_ptr<Transformer> tran;
@@ -127,17 +132,15 @@ bool TestConfig::preLoadParameterSet(
         /** This is an unknown injection point (it has parameters maybe, but we
          * dont know them **/
         VnV_Warn(
+            VNVPACKAGENAME,
             "Injection point parameters unknown. Parameters will be passed "
             "without type checking");
         tran = TransformStore::getTransformStore().getTransformer(
             testParameterType->second, testParameterType->second);
       } else {
-        std::cout << "Could not find " << injectionParam << std::endl;
         return false;  // required parameter not found.
       }
     } else {
-      std::cout << "Loojing for transform " << injectionParamType->second
-                << " -> " << testParameterType->second << std::endl;
       tran = TransformStore::getTransformStore().getTransformer(
           StringUtils::squash_copy(injectionParamType->second),
           StringUtils::squash_copy(testParameterType->second));
@@ -155,9 +158,11 @@ bool TestConfig::preLoadParameterSet(
 // point that this test is being run inside.
 TestStatus ITest::_runTest(VnV_Comm comm, OutputEngineManager* engine,
                            InjectionPointType type, std::string stageId) {
-  VnV_Debug_MPI(comm, "Runnnig Test %s ", m_config.getName().c_str());
+  VnV_Debug_MPI(VNVPACKAGENAME, comm, "Runnnig Test %s ",
+                m_config.getName().c_str());
 
-  engine->testStartedCallBack(comm, m_config.getPackage(), m_config.getName(),false);
+  engine->testStartedCallBack(comm, m_config.getPackage(), m_config.getName(),
+                              false);
   TestStatus s = runTest(comm, engine->getOutputEngine(), type, stageId);
   engine->testFinishedCallBack(comm, (s == SUCCESS) ? true : false);
   return s;
@@ -173,7 +178,8 @@ ITest::~ITest() {}
  *
  * This is the way
  */
-INJECTION_TEST(test1, int argv, char** argc, std::string config) {
+INJECTION_TEST(VNVPACKAGENAME, test1, int argv, char** argc,
+               std::string config) {
   engine->Put(comm, "hello", 10.0);
   engine->Put(comm, "argv", get<int>("argv"));
   engine->Put(comm, "argc", *get<char**>("argc"));

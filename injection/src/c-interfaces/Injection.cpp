@@ -14,24 +14,21 @@ using namespace VnV;
 
 extern "C" {
 
-void _VnV_injectionPoint(VnV_Comm comm, vnv_registration_function reg,
-                         const char* package, const char* id,
+void _VnV_injectionPoint(VnV_Comm comm, const char* package, const char* id,
                          injectionDataCallback* callback, ...) {
   va_list argp;
   va_start(argp, callback);
   NTV map = VariadicUtils::UnwrapVariadicArgs(argp);
-  VnV::RunTime::instance().runTimePackageRegistration(package, reg);
   VnV::RunTime::instance().injectionPoint(comm, package, id, callback, map);
   va_end(argp);
 }
 
-void _VnV_injectionPoint_begin(VnV_Comm comm, vnv_registration_function reg,
-                               const char* package, const char* id,
-                               injectionDataCallback* callback, ...) {
+void _VnV_injectionPoint_begin(VnV_Comm comm, const char* package,
+                               const char* id, injectionDataCallback* callback,
+                               ...) {
   va_list argp;
   va_start(argp, callback);
   NTV map = VariadicUtils::UnwrapVariadicArgs(argp);
-  VnV::RunTime::instance().runTimePackageRegistration(package, reg);
   VnV::RunTime::instance().injectionPoint_begin(comm, package, id, callback,
                                                 map);
   va_end(argp);

@@ -7,7 +7,7 @@
 
 #define RANK(root,...) if (rank == root) { __VA_ARGS__ }
 
-INJECTION_UNITTEST(Communication,4) {
+INJECTION_UNITTEST(VnVTestRunner,Communication,4) {
 
     int size = comm->Size();
     int rank = comm->Rank();

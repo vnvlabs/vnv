@@ -8,4 +8,14 @@ added here.
 
 Build Instructions:
 
-TODO
+npm install vtk.js --save
+npm install kw-web-suite --save-dev
+
+Had to go into node_modules/vtk.js/Utilities/config/dependency.js and move "localIDentName"
+inside the modules key ( ie modules: true --> modules { "localIDentName" ... } ) 
+
+
+Had to create a file called DropBG in the source folder
+
+npm run build
+

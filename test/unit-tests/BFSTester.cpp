@@ -9,7 +9,13 @@
 #include "plugins/engines/debug/DebugEngineManager.h"
 using namespace VnV;
 
-INJECTION_UNITTEST(BFSTester,1) {
+/**
+ * Breath First Search function
+ * The breadth first search function is used in the Transformation API to automatically
+ * transform variables between injection point parmeters and test parameters.
+ */
+
+INJECTION_UNITTEST(VnVTestRunner, BFSTester,1) {
   std::map<std::string, std::map<std::string, std::string>> graph;
 
   // Test: Pass in a from that is not in the map --> should throw.
@@ -19,7 +25,16 @@ INJECTION_UNITTEST(BFSTester,1) {
   } catch (...) {
     TEST_ASSERT_EQUALS("FromNotInMap", true, true);
   }
-  // Test: Pass in a from == to -> should return empty vector:
+  /**
+   * This test ensures the breadth first search algorithm returns an
+   * empty set when the from node equals the to node. The test is
+   * run using
+   *
+   * .. code-block:: cpp
+   *    :linenos:
+   *
+   *    VnV::bfs(graph,"from","from").size() == 0
+   */
   TEST_ASSERT_EQUALS("Empty Set When From == To ",
                      (0 == VnV::bfs(graph, "from", "from").size()), true);
 

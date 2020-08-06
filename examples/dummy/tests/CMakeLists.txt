@@ -1,4 +1,1 @@
-
-add_subdirectory(dummyTestLibOne)                                                           
-
-
+add_subdirectory(dummyTestLibOne)

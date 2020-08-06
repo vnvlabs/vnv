@@ -10,7 +10,7 @@
 #include "base/Utilities.h"
 #include "c-interfaces/Logging.h"
 namespace VnV {
-namespace PACKAGENAME {
+namespace VNVPACKAGENAME {
 namespace Engines {
 
 static json __parallel_engine_schema__ =
@@ -76,7 +76,9 @@ json ParallelEngine::getConfigurationSchema() {
   return __parallel_engine_schema__;
 }
 
-void ParallelEngine::finalize() { VnV_Info("PARALLEL ENGINE: FINALIZE"); }
+void ParallelEngine::finalize() {
+  VnV_Info(VNVPACKAGENAME, "PARALLEL ENGINE: FINALIZE");
+}
 
 void ParallelEngine::setFromJson(json& config) {
   printf("PARALLEL ENGINE WRAPPER Init with file %s\n", config.dump().c_str());
@@ -91,7 +93,8 @@ void ParallelEngine::injectionPointEndedCallBack(VnV_Comm comm, std::string id,
   getRouter(comm, RouterAction::POP)->forward();
 }
 
-void ParallelEngine::injectionPointStartedCallBack(VnV_Comm comm, std::string packageName,
+void ParallelEngine::injectionPointStartedCallBack(VnV_Comm comm,
+                                                   std::string packageName,
                                                    std::string id,
                                                    InjectionPointType type,
                                                    std::string stageVal) {
@@ -99,7 +102,8 @@ void ParallelEngine::injectionPointStartedCallBack(VnV_Comm comm, std::string pa
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
 }
 
-void ParallelEngine::testStartedCallBack(VnV_Comm comm, std::string packageName, std::string testName, bool internal) {
+void ParallelEngine::testStartedCallBack(VnV_Comm comm, std::string packageName,
+                                         std::string testName, bool internal) {
   printf("PARALLEL ENGINE Start Test %s \n", testName.c_str());
 }
 
@@ -107,14 +111,17 @@ void ParallelEngine::testFinishedCallBack(VnV_Comm comm, bool result_) {
   printf("PARALLEL ENGINE Stop Test. Test Was Successful-> %d\n", result_);
 }
 void ParallelEngine::dataTypeStartedCallBack(VnV_Comm /** comm **/,
-                                             std::string variableName, std::string dtype) {
+                                             std::string variableName,
+                                             std::string dtype) {
   printf("PARALLEL ENGINE Data Type Started %s", variableName.c_str());
 }
-void ParallelEngine::dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) {
-  printf("PARALLEL ENGINE Data Type Finished %s " , variableName.c_str()) ;
+void ParallelEngine::dataTypeEndedCallBack(VnV_Comm /** comm **/,
+                                           std::string variableName) {
+  printf("PARALLEL ENGINE Data Type Finished %s ", variableName.c_str());
 }
 
-void ParallelEngine::unitTestStartedCallBack(VnV_Comm comm, std::string packageName,
+void ParallelEngine::unitTestStartedCallBack(VnV_Comm comm,
+                                             std::string packageName,
                                              std::string unitTestName) {
   printf("PARALLEL ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
 }
@@ -155,9 +162,9 @@ std::shared_ptr<Router> ParallelEngine::getRouter(VnV_Comm comm_raw,
 }
 
 }  // namespace Engines
-}  // namespace PACKAGENAME
+}  // namespace VNVPACKAGENAME
 }  // namespace VnV
 
-INJECTION_ENGINE(Parallel) {
-  return new VnV::PACKAGENAME::Engines::ParallelEngine();
+INJECTION_ENGINE(VNVPACKAGENAME, Parallel) {
+  return new VnV::VNVPACKAGENAME::Engines::ParallelEngine();
 }

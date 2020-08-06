@@ -11,10 +11,10 @@
   */
 #include <stdarg.h>
 
+#include <chrono>
 #include <json-schema.hpp>
 #include <map>
 #include <string>
-#include <chrono>
 
 #include "base/InjectionPoint.h"
 #include "base/JsonParser.h"
@@ -69,8 +69,6 @@ class RunTime {
   RunTime();
 
   std::string mainPackageName;
-  int* argc;    /**< Store the input parameters -- no idea why TODO*/
-  char*** argv; /**< Stored args list for command line */
   std::set<std::string> plugins;
   std::set<std::string> packages;
   std::map<std::string, vnvFullJsonStrCallback> jsonCallbacks;
@@ -78,7 +76,6 @@ class RunTime {
   std::set<std::string> registeredPackages;
 
   bool runTests; /**< Should tests be run */
-  bool logUnhandledInjectionPoints = true;
   bool terminalSupportsAsciiColors = true;
 
   void loadPlugin(std::string filename, std::string packageName);
@@ -139,10 +136,9 @@ class RunTime {
 
   json getFullJson();
 
-
   RunTimeOptions* getRunTimeOptions();
 
-  void processToolConfig(json config, json &cmdline);
+  void processToolConfig(json config, json& cmdline);
 
   void runTimePackageRegistration(std::string packageName,
                                   vnv_registration_function reg);

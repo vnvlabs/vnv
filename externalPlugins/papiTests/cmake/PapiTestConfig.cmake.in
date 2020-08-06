@@ -1,0 +1,11 @@
+﻿get_filename_component(Papi_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+list(APPEND CMAKE_PREFIX_PATH ${Papi_CMAKE_DIR})
+
+
+if(NOT TARGET PapiTest::PapiTest)
+  include("${Papi_CMAKE_DIR}/PapiTestTargets.cmake")
+endif()
+
+list(REMOVE_AT CMAKE_PREFIX_PATH -1)

@@ -65,9 +65,9 @@ class Transform_T : public ITransform {
 
 }  // namespace VnV
 
-#define INJECTION_TRANSFORM_R(NAME, Runner, To, From)                        \
+#define INJECTION_TRANSFORM_INTERNAL(PNAME, NAME, Runner, To, From)          \
   namespace VnV {                                                            \
-  namespace PACKAGENAME {                                                    \
+  namespace PNAME {                                                          \
   namespace Transforms {                                                     \
   class NAME : public VnV::Transform_T<VnV_Arg_Type(To), VnV_Arg_Type(From), \
                                        VnV_Arg_Type(Runner)> {               \
@@ -87,20 +87,26 @@ class Transform_T : public ITransform {
   }                                                                          \
   }                                                                          \
   VnV_Arg_Type(To) *                                                         \
-      VnV::PACKAGENAME::Transforms::NAME::Transform(VnV_Arg_Type(From) * ptr)
+      VnV::PNAME::Transforms::NAME::Transform(VnV_Arg_Type(From) * ptr)
 
-#define INJECTION_TRANSFORM(name, from, to) \
-  INJECTION_TRANSFORM_R(name, int, from, to)
+// Macro indirection to help clang tool support cases where these
+// are macros -- TODO.
+#define INJECTION_TRANSFORM_R(PNAME, NAME, Runner, To, From) \
+  INJECTION_TRANSFORM_INTERNAL(PNAME, NAME, Runner, To, From)
 
-#define DECLARETRANSFORM(name) \
-  namespace VnV {              \
-  namespace PACKAGENAME {      \
-  namespace Transforms {       \
-  void register_##name();      \
-  }                            \
-  }                            \
+#define INJECTION_TRANSFORM(PNAME, name, from, to) \
+  INJECTION_TRANSFORM_R(PNAME, name, int, from, to)
+
+#define DECLARETRANSFORM(PNAME, name) \
+  namespace VnV {                     \
+  namespace PNAME {                   \
+  namespace Transforms {              \
+  void register_##name();             \
+  }                                   \
+  }                                   \
   }
 
-#define REGISTERTRANSFORM(name) VnV::PACKAGENAME::Transforms::register_##name();
+#define REGISTERTRANSFORM(PNAME, name) \
+  VnV::PNAME::Transforms::register_##name();
 
 #endif  // ITRANSFORM_H

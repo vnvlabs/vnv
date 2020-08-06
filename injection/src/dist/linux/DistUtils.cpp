@@ -9,6 +9,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <iostream>
+
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
@@ -75,6 +77,7 @@ void* loadLibrary(std::string name) {
   void* dllib = dlopen(name.c_str(), RTLD_NOW);
 
   if (dllib == nullptr) {
+    std::cout << "Could not load library " << dlerror() << std::endl;
     throw VnVExceptionBase("Could not open shared library");
   }
   return dllib;

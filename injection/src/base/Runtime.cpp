@@ -6,6 +6,8 @@
 #include <unistd.h>
 
 //#include <unistd.h>
+#include <iostream>
+
 #include "base/CommunicationStore.h"
 #include "base/DistUtils.h"
 #include "base/InjectionPointStore.h"
@@ -15,13 +17,12 @@
 #include "base/Runtime.h"
 #include "base/TestStore.h"
 #include "base/UnitTestStore.h"
-#include "c-interfaces/Logging.h"
 #include "base/Utilities.h"
-#include <iostream>
+#include "c-interfaces/Logging.h"
 
 using namespace VnV;
 
-INJECTION_OPTIONS(getBaseOptionsSchema().dump().c_str()) {
+INJECTION_OPTIONS(VNVPACKAGENAME, getBaseOptionsSchema().dump().c_str()) {
   RunTime::instance().getRunTimeOptions()->fromJson(config);
 }
 
@@ -34,15 +35,13 @@ void RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
         registrationCallBack reg = DistUtils::searchLibrary(dllib, packageName);
         if (reg != nullptr) {
           runTimePackageRegistration(packageName, reg);
-        } else {
-          std::cout << "GERE" << std::endl;
         }
       } else {
-        VnV_Warn("Library not found");
+        VnV_Warn(VNVPACKAGENAME, "Library not found");
       }
     }
   } catch (...) {
-    VnV_Warn("Library not found: %s", libraryPath.c_str());
+    VnV_Warn(VNVPACKAGENAME, "Library not found: %s", libraryPath.c_str());
   }
 }
 
@@ -56,15 +55,16 @@ void RunTime::makeLibraryRegistrationCallbacks(
 bool RunTime::useAsciiColors() { return terminalSupportsAsciiColors; }
 
 void RunTime::logUnhandled(std::string name, std::string id, NTV& args) {
-  int a = VnV_BeginStage("Unhandled Injection Point");
-  VnV_Info("Name: %s", name.c_str());
-  VnV_Info("ID: %s", id.c_str());
-  int aa = VnV_BeginStage("Parameters");
+  int a = VnV_BeginStage(VNVPACKAGENAME, "Unhandled Injection Point");
+  VnV_Info(VNVPACKAGENAME, "Name: %s", name.c_str());
+  VnV_Info(VNVPACKAGENAME, "ID: %s", id.c_str());
+  int aa = VnV_BeginStage(VNVPACKAGENAME, "Parameters");
   for (auto& it : args) {
-    VnV_Info("%s : (%s)", it.first.c_str(), it.second.first.c_str());
+    VnV_Info(VNVPACKAGENAME, "%s : (%s)", it.first.c_str(),
+             it.second.first.c_str());
   }
-  VnV_EndStage(aa);
-  VnV_EndStage(a);
+  VnV_EndStage(VNVPACKAGENAME, aa);
+  VnV_EndStage(VNVPACKAGENAME, a);
 }
 
 std::shared_ptr<InjectionPoint> RunTime::getNewInjectionPoint(
@@ -99,35 +99,39 @@ std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(
 }
 
 void RunTime::writeSpecification(std::string filename) {
-     std::ofstream ofs(filename);
-     if (ofs.good()) {
-        ofs << getFullJson().dump(4);
-     } else {
-        std::cout << getFullJson().dump(4) << std::endl;
-     }
+  std::ofstream ofs(filename);
+  if (ofs.good()) {
+    ofs << getFullJson().dump(4);
+  }
 }
 
-nlohmann::json RunTime::getFullJson(){
+nlohmann::json RunTime::getFullJson() {
   json main = json::object();
-  for (auto &package : jsonCallbacks) {
-     json j = json::parse(package.second());
-     for (auto type : j.items()) {
-        json &mj = JsonUtilities::getOrCreate(main,type.key(),JsonUtilities::CreateType::Object);
-        if (type.key() == "Options" ) {
-            json jj = type.value();
-            jj["config"] = OptionsParserStore::instance().getSchema(package.first);
-            mj[package.first] = jj;
-          } else if (type.key() == "DataType") {
-            for (auto &entry : type.value().items()) {
-               mj[entry.key()] = entry.value();
-            }
-          }
-        else {
-             for (auto &entry : type.value().items() ) {
-                mj[package.first + ":" + entry.key()] = entry.value();
-             }
+
+  for (auto& package : jsonCallbacks) {
+    json j = json::parse(package.second());
+    for (auto type : j.items()) {
+      // Add all the options and stuff
+      json& mj = JsonUtilities::getOrCreate(main, type.key(),
+                                            JsonUtilities::CreateType::Object);
+      if (type.key() == "Options") {
+        json jf = OptionsParserStore::instance().getSchema(package.first);
+        jf["docs"] = type.value();
+        mj[package.first] = jf;
+      } else if (type.key() == "DataType") {
+        for (auto& entry : type.value().items()) {
+          mj[entry.key()] = entry.value();
         }
-     }
+      } else if (type.key() == "Introduction" || type.key() == "Conclusion") {
+        if (package.first == mainPackageName) {
+          mj["docs"] = type.value();
+        }
+      } else {
+        for (auto& entry : type.value().items()) {
+          mj[package.first + ":" + entry.key()] = entry.value();
+        }
+      }
+    }
   }
   return main;
 }
@@ -138,7 +142,6 @@ RunTimeOptions* RunTime::getRunTimeOptions() { return &runTimeOptions; }
 void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
                              const CppInjection::DataCallback& callback,
                              NTV& args) {
-  std::cout << "INJECTION " << pname << " : " << id << std::endl;
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Single, args);
   if (it != nullptr) {
     it->setCallBack(callback);
@@ -151,7 +154,6 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
                                    std::string id,
                                    const CppInjection::DataCallback& callback,
                                    NTV& args) {
-  std::cout << "INJECTION " << pname << " : " << id << std::endl;
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Begin, args);
   if (it != nullptr) {
     it->setCallBack(callback);
@@ -162,7 +164,6 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
 
 void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
                              injectionDataCallback* callback, NTV& args) {
-  std::cout << "INJECTION " << pname << " : " << id << std::endl;
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Single, args);
   if (it != nullptr) {
     it->setCallBack(callback);
@@ -227,23 +228,22 @@ void RunTimeOptions::callback(json& j) {
 }
 
 void RunTimeOptions::fromJson(json& j) {
-  std::cout << j.dump(3);
   if (j.contains("logUnhandled")) {
     logUnhandled = j["logUnhandled"].get<bool>();
   }
   if (j.contains("dumpConfig")) {
-     dumpConfigFilename = j["dumpConfig"].get<std::string>();
-     dumpConfig = true;
+    dumpConfigFilename = j["dumpConfig"].get<std::string>();
+    dumpConfig = true;
   }
   if (j.contains("command-line")) {
-     json& cmd = j["command-line"];
-     if (cmd.contains("dumpConfig")) {
-        dumpConfig = true;
-        dumpConfigFilename = cmd["dumpConfig"].get<std::string>();
-     }
-     if (cmd.contains("logUnhandled")) {
-        logUnhandled = true;
-     }
+    json& cmd = j["command-line"];
+    if (cmd.contains("dumpConfig")) {
+      dumpConfig = true;
+      dumpConfigFilename = cmd["dumpConfig"].get<std::string>();
+    }
+    if (cmd.contains("logUnhandled")) {
+      logUnhandled = true;
+    }
   }
 }
 
@@ -259,9 +259,8 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
       logger.addToBlackList(it);
     }
   }
-
-  // Register this library -- the VnV Toolkit.
-  runTimePackageRegistration(PACKAGENAME_S, INJECTION_REGISTRATION_PTR);
+  runTimePackageRegistration(VNV_STR(VNVPACKAGENAME),
+                             INJECTION_REGISTRATION_PTR(VNVPACKAGENAME));
 
   // Register the Executable.
   if (callback != nullptr) {
@@ -273,20 +272,21 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
 
   // Process the configs (wait until now because it allows loaded test libraries
   // to register options objects.
-  processToolConfig(info.pluginConfig,info.cmdline);
+  processToolConfig(info.pluginConfig, info.cmdline);
 
   if (getRunTimeOptions()->dumpConfig) {
-     writeSpecification(getRunTimeOptions()->dumpConfigFilename);
+    writeSpecification(getRunTimeOptions()->dumpConfigFilename);
   }
 
   if (!OutputEngineStore::getOutputEngineStore().isInitialized()) {
-    VnV_Debug("Configuring The Output Engine");
+    VnV_Debug(VNVPACKAGENAME, "Configuring The Output Engine");
     OutputEngineStore::getOutputEngineStore().setEngineManager(
         info.engineInfo.engineType, info.engineInfo.engineConfig);
-    VnV_Debug("Output Engine Configuration Successful");
+    VnV_Debug(VNVPACKAGENAME, "Output Engine Configuration Successful");
   }
 
   VnV_Debug(
+      VNVPACKAGENAME,
       "Validating Json Test Configuration Input and converting to TestConfig "
       "objects");
   for (auto it : info.injectionPoints) {
@@ -300,19 +300,17 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
 
 void RunTime::loadInjectionPoints(json _json) {
   JsonParser parser;
-  char** argv;
+  char** argv = nullptr;
   int argc = 0;
   try {
-     RunInfo info = parser.parse(_json, &argc, argv);
-     loadRunInfo(info, nullptr);
+    RunInfo info = parser.parse(_json, &argc, argv);
+    loadRunInfo(info, nullptr);
   } catch (VnVExceptionBase e) {
-     std::cout << "Loading of injection points failed" << std::endl;
-     std::cout << e.what() << std::endl;
-     return ;
+    std::cerr << "Loading of injection points failed" << std::endl;
+    std::cerr << e.what() << std::endl;
+    std::abort();
   }
 }
-
-
 
 // Cant overload the name because "json" can be a "string".
 bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
@@ -322,11 +320,12 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
   JsonParser parser;
   RunInfo info;
   try {
-    info = parser.parse(config,argc,*argv);
+    info = parser.parse(config, argc, *argv);
   } catch (VnVExceptionBase e) {
-     std::cerr << "VnV Initialization Failed during input file validation. \n";
-     std::cerr << e.what() << std::endl;;
-     std::abort();
+    std::cerr << "VnV Initialization Failed during input file validation. \n";
+    std::cerr << e.what() << std::endl;
+    ;
+    std::abort();
   }
   runTests = configure(packageName, info, callback);
 
@@ -340,52 +339,54 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
    * VnV Configuration and provenance Tracking information.
    * ======================================================
    *
-   * The command line used to run this executable was
+   * CmdLine:  :vnv:`Data.Data."command-line"`.
    *
-   * ..codeblock::
-   *     ..vnv-data:: $.data.command-line
-   *
-   * Time of execution :vnv:`$.data.time`.
+   * Time of execution :vnv:`Data.Data.time`.
    *
    * The VnV Configuration file was
    *
-   * ..vnv-json:: $.data.config
+   * .. vnv-jchart::
+   *   :main: Data.Data.config.Value
+   *
+   *   $$main$$
+   *
    *
    * This injection point is called at the end of the VnVInit function
    * to allow users to collect provenance information about the executable.
    *
    */
   INJECTION_POINT_C(
-      comm, configuration,
-      [&](VnV_Comm comm, VnVParameterSet& p, OutputEngineManager* engine, InjectionPointType type, std::string stageId) {
-         // caught everything, so internal ones can ignore parameters and put
-         // anything.
-         // Here, we do a minimal provenance history. For a full history, the
-         // user should attach the provenace test to this node.
-         auto config = p["config"].getByRtti<json>();
-         auto argc = p["argc"].getByRtti<int*>();
-         auto argv = p["argv"].getByRtti<char***>();
+      VNVPACKAGENAME, comm, configuration,
+      [&](VnV_Comm comm, VnVParameterSet& p, OutputEngineManager* engine,
+          InjectionPointType type, std::string stageId) {
+        // caught everything, so internal ones can ignore parameters and put
+        // anything.
+        // Here, we do a minimal provenance history. For a full history, the
+        // user should attach the provenace test to this node.
+        auto config = p["config"].getByRtti<json>();
+        auto argc = p["argc"].getByRtti<int*>();
+        auto argv = p["argv"].getByRtti<char***>();
 
-         std::string currTime = VnV::ProvenanceUtils::timeToString();
-         std::string commandline = VnV::ProvenanceUtils::cmdLineToString(*argc,*argv);
-         engine->Put(comm,"config",config);
-         engine->Put(comm, "command-line", commandline);
-         engine->Put(comm, "time", currTime);
-
+        std::string currTime = VnV::ProvenanceUtils::timeToString();
+        std::string commandline =
+            VnV::ProvenanceUtils::cmdLineToString(*argc, *argv);
+        engine->Put(comm, "config", config);
+        engine->Put(comm, "command-line", commandline);
+        engine->Put(comm, "time", currTime);
       },
       argc, argv, config);
 
-    /**
-    * VnV Application Profiling Loop.
-    * ===============================
-    *
-    * This injection point is called at the end of the VnVInit function. This is a looped
-    * injection point with no interesting parameters passed in. This injection point exists
-    * soley as a mechanism for profiling the given application between the VnVInit and VnVFinalize
-    * functions.
-    *
-    */
-    INJECTION_LOOP_BEGIN(comm, initialization, runTests);
+  /**
+   *VnV Application Profiling Loop.
+   *===============================
+   *
+   *This injection point is called at the end of the VnVInit function. This is a
+   *looped injection point with no interesting parameters passed in. This
+   *injection point exists soley as a mechanism for profiling the given
+   *application between the VnVInit and VnVFinalize functions.
+   *
+   */
+  INJECTION_LOOP_BEGIN(VNVPACKAGENAME, comm, initialization, runTests);
 
   return runTests;
 }
@@ -395,7 +396,6 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv,
                            registrationCallBack* callback) {
   std::ifstream fstream(configFile);
 
-
   json mainJson;
   if (!fstream.good()) {
     throw Exceptions::fileReadError(configFile);
@@ -404,7 +404,7 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv,
   try {
     mainJson = json::parse(fstream);
   } catch (json::parse_error e) {
-    throw Exceptions::parseError(fstream,e.byte,e.what());
+    throw Exceptions::parseError(fstream, e.byte, e.what());
   }
 
   return InitFromJson(packageName, argc, argv, mainJson, callback);
@@ -422,7 +422,7 @@ bool RunTime::configure(std::string packageName, RunInfo info,
 
   } else if (info.error) {
     runTests = false;
-    processToolConfig(info.pluginConfig,info.cmdline);
+    processToolConfig(info.pluginConfig, info.cmdline);
   }
 
   return runTests;
@@ -436,7 +436,8 @@ void RunTime::runTimePackageRegistration(std::string packageName,
                                          vnv_registration_function reg) {
   auto it = plugins.find(packageName);
   if (it == plugins.end()) {
-    VnV_Debug("Registering a new Package %s", packageName.c_str());
+    VnV_Debug(VNVPACKAGENAME, "Registering a new Package %s",
+              packageName.c_str());
     plugins.insert(packageName);
     reg();  // could be recursive.
   }
@@ -444,7 +445,7 @@ void RunTime::runTimePackageRegistration(std::string packageName,
 
 bool RunTime::Finalize() {
   if (runTests) {
-    INJECTION_LOOP_END(initialization);
+    INJECTION_LOOP_END(VNVPACKAGENAME, initialization);
     OutputEngineStore::getOutputEngineStore().getEngineManager()->finalize();
   }
   return true;
@@ -474,12 +475,10 @@ void RunTime::readFile(std::string filename, long& idCounter) {
 }
 
 void RunTime::printRunTimeInformation() {
-  int a = VnV_BeginStage("Runtime Configuration");
+  int a = VnV_BeginStage(VNVPACKAGENAME, "Runtime Configuration");
   logger.print();
   OutputEngineStore::getOutputEngineStore().print();
   TestStore::getTestStore().print();
   InjectionPointStore::getInjectionPointStore().print();
-  VnV_EndStage(a);
+  VnV_EndStage(VNVPACKAGENAME, a);
 }
-
-

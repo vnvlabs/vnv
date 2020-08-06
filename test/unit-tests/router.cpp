@@ -63,9 +63,12 @@ RouterUnitTests::~RouterUnitTests(){}
 
 /**
  * Unit Tests for the Router Class of the Parallel Output Engine.
- * .. vnv-results-table:: $.results
+ *
+ * .. vnv-unit-test-results::
+ *
+ *
  */
-INJECTION_UNITTEST_RAW(router, RouterUnitTests,1)
+INJECTION_UNITTEST_RAW(VnVTestRunner,router, RouterUnitTests,1)
 
 
 

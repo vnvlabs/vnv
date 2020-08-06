@@ -10,15 +10,17 @@ int class1::function1(int x) {
   double value = 0;
 
   auto a = VnV_BeginStage(
+      DLPNAME,
       "An example of a third party library using the VnV logging capabilities");
 
-  INJECTION_LOOP_BEGIN(VSELF, Hello_temp_sub, slope, intersection, x, value);
+  INJECTION_LOOP_BEGIN(DLPNAME, VSELF(DLPNAME), Hello_temp_sub, slope,
+                       intersection, x, value);
 
   value = slope * x + intersection;
 
-  INJECTION_LOOP_END(Hello_temp_sub);
+  INJECTION_LOOP_END(DLPNAME, Hello_temp_sub);
 
-  VnV_EndStage(a);
+  VnV_EndStage(DLPNAME, a);
 
   return static_cast<int>(value);
 }
