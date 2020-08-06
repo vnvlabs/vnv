@@ -3,10 +3,10 @@
 #include <fstream>
 #include <iostream>
 
+#include "base/Runtime.h"
 #include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
 #include "plugins/engines/json/JsonOutputReader.h"
-#include "base/Runtime.h"
 
 using nlohmann::json;
 
@@ -28,12 +28,12 @@ static json __json_engine_schema__ = R"(
   This is the documentation.
 
 **/
-INJECTION_ENGINE(json) {
-  return new VnV::PACKAGENAME::Engines::JsonEngineManager();
+INJECTION_ENGINE(VNVPACKAGENAME, json) {
+  return new VnV::VNVPACKAGENAME::Engines::JsonEngineManager();
 }
 
 namespace VnV {
-namespace PACKAGENAME {
+namespace VNVPACKAGENAME {
 namespace Engines {
 
 #define LTypes X(double) X(int) X(bool) X(float) X(long) X(std::string) X(json)
@@ -112,9 +112,8 @@ nlohmann::json JsonEngineManager::getConfigurationSchema() {
 }
 
 void JsonEngineManager::finalize() {
-
-  //TODO -- Could cut this down to just what we need. Right now, we export
-  //everthing.
+  // TODO -- Could cut this down to just what we need. Right now, we export
+  // everthing.
   mainJson["spec"] = RunTime::instance().getFullJson();
 
   if (!outputFile.empty()) {
@@ -209,7 +208,8 @@ void JsonEngineManager::unitTestStartedCallBack(VnV_Comm /**comm**/,
   push(j, json::json_pointer("/children"));
 }
 void JsonEngineManager::dataTypeStartedCallBack(VnV_Comm /** comm **/,
-                                             std::string variableName,std::string dtype) {
+                                                std::string variableName,
+                                                std::string dtype) {
   json j;
 
   j["id"] = getId();
@@ -221,7 +221,8 @@ void JsonEngineManager::dataTypeStartedCallBack(VnV_Comm /** comm **/,
   push(j, json::json_pointer("/children"));
 }
 
-void JsonEngineManager::dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) {
+void JsonEngineManager::dataTypeEndedCallBack(VnV_Comm /** comm **/,
+                                              std::string variableName) {
   pop(2);
 }
 
@@ -240,12 +241,13 @@ void JsonEngineManager::unitTestFinishedCallBack(VnV_Comm comm,
   pop(2);
 }
 
-Nodes::IRootNode* JsonEngineManager::readFromFile(std::string file, long& idCounter) {
-  return VnV::PACKAGENAME::Engines::JsonReader::parse(file,idCounter);
+Nodes::IRootNode* JsonEngineManager::readFromFile(std::string file,
+                                                  long& idCounter) {
+  return VnV::VNVPACKAGENAME::Engines::JsonReader::parse(file, idCounter);
 }
 
 std::string JsonEngineManager::print() { return "VnV Json Engine Manager"; }
 
 }  // namespace Engines
-}  // namespace PACKAGENAME
+}  // namespace VNVPACKAGENAME
 }  // namespace VnV

@@ -3,6 +3,8 @@
 
 #include "base/Utilities.h"
 
+#include <time.h>
+
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
@@ -10,51 +12,78 @@
 #include <map>
 #include <sstream>
 #include <type_traits>
+//#include "base/InjectionPoint.h"
+#include <sys/stat.h>
+#include <time.h>
 
-#include "base/InjectionPoint.h"
-#include "c-interfaces/Logging.h"
+#include <list>
+#include <queue>
+#include <set>
+
+#include "base/exceptions.h"
+#include "c-interfaces/PackageName.h"
 
 using nlohmann::json;
 
-
-std::string VnV::ProvenanceUtils::timeToString(std::string format ) {
-         auto t = std::time(nullptr);
-         auto tm = *std::localtime(&t);
-         std::ostringstream oss;
-         oss << std::put_time(&tm, format.c_str());
-         return oss.str();
+std::string VnV::ProvenanceUtils::timeToString(std::string format) {
+  auto t = std::time(nullptr);
+  auto tm = *std::localtime(&t);
+  std::ostringstream oss;
+  oss << std::put_time(&tm, format.c_str());
+  return oss.str();
 }
 
 std::string VnV::ProvenanceUtils::cmdLineToString(int argc, char** argv) {
-
-         std::ostringstream commandline;
-         commandline << argv[0];
-           for (int i = 1; i < argc; i++) {
-             commandline <<  " " << std::string(argv[i]);
-         }
-         return commandline.str();
+  std::ostringstream commandline;
+  commandline << argv[0];
+  for (int i = 1; i < argc; i++) {
+    commandline << " " << std::string(argv[i]);
+  }
+  return commandline.str();
 }
-
 
 std::string VnV::StringUtils::escapeQuotes(std::string str,
                                            bool escapeFullString) {
   std::ostringstream oss;
   if (escapeFullString) oss << "\"";
-  for (int i = 0; i < str.size(); i++) {
-      switch (str[i]) {
-              case '\a': oss << "\\a"; break;
-              case '\b': oss << "\\b"; break;
-              case '\t': oss << "\\t"; break;
-              case '\n': oss << "\\n"; break;
-              case '\v': oss << "\\v";break;
-              case '\f': oss << "\\f";break;
-              case '\r': oss << "\\r";break;
-              case '\"': oss << "\\\"";break;
-              case '\'': oss << "\\\'";break;
-              case '\?': oss << "\\\?";break;
-              case '\\': oss << "\\\\";break;
-              default: oss << str[i];
-        }
+  for (std::size_t i = 0; i < str.size(); i++) {
+    switch (str[i]) {
+    case '\a':
+      oss << "\\a";
+      break;
+    case '\b':
+      oss << "\\b";
+      break;
+    case '\t':
+      oss << "\\t";
+      break;
+    case '\n':
+      oss << "\\n";
+      break;
+    case '\v':
+      oss << "\\v";
+      break;
+    case '\f':
+      oss << "\\f";
+      break;
+    case '\r':
+      oss << "\\r";
+      break;
+    case '\"':
+      oss << "\\\"";
+      break;
+    case '\'':
+      oss << "\\\'";
+      break;
+    case '\?':
+      oss << "\\\?";
+      break;
+    case '\\':
+      oss << "\\\\";
+      break;
+    default:
+      oss << str[i];
+    }
   }
   if (escapeFullString) oss << "\"";
   return oss.str();
@@ -180,10 +209,6 @@ VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp) {
   return parameterSet;
 }
 
-#include <list>
-#include <queue>
-#include <set>
-
 std::vector<std::pair<std::string, std::string>> VnV::bfs(
     std::map<std::string, std::map<std::string, std::string>>& m,
     std::string start, std::string end) {
@@ -248,7 +273,7 @@ std::map<std::string, std::string> VnV::StringUtils::variadicProcess(
   // the simplest way is to require classes with a comma be wrapped up inside a
   // pair of parenthesis. So, we dont consider an entry finished until we
   // balanence the parenthesis
-  int count = 0;
+  std::size_t count = 0;
   std::string curr = "";
   while (count < pmess.size()) {
     curr += ((curr.empty()) ? "" : ",") + pmess[count++];
@@ -282,7 +307,7 @@ bool VnV::StringUtils::balancedParenthesis(std::string expr) {
   char x;
 
   // Traversing the Expression
-  for (int i = 0; i < expr.length(); i++) {
+  for (std::size_t i = 0; i < expr.length(); i++) {
     if (expr[i] == '(' || expr[i] == '[' || expr[i] == '{') {
       // Push the element in the stack
       s.push(expr[i]);
@@ -324,7 +349,7 @@ bool VnV::StringUtils::balancedParenthesis(std::string expr) {
 
 std::string VnV::StringUtils::getIndent(int level, std::string space) {
   std::string s = "";
-  for (std::size_t i = 0; i < level; i++) {
+  for (int i = 0; i < level; i++) {
     s += space;
   }
   return s;
@@ -340,4 +365,16 @@ long long VnV::StringUtils::simpleHash(const std::string& str) {
     p_pow = (p_pow * p) % m;
   }
   return hash_value;
+}
+
+std::string VnV::TimeUtils::timeToISOString(time_t* t) {
+  char buf[80];
+  std::strftime(buf, 80, "%Y-%m-%d-%H-%M-%S", std::gmtime(t));
+  return buf;
+}
+
+std::string VnV::TimeUtils::timeForFile(std::string filename) {
+  struct stat result;
+  stat(filename.c_str(), &result);
+  return timeToISOString(&result.st_mtime);
 }

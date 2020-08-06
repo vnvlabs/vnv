@@ -36,12 +36,12 @@ std::string VnV::Logger::logLevelToColor(std::string level,
 };
 
 Logger::Logger() {
-  registerLogLevel(PACKAGENAME_S, "STAGE_START", yellow);
-  registerLogLevel(PACKAGENAME_S, "STAGE_END", yellow);
-  registerLogLevel(PACKAGENAME_S, "INFO", green);
-  registerLogLevel(PACKAGENAME_S, "DEBUG", cyan);
-  registerLogLevel(PACKAGENAME_S, "WARN", magenta);
-  registerLogLevel(PACKAGENAME_S, "ERROR", red);
+  registerLogLevel(VNVPACKAGENAME_S, "STAGE_START", yellow);
+  registerLogLevel(VNVPACKAGENAME_S, "STAGE_END", yellow);
+  registerLogLevel(VNVPACKAGENAME_S, "INFO", green);
+  registerLogLevel(VNVPACKAGENAME_S, "DEBUG", cyan);
+  registerLogLevel(VNVPACKAGENAME_S, "WARN", magenta);
+  registerLogLevel(VNVPACKAGENAME_S, "ERROR", red);
 };
 
 void Logger::registerLogLevel(std::string packageName, std::string name,
@@ -124,7 +124,8 @@ void Logger::endStage(VnV_Comm comm, int ref) {
 
   std::pair<int, std::string> cStage = stage.top();
   while (cStage.first != ref) {
-    VnV_Warn("Incorrect stage name or missing StageEnd call %d (expected: %d)",
+    VnV_Warn(VNVPACKAGENAME,
+             "Incorrect stage name or missing StageEnd call %d (expected: %d)",
              ref, cStage.first);
     stage.pop();
     if (stage.size() == 0) {
@@ -178,7 +179,7 @@ void Logger::setLog(const std::string& filename) {
 }
 
 void Logger::print() {
-  int a = VnV_BeginStage("Logger Configuration");
-  VnV_Info("Outfile Name: %s", outFileName.c_str());
-  VnV_EndStage(a);
+  int a = VnV_BeginStage(VNVPACKAGENAME, "Logger Configuration");
+  VnV_Info(VNVPACKAGENAME, "Outfile Name: %s", outFileName.c_str());
+  VnV_EndStage(VNVPACKAGENAME, a);
 }

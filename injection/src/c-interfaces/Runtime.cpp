@@ -37,7 +37,7 @@ void VnV_runUnitTests(VnV_Comm comm) {
 }
 
 void VnV_Registration_Info(const char* filename) {
-    VnV::RunTime::instance().writeSpecification(filename);
+  VnV::RunTime::instance().writeSpecification(filename);
 }
 
 void VnV_readFile(const char* filename, long* idCounter) {

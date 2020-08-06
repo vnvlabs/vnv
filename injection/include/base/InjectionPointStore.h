@@ -69,8 +69,11 @@ class InjectionPointStore {
    */
 
   // RTODO IMPLEMENT THIS FUNCTIONS.
-  std::shared_ptr<InjectionPoint> newInjectionPoint(std::string packageName, std::string name, NTV& args);
-  std::shared_ptr<InjectionPoint> fetchFromQueue(std::string packageName, std::string name,
+  std::shared_ptr<InjectionPoint> newInjectionPoint(std::string packageName,
+                                                    std::string name,
+                                                    NTV& args);
+  std::shared_ptr<InjectionPoint> fetchFromQueue(std::string packageName,
+                                                 std::string name,
                                                  InjectionPointType stage);
   void registerLoopedInjectionPoint(std::string packageName, std::string name,
                                     std::shared_ptr<InjectionPoint>& ptr);

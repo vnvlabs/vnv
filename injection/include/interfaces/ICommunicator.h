@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "c-interfaces/Communication.h"
@@ -68,6 +69,8 @@ class IReduction {
   long long key;
 
  public:
+  virtual ~IReduction() {}
+
   long long getKey();
   void setKey(long long key);
 
@@ -88,7 +91,7 @@ class IDataType {
   virtual void axpy(double alpha, IDataType* y) = 0;  // y = ax + y
   virtual int compare(IDataType* y) = 0;  // -1 less, 0 == , 1 greater.
   virtual void mult(IDataType* y) = 0;
-  virtual void Put(VnV_Comm comm, IOutputEngine *engine) = 0;
+  virtual void Put(VnV_Comm comm, IOutputEngine* engine) = 0;
 
   void setKey(long long key);
   long long getKey();
@@ -112,7 +115,9 @@ class ICommunicator {
   std::string getPackage();
   VnV_Comm asComm();
 
-  virtual int setData(void* data) = 0;  // The communicator passed in.
+  virtual ~ICommunicator() {}
+
+  virtual void setData(void* data) = 0;  // The communicator passed in.
   virtual void* getData() = 0;
 
   virtual int uniqueId() = 0;  // Unique id such that the same comm data returns
@@ -183,9 +188,6 @@ typedef ICommunicator* (*comm_register_ptr)(CommType);
 typedef IReduction* (*reduction_ptr)();
 typedef IDataType* (*dataType_ptr)();
 
-
-
-
 void registerCommunicator(std::string packageName, std::string name,
                           VnV::Communication::comm_register_ptr r);
 void registerDataType(std::string packageName, std::string name,
@@ -193,85 +195,89 @@ void registerDataType(std::string packageName, std::string name,
 void registerReduction(std::string packageName, std::string name,
                        VnV::Communication::reduction_ptr r);
 
-template<typename T>
-void registerDataType(std::string packageName, VnV::Communication::dataType_ptr ptr) {
-   std::string s = typeid(T).name();
-   VnV::Communication::registerDataType(packageName, s,ptr);
+template <typename T>
+void registerDataType(std::string packageName,
+                      VnV::Communication::dataType_ptr ptr) {
+  std::string s = typeid(T).name();
+  VnV::Communication::registerDataType(packageName, s, ptr);
 }
 
 }  // namespace Communication
 
 }  // namespace VnV
 
-#define INJECTION_COMM(name)                                        \
+#define INJECTION_COMM(PNAME, name)                                 \
   namespace VnV {                                                   \
-  namespace PACKAGENAME {                                           \
+  namespace PNAME {                                                 \
   namespace Communication {                                         \
-  VnV::Communication::ICommunicator* declare_##name(CommType type); \
+  VnV::Communication::ICommunicator* declare_##name(                \
+      VnV::Communication::CommType type);                           \
   void register_##name() {                                          \
-    VnV::Communication::registerCommunicator(PACKAGENAME_S, #name, declare_##name);       \
+    VnV::Communication::registerCommunicator(VNV_STR(PNAME), #name, \
+                                             declare_##name);       \
   }                                                                 \
   }                                                                 \
   }                                                                 \
   }                                                                 \
   VnV::Communication::ICommunicator*                                \
-      VnV::PACKAGENAME::Communication::declare_##name(CommType type)
+      VnV::PNAME::Communication::declare_##name(                    \
+          VnV::Communication::CommType type)
 
-#define DECLARECOMM(name)   \
-  namespace VnV {           \
-  namespace PACKAGENAME {   \
-  namespace Communication { \
-  void register_##name();   \
-  }                         \
-  }                         \
+#define DECLARECOMM(PNAME, name) \
+  namespace VnV {                \
+  namespace PNAME {              \
+  namespace Communication {      \
+  void register_##name();        \
+  }                              \
+  }                              \
   }
-#define REGISTERCOMM(name) VnV::PACKAGENAME::Communication::register_##name();
+#define REGISTERCOMM(PNAME, name) VnV::PNAME::Communication::register_##name();
 
-#define INJECTION_DATATYPE(cls)                               \
-  namespace VnV {                                              \
-  namespace PACKAGENAME {                                      \
-  namespace DataTypes {                                        \
-  VnV::Communication::IDataType* declare_##name();             \
-  void register_##name() {                                     \
-    VnV::Communication::registerDataType<cls>(PACKAGENAME_S, declare_##name); \
-  }                                                            \
-  }                                                            \
-  }                                                            \
-  }                                                            \
-  VnV::Communication::IDataType* VnV::PACKAGENAME::DataTypes::declare_##name()
+#define INJECTION_DATATYPE(PNAME, cls)                                         \
+  namespace VnV {                                                              \
+  namespace PNAME {                                                            \
+  namespace DataTypes {                                                        \
+  VnV::Communication::IDataType* declare_##name();                             \
+  void register_##name() {                                                     \
+    VnV::Communication::registerDataType<cls>(VNV_STR(PNAME), declare_##name); \
+  }                                                                            \
+  }                                                                            \
+  }                                                                            \
+  }                                                                            \
+  VnV::Communication::IDataType* VnV::PNAME::DataTypes::declare_##name()
 
-#define DECLAREDATATYPE(name) \
-  namespace VnV {             \
-  namespace PACKAGENAME {     \
-  namespace DataTypes {       \
-  void register_##name();     \
-  }                           \
-  }                           \
+#define DECLAREDATATYPE(PNAME, name) \
+  namespace VnV {                    \
+  namespace PNAME {                  \
+  namespace DataTypes {              \
+  void register_##name();            \
+  }                                  \
+  }                                  \
   }
-#define REGISTERDATATYPE(name) VnV::PACKAGENAME::DataTypes::register_##name();
+#define REGISTERDATATYPE(PNAME, name) VnV::PNAME::DataTypes::register_##name();
 
-#define INJECTION_REDUCER(name)                                 \
-  namespace VnV {                                               \
-  namespace PACKAGENAME {                                       \
-  namespace Reducers {                                          \
-  VnV::Communication::IReduction* declare_##name();             \
-  void register_##name() {                                      \
-    VnV::Communication::registerReduction(PACKAGENAME_S, #name, \
-                                          declare_##name);      \
-  }                                                             \
-  }                                                             \
-  }                                                             \
-  }                                                             \
-  VnV::Communication::IReduction* VnV::PACKAGENAME::Reducers::declare_##name()
+#define INJECTION_REDUCER(PNAME, name)                           \
+  namespace VnV {                                                \
+  namespace PNAME {                                              \
+  namespace Reducers {                                           \
+  VnV::Communication::IReduction* declare_##name();              \
+  void register_##name() {                                       \
+    VnV::Communication::registerReduction(VNV_STR(PNAME), #name, \
+                                          declare_##name);       \
+  }                                                              \
+  }                                                              \
+  }                                                              \
+  }                                                              \
+  VnV::Communication::IReduction* VnV::PNAME::Reducers::declare_##name()
 
-#define DECLAREREDUCER(name) \
-  namespace VnV {            \
-  namespace PACKAGENAME {    \
-  namespace Reducers {       \
-  void register_##name();    \
-  }                          \
-  }                          \
+#define DECLAREREDUCER(PNAME, name) \
+  namespace VnV {                   \
+  namespace PNAME {                 \
+  namespace Reducers {              \
+  void register_##name();           \
+  }                                 \
+  }                                 \
   }
-#define REGISTERREDUCER(name) VnV::PACKAGENAME::Reducers::register_##name();
+#define REGISTERREDUCER(PNAME, name) VnV::PNAME::Reducers::register_##name();
 
 #endif  // ICOMMUNICATOR_H

@@ -33,11 +33,11 @@ void OutputEngineStore::setEngineManager(std::string type, json& config) {
 }
 
 void OutputEngineStore::printAvailableEngines() {
-  int a = VnV_BeginStage("Available Engines:");
+  int a = VnV_BeginStage(VNVPACKAGENAME, "Available Engines:");
   for (auto it : registeredEngines) {
-    VnV_Info("%s", it.first.c_str());
+    VnV_Info(VNVPACKAGENAME, "%s", it.first.c_str());
   }
-  VnV_EndStage(a);
+  VnV_EndStage(VNVPACKAGENAME, a);
 }
 
 OutputEngineStore::OutputEngineStore() {}
@@ -48,14 +48,15 @@ OutputEngineStore& OutputEngineStore::getOutputEngineStore() {
 }
 
 void OutputEngineStore::print() {
-  int b = VnV_BeginStage("Output Engine Configuration");
+  int b = VnV_BeginStage(VNVPACKAGENAME, "Output Engine Configuration");
   printAvailableEngines();
   if (manager != nullptr) {
-    int a = VnV_BeginStage("Chosen Engine: %s ", engineName.c_str());
+    int a = VnV_BeginStage(VNVPACKAGENAME, "Chosen Engine: %s ",
+                           engineName.c_str());
     manager->print();
-    VnV_EndStage(a);
+    VnV_EndStage(VNVPACKAGENAME, a);
   }
-  VnV_EndStage(b);
+  VnV_EndStage(VNVPACKAGENAME, b);
 }
 
 void OutputEngineStore::registerEngine(std::string name,

@@ -7,9 +7,14 @@ namespace {
   X(SIGINT)                                                                    \
   X(SIGQUIT)                                                                   \
   X(SIGILL)                                                                    \
-  X(SIGABRT) X(SIGKILL) X(SIGSEGV) X(SIGPIPE) X(SIGALRM) X(SIGTERM) X(SIGUSR1) \
-      X(SIGUSR2) X(SIGCHLD) X(SIGCONT) X(SIGSTOP) X(SIGTSTP) X(SIGTTIN)        \
-          X(SIGTTOU) X(SIGPROF) X(SIGSYS)
+  X(SIGABRT)                                                                   \
+  X(SIGKILL)                                                                   \
+  X(SIGSEGV)                                                                   \
+  X(SIGPIPE)                                                                   \
+  X(SIGALRM)                                                                   \
+  X(SIGTERM)                                                                   \
+  X(SIGUSR1) X(SIGUSR2) X(SIGCHLD) X(SIGCONT) X(SIGSTOP) X(SIGTSTP) X(SIGTTIN) \
+      X(SIGTTOU) X(SIGPROF) X(SIGSYS)
 
 #define X(name) \
   , { #name, name }
@@ -21,7 +26,7 @@ int default_signal = SIGTRAP;
 #undef X
 }  // namespace
 
-INJECTION_TEST(hardBreakpoint, int* argv) {
+INJECTION_TEST(VNVPACKAGENAME, hardBreakpoint, int* argv) {
   json confj = getConfigurationJson();
   auto it = confj.find("signal");
   if (it != confj.end()) {
@@ -29,7 +34,8 @@ INJECTION_TEST(hardBreakpoint, int* argv) {
     if (s != sigmap.end()) {
       raise(s->second);
     } else {
-      VnV_Warn("Invalid Signal passed to breakpoint test. Ignoring");
+      VnV_Warn(VNVPACKAGENAME,
+               "Invalid Signal passed to breakpoint test. Ignoring");
     }
   } else {
     raise(default_signal);

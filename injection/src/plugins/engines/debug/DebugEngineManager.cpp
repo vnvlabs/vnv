@@ -20,12 +20,12 @@ static json __debug_engine_schema__ = R"(
 }
 )"_json;
 
-INJECTION_ENGINE(debug) {
-  return new VnV::PACKAGENAME::Engines::DebugEngineManager();
+INJECTION_ENGINE(VNVPACKAGENAME, debug) {
+  return new VnV::VNVPACKAGENAME::Engines::DebugEngineManager();
 }
 
 namespace VnV {
-namespace PACKAGENAME {
+namespace VNVPACKAGENAME {
 namespace Engines {
 
 OutputEngineManager* DebugEngineBuilder() { return new DebugEngineManager(); }
@@ -79,7 +79,9 @@ nlohmann::json DebugEngineManager::getConfigurationSchema() {
   return __debug_engine_schema__;
 }
 
-void DebugEngineManager::finalize() { VnV_Info("DEBUG ENGINE: FINALIZE"); }
+void DebugEngineManager::finalize() {
+  VnV_Info(VNVPACKAGENAME, "DEBUG ENGINE: FINALIZE");
+}
 
 void DebugEngineManager::setFromJson(nlohmann::json& config) {
   printf("DEBUG ENGINE WRAPPER Init with file %s\n", config.dump().c_str());
@@ -93,7 +95,8 @@ void DebugEngineManager::injectionPointEndedCallBack(VnV_Comm comm,
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
 }
 
-void DebugEngineManager::injectionPointStartedCallBack(VnV_Comm comm, std::string packageName,
+void DebugEngineManager::injectionPointStartedCallBack(VnV_Comm comm,
+                                                       std::string packageName,
                                                        std::string id,
                                                        InjectionPointType type,
                                                        std::string stageVal) {
@@ -101,8 +104,10 @@ void DebugEngineManager::injectionPointStartedCallBack(VnV_Comm comm, std::strin
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
 }
 
-void DebugEngineManager::testStartedCallBack(VnV_Comm comm, std::string packageName,
-                                             std::string testName, bool internal) {
+void DebugEngineManager::testStartedCallBack(VnV_Comm comm,
+                                             std::string packageName,
+                                             std::string testName,
+                                             bool internal) {
   printf("DEBUG ENGINE Start Test %s \n", testName.c_str());
 }
 
@@ -111,14 +116,17 @@ void DebugEngineManager::testFinishedCallBack(VnV_Comm comm, bool result_) {
 }
 
 void DebugEngineManager::dataTypeStartedCallBack(VnV_Comm /** comm **/,
-                                             std::string variableName, std::string dtype) {
+                                                 std::string variableName,
+                                                 std::string dtype) {
   printf("DEBUG ENGINE Data Type Started %s", variableName.c_str());
 }
-void DebugEngineManager::dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) {
-  printf("DEBUG ENGINE Data Type Finished %s " , variableName.c_str()) ;
+void DebugEngineManager::dataTypeEndedCallBack(VnV_Comm /** comm **/,
+                                               std::string variableName) {
+  printf("DEBUG ENGINE Data Type Finished %s ", variableName.c_str());
 }
 
-void DebugEngineManager::unitTestStartedCallBack(VnV_Comm comm, std::string packageName,
+void DebugEngineManager::unitTestStartedCallBack(VnV_Comm comm,
+                                                 std::string packageName,
                                                  std::string unitTestName) {
   printf("DEBUG ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
 }
@@ -146,5 +154,5 @@ Nodes::IRootNode* DebugEngineManager::readFromFile(std::string file, long&) {
 std::string DebugEngineManager::print() { return "VnV Debug Engine Manager"; }
 
 }  // namespace Engines
-}  // namespace PACKAGENAME
+}  // namespace VNVPACKAGENAME
 }  // namespace VnV

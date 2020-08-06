@@ -2,12 +2,13 @@
 /** @file JsonParser.cpp Implementation of the JsonParser class as defined in
     base/JsonParser.h
 **/
-#include <fstream>
 #include "base/JsonParser.h"  // Prototype
 
+#include <fstream>
+
 #include "base/JsonSchema.h"  // ValidationSchema()
-#include "base/exceptions.h"
 #include "base/Utilities.h"
+#include "base/exceptions.h"
 
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
@@ -111,7 +112,7 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
   if (main.find("pluginConfig") != main.end()) {
     info.pluginConfig = main.find("pluginConfig").value();
   }
-  info.cmdline = commandLineParser(argc,argv);
+  info.cmdline = commandLineParser(argc, argv);
 
   // Get the run information and the scopes.
   if (main.find("runTests") != main.end()) {
@@ -155,7 +156,7 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
   }
 
   // Get the test libraries infomation.
-  if (main.find("testLibraries") != main.end())
+  if (main.find("additionalPlugins") != main.end())
     addTestLibrary(main["additionalPlugins"], info.additionalPlugins);
 
   // Add all the injection points;
@@ -165,57 +166,53 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
   return info;
 }
 
-json JsonParser::commandLineParser( int* argc, char** argv) {
+json JsonParser::commandLineParser(int* argc, char** argv) {
   json main = json::object();
-  for ( int i = 0; i < *argc; i++ ) {
-     std::string s(argv[i]);
-     std::vector<std::string> result;
-     StringUtils::StringSplit(s,".",result);
+  for (int i = 0; i < *argc; i++) {
+    std::string s(argv[i]);
+    std::vector<std::string> result;
+    StringUtils::StringSplit(s, ".", result);
 
-     // valid parameters are --vnv.packageName.key <value>
-     if (result.size() >= 3  && result[0].compare("--vnv") == 0 ) {
-        json & j = JsonUtilities::getOrCreate(main,result[1],JsonUtilities::CreateType::Object);
+    // valid parameters are --vnv.packageName.key <value>
+    if (result.size() >= 3 && result[0].compare("--vnv") == 0) {
+      json& j = JsonUtilities::getOrCreate(main, result[1],
+                                           JsonUtilities::CreateType::Object);
 
-        //Set the value to be argv[i+1], the next token in the command line.
-        //A bit hacky, but don't set i+=1 to skip the next parameter. This
-        // allows for parameters where there is no value. We could not know
-        // that without pre-registration, which we should probably do, but
-        // this works for now.
-        j[result[2]] = (i+1 == *argc) ? "" : argv[i+1];
-
-      }
+      // Set the value to be argv[i+1], the next token in the command line.
+      // A bit hacky, but don't set i+=1 to skip the next parameter. This
+      // allows for parameters where there is no value. We could not know
+      // that without pre-registration, which we should probably do, but
+      // this works for now.
+      j[result[2]] = (i + 1 == *argc) ? "" : argv[i + 1];
+    }
   }
   return main;
 }
 
-
-
-RunInfo JsonParser::parse(std::ifstream& fstream, int *argc, char** argv) {
+RunInfo JsonParser::parse(std::ifstream& fstream, int* argc, char** argv) {
   json mainJson;
   if (!fstream.good()) {
-    throw VnVExceptionBase("Invalid Input File Stream. The input file stream passed "
-                           "to JsonParser::parse could not be found and/or opened");
+    throw VnVExceptionBase(
+        "Invalid Input File Stream. The input file stream passed "
+        "to JsonParser::parse could not be found and/or opened");
   }
 
   try {
     mainJson = json::parse(fstream);
   } catch (json::parse_error e) {
-     throw Exceptions::parseError(fstream,e.byte,e.what());
+    throw Exceptions::parseError(fstream, e.byte, e.what());
   }
-  return parse(mainJson,argc,argv);
+  return parse(mainJson, argc, argv);
 }
 
 #include <iostream>
-RunInfo JsonParser::parse(const json& _json, int *argc, char** argv) {
+RunInfo JsonParser::parse(const json& _json, int* argc, char** argv) {
   json_validator validator;
   validator.set_root_schema(getVVSchema());
   try {
-    validator.validate(_json );
+    validator.validate(_json);
   } catch (std::exception e) {
-
-    std::cout << e.what() << "is the exception ";
-
     throw VnVExceptionBase(e.what());
   }
-  return _parse(_json,argc,argv);
+  return _parse(_json, argc, argv);
 }

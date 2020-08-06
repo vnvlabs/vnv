@@ -8,7 +8,6 @@
 #include "interfaces/ICommunicator.h"
 
 using VnV::Communication::comm_register_ptr;
-using VnV::Communication::CommType;
 using VnV::Communication::dataType_ptr;
 using VnV::Communication::ICommunicator;
 using VnV::Communication::ICommunicator_ptr;
@@ -34,6 +33,7 @@ class CommunicationStore {
 
   long long getKey(std::string name);
   long long getKey(std::string packageName, std::string name);
+
  public:
   void declareComm(std::string packageName, std::string commPackageName,
                    std::string commName);
@@ -51,20 +51,21 @@ class CommunicationStore {
 
   IDataType_ptr getDataType(std::string name);
 
-  template<typename T>
-  IDataType_ptr getDataType() {
-     return getDataType(typeid(T).name());
+  template <typename T> IDataType_ptr getDataType() {
+    return getDataType(typeid(T).name());
   }
 
   IReduction_ptr getReducer(long long key);
   IReduction_ptr getReducer(std::string packageName, std::string name);
 
   ICommunicator_ptr getCommunicator(std::string packageName, std::string name,
-                                    CommType type);
+                                    Communication::CommType type);
 
-  ICommunicator_ptr getCommunicator(long long key, CommType type);
+  ICommunicator_ptr getCommunicator(long long key,
+                                    Communication::CommType type);
 
-  ICommunicator_ptr getCommForPackage(std::string packageName, CommType type);
+  ICommunicator_ptr getCommForPackage(std::string packageName,
+                                      Communication::CommType type);
 
   ICommunicator_ptr getCommunicator(VnV_Comm comm);
 

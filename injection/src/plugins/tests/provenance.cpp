@@ -110,14 +110,14 @@ class provenanceRunner {
     // point.
   }
   static std::string provSchema() {
-  return R"({
+    return R"({
           "type":"object",
           "properties" : {
            },
            "additionalProperties" : false
            }
          )";
-}
+  }
 
   virtual ~provenanceRunner();
 };
@@ -126,11 +126,51 @@ provenanceRunner::~provenanceRunner() {}
 
 }  // namespace
 
-/** sdfsdfsdfsdf **/
+/**
+    Provenance Tracking
+    ===================
+
+    In this section, we detail the provenance tracking information for the
+    sample executable. This includes a robust, fully detailed description of
+    the software used to compile and run this code. This includes a detailed
+    account of all shared libraries loaded in the application, as well as the
+    time of execution, the command line used and the vnv configuration file.
+
+    The configuration is:
+
+    Current Working directory: :vnv:`Data.cwd.Value`
+
+    Command Line: :vnv:`Data."command-line".Value`
+
+    Time: :vnv:`Data.time.Value`
+
+    The runtime config info was:
+
+    .. vnv-jchart::
+       :exe: Data."exe-info".Value
+       :inp: Data."input-files".Value
+       :conf: Data."vnv-config".Value
+       :time: Data.time.Value
+       :cmd: Data."command-line".Value
+       :cwd: Data.cwd.Value
+
+       {
+         "Command Line" : $$cmd$$,
+         "Working Directory" : $$cwd$$,
+         "time" : $$time$$,
+         "configuration File" : $$conf$$,
+         "input Files" : $$inp$$,
+         "exe info" : $$exe$$
+       }
 
 
-INJECTION_TEST_RS(provenance, provenanceRunner, provenanceRunner::provSchema(), int* argc, char*** argv,
-                 nlohmann::json config) {
+
+    TODO Represent this data in a nicer, less brute force way
+ */
+
+INJECTION_TEST_RS(VNVPACKAGENAME, provenance, provenanceRunner,
+                  provenanceRunner::provSchema(), int* argc, char*** argv,
+                  nlohmann::json config) {
   if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
     GetRef(c, "argc", int*);
     GetRef(f, "config", nlohmann::json);

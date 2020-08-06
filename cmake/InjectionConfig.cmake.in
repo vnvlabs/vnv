@@ -1,14 +1,13 @@
 ﻿get_filename_component(Injection_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 include(CMakeFindDependencyMacro)
 
-list(APPEND CMAKE_MODULE_PATH ${Injection_CMAKE_DIR})
+list(APPEND CMAKE_PREFIX_PATH ${Injection_CMAKE_DIR})
 
 
 if (NOT TARGET jsv::jsv)
    find_dependency(jsv)
 endif()
 
-list(REMOVE_AT CMAKE_MODULE_PATH -1)
 
 
 if(NOT TARGET Injection::Injection)
@@ -24,3 +23,5 @@ else()
 endif()
 
 include("${Injection_CMAKE_DIR}/Registration.cmake")
+
+list(REMOVE_AT CMAKE_PREFIX_PATH -1)

@@ -8,7 +8,6 @@ ReaderWrapper::ReaderWrapper(std::string filename)
     : ReaderWrapper(filename, "{}") {}
 
 ReaderWrapper::ReaderWrapper(std::string filename, std::string config) {
-
   json conf = json::object();
 
   auto idx = filename.rfind(".");

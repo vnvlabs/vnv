@@ -4,6 +4,9 @@
 
 using namespace VnV::Communication;
 
+// TODO: Switch out all the malloc and free statements for std::vector<char>
+// objects
+
 IStatus_ptr DataTypeCommunication::Probe(int source, int tag) {
   return comm->Probe(source, tag);
 }
@@ -41,7 +44,7 @@ std::pair<IStatus_ptr, int> DataTypeCommunication::Test(IRequest_ptr ptr) {
 std::pair<IStatus_vec, int> DataTypeCommunication::TestAll(IRequest_vec& vec) {
   auto s = comm->TestAll(vec);
   if (s.second) {
-    for (int i = 0; i < s.first.size(); i++) {
+    for (std::size_t i = 0; i < s.first.size(); i++) {
       vec[i]->ready = true;
     }
   }
@@ -153,14 +156,15 @@ IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data, int count,
   // First, need to broadcast the data type.
   long long key = (rank == root) ? data[0]->getKey() : -1;
   comm->BroadCast(&key, 1, sizeof(long long), root);
-  long dataSize = CommunicationStore::instance().getDataType(key)->maxSize();
+  long long dataSize =
+      CommunicationStore::instance().getDataType(key)->maxSize();
 
   // Now pop the send buffer
   char* sendBuffer;
   sendBuffer = (char*)malloc(data.size() * dataSize);
 
   if (rank == root || allToAll) {
-    for (int i = 0; i < data.size(); i++) {
+    for (std::size_t i = 0; i < data.size(); i++) {
       data[i]->pack(&(sendBuffer[i * dataSize]));
     }
   }
@@ -203,9 +207,9 @@ IDataType_vec DataTypeCommunication::Gather(IDataType_vec& data, int root,
   // Pop the send buffer -- Everyone has one already,
   char* sendbuffer = nullptr;
   long long key = data[0]->getKey();
-  long dataSize = data[0]->maxSize();
+  long long dataSize = data[0]->maxSize();
   sendbuffer = (char*)malloc(dataSize * data.size());
-  for (int i = 0; i < data.size(); i++) {
+  for (std::size_t i = 0; i < data.size(); i++) {
     data[i]->pack(&(sendbuffer[i * dataSize]));
   }
 

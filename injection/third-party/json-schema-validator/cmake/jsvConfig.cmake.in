@@ -7,7 +7,7 @@ list(REMOVE_AT CMAKE_MODULE_PATH -1)
 
 
 if(NOT TARGET jsv::jsv)
-  include("${jsv_CMAKE_DIR}/jsv-targets.cmake")
+  include("${jsv_CMAKE_DIR}/jsvTargets.cmake")
 endif()
 
 set(jsv_LIBRARIES jsv::jsv)

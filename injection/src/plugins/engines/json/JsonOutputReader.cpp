@@ -3,14 +3,13 @@
 #include <random>
 
 namespace VnV {
-namespace PACKAGENAME {
+namespace VNVPACKAGENAME {
 namespace Engines {
 namespace JsonReader {
 
 DoubleNode::DoubleNode() : IDoubleNode() {}
 
 double DoubleNode::getValue() { return value; }
-
 
 TestNode::TestNode() : ITestNode() {}
 
@@ -28,17 +27,16 @@ IArrayNode* UnitTestNode::getChildren() { return children.get(); }
 
 IMapNode* UnitTestNode::getResults() { return resultsMap.get(); }
 
-
 IArrayNode* RootNode::getChildren() { return children.get(); }
 
 IArrayNode* RootNode::getUnitTests() { return unitTests.get(); }
 
 IInfoNode* RootNode::getInfoNode() { return infoNode.get(); }
 
-DataBase * RootNode::findById(long id) {
-
+DataBase* RootNode::findById(long id) {
+  if (id == getId()) return this;
   auto it = idMap.find(id);
-  if (it!= idMap.end())
+  if (it != idMap.end())
     return it->second.get();
   else
     return nullptr;
@@ -61,7 +59,8 @@ std::string LogNode::getMessage() { return message; }
 
 std::string LogNode::getStage() { return stage; }
 
-std::string LogNode::def = R"(:vnv:`$.package` : :vnv:`$.stage`: :vnv:`$.message`)";
+std::string LogNode::def =
+    R"(:vnv:`$.package` : :vnv:`$.stage`: :vnv:`$.message`)";
 
 InjectionPointNode::InjectionPointNode() : IInjectionPointNode() {}
 
@@ -93,16 +92,13 @@ bool StringNode::isJson() { return jsonString; }
 
 std::string StringNode::getValue() { return value; }
 
-
 LongNode::LongNode() : ILongNode() {}
 
 long LongNode::getValue() { return value; }
 
-
 IntegerNode::IntegerNode() : IIntegerNode() {}
 
 int IntegerNode::getValue() { return value; }
-
 
 std::vector<std::string> MapNode::fetchkeys() {
   std::vector<std::string> v;
@@ -135,14 +131,10 @@ IMapNode* MapNode::add(std::string key, std::shared_ptr<DataBase> v) {
 }
 
 DataTypeNode::DataTypeNode() : IDataTypeNode() {}
-std::string DataTypeNode::getDataTypeName() {
-  return dataTypeName;
-}
-IMapNode* DataTypeNode::getChildren(){
-  return children.get();
-}
+std::string DataTypeNode::getDataTypeName() { return dataTypeName; }
+IMapNode* DataTypeNode::getChildren() { return children.get(); }
 
 }  // namespace JsonReader
 }  // namespace Engines
-}  // namespace PACKAGENAME
+}  // namespace VNVPACKAGENAME
 }  // namespace VnV

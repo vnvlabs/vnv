@@ -7,6 +7,7 @@ endif()
 # Add the third party targets ( json-schema-validator TODO github-link)
 
 add_library(injection SHARED "")
+link_vnv_file(injection VNV cpp)
 
 set_target_properties(injection PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION
                                                                       1)
@@ -35,5 +36,4 @@ endif()
 
 add_subdirectory(src)
 add_subdirectory(third-party)
-generate_vnv_registration(injection VNV ${PROJECT_SOURCE_DIR}/registration/ cpp)
-target_compile_definitions(injection PRIVATE -DPACKAGENAME=VNV)
+add_subdirectory(util)

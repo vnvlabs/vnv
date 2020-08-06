@@ -32,7 +32,8 @@ json getTestDelcarationJsonSchema();
  * @param testDeclaration
  * @return
  */
-json getTestValidationSchema(std::map<std::string, std::string>& params, json& schema);
+json getTestValidationSchema(std::map<std::string, std::string>& params,
+                             json& schema);
 
 json getTransformDeclarationSchema();
 

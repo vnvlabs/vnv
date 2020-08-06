@@ -216,9 +216,12 @@ ready(function() {
   let nbViewers = viewerContainers.length;
   while (nbViewers--) {
     const viewerContainer = viewerContainers[nbViewers];
-    const fileURL = viewerContainer.dataset.url;
+    const fileURL = viewerContainer.dataset.url; 
+    const w = viewerContainer.dataset.w || "500px";
+    const h = viewerContainer.dataset.w || "500px";
+
     const options = Object.assign(
-    { containerStyle: { height: '100%' } },
+    { containerStyle: { width: w, height: h } },
     { fileURL }
     );
     load(viewerContainer, options);

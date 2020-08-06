@@ -30,12 +30,13 @@ Communication::ICommunicator_ptr UnitTestStore::dispatch(VnV_Comm comm,
   if (c->Rank() == 0) {
     if (cores > c->Size()) {
       VnV_Warn_MPI(
-          VSELF,
+          VNVPACKAGENAME, VSELF(VNVPACKAGENAME),
           "Test Requested %d cores but only %d are available -- skipping",
           cores, c->Size());
       return nullptr;
     }
   }
+  return c;
 }
 
 void UnitTestStore::addUnitTester(std::string packageName, std::string name,
@@ -59,8 +60,9 @@ IUnitTest* UnitTestStore::getUnitTester(std::string packageName,
   return nullptr;
 }
 
-void UnitTestStore::runTest(Communication::ICommunicator_ptr comm, std::string packageName,
-                            std::string name, IUnitTest* tester) {
+void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,
+                            std::string packageName, std::string name,
+                            IUnitTest* tester) {
   tester->setComm(comm);
   OutputEngineManager* engineManager =
       OutputEngineStore::getOutputEngineStore().getEngineManager();
@@ -78,7 +80,7 @@ void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,
   if (it != tester_factory.end()) {
     auto itt = it->second.find(name);
     if (itt != it->second.end()) {
-      runTest(comm, packageName , name, itt->second());
+      runTest(comm, packageName, name, itt->second());
     }
   }
 }
@@ -101,14 +103,15 @@ void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
     for (auto itt : it.second) {
       std::string key = it.first + ":" + itt.first;
       int cores = tester_cores[key];
-      tests.push_back(std::make_tuple(cores, it.first, it.first, itt.second));
+      tests.push_back(std::make_tuple(cores, it.first, itt.first, itt.second));
     }
   }
-  std::sort(tests.begin(), tests.end(),
-            [](const std::tuple<int, std::string, std::string, tester_ptr*>& p1,
-               const std::tuple<int, std::string, std::string, tester_ptr*>& p2) {
-              return std::get<0>(p1) > std::get<0>(p2);
-            });
+  std::sort(
+      tests.begin(), tests.end(),
+      [](const std::tuple<int, std::string, std::string, tester_ptr*>& p1,
+         const std::tuple<int, std::string, std::string, tester_ptr*>& p2) {
+        return std::get<0>(p1) > std::get<0>(p2);
+      });
 
   auto it = tests.begin();
   int currentBuffer = 0;
@@ -126,7 +129,8 @@ void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
     std::string name = std::get<2>(*it);
     std::string pname = std::get<1>(*it);
     if (req > size) {
-      VnV_Warn("Ignoring test %s because cannot fufull requested cores of %d",
+      VnV_Warn(VNVPACKAGENAME,
+               "Ignoring test %s because cannot fufull requested cores of %d",
                name.c_str(), req);
       it = tests.erase(it);
     } else if (currentBuffer + req <= size) {
@@ -148,13 +152,12 @@ void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
     int smallestLeft = (tests.size() == 0) ? size : std::get<0>(tests.back());
 
     if (currentBuffer + smallestLeft > size) {
-      // std::cout <<"Running " << myName << " on range [" << myStart << ", " <<
-      // myEnd << ")" << rank << std::endl;
       if (myStart >= 0) {
         // Create comm - collective on the ranks [myStart,myEnd).
         ICommunicator_ptr p = c->create(myStart, myEnd, 1, 10);
         auto pcomm = CommunicationStore::instance().toVnVComm(p);
-        VnV_Debug_MPI(pcomm, "Running %s on range [%d,%d)", myName.c_str(), myStart, myEnd);
+        VnV_Debug_MPI(VNVPACKAGENAME, pcomm, "Running %s %s on range [%d,%d)",
+                      myName.c_str(), myPackage.c_str(), myStart, myEnd);
         runTest(p, myPackage, myName, myTester());
       }
       currentBuffer = 0;
@@ -167,19 +170,19 @@ void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
 }
 
 void UnitTestStore::print() {
-  int a = VnV_BeginStage("Registered Unit Test Modules");
+  int a = VnV_BeginStage(VNVPACKAGENAME, "Registered Unit Test Modules");
   for (auto it : tester_factory) {
-    VnV_Info("Unit Test Module: %s ", it.first.c_str());
-    auto aa = VnV_BeginStage("Test Suites");
+    VnV_Info(VNVPACKAGENAME, "Unit Test Module: %s ", it.first.c_str());
+    auto aa = VnV_BeginStage(VNVPACKAGENAME, "Test Suites");
     for (auto itt : it.second) {
-      VnV_Info("%s", itt.first.c_str());
+      VnV_Info(VNVPACKAGENAME, "%s", itt.first.c_str());
     }
-    VnV_EndStage(aa);
+    VnV_EndStage(VNVPACKAGENAME, aa);
   }
-  VnV_EndStage(a);
+  VnV_EndStage(VNVPACKAGENAME, a);
 }
 
-void VnV::registerUnitTester(std::string name, tester_ptr m, int cores) {
-  UnitTestStore::getUnitTestStore().addUnitTester(PACKAGENAME_S, name, m,
-                                                  cores);
+void VnV::registerUnitTester(std::string packageName, std::string name,
+                             tester_ptr m, int cores) {
+  UnitTestStore::getUnitTestStore().addUnitTester(packageName, name, m, cores);
 }

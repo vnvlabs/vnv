@@ -1,0 +1,15 @@
+
+
+
+The webpack folder is used to store webpack configurations required to build
+js files used in the VnV report generation directives.
+
+For instance 
+
+VolumeViewer uses javascript es6 to generate the js file used in the vti-viewer 
+directive. 
+
+These could probably go somewhere else, but I don't want to loose them incase I 
+need to modify those js files in some way (i.e. add options, etc)
+
+

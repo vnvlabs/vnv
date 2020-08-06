@@ -71,11 +71,11 @@ std::shared_ptr<Transformer> TransformStore::getTransformer(std::string from,
 }
 
 void TransformStore::print() {
-  auto a = VnV_BeginStage("Transform Store Configuration");
+  auto a = VnV_BeginStage(VNVPACKAGENAME, "Transform Store Configuration");
   for (auto it : trans_factory) {
-    VnV_Info("Transform: %s", it.first.c_str());
+    VnV_Info(VNVPACKAGENAME, "Transform: %s", it.first.c_str());
   }
-  VnV_EndStage(a);
+  VnV_EndStage(VNVPACKAGENAME, a);
 }
 
 void TransformStore::addTransform(std::string name, trans_ptr t,

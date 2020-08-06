@@ -137,6 +137,6 @@ class Logger {
   std::string getIndent(int stage);
 };
 
-};  // namespace VnV
+}  // namespace VnV
 
 #endif

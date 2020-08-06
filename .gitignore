@@ -5,6 +5,10 @@
 *.autosave
 *.bak
 *.removed
+*.idea 
+__pycache__
+CMakeLists.txt.user
+node_modules/
 
 xml/xplus.bak
 xml/vv_schema/*

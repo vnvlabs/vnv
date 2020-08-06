@@ -1,1 +1,1 @@
-﻿target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/generic.cpp)
+target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/generic.cpp)

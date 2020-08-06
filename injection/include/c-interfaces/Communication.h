@@ -20,18 +20,20 @@ VNVEXTERNC void VnV_Declare_Communicator(const char* packageName,
                                          const char* commPackage,
                                          const char* commName);
 
-#define VSELF \
-  VnV_Comm_Self(PACKAGENAME_S)  // Built in comm for serial programs, (like
-                                // MPI_COMM_SELF));
-#define VWORLD VnV_Comm_World(PACKAGENAME_S)
-#define VCUST(data) VnV_Comm_Custom(PACKAGENAME_S, data)
-#define VCOMM \
-  VnV_Comm_Custom(PACKAGENAME_S, comm)  // Assumes a communicator called comm.
+#define VSELF(PNAME) \
+  VnV_Comm_Self(VNV_STR(PNAME))  // Built in comm for serial programs, (like
+                                 // MPI_COMM_SELF));
+#define VWORLD(PNAME) VnV_Comm_World(VNV_STR(PNAME))
+#define VCUST(PNAME, data) VnV_Comm_Custom(PNAME, data)
+#define VCOMM(PNAME) VnV_Comm_Custom(PNAME, comm)
 
 // This is used to define the communicator for the package that calls it.
 // The Clang tool picks up this macro when defined and creates a registration
 // call to define the communicator inside the registration call . If a call to
 // this is not made, the default serial communicator is used.
-#define INJECTION_COMMUNICATOR(package, name)
+#define INJECTION_COMMUNICATOR(package, commpackage, name)
+
+#define INJECTION_EXECUTABLE(package, commpackage, name) \
+  INJECTION_REGISTRATION(package);
 
 #endif  // COMMUNICATION_H

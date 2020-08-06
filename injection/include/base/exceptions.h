@@ -2,8 +2,8 @@
 #define EXCEPTIONS_H
 
 #include <exception>
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace VnV {
 
@@ -14,16 +14,14 @@ struct VnVExceptionBase : public std::exception {
   const char* what() const throw();
 };
 
-namespace  Exceptions {
+namespace Exceptions {
 
-VnVExceptionBase parseError(std::ifstream &fstream, long unsigned int byte, std::string message );
+VnVExceptionBase parseError(std::ifstream& fstream, long unsigned int byte,
+                            std::string message);
 
 VnVExceptionBase fileReadError(std::string filename);
 
-
-}
-
-
+}  // namespace Exceptions
 
 }  // namespace VnV
 

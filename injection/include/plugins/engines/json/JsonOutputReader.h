@@ -1,12 +1,14 @@
 ﻿#ifndef OUTPUTREADERIMPLB_H
 #define OUTPUTREADERIMPLB_H
 
+#include <iostream>
 #include <sstream>
 
+#include "c-interfaces/PackageName.h"
 #include "interfaces/nodes/Nodes.h"
 
 namespace VnV {
-namespace PACKAGENAME {
+namespace VNVPACKAGENAME {
 namespace Engines {
 namespace JsonReader {
 
@@ -21,14 +23,12 @@ class MapNode : public IMapNode {
   MapNode();
   virtual DataBase* get(std::string key) override;
   virtual IMapNode* add(std::string key, std::shared_ptr<DataBase> v) override;
-  virtual bool contains(std::string key);
+  virtual bool contains(std::string key) override;
   virtual std::vector<std::string> fetchkeys() override;
 
-  virtual std::string getValue() {
-    return templ;
-  }
+  virtual std::string getValue() override { return templ; }
 
-  virtual std::size_t size();
+  virtual std::size_t size() override;
 };
 
 class ArrayNode : public IArrayNode {
@@ -41,10 +41,7 @@ class ArrayNode : public IArrayNode {
   virtual std::size_t size() override;
   virtual IArrayNode* add(std::shared_ptr<DataBase> data) override;
 
-  std::string getValue() override {
-    return templ;
-  }
-
+  std::string getValue() override { return templ; }
 };
 
 class BoolNode : public IBoolNode {
@@ -100,14 +97,12 @@ class InfoNode : public IInfoNode {
 
   virtual long getDate() override;
 
-  virtual std::string getValue() override {
-    return templ;
-  }
+  virtual std::string getValue() override { return templ; }
 };
 
 class TestNode : public ITestNode {
  public:
-  std::string name, package, templ;
+  std::string package, templ;
   std::shared_ptr<ArrayNode> data;
   std::shared_ptr<ArrayNode> children;
   TestNode();
@@ -115,10 +110,7 @@ class TestNode : public ITestNode {
   virtual IArrayNode* getData() override;
   virtual IArrayNode* getChildren() override;
 
-  virtual std::string getValue() override {
-    return templ;
-  }
-
+  virtual std::string getValue() override { return templ; }
 };
 
 class InjectionPointNode : public IInjectionPointNode {
@@ -126,22 +118,16 @@ class InjectionPointNode : public IInjectionPointNode {
   std::shared_ptr<ArrayNode> children;
   std::shared_ptr<ArrayNode> tests;
   std::shared_ptr<TestNode> internal;
-  std::string name;
   std::string package;
   std::string templ;
 
   InjectionPointNode();
   virtual std::string getPackage() override;
   virtual IArrayNode* getTests() override;
-  virtual ITestNode* getData() override {
-    return internal.get();
-  }
+  virtual ITestNode* getData() override { return internal.get(); }
 
-  virtual std::string getValue() override {
-    return templ;
-  }
+  virtual std::string getValue() override { return templ; }
   virtual IArrayNode* getChildren() override;
-
 };
 
 class LogNode : public ILogNode {
@@ -167,39 +153,38 @@ class LogNode : public ILogNode {
   virtual std::string getStage() override;
 };
 
-
-
 class DataTypeNode : public IDataTypeNode {
  public:
-  std::string name, dataTypeName, package, templ;
+  std::string dataTypeName, package, templ;
   std::shared_ptr<MapNode> children;
   DataTypeNode();
   virtual std::string getDataTypeName() override;
   virtual IMapNode* getChildren() override;
-  virtual std::string getValue() override {
-    return templ;
-  }
+  virtual std::string getValue() override { return templ; }
 };
 
 class UnitTestNode : public IUnitTestNode {
  public:
-  std::string name, package, templ;
+  std::string package, templ;
   std::shared_ptr<ArrayNode> children;
   std::shared_ptr<MapNode> resultsMap;
+  std::map<std::string, std::string> testTemplate;
+
   UnitTestNode();
   virtual std::string getPackage() override;
   virtual IArrayNode* getChildren() override;
-  virtual std::string getValue() override {
-    return templ;
+  virtual std::string getValue() override { return templ; }
+  virtual std::string getTestTemplate(std::string name) override {
+    auto it = testTemplate.find(name);
+    return (it == testTemplate.end()) ? "" : it->second;
   }
-  virtual IMapNode* getResults() override;
 
+  virtual IMapNode* getResults() override;
 };
 
 class RootNode : public IRootNode {
  public:
-
-  std::string templ;
+  std::string intro, concl;
   std::map<long, std::shared_ptr<DataBase>> idMap;
   long lowerId, upperId;
 
@@ -212,14 +197,11 @@ class RootNode : public IRootNode {
 
   virtual DataBase* findById(long id) override;
 
-  void add(std::shared_ptr<DataBase> ptr) {
-    idMap[ptr->getId()] = ptr;
-  }
+  void add(std::shared_ptr<DataBase> ptr) { idMap[ptr->getId()] = ptr; }
 
+  virtual std::string getConclusion() override { return concl; }
 
-  virtual std::string getValue() override {
-    return templ;
-  }
+  virtual std::string getIntro() override { return intro; }
 };
 
 // Debug for now
@@ -227,7 +209,7 @@ IRootNode* parse(std::string filename, long& idCounter);
 
 }  // namespace JsonReader
 }  // namespace Engines
-}  // namespace PACKAGENAME
+}  // namespace VNVPACKAGENAME
 }  // namespace VnV
 
 #endif  // OUTPUTREADERIMPL_H

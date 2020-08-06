@@ -15,8 +15,9 @@
     "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so"
   },
   "outputEngine": {
-    "type": "debug",
+    "type": "json",
     "config": {
+	"outputFile" : "vv-output.json"
     }
   },
   "injectionPoints": [

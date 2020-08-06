@@ -4,12 +4,12 @@
 #ifndef vnv_cputimer_H
 #define vnv_cputimer_H
 
+#include <chrono>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <vector>
-#include <chrono>
 
 #include "base/DistUtils.h"
 #include "c-interfaces/Logging.h"
@@ -25,42 +25,37 @@ namespace {
  */
 class cpuRunner {
  public:
-
   std::vector<std::pair<std::string, long>> vals;
-  std::chrono::system_clock::time_point startTime;
+  std::chrono::high_resolution_clock::time_point startTime;
   cpuRunner() {}
 
   std::string unit = "nanoseconds";
 
-  void setUnit(std::string unit) {
-     this->unit = unit;
-  }
+  void setUnit(std::string unit) { this->unit = unit; }
 
-  void start() {
-      startTime = std::chrono::high_resolution_clock::now();
-  }
+  void start() { startTime = std::chrono::high_resolution_clock::now(); }
 
-  template<typename T>
-  auto durr(std::chrono::system_clock::time_point stop) {
-      return std::chrono::duration_cast<T>(stop- startTime).count();
+  template <typename T>
+  auto durr(std::chrono::high_resolution_clock::time_point stop) {
+    return std::chrono::duration_cast<T>(stop - startTime).count();
   }
 
   double split() {
-       auto stop = std::chrono::high_resolution_clock::now();
+    auto stop = std::chrono::high_resolution_clock::now();
 
-       if (unit.compare("seconds")==0) {
-          return durr<std::chrono::seconds>(stop);
-        } else if (unit.compare("milliseconds")==0) {
-          return durr<std::chrono::milliseconds>(stop);
-        } else if (unit.compare("microseconds")==0) {
-          return durr<std::chrono::microseconds>(stop);
-        } else {
-          return durr<std::chrono::nanoseconds>(stop);
-        }
+    if (unit.compare("seconds") == 0) {
+      return durr<std::chrono::seconds>(stop);
+    } else if (unit.compare("milliseconds") == 0) {
+      return durr<std::chrono::milliseconds>(stop);
+    } else if (unit.compare("microseconds") == 0) {
+      return durr<std::chrono::microseconds>(stop);
+    } else {
+      return durr<std::chrono::nanoseconds>(stop);
+    }
   }
 
   static std::string provSchema() {
-  return R"({
+    return R"({
           "type":"object",
           "properties" : {
              "units" : {"type":"string", "enum":["seconds","milliseconds","microseconds","nanoseconds"] }
@@ -68,7 +63,7 @@ class cpuRunner {
            "additionalProperties" : false
            }
          )";
-}
+  }
 
   virtual ~cpuRunner();
 };
@@ -81,11 +76,11 @@ cpuRunner::~cpuRunner() {}
  * Injection Point Timing Results
  * ==============================
  *
- * The overall time was :vnv:`$.data.TotalTime` :vnv:`$.data.units`
+ * The overall time was :vnv:`Data.TotalTime` :vnv:`Data.units`
  *
  * .. vnv-chart::
- *    :labels: $.data[?TypeStr == "Double"].Name
- *    :ydata: $.data[?TypeStr == "Double"].Value
+ *    :labels: Data[?TypeStr == 'Double'].Name
+ *    :ydata: Data[?TypeStr == 'Double'].Value
  *
  *    {
  *       "type" : "line",
@@ -101,30 +96,30 @@ cpuRunner::~cpuRunner() {}
  *    }
  *
  */
-INJECTION_TEST_RS(cputime, cpuRunner, cpuRunner::provSchema()) {
+INJECTION_TEST_RS(VNVPACKAGENAME, cputime, cpuRunner, cpuRunner::provSchema()) {
   if (type == InjectionPointType::Single) {
-     VnV_Warn("Attempt to time a non looped injection point. Returning zero for cputime");
-     long c=0;
-     engine->Put(comm,"Start",c);
-     engine->Put(comm, "TotalTime", c);
-   } else if ( type == InjectionPointType::Begin ) {
-     long cc = 0;
-     const json& c = getConfigurationJson();
-     auto it = c.find("units");
-     if (it != c.end()) {
-       runner->setUnit(it->get<std::string>());
-     }
-     engine->Put(comm, "units", runner->unit);
-     engine->Put(comm, "Start", cc);
-     runner->start();
-   } else if ( type == InjectionPointType::End ) {
-
-     std::cout << runner->split();
-     engine->Put(comm, "TotalTime", runner->split());
-   } else {
-     engine->Put(comm, stageId, runner->split());
-   }
-   return SUCCESS;
+    VnV_Warn(VNVPACKAGENAME,
+             "Attempt to time a non looped injection point. Returning zero for "
+             "cputime");
+    double c = 0;
+    engine->Put(comm, "Start", c);
+    engine->Put(comm, "TotalTime", c);
+  } else if (type == InjectionPointType::Begin) {
+    double cc = 0;
+    const json& c = getConfigurationJson();
+    auto it = c.find("units");
+    if (it != c.end()) {
+      runner->setUnit(it->get<std::string>());
+    }
+    engine->Put(comm, "units", runner->unit);
+    engine->Put(comm, "Start", cc);
+    runner->start();
+  } else if (type == InjectionPointType::End) {
+    engine->Put(comm, "TotalTime", runner->split());
+  } else {
+    engine->Put(comm, stageId, runner->split());
+  }
+  return SUCCESS;
 }
 
 #endif

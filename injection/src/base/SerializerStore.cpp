@@ -1,4 +1,4 @@
-
+﻿
 /** @file SerializerStore.cpp Implementation of the SerializerStore class as
  *defined in base/SerializerStore.h"
  **/
@@ -42,11 +42,11 @@ ISerializer* SerializerStore::getSerializerByName(std::string name) {
 }
 
 void SerializerStore::print() {
-  int b = VnV_BeginStage("Registered Serializers");
+  int b = VnV_BeginStage(VNVPACKAGENAME, "Registered Serializers");
   for (auto it : serializer_factory) {
-    VnV_Info("Serializes: %s ", it.first.c_str());
+    VnV_Info(VNVPACKAGENAME, "Serializes: %s ", it.first.c_str());
   }
-  VnV_EndStage(b);
+  VnV_EndStage(VNVPACKAGENAME, b);
 }
 
 void VnV::registerSerializer(std::string packageName, std::string name,

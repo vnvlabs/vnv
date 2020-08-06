@@ -1,5 +1,6 @@
 ﻿#include "interfaces/nodes/Nodes.h"
 
+#include <iostream>
 #include <sstream>
 
 #include "base/exceptions.h"
@@ -11,7 +12,9 @@ long DataBase::getId() { return id; }
 
 bool DataBase::check(DataType type) { return type == dataType; }
 
-std::string DataBase::getName() { return (name.empty()) ? std::to_string(id) : name; }
+std::string DataBase::getName() {
+  return (name.empty()) ? std::to_string(id) : name;
+}
 
 DataBase::DataType DataBase::getType() { return dataType; }
 
@@ -51,7 +54,6 @@ std::string DataBase::getTypeStr() {
   throw VnVExceptionBase("Impossible");
 }
 
-
 IBoolNode* DataBase::getAsBoolNode() {
   return (check(DataType::Bool)) ? dynamic_cast<IBoolNode*>(this) : nullptr;
 }
@@ -86,7 +88,8 @@ IMapNode* DataBase::getAsMapNode() {
 }
 
 IDataTypeNode* DataBase::getAsDataTypeNode() {
-  return (check(DataType::DataNode)) ? dynamic_cast<IDataTypeNode*>(this) : nullptr;
+  return (check(DataType::DataNode)) ? dynamic_cast<IDataTypeNode*>(this)
+                                     : nullptr;
 }
 
 DataBase::~DataBase() {}
@@ -115,8 +118,7 @@ IUnitTestNode* DataBase::getAsUnitTestNode() {
 }
 
 IRootNode* DataBase::getAsRootNode() {
-  return (check(DataType::RootNode)) ? dynamic_cast<IRootNode*>(this)
-                                     : nullptr;
+  return (check(DataType::RootNode)) ? dynamic_cast<IRootNode*>(this) : nullptr;
 }
 
 IMapNode::IMapNode() : DataBase(DataBase::DataType::Map) {}
@@ -165,9 +167,8 @@ ITestNode::ITestNode() : DataBase(DataBase::DataType::Test) {}
 
 ITestNode::~ITestNode() {}
 
-IDataTypeNode::IDataTypeNode() : DataBase(DataBase::DataType::DataNode){}
+IDataTypeNode::IDataTypeNode() : DataBase(DataBase::DataType::DataNode) {}
 IDataTypeNode::~IDataTypeNode() {}
-
 
 IInjectionPointNode::IInjectionPointNode()
     : DataBase(DataBase::DataType::InjectionPoint) {}

@@ -24,8 +24,8 @@ class UnitTestStore {
 
   UnitTestStore();
 
-  void runTest(Communication::ICommunicator_ptr comm, std::string packageName, std::string Name,
-               IUnitTest* tester);
+  void runTest(Communication::ICommunicator_ptr comm, std::string packageName,
+               std::string Name, IUnitTest* tester);
 
   Communication::ICommunicator_ptr dispatch(VnV_Comm comm, int cores);
 

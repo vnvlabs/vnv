@@ -22,7 +22,7 @@ void RegisterOptions(std::string packageName, std::string schema,
                      options_cpp_callback_ptr* callback);
 void RegisterOptions_Json(std::string packageName, json& schema,
                           options_cpp_callback_ptr* callback);
-};  // namespace VnV
+}  // namespace VnV
 #    define EXTERNC extern "C"
 #  else
 #    define EXTERNC
@@ -64,38 +64,39 @@ EXTERNC void _VnV_registerOptions(const char* packageName, const char* sptr,
 
 #  if __cplusplus
 
-#    define INJECTION_OPTIONS(schema)                                 \
-      namespace VnV {                                                 \
-      namespace PACKAGENAME {                                         \
-      void optionsCallback(json& config);                             \
-      void registerOptions() {                                        \
-        VnV::RegisterOptions(PACKAGENAME_S, schema, optionsCallback); \
-      }                                                               \
-      }                                                               \
-      }                                                               \
-      void VnV::PACKAGENAME::optionsCallback(json& config)
+#    define INJECTION_OPTIONS(PNAME, schema)                           \
+      namespace VnV {                                                  \
+      namespace PNAME {                                                \
+      void optionsCallback(json& config);                              \
+      void registerOptions() {                                         \
+        VnV::RegisterOptions(VNV_STR(PNAME), schema, optionsCallback); \
+      }                                                                \
+      }                                                                \
+      }                                                                \
+      void VnV::PNAME::optionsCallback(json& config)
 
-#    define DECLAREOPTIONS    \
-      namespace VnV {         \
-      namespace PACKAGENAME { \
-      void registerOptions(); \
-      }                       \
+#    define DECLAREOPTIONS(PNAME) \
+      namespace VnV {             \
+      namespace PNAME {           \
+      void registerOptions();     \
+      }                           \
       }
 
-#    define REGISTEROPTIONS VnV::PACKAGENAME::registerOptions();
+#    define REGISTEROPTIONS(PNAME) VnV::PNAME::registerOptions();
 
 #  else
-#    define INJECTION_OPTIONS(schema)                              \
-      void _VnV_options_callback_##PACKAGENAME(c_json json);       \
-      void _VnV_register_options_##PACKAGENAME() {                 \
-        _VnV_registerOptions(PACKAGENAME_S, schema,                \
-                             _VnV_options_callback_##PACKAGENAME); \
-      }                                                            \
-      void _VnV_options_callback_##PACKAGENAME(c_json json)
-#    define REGISTEROPTIONS _VnV_register_options_##PACKAGENAME();
-#    define DECLAREOPTIONS void _VnV_register_options_##PACKAGENAME();
+#    define INJECTION_OPTIONS(PNAME, schema)                             \
+      void REG_HELPER(_VnV_options_callback_, PNAME)(c_json json);       \
+      void REG_HELPER(_VnV_register_options_, PNAME)() {                 \
+        _VnV_registerOptions(VNV_STR(PNAME), schema,                     \
+                             REG_HELPER(_VnV_options_callback_, PNAME)); \
+      }                                                                  \
+      void REG_HELPER(_VnV_options_callback_, PNAME)(c_json json)
 
-#    undef EXTERNC
+#    define REGISTEROPTIONS(PNAME) REG_HELPER(_VnV_register_options_, PNAME)();
+#    define DECLAREOPTIONS(PNAME) \
+      void REG_HELPER(_VnV_register_options_, PNAME)();
+
 #  endif
 
 #else

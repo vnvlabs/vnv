@@ -13,7 +13,7 @@
 using nlohmann::json;
 
 namespace VnV {
-namespace PACKAGENAME {
+namespace VNVPACKAGENAME {
 namespace Engines {
 
 class AdiosEngineManager : public OutputEngineManager {
@@ -57,7 +57,8 @@ class AdiosEngineManager : public OutputEngineManager {
                                    InjectionPointType type_,
                                    std::string stageId) override;
 
-  void injectionPointStartedCallBack(VnV_Comm /** comm **/, std::string packageName, std::string id,
+  void injectionPointStartedCallBack(VnV_Comm /** comm **/,
+                                     std::string packageName, std::string id,
                                      InjectionPointType type_,
                                      std::string stageId) override;
 
@@ -71,19 +72,21 @@ class AdiosEngineManager : public OutputEngineManager {
   void unitTestFinishedCallBack(VnV_Comm /** comm **/,
                                 IUnitTest* tester) override;
 
-  void dataTypeStartedCallBack(VnV_Comm /** comm **/,
-                               std::string variableName,std::string dtype) override;
-  void dataTypeEndedCallBack(VnV_Comm /** comm **/, std::string variableName) override;
+  void dataTypeStartedCallBack(VnV_Comm /** comm **/, std::string variableName,
+                               std::string dtype) override;
+  void dataTypeEndedCallBack(VnV_Comm /** comm **/,
+                             std::string variableName) override;
   json getConfigurationSchema() override;
 
   std::string print() override;
 
-  Nodes::IRootNode* readFromFile(std::string /**filename**/, long& idCounter) override;
+  Nodes::IRootNode* readFromFile(std::string /**filename**/,
+                                 long& idCounter) override;
 };
 
 OutputEngineManager* AdiosEngineBuilder();
 
 }  // namespace Engines
-}  // namespace PACKAGENAME
+}  // namespace VNVPACKAGENAME
 }  // namespace VnV
 #endif  // ADIOSENGINEMANAGER_H

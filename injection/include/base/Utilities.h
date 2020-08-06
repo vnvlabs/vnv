@@ -8,14 +8,14 @@
 /**
  * @file vv-utils.h
  */
-#include <map>
-#include <stack>
-#include <string>
-#include <vector>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
+#include <map>
 #include <sstream>
+#include <stack>
+#include <string>
+#include <vector>
 
 #include "json-schema.hpp"
 //#include "base/InjectionPoint.h"
@@ -24,10 +24,10 @@ typedef std::map<std::string, std::pair<std::string, void*>> NTV;
 
 namespace ProvenanceUtils {
 
-  std::string timeToString(std::string format = "%Y-%m-%d %H-%M-%S");
+std::string timeToString(std::string format = "%Y-%m-%d %H-%M-%S");
 
-  std::string cmdLineToString(int argc, char** argv);
-}
+std::string cmdLineToString(int argc, char** argv);
+}  // namespace ProvenanceUtils
 
 namespace StringUtils {
 
@@ -97,7 +97,7 @@ namespace JsonUtilities {
 
 enum class CreateType { Object, Array, String, Float, Integer };
 nlohmann::json& getOrCreate(nlohmann::json& parent, std::string key,
-                            CreateType type);
+                            CreateType type = CreateType::Object);
 
 }  // namespace JsonUtilities
 
@@ -133,6 +133,28 @@ NTV UnwrapVariadicArgs(va_list argp);
  * @return
  */
 std::string getFileExtension(const std::string& fileName);
+
+namespace TimeUtils {
+
+/**
+ * @brief timeToISOString
+ * @param t
+ * @return
+ *
+ * Return the time as ISO string.
+ */
+std::string timeToISOString(time_t* t);
+
+/**
+ * @brief timeForFile
+ * @param filename
+ * @return
+ *
+ * Return the last modified time for a file using ISO String format
+ */
+std::string timeForFile(std::string filename);
+
+}  // namespace TimeUtils
 
 }  // namespace VnV
 #endif

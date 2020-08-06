@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/Injection)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/)
 
 if(POLICY CMP0079)
   cmake_policy(SET CMP0079 NEW)
@@ -28,20 +28,15 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 option(BUILD_EXAMPLES "Build the examples" ON)
-option(WITH_EXTRACTION "Build the extraction" ON)
 
-find_package(Clang)
-if(NOT WITH_EXTRACTION OR NOT Clang_FOUND)
-  message(
-    WARNING
-      "Clang is required to auto generate the registration.cpp file.
-       The VnV Library will be built using the stored registration file. Without Clang,
-       all registration must be completed manually.")
+option(ALLERRORS OFF)
+if(ALLERRORS)
+  add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter)
 endif()
 
+add_subdirectory(extraction)
 include("${CMAKE_SOURCE_DIR}/cmake/Registration.cmake")
 
-add_subdirectory(extraction)
 add_subdirectory(injection)
 add_subdirectory(generation)
 
@@ -55,24 +50,12 @@ if(BUILD_EXAMPLES)
 endif()
 add_subdirectory(docs)
 
-if(Clang_FOUND)
-  install(
-    TARGETS injection vnv-matcher
-    EXPORT injection-targets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin)
-
-  set_target_properties(vnv-matcher PROPERTIES EXPORT_NAME Extraction)
-
-else()
-  install(
-    TARGETS injection
-    EXPORT injection-targets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin)
-endif()
+install(
+  TARGETS injection
+  EXPORT injection-targets
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin)
 
 set_target_properties(injection PROPERTIES EXPORT_NAME Injection)
 
@@ -80,7 +63,7 @@ install(
   EXPORT injection-targets
   FILE InjectionTargets.cmake
   NAMESPACE Injection::
-  DESTINATION lib/cmake/Injection)
+  DESTINATION lib/cmake)
 
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/injection/include/VnV.h
         DESTINATION include)
@@ -99,10 +82,13 @@ configure_package_config_file(
   ${CMAKE_CURRENT_BINARY_DIR}/InjectionConfig.cmake
   INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake
+     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 # Install the config, configversion and custom find modules
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/InjectionConfig.cmake
-        ${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/InjectionConfigVersion.cmake
   DESTINATION ${INSTALL_CONFIGDIR})
 
