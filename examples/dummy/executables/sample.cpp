@@ -49,8 +49,8 @@ INJECTION_TRANSFORM(SPNAME, sampleTransform, std::vector<double>, double) {
 INJECTION_TEST(SPNAME, sampleTest, std::vector<double> vals) {
   auto vals = get<std::vector<double>>("vals");
   for (auto& it : vals) {
-    engine->Put(comm, "Key", it);
-    engine->Put(comm, "Value", it);
+    engine->Put( "Key", it);
+    engine->Put( "Value", it);
   }
   return SUCCESS;
 }
@@ -254,13 +254,13 @@ int main(int argc, char** argv) {
         if (type == VnV::InjectionPointType::Iter) {
           const double& ab = p["aa"].getByRtti<double>();
           const int& i = p["i"].getByRtti<int>();
-          engine->Put(comm, "y", ab);
-          engine->Put(comm, "x", i);
+          engine->Put( "y", ab);
+          engine->Put( "x", i);
         } else if (type == VnV::InjectionPointType::Begin) {
           /** Comment block in lambda function **/
-          engine->Put(comm, "min", p["min"].getByRtti<int>());
-          engine->Put(comm, "max", p["max"].getByRtti<int>());
-          engine->Put(comm, "count", p["count"].getByRtti<int>());
+          engine->Put( "min", p["min"].getByRtti<int>());
+          engine->Put( "max", p["max"].getByRtti<int>());
+          engine->Put( "count", p["count"].getByRtti<int>());
         }
       },
       aa, min, max, count, i);

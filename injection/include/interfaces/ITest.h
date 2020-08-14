@@ -160,7 +160,7 @@ class ITest {
    * @param params
    * @return
    */
-  TestStatus _runTest(VnV_Comm comm, OutputEngineManager* engine,
+  TestStatus _runTest(ICommunicator_ptr comm, OutputEngineManager* engine,
                       InjectionPointType type, std::string stageId);
 
   /**
@@ -170,7 +170,7 @@ class ITest {
    * @param params
    * @return
    */
-  virtual TestStatus runTest(VnV_Comm comm, IOutputEngine* engine,
+  virtual TestStatus runTest(ICommunicator_ptr comm, IOutputEngine* engine,
                              InjectionPointType type, std::string stageId) = 0;
 
   /**
@@ -254,7 +254,7 @@ template <typename Runner> class Test_T : public ITest {
    public:                                                                     \
     name(TestConfig& config)                                                   \
         : Test_T<VnV_Arg_Type(Runner)>(config, #__VA_ARGS__) {}                \
-    TestStatus runTest(VnV_Comm comm, IOutputEngine* engine,                   \
+    TestStatus runTest(ICommunicator_ptr comm, IOutputEngine* engine,                   \
                        InjectionPointType type, std::string stageId);          \
   };                                                                           \
   ITest* declare_##name(TestConfig config) { return new name(config); }        \
@@ -266,7 +266,7 @@ template <typename Runner> class Test_T : public ITest {
   }                                                                            \
   }                                                                            \
   VnV::TestStatus VnV::PNAME::Tests::name::runTest(                            \
-      VnV_Comm comm, VnV::IOutputEngine* engine, VnV::InjectionPointType type, \
+      ICommunicator_ptr comm, VnV::IOutputEngine* engine, VnV::InjectionPointType type, \
       std::string stageId)
 
 #define INJECTION_TEST_R(PNAME, name, runner, ...) \

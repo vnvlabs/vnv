@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "base/exceptions.h"
+#include "json-schema.hpp"
 
 namespace VnV {
 namespace Nodes {
@@ -42,6 +43,8 @@ std::string DataBase::getTypeStr() {
     return "Log";
   case DataType::Info:
     return "Info";
+  case DataType::ShapeArray:
+      return "ShapeArray";
   case DataType::Test:
     return "Test";
   case DataType::UnitTest:
@@ -81,6 +84,10 @@ IFloatNode* DataBase::getAsFloatNode() {
 
 IArrayNode* DataBase::getAsArrayNode() {
   return (check(DataType::Array)) ? dynamic_cast<IArrayNode*>(this) : nullptr;
+}
+
+IShapeNode* DataBase::getAsShapeNode() {
+  return (check(DataType::ShapeArray)) ? dynamic_cast<IShapeNode*>(this) : nullptr;
 }
 
 IMapNode* DataBase::getAsMapNode() {
@@ -159,6 +166,9 @@ IFloatNode::IFloatNode() : DataBase(DataBase::DataType::Float) {}
 
 IFloatNode::~IFloatNode() {}
 
+IShapeNode::IShapeNode() : DataBase(DataBase::DataType::ShapeArray) {}
+IShapeNode::~IShapeNode() {}
+
 IInfoNode::IInfoNode() : DataBase(DataBase::DataType::Info) {}
 
 IInfoNode::~IInfoNode() {}
@@ -186,6 +196,15 @@ IUnitTestNode::~IUnitTestNode() {}
 IRootNode::IRootNode() : DataBase(DataBase::DataType::RootNode) {}
 
 IRootNode::~IRootNode() {}
+
+DataBase* IShapeNode::get(int index) {
+
+      auto it = getChildren();
+
+      if ( it == nullptr )
+        return nullptr;
+      return it->get(index);
+   }
 
 }  // namespace Nodes
 

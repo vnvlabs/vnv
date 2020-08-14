@@ -37,6 +37,7 @@ namespace std {
 %pythoncode %{
 
 import json
+import numpy as np
 
 class classIterator :
          def __init__(self, obj):
@@ -82,6 +83,21 @@ class listclassIterator :
            else:
               raise StopIteration
 
+class shapeClassIterator:
+         def __init__(self, obj):
+           self.obj = obj
+           self.iterCounter = 0
+
+         def __next__(self):
+           shape = json.loads(self.obj.getShape())
+           if (self.iterCounter) < shape[0]:
+                self.iterCounter += 1
+                return self.obj[self.iterCounter - 1]
+
+           else:
+              raise StopIteration
+
+
 dataBaseCastMap = {
     DataBase.DataType_Bool : "AsBoolNode",
     DataBase.DataType_Integer : "AsIntegerNode",
@@ -95,6 +111,7 @@ dataBaseCastMap = {
     DataBase.DataType_InjectionPoint : "AsInjectionPointNode",
     DataBase.DataType_Info : "AsInfoNode",
     DataBase.DataType_Test : "AsTestNode",
+    DataBase.DataType_ShapeArray : "AsShapeNode",
     DataBase.DataType_UnitTest : "AsUnitTestNode",
     DataBase.DataType_DataNode : "AsDataTypeNode",
     DataBase.DataType_RootNode : "AsRootNode"
@@ -113,6 +130,7 @@ type2Str = {
     DataBase.DataType_InjectionPoint : "InjectionPoint",
     DataBase.DataType_Info : "Info",
     DataBase.DataType_Test : "Test",
+    DataBase.DataType_ShapeArray : "ShapeArray",
     DataBase.DataType_UnitTest : "UnitTest",
     DataBase.DataType_DataNode : "DataTypeNode",
     DataBase.DataType_RootNode : "RootNode"
@@ -240,8 +258,18 @@ PY_GETATTR(VnV::Nodes::IBoolNode)
 %extend Typename {
   %pythoncode %{
       def __getitem__(self,key):
-        if isinstance(key,int) and key < self.size() :
-           return castDataBase(self.get(key))
+        if isinstance(key,int) and abs(key) < self.size() :
+          if (key < 0 ) :
+             key = self.size() + key
+          return castDataBase(self.get(key))
+
+        elif isinstance(key,slice):
+           sli = range(0,self.size())[slice]
+           res = []
+           for item in sli:
+             res.append(self.__getitem__(item));
+           return res
+
         elif isinstance(key,str):
 
            res = []
@@ -314,4 +342,61 @@ PY_GETATTRLIST(VnV::Nodes::IArrayNode)
 %enddef
 PY_GETATTRMAP(VnV::Nodes::IMapNode)
 
+
+%define PY_GETATTRSHAPE(Typename)
+%extend Typename {
+  %pythoncode %{
+
+      def recursive_pop(self, b):
+        result = []
+        for i in b:
+          if isinstance(i,list):
+             result.append(self.recursive_pop(i))
+          else:
+             result.append(self.getChildren().get(i))
+        return result
+
+      def __getitem__(self,key):
+
+        if isinstance(key,str):
+           res = []
+           for i in self:
+             if i.getName() == key:
+               res.append(castDataBase(i))
+           if len(res) == 1:
+              return res[0]
+           elif len(res)>1:
+              return res
+
+        try:
+         shape = json.loads(self.getShape());
+         tot = np.prod(shape)  #total size of the list.
+         a = np.reshape(range(0,tot), tuple(shape) ) #array with values as correct index.
+         b = a[key].tolist() # Slice the array. Now b is a numpy array with values equal to the index we need from the global vector.
+         if (isinstance(b,list)):
+            return self.recursive_pop(b)
+         else:
+             return self.getChildren().get(b)
+        except:
+             pass
+
+        print("Not a key {} {} ".format(key, self.__class__))
+        raise KeyError("not a valid key")
+
+      def __len__(self):
+        return self.getChildren().size();
+
+      def __iter__(self):
+        return shapeclassIterator(self.getChildren())
+
+      def __getType__(self):
+        return "list"
+
+      def __str__(self):
+          return str(self.getValue())
+   %}
+}
+%enddef
+
+PY_GETATTRSHAPE(VnV::Nodes::IShapeNode)
 

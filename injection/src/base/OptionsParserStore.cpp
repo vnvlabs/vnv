@@ -6,7 +6,6 @@
 #include "base/OptionsParserStore.h"
 
 #include <iostream>
-
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
@@ -64,7 +63,7 @@ void OptionsParserStore::parse(json info, json& cmdline) {
 nlohmann::json& OptionsParserStore::getSchema(std::string package) {
   auto it = factory.find(package);
   if (it != factory.end()) {
-    return it->second.first;
+      return it->second.first;
   }
   throw VnV::VnVExceptionBase("no such package");
 }

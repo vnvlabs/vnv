@@ -25,12 +25,12 @@ class provenanceRunner {
  public:
   provenanceRunner() {}
 
-  TestStatus getProvHistory(VnV_Comm comm, IOutputEngine* engine, int argc,
+  TestStatus getProvHistory(ICommunicator_ptr comm, IOutputEngine* engine, int argc,
                             char** argv, json configFile, json& inputFiles) {
     {
       // Add the current working directory
       std::string currentWorkingDirectory(DistUtils::getCurrentDirectory());
-      engine->Put(comm, "cwd", currentWorkingDirectory);
+      engine->Put( "cwd", currentWorkingDirectory);
     }
 
     {
@@ -40,7 +40,7 @@ class provenanceRunner {
         std::string v(argv[i]);
         commandline += " " + std::string(argv[i]);
       }
-      engine->Put(comm, "command-line", commandline);
+      engine->Put( "command-line", commandline);
     }
 
     {
@@ -50,7 +50,7 @@ class provenanceRunner {
       std::ostringstream oss;
       oss << std::put_time(&tm, "%Y-%m-%d %H-%M-%S");
       std::string time = oss.str();
-      engine->Put(comm, "time", time);
+      engine->Put( "time", time);
     }
 
     {
@@ -62,7 +62,7 @@ class provenanceRunner {
       // Add all the libraries and the current exe to the json
       json exe_info = DistUtils::getLibInfo(exe.c_str(), 0);
       exe_info["libs"] = libNames.libs;
-      engine->Put(comm, "exe-info", exe_info);
+      engine->Put("exe-info", exe_info);
     }
     {
       // The configuration allows the user to specify additional files
@@ -87,12 +87,12 @@ class provenanceRunner {
           ins.push_back(r);
         }
         //}
-        engine->Put(comm, "input-files", ins);
+        engine->Put( "input-files", ins);
       }
     }
     {
       // Throw the VnV configuration file into the output as well.
-      engine->Put(comm, "vnv-config", configFile);
+      engine->Put( "vnv-config", configFile);
     }
 
     return SUCCESS;

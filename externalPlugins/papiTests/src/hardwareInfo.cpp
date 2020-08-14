@@ -3,6 +3,10 @@
 #include "papi.h"
 #include <sys/utsname.h>
 #include <iostream>
+
+#define PNAME Papi
+
+
 using namespace VnV;
 
 namespace {
@@ -93,7 +97,7 @@ bool InitalizePAPI() {
  *    $$main$$
  *
  */
-INJECTION_TEST(hardware_info) {
+INJECTION_TEST(PNAME,hardware_info) {
   if (InitalizePAPI() && (type == InjectionPointType::Begin || type == InjectionPointType::Single) ) {
     engine->Put(comm, "hardware",getDefaultHWJson());
   }
@@ -211,7 +215,7 @@ public:
  *    Counters will include any cost associated with injection point tests in child nodes. Users should use caution when using nested profiling with this toolkit.
  *
  */
-INJECTION_TEST_R(flops, flopsRunner) {
+INJECTION_TEST_R(PNAME,flops, flopsRunner) {
   InitalizePAPI();
 
   if (type == InjectionPointType::Single) {

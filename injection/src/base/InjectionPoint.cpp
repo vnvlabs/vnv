@@ -82,7 +82,7 @@ void InjectionPoint::setCallBack(const CppInjection::DataCallback& callback) {
   }
 }
 
-void InjectionPoint::setComm(VnV_Comm comm) { this->comm = comm; }
+void InjectionPoint::setComm(ICommunicator_ptr comm) { this->comm = comm; }
 
 void InjectionPoint::runTests() {
   OutputEngineManager* wrapper =
@@ -97,9 +97,9 @@ void InjectionPoint::runTests() {
           static_cast<void*>(wrapper->getOutputEngine())};
       ParameterSetWrapper paramWrapper = {static_cast<void*>(&parameterMap)};
       int t = InjectionPointTypeUtils::toC(type);
-      (*cCallback)(comm, &paramWrapper, &engineWraper, t, stageId.c_str());
+      (*cCallback)(comm->asComm(), &paramWrapper, &engineWraper, t, stageId.c_str());
     } else {
-      cppCallback(comm, parameterMap, wrapper, type, stageId);
+      cppCallback(comm->asComm(), parameterMap, wrapper, type, stageId);
     }
     wrapper->testFinishedCallBack(
         comm, true);  // TODO callback should return bool "__internal__");

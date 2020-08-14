@@ -131,8 +131,12 @@ IMapNode* MapNode::add(std::string key, std::shared_ptr<DataBase> v) {
 }
 
 DataTypeNode::DataTypeNode() : IDataTypeNode() {}
-std::string DataTypeNode::getDataTypeName() { return dataTypeName; }
+long long DataTypeNode::getDataTypeKey() { return key; }
 IMapNode* DataTypeNode::getChildren() { return children.get(); }
+
+IArrayNode *ShapeNode::getChildren() { return children.get(); }
+
+std::string ShapeNode::getShape() { return shape.dump(); }
 
 }  // namespace JsonReader
 }  // namespace Engines

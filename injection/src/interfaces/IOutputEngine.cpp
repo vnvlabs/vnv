@@ -79,19 +79,6 @@ std::string VariableEnumFactory::toString(VariableEnum e) {
       "VariableEnumFactory::toString: Unhandled Variable Enum Type");
 }
 
-void IOutputEngine::Put(VnV_Comm comm, std::string variableName,
-                        std::string serializer, std::string inputType,
-                        void* object) {
-  auto it =
-      SerializerStore::getSerializerStore().getSerializerByName(serializer);
-  if (it != nullptr) {
-    std::string s = it->Serialize(inputType, object);
-    Put(comm, variableName, s);
-  } else {
-    VnV_Error("Could not Put variable %s because serializer %s was not found",
-              variableName.c_str(), serializer.c_str());
-  }
-}
 
 void OutputEngineManager::set(json& inputjson) {
   json schema = getConfigurationSchema();

@@ -77,12 +77,15 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level,
       // Clear any saved logs.
       while (savedLogs.size() > 0) {
         auto& t = savedLogs.front();
-        eng->Log(std::get<4>(t), std::get<0>(t).c_str(), std::get<1>(t),
+        VnV_Comm cc = std::get<4>(t);
+        auto c = CommunicationStore::instance().customComm(cc.name,cc.data);
+        eng->Log(c, std::get<0>(t).c_str(), std::get<1>(t),
                  std::get<2>(t), std::get<3>(t));
         savedLogs.pop();
       }
 
-      eng->Log(comm, pname.c_str(), stage.size(), level, format);
+      auto c = CommunicationStore::instance().customComm(comm.name,comm.data);
+      eng->Log(c, pname.c_str(), stage.size(), level, format);
     } catch (...) {
       // Logging statements that occur prior to the engine being configured at
       // written to std::out.

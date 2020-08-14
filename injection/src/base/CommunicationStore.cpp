@@ -73,6 +73,7 @@ IDataType_ptr CommunicationStore::getDataType(std::string name) {
   return getDataType(getKey(name));
 }
 
+
 IReduction_ptr CommunicationStore::getReducer(long long key) {
   auto it = reduction_factory.find(key);
   if (it != reduction_factory.end()) {
@@ -86,6 +87,9 @@ IReduction_ptr CommunicationStore::getReducer(long long key) {
 IReduction_ptr CommunicationStore::getReducer(std::string packageName,
                                               std::string name) {
   return getReducer(getKey(packageName, name));
+}
+IReduction_ptr CommunicationStore::getReducer(std::string packageColonName) {
+  return getReducer(VnV::StringUtils::simpleHash(packageColonName));
 }
 
 ICommunicator_ptr CommunicationStore::getCommunicator(std::string packageName,

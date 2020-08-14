@@ -39,43 +39,39 @@ AdiosEngineManager::AdiosEngineManager() {}
 
 AdiosEngineManager::~AdiosEngineManager() {}
 
-void AdiosEngineManager::Put(VnV_Comm, std::string variableName,
+void AdiosEngineManager::Put( std::string variableName,
                              const double& value) {
   engine.Put(variableName, value);
 }
 
-void AdiosEngineManager::Put(VnV_Comm, std::string variableName,
+void AdiosEngineManager::Put(std::string variableName,
                              const int& value) {
   engine.Put(variableName, value);
 }
 
-void AdiosEngineManager::Put(VnV_Comm, std::string variableName,
-                             const float& value) {
-  engine.Put(variableName, value);
-}
-
-void AdiosEngineManager::Put(VnV_Comm, std::string variableName,
+void AdiosEngineManager::Put(std::string variableName,
                              const long& value) {
   engine.Put(variableName, value);
 }
 
-void AdiosEngineManager::Put(VnV_Comm, std::string variableName,
+void AdiosEngineManager::Put(std::string variableName,
                              const bool& value) {
   const int val = value;
   engine.Put(variableName, val);
 }
 
-void AdiosEngineManager::Put(VnV_Comm, std::string variableName,
+void AdiosEngineManager::Put(std::string variableName,
                              const nlohmann::json& value) {
   engine.Put(variableName, value.dump());
 }
 
-void AdiosEngineManager::Put(VnV_Comm, std::string variableName,
+void AdiosEngineManager::Put(std::string variableName,
                              const std::string& value) {
   engine.Put(variableName, value);
 }
 
-void AdiosEngineManager::Log(VnV_Comm, const char* package, int stage,
+
+void AdiosEngineManager::Log(ICommunicator_ptr, const char* package, int stage,
                              std::string level, std::string message) {
   std::ostringstream oss;
   oss << "[" << package << ":" << level << "]: " << message;
@@ -115,7 +111,7 @@ void AdiosEngineManager::setFromJson(nlohmann::json& config) {
   engine = bpWriter.Open(outfile, adios2::Mode::Write);
 }
 
-void AdiosEngineManager::injectionPointEndedCallBack(VnV_Comm, std::string id,
+void AdiosEngineManager::injectionPointEndedCallBack(ICommunicator_ptr, std::string id,
                                                      InjectionPointType type_,
                                                      std::string stageId) {
   if (engine) {
@@ -131,7 +127,7 @@ void AdiosEngineManager::injectionPointEndedCallBack(VnV_Comm, std::string id,
   }
 }
 
-void AdiosEngineManager::injectionPointStartedCallBack(VnV_Comm,
+void AdiosEngineManager::injectionPointStartedCallBack(ICommunicator_ptr,
                                                        std::string packageName,
                                                        std::string id,
 
@@ -150,7 +146,7 @@ void AdiosEngineManager::injectionPointStartedCallBack(VnV_Comm,
   }
 }
 
-void AdiosEngineManager::testStartedCallBack(VnV_Comm, std::string packageName,
+void AdiosEngineManager::testStartedCallBack(ICommunicator_ptr, std::string packageName,
                                              std::string testName,
                                              bool internal) {
   if (engine) {
@@ -163,7 +159,7 @@ void AdiosEngineManager::testStartedCallBack(VnV_Comm, std::string packageName,
   }
 }
 
-void AdiosEngineManager::testFinishedCallBack(VnV_Comm, bool result_) {
+void AdiosEngineManager::testFinishedCallBack(ICommunicator_ptr, bool result_) {
   if (engine) {
     int res = (result_) ? 1 : 0;
     engine.Put(result, res);
@@ -171,7 +167,7 @@ void AdiosEngineManager::testFinishedCallBack(VnV_Comm, bool result_) {
   }
 }
 
-void AdiosEngineManager::unitTestStartedCallBack(VnV_Comm,
+void AdiosEngineManager::unitTestStartedCallBack(ICommunicator_ptr,
                                                  std::string packageName,
                                                  std::string unitTestName) {
   if (engine) {
@@ -184,7 +180,7 @@ void AdiosEngineManager::unitTestStartedCallBack(VnV_Comm,
   }
 }
 
-void AdiosEngineManager::unitTestFinishedCallBack(VnV_Comm, IUnitTest* tester) {
+void AdiosEngineManager::unitTestFinishedCallBack(ICommunicator_ptr, IUnitTest* tester) {
   if (engine) {
     int suiteSuccess = 1;
     for (auto it : tester->getResults()) {
@@ -197,9 +193,9 @@ void AdiosEngineManager::unitTestFinishedCallBack(VnV_Comm, IUnitTest* tester) {
     engine.EndStep();
   }
 }
-void AdiosEngineManager::dataTypeStartedCallBack(VnV_Comm,
+void AdiosEngineManager::dataTypeStartedCallBack(ICommunicator_ptr,
                                                  std::string variableName,
-                                                 std::string dtype) {
+                                                 long long dtype) {
   if (engine) {
     engine.BeginStep();
     engine.Put(identifier, variableName);
@@ -210,7 +206,7 @@ void AdiosEngineManager::dataTypeStartedCallBack(VnV_Comm,
   }
 }
 
-void AdiosEngineManager::dataTypeEndedCallBack(VnV_Comm,
+void AdiosEngineManager::dataTypeEndedCallBack(ICommunicator_ptr,
                                                std::string variableName) {
   if (engine) {
     engine.EndStep();

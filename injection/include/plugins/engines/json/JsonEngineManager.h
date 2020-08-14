@@ -10,6 +10,7 @@ class JsonEngineManager : public OutputEngineManager {
   json mainJson;
   json::json_pointer ptr;
   long id = 0;
+  ICommunicator_ptr currComm = nullptr;
   std::string outputFile;
 
   std::string getId();
@@ -26,19 +27,34 @@ class JsonEngineManager : public OutputEngineManager {
 
   std::string Dump(int d);
 
+  void setComm(ICommunicator_ptr comm) {
+    currComm = comm;
+  }
+
  public:
   JsonEngineManager();
 
-#define LTypes X(double) X(int) X(bool) X(float) X(long) X(std::string) X(json)
+#define LTypes X(double) X(int) X(bool) X(long) X(std::string) X(json)
 #define X(type) \
-  void Put(VnV_Comm comm, std::string variableName, const type& value) override;
+  void Put(std::string variableName, const type& value) override;
   LTypes
 #undef X
 #undef LTypes
 
-      void
-      Log(VnV_Comm comm, const char* package, int stage, std::string level,
-          std::string message) override;
+
+  void WriteDataArray(std::string variableName, IDataType_vec &data, std::vector<int> &shape);
+
+  void PutGlobalArray(ICommunicator_ptr comm ,
+                              long long dtype,
+                              std::string variableName,
+                              IDataType_vec data,
+                              std::vector<int> gsizes,
+                              std::vector<int> sizes,
+                              std::vector<int> offset,
+                              int onlyOne=-1 ) override;
+
+  void Log(ICommunicator_ptr comm, const char* package, int stage, std::string level,
+           std::string message) override;
 
   json getConfigurationSchema() override;
 
@@ -46,26 +62,26 @@ class JsonEngineManager : public OutputEngineManager {
 
   void setFromJson(json& config) override;
 
-  void injectionPointEndedCallBack(VnV_Comm comm, std::string id,
+  void injectionPointEndedCallBack(ICommunicator_ptr comm, std::string id,
                                    InjectionPointType type,
                                    std::string stageVal) override;
 
-  void injectionPointStartedCallBack(VnV_Comm comm, std::string packageName,
+  void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                                      std::string id, InjectionPointType type,
                                      std::string stageVal) override;
 
-  void testStartedCallBack(VnV_Comm comm, std::string packageName,
+  void testStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                            std::string testName, bool internal) override;
 
-  void testFinishedCallBack(VnV_Comm comm, bool result_) override;
+  void testFinishedCallBack(ICommunicator_ptr comm, bool result_) override;
 
-  void unitTestStartedCallBack(VnV_Comm comm, std::string packageName,
+  void unitTestStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                                std::string unitTestName) override;
 
-  void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester) override;
-  void dataTypeStartedCallBack(VnV_Comm /** comm **/, std::string variableName,
-                               std::string dtype) override;
-  void dataTypeEndedCallBack(VnV_Comm /** comm **/,
+  void unitTestFinishedCallBack(ICommunicator_ptr comm, IUnitTest* tester) override;
+  void dataTypeStartedCallBack(ICommunicator_ptr /** comm **/, std::string variableName,
+                               long long dtype) override;
+  void dataTypeEndedCallBack(ICommunicator_ptr /** comm **/,
                              std::string variableName) override;
 
   Nodes::IRootNode* readFromFile(std::string file, long& idCounter) override;

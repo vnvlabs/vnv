@@ -3,9 +3,11 @@
 
 #include <iostream>
 #include <sstream>
+#include <assert.h>
 
 #include "c-interfaces/PackageName.h"
 #include "interfaces/nodes/Nodes.h"
+#include "json-schema.hpp"
 
 namespace VnV {
 namespace VNVPACKAGENAME {
@@ -49,6 +51,16 @@ class BoolNode : public IBoolNode {
   bool value;
   BoolNode();
   virtual bool getValue() override;
+};
+
+class ShapeNode : public IShapeNode {
+public:
+   std::shared_ptr<ArrayNode> children;
+   nlohmann::json shape;
+
+   IArrayNode* getChildren() override;
+   std::string getShape() override;
+
 };
 
 class DoubleNode : public IDoubleNode {
@@ -155,10 +167,11 @@ class LogNode : public ILogNode {
 
 class DataTypeNode : public IDataTypeNode {
  public:
-  std::string dataTypeName, package, templ;
+  long long key;
+  std::string package, templ;
   std::shared_ptr<MapNode> children;
   DataTypeNode();
-  virtual std::string getDataTypeName() override;
+  virtual long long getDataTypeKey() override;
   virtual IMapNode* getChildren() override;
   virtual std::string getValue() override { return templ; }
 };

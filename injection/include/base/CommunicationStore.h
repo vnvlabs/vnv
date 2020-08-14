@@ -57,6 +57,7 @@ class CommunicationStore {
 
   IReduction_ptr getReducer(long long key);
   IReduction_ptr getReducer(std::string packageName, std::string name);
+  IReduction_ptr getReducer(std::string packageColonName);
 
   ICommunicator_ptr getCommunicator(std::string packageName, std::string name,
                                     Communication::CommType type);

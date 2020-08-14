@@ -1,4 +1,4 @@
-
+﻿
 
 #include "c-interfaces/Wrappers.h"
 
@@ -26,7 +26,7 @@ extern "C" {
 #define X(type)                                                            \
   void VnV_Output_Put_##type(VnV_Comm comm, IOutputEngineWrapper* wrapper, \
                              const char* name, type* value) {              \
-    VnV::EngineWrapperCast(wrapper)->Put(comm, name, *value);              \
+    VnV::EngineWrapperCast(wrapper)->Put( name, *value);              \
   }
 
 OUTPUTENGINESUPPORTEDTYPES
@@ -39,7 +39,7 @@ void VnV_Output_Put_String(VnV_Comm comm, IOutputEngineWrapper* wrapper,
   // TODO add "const" to the def on Put(std::string &string);
   std::string nameS = name;
   std::string valueS = value;
-  VnV::EngineWrapperCast(wrapper)->Put(comm, nameS, valueS);
+  VnV::EngineWrapperCast(wrapper)->Put(nameS, valueS);
 }
 
 ParameterDTO VnV_Parameter_Get(ParameterSetWrapper* wrapper, const char* name) {

@@ -156,9 +156,9 @@ bool TestConfig::preLoadParameterSet(
 
 // Index is the injection point index. That is, the injection
 // point that this test is being run inside.
-TestStatus ITest::_runTest(VnV_Comm comm, OutputEngineManager* engine,
+TestStatus ITest::_runTest(ICommunicator_ptr comm, OutputEngineManager* engine,
                            InjectionPointType type, std::string stageId) {
-  VnV_Debug_MPI(VNVPACKAGENAME, comm, "Runnnig Test %s ",
+  VnV_Debug_MPI(VNVPACKAGENAME, comm->asComm(), "Runnnig Test %s ",
                 m_config.getName().c_str());
 
   engine->testStartedCallBack(comm, m_config.getPackage(), m_config.getName(),
@@ -180,8 +180,8 @@ ITest::~ITest() {}
  */
 INJECTION_TEST(VNVPACKAGENAME, test1, int argv, char** argc,
                std::string config) {
-  engine->Put(comm, "hello", 10.0);
-  engine->Put(comm, "argv", get<int>("argv"));
-  engine->Put(comm, "argc", *get<char**>("argc"));
+  engine->Put( "hello", 10.0);
+  engine->Put( "argv", get<int>("argv"));
+  engine->Put( "argc", *get<char**>("argc"));
   return SUCCESS;
 }

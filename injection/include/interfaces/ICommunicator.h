@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <string>
 
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/PackageName.h"
@@ -83,6 +84,7 @@ class IDataType {
   long long key;
 
  public:
+
   virtual long long maxSize() = 0;  // what is the maximum size of the buffer
                                     // defined in this class.
   virtual long long pack(void* buffer) = 0;  // pack the buffer
@@ -91,11 +93,14 @@ class IDataType {
   virtual void axpy(double alpha, IDataType* y) = 0;  // y = ax + y
   virtual int compare(IDataType* y) = 0;  // -1 less, 0 == , 1 greater.
   virtual void mult(IDataType* y) = 0;
-  virtual void Put(VnV_Comm comm, IOutputEngine* engine) = 0;
+
+  //Put will be called when you need to "Write" this output to file.
+  //Any engine functions can be called.
+  virtual void Put(IOutputEngine* engine) = 0;
+
 
   void setKey(long long key);
   long long getKey();
-
   virtual ~IDataType();
 };
 
@@ -120,9 +125,7 @@ class ICommunicator {
   virtual void setData(void* data) = 0;  // The communicator passed in.
   virtual void* getData() = 0;
 
-  virtual int uniqueId() = 0;  // Unique id such that the same comm data returns
-                               // the same comm.
-
+  virtual int uniqueId() = 0;  // Unique id such that the same comm data returns// the same comm.
   virtual int Size() = 0;
   virtual int Rank() = 0;
   virtual void Barrier() = 0;
@@ -162,8 +165,13 @@ class ICommunicator {
 
   virtual void Gather(void* buffer, int count, void* recvBuffer,
                       int dataTypeSize, int root) = 0;
+
   virtual void AllGather(void* buffer, int count, void* recvBuffer,
                          int dataTypeSize) = 0;
+
+  virtual void GatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize, int root) = 0;
+  virtual void AllGatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize) = 0;
+
 
   virtual void BroadCast(void* buffer, int count, int dataTypeSize,
                          int root) = 0;

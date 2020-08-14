@@ -24,6 +24,8 @@ class ParallelEngine : public OutputEngineManager {
  private:
   // Router* router;
   std::map<int, std::shared_ptr<Router>> routerMap;
+  ICommunicator_ptr currComm;
+
 
  public:
   /**
@@ -35,7 +37,7 @@ class ParallelEngine : public OutputEngineManager {
    * @brief Log
    * @param log
    */
-  void Log(VnV_Comm comm, const char* package, int stage, std::string level,
+  void Log(ICommunicator_ptr comm, const char* package, int stage, std::string level,
            std::string message) override;
 
   /**
@@ -43,7 +45,7 @@ class ParallelEngine : public OutputEngineManager {
    * @param variableName
    * @param value
    */
-  void Put(VnV_Comm comm, std::string variableName,
+  void Put(std::string variableName,
            const double& value) override;
 
   /**
@@ -51,44 +53,47 @@ class ParallelEngine : public OutputEngineManager {
    * @param variableName
    * @param value
    */
-  void Put(VnV_Comm comm, std::string variableName, const int& value) override;
+  void Put(std::string variableName, const int& value) override;
+
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(VnV_Comm comm, std::string variableName,
-           const float& value) override;
+  void Put( std::string variableName, const long& value) override;
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(VnV_Comm comm, std::string variableName, const long& value) override;
+  void Put( std::string variableName, const bool& value) override;
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(VnV_Comm comm, std::string variableName, const bool& value) override;
+  void Put(std::string variableName, const json& value) override;
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(VnV_Comm comm, std::string variableName, const json& value) override;
-
-  /**
-   * @brief Put
-   * @param variableName
-   * @param value
-   */
-  void Put(VnV_Comm comm, std::string variableName,
+  void Put( std::string variableName,
            const std::string& value) override;
+
+  void PutGlobalArray(ICommunicator_ptr comm ,
+                              long long dtype,
+                              std::string variableName,
+                              IDataType_vec data,
+                              std::vector<int> gsizes,
+                              std::vector<int> sizes,
+                              std::vector<int> offset,
+                      int onlyOne=-1 ) override
+  {}
 
   std::string getIndent(int stage);
 
@@ -113,7 +118,7 @@ class ParallelEngine : public OutputEngineManager {
    * @param id
    * @param stageVal
    */
-  void injectionPointEndedCallBack(VnV_Comm comm, std::string id,
+  void injectionPointEndedCallBack(ICommunicator_ptr comm, std::string id,
                                    InjectionPointType type,
                                    std::string stageVal) override;
 
@@ -122,7 +127,7 @@ class ParallelEngine : public OutputEngineManager {
    * @param id
    * @param stageVal
    */
-  void injectionPointStartedCallBack(VnV_Comm comm, std::string packageName,
+  void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                                      std::string id, InjectionPointType type,
                                      std::string stageVal) override;
 
@@ -131,23 +136,23 @@ class ParallelEngine : public OutputEngineManager {
    * @param testName
    * @param testStageVal
    */
-  void testStartedCallBack(VnV_Comm comm, std::string packageName,
+  void testStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                            std::string testName, bool internal) override;
 
   /**
    * @brief stopTest
    * @param result_
    */
-  void testFinishedCallBack(VnV_Comm comm, bool result_) override;
+  void testFinishedCallBack(ICommunicator_ptr comm, bool result_) override;
 
-  void unitTestStartedCallBack(VnV_Comm comm, std::string packageName,
+  void unitTestStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                                std::string unitTestName) override;
 
-  void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester) override;
+  void unitTestFinishedCallBack(ICommunicator_ptr comm, IUnitTest* tester) override;
 
-  void dataTypeStartedCallBack(VnV_Comm /** comm **/, std::string variableName,
-                               std::string dtype) override;
-  void dataTypeEndedCallBack(VnV_Comm /** comm **/,
+  void dataTypeStartedCallBack(ICommunicator_ptr /** comm **/, std::string variableName,
+                               long long dtype) override;
+  void dataTypeEndedCallBack(ICommunicator_ptr /** comm **/,
                              std::string variableName) override;
 
   /**
@@ -164,7 +169,7 @@ class ParallelEngine : public OutputEngineManager {
         "Print not implemented for Parallel Output Engine");
   }
 
-  std::shared_ptr<Router> getRouter(VnV_Comm comm,
+  std::shared_ptr<Router> getRouter(
                                     RouterAction action = RouterAction::IGNORE);
 };
 

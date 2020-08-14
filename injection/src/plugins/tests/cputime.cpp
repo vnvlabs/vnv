@@ -102,8 +102,8 @@ INJECTION_TEST_RS(VNVPACKAGENAME, cputime, cpuRunner, cpuRunner::provSchema()) {
              "Attempt to time a non looped injection point. Returning zero for "
              "cputime");
     double c = 0;
-    engine->Put(comm, "Start", c);
-    engine->Put(comm, "TotalTime", c);
+    engine->Put( "Start", c);
+    engine->Put( "TotalTime", c);
   } else if (type == InjectionPointType::Begin) {
     double cc = 0;
     const json& c = getConfigurationJson();
@@ -111,13 +111,13 @@ INJECTION_TEST_RS(VNVPACKAGENAME, cputime, cpuRunner, cpuRunner::provSchema()) {
     if (it != c.end()) {
       runner->setUnit(it->get<std::string>());
     }
-    engine->Put(comm, "units", runner->unit);
-    engine->Put(comm, "Start", cc);
+    engine->Put( "units", runner->unit);
+    engine->Put( "Start", cc);
     runner->start();
   } else if (type == InjectionPointType::End) {
-    engine->Put(comm, "TotalTime", runner->split());
+    engine->Put( "TotalTime", runner->split());
   } else {
-    engine->Put(comm, stageId, runner->split());
+    engine->Put( stageId, runner->split());
   }
   return SUCCESS;
 }

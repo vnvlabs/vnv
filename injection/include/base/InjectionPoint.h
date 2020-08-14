@@ -64,7 +64,7 @@ class InjectionPoint {
 
   static constexpr const char* internalTestName = "__internal__";
 
-  VnV_Comm comm;
+  ICommunicator_ptr comm;
 
   std::string name;
   std::string package;
@@ -108,7 +108,7 @@ class InjectionPoint {
   void setInjectionPointType(InjectionPointType type, std::string stageId);
   void setCallBack(injectionDataCallback* callback);
   void setCallBack(const CppInjection::DataCallback& callback);
-  void setComm(VnV_Comm comm);
+  void setComm(ICommunicator_ptr comm);
 
  public:
   /**

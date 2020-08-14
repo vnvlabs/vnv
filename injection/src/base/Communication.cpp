@@ -2,6 +2,9 @@
 #include "base/CommunicationStore.h"
 #include "base/exceptions.h"
 
+
+#include <algorithm>
+
 using namespace VnV::Communication;
 
 // TODO: Switch out all the malloc and free statements for std::vector<char>
@@ -148,16 +151,13 @@ std::pair<IDataType_vec, IStatus_ptr> DataTypeCommunication::Recv(int source,
   return std::make_pair(results, status);
 }
 
-IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data, int count,
+IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data, long long dtype, int count,
                                                int root, bool allToAll) {
   int rank = comm->Rank();
   int size = comm->Size();
 
   // First, need to broadcast the data type.
-  long long key = (rank == root) ? data[0]->getKey() : -1;
-  comm->BroadCast(&key, 1, sizeof(long long), root);
-  long long dataSize =
-      CommunicationStore::instance().getDataType(key)->maxSize();
+  long long dataSize = CommunicationStore::instance().getDataType(dtype)->maxSize();
 
   // Now pop the send buffer
   char* sendBuffer;
@@ -179,7 +179,7 @@ IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data, int count,
 
     // Unwrap.
     for (int i = 0; i < size * count; i++) {
-      IDataType_ptr ptr = CommunicationStore::instance().getDataType(key);
+      IDataType_ptr ptr = CommunicationStore::instance().getDataType(dtype);
       ptr->unpack(&(recvBuffer[i * dataSize]));
       results.push_back(ptr);
     }
@@ -190,7 +190,7 @@ IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data, int count,
 
     // Unwrap
     for (int i = 0; i < count; i++) {
-      IDataType_ptr ptr = CommunicationStore::instance().getDataType(key);
+      IDataType_ptr ptr = CommunicationStore::instance().getDataType(dtype);
       ptr->unpack(&(sendBuffer[i * dataSize]));
       results.push_back(ptr);
     }
@@ -199,15 +199,127 @@ IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data, int count,
   return results;
 }
 
-IDataType_vec DataTypeCommunication::Gather(IDataType_vec& data, int root,
+IDataType_vec DataTypeCommunication::GatherV(IDataType_vec &data, long long dtype, int root, std::vector<int> &gsizes, std::vector<int> &sizes, std::vector<int> &offsets, bool allGather) {
+   int dim = offsets.size();
+   int csize = 1 + 2*dim;
+
+   std::vector<int> sendBuffer;
+   sendBuffer.reserve(csize);
+   sendBuffer.push_back(data.size());
+   for (int i = 0; i < dim; i++ ){
+     sendBuffer.push_back(sizes[i]);
+     sendBuffer.push_back(offsets[i]);
+   }
+
+
+   int total = 0;
+   std::vector<int> result((comm->Rank()==root || allGather ) ? comm->Size() * csize  : 0 );
+   std::vector<int> counts((comm->Rank() ==root || allGather) ? comm->Size() : 0 );
+   std::vector<int> displs((comm->Rank() ==root || allGather) ? comm->Size() : 0 );
+
+   if (!allGather) {
+      comm->Gather(&(sendBuffer[0]), csize, &(result[0]), sizeof(int), root);
+   } else {
+      comm->AllGather(&(sendBuffer[0]), csize, &(result[0]), sizeof(int));
+   }
+
+   for (int i =0; i < result.size(); i+=csize )  {
+     displs[i] = total;
+     counts[i] = result[i];
+     total += result[i];
+   }
+
+   // Pop the send buffer -- Everyone has one already,
+   char* sendbuffer = nullptr;
+   auto it = CommunicationStore::instance().getDataType(dtype);
+
+   long long dataSize = it->maxSize();
+   sendbuffer = (char*)malloc(dataSize * data.size());
+   for (std::size_t i = 0; i < data.size(); i++) {
+     data[i]->pack(&(sendbuffer[i * dataSize]));
+  }
+
+  // Alloc the recv buffer on any rank that needs it.
+  char* recvBuffer;
+  if (comm->Rank() == root || allGather) {
+    recvBuffer = (char*)malloc(dataSize * total );
+  }
+
+  // Call the Gather
+  if (allGather) {
+    comm->AllGatherV(sendbuffer, data.size(), recvBuffer, &counts[0], &(displs[0]), dataSize);
+  } else {
+    comm->GatherV(sendbuffer, data.size(), recvBuffer, &(counts[0]), &(displs[0]), dataSize, root);
+  }
+  free(sendbuffer);
+
+  // Unwrap into a 1-hot excoded structure.
+  // A_{ijk...} = vec[i*xs + j*ys + ...]
+  // Result = [ [total, xsize, xoff, ysize, yoff, zsize, zoff...] repeat]
+
+  IDataType_vec results;
+  results.reserve(total);
+
+
+  if (comm->Rank() == root || allGather) {
+     //Get the multipliers for the flatter operation.
+     int cc = 0;
+     std::vector<int> multipliers(dim);
+     for (int i = dim; i > 0 ; i--) {
+        multipliers[i-1] = (i==dim) ? 1 : multipliers[i]*gsizes[cc++];
+     }
+
+    // Iterate over all communicators.
+    int cindex = 0; // current index in the recv buffer.
+    for ( int i =0; i < comm->Size(); i++) {
+
+      //Get the sizes and offsets for this vector.
+      std::vector<int> sizes(dim);
+      std::vector<int> offs(dim);
+      for (int k = 0; k < dim; k++) {
+        sizes.push_back( result[i*csize + 1 + 2*k*dim]);
+        offs.push_back( result[i*csize + 2 + 2*k*dim]);
+      }
+
+      std::vector<int> iters(dim,0);
+      //Loop over all the vectors from this comm.
+      for( int j = 0; j < counts[i]; j++ ) {
+
+          // J IS THE A_{ijk} -> V[j]. Now need to map l-> {ijk...}
+          int findex = 0;
+          bool up = false;
+          for (int jj = dim-1; jj >= 0 ; jj-- ) {
+              findex += (offs[jj]+iters[jj])*multipliers[jj];
+              if (!up) {
+                 iters[jj] = (iters[jj] + 1) % sizes[jj];
+                 up = (iters[jj] > 0 ) ; // if iters[jj] == 0 then next one should increase
+              }
+          }
+
+          //Finally unpack the sucker.
+          IDataType_ptr dptr = CommunicationStore::instance().getDataType(dtype);
+          dptr->unpack(&(recvBuffer[cindex * dataSize]));
+          results[findex] = dptr;
+
+          cindex++; // Move to the next value in the main unpacking vector.
+      }
+
+    }
+
+  }
+  free(recvBuffer);
+  return results;
+}
+
+IDataType_vec DataTypeCommunication::Gather(IDataType_vec& data, long long dtype, int root,
                                             bool allGather) {
   int rank = comm->Rank();
   int size = comm->Size();
 
   // Pop the send buffer -- Everyone has one already,
   char* sendbuffer = nullptr;
-  long long key = data[0]->getKey();
-  long long dataSize = data[0]->maxSize();
+
+  long long dataSize = CommunicationStore::instance().getDataType(dtype)->maxSize();
   sendbuffer = (char*)malloc(dataSize * data.size());
   for (std::size_t i = 0; i < data.size(); i++) {
     data[i]->pack(&(sendbuffer[i * dataSize]));
@@ -231,7 +343,7 @@ IDataType_vec DataTypeCommunication::Gather(IDataType_vec& data, int root,
   results.reserve(dataSize * data.size());
   if (rank == root || allGather) {
     for (int i = 0; i < dataSize * data.size(); i++) {
-      IDataType_ptr dptr = CommunicationStore::instance().getDataType(key);
+      IDataType_ptr dptr = CommunicationStore::instance().getDataType(dtype);
       dptr->unpack(&(recvBuffer[i * dataSize]));
       results.push_back(dptr);
     }
@@ -241,15 +353,12 @@ IDataType_vec DataTypeCommunication::Gather(IDataType_vec& data, int root,
   return results;
 }
 
-IDataType_vec DataTypeCommunication::Scatter(IDataType_vec& data, int root,
+IDataType_vec DataTypeCommunication::Scatter(IDataType_vec& data, long long dtype, int root,
                                              int count) {
   int rank = comm->Rank();
   int size = comm->Size();
 
-  // First, need to scatter the data type.
-  long long key = (rank == root) ? data[0]->getKey() : 0;
-  comm->BroadCast(&key, 1, sizeof(long long), root);
-  long dataSize = CommunicationStore::instance().getDataType(key)->maxSize();
+  long dataSize = CommunicationStore::instance().getDataType(dtype)->maxSize();
 
   // Now pop the send buffer
   char* buffer = nullptr;
@@ -267,8 +376,7 @@ IDataType_vec DataTypeCommunication::Scatter(IDataType_vec& data, int root,
   // Unwrap.
   IDataType_vec results;
   for (int i = 0; i < count; i++) {
-    long long* lptr = (long long*)&(recvBuffer[i * dataSize]);
-    IDataType_ptr dptr = CommunicationStore::instance().getDataType(key);
+    IDataType_ptr dptr = CommunicationStore::instance().getDataType(dtype);
     dptr->unpack(&(recvBuffer[i * dataSize]));
     results.push_back(dptr);
   }
@@ -281,20 +389,33 @@ IDataType_vec DataTypeCommunication::Scatter(IDataType_vec& data, int root,
   return results;
 }
 
-IDataType_vec DataTypeCommunication::Reduce(IDataType_vec& data,
+IDataType_vec DataTypeCommunication::ReduceMultiple(IDataType_vec &data, long long dtype, std::string packageColonName, int root) {
+  return ReduceMultiple(data, dtype, CommunicationStore::instance().getReducer(packageColonName),root);
+}
+
+IDataType_ptr ReduceLocalVec(IDataType_vec &data, IReduction_ptr reducer) {
+   if (data.size() == 0 ) return nullptr;
+
+   IDataType_ptr result = data[0];
+   for (int i = 1; i < data.size(); i++) {
+      reducer->reduce(data[i],result);
+   }
+   return result;
+}
+
+IDataType_vec DataTypeCommunication::ReduceMultiple(IDataType_vec& data, long long dtype,
                                             IReduction_ptr reduction,
                                             int root) {
   int rank = comm->Rank();
 
   // Pop the send buffer
-  long long dataKey = data[0]->getKey();
   long long reducerKey = reduction->getKey();
-  long dataSize = data[0]->maxSize() + 2 * sizeof(long long);
+  long dataSize = CommunicationStore::instance().getDataType(dtype)->maxSize() + 2 * sizeof(long long);
   char* buffer = (char*)malloc(data.size() * dataSize);
   for (int i = 0; i < data.size(); i++) {
     long long* lptr = (long long*)&(buffer[i * dataSize]);
     lptr[0] = reducerKey;       // reducer
-    lptr[1] = dataKey;          // key
+    lptr[1] = dtype;          // key
     data[i]->pack(&(lptr[2]));  // data
   }
 
@@ -318,7 +439,7 @@ IDataType_vec DataTypeCommunication::Reduce(IDataType_vec& data,
     for (int i = 0; i < data.size(); i++) {
       long long* lptr = (long long*)recvBuffer[i * dataSize];
       IDataType_ptr result =
-          CommunicationStore::instance().getDataType(dataKey);
+          CommunicationStore::instance().getDataType(dtype);
       result->unpack(&(lptr[2]));
       results.push_back(result);
       free(recvBuffer);

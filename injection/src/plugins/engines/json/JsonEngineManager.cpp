@@ -7,6 +7,7 @@
 #include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
 #include "plugins/engines/json/JsonOutputReader.h"
+#include "base/Communication.h"
 
 using nlohmann::json;
 
@@ -36,25 +37,51 @@ namespace VnV {
 namespace VNVPACKAGENAME {
 namespace Engines {
 
-#define LTypes X(double) X(int) X(bool) X(float) X(long) X(std::string) X(json)
-#define X(type)                                                              \
-  void JsonEngineManager::Put(VnV_Comm /**comm**/, std::string variableName, \
-                              const type& value) {                           \
-    json j;                                                                  \
-    j["id"] = getId();                                                       \
-    j["name"] = variableName;                                                \
-    j["type"] = #type;                                                       \
-    j["value"] = value;                                                      \
-    j["node"] = "Data";                                                      \
-    append(j);                                                               \
+#define LTypes X(double) X(int) X(long) X(bool) X(std::string) X(json)
+#define X(type)                                                                \
+  void JsonEngineManager::Put(std::string variableName,                        \
+                              const type& value) {                             \
+      if (currComm->Rank() != getRoot(currComm)) return;                           \
+      json j;                                                                  \
+      j["id"] = getId();                                                       \
+      j["name"] = variableName;                                                \
+      j["type"] = #type;                                                       \
+      j["value"] = value;                                                      \
+      j["node"] = "Data";                                                      \
+      append(j);                                                               \
   }
 LTypes
 #undef X
 #undef LTypes
 
-    std::string
-    JsonEngineManager::getId() {
+std::string JsonEngineManager::getId() {
   return std::to_string(id++);
+}
+
+void JsonEngineManager::WriteDataArray(std::string variableName, IDataType_vec &data, std::vector<int> &shape){
+  //We only write on the root processor.
+  if (currComm->Rank() == getRoot(currComm)) {
+     json j;
+     j["id"] = getId();
+     j["name"] = variableName;
+     j["node"] = "Data";
+     j["type"] = "shape";
+     j["shape"] = shape;
+     j["children"] = json::array();
+
+     push(j, json::json_pointer("/children"));
+     // The data type should be put on a self communicator because we are on the root now.
+     //
+     ICommunicator_ptr self = CommunicationStore::instance().selfComm(currComm->getPackage());
+     for (int i = 0; i < data.size(); i++ ) {
+       dataTypeStartedCallBack(self, std::to_string(i), data[i]->getKey() );
+       data[i]->Put(this);
+       dataTypeEndedCallBack(self, std::to_string(i));
+     }
+
+     pop(2);
+   }
+
 }
 
 void JsonEngineManager::append(nlohmann::json& jsonOb) {
@@ -90,21 +117,54 @@ JsonEngineManager::JsonEngineManager() {
   mainJson["info"]["id"] = getId();
   mainJson["info"]["name"] = "info";
   mainJson["children"] = json::array();
+  mainJson["comm"] = json::object();
 
   ptr = json::json_pointer("/children");
 }
 
-void JsonEngineManager::Log(VnV_Comm /**comm**/, const char* package, int stage,
+
+
+
+void JsonEngineManager::PutGlobalArray(ICommunicator_ptr comm, long long dtype, std::string variableName, IDataType_vec data, std::vector<int> gsizes, std::vector<int> sizes, std::vector<int> offset, int onlyOne)
+{
+  VnV::Communication::DataTypeCommunication d(comm);
+  if (onlyOne > 0 && onlyOne == comm->Rank() && comm->Rank() == getRoot(comm) ) {
+     // We are the root process and the only required information is on this process. So, just call put.
+     WriteDataArray(variableName, data, gsizes);
+  } else if ( onlyOne > 0 && comm->Rank() == getRoot(comm)) {
+     // We are the root -- recv an array of shape gsizes from rank onlyOne
+     int s = std::accumulate(gsizes.begin(),gsizes.end(),1, std::multiplies<int>());
+     std::pair<IDataType_vec, IStatus_ptr> r = d.Recv(s,dtype, onlyOne, 223);
+     WriteDataArray( variableName, r.first, gsizes );
+  } else if ( onlyOne > 0 && comm->Rank() == onlyOne) {
+     //We are onlyOne, We need to send our information to the root
+     d.Send(data, getRoot(comm), 223, true);
+  } else {
+     //All GatherV
+     IDataType_vec rdata = d.GatherV(data, dtype, getRoot(comm), gsizes, sizes, offset, false);
+     if (comm->Rank() == getRoot(comm)) {
+        WriteDataArray( variableName, rdata, gsizes);
+     }
+
+  }
+}
+
+void JsonEngineManager::Log(ICommunicator_ptr comm, const char* package, int stage,
                             std::string level, std::string message) {
-  json log = json::object();
-  log["package"] = package;
-  log["stage"] = stage;
-  log["level"] = level;
-  log["message"] = message;
-  log["node"] = "Log";
-  log["id"] = getId();
-  log["name"] = getId();
-  append(log);
+  auto id = comm->uniqueId();
+  if (comm->Rank() == getRoot(comm) ) {
+   json log = json::object();
+   log["package"] = package;
+   log["stage"] = stage;
+   log["level"] = level;
+   log["message"] = message;
+   log["node"] = "Log";
+   log["id"] = getId();
+   log["name"] = getId();
+   log["comm"] = id;
+   append(log);
+ }
+
 }
 
 nlohmann::json JsonEngineManager::getConfigurationSchema() {
@@ -131,7 +191,7 @@ void JsonEngineManager::setFromJson(nlohmann::json& config) {
   }
 }
 
-void JsonEngineManager::injectionPointEndedCallBack(VnV_Comm /**comm**/,
+void JsonEngineManager::injectionPointEndedCallBack(ICommunicator_ptr /**comm**/,
                                                     std::string id,
                                                     InjectionPointType type,
                                                     std::string stageVal) {
@@ -142,11 +202,12 @@ void JsonEngineManager::injectionPointEndedCallBack(VnV_Comm /**comm**/,
   }
 }
 
-void JsonEngineManager::injectionPointStartedCallBack(VnV_Comm /**comm**/,
+void JsonEngineManager::injectionPointStartedCallBack(ICommunicator_ptr comm,
                                                       std::string packageName,
                                                       std::string id,
                                                       InjectionPointType type,
                                                       std::string stageVal) {
+  setComm(comm);
   json ip;
   json stage;
 
@@ -175,10 +236,11 @@ void JsonEngineManager::injectionPointStartedCallBack(VnV_Comm /**comm**/,
   }
 }
 
-void JsonEngineManager::testStartedCallBack(VnV_Comm /**comm**/,
+void JsonEngineManager::testStartedCallBack(ICommunicator_ptr comm,
                                             std::string packageName,
                                             std::string testName,
                                             bool internal) {
+  setComm(comm);
   json j;
   j["id"] = getId();
   j["name"] = testName;
@@ -189,16 +251,16 @@ void JsonEngineManager::testStartedCallBack(VnV_Comm /**comm**/,
   push(j, json::json_pointer("/children"));
 }
 
-void JsonEngineManager::testFinishedCallBack(VnV_Comm /**comm**/,
+void JsonEngineManager::testFinishedCallBack(ICommunicator_ptr /**comm**/,
                                              bool result_) {
   pop(2);
 }
 
-void JsonEngineManager::unitTestStartedCallBack(VnV_Comm /**comm**/,
+void JsonEngineManager::unitTestStartedCallBack(ICommunicator_ptr comm,
                                                 std::string packageName,
                                                 std::string unitTestName) {
   json j;
-
+  setComm(comm);
   j["id"] = getId();
   j["node"] = "UnitTest";
   j["name"] = unitTestName;
@@ -207,11 +269,11 @@ void JsonEngineManager::unitTestStartedCallBack(VnV_Comm /**comm**/,
   j["results"] = json::array();
   push(j, json::json_pointer("/children"));
 }
-void JsonEngineManager::dataTypeStartedCallBack(VnV_Comm /** comm **/,
+void JsonEngineManager::dataTypeStartedCallBack(ICommunicator_ptr comm ,
                                                 std::string variableName,
-                                                std::string dtype) {
+                                                long long dtype) {
   json j;
-
+  setComm(comm);
   j["id"] = getId();
   j["node"] = "DataType";
   j["name"] = variableName;
@@ -221,12 +283,12 @@ void JsonEngineManager::dataTypeStartedCallBack(VnV_Comm /** comm **/,
   push(j, json::json_pointer("/children"));
 }
 
-void JsonEngineManager::dataTypeEndedCallBack(VnV_Comm /** comm **/,
+void JsonEngineManager::dataTypeEndedCallBack(ICommunicator_ptr /** comm **/,
                                               std::string variableName) {
   pop(2);
 }
 
-void JsonEngineManager::unitTestFinishedCallBack(VnV_Comm comm,
+void JsonEngineManager::unitTestFinishedCallBack(ICommunicator_ptr comm,
                                                  IUnitTest* tester) {
   // pop the children node
   pop(1);
@@ -234,7 +296,7 @@ void JsonEngineManager::unitTestFinishedCallBack(VnV_Comm comm,
   // push to the results node
   append(json::json_pointer("/results"));
   for (auto it : tester->getResults()) {
-    Put(comm, std::get<0>(it), std::get<2>(it));
+    Put(std::get<0>(it), std::get<2>(it));
   }
 
   // pop the results and the unit-test itself.

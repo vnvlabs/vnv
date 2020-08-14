@@ -69,9 +69,9 @@ void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,
   // TODO These callbacks should accept the ICommunicator_ptr, not the VnV_Comm
   // (which is an interface
   // for supporting comms in C).
-  engineManager->unitTestStartedCallBack(comm->asComm(), packageName, name);
+  engineManager->unitTestStartedCallBack(comm, packageName, name);
   tester->run();
-  engineManager->unitTestFinishedCallBack(comm->asComm(), tester);
+  engineManager->unitTestFinishedCallBack(comm, tester);
 }
 
 void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,

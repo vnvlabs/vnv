@@ -9,7 +9,7 @@ struct IOutputEngineWrapper {
   void* ptr;
 };
 
-#define OUTPUTENGINESUPPORTEDTYPES X(double) X(int) X(float) X(long)
+#define OUTPUTENGINESUPPORTEDTYPES X(double) X(int) X(long)
 #define X(type)                                                               \
   VNVEXTERNC void VnV_Output_Put_##type(VnV_Comm comm,                        \
                                         struct IOutputEngineWrapper* wrapper, \

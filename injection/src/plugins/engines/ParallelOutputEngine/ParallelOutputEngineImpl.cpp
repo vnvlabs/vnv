@@ -26,46 +26,43 @@ static json __parallel_engine_schema__ =
 
 ParallelEngine::ParallelEngine() {}
 
-void ParallelEngine::Put(VnV_Comm comm, std::string variableName,
+void ParallelEngine::Put(std::string variableName,
+
                          const double& value) {
   std::string str = std::to_string(value);
-  Put(comm, variableName, str);
+  Put( variableName, str);
 }
-void ParallelEngine::Put(VnV_Comm comm, std::string variableName,
+void ParallelEngine::Put(std::string variableName,
                          const int& value) {
   std::string str = std::to_string(value);
-  Put(comm, variableName, str);
+  Put( variableName, str);
 }
-void ParallelEngine::Put(VnV_Comm comm, std::string variableName,
-                         const float& value) {
-  std::string str = std::to_string(value);
-  Put(comm, variableName, str);
-}
-void ParallelEngine::Put(VnV_Comm comm, std::string variableName,
+void ParallelEngine::Put( std::string variableName,
                          const long& value) {
   std::string str = std::to_string(value);
-  Put(comm, variableName, str);
+  Put( variableName, str);
 }
 
-void ParallelEngine::Put(VnV_Comm comm, std::string variableName,
+void ParallelEngine::Put( std::string variableName,
                          const bool& value) {
   std::string str = std::to_string(value);
-  Put(comm, variableName, str);
+  Put( variableName, str);
 }
 
-void ParallelEngine::Put(VnV_Comm comm, std::string variableName,
+void ParallelEngine::Put(std::string variableName,
                          const json& value) {
-  Put(comm, variableName, value.dump());
+  Put( variableName, value.dump());
 }
 
-void ParallelEngine::Put(VnV_Comm comm, std::string variableName,
+void ParallelEngine::Put( std::string variableName,
                          const std::string& value) {
-  getRouter(comm, RouterAction::PUSH)->send(variableName, value);
+  getRouter(RouterAction::PUSH)->send(variableName, value);
 }
 
-void ParallelEngine::Log(VnV_Comm comm, const char* package, int stage,
+void ParallelEngine::Log(ICommunicator_ptr comm, const char* package, int stage,
                          std::string level, std::string message) {
-  if (getRouter(comm, RouterAction::IGNORE)->isRoot()) {
+  currComm = comm;
+  if (getRouter(RouterAction::IGNORE)->isRoot()) {
     std::string s = VnV::StringUtils::getIndent(stage);
     printf("%s[%s:%s]: %s\n", s.c_str(), package, level.c_str(),
            message.c_str());
@@ -85,48 +82,52 @@ void ParallelEngine::setFromJson(json& config) {
   // router = new Router();
 }
 
-void ParallelEngine::injectionPointEndedCallBack(VnV_Comm comm, std::string id,
+void ParallelEngine::injectionPointEndedCallBack(ICommunicator_ptr comm, std::string id,
                                                  InjectionPointType type,
                                                  std::string stageVal) {
   printf("PARALLEL ENGINE End Injection Point %s : %s \n", id.c_str(),
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
-  getRouter(comm, RouterAction::POP)->forward();
+  getRouter(RouterAction::POP)->forward();
 }
 
-void ParallelEngine::injectionPointStartedCallBack(VnV_Comm comm,
+void ParallelEngine::injectionPointStartedCallBack(ICommunicator_ptr comm,
                                                    std::string packageName,
                                                    std::string id,
                                                    InjectionPointType type,
                                                    std::string stageVal) {
+  currComm = comm;
   printf("PARALLEL ENGINE Start Injection Point %s : %s \n", id.c_str(),
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
 }
 
-void ParallelEngine::testStartedCallBack(VnV_Comm comm, std::string packageName,
+void ParallelEngine::testStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                                          std::string testName, bool internal) {
+  currComm = comm;
   printf("PARALLEL ENGINE Start Test %s \n", testName.c_str());
 }
 
-void ParallelEngine::testFinishedCallBack(VnV_Comm comm, bool result_) {
+void ParallelEngine::testFinishedCallBack(ICommunicator_ptr comm, bool result_) {
   printf("PARALLEL ENGINE Stop Test. Test Was Successful-> %d\n", result_);
 }
-void ParallelEngine::dataTypeStartedCallBack(VnV_Comm /** comm **/,
+void ParallelEngine::dataTypeStartedCallBack(ICommunicator_ptr  comm ,
                                              std::string variableName,
-                                             std::string dtype) {
+                                             long long dtype) {
+  currComm = comm;
   printf("PARALLEL ENGINE Data Type Started %s", variableName.c_str());
 }
-void ParallelEngine::dataTypeEndedCallBack(VnV_Comm /** comm **/,
+void ParallelEngine::dataTypeEndedCallBack(ICommunicator_ptr /** comm **/,
                                            std::string variableName) {
   printf("PARALLEL ENGINE Data Type Finished %s ", variableName.c_str());
 }
 
-void ParallelEngine::unitTestStartedCallBack(VnV_Comm comm,
+void ParallelEngine::unitTestStartedCallBack(ICommunicator_ptr comm,
                                              std::string packageName,
                                              std::string unitTestName) {
+  currComm = comm;
   printf("PARALLEL ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
 }
 
-void ParallelEngine::unitTestFinishedCallBack(VnV_Comm comm,
+void ParallelEngine::unitTestFinishedCallBack(ICommunicator_ptr comm,
                                               IUnitTest* tester) {
   printf("Test Results\n");
   bool suiteSuccessful = true;
@@ -142,10 +143,10 @@ void ParallelEngine::unitTestFinishedCallBack(VnV_Comm comm,
          (suiteSuccessful) ? "Successfully" : "Unsuccessfully");
 }
 
-std::shared_ptr<Router> ParallelEngine::getRouter(VnV_Comm comm_raw,
+std::shared_ptr<Router> ParallelEngine::getRouter(
                                                   RouterAction action) {
-  auto comm = VnV::CommunicationStore::instance().getCommunicator(comm_raw);
-  auto rit = routerMap.find(comm->uniqueId());
+  auto id = currComm->uniqueId();
+  auto rit = routerMap.find(id);
   if (rit != routerMap.end()) {
     auto result = rit->second;
     if (action == RouterAction::POP) {
@@ -154,9 +155,9 @@ std::shared_ptr<Router> ParallelEngine::getRouter(VnV_Comm comm_raw,
     return result;
   }
 
-  std::shared_ptr<Router> r(new Router(comm));
+  std::shared_ptr<Router> r(new Router(currComm));
   if (action == RouterAction::PUSH) {
-    routerMap.insert(std::make_pair(comm->uniqueId(), r));
+    routerMap.insert(std::make_pair(id, r));
   }
   return r;
 }

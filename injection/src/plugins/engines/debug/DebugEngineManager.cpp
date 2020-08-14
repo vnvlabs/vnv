@@ -34,43 +34,39 @@ DebugEngineManager::DebugEngineManager() {}
 
 DebugEngineManager::~DebugEngineManager() {}
 
-void DebugEngineManager::Put(VnV_Comm comm, std::string variableName,
+void DebugEngineManager::Put( std::string variableName,
                              const double& value) {
   printf("DEBUG ENGINE PUT %s = %f\n", variableName.c_str(), value);
 }
 
-void DebugEngineManager::Put(VnV_Comm comm, std::string variableName,
+void DebugEngineManager::Put(std::string variableName,
                              const int& value) {
   printf("DEBUG ENGINE PUT %s = %d\n", variableName.c_str(), value);
 }
 
-void DebugEngineManager::Put(VnV_Comm comm, std::string variableName,
-                             const float& value) {
-  printf("DEBUG ENGINE PUT %s = %f\n", variableName.c_str(), value);
-}
 
-void DebugEngineManager::Put(VnV_Comm comm, std::string variableName,
+void DebugEngineManager::Put(std::string variableName,
                              const long& value) {
   printf("DEBUG ENGINE PUT %s = %ld\n", variableName.c_str(), value);
 }
 
-void DebugEngineManager::Put(VnV_Comm comm, std::string variableName,
+void DebugEngineManager::Put(std::string variableName,
                              const nlohmann::json& value) {
   printf("DEBUG ENGINE PUT %s = %s\n", variableName.c_str(),
          value.dump(3).c_str());
 }
 
-void DebugEngineManager::Put(VnV_Comm comm, std::string variableName,
+void DebugEngineManager::Put(std::string variableName,
                              const std::string& value) {
   printf("DEBUG ENGINE PUT %s = %s\n", variableName.c_str(), value.c_str());
 }
 
-void DebugEngineManager::Put(VnV_Comm comm, std::string variableName,
+void DebugEngineManager::Put(std::string variableName,
                              const bool& value) {
   printf("DEBUG ENGINE PUT %s = %d\n", variableName.c_str(), value);
 }
 
-void DebugEngineManager::Log(VnV_Comm comm, const char* package, int stage,
+void DebugEngineManager::Log(ICommunicator_ptr comm, const char* package, int stage,
                              std::string level, std::string message) {
   printf("[%s:%s]: %s\n", package, level.c_str(), message.c_str());
 }
@@ -87,7 +83,7 @@ void DebugEngineManager::setFromJson(nlohmann::json& config) {
   printf("DEBUG ENGINE WRAPPER Init with file %s\n", config.dump().c_str());
 }
 
-void DebugEngineManager::injectionPointEndedCallBack(VnV_Comm comm,
+void DebugEngineManager::injectionPointEndedCallBack(ICommunicator_ptr comm,
                                                      std::string id,
                                                      InjectionPointType type,
                                                      std::string stageVal) {
@@ -95,7 +91,7 @@ void DebugEngineManager::injectionPointEndedCallBack(VnV_Comm comm,
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
 }
 
-void DebugEngineManager::injectionPointStartedCallBack(VnV_Comm comm,
+void DebugEngineManager::injectionPointStartedCallBack(ICommunicator_ptr comm,
                                                        std::string packageName,
                                                        std::string id,
                                                        InjectionPointType type,
@@ -104,34 +100,34 @@ void DebugEngineManager::injectionPointStartedCallBack(VnV_Comm comm,
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
 }
 
-void DebugEngineManager::testStartedCallBack(VnV_Comm comm,
+void DebugEngineManager::testStartedCallBack(ICommunicator_ptr comm,
                                              std::string packageName,
                                              std::string testName,
                                              bool internal) {
   printf("DEBUG ENGINE Start Test %s \n", testName.c_str());
 }
 
-void DebugEngineManager::testFinishedCallBack(VnV_Comm comm, bool result_) {
+void DebugEngineManager::testFinishedCallBack(ICommunicator_ptr comm, bool result_) {
   printf("DEBUG ENGINE Stop Test. Test Was Successful-> %d\n", result_);
 }
 
-void DebugEngineManager::dataTypeStartedCallBack(VnV_Comm /** comm **/,
+void DebugEngineManager::dataTypeStartedCallBack(ICommunicator_ptr /** comm **/,
                                                  std::string variableName,
-                                                 std::string dtype) {
+                                                 long long dtype) {
   printf("DEBUG ENGINE Data Type Started %s", variableName.c_str());
 }
-void DebugEngineManager::dataTypeEndedCallBack(VnV_Comm /** comm **/,
+void DebugEngineManager::dataTypeEndedCallBack(ICommunicator_ptr /** comm **/,
                                                std::string variableName) {
   printf("DEBUG ENGINE Data Type Finished %s ", variableName.c_str());
 }
 
-void DebugEngineManager::unitTestStartedCallBack(VnV_Comm comm,
+void DebugEngineManager::unitTestStartedCallBack(ICommunicator_ptr comm,
                                                  std::string packageName,
                                                  std::string unitTestName) {
   printf("DEBUG ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
 }
 
-void DebugEngineManager::unitTestFinishedCallBack(VnV_Comm comm,
+void DebugEngineManager::unitTestFinishedCallBack(ICommunicator_ptr comm,
                                                   IUnitTest* tester) {
   printf("Test Results\n");
   bool suiteSuccessful = true;

@@ -29,9 +29,9 @@ INJECTION_TEST(DLT, EuclideanError, std::vector<double> measured,
 
   if (measured.size() != exact.size()) {
     double m1 = -1;
-    engine->Put(comm, "l2_error", m1);
-    engine->Put(comm, "l1_error", m1);
-    engine->Put(comm, "linf_error", m1);
+    engine->Put( "l2_error", m1);
+    engine->Put( "l1_error", m1);
+    engine->Put( "linf_error", m1);
     return FAILURE;
   }
 
@@ -44,9 +44,9 @@ INJECTION_TEST(DLT, EuclideanError, std::vector<double> measured,
   }
 
   l2 = sqrt(l2);
-  engine->Put(comm, "l2_error", l2);
-  engine->Put(comm, "l1_error", l1);
-  engine->Put(comm, "linf_error", linf);
+  engine->Put( "l2_error", l2);
+  engine->Put( "l1_error", l1);
+  engine->Put( "linf_error", linf);
   return SUCCESS;
 }
 

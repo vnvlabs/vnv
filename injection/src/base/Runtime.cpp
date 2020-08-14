@@ -26,6 +26,12 @@ INJECTION_OPTIONS(VNVPACKAGENAME, getBaseOptionsSchema().dump().c_str()) {
   RunTime::instance().getRunTimeOptions()->fromJson(config);
 }
 
+namespace {
+ICommunicator_ptr getComm(VnV_Comm comm) {
+  return CommunicationStore::instance().customComm(comm.name, comm.data);
+}
+}
+
 void RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
   try {
     auto it = plugins.find(libraryPath);
@@ -145,7 +151,7 @@ void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Single, args);
   if (it != nullptr) {
     it->setCallBack(callback);
-    it->setComm(comm);
+    it->setComm(getComm(comm));
     it->runTests();
   }
 }
@@ -157,7 +163,7 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Begin, args);
   if (it != nullptr) {
     it->setCallBack(callback);
-    it->setComm(comm);
+    it->setComm(getComm(comm));
     it->runTests();
   }
 }
@@ -167,7 +173,7 @@ void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Single, args);
   if (it != nullptr) {
     it->setCallBack(callback);
-    it->setComm(comm);
+    it->setComm(getComm(comm));
     it->runTests();
   }
 }
@@ -178,7 +184,7 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Begin, args);
   if (it != nullptr) {
     it->setCallBack(callback);
-    it->setComm(comm);
+    it->setComm(getComm(comm));
     it->runTests();
   }
 }
@@ -370,9 +376,9 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
         std::string currTime = VnV::ProvenanceUtils::timeToString();
         std::string commandline =
             VnV::ProvenanceUtils::cmdLineToString(*argc, *argv);
-        engine->Put(comm, "config", config);
-        engine->Put(comm, "command-line", commandline);
-        engine->Put(comm, "time", currTime);
+        engine->Put( "config", config);
+        engine->Put( "command-line", commandline);
+        engine->Put( "time", currTime);
       },
       argc, argv, config);
 

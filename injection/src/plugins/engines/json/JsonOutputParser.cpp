@@ -113,7 +113,7 @@ class JsonParserImpl {
     auto n = mks<DataTypeNode>(j, parent);
 
     n->children = mks<MapNode>("children", n.get());
-    n->dataTypeName = j["dtype"];
+    n->key = j["dtype"].get<long long>();
     for (auto it : j["children"]) {
       n->children->add(it["name"], nodeDispatcher(it, n->children.get()));
     }
@@ -133,6 +133,18 @@ class JsonParserImpl {
 
     appendTestNode(n.get(), j);
     return n;
+  }
+
+  std::shared_ptr<ShapeNode> genShapeNode(const json& j, DataBase* parent) {
+      auto n = mks<ShapeNode>(JN(j), parent);
+      n->children = mks<ArrayNode>("children", n.get());
+      for (auto it : j["children"].items()) {
+         n->children->add(nodeDispatcher(it.value(), n->children.get()));
+      }
+
+      n->shape = j["shape"];
+
+      return n;
   }
 
   std::shared_ptr<InjectionPointNode> genInjectionPointNode(const json& j,
@@ -200,6 +212,8 @@ class JsonParserImpl {
         return genDataNode<IntegerNode, int>(j, parent);
       else if (type == "json")
         return genJsonNode(j, parent);
+      else if (type == "shape")
+        return genShapeNode(j,parent);
       else
         throw VnVExceptionBase("Unknown Data node type");
     } else if (node == "Log")

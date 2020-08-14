@@ -25,6 +25,6 @@ INJECTION_TEST(VNVPACKAGENAME, printMessage) {
   auto message = j.find("message");
   std::string m = (message == j.end()) ? default_message
                                        : message.value().get<std::string>();
-  engine->Put(comm, "message", m);
+  engine->Put( "message", m);
   return SUCCESS;
 }

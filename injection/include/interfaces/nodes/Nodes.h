@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <assert.h>
 
 namespace VnV {
 
@@ -20,6 +21,7 @@ class ILongNode;
 class IFloatNode;
 class ILogNode;
 class IBoolNode;
+class IShapeNode;
 class IMapNode;
 class IInfoNode;
 class ITestNode;
@@ -37,6 +39,7 @@ class DataBase {
     Double,
     String,
     Long,
+    ShapeArray,
     Array,
     Map,
     Log,
@@ -63,6 +66,7 @@ class DataBase {
   IStringNode* getAsStringNode();
   ILongNode* getAsLongNode();
   IFloatNode* getAsFloatNode();
+  IShapeNode* getAsShapeNode();
   IArrayNode* getAsArrayNode();
   ILogNode* getAsLogNode();
   IInjectionPointNode* getAsInjectionPointNode();
@@ -158,6 +162,17 @@ class IFloatNode : public DataBase {
   virtual ~IFloatNode();
 };
 
+class IShapeNode : public DataBase {
+public:
+  IShapeNode();
+  virtual ~IShapeNode();
+  virtual IArrayNode* getChildren() = 0;
+  virtual std::string getShape() = 0;
+
+  virtual DataBase* get(int index);
+
+};
+
 class IInfoNode : public DataBase {
  public:
   IInfoNode();
@@ -221,7 +236,7 @@ class IDataTypeNode : public DataBase {
  public:
   IDataTypeNode();
   virtual IMapNode* getChildren() = 0;
-  virtual std::string getDataTypeName() = 0;
+  virtual long long getDataTypeKey() = 0;
   virtual std::string getValue() = 0;
   virtual ~IDataTypeNode();
 };

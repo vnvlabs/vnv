@@ -325,6 +325,16 @@ class SerialCommunicator : public VnV::Communication::ICommunicator {
   void AllGather(void* buffer, int count, void* recvBuffer, int dataTypeSize) {
     Gather(buffer, count, recvBuffer, dataTypeSize, 0);
   }
+
+  void GatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize, int root) {
+    Gather(buffer,count,recvBuffer,dataTypeSize,root);
+  }
+
+  void AllGatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize) {
+    AllGather(buffer,count,recvBuffer,dataTypeSize);
+  }
+
+
   void BroadCast(void* buffer, int count, int dataTypeSize, int root) {
     // Gather(buffer,count, recvBuffer,dataTypeSize,0);
   }

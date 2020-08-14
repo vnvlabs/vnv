@@ -359,6 +359,13 @@ class MPICommunicator : public ICommunicator {
     MPI_Allgather(buffer, count, getDataType(dataTypeSize), recvBuffer, count,
                   getDataType(dataTypeSize), comm);
   }
+  void GatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize, int root) {
+    MPI_Gatherv(buffer,count,getDataType(dataTypeSize),recvBuffer,recvCount,recvDispl, getDataType(dataTypeSize),root, comm);
+  }
+
+  void AllGatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize) {
+    MPI_Allgatherv(buffer,count,getDataType(dataTypeSize),recvBuffer,recvCount,recvDispl, getDataType(dataTypeSize),comm);
+  }
 
   void BroadCast(void* buffer, int count, int dataTypeSize, int root) override {
     MPI_Bcast(buffer, count, getDataType(dataTypeSize), root, comm);

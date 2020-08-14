@@ -12,24 +12,32 @@ class DebugEngineManager : public OutputEngineManager {
   DebugEngineManager();
   ~DebugEngineManager();
 
-  void Put(VnV_Comm comm, std::string variableName,
+  void Put( std::string variableName,
            const double& value) override;
 
-  void Put(VnV_Comm comm, std::string variableName, const int& value) override;
+  void Put(std::string variableName, const int& value) override;
 
-  void Put(VnV_Comm comm, std::string variableName,
-           const float& value) override;
 
-  void Put(VnV_Comm comm, std::string variableName, const long& value) override;
+  void Put( std::string variableName, const long& value) override;
 
-  void Put(VnV_Comm comm, std::string variableName, const json& value) override;
+  void Put( std::string variableName, const json& value) override;
 
-  void Put(VnV_Comm comm, std::string variableName,
+  void Put( std::string variableName,
            const std::string& value) override;
 
-  void Put(VnV_Comm comm, std::string variableName, const bool& value) override;
+  void Put( std::string variableName, const bool& value) override;
 
-  void Log(VnV_Comm comm, const char* package, int stage, std::string level,
+  void PutGlobalArray(ICommunicator_ptr comm ,
+                              long long dtype,
+                              std::string variableName,
+                              IDataType_vec data,
+                              std::vector<int> gsizes,
+                              std::vector<int> sizes,
+                              std::vector<int> offset,
+                      int onlyOne=-1 ) override
+  {}
+
+  void Log(ICommunicator_ptr comm, const char* package, int stage, std::string level,
            std::string message) override;
 
   json getConfigurationSchema() override;
@@ -38,27 +46,27 @@ class DebugEngineManager : public OutputEngineManager {
 
   void setFromJson(json& config) override;
 
-  void injectionPointEndedCallBack(VnV_Comm comm, std::string id,
+  void injectionPointEndedCallBack(ICommunicator_ptr comm, std::string id,
                                    InjectionPointType type,
                                    std::string stageVal) override;
 
-  void injectionPointStartedCallBack(VnV_Comm comm, std::string packageName,
+  void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                                      std::string id, InjectionPointType type,
                                      std::string stageVal) override;
 
-  void testStartedCallBack(VnV_Comm comm, std::string packageName,
+  void testStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                            std::string testName, bool internal) override;
 
-  void testFinishedCallBack(VnV_Comm comm, bool result_) override;
-  void dataTypeStartedCallBack(VnV_Comm /** comm **/, std::string variableName,
-                               std::string dtype) override;
-  void dataTypeEndedCallBack(VnV_Comm /** comm **/,
+  void testFinishedCallBack(ICommunicator_ptr comm, bool result_) override;
+  void dataTypeStartedCallBack(ICommunicator_ptr /** comm **/, std::string variableName,
+                               long long dtype) override;
+  void dataTypeEndedCallBack(ICommunicator_ptr /** comm **/,
                              std::string variableName) override;
 
-  void unitTestStartedCallBack(VnV_Comm comm, std::string packageName,
+  void unitTestStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                                std::string unitTestName) override;
 
-  void unitTestFinishedCallBack(VnV_Comm comm, IUnitTest* tester) override;
+  void unitTestFinishedCallBack(ICommunicator_ptr comm, IUnitTest* tester) override;
 
   Nodes::IRootNode* readFromFile(std::string file, long&) override;
 
