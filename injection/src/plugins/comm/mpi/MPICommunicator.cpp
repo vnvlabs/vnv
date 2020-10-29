@@ -3,9 +3,13 @@
 #include <mpi.h>
 
 #include <map>
-
+#include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "interfaces/ICommunicator.h"
+
+#include <iostream>
+#include <unistd.h>
+
 // CommType conflicts with CommType in openmpi.
 using VnVCommType = VnV::Communication::CommType;
 
@@ -24,6 +28,14 @@ class MPIRequest : public IRequest {
  public:
   MPI_Request request;
   virtual ~MPIRequest() {}
+};
+
+class CommKeeper {
+public:
+  MPI_Comm comm;
+  CommKeeper(MPI_Comm comm_){
+    comm = comm_;
+  }
 };
 
 class MPICommunicator : public ICommunicator {
@@ -102,24 +114,76 @@ class MPICommunicator : public ICommunicator {
     }
     throw VnV::VnVExceptionBase("Un supported Operation type");
   }
+    MPI_Comm comm;
 
   // ICommunicator interface
  public:
-  MPI_Comm comm;
   VnVCommType mtype;
+  long commUniqueId = -1;
+  int worldSize, worldRank;
 
   MPICommunicator(VnVCommType type) : mtype(type) {
+
+    MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
+    MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+
     if (type == VnVCommType::Self) {
-      comm = MPI_COMM_SELF;
+      setComm(MPI_COMM_SELF);
     } else if (type == VnVCommType::World) {
-      comm = MPI_COMM_WORLD;
+      setComm(MPI_COMM_WORLD);
     }
+
+
   }
 
-  void setData(void* data) override { comm = *((MPI_Comm*)data); }
-  void* getData() override { return &comm; }
+  void setData(void* data) override {
+    CommKeeper* comm = (CommKeeper*) data;
+    setComm(comm->comm);
+  }
 
-  int uniqueId() override { return (int)(size_t)comm; }
+  static int getWorldSize() {
+    static int worldSize;
+
+  }
+
+  void setComm(MPI_Comm comm_) {
+     comm = comm_;
+
+     if (Size() == worldSize) {
+        commUniqueId = worldSize;
+     } else if (Size() == 1 ) {
+       commUniqueId = getpid();
+     } else {
+
+       MPI_Group grp, world_grp;
+       MPI_Comm_group(MPI_COMM_WORLD, &world_grp);
+       MPI_Comm_group(comm, &grp);
+
+       int grp_size = Size();
+
+       std::vector<int> ranks(grp_size);
+       std::iota(ranks.begin(), ranks.end(), 0);
+
+       std::vector<int> wranks(grp_size);
+       MPI_Group_translate_ranks(grp, grp_size, &(ranks[0]), world_grp, &(wranks[0]));
+
+       commUniqueId = VnV::HashUtils::vectorHash(wranks);
+
+
+       MPI_Group_free(&grp);
+       MPI_Group_free(&world_grp);
+     }
+  }
+
+
+  void* getData() override {
+        CommKeeper *k = new CommKeeper(comm);
+        return k;
+  }
+
+  long uniqueId() override {
+    return commUniqueId;
+  }
 
   int Size() override {
     int x;
@@ -148,13 +212,19 @@ class MPICommunicator : public ICommunicator {
 
   ICommunicator_ptr duplicate() override {
     MPICommunicator* p = new MPICommunicator(VnVCommType::Default);
-    MPI_Comm_dup(comm, &(p->comm));
+
+    MPI_Comm newComm;
+    MPI_Comm_dup(comm, &newComm);
+    p->setComm(newComm);
     return ICommunicator_ptr(p);
   }
 
   ICommunicator_ptr split(int color, int key) override {
     MPICommunicator* p = new MPICommunicator(VnVCommType::Default);
-    MPI_Comm_split(comm, color, key, &(p->comm));
+
+    MPI_Comm newComm;
+    MPI_Comm_split(comm, color, key, &newComm);
+    p->setComm(newComm);
     return ICommunicator_ptr(p);
   }
 
@@ -163,9 +233,22 @@ class MPICommunicator : public ICommunicator {
     MPI_Group group, newGroup;
     MPI_Comm_group(comm, &group);
     MPI_Group_incl(group, ranks.size(), &ranks[0], &newGroup);
-    MPI_Comm_create_group(comm, newGroup, tag, &(p->comm));
+
+    MPI_Comm newComm;
+    MPI_Comm_create_group(comm, newGroup, tag, &newComm);
+    p->setComm(newComm);
+
     return ICommunicator_ptr(p);
   }
+
+  ICommunicator_ptr world() {
+    return ICommunicator_ptr(new MPICommunicator(VnVCommType::World));
+  }
+
+  ICommunicator_ptr self() {
+    return ICommunicator_ptr(new MPICommunicator(VnVCommType::Self));
+  }
+
 
   // Want procs in range [start,end). Make sure to put end-1.
   ICommunicator_ptr create(int start, int end, int stride, int tag) override {
@@ -177,7 +260,11 @@ class MPICommunicator : public ICommunicator {
     range[0][1] = end - 1;
     range[0][2] = stride;
     MPI_Group_range_incl(group, 1, range, &newGroup);
-    MPI_Comm_create_group(comm, newGroup, tagMap(tag), &(p->comm));
+
+    MPI_Comm newComm;
+    MPI_Comm_create_group(comm, newGroup, tagMap(tag), &newComm);
+    p->setComm(newComm);
+
     return ICommunicator_ptr(p);
   }
 

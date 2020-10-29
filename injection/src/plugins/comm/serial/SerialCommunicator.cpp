@@ -4,6 +4,9 @@
 #include <cstring>
 #include <list>
 
+#include <iostream>
+#include <unistd.h>
+
 #include "base/exceptions.h"
 #include "interfaces/ICommunicator.h"
 
@@ -125,7 +128,7 @@ class SerialCommunicator : public VnV::Communication::ICommunicator {
 
   void setData(void* data) { commId = *((int*)data); }
   void* getData() { return &commId; }
-  int uniqueId() { return (int)(size_t)commId; }
+  long uniqueId() { return getpid(); } //All serial communicators are the same from a uid perspective. }
   int Size() { return 1; }
   int Rank() { return 0; }
   void Barrier() {}
@@ -142,8 +145,17 @@ class SerialCommunicator : public VnV::Communication::ICommunicator {
                                                int stride) {
     return duplicate();
   }
+
   VnV::Communication::ICommunicator_ptr create(int start, int end, int stride,
                                                int tag) {
+    return duplicate();
+  }
+
+  VnV::Communication::ICommunicator_ptr world() {
+    return duplicate();
+  }
+
+  ICommunicator_ptr self() {
     return duplicate();
   }
 

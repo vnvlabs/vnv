@@ -4,7 +4,7 @@ from ...vnv import VnVReader
 from .. import RestUtils
 import textwrap
 import os
-
+from ...directives.nodes.VnVNodes import getResultsTableForData
 
 def _writeHeader(title, val, stream):
     stream.write(RestUtils.getHeader(title))
@@ -32,7 +32,7 @@ def getCollapseId():
 collapse_start = '''
 .. raw:: html
 
-    <div class="panel-group">
+    <div class="panel-group" {comm}>
       <div class="panel panel-default">
         <div class="panel-heading">
           <h4 class="panel-title">
@@ -72,10 +72,11 @@ def collapse_end(idr):
     return _collapse_end.format(id=idr)
 
 
-def collapseStart(title, show=False, icon=""):
+def collapseStart(title, comm=None, show=False, icon=""):
     s = ".show" if show else ""
     id_ = getCollapseId()
-    return collapse_start.format(title=title, id=id_, show=s, icon=icon), id_
+    comm_ = "" if comm is None else 'vnvcomm="{}"'.format(comm)
+    return collapse_start.format(title=title, id=id_, show=s, icon=icon, comm=comm_), id_
 
 
 def writeNode(node, stream):
@@ -104,7 +105,7 @@ class VnVTreeGenerator:
             stream.write(RestUtils.getHeader(title))
         for child in node:
             t, i = collapseStart(
-                child.getPackage() + ": " + child.getName().capitalize(), icon=icon)
+                child.getPackage() + ": " + child.getName().capitalize(), "comm", icon=icon)
             stream.write(t)
             writeNode(child, stream)
             stream.write(collapse_end(i))
@@ -130,7 +131,7 @@ class VnVTreeGenerator:
         stream = StringIO()
         writeValue(node, stream)
         if len(node.getChildren()) > 0:
-            t, i = collapseStart("Testing Logs")
+            t, i = collapseStart("Testing Logs", "test")
             stream.write(t)
             self.writeChildren(None, node.getChildren(), stream)
             stream.write(collapse_end(i))
@@ -142,13 +143,13 @@ class VnVTreeGenerator:
         writeValue(node, stream)
 
         if len(node.getTests()) > 0:
-            t, i = collapseStart("Injection Point Tests")
+            t, i = collapseStart("Injection Point Tests", "comm")
             stream.write(t)
             self.writeChildren(None, node.getTests(), stream)
             stream.write(collapse_end(i))
 
         if len(node.getChildren()) > 0:
-            t, i = collapseStart("Child Injection Points")
+            t, i = collapseStart("Child Injection Points", "comm")
             stream.write(t)
             self.writeChildren(None, node.getChildren(), stream)
             stream.write(collapse_end(i))
@@ -163,13 +164,13 @@ class VnVTreeGenerator:
             test = node.getResults()[testName]
             icon = getIcon(test.getValue())
             m = node.getTestTemplate(test.getName())
-            xt, xi = collapseStart(test.getName(), icon=icon)
+            xt, xi = collapseStart(test.getName(), "unitTest", icon=icon)
             stream.write(xt)
             stream.write(textwrap.dedent(m))
             stream.write(collapse_end(xi))
 
         if len(node.getChildren()) > 0:
-            t, i = collapseStart("Logs And Warnings")
+            t, i = collapseStart("Logs And Warnings", "comm")
             stream.write(t)
             self.writeChildren(None, node.getChildren(), stream)
             stream.write(collapse_end(i))
@@ -182,7 +183,7 @@ class VnVTreeGenerator:
 
     def visitRootNode(self, node: VnVReader.IRootNode):
         stream = StringIO()
-        t, i = collapseStart(self.title, show=True)
+        t, i = collapseStart(self.title, "root", show=True)
         stream.write(t)
 
         # Write the introduction.
@@ -192,33 +193,43 @@ class VnVTreeGenerator:
         if len(node.getUnitTests()) > 0:
 
             allPassed = True
+            jsonData = []
 
             substream = StringIO()
             for child in node.getUnitTests():
+
+
                 passed = True
                 res = child.getResults()
+                print(res)
+                jdata = []
                 for i in res:
+
+                    jdata.append({"name":res[i].getName(), "value": res[i].getValue()})
                     if not res[i].getValue():
                         passed = False
                         allPassed = False
 
+                jsonData.append({"name" : child.getName(), "value" : passed , "_children" : jdata})
                 icon = getIcon(passed)
                 tx, ix = collapseStart(
-                    child.getPackage() + ": " + child.getName().capitalize(), icon=icon)
+                    child.getPackage() + ": " + child.getName().capitalize(), "comm", icon=icon)
                 substream.write(tx)
                 writeNode(child, substream)
                 substream.write(collapse_end(ix))
                 substream.write("\n\n")
 
             tt, ii = collapseStart(
-                "Unit Testing Results", icon=getIcon(allPassed))
+                "Unit Testing Results", "injectionTests", icon=getIcon(allPassed))
             stream.write(tt)
+            print(getResultsTableForData(jsonData,True))
+            stream.write(getResultsTableForData(jsonData,True))
             stream.write(substream.getvalue())
             stream.write(collapse_end(ii))
 
         # Add the children nodes
         if len(node.getChildren()) > 0:
-            ttt, iii = collapseStart("Injection Points")
+            ttt, iii = collapseStart("Injection Points", "comm")
             stream.write(ttt)
             self.writeChildren(None, node.getChildren(), stream)
             stream.write(collapse_end(iii))

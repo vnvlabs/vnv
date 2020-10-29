@@ -40,33 +40,28 @@ AdiosEngineManager::AdiosEngineManager() {}
 AdiosEngineManager::~AdiosEngineManager() {}
 
 void AdiosEngineManager::Put( std::string variableName,
-                             const double& value) {
+                             const double& value,const MetaData& m) {
   engine.Put(variableName, value);
 }
 
 void AdiosEngineManager::Put(std::string variableName,
-                             const int& value) {
+                             const long long& value,const MetaData& m) {
   engine.Put(variableName, value);
 }
 
 void AdiosEngineManager::Put(std::string variableName,
-                             const long& value) {
-  engine.Put(variableName, value);
-}
-
-void AdiosEngineManager::Put(std::string variableName,
-                             const bool& value) {
+                             const bool& value,const MetaData& m) {
   const int val = value;
   engine.Put(variableName, val);
 }
 
 void AdiosEngineManager::Put(std::string variableName,
-                             const nlohmann::json& value) {
+                             const nlohmann::json& value,const MetaData& m) {
   engine.Put(variableName, value.dump());
 }
 
 void AdiosEngineManager::Put(std::string variableName,
-                             const std::string& value) {
+                             const std::string& value,const MetaData& m) {
   engine.Put(variableName, value);
 }
 
@@ -78,7 +73,7 @@ void AdiosEngineManager::Log(ICommunicator_ptr, const char* package, int stage,
   engine.Put("LOGS", oss.str());
 }
 
-void AdiosEngineManager::finalize() {
+void AdiosEngineManager::finalize(ICommunicator_ptr worldComm) {
   if (engine) {
     engine.Close();
   }
@@ -193,9 +188,9 @@ void AdiosEngineManager::unitTestFinishedCallBack(ICommunicator_ptr, IUnitTest* 
     engine.EndStep();
   }
 }
-void AdiosEngineManager::dataTypeStartedCallBack(ICommunicator_ptr,
+void AdiosEngineManager::dataTypeStartedCallBack(
                                                  std::string variableName,
-                                                 long long dtype) {
+                                                 long long dtype,const MetaData& m ) {
   if (engine) {
     engine.BeginStep();
     engine.Put(identifier, variableName);
@@ -206,7 +201,7 @@ void AdiosEngineManager::dataTypeStartedCallBack(ICommunicator_ptr,
   }
 }
 
-void AdiosEngineManager::dataTypeEndedCallBack(ICommunicator_ptr,
+void AdiosEngineManager::dataTypeEndedCallBack(
                                                std::string variableName) {
   if (engine) {
     engine.EndStep();

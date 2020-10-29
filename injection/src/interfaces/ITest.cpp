@@ -12,8 +12,7 @@ using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
 const json& TestConfig::getAdditionalParameters() const {
-  return testConfigJson
-      ["configuration"];  // JsonUtilities::getOrCreate(testConfigJson,"configuration",JsonUtilities::CreateType::Object);
+  return testConfigJson["configuration"];  // JsonUtilities::getOrCreate(testConfigJson,"configuration",JsonUtilities::CreateType::Object);
 }
 const json& ITest::getConfigurationJson() const {
   return m_config.getAdditionalParameters();
@@ -170,18 +169,3 @@ TestStatus ITest::_runTest(ICommunicator_ptr comm, OutputEngineManager* engine,
 
 ITest::~ITest() {}
 
-/**
- * @brief INJECTION_TEST
- * @param argv
- * @param argc
- * @param config
- *
- * This is the way
- */
-INJECTION_TEST(VNVPACKAGENAME, test1, int argv, char** argc,
-               std::string config) {
-  engine->Put( "hello", 10.0);
-  engine->Put( "argv", get<int>("argv"));
-  engine->Put( "argc", *get<char**>("argc"));
-  return SUCCESS;
-}

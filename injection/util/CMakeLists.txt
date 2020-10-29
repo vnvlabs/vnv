@@ -1,11 +1,10 @@
 ﻿
 set(INCLUDE_COMPILER_STRING "-I ${CMAKE_CURRENT_LIST_DIR}/../include -I ${CMAKE_CURRENT_LIST_DIR}/../third-party/json-schema-validator/include")
-message("${INCLUDE_COMPILER_STRING}")
 
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/macros.info
   COMMAND
-  ${CMAKE_CXX_COMPILER} -E -dM -I${CMAKE_CURRENT_LIST_DIR}/../include -I${CMAKE_CURRENT_LIST_DIR}/../third-party/json-schema-validator/include 
+  ${CMAKE_CXX_COMPILER} -E -dM -I${CMAKE_CURRENT_LIST_DIR}/../include -I${CMAKE_CURRENT_LIST_DIR}/../third-party/json-schema-validator/include
     ${CMAKE_CURRENT_LIST_DIR}/../include/VnV.h >
     ${CMAKE_CURRENT_BINARY_DIR}/macros.info
 )

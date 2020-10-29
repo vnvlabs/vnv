@@ -99,7 +99,7 @@ bool InitalizePAPI() {
  */
 INJECTION_TEST(PNAME,hardware_info) {
   if (InitalizePAPI() && (type == InjectionPointType::Begin || type == InjectionPointType::Single) ) {
-    engine->Put(comm, "hardware",getDefaultHWJson());
+    engine->Put( "hardware",getDefaultHWJson());
   }
   return SUCCESS;
 }
@@ -113,7 +113,6 @@ public:
 
   flopsRunner() {
     InitalizePAPI();
-    std::cout <<"SDFSDFSDFSDFSDFSDFSDFSD" << std::endl;
     int r = PAPI_create_eventset(&EventSet);
     if ( r != PAPI_OK) {
         std::cout << PAPI_descr_error(r) << std::endl;;
@@ -137,8 +136,6 @@ public:
 
   std::vector<long long>& start() {
     started = true;
-    std::cout <<"SDFSDFSDFSDFSDFSDFSDFSD" << std::endl;
-    std::cout << "SFSDF " << EventSetCounter << std::endl;
     values.resize(EventSetCounter,0);
     int r = PAPI_start(EventSet);
     return values;
@@ -217,11 +214,10 @@ public:
  */
 INJECTION_TEST_R(PNAME,flops, flopsRunner) {
   InitalizePAPI();
-
   if (type == InjectionPointType::Single) {
-     engine->Put(comm, "stage", stageId);
-     engine->Put(comm, "cycles", 0);
-     engine->Put(comm, "fpins",0);
+     engine->Put( "stage", stageId);
+     engine->Put( "cycles", 0);
+     engine->Put( "fpins",0);
      return SUCCESS;
   } else if (type == InjectionPointType::Begin) {
       runner->addEvent(PAPI_TOT_CYC);
@@ -234,9 +230,9 @@ INJECTION_TEST_R(PNAME,flops, flopsRunner) {
   }
 
   if (runner->values.size() > 0 ) {
-        engine->Put(comm, "cycles", (double) (runner->values)[0]);
-        engine->Put(comm, "fpins", (double) (runner->values)[1]);
-        engine->Put(comm, "stage", stageId);
+        engine->Put( "cycles", (double) (runner->values)[0]);
+        engine->Put( "fpins", (double) (runner->values)[1]);
+        engine->Put( "stage", stageId);
   }
 
   //Reset --> This gets the change in cyles.

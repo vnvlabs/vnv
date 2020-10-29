@@ -183,6 +183,7 @@ def castDataBase(obj) :
 
 %}
 
+
 %define PY_GETATTR(Typename)
 %extend Typename {
   %pythoncode %{
@@ -191,6 +192,9 @@ def castDataBase(obj) :
            return str(self.getValue())
 
       def __getitem__(self,key):
+         if key == "metaData" or key == "MetaData":
+            return json.loads(self.getMetaData().asJson())
+
          res = getattr(self,"get"+key)
          if res is not None:
             if hasattr(self,"isJson") and self.isJson():
@@ -258,6 +262,9 @@ PY_GETATTR(VnV::Nodes::IBoolNode)
 %extend Typename {
   %pythoncode %{
       def __getitem__(self,key):
+        if key == "metaData" or key == "MetaData":
+            return json.loads(self.getMetaData().asJson())
+         
         if isinstance(key,int) and abs(key) < self.size() :
           if (key < 0 ) :
              key = self.size() + key
@@ -306,6 +313,10 @@ PY_GETATTRLIST(VnV::Nodes::IArrayNode)
     %pythoncode %{
 
         def __getitem__(self,key):
+            if key == "metaData" or key == "MetaData":
+              return json.loads(self.getMetaData().asJson())
+         
+            
             if isinstance(key,str) and self.contains(key):
                 return castDataBase(self.get(key))
             print("Not a key {} {} ".format(key, self.__class__))
@@ -357,7 +368,8 @@ PY_GETATTRMAP(VnV::Nodes::IMapNode)
         return result
 
       def __getitem__(self,key):
-
+        if key == "metaData" or key == "MetaData":
+            return json.loads(self.getMetaData().asJson()) 
         if isinstance(key,str):
            res = []
            for i in self:

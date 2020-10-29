@@ -80,7 +80,7 @@ cpuRunner::~cpuRunner() {}
  *
  * .. vnv-chart::
  *    :labels: Data[?TypeStr == 'Double'].Name
- *    :ydata: Data[?TypeStr == 'Double'].Value
+ *    :ydata: Data[?MetaData.tag == 'value'].Value
  *
  *    {
  *       "type" : "line",
@@ -102,8 +102,9 @@ INJECTION_TEST_RS(VNVPACKAGENAME, cputime, cpuRunner, cpuRunner::provSchema()) {
              "Attempt to time a non looped injection point. Returning zero for "
              "cputime");
     double c = 0;
-    engine->Put( "Start", c);
-    engine->Put( "TotalTime", c);
+    engine->Put( "Start", c, {{"tag","value"}});
+    engine->Put( "TotalTime", c, {{"tag","value"}});
+    
   } else if (type == InjectionPointType::Begin) {
     double cc = 0;
     const json& c = getConfigurationJson();
@@ -112,12 +113,12 @@ INJECTION_TEST_RS(VNVPACKAGENAME, cputime, cpuRunner, cpuRunner::provSchema()) {
       runner->setUnit(it->get<std::string>());
     }
     engine->Put( "units", runner->unit);
-    engine->Put( "Start", cc);
+    engine->Put( "Start", cc,{{"tag","value"}});
     runner->start();
   } else if (type == InjectionPointType::End) {
-    engine->Put( "TotalTime", runner->split());
+    engine->Put( "TotalTime", runner->split(),{{"tag","value"}});
   } else {
-    engine->Put( stageId, runner->split());
+    engine->Put( stageId, runner->split(),{{"tag","value"}});
   }
   return SUCCESS;
 }

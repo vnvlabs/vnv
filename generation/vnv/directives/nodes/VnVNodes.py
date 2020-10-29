@@ -264,10 +264,11 @@ results_chart_temp = '''
 '''
 
 
-def chart_tem(data):
+def chart_tem(data, dataTree = False):
     return {"data": data,
             "layout": "fitColumns",
             "tooltips": True,
+            "dataTree" : dataTree,
             "columns": [{"title": "Name",
                          "field": "name"},
                         {"title": "Pass/Fail",
@@ -277,6 +278,12 @@ def chart_tem(data):
                          "formatter": "tickCross",
                          "sorter": "boolean"}]}
 
+
+
+def getResultsTableForData(data,dataTree):
+     dd = chart_tem(data,dataTree)
+     temp = results_chart_temp.format(json=json.dumps(dd))
+     return "\n\n{}\n\n".format(temp)
 
 class VnVResultsDirective(Directive):
     required_arguments = 0

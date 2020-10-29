@@ -28,34 +28,29 @@ ParallelEngine::ParallelEngine() {}
 
 void ParallelEngine::Put(std::string variableName,
 
-                         const double& value) {
+                         const double& value,const MetaData& m) {
   std::string str = std::to_string(value);
-  Put( variableName, str);
+  Put( variableName, str,m);
 }
 void ParallelEngine::Put(std::string variableName,
-                         const int& value) {
+                         const long long& value,const MetaData& m) {
   std::string str = std::to_string(value);
-  Put( variableName, str);
-}
-void ParallelEngine::Put( std::string variableName,
-                         const long& value) {
-  std::string str = std::to_string(value);
-  Put( variableName, str);
+  Put( variableName, str,m);
 }
 
 void ParallelEngine::Put( std::string variableName,
-                         const bool& value) {
+                         const bool& value,const MetaData& m) {
   std::string str = std::to_string(value);
-  Put( variableName, str);
+  Put( variableName, str,m);
 }
 
 void ParallelEngine::Put(std::string variableName,
-                         const json& value) {
-  Put( variableName, value.dump());
+                         const json& value,const MetaData& m) {
+  Put( variableName, value.dump(),m);
 }
 
 void ParallelEngine::Put( std::string variableName,
-                         const std::string& value) {
+                         const std::string& value,const MetaData& m) {
   getRouter(RouterAction::PUSH)->send(variableName, value);
 }
 
@@ -73,7 +68,7 @@ json ParallelEngine::getConfigurationSchema() {
   return __parallel_engine_schema__;
 }
 
-void ParallelEngine::finalize() {
+void ParallelEngine::finalize(ICommunicator_ptr worldComm) {
   VnV_Info(VNVPACKAGENAME, "PARALLEL ENGINE: FINALIZE");
 }
 
@@ -109,13 +104,12 @@ void ParallelEngine::testStartedCallBack(ICommunicator_ptr comm, std::string pac
 void ParallelEngine::testFinishedCallBack(ICommunicator_ptr comm, bool result_) {
   printf("PARALLEL ENGINE Stop Test. Test Was Successful-> %d\n", result_);
 }
-void ParallelEngine::dataTypeStartedCallBack(ICommunicator_ptr  comm ,
+void ParallelEngine::dataTypeStartedCallBack(
                                              std::string variableName,
-                                             long long dtype) {
-  currComm = comm;
+                                             long long dtype,const MetaData& m) {
   printf("PARALLEL ENGINE Data Type Started %s", variableName.c_str());
 }
-void ParallelEngine::dataTypeEndedCallBack(ICommunicator_ptr /** comm **/,
+void ParallelEngine::dataTypeEndedCallBack(
                                            std::string variableName) {
   printf("PARALLEL ENGINE Data Type Finished %s ", variableName.c_str());
 }

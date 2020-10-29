@@ -16,6 +16,7 @@ namespace JsonReader {
 
 using namespace VnV::Nodes;
 
+
 class MapNode : public IMapNode {
  public:
   std::string templ;
@@ -132,12 +133,13 @@ class InjectionPointNode : public IInjectionPointNode {
   std::shared_ptr<TestNode> internal;
   std::string package;
   std::string templ;
+  std::string comm;
 
   InjectionPointNode();
   virtual std::string getPackage() override;
   virtual IArrayNode* getTests() override;
   virtual ITestNode* getData() override { return internal.get(); }
-
+  virtual std::string getComm() override { return comm; }
   virtual std::string getValue() override { return templ; }
   virtual IArrayNode* getChildren() override;
 };
@@ -145,11 +147,12 @@ class InjectionPointNode : public IInjectionPointNode {
 class LogNode : public ILogNode {
  public:
   static std::string def;
-  std::string package, level, stage, message, templ;
+  std::string package, level, stage, message, templ,comm;
   LogNode();
   virtual std::string getPackage() override;
   virtual std::string getLevel() override;
   virtual std::string getMessage() override;
+  virtual std::string getComm() override {return comm;}
   virtual std::string getValue() override {
     if (!templ.empty()) return templ;
     if (level == "Warning") {

@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 #include <assert.h>
+#include "base/exceptions.h"
+#include "json-schema.hpp"
 
 namespace VnV {
 
@@ -30,6 +32,32 @@ class IUnitTestNode;
 class IDataTypeNode;
 class IRootNode;
 
+class MetaDataWrapper  {
+public:
+  std::map<std::string,std::string> m;
+  std::string get(std::string key) {
+    auto it = m.find(key);
+    if (it != m.end()) {
+      return it->second;
+    }
+    throw VnV::VnVExceptionBase("Bad MetaData Key");
+  }
+  bool has(std::string key) {
+     return (m.find(key) != m.end());
+  }
+  MetaDataWrapper& add(std::string key, std::string value) {
+    m.insert(std::make_pair(key,value));
+    return *this;
+  }
+
+  std::string asJson() {
+
+     nlohmann::json j = m;
+     return j.dump();
+  }
+};
+
+
 class DataBase {
  public:
   enum class DataType {
@@ -51,11 +79,16 @@ class DataBase {
     RootNode
   };
 
+
   long id;
   DataBase* parent = nullptr;
 
-  std::string
-      name;  // name can be assigned, default is to use id (which is unique).
+  MetaDataWrapper metaData;
+  MetaDataWrapper& getMetaData() {
+    return metaData;
+  }
+
+  std::string name;  // name can be assigned, default is to use id (which is unique).
   DataType dataType;
   bool check(DataType type);
   DataBase(DataType type);
@@ -200,6 +233,7 @@ class IInjectionPointNode : public DataBase {
   virtual IArrayNode* getChildren() = 0;
   virtual std::string getValue() = 0;
   virtual ITestNode* getData() = 0;
+  virtual std::string getComm() = 0;
   virtual ~IInjectionPointNode();
 };
 
@@ -218,6 +252,7 @@ class ILogNode : public DataBase {
   virtual std::string getMessage() = 0;
   virtual std::string getValue() = 0;
   virtual std::string getStage() = 0;
+  virtual std::string getComm() = 0;
   virtual ~ILogNode();
 };
 

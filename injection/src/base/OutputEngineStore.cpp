@@ -15,11 +15,7 @@ using nlohmann::json_schema::json_validator;
 bool OutputEngineStore::isInitialized() { return initialized; }
 
 void OutputEngineStore::setEngineManager(std::string type, json& config) {
-  if (manager != nullptr) {
-    manager->finalize();
-    manager.reset();
-  }
-
+   
   auto it = registeredEngines.find(type);
   if (it != registeredEngines.end()) {
     manager.reset(it->second());
@@ -72,7 +68,7 @@ Nodes::IRootNode* OutputEngineStore::readFile(std::string filename,
     std::unique_ptr<OutputEngineManager> engine(it->second());
     engine->set(config);
     Nodes::IRootNode* rootNode = engine->readFromFile(filename, idCounter);
-    engine->finalize();
+    engine->finalize(CommunicationStore::instance().worldComm(VNVPACKAGENAME_S));
     return rootNode;
   }
   throw VnVExceptionBase("Invalid Engine Name");

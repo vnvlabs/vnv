@@ -2,4 +2,6 @@ target_sources(
   injection
   PRIVATE ${CMAKE_CURRENT_LIST_DIR}/JsonEngineManager.cpp
           ${CMAKE_CURRENT_LIST_DIR}/JsonOutputReader.cpp
-          ${CMAKE_CURRENT_LIST_DIR}/JsonOutputParser.cpp)
+          ${CMAKE_CURRENT_LIST_DIR}/CommMapper.cpp
+          ${CMAKE_CURRENT_LIST_DIR}/JsonOutputParser.cpp
+          )

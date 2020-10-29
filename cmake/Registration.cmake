@@ -9,20 +9,24 @@ set(VNV_DIST_PATH "${CMAKE_SOURCE_DIR}/registration/" CACHE PATH "Directory to s
 
 if(WITH_EXTRACTION AND TARGET Injection::Extraction)
 
-add_custom_target(vnv-register
-   COMMAND mkdir ARGS -p ${VNV_OUT_DIR}
-   COMMAND Injection::Extraction ARGS --output ${VNV_OUT_DIR}/${VNV_OUT_PREFIX} --nowrite ${CMAKE_BINARY_DIR}/compile_commands.json
-
-)
+#This target is always out of date. The dummyFile is never created, so it always runs.
+#Output may or may not change
 
 function(link_vnv_file targetName packageName extension)
 
 add_custom_command(
+   OUTPUT  ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}.__cache__
+   COMMAND mkdir -p ${VNV_OUT_DIR}
+   COMMAND Injection::Extraction --output ${VNV_OUT_DIR}/${VNV_OUT_PREFIX} --nowrite ${CMAKE_BINARY_DIR}/compile_commands.json
+   COMMENT "Generating VnV Registration Cache"
+)
+
+add_custom_command(
      OUTPUT ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension}
      COMMAND test -e ${VNV_OUT_DIR} || ${CMAKE_COMMAND} -E make_directory ${VNV_OUT_DIR}
-     COMMAND Injection::Extraction ARGS --package ${packageName} --output ${VNV_OUT_DIR}/${VNV_OUT_PREFIX} --extension ${extension} ${CMAKE_BINARY_DIR}/compile_commands.json
+     COMMAND Injection::Extraction --package ${packageName} --output ${VNV_OUT_DIR}/${VNV_OUT_PREFIX} --extension ${extension} ${CMAKE_BINARY_DIR}/compile_commands.json
      COMMAND cp ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension} ${VNV_DIST_PATH}
-     DEPENDS vnv-register
+     DEPENDS ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}.__cache__
 )
 
 target_sources(${targetName} PRIVATE ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension})
@@ -30,11 +34,6 @@ set_source_files_properties(${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${ex
 target_link_libraries(${targetName} PRIVATE Injection::Injection)
 
 endfunction()
-
-add_custom_target(vnv-register-clean
-     COMMAND rm ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}.__cache__
-     COMMAND rm ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}*.${VNV_OUT_EXT}
-)
 
 else()
 # No extraction to be used. Hope that the distpath has a up to date copy.

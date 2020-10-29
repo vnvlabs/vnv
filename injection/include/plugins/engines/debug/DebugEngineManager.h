@@ -13,19 +13,16 @@ class DebugEngineManager : public OutputEngineManager {
   ~DebugEngineManager();
 
   void Put( std::string variableName,
-           const double& value) override;
+           const double& value,const MetaData& m) override;
 
-  void Put(std::string variableName, const int& value) override;
+  void Put( std::string variableName, const long long& value,const MetaData& m) override;
 
-
-  void Put( std::string variableName, const long& value) override;
-
-  void Put( std::string variableName, const json& value) override;
+  void Put( std::string variableName, const json& value,const MetaData& m) override;
 
   void Put( std::string variableName,
-           const std::string& value) override;
+           const std::string& value,const MetaData& m) override;
 
-  void Put( std::string variableName, const bool& value) override;
+  void Put( std::string variableName, const bool& value, const MetaData& m) override;
 
   void PutGlobalArray(ICommunicator_ptr comm ,
                               long long dtype,
@@ -34,6 +31,7 @@ class DebugEngineManager : public OutputEngineManager {
                               std::vector<int> gsizes,
                               std::vector<int> sizes,
                               std::vector<int> offset,
+                                 const MetaData& m,
                       int onlyOne=-1 ) override
   {}
 
@@ -42,7 +40,7 @@ class DebugEngineManager : public OutputEngineManager {
 
   json getConfigurationSchema() override;
 
-  void finalize() override;
+  void finalize(ICommunicator_ptr worldComm) override;
 
   void setFromJson(json& config) override;
 
@@ -58,9 +56,9 @@ class DebugEngineManager : public OutputEngineManager {
                            std::string testName, bool internal) override;
 
   void testFinishedCallBack(ICommunicator_ptr comm, bool result_) override;
-  void dataTypeStartedCallBack(ICommunicator_ptr /** comm **/, std::string variableName,
-                               long long dtype) override;
-  void dataTypeEndedCallBack(ICommunicator_ptr /** comm **/,
+  void dataTypeStartedCallBack(std::string variableName,
+                               long long dtype,const MetaData& m) override;
+  void dataTypeEndedCallBack(
                              std::string variableName) override;
 
   void unitTestStartedCallBack(ICommunicator_ptr comm, std::string packageName,

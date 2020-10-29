@@ -65,6 +65,7 @@ std::string getIndent(int level, std::string space = "\t");
 
 long long simpleHash(const std::string& str);
 
+
 bool balancedParenthesis(std::string expr);
 
 /**
@@ -155,6 +156,11 @@ std::string timeToISOString(time_t* t);
 std::string timeForFile(std::string filename);
 
 }  // namespace TimeUtils
+
+namespace HashUtils {
+
+std::size_t vectorHash(std::vector<int> const& vec);
+}
 
 }  // namespace VnV
 #endif

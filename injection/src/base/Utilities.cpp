@@ -378,3 +378,11 @@ std::string VnV::TimeUtils::timeForFile(std::string filename) {
   stat(filename.c_str(), &result);
   return timeToISOString(&result.st_mtime);
 }
+
+std::size_t VnV::HashUtils::vectorHash(std::vector<int> const& vec) {
+  std::size_t seed = vec.size();
+  for(auto& i : vec) {
+    seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+  }
+  return seed;
+}

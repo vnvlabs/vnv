@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+﻿cmake_minimum_required(VERSION 3.6)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -14,12 +14,15 @@ link_vnv_file(read.a SampleReader cpp)
 if(WITH_MPI)
   target_include_directories(sample.a PRIVATE ${MPI_CXX_INCLUDE_PATH})
   target_compile_options(sample.a PRIVATE ${MPI_CXX_COMPILE_FLAGS})
-  target_link_libraries(sample.a PRIVATE ${MPI_CXX_LIBRARIES}
-                                         ${MPI_CXX_LINK_FLAGS})
+  target_link_libraries(sample.a PRIVATE ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS})
+  target_compile_definitions(sample.a PUBLIC -DWITH_MPI=1)
 endif()
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json
                ${CMAKE_CURRENT_BINARY_DIR}/vv-input.json COPYONLY)
+
+configure_file(${CMAKE_CURRENT_LIST_DIR}/sample_with_papi.json
+      ${CMAKE_CURRENT_BINARY_DIR}/vv-input-papi.json COPYONLY )
 
 # We place the test libs in a strange directory. So, for this case, we will set
 # the RPATH to those libs directory. There must be a way to set the target up to

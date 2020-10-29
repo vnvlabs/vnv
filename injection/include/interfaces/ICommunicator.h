@@ -98,7 +98,6 @@ class IDataType {
   //Any engine functions can be called.
   virtual void Put(IOutputEngine* engine) = 0;
 
-
   void setKey(long long key);
   long long getKey();
   virtual ~IDataType();
@@ -125,7 +124,7 @@ class ICommunicator {
   virtual void setData(void* data) = 0;  // The communicator passed in.
   virtual void* getData() = 0;
 
-  virtual int uniqueId() = 0;  // Unique id such that the same comm data returns// the same comm.
+  virtual long uniqueId() = 0;  // Unique id such that the same comm data returns// the same comm.
   virtual int Size() = 0;
   virtual int Rank() = 0;
   virtual void Barrier() = 0;
@@ -137,6 +136,8 @@ class ICommunicator {
   virtual ICommunicator_ptr split(int color, int key) = 0;
   virtual ICommunicator_ptr create(std::vector<int>& ranks, int tag) = 0;
   virtual ICommunicator_ptr create(int start, int end, int stride, int tag) = 0;
+  virtual ICommunicator_ptr world() = 0;
+  virtual ICommunicator_ptr self() = 0;
 
   virtual CommCompareType compare(ICommunicator_ptr ptr) = 0;
   virtual bool contains(ICommunicator_ptr) = 0;
@@ -241,7 +242,7 @@ void registerDataType(std::string packageName,
   }
 #define REGISTERCOMM(PNAME, name) VnV::PNAME::Communication::register_##name();
 
-#define INJECTION_DATATYPE(PNAME, cls)                                         \
+#define INJECTION_DATATYPE(PNAME, name, cls)                                   \
   namespace VnV {                                                              \
   namespace PNAME {                                                            \
   namespace DataTypes {                                                        \

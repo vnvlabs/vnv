@@ -140,7 +140,19 @@ int main(int argc, const char** argv) {
 
   std::pair<std::vector<std::string>, std::size_t> modFiles =
       checkCache(cacheInfo, theFiles);
-  if (modFiles.first.size() != 0) {
+
+  if (nowrite.getValue() && modFiles.first.size() == 0 ) {
+     std::cout << "No changes detected" << std::endl;
+     return 0;
+  }
+
+  if (modFiles.first.size() != 0 ) {
+
+    std::cout << "VnV Detected Changes in the following files:\n";
+    for (auto it : modFiles.first) {
+       std::cout << "\t" << it << std::endl;
+    }
+    std::cout << "\n\n";
     // Update the Cache
     json vnvDeclares1 = runPreprocessor(OptionsParser.getCompilations(),
                                         modFiles.first, packageName_);
@@ -178,6 +190,7 @@ int main(int argc, const char** argv) {
         }
       }
       cacheData[it.key()] = data;
+
     }
     json found = runFinder(OptionsParser.getCompilations(), injectionFiles);
     // Add the injection point data to the cacheData object.

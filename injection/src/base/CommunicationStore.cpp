@@ -66,7 +66,7 @@ IDataType_ptr CommunicationStore::getDataType(long long key) {
     ptr->setKey(key);
     return ptr;
   }
-  throw VnV::VnVExceptionBase("Un supported Data Type");
+  throw VnV::VnVExceptionBase("Unsupported Data Type");
 }
 
 IDataType_ptr CommunicationStore::getDataType(std::string name) {
@@ -113,7 +113,6 @@ Communication::ICommunicator_ptr CommunicationStore::getCommForPackage(
   if (it != commMap.end()) {
     auto c = getCommunicator(it->second.first, it->second.second, type);
     c->setPackage(packageName);
-    c->Rank();
     return c;
   }
 

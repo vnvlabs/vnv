@@ -258,6 +258,7 @@ void writeFileAndCache(json& cacheInfo, std::string outputFileName,
 
     oss << r.printPackage(it);
 
+
     // If the file exists, load it and compare it to the new string. This is
     // TODO -- This is a stop-gap measure to avoid recompilation when the file
     // doesn't actually change.

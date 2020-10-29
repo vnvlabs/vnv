@@ -12,9 +12,15 @@ struct VnVExceptionBase : public std::exception {
 
   VnVExceptionBase(std::string message);
   const char* what() const throw();
+
+  VnVExceptionBase(const char* format, ...) {
+    
+  }
 };
 
 namespace Exceptions {
+
+
 
 VnVExceptionBase parseError(std::ifstream& fstream, long unsigned int byte,
                             std::string message);

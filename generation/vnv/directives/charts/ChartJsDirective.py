@@ -93,13 +93,14 @@ class VnVChartDirective(Directive):
             "".join(
                 self.content))
         try:
-            print("THIS", cont)
             cc = jsonLoader.loads(cont)
+            print(cc)
 
             html = self.getIFrame(cc)
             return [nodes.raw('', html, format="html")]
         except Exception as e:
             print(cont)
+            print(e)
             raise RuntimeError("Could not parse json")
 
 

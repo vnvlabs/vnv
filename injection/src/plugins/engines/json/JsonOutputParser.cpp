@@ -28,9 +28,19 @@ class JsonParserImpl {
     base_ptr->name = name;
     base_ptr->id = idCounter++;
     base_ptr->parent = parent;
+
     rootInternal->add(base_ptr);
 
     return base_ptr;
+  }
+
+  template<typename T>
+  void addMetaData(json j, std::shared_ptr<T> node) {
+    if ( j.contains("meta") ) {
+      for (auto it : j["meta"].items()) {
+        node->getMetaData().add(it.key(),it.value());
+      }
+    }
   }
 
   // Generate a data node (name, value,
@@ -38,6 +48,7 @@ class JsonParserImpl {
   std::shared_ptr<T> genDataNode(const json& j, DataBase* parent) {
     std::shared_ptr<T> n = mks<T>(JN(j), parent);
     n->value = j["value"].get<V>();
+    addMetaData(j,n);
     return n;
   }
 
@@ -45,6 +56,7 @@ class JsonParserImpl {
     std::shared_ptr<StringNode> n = mks<StringNode>(JN(j), parent);
     n->value = j["value"].dump(3);
     n->jsonString = true;
+    addMetaData(j,n);
     return n;
   }
 
@@ -52,6 +64,7 @@ class JsonParserImpl {
     auto n = mks<InfoNode>(JN(j), parent);
     n->title = j["title"].get<std::string>();
     n->date = j["date"].get<long>();
+    addMetaData(j,n);
     return n;
   }
 
@@ -60,7 +73,9 @@ class JsonParserImpl {
     n->package = j["package"].get<std::string>();
     n->level = j["level"].get<std::string>();
     n->message = j["message"].get<std::string>();
-    n->stage = j["stage"].get<int>();
+    n->stage = std::to_string(j["stage"].get<int>());
+    n->comm = std::to_string(j["comm"].get<long>());
+    addMetaData(j,n);
     return n;
   }
   std::shared_ptr<ArrayNode> genArrayNode(const json& j, std::string name,
@@ -95,6 +110,7 @@ class JsonParserImpl {
 
     n->children = genArrayNode(j["children"], "children", n.get());
     n->resultsMap = genMapNode(j["results"], "results", n.get());
+    addMetaData(j,n);
     return n;
   }
 
@@ -106,6 +122,7 @@ class JsonParserImpl {
         test->children->add(nodeDispatcher(it, test->children.get()));
       }
     }
+
   }
 
   std::shared_ptr<DataTypeNode> genDataTypeNode(const json& j,
@@ -117,6 +134,7 @@ class JsonParserImpl {
     for (auto it : j["children"]) {
       n->children->add(it["name"], nodeDispatcher(it, n->children.get()));
     }
+    addMetaData(j,n);
     return n;
   }
 
@@ -130,7 +148,7 @@ class JsonParserImpl {
     // Pass all child type nodes to children, and all data nodes to data.
     n->children = mks<ArrayNode>("children", n.get());
     n->data = mks<ArrayNode>("data", n.get());
-
+    addMetaData(j,n);
     appendTestNode(n.get(), j);
     return n;
   }
@@ -141,7 +159,7 @@ class JsonParserImpl {
       for (auto it : j["children"].items()) {
          n->children->add(nodeDispatcher(it.value(), n->children.get()));
       }
-
+      addMetaData(j,n);
       n->shape = j["shape"];
 
       return n;
@@ -152,11 +170,11 @@ class JsonParserImpl {
     auto n = mks<InjectionPointNode>(JN(j), parent);
     n->package = j["package"].get<std::string>();
     n->templ = getTemplate(n->package, n->name, "InjectionPoint");
-
+    n->comm = std::to_string(j["comm"].get<long>());
     n->children = mks<ArrayNode>("children", n.get());
 
     n->tests = mks<ArrayNode>("tests", n.get());
-
+    addMetaData(j,n);
     std::map<std::string, std::shared_ptr<TestNode>> testMap;
 
     for (auto child : j["children"]) {
@@ -195,7 +213,6 @@ class JsonParserImpl {
 
   std::shared_ptr<DataBase> nodeDispatcher(const json& j, DataBase* parent) {
     std::string node = j["node"].get<std::string>();
-
     if (node == "Data") {
       std::string type = j["type"].get<std::string>();
       if (type == "double")
@@ -204,7 +221,7 @@ class JsonParserImpl {
         return genDataNode<FloatNode, float>(j, parent);
       else if (type == "std::string")
         return genDataNode<StringNode, std::string>(j, parent);
-      else if (type == "long")
+      else if (type == "long long")
         return genDataNode<LongNode, long>(j, parent);
       else if (type == "bool")
         return genDataNode<BoolNode, bool>(j, parent);
@@ -215,6 +232,7 @@ class JsonParserImpl {
       else if (type == "shape")
         return genShapeNode(j,parent);
       else
+        std::cout << j.dump() << std::endl;
         throw VnVExceptionBase("Unknown Data node type");
     } else if (node == "Log")
       return genLogNode(j, parent);
@@ -229,6 +247,7 @@ class JsonParserImpl {
     else if (node == "InjectionPoint")
       return genInjectionPointNode(j, parent);
     else
+      std::cout << j.dump() << std::endl;
       throw VnVExceptionBase("Unknown Node type");
   }
 
@@ -271,7 +290,6 @@ class JsonParserImpl {
 
     root->intro = getTemplate("", "", "Introduction");
     root->concl = getTemplate("", "", "Conclusion");
-
     root->infoNode = genInfoNode(mainJson["info"], root);
 
     root->children = mks<ArrayNode>("children", root);

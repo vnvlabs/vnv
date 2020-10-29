@@ -40,7 +40,9 @@ class provenanceRunner {
         std::string v(argv[i]);
         commandline += " " + std::string(argv[i]);
       }
-      engine->Put( "command-line", commandline);
+      VnV::MetaData m;
+      m.insert(std::make_pair("tag", "hello"));
+      engine->Put( "command-line", commandline,m);
     }
 
     {

@@ -46,36 +46,28 @@ class ParallelEngine : public OutputEngineManager {
    * @param value
    */
   void Put(std::string variableName,
-           const double& value) override;
+           const double& value,const MetaData& m) override;
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, const int& value) override;
-
-
-  /**
-   * @brief Put
-   * @param variableName
-   * @param value
-   */
-  void Put( std::string variableName, const long& value) override;
+  void Put(std::string variableName, const long long& value,const MetaData& m) override;
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put( std::string variableName, const bool& value) override;
+  void Put( std::string variableName, const bool& value,const MetaData& m) override;
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, const json& value) override;
+  void Put(std::string variableName, const json& value,const MetaData& m) override;
 
   /**
    * @brief Put
@@ -83,7 +75,7 @@ class ParallelEngine : public OutputEngineManager {
    * @param value
    */
   void Put( std::string variableName,
-           const std::string& value) override;
+           const std::string& value,const MetaData& m) override;
 
   void PutGlobalArray(ICommunicator_ptr comm ,
                               long long dtype,
@@ -92,6 +84,7 @@ class ParallelEngine : public OutputEngineManager {
                               std::vector<int> gsizes,
                               std::vector<int> sizes,
                               std::vector<int> offset,
+                                 const MetaData& m,
                       int onlyOne=-1 ) override
   {}
 
@@ -105,7 +98,7 @@ class ParallelEngine : public OutputEngineManager {
   /**
    * @brief finalize
    */
-  void finalize() override;
+  void finalize(ICommunicator_ptr worldComm) override;
 
   /**
    * @brief set
@@ -150,9 +143,9 @@ class ParallelEngine : public OutputEngineManager {
 
   void unitTestFinishedCallBack(ICommunicator_ptr comm, IUnitTest* tester) override;
 
-  void dataTypeStartedCallBack(ICommunicator_ptr /** comm **/, std::string variableName,
-                               long long dtype) override;
-  void dataTypeEndedCallBack(ICommunicator_ptr /** comm **/,
+  void dataTypeStartedCallBack( std::string variableName,
+                               long long dtype,const MetaData& m) override;
+  void dataTypeEndedCallBack(
                              std::string variableName) override;
 
   /**

@@ -266,12 +266,13 @@ class Functions(with_metaclass(FunctionRegistry, object)):
     def _func_find(self, search):
         return savedNodes.get(search, None)
 
-    @signature({'types': ['array']}, {'types':[], variadic=True})
-    def _func_cut(self, node, *arguments):
-       t = []
-       for i in arguments:
-          print i, i.__class__
-       return node.__getitem__(tuple(arguments))
+   # @signature({'types': ['array']}, {'types':[], variadic=True})
+   # def _func_cut(self, node, *arguments):
+    #   t = []
+    ##   for i in arguments:
+    #      print i, i.__class__
+   #
+   #   return node.__getitem__(tuple(arguments))
 
     @signature({'types': ['string', 'array', 'object']})
     def _func_length(self, arg):

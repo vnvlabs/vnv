@@ -16,6 +16,7 @@
 
 #define SPNAME SampleExecutable
 
+
 template <typename T> class f {
  public:
   T ff;
@@ -38,13 +39,18 @@ INJECTION_LOGLEVEL(SPNAME, custom, )
  */
 INJECTION_SUBPACKAGE(SPNAME, DummyLibOne)
 
+
 INJECTION_TRANSFORM(SPNAME, sampleTransform, std::vector<double>, double) {
   return NULL;
 }
 
 /**
- * @brief INJECTION_TEST
- * @param vals
+ * Sample Test As Part of an executable
+ * ====================================
+ *
+ *
+ *
+ *
  */
 INJECTION_TEST(SPNAME, sampleTest, std::vector<double> vals) {
   auto vals = get<std::vector<double>>("vals");
@@ -151,8 +157,10 @@ INJECTION_EXECUTABLE(SPNAME, VNV, serial)
 
 int main(int argc, char** argv) {
   MPI_Init(&argc, &argv);
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
-  /**
+      /**
    * Sample Executable
    * =================
    *
@@ -199,54 +207,119 @@ int main(int argc, char** argv) {
   int count = 2;
   int i = min;
 
+
   INJECTION_POINT(SPNAME, VWORLD(SPNAME), functionTest, function1)
 
   /**
-     Looped Injection Point with a Callback function
-     ===============================================
-
-     This is a looped injection point with a built in callback function.
-     Callback functions are usefull as they allow data to be injected directly
-     into the injection point description (this comment)
-
-     In this loop, we iterate across a range [ :vnv:`Data.Data.min`,
-  :vnv:`Data.Data.min`, :vnv:`Data.Data.max`) with
-
-     a step of :vnv:`Data.Data.count`. At each step, the INJECTION_LOOP_ITER
-  call is made, representing an internal stage of the injection point. This is
-  turn calls the injection point call back, which logs the value of the
-  injection point parameter "aa" (aa is a double set randomly in each step of
-  the for loop). We plot aa against the step value using the chart directive.
-
-     .. vnv-chart::
-        :labels: Data.Data[?Name == 'x'].to_string(Value)
-        :vals: Data.Data[?Name == 'y'].Value
-
-
-        {
-           "type" : "line",
-           "data" : {
-              "labels": $$labels$$,
-              "datasets" : [
-                 {
-                  "label" : "A random Number",
-                  "data": $$vals$$,
-                  "fill" : true
-                 }
-              ]
-           },
-           "options" : {
-              "responsive" : true,
-              "title" : { "display" : true, "text" : "A sample Graph using the
-  Chart directive" }, "yaxis" : { "display" : true, "scaleLabel" : {"display" :
-  true, "labelString": "Value"} }
-           }
-        }
-
-
-
+   *
+   *  Looped Injection Point with a Callback function
+   *  ===============================================
+   *
+   *  This is a looped injection point with a built in callback function.
+   *  Callback functions are usefull as they allow data to be injected directly
+   *  into the injection point description (this comment)
+   *
+   *  In this loop, we iterate across a range [ :vnv:`Data.Data.min`, :vnv:`Data.Data.max`] with a step of :vnv:`Data.Data.count`.
+   *  At each step, the INJECTION_LOOP_ITER call is made, representing an internal stage
+   *  of the injection point. This is turn calls the injection point call back, which logs
+   *  the value of the injection point parameter "aa" (aa is a double set randomly in each step of
+   *  the for loop). We plot aa against the step value using the chart directive.
+   *
+   *  .. vnv-chart::
+   *     :labels: Data.Data[?Name == 'x'].to_string(Value)
+   *     :vals: Data.Data[?Name == 'y'].Value
+   *
+   *
+   *     {
+   *        "type" : "line",
+   *        "data" : {
+   *           "labels": $$labels$$,
+   *           "datasets" : [
+   *              {
+   *               "label" : "A random Number",
+   *               "data": $$vals$$,
+   *               "fill" : true
+   *              }
+   *           ]
+   *        },
+   *        "options" : {
+   *           "responsive" : true,
+   *           "title" : { "display" : true, "text" : "A sample Graph using the Chart directive" },
+   *           "yaxis" : { "display" : true,
+   *             "scaleLabel" : {
+   *               "display" : true,
+   *               "labelString": "Value"
+   *             }
+   *           }
+   *        }
+   *     }
+   *
   **/
+   MPI_Comm comm, comm1;
+
+  MPI_Comm_split(MPI_COMM_WORLD, rank % 2, rank, &comm);
+  MPI_Comm_split(MPI_COMM_WORLD, rank / 2, rank, &comm1);
+
   INJECTION_LOOP_BEGIN_C(
+      SPNAME, VCUST(SPNAME,comm), loopTest1,
+      [](VnV_Comm comm, VnV::VnVParameterSet& p,
+         VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
+         std::string stageId) {
+        if (type == VnV::InjectionPointType::Iter) {
+          const double& ab = p["aa"].getByRtti<double>();
+          const int& i = p["i"].getByRtti<int>();
+          engine->Put( "y", ab);
+          engine->Put( "x", i);
+        } else if (type == VnV::InjectionPointType::Begin) {
+          /** Comment block in lambda function **/
+          engine->Put( "min", p["min"].getByRtti<int>());
+          engine->Put( "max", p["max"].getByRtti<int>());
+          engine->Put( "count", p["count"].getByRtti<int>());
+        }
+      },
+      aa, min, max, count, i);
+
+  for (; i < max; i += count) {
+    aa = 100 * ((double)rand() / (double)RAND_MAX);
+
+    /** Testing stufff
+     */
+    INJECTION_LOOP_ITER(SPNAME, loopTest1, internal)
+  }
+  /** sdfsdfsdfsdf**/
+  INJECTION_LOOP_END(SPNAME, loopTest1)
+
+  INJECTION_LOOP_BEGIN_C(
+      SPNAME, VCUST(SPNAME,comm1), loopTest2,
+      [](VnV_Comm comm, VnV::VnVParameterSet& p,
+         VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
+         std::string stageId) {
+        if (type == VnV::InjectionPointType::Iter) {
+          const double& ab = p["aa"].getByRtti<double>();
+          const int& i = p["i"].getByRtti<int>();
+          engine->Put( "y", ab);
+          engine->Put( "x", i);
+        } else if (type == VnV::InjectionPointType::Begin) {
+          /** Comment block in lambda function **/
+          engine->Put( "min", p["min"].getByRtti<int>());
+          engine->Put( "max", p["max"].getByRtti<int>());
+          engine->Put( "count", p["count"].getByRtti<int>());
+        }
+      },
+      aa, min, max, count, i);
+
+  for (; i < max; i += count) {
+    aa = 100 * ((double)rand() / (double)RAND_MAX);
+
+    /** Testing stufff
+     */
+    INJECTION_LOOP_ITER(SPNAME, loopTest2, internal)
+  }
+  /** sdfsdfsdfsdf**/
+  INJECTION_LOOP_END(SPNAME, loopTest2)
+
+
+    INJECTION_LOOP_BEGIN_C(
       SPNAME, VSELF(SPNAME), loopTest,
       [](VnV_Comm comm, VnV::VnVParameterSet& p,
          VnV::OutputEngineManager* engine, VnV::InjectionPointType type,

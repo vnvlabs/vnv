@@ -13,12 +13,12 @@
   },
   "additionalPlugins": {
     "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so",
-    "Papi" : "/home/ben/wfr/vv-neams/externalPlugins/papiTests/build/libpapiTest.so"
+    "Papi" : "../../../../externalPlugins/papiTests/build/libpapiTest.so"
   },
   "outputEngine": {
     "type": "json",
     "config": {
-       "outputFile" : "vv-output.json"	    
+       "outputFile" : "vv-output.json"
     }
   },
   "injectionPoints": [
@@ -54,7 +54,7 @@
                 "config" : {
                     "expectedResult" : {},
                     "configuration": {
-		    },
+                    },
                     "parameters": {
                     }
                 }
@@ -62,18 +62,18 @@
         ]
       },
       {
-	 "name" : "loopTest",
-	 "package" : "SampleExecutable",
-	 "tests" : [{
-	   "name" : "flops", 
-	   "package" : "Papi",
+         "name" : "loopTest",
+         "package" : "SampleExecutable",
+         "tests" : [{
+           "name" : "flops",
+           "package" : "Papi",
            "runScope" : ["all"],
-	   "config" : {
+           "config" : {
              "expectedResult" : {},
-	      "configuration" : {},
-	      "parameters" : {}
-	   }
+              "configuration" : {},
+              "parameters" : {}
+           }
         }]
-      }	
+      }
   ]
 }

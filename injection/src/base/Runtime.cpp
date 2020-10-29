@@ -339,7 +339,9 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
    * Injection point documentation.
    **/
 
+
   VnV_Comm comm = CommunicationStore::instance().worldData(packageName);
+
 
   /**
    * VnV Configuration and provenance Tracking information.
@@ -348,7 +350,6 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
    * CmdLine:  :vnv:`Data.Data."command-line"`.
    *
    * Time of execution :vnv:`Data.Data.time`.
-   *
    * The VnV Configuration file was
    *
    * .. vnv-jchart::
@@ -372,6 +373,7 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
         auto config = p["config"].getByRtti<json>();
         auto argc = p["argc"].getByRtti<int*>();
         auto argv = p["argv"].getByRtti<char***>();
+        std::cout <<"aaaaSDFSDFSDFSDFSDFSDFSDF" << std::endl;
 
         std::string currTime = VnV::ProvenanceUtils::timeToString();
         std::string commandline =
@@ -379,6 +381,9 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
         engine->Put( "config", config);
         engine->Put( "command-line", commandline);
         engine->Put( "time", currTime);
+
+        std::cout <<"SDFSDFSDFSDFSDFSDFSDF" << std::endl;
+
       },
       argc, argv, config);
 
@@ -430,7 +435,7 @@ bool RunTime::configure(std::string packageName, RunInfo info,
     runTests = false;
     processToolConfig(info.pluginConfig, info.cmdline);
   }
-
+  std::cout << "DSFSDFSDFDFSDFDSF" << std::endl;
   return runTests;
 }
 
@@ -451,8 +456,9 @@ void RunTime::runTimePackageRegistration(std::string packageName,
 
 bool RunTime::Finalize() {
   if (runTests) {
+    auto comm = CommunicationStore::instance().worldComm(mainPackageName);
     INJECTION_LOOP_END(VNVPACKAGENAME, initialization);
-    OutputEngineStore::getOutputEngineStore().getEngineManager()->finalize();
+    OutputEngineStore::getOutputEngineStore().getEngineManager()->finalize(comm);
   }
   return true;
 }
