@@ -27,7 +27,6 @@ void swap(long proc, CommWrap_ptr node, CommMap &willAdd, CommWrap_ptr newNode) 
 
           // Nodes parents are now parents parents. Also tell parents parents
           // that they are now linked to Node instead of parent.
-          std::cout << "Swapping node " << node->id << " with its parent " << parent->id << std::endl;
           node->parents.clear();
           for (auto p : parent->parents) {
               node->parents.insert(std::make_pair(p.first, p.second));
@@ -72,15 +71,6 @@ void add(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode) {
 
    for (auto &parent : node->parents) {
 
-       for (auto it : willAdd) {
-         std::cout << "WILL ADD " << it.first << " " << it.second->id << std::endl;
-       }
-
-       if (willAdd.size() > 0 && willAdd.find(parent.second->id) != willAdd.end()) {
-          std::cout << "Tripped it " << std::endl;
-       }else {
-           std::cout << "False " << std::endl;
-       }
 
        if (parent.second->contents.find(proc) != parent.second->contents.end()) {
         //Parent already added this proc --> We are safe to add this proc based
@@ -91,10 +81,8 @@ void add(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode) {
            newNode->parents.erase(parent.second->id);
         }
 
-        std::cout << "Parent " << parent.second->id << " already added " << proc  << std::endl;
       } else if (willAdd.size() > 0 && willAdd.find(parent.second->id) != willAdd.end()) {
         for (auto it : willAdd) {
-          std::cout << "WILL ADD " << it.first << " " << it.second->id << std::endl;
         }
 
         //Add the proc to the parent, then I am done with this parent.
@@ -103,13 +91,8 @@ void add(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode) {
            parent.second->children.erase(newNode->id); // Erase New Node.
            newNode->parents.erase(parent.second->id);
         }
-        std::cout << willAdd.size() << " Parent " << parent.second->id << " had proc added -- so do i " << proc  << std::endl;
-        for (auto it : willAdd) {
-          std::cout << "WILL ADD " << it.first << " " << it.second->id << std::endl;
-        }
       } else {
 
-        std::cout << "Parent " << parent.second->id << " wont add it so delete the connection for " << node->id  << std::endl;
         toDelete.push_back(parent.second);
       }
    }
@@ -126,7 +109,6 @@ void add(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode) {
        }
        willAdd.erase(node->id);
 
-        std::cout << "Nothing to delete so adding proc to " << node->id << " and adding new node as a child" << std::endl;
     } else {
          for (auto parent : toDelete ) {
              //Parent is not adding this node, so I am no longer a child of this parent.
@@ -144,7 +126,6 @@ void add(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode) {
                parent->children.insert(std::make_pair(it.first,it.second));
                it.second->parents.insert(std::make_pair(parent->id, parent));
              }
-            std::cout << node->id << " is Removing myself as a child of " << parent->id << " and adding new node as a child" << std::endl;
          }
 
         //Try again with my new parent list.
@@ -152,7 +133,6 @@ void add(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode) {
     }
     json j = json::object();
     node->toJson(j);
-    std::cout << j.dump(2) << std::endl;
 }
 
 void add(long proc, CommMap& oldNodes, CommWrap_ptr newNode) {
@@ -175,7 +155,6 @@ std::set<CommWrap_ptr> getCommMap(std::vector<long> &comms, std::vector<int> &co
        CommMap oldNodes;
        for (int comm = 0; comm < counts[proc]; comm++ ) {
           long comVal = comms[c++];
-          std::cout << "Comm " << proc << " is a member of group " << comVal << std::endl;
           auto commWrap_iter = m.find(comVal);
           if ( commWrap_iter == m.end()) {
 
@@ -201,9 +180,6 @@ std::set<CommWrap_ptr> getCommMap(std::vector<long> &comms, std::vector<int> &co
              oldNodes.insert({commWrap_iter->first, commWrap_iter->second});
           }
        }
-       //for (auto itt : oldNodes) {
-       //    std::cout <<itt.second->print() << std::endl;
-       //}
        add(proc, oldNodes, firstNewNode);
 
     }
@@ -265,7 +241,6 @@ long CommMapper::getNextId(Communication::ICommunicator_ptr comm, long myVal) {
 
 void CommMapper::logComm(Communication::ICommunicator_ptr comm) {
     long id = comm->uniqueId();
-    std::cout << getpid() << " is registering as a member of comm " << id << " with rank " << comm->Rank() <<  " " << comm->Size() << std::endl;
     comms.insert(comm->uniqueId());
 }
 

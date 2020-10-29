@@ -23,7 +23,7 @@
 #include "c-interfaces/RunTime.h"
 #include "c-interfaces/Wrappers.h"
 #include "interfaces/CppInjection.h"
-
+#include "interfaces/IOffloader.hpp"
 /**
  * VnV Namespace
  */
@@ -73,6 +73,8 @@ class RunTime {
   std::set<std::string> packages;
   std::map<std::string, vnvFullJsonStrCallback> jsonCallbacks;
 
+  std::shared_ptr<IOffloader> offloader;
+
   std::set<std::string> registeredPackages;
 
   bool runTests; /**< Should tests be run */
@@ -97,6 +99,8 @@ class RunTime {
 
   bool configure(std::string packageName, RunInfo info,
                  registrationCallBack* callback);
+
+  bool setupOffloadConfiguration(OffloadInfo& info);
 
  public:
   /**

@@ -39,6 +39,12 @@ struct EngineInfo {
   json engineConfig;      /**< additional parameters provided by the user */
 };
 
+struct OffloadInfo {
+  bool on;
+  json offloadConfig;
+  std::string offloadType;
+};
+
 struct InjectionPointInfo {
   std::string name;
   std::string package;
@@ -68,6 +74,7 @@ struct RunInfo {
   UnitTestInfo unitTestInfo;
   LoggerInfo logInfo;
   EngineInfo engineInfo; /**< Information about the IO engine */
+  OffloadInfo offloadInfo;
 
   bool error; /**< Was there an error when parsing */
   std::string
@@ -117,6 +124,16 @@ class JsonParser {
    *
    */
   LoggerInfo getLoggerInfo(const json& loggingJson);
+
+  /**
+   * @brief getOffloadInfo
+   * @param offloadJson
+   * @return
+   *
+   * This function parses the offload configuration information provided by the user
+   * in the input file.
+   */
+  OffloadInfo getOffloadInfo(const json& offloadJson);
 
   /**
    * @brief getEngineInfo

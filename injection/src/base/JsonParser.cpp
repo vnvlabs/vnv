@@ -93,6 +93,16 @@ EngineInfo JsonParser::getEngineInfo(const json& engine) {
   return einfo;
 }
 
+OffloadInfo JsonParser::getOffloadInfo(const json& offloadJson) {
+   OffloadInfo oinfo;
+   oinfo.on = (offloadJson.contains("on")) ? offloadJson["on"].get<bool>() : false;
+   if (oinfo.on) {
+        oinfo.offloadType = (offloadJson.contains("type")) ? offloadJson["type"].get<std::string>() : "";
+        oinfo.offloadConfig = (offloadJson.contains("config"))?offloadJson["config"] : json::object();
+   }
+   return oinfo;
+}
+
 UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json& unitTestJson) {
   UnitTestInfo info;
   info.runUnitTests = unitTestJson["runTests"].get<bool>();
@@ -145,6 +155,12 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
   } else {
     info.engineInfo =
         getEngineInfo(R"({"type" : "debug" , "config" : {} })"_json);
+  }
+
+  if (main.find("offloading") != main.end()) {
+    info.offloadInfo = getOffloadInfo(main["offloading"]);
+  } else {
+    info.offloadInfo = getOffloadInfo(R"({"on" : false })"_json);
   }
 
   // Get the output Engine information.

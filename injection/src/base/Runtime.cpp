@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "base/CommunicationStore.h"
+#include "base/OffloaderStore.hpp"
 #include "base/DistUtils.h"
 #include "base/InjectionPointStore.h"
 #include "base/JsonSchema.h"
@@ -253,6 +254,15 @@ void RunTimeOptions::fromJson(json& j) {
   }
 }
 
+bool RunTime::setupOffloadConfiguration(OffloadInfo& info){
+  if (info.on) {
+    offloader = OffloaderStore::get().setOffloader(info.offloadType, info.offloadConfig);
+  }
+
+
+  return info.on;
+}
+
 void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
   // Set up the logger. This occurs as early as possible to allow log messages
   // to be caught int the registration objects.
@@ -283,6 +293,9 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
   if (getRunTimeOptions()->dumpConfig) {
     writeSpecification(getRunTimeOptions()->dumpConfigFilename);
   }
+
+
+  bool offloading = setupOffloadConfiguration(info.offloadInfo);
 
   if (!OutputEngineStore::getOutputEngineStore().isInitialized()) {
     VnV_Debug(VNVPACKAGENAME, "Configuring The Output Engine");
@@ -373,7 +386,6 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
         auto config = p["config"].getByRtti<json>();
         auto argc = p["argc"].getByRtti<int*>();
         auto argv = p["argv"].getByRtti<char***>();
-        std::cout <<"aaaaSDFSDFSDFSDFSDFSDFSDF" << std::endl;
 
         std::string currTime = VnV::ProvenanceUtils::timeToString();
         std::string commandline =
@@ -382,7 +394,6 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
         engine->Put( "command-line", commandline);
         engine->Put( "time", currTime);
 
-        std::cout <<"SDFSDFSDFSDFSDFSDFSDF" << std::endl;
 
       },
       argc, argv, config);
@@ -435,7 +446,6 @@ bool RunTime::configure(std::string packageName, RunInfo info,
     runTests = false;
     processToolConfig(info.pluginConfig, info.cmdline);
   }
-  std::cout << "DSFSDFSDFDFSDFDSF" << std::endl;
   return runTests;
 }
 
