@@ -19,6 +19,9 @@ static const json __vv_schema__ = R"(
     "logging" : {
        "$ref": "#/definitions/logger"
     },
+    "offloading" : {
+       "$ref": "#/definitions/offload"
+    },
     "unit-testing" : {
        "$ref" : "#/definitions/unit-testing"
     },
@@ -93,20 +96,28 @@ static const json __vv_schema__ = R"(
        },
        "required" : ["runTests","config"]
     },
-    "logger": {
-    "description" : "VnV Logging Configuration",
-    "type" : "object",
-    "properties" : {
-            "on" : { "type" : "boolean" } ,
-        "filename" : { "type " : "string" },
-        "logs" : { "$ref" : "#/definitions/logTypes" },
-        "blackList" : { "type" : "array", "items" : { "type" : "string" } }
+    "offload": {
+       "type":"object",
+       "properties" : {
+           "on" : {"type":"boolean"},
+           "type" : {"type" : "string"},
+           "config" : {"type":"object"}
+        }
     },
-    "required" : ["on","filename","logs"]
+    "logger": {
+        "description" : "VnV Logging Configuration",
+        "type" : "object",
+        "properties" : {
+            "on" : { "type" : "boolean" } ,
+            "filename" : { "type " : "string" },
+            "logs" : { "$ref" : "#/definitions/logTypes" },
+            "blackList" : { "type" : "array", "items" : { "type" : "string" } }
+        },
+        "required" : ["on","filename","logs"]
     },
     "logTypes": {
-    "type" : "object",
-    "additionalProperties" : {"type" : "boolean" }
+        "type" : "object",
+        "additionalProperties" : {"type" : "boolean" }
     },
 
     "injectionPoints": {
@@ -149,6 +160,9 @@ static const json __vv_schema__ = R"(
         },
         "package" : {
           "type" : "string"
+        },
+        "offload" : {
+          "type" : "boolean"
         },
         "config" : {
             "type" : "object"

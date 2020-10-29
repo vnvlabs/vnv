@@ -1,4 +1,4 @@
-target_sources(
+﻿target_sources(
   injection
   PRIVATE ${CMAKE_CURRENT_LIST_DIR}/InjectionPoint.cpp
           ${CMAKE_CURRENT_LIST_DIR}/InjectionPointStore.cpp
@@ -14,5 +14,6 @@ target_sources(
           ${CMAKE_CURRENT_LIST_DIR}/JsonSchema.cpp
           ${CMAKE_CURRENT_LIST_DIR}/OptionsParserStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/Logger.cpp
+          ${CMAKE_CURRENT_LIST_DIR}/OffloaderStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/Communication.cpp
           ${CMAKE_CURRENT_LIST_DIR}/CommunicationStore.cpp)
