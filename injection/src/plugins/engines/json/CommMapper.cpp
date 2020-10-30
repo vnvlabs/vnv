@@ -19,10 +19,13 @@ void add(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode);
 
 
 void swap(long proc, CommWrap_ptr node, CommMap &willAdd, CommWrap_ptr newNode) {
+   std::cout << "Swapping " << node->id << std::endl;
    if (node->parents.size() == 1 ) {
+       std::cout << "Node has one parent " << std::endl;
        auto parent = node->parents.begin()->second;
        if (willAdd.find(parent->id)!=willAdd.end()) {
-          // add(proc, parent, willAdd, newNode);
+          std::cout << "Parent will add proc " << parent->id << std::endl;
+           // add(proc, parent, willAdd, newNode);
        } else if (parent->contents.size() == node->contents.size()) {
 
           // Nodes parents are now parents parents. Also tell parents parents
@@ -48,10 +51,8 @@ void swap(long proc, CommWrap_ptr node, CommMap &willAdd, CommWrap_ptr newNode) 
           node->children.clear();
           node->children.insert(std::make_pair(parent->id,parent));
 
-          //If I have one child, recursive down the line to keep swapping.
-          if (parent->children.size() == 1 ) {
-             swap(proc, parent->children.begin()->second, willAdd, newNode);
-          }
+          // Try swap again to see if i need to swap again.
+          swap(proc, node, willAdd, newNode);
        }
    }
 }
@@ -149,12 +150,12 @@ std::set<CommWrap_ptr> getCommMap(std::vector<long> &comms, std::vector<int> &co
 
    int c = 0;
    for (int proc = 0; proc < counts.size(); proc++ ) {
-
        CommWrap_ptr firstNewNode = nullptr;
        CommWrap_ptr lastNewNode = nullptr;
        CommMap oldNodes;
        for (int comm = 0; comm < counts[proc]; comm++ ) {
           long comVal = comms[c++];
+          std::cout << proc << " is a member of " << comVal << std::endl;
           auto commWrap_iter = m.find(comVal);
           if ( commWrap_iter == m.end()) {
 
@@ -181,7 +182,6 @@ std::set<CommWrap_ptr> getCommMap(std::vector<long> &comms, std::vector<int> &co
           }
        }
        add(proc, oldNodes, firstNewNode);
-
     }
 
     // Loop through all nodes and merge any duplicate comms. These are comms that have

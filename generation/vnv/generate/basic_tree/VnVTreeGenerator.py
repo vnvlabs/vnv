@@ -60,6 +60,16 @@ _collapse_end = '''
 
 '''
 
+commMapText = '''
+.. vnv-comm-map::
+  :height: {height}
+  :width: {width}
+  
+  
+'''
+
+def getCommMap(width=600, height=400):
+    return commMapText.format(height=height,width=width)
 
 def getIcon(passed, right_pad=8):
     color = "green" if passed else "red"
@@ -85,9 +95,15 @@ def writeNode(node, stream):
 
 class VnVTreeGenerator:
     title = "VnV Testing Report"
+    worldSize = -1
+    commMap = {}
 
     def setTitle(self, title):
         self.title = title
+
+    def setCommMap(self, on):
+        self.worldSize = on
+
 
     def getRestructuredText(self, node):
         return self.dispatcher(node)
@@ -104,8 +120,15 @@ class VnVTreeGenerator:
         if title is not None:
             stream.write(RestUtils.getHeader(title))
         for child in node:
-            t, i = collapseStart(
-                child.getPackage() + ": " + child.getName().capitalize(), "comm", icon=icon)
+            print(node.__class__,  )
+            try:
+                t, i = collapseStart(
+                    child.getPackage() + ": " + child.getName().capitalize(), child.getComm(), icon=icon)
+            except AttributeError:
+                t, i = collapseStart(
+                    child.getPackage() + ": " + child.getName().capitalize(), icon=icon)
+
+            # Method does not exist; What now
             stream.write(t)
             writeNode(child, stream)
             stream.write(collapse_end(i))
@@ -131,7 +154,7 @@ class VnVTreeGenerator:
         stream = StringIO()
         writeValue(node, stream)
         if len(node.getChildren()) > 0:
-            t, i = collapseStart("Testing Logs", "test")
+            t, i = collapseStart("Testing Logs")
             stream.write(t)
             self.writeChildren(None, node.getChildren(), stream)
             stream.write(collapse_end(i))
@@ -143,13 +166,13 @@ class VnVTreeGenerator:
         writeValue(node, stream)
 
         if len(node.getTests()) > 0:
-            t, i = collapseStart("Injection Point Tests", "comm")
+            t, i = collapseStart("Injection Point Tests")
             stream.write(t)
             self.writeChildren(None, node.getTests(), stream)
             stream.write(collapse_end(i))
 
         if len(node.getChildren()) > 0:
-            t, i = collapseStart("Child Injection Points", "comm")
+            t, i = collapseStart("Child Injection Points")
             stream.write(t)
             self.writeChildren(None, node.getChildren(), stream)
             stream.write(collapse_end(i))
@@ -170,7 +193,7 @@ class VnVTreeGenerator:
             stream.write(collapse_end(xi))
 
         if len(node.getChildren()) > 0:
-            t, i = collapseStart("Logs And Warnings", "comm")
+            t, i = collapseStart("Logs And Warnings")
             stream.write(t)
             self.writeChildren(None, node.getChildren(), stream)
             stream.write(collapse_end(i))
@@ -183,8 +206,12 @@ class VnVTreeGenerator:
 
     def visitRootNode(self, node: VnVReader.IRootNode):
         stream = StringIO()
-        t, i = collapseStart(self.title, "root", show=True)
+        t, i = collapseStart(self.title, show=True)
         stream.write(t)
+
+        if (self.worldSize > -1 ):
+            stream.write(getCommMap())
+            stream.write("\n\n")
 
         # Write the introduction.
         stream.write(textwrap.dedent(node.getIntro()))
@@ -213,14 +240,14 @@ class VnVTreeGenerator:
                 jsonData.append({"name" : child.getName(), "value" : passed , "_children" : jdata})
                 icon = getIcon(passed)
                 tx, ix = collapseStart(
-                    child.getPackage() + ": " + child.getName().capitalize(), "comm", icon=icon)
+                    child.getPackage() + ": " + child.getName().capitalize(), icon=icon)
                 substream.write(tx)
                 writeNode(child, substream)
                 substream.write(collapse_end(ix))
                 substream.write("\n\n")
 
             tt, ii = collapseStart(
-                "Unit Testing Results", "injectionTests", icon=getIcon(allPassed))
+                "Unit Testing Results", icon=getIcon(allPassed))
             stream.write(tt)
             print(getResultsTableForData(jsonData,True))
             stream.write(getResultsTableForData(jsonData,True))
@@ -229,7 +256,7 @@ class VnVTreeGenerator:
 
         # Add the children nodes
         if len(node.getChildren()) > 0:
-            ttt, iii = collapseStart("Injection Points", "comm")
+            ttt, iii = collapseStart("Injection Points")
             stream.write(ttt)
             self.writeChildren(None, node.getChildren(), stream)
             stream.write(collapse_end(iii))

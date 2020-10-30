@@ -207,6 +207,12 @@ class RootNode : public IRootNode {
   std::shared_ptr<ArrayNode> children;
   std::shared_ptr<ArrayNode> unitTests;
   std::shared_ptr<InfoNode> infoNode;
+
+  int worldSize = 0;
+  std::string commMap = "{}";
+
+  virtual std::string getCommMap() override{return commMap;}
+  virtual int getWorldSize() override {return worldSize;}
   virtual IArrayNode* getChildren() override;
   virtual IArrayNode* getUnitTests() override;
   virtual IInfoNode* getInfoNode() override;

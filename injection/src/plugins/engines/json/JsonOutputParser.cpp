@@ -280,6 +280,14 @@ class JsonParserImpl {
     return "";
   }
 
+  int getWorldSize() {
+    return mainJson["commMap"]["worldSize"].get<int>();
+  }
+
+  std::string getCommMap() {
+    return mainJson["commMap"]["map"].dump(0);
+  }
+
   RootNode* genRootNode() {
     RootNode* root = new RootNode();
     rootInternal = root;  // For id tracking in a single loop.
@@ -287,7 +295,8 @@ class JsonParserImpl {
     root->id = idCounter++;
     root->name = "Root";
     root->parent = nullptr;
-
+    root->worldSize = getWorldSize();
+    root->commMap = getCommMap();
     root->intro = getTemplate("", "", "Introduction");
     root->concl = getTemplate("", "", "Conclusion");
     root->infoNode = genInfoNode(mainJson["info"], root);

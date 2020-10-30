@@ -100,7 +100,7 @@ def main():
         filedata = file.read()
 
     # Replace the target string
-    replaceText = ".. vnv-read:: {reader} {filename}\n    :title: VnV Simulation report\n\n.. toctree::".format(
+    replaceText = ".. vnv-read:: {reader} {filename}\n    :title: VnV Simulation report\n    :commmap: 1\n\n\n .. toctree::".format(
         reader=reader, filename=filename)
     filedata = filedata.replace('.. toctree::', replaceText)
 

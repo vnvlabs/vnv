@@ -285,7 +285,8 @@ class IRootNode : public DataBase {
 
   virtual std::string getIntro() = 0;
   virtual std::string getConclusion() = 0;
-
+  virtual int getWorldSize() = 0;
+  virtual std::string getCommMap() = 0;
   virtual DataBase* findById(long id) = 0;
 
   virtual bool hasId(long id) { return findById(id) != NULL; }

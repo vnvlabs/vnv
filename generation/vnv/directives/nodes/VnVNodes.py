@@ -6,7 +6,7 @@ from io import StringIO
 import sphinx
 from docutils.parsers.rst import Directive, directives, languages
 from docutils.statemachine import ViewList
-from sphinx.util import docutils
+from sphinx.util import docutils, nodes
 from docutils.writers.html4css1 import HTMLTranslator
 from ..utils.FakeDict import FakeDict, process
 from ...generate import configs
@@ -107,7 +107,8 @@ class VnVIncludeDirective(Directive):
     idCount = 0
     option_spec = {
         "save": directives.unchanged,
-        "title": directives.unchanged
+        "title": directives.unchanged,
+        "commmap" : directives.positive_int
     }
 
     def run(self):
@@ -128,6 +129,10 @@ class VnVIncludeDirective(Directive):
 
         if "title" in self.options:
             configs.getGenerator().setTitle(self.options['title'])
+        if "commmap" in self.options:
+            commMap = env.vnv_current_reader.get().getCommMap()
+            worldSize = env.vnv_current_reader.get().getWorldSize()
+            configs.getGenerator().setCommMap(2)
 
         # Second, replace myself with a directive for defining the node. .
         unparsedRestructuredText = "\n\n.. vnv-node:: {id}\n\n".format(
@@ -236,6 +241,7 @@ class VnVProcessDirective(Directive):
         snode = docutils.nodes.paragraph()
         sphinx.util.nodes.nested_parse_with_titles(self.state, text, snode)
         return [snode]
+
 
 
 # Set the env.vnv_current_node explicitly. This is to allow including sub-templates

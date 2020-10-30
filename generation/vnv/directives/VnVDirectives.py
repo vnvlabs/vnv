@@ -2,7 +2,7 @@
 from . import paraview
 from .jmes import JmesDirective
 from .nodes import VnVNodes
-
+from .commMapp import CommMap
 
 # Global setup function for loading all the directives.
 def setup(app):
@@ -10,3 +10,4 @@ def setup(app):
     paraview.setup(app)
     JmesDirective.setup(app)
     VnVNodes.setup(app)
+    CommMap.setup(app)

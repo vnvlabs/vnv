@@ -330,7 +330,7 @@ void commsMapSetToMap(CommWrap_ptr ptr, std::map<long,CommWrap_ptr> &comms) {
 }
 
 
-void join(std::string outputfile, std::set<CommWrap_ptr> &comms) {
+void join(std::string outputfile, std::set<CommWrap_ptr> &comms, int worldSize) {
 
 
   //The goal here it to join all the output files into a single file
@@ -359,7 +359,11 @@ void join(std::string outputfile, std::set<CommWrap_ptr> &comms) {
 
    json joinedJson = dstruct->write();
    joinedJson["spec"] = RunTime::instance().getFullJson();
-   joinedJson["commMap"] = jcomm;
+   json comMap = json::object();
+   comMap["worldSize"] = worldSize;
+   comMap["map"] = jcomm;
+   joinedJson["commMap"] = comMap;
+
 
    std::ofstream f(outputfile);
    f << joinedJson.dump(4);
@@ -392,7 +396,7 @@ void JsonEngineManager::finalize(ICommunicator_ptr worldComm) {
     //Finish up the FileIO
     worldComm->Barrier();
     if (worldComm->Rank() == getRoot(worldComm)) {
-      join(outputFile, p);
+      join(outputFile, p, worldComm->Size());
     }
 
   } else {
