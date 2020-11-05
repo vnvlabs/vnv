@@ -13,10 +13,9 @@ sudo apt install libclang-9-dev (definetly needed)
 brew install llvm
 export CXX=/usr/local/Cellar/llvm/10.0.0_3/bin/clang++
 export CC=/usr/local/Cellar/llvm/10.0.0_3/bin/clang
-export CXXFLAGS=-I /usr/local/Cellar/llvm/10.0.0_3//lib/clang/10.0.0/include
-export CFLAGS=-I /usr/local/Cellar/llvm/10.0.0_3//lib/clang/10.0.0/include
-export Clang_DIR=/usr/local/Cellar/llvm/10.0.0_3/lib/cmake
-cmake ../vv-neams
+export CXXFLAGS=-I/usr/local/Cellar/llvm/10.0.0_3//lib/clang/10.0.0/include
+export CFLAGS=-I/usr/local/Cellar/llvm/10.0.0_3//lib/clang/10.0.0/include
+cmake -DLLVM_DIR=/usr/local/Cellar/llvm/10.0.0_3 ../vv-neams
 ```
 
 This is a first attempt at writing a clang tool for 
