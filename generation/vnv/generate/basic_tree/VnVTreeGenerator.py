@@ -277,6 +277,7 @@ def on_environment_ready(app):
     app.config.html_static_path.append(src_dir)
     app.add_js_file("bootstrap.min.js")
     app.add_css_file("bootstrap.min.css")
+    app.add_css_file("gen-style.css")
 
 
 def setup(app):
