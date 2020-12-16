@@ -193,6 +193,7 @@ int main(int argc, const char** argv) {
 
     }
     json found = runFinder(OptionsParser.getCompilations(), injectionFiles);
+    std::cout << found.dump(3)<<std::endl;
     // Add the injection point data to the cacheData object.
     for (auto cachedFile : injectionFiles) {
       json& cfileJson = cacheData[cachedFile];
@@ -209,6 +210,7 @@ int main(int argc, const char** argv) {
                        ? info.value()["parameters"]
                        : json::array());
 
+              injectionPoint.value()["iterator"] = info.value().value("/iterator"_json_pointer,false);
               json& stages = injectionPoint.value()["stages"];
               for (auto& stage : info.value()["stages"].items()) {
                 stages[stage.key()]["info"] = stage.value();

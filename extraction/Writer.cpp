@@ -190,16 +190,15 @@ class RegistrationWriter {
         std::string pname = it.value()["packageName"];
         if (packageName.empty() || pname == packageName) {
           std::string name = it.value()["name"];
-          json& params =
-              it.value()["parameters"]
-                        [0];  // TODO TEMPLATE ARGUEMENTS NOT SUPPORTED ?
+          json& params =it.value()["parameters"][0];  // TODO TEMPLATE ARGUEMENTS NOT SUPPORTED ?
           pjson[pname]["InjectionPoints"][name] = it.value();
-
           createPackageOss(pname);
-          std::string escaped =
-              VnV::StringUtils::escapeQuotes(params.dump(), true);
+
+          bool iterator = j.value("/iterator"_json_pointer, false);
+
+          std::string escaped = VnV::StringUtils::escapeQuotes(params.dump(), true);
           oss_register[pname] << "\tRegister_Injection_Point(" << pname << ","
-                              << name << "," << escaped << ");\n";
+                              << name << "," << iterator << "," << escaped << ");\n";
         }
       }
     }

@@ -19,6 +19,21 @@
 
 namespace VnV {
 
+class TestInformation {
+   public:
+     maker_ptr *maker;
+     std::map<std::string, std::string> parameterMap;
+     bool iterator;
+     json schema;
+
+     TestInformation(bool i, std::map<std::string,std::string>&p, maker_ptr* ptr, nlohmann::json s) {
+         maker = ptr;
+         parameterMap = p;
+         iterator = i;
+         schema = s;
+     }
+};
+
 /**
  * @brief The TestStore class
  */
@@ -40,13 +55,7 @@ class TestStore {
   /**
    * @brief test_factory
    */
-  std::map<std::string,
-           std::pair<maker_ptr*, std::map<std::string, std::string>>,
-           std::less<std::string>>
-
-      test_factory;
-
-  std::map<std::string, json> schema_factory;
+  std::map<std::string, TestInformation, std::less<std::string>> test_factory;
 
   /**
    * @brief TestStore
@@ -66,10 +75,9 @@ class TestStore {
    * @param m
    * @param v
    */
-  void addTest(std::string package, std::string name, maker_ptr m,
+  void addTest(std::string package, std::string name, bool iterator, std::string s, maker_ptr m,
                std::map<std::string, std::string> v);
 
-  void addSchema(std::string package, std::string name, json& schema);
   bool verifySchema(std::string package, std::string name, json& opts);
 
   /**

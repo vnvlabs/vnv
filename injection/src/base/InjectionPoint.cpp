@@ -18,12 +18,12 @@ using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
 InjectionPoint::InjectionPoint(std::string packageName, std::string name,
-                               json registrationJson, NTV& args) {
+                               json registrationJson, bool iterator, NTV& args) {
   this->name = name;
   this->package = packageName;
+  this->iterator = iterator;
   for (auto it : args) {
-    auto rparam =
-        registrationJson.find(it.first);  // Find a parameter with this name.
+    auto rparam = registrationJson.find(it.first);  // Find a parameter with this name.
     if (rparam != registrationJson.end()) {
       parameterMap[it.first] = VnVParameter(
           it.second.second, rparam.value().get<std::string>(), it.second.first);
@@ -49,7 +49,7 @@ std::string InjectionPoint::getParameterRTTI(std::string key) const {
   return "";
 }
 
-void InjectionPoint::addTest(TestConfig config) {
+void InjectionPoint::addTest(TestConfig &config) {
   config.setParameterMap(parameterMap);
   std::shared_ptr<ITest> test = TestStore::getTestStore().getTest(config);
 
@@ -60,6 +60,17 @@ void InjectionPoint::addTest(TestConfig config) {
   VnV_Error(VNVPACKAGENAME, "Error Loading Test Config with Name %s",
             config.getName().c_str());
 }
+void InjectionPoint::addIterator(TestConfig &config) {
+  config.setParameterMap(parameterMap);
+  std::shared_ptr<ITest> test = TestStore::getTestStore().getTest(config);
+
+  if (test != nullptr) {
+    m_iterators.push_back(test);
+    return;
+  }
+  VnV_Error(VNVPACKAGENAME, "Error Loading Iterator with Name %s", config.getName().c_str());
+}
+
 
 void InjectionPoint::setInjectionPointType(InjectionPointType type_,
                                            std::string stageId_) {
@@ -68,6 +79,8 @@ void InjectionPoint::setInjectionPointType(InjectionPointType type_,
 }
 
 bool InjectionPoint::hasTests() { return m_tests.size() > 0; }
+
+bool InjectionPoint::hasIterators() { return m_iterators.size() > 0; }
 
 void InjectionPoint::setCallBack(injectionDataCallback* callback) {
   if (runInternal && cCallback != nullptr) {
@@ -90,22 +103,48 @@ void InjectionPoint::runTests() {
 
   wrapper->injectionPointStartedCallBack(comm, package, getScope(), type,
                                          stageId);
-  if (callbackType > 0) {
-    wrapper->testStartedCallBack(comm, package, "__internal__", true);
-    if (callbackType == 1) {
-      IOutputEngineWrapper engineWraper = {
-          static_cast<void*>(wrapper->getOutputEngine())};
-      ParameterSetWrapper paramWrapper = {static_cast<void*>(&parameterMap)};
-      int t = InjectionPointTypeUtils::toC(type);
-      (*cCallback)(comm->asComm(), &paramWrapper, &engineWraper, t, stageId.c_str());
-    } else {
-      cppCallback(comm->asComm(), parameterMap, wrapper, type, stageId);
-    }
-    wrapper->testFinishedCallBack(
-        comm, true);  // TODO callback should return bool "__internal__");
-  }
-  for (auto it : m_tests) {
-    it->_runTest(comm, wrapper, type, stageId);
-  }
+  runTestsInternal(wrapper);
   wrapper->injectionPointEndedCallBack(comm, getScope(), type, stageId);
+}
+
+void InjectionPoint::runTestsInternal(OutputEngineManager *wrapper) {
+
+    if (callbackType > 0) {
+      wrapper->testStartedCallBack(comm, package, "__internal__", true);
+      if (callbackType == 1) {
+        IOutputEngineWrapper engineWraper = {
+            static_cast<void*>(wrapper->getOutputEngine())};
+        ParameterSetWrapper paramWrapper = {static_cast<void*>(&parameterMap)};
+        int t = InjectionPointTypeUtils::toC(type);
+        (*cCallback)(comm->asComm(), &paramWrapper, &engineWraper, t, stageId.c_str());
+      } else {
+        cppCallback(comm->asComm(), parameterMap, wrapper, type, stageId);
+      }
+      wrapper->testFinishedCallBack(
+          comm, true);  // TODO callback should return bool "__internal__");
+    }
+    for (auto it : m_tests) {
+      it->_runTest(comm, wrapper, type, stageId);
+    }
+
+}
+
+bool InjectionPoint::iterate() {
+    OutputEngineManager* wrapper =
+        OutputEngineStore::getOutputEngineStore().getEngineManager();
+
+    wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId);
+
+    bool result = false;
+    if (itIndex < m_iterators.size()) {
+        OutputEngineManager* wrapper = OutputEngineStore::getOutputEngineStore().getEngineManager();
+        int r = m_iterators[itIndex]->iterate_(comm, wrapper);
+        if (r==0) {
+            itIndex++;
+        }
+        result = itIndex < m_iterators.size();
+    }
+    runTestsInternal(wrapper);
+    wrapper->injectionPointEndedCallBack(comm, getScope(), type, stageId);
+    return result;
 }

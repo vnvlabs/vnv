@@ -157,6 +157,53 @@ void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
   }
 }
 
+namespace {
+class VnV_Iterator_Info {
+public:
+    std::string name;
+    std::string pname;
+    int once;
+    int count = 0;
+    VnV_Iterator_Info(std::string n, std::string p, int o) : name(n),pname(p), once(o){}
+};
+
+}
+
+VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::string id,
+                             NTV& inputs, NTV& outputs, int once) {
+ 
+  NTV parameters = inputs;
+  parameters.insert(outputs.begin(),outputs.end());
+  auto it = getNewInjectionPoint(pname, id, InjectionPointType::Begin, parameters);
+  if (it != nullptr) {
+    it->setComm(getComm(comm));
+    it->runTests();
+  }
+
+  VnV_Iterator_Info* info = new VnV_Iterator_Info(id,pname, once);
+  return { (void*) info };
+
+}
+
+int RunTime::injectionIterationRun(VnV_Iterator *iterator) {
+   VnV_Iterator_Info* info = (VnV_Iterator_Info*) iterator->data;
+   std::string stageId = std::to_string(info->count );
+   auto it = getExistingInjectionPoint(info->pname, info->name, InjectionPointType::Iter, stageId);
+
+   bool next = true;
+   if (it != nullptr && it->hasIterators()) {
+      next = it->iterate() ;
+   } else if ( info->count < info->once ) {
+      next = false;
+   }
+   info->count += 1;
+
+   if (!next) {
+       injectionPoint_end(info->pname,info->name);
+   }
+   return next;
+}
+
 void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
                                    std::string id,
                                    const CppInjection::DataCallback& callback,
@@ -309,11 +356,10 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
       "Validating Json Test Configuration Input and converting to TestConfig "
       "objects");
   for (auto it : info.injectionPoints) {
-    auto x = std::make_pair(
-        it.second.runInternal,
-        TestStore::getTestStore().validateTests(it.second.tests));
+    auto x = TestStore::getTestStore().validateTests(it.second.tests);
+    auto iterations = TestStore::getTestStore().validateTests(it.second.iterators);
     InjectionPointStore::getInjectionPointStore().addInjectionPoint(
-        it.second.package, it.second.name, x);
+        it.second.package, it.second.name, it.second.runInternal, x, iterations );
   }
 }
 

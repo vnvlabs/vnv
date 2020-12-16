@@ -40,14 +40,20 @@ void TestConfig::print() {
 
 TestConfig::TestConfig(std::string package, std::string name,
                        json& testConfigJson,
-                       std::map<std::string, std::string>& params) {
+                       std::map<std::string, std::string>& params, bool iterator) {
   setName(name);
   this->package = package;
   this->testConfigJson = testConfigJson;
   this->testParameters = params;
+  this->iterator = iterator;
 }
 
+
 void TestConfig::setParameterMap(VnVParameterSet& args) {
+   setParameterMap(args,parameters);
+}
+
+void TestConfig::setParameterMap(VnVParameterSet& args, VnVParameterSet& parameters) {
   // Create a parameterMap For this one.
   parameters.clear();
   json j = testConfigJson["parameters"];
@@ -103,13 +109,22 @@ bool TestConfig::isRequired(std::string testParameter) const {
 
 ITest::ITest(TestConfig& config) : m_config(config) {}
 
+
+// Index is the injection point index. That is, the injection
+// point that this test is being run inside.
+int ITest::iterate_(ICommunicator_ptr comm, OutputEngineManager* engine) {
+
+  engine->testStartedCallBack(comm, m_config.getPackage(), m_config.getName(), false);
+  int s =iterate(comm, engine->getOutputEngine());
+  engine->testFinishedCallBack(comm, true );
+  return s;
+}
+
 // parameters is a map of injectionpoint name to injection point type.
-bool TestConfig::preLoadParameterSet(
-    std::map<std::string, std::string>& parameters) {
+bool TestConfig::preLoadParameterSet(std::map<std::string, std::string>& parameters) {
   // Need to check if we can properly map the test, as declared, to this
   // injection point.
-  json j =
-      testConfigJson["parameters"];  // maps testParam to injection point param.
+  json j = testConfigJson["parameters"];  // maps testParam to injection point param.
   for (auto& param : j.items()) {
     // Get the information about the test parameter
     std::string testParameter = param.key();  // The parameter in the test.

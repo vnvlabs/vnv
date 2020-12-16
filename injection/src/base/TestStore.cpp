@@ -32,25 +32,21 @@ TestStore& TestStore::getTestStore() {
   return store;
 }
 
-void TestStore::addTest(std::string package, std::string name, maker_ptr m,
+void TestStore::addTest(std::string package, std::string name, bool iterator, std::string schema, maker_ptr m,
                         std::map<std::string, std::string> v) {
   VnV_Warn(VNVPACKAGENAME, "Adding a new Test %s:%s", package.c_str(),
            name.c_str());
-  test_factory[package + ":" + name] = std::make_pair(m, v);
-}
-
-void TestStore::addSchema(std::string package, std::string name,
-                          nlohmann::json& schema) {
-  schema_factory[package + ":" + name] = schema;
+  json j = json::parse(schema);
+  test_factory.insert(std::make_pair(package + ":" + name, TestInformation(iterator,  v, m, j)));
 }
 
 bool TestStore::verifySchema(std::string package, std::string name,
                              nlohmann::json& opts) {
   // Validate the test configuration provided to the constructor.
   json_validator validator;
-  auto sch = schema_factory.find(package + ":" + name);
-  if (sch != schema_factory.end()) {
-    validator.set_root_schema(sch->second);
+  auto sch = test_factory.find(package + ":" + name);
+  if (sch != test_factory.end()) {
+    validator.set_root_schema(sch->second.schema);
     try {
       validator.validate(opts);
       return true;
@@ -87,7 +83,7 @@ TestConfig TestStore::validateTest(json& testJson) {
       // THe test is not yet registered.
 
       json& sch = getSchema(package, name);
-      test_schema = getTestValidationSchema(it->second.second, sch);
+      test_schema = getTestValidationSchema(it->second.parameterMap, sch);
       registeredTests.insert(std::make_pair(key, test_schema));
     } else {
       test_schema = itt->second;
@@ -118,15 +114,15 @@ TestConfig TestStore::validateTest(json& testJson) {
 
     // Finally, if a config spec was added for the test
 
-    return TestConfig(package, name, testConfigJson, it->second.second);
+    return TestConfig(package, name, testConfigJson, it->second.parameterMap, it->second.iterator);
   }
   throw VnVExceptionBase("test not found");
 }
 
 nlohmann::json& TestStore::getSchema(std::string package, std::string name) {
-  auto it = schema_factory.find(package + ":" + name);
-  if (it != schema_factory.end()) {
-    return it->second;
+  auto it = test_factory.find(package + ":" + name);
+  if (it != test_factory.end()) {
+    return it->second.schema;
   } else {
     return defaultSchemaJson();
   }
@@ -137,7 +133,7 @@ std::shared_ptr<ITest> TestStore::getTest(TestConfig& config) {
 
   auto it = test_factory.find(key);
   if (it != test_factory.end()) {
-    ITest* t = it->second.first(config);
+    ITest* t = it->second.maker(config);
     std::shared_ptr<ITest> ptr;
     ptr.reset(t);
     return ptr;
@@ -157,12 +153,8 @@ void TestStore::print() {
   VnV_EndStage(VNVPACKAGENAME, a);
 }
 
-void VnV::registerTest(std::string package, std::string name, maker_ptr m,
+void VnV::registerTest(std::string package, std::string name, bool iterator, std::string schema, maker_ptr m,
                        std::map<std::string, std::string> map) {
-  TestStore::getTestStore().addTest(package, name, m, map);
+  TestStore::getTestStore().addTest(package, name, iterator, schema, m, map);
 }
-void VnV::registerTestSchema(std::string package, std::string name,
-                             std::string schema) {
-  json j = json::parse(schema);
-  TestStore::getTestStore().addSchema(package, name, j);
-}
+

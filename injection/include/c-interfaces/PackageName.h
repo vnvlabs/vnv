@@ -9,6 +9,7 @@
 #define VnV_E_STR(x) #x
 #define VNV_STR(x) VnV_E_STR(x)
 #define VNV_EX(x) x
+#define VNV_JOIN(x,y,z) x##y##z
 
 #define VNVREGNAME __vnv_registration_callback__
 

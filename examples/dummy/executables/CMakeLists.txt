@@ -11,11 +11,22 @@ link_vnv_file(sample.a SampleExecutable cpp)
 add_executable(read.a "read.cpp")
 link_vnv_file(read.a SampleReader cpp)
 
+
 if(WITH_MPI)
   target_include_directories(sample.a PRIVATE ${MPI_CXX_INCLUDE_PATH})
   target_compile_options(sample.a PRIVATE ${MPI_CXX_COMPILE_FLAGS})
   target_link_libraries(sample.a PRIVATE ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS})
   target_compile_definitions(sample.a PUBLIC -DWITH_MPI=1)
+
+  add_executable(simple.a "simple.cpp")
+  link_vnv_file(simple.a SimpleExecutable cpp)
+  target_include_directories(simple.a PRIVATE ${MPI_CXX_INCLUDE_PATH})
+  target_compile_options(simple.a PRIVATE ${MPI_CXX_COMPILE_FLAGS})
+  target_link_libraries(simple.a PRIVATE ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS})
+  target_compile_definitions(simple.a PUBLIC -DWITH_MPI=1)
+  install(TARGETS simple.a DESTINATION examples/dummy/executables)
+
+
 endif()
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json

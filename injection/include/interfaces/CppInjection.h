@@ -40,13 +40,23 @@ void defaultCallBack(VnV_Comm comm, std::map<std::string, VnVParameter>& ntv,
               std::string stageId)
 
 void UnwrapParameterPack(NTV& m);
+
 void BeginPoint(VnV_Comm comm, const char* package, const char* id,
                 const DataCallback& callback, NTV& map);
+
 void BeginLoop(VnV_Comm comm, const char* package, const char* id,
                const DataCallback& callback, NTV& map);
+
+void UnwrapParameterPack_iter(int inputs, NTV &mm, NTV& m);
+
+VnV_Iterator BeginIteration(VnV_Comm comm, const char* package, const char* id,
+                    int once, NTV&inputs, NTV& ouputs);
+
+int Iterate(VnV_Iterator* iterator);
+
 bool EndLoop(const char* package, const char* id);
 void IterLoop(const char* package, const char* id, const char* iterId);
-void Register(const char* package, const char* id, std::string parameters_str);
+void Register(const char* package, const char* id, bool iterative,  std::string parameters_str);
 
 template <typename T, typename V, typename... Args>
 void UnwrapParameterPack(NTV& m, V& name, T& first, Args&&... args) {
@@ -55,6 +65,24 @@ void UnwrapParameterPack(NTV& m, V& name, T& first, Args&&... args) {
       std::make_pair(typeid(&first).name(), reinterpret_cast<void*>(&first))));
   UnwrapParameterPack(m, std::forward<Args>(args)...);
 }
+
+
+template <typename T, typename V, typename... Args>
+void UnwrapParameterPack_iter(int inputs, NTV& minputs, NTV&moutputs, V& name, T& first, Args&&... args) {
+  if (minputs.size() < inputs ) {
+    minputs.insert(std::make_pair(
+      name,
+      std::make_pair(typeid(&first).name(), reinterpret_cast<void*>(&first))));
+  } else {
+      moutputs.insert(std::make_pair(
+        name,
+        std::make_pair(typeid(&first).name(), reinterpret_cast<void*>(&first))));
+  }
+  UnwrapParameterPack_iter(inputs, minputs, moutputs, std::forward<Args>(args)...);
+}
+
+
+
 
 template <typename... Args>
 void BeginLoopPack(VnV_Comm comm, const char* package, const char* id,
@@ -71,6 +99,17 @@ void BeginPack(VnV_Comm comm, const char* package, const char* id,
   UnwrapParameterPack(m, std::forward<Args>(args)...);
   BeginPoint(comm, package, id, callback, m);
 }
+
+template <typename... Args>
+VnV_Iterator IterationPack(VnV_Comm comm, const char* package, const char* id,
+               int once, int inputs, Args&&... args) {
+  std::map<std::string, std::pair<std::string, void*>> minputs;
+  std::map<std::string, std::pair<std::string, void*>> moutputs;
+  UnwrapParameterPack_iter(inputs, minputs, moutputs, std::forward<Args>(args)...);
+  return BeginIteration(comm, package, id, once, minputs, moutputs);
+}
+
+
 
 }  // namespace CppInjection
 }  // namespace VnV
@@ -101,6 +140,17 @@ void BeginPack(VnV_Comm comm, const char* package, const char* id,
 #  define INJECTION_LOOP_ITER(PNAME, NAME, STAGE) \
     VnV::CppInjection::IterLoop(VNV_STR(PNAME), #NAME, #STAGE);
 
+
+// Macro for an iterative vnv injection point.
+# define INJECTION_ITERATION(PNAME, COMM, NAME, ONCE, INPUTS, ...)\
+   VnV_Iterator VNV_JOIN(PNAME,_iterator_,NAME) = VnV::CppInjection::IterationPack(COMM, VNV_STR(PNAME), VNV_STR(NAME), \
+                    ONCE, INPUTS EVERYONE(__VA_ARGS__)); \
+   while(VnV::CppInjection::Iterate(&VNV_JOIN(PNAME,_iterator_,NAME)))
+
+
+
+VNVEXTERNC int  _VnV_injectionIterate(VnV_Iterator *iterator);
+
 #  define INJECTION_FUNCTION_WRAPPER_C(PNAME, COMM, NAME, function, callback, \
                                        ...)                                   \
     INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, function, __VA_ARGS__);         \
@@ -113,8 +163,8 @@ void BeginPack(VnV_Comm comm, const char* package, const char* id,
                                  __VA_ARGS__);
 
 // REGISTER AN INJECTION POINT
-#  define Register_Injection_Point(PNAME, NAME, PARAMETERS) \
-    VnV::CppInjection::Register(VNV_STR(PNAME), #NAME, PARAMETERS);
+#  define Register_Injection_Point(PNAME, NAME, ITERATIVE, PARAMETERS) \
+    VnV::CppInjection::Register(VNV_STR(PNAME), #NAME, ITERATIVE, PARAMETERS);
 
 #else
 

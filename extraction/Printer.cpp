@@ -1,5 +1,5 @@
 ﻿#include <string>
-
+#include <iostream>
 #include <clang/AST/Expr.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
@@ -115,6 +115,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
+
       addParameters(E, idJson, count);
     } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite")) {
@@ -123,12 +124,31 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
       addParameters(E, idJson, count);
-    } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>(
+    } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite_iteration")) {
+        unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+        json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
+        json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
+        singleJson["Begin"] = info;
+        count--; // Remove this when we add a callback to the iteration
+        count++; // Skip the value provided for parameter once
+        count++; // Skip the value provided for input parameters (todo extract this?)
+        addParameters(E, idJson, count);
+    } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iteration")) {
+       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
+       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
+       singleJson["Begin"] = info;
+       count--; // Remove this when we add a callback to the iteration
+       count++; // Skip the value provided for parameter once
+       count++; // Skip the value provided for input parameters (todo extract this?)
+       addParameters(E, idJson, count);
+   } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>(
                    "cpp_callsite_begin")) {
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
+
       addParameters(E, idJson, count);
     } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iter")) {
@@ -138,6 +158,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& stagesJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       stagesJson[iterid] = info;
+
     } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("callsite_end")) {
       getInfo(E, FF, Result, info, id, filename, 0);
@@ -168,6 +189,10 @@ class VnVFinder : public MatchFinder {
         callExpr(hasAncestor(functionDecl().bind("function")),
                  callee(functionDecl(hasName("_VnV_injectionPoint_end"))))
             .bind("callsite_end");
+    StatementMatcher functionMatcher4 =
+        callExpr(hasAncestor(functionDecl().bind("function")),
+                 callee(functionDecl(hasName("_VnV_injectionIteration"))))
+            .bind("callsite_iteration");
 
     // Cpp Matchers
     StatementMatcher functionMatcherC =
@@ -183,6 +208,10 @@ class VnVFinder : public MatchFinder {
         callExpr(hasAncestor(functionDecl().bind("function")),
                  callee(functionDecl(hasName("VnV::CppInjection::IterLoop"))))
             .bind("callsite_iter");
+    StatementMatcher functionMatcher4C =
+        callExpr(hasAncestor(functionDecl().bind("function")),
+                 callee(functionDecl(hasName("VnV::CppInjection::IterationPack"))))
+            .bind("cpp_callsite_iteration");
     StatementMatcher functionMatcher3C =
         callExpr(hasAncestor(functionDecl().bind("function")),
                  callee(functionDecl(hasName("VnV::CppInjection::EndLoop"))))
@@ -192,10 +221,13 @@ class VnVFinder : public MatchFinder {
     addMatcher(functionMatcher1C, &Printer);
     addMatcher(functionMatcher2C, &Printer);
     addMatcher(functionMatcher3C, &Printer);
+    addMatcher(functionMatcher4C, &Printer);
     addMatcher(functionMatcher, &Printer);
     addMatcher(functionMatcher1, &Printer);
     addMatcher(functionMatcher2, &Printer);
     addMatcher(functionMatcher3, &Printer);
+    addMatcher(functionMatcher4, &Printer);
+
   }
   json& get() { return Printer.get(); }
 };

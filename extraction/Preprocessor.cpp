@@ -306,7 +306,15 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range);
       thisStage["docs"] = "";
-    } else if (nae == "INJECTION_LOOP_ITER") {
+    } else if (nae == "INJECTION_ITERATION") {
+        json& jj = getDef("InjectionPoints", getPackageName(Args, 0),
+                          getPackageName(Args, 2));
+        json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
+        json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
+        jj["docs"] = getDocs(Range);
+        jj["iterator"] = true;
+        thisStage["docs"] = "";
+      } else if (nae == "INJECTION_LOOP_ITER") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 0),
                         getPackageName(Args, 1));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
@@ -322,13 +330,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     }
   }
 
-  /**std::string declares = "";
-  for (const Token& it :
-       MD->getDefinition().getDirective()->getMacroInfo()->tokens()) {
-       declares += pp.getSpelling(it);
-  }
-  thisJson["packageName"] = declares;
-  **/
+
   void MacroDefined(const Token& MacroNameTok,
                     const MacroDirective* MD) override {
     if (active) return;
@@ -336,9 +338,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     if (nae == "VNV_INCLUDED") {
       pp.addCommentHandler(this);
       active = true;
-    } else {
-      // TODO -- Technically, we can abort here. Not sure if possible using
-      // the pp callbacks API.
     }
   }
 };

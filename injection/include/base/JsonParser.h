@@ -49,6 +49,7 @@ struct InjectionPointInfo {
   std::string name;
   std::string package;
   std::vector<json> tests;
+  std::vector<json> iterators;
   bool runInternal;
 };
 
@@ -66,8 +67,8 @@ struct RunInfo {
   bool runTests; /**< Should any tests be run */
   std::map<std::string, std::string>
       additionalPlugins; /*< List of file paths to included plugin libraries */
-  std::map<std::string, InjectionPointInfo>
-      injectionPoints; /**< all injection points with tests */
+  std::map<std::string, InjectionPointInfo> injectionPoints; /**< all injection points with tests */
+
   json pluginConfig;
   json cmdline;
 
@@ -220,6 +221,7 @@ class JsonParser {
   json commandLineParser(int* argc, char** argv);
   RunInfo parse(std::ifstream& fstream, int* argc, char** argv);
   RunInfo parse(const json& _json, int* argc, char** argv);
+
 };
 
 }  // namespace VnV

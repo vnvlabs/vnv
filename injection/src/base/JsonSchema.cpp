@@ -145,10 +145,16 @@ static const json __vv_schema__ = R"(
           "items": {
             "$ref": "#/definitions/test"
           }
+        },
+        "iterators": {
+            "type": "array",
+            "items": {
+               "$ref": "#/definitions/test"
+            }
         }
       },
       "required": [
-        "name","package","tests"
+        "name","package"
       ]
     },
     "test": {
@@ -198,15 +204,18 @@ static json __test_declaration_schema__ = R"(
      "expectedResult" : {"$ref":"#/raw"},
      "description" : {"type" : "string"},
      "title" : {"type" : "string" },
+     "iterator" : {"type" : "boolean" },
      "supports" : {"oneOf":[{"type" : "array" , "items" : {"type" : "string", "enum" : ["Linux","MacOs"] }}, {"type" : "string", "enum" : ["all"]}]},
-     "parameters" :{ "type": "object",
-                     "additionalProperties" : { "type" : "string" }
-                   }
+     "parameters" :{
+           "type": "object",
+           "additionalProperties" : { "type" : "string" }
       },
-      "requiredParameters" : {"type":"array", "items" : {"type": "string" },
-      "io-variables" : { "type" : "object" , "additionalProperties" : {"type" : "string", "enum" : ["String","Double","Float","Long","Integer"]} }
+      "requiredParameters" : {
+          "type":"array",
+          "items" : {"type": "string"}
+      }
   },
-  "required" : ["expectedResult","configuration","description","title","parameters","requiredParameters","io-variables"],
+  "required" : ["expectedResult","configuration","description","title","parameters","iterator","requiredParameters"],
   "definitions" : {}
 }
 )"_json;
@@ -248,6 +257,7 @@ static json __injectionPoint_declaration_schema__ = R"({
 "properties" : {
      "name" : {"type":"string"},
      "package" : {"type":"string"},
+     "iterative" : {"type" : "boolean"},
      "parameters" : {"$ref" : "#/definitions/parameters"},
      "documentation" : {"$ref" : "#/definitions/documentation"}
 },
@@ -304,6 +314,7 @@ json getTestDelcarationJsonSchema() {
   return __test_declaration_schema__;
 }
 
+
 json getTestValidationSchema(std::map<std::string, std::string>& params,
                              json& optsschema) {
   json schema = R"(
@@ -329,7 +340,11 @@ json getTestValidationSchema(std::map<std::string, std::string>& params,
 
   properties["parameters"] = parameters;
   schema["properties"] = properties;
-  schema["required"] = R"(["configuration","parameters"])"_json;
+  if (params.size()>0) {
+    schema["required"] = R"(["configuration","parameters"])"_json;
+  } else {
+      schema["required"] = R"(["configuration"])"_json;
+  }
   return schema;
 }
 

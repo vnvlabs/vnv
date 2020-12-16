@@ -1,5 +1,4 @@
-﻿
-/** @file Utilities.cpp **/
+﻿/** @file Utilities.cpp **/
 
 #include "base/Utilities.h"
 
@@ -191,15 +190,16 @@ std::string VnV::getFileExtension(const std::string& fileName) {
   return "";
 }
 
-VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp) {
+VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp, int count ) {
   VnV::NTV parameterSet;
+  int counter = 0;
   while (1) {
     std::string variableName = va_arg(argp, char*);
-    if (variableName == VNV_END_PARAMETERS_S) {
+    if (variableName == VNV_END_PARAMETERS_S || counter == count) {
       break;
     }
     void* variablePtr = va_arg(argp, void*);
-
+    counter++;
     // add it to the list. In C, we do not have typeId, so we cannot get the
     // rtti info.
     // Just set it to void*.
@@ -207,6 +207,10 @@ VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp) {
         std::make_pair(variableName, std::make_pair("void*", variablePtr)));
   }
   return parameterSet;
+}
+
+VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp) {
+	return VnV::VariadicUtils::UnwrapVariadicArgs(argp, -1);
 }
 
 std::vector<std::pair<std::string, std::string>> VnV::bfs(

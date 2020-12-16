@@ -1,4 +1,4 @@
-///6507956561919547421
+///7318993382900757338
 /// This file was automatically generated using the VnV-Matcher executable. 
 /// The matcher allows for automatic registration of all VnV plugins and injection 
 /// points. Building the matcher requires Clang. If Clang is not available on this machine,
@@ -10,12 +10,12 @@
 #include "VnV.h" 
 DECLAREOPTIONS(SampleCExecutable)
 const char* getFullRegistrationJson_SampleCExecutable(){
-	 return "{\"Communicator\":{\"docs\":\"\",\"name\":\"serial\",\"package\":\"VNV\"},\"Conclusion\":\"\",\"InjectionPoints\":{\"CFunction\":{\"docs\":\"\",\"name\":\"CFunction\",\"packageName\":\"SampleCExecutable\",\"parameters\":[{\"x\":\"int*\"}],\"stages\":{\"Begin\":{\"docs\":\"\",\"info\":{\"Calling Function\":\"function1\",\"Calling Function Column\":1,\"Calling Function Line\":8,\"filename\":\"/home/ben/wfr/vv-neams/vv-neams/examples/dummy/c_executables/sample.c\",\"lineColumn\":5,\"lineNumber\":40}},\"End\":{\"docs\":\"\",\"info\":{\"Calling Function\":\"function1\",\"Calling Function Column\":1,\"Calling Function Line\":8,\"filename\":\"/home/ben/wfr/vv-neams/vv-neams/examples/dummy/c_executables/sample.c\",\"lineColumn\":5,\"lineNumber\":49}},\"inner\":{\"docs\":\"\",\"info\":{\"Calling Function\":\"function1\",\"Calling Function Column\":1,\"Calling Function Line\":8,\"filename\":\"/home/ben/wfr/vv-neams/vv-neams/examples/dummy/c_executables/sample.c\",\"lineColumn\":5,\"lineNumber\":63}}}}},\"Introduction\":\"\",\"Options\":\"\"}";}
+	 return "{\"Communicator\":{\"docs\":\"\",\"name\":\"serial\",\"package\":\"VNV\"},\"Conclusion\":\"\",\"InjectionPoints\":{\"CFunction\":{\"docs\":\"\",\"iterator\":false,\"name\":\"CFunction\",\"packageName\":\"SampleCExecutable\",\"parameters\":[{\"x\":\"int*\"}],\"stages\":{\"Begin\":{\"docs\":\"\",\"info\":{\"Calling Function\":\"function1\",\"Calling Function Column\":1,\"Calling Function Line\":8,\"filename\":\"/home/ben/work/vnv/vv-neams/examples/dummy/c_executables/sample.c\",\"lineColumn\":5,\"lineNumber\":56}},\"End\":{\"docs\":\"\",\"info\":{\"Calling Function\":\"function1\",\"Calling Function Column\":1,\"Calling Function Line\":8,\"filename\":\"/home/ben/work/vnv/vv-neams/examples/dummy/c_executables/sample.c\",\"lineColumn\":5,\"lineNumber\":65}},\"inner\":{\"docs\":\"\",\"info\":{\"Calling Function\":\"function1\",\"Calling Function Column\":1,\"Calling Function Line\":8,\"filename\":\"/home/ben/work/vnv/vv-neams/examples/dummy/c_executables/sample.c\",\"lineColumn\":5,\"lineNumber\":79}}}}},\"Introduction\":\"\",\"Options\":\"\"}";}
 
 INJECTION_REGISTRATION(SampleCExecutable){
 	REGISTEROPTIONS(SampleCExecutable)
 	VnV_Declare_Communicator("SampleCExecutable","VNV","serial");
-	Register_Injection_Point(SampleCExecutable,CFunction,"{\"x\":\"int*\"}");
+	Register_Injection_Point(SampleCExecutable,CFunction,0,"{\"x\":\"int*\"}");
 	REGISTER_FULL_JSON(SampleCExecutable, getFullRegistrationJson_SampleCExecutable);
 };
 

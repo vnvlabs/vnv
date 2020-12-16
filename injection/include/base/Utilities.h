@@ -127,6 +127,7 @@ const Value& maxValue(std::map<Key, Value> const& input) {
 
 namespace VariadicUtils {
 NTV UnwrapVariadicArgs(va_list argp);
+NTV UnwrapVariadicArgs(va_list argp, int count);
 }
 /**
  * @brief getFileExtension

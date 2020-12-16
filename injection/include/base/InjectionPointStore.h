@@ -43,16 +43,51 @@ enum class InjectionPointType;
  * creating an InjectionPoint. This would allow the user to turn on/off testing
  * while the program is running...
  */
+class InjectionPointSpec {
+public:
+    std::string package;
+    std::string name;
+    json specJson;
+    bool iterator;
+    InjectionPointSpec(std::string package, std::string name, json& spec, bool iterator) {
+        this->iterator = iterator;
+        this->package = package;
+        this->name = name;
+        this->iterator = iterator;
+        this->specJson = spec;
+    }
+};
+
+class InjectionPointConfig {
+public:
+    std::string packageName;
+    std::string name;
+    bool runInternal;
+    std::vector<TestConfig> tests;
+    std::vector<TestConfig> iterators;
+
+
+    InjectionPointConfig(std::string package,
+                         std::string id,
+                         bool runInternal_,
+                         std::vector<TestConfig>& tests_,
+                         std::vector<TestConfig>& iterators_)
+        : packageName(package),
+          name(id),
+          runInternal(runInternal_),
+          tests(tests_),
+          iterators(iterators_){}
+};
 
 class InjectionPointStore {
  private:
   std::map<std::string, std::stack<std::shared_ptr<InjectionPoint>>>
       active; /**< Active injection point stack*/
 
-  std::map<std::string, std::pair<bool, std::vector<TestConfig>>>
+  std::map<std::string, InjectionPointConfig>
       injectionPoints; /**< The stored configurations */
 
-  std::map<std::string, json> registeredInjectionPoints;
+  std::map<std::string, InjectionPointSpec> registeredInjectionPoints;
 
   /**
    * @brief InjectionPointStore
@@ -75,12 +110,13 @@ class InjectionPointStore {
   std::shared_ptr<InjectionPoint> fetchFromQueue(std::string packageName,
                                                  std::string name,
                                                  InjectionPointType stage);
+
   void registerLoopedInjectionPoint(std::string packageName, std::string name,
                                     std::shared_ptr<InjectionPoint>& ptr);
 
   // JsonObject is a json object that validates againt the Injection point
   // schema.
-  void registerInjectionPoint(std::string packageName, std::string id,
+  void registerInjectionPoint(std::string packageName, std::string id, bool iterative,
                               json& jsonObject);
 
  public:
@@ -120,13 +156,17 @@ class InjectionPointStore {
    * Add an injection point to the store. In the case that an injection point
    * already exists in the store, the test configuration will be overwritten.
    */
-  void addInjectionPoint(std::string package, std::string name,
-                         std::pair<bool, std::vector<TestConfig>>& tests);
+  void addInjectionPoint(std::string package,
+                         std::string name,
+                         bool runInternal,
+                         std::vector<TestConfig> &tests,
+                         std::vector<TestConfig>& iterators
+                        );
 
   // Register Injection point. JsonStr must be json that validates against the
   // injection point schema OR an array of objects that individually validate
   // against that same schema.
-  void registerInjectionPoint(std::string packageName, std::string name,
+  void registerInjectionPoint(std::string packageName, std::string name, bool iterative,
                               std::string json_str);
 
   /**

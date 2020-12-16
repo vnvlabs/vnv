@@ -33,28 +33,44 @@ void JsonParser::addInjectionPoint(
     const json& ip, std::set<std::string>& runScopes,
     std::map<std::string, InjectionPointInfo>& ips) {
   for (auto& it : ip.items()) {
+
     std::string name = it.value()["name"].get<std::string>();
     std::string package = it.value()["package"].get<std::string>();
     std::string key = package + ":" + name;
+    const json& values = it.value();
     auto aip = ips.find(name);
     if (aip != ips.end()) {
-      for (auto& test : it.value()["tests"].items()) {
-        addTest(test.value(), aip->second.tests, runScopes);
+      if (values.find("tests") != values.end() ) {
+        for (auto& test : values["tests"].items()) {
+          addTest(test.value(), aip->second.tests, runScopes);
+        }
+      }
+      if (values.find("iterators") != values.end()) {
+        for (auto &test : values["iterators"].items()) {
+           addTest(test.value(), aip->second.iterators, runScopes);
+        }
       }
     } else {
       InjectionPointInfo ipInfo;
       ipInfo.name = name;
       ipInfo.package = package;
-      for (auto test : it.value()["tests"].items()) {
-        addTest(test.value(), ipInfo.tests, runScopes);
+      if (values.find("tests") != values.end() ) {
+            for (auto test : values["tests"].items()) {
+              addTest(test.value(), ipInfo.tests, runScopes);
+            }
       }
-      if (it.value().contains("runInternal")) {
-        ipInfo.runInternal = it.value()["runInternal"].get<bool>();
+      if (values.find("iterators") != values.end() ) {
+        for (auto &test : it.value()["iterators"].items()) {
+          addTest(test.value(), ipInfo.iterators, runScopes);
+        }
+      }
+      if (values.contains("runInternal")) {
+        ipInfo.runInternal = values["runInternal"].get<bool>();
       } else {
         ipInfo.runInternal = true;
       }
 
-      if (ipInfo.tests.size() > 0 || ipInfo.runInternal) {
+      if (ipInfo.tests.size() > 0 || ipInfo.runInternal || ipInfo.iterators.size() > 0) {
         ips.insert(std::make_pair(key, ipInfo));
       }
     }

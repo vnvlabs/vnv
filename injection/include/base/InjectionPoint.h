@@ -65,11 +65,13 @@ class InjectionPoint {
   static constexpr const char* internalTestName = "__internal__";
 
   ICommunicator_ptr comm;
+  int itIndex = 0;
 
   std::string name;
   std::string package;
-  std::vector<std::shared_ptr<ITest>>
-      m_tests; /**< Vector of tests given to this injection point */
+  bool iterator;
+  std::vector<std::shared_ptr<ITest>> m_tests; /**< Vector of tests given to this injection point */
+  std::vector<std::shared_ptr<ITest>> m_iterators;
 
   InjectionPointType type;
   std::string stageId;
@@ -86,7 +88,9 @@ class InjectionPoint {
    * function only called by the InjectionPointStore (friend class).
    * @param c
    */
-  void addTest(TestConfig c);
+  void addTest(TestConfig &c);
+
+  void addIterator(TestConfig &c);
 
   /**
    * @brief InjectionPoint
@@ -103,12 +107,13 @@ class InjectionPoint {
    *
    **/
   InjectionPoint(std::string packageName, std::string name,
-                 json registrationJson, NTV& args);
+                 json registrationJson, bool iterator, NTV& args);
 
   void setInjectionPointType(InjectionPointType type, std::string stageId);
   void setCallBack(injectionDataCallback* callback);
   void setCallBack(const CppInjection::DataCallback& callback);
   void setComm(ICommunicator_ptr comm);
+  void runTestsInternal(OutputEngineManager* wrapper    );
 
  public:
   /**
@@ -137,6 +142,8 @@ class InjectionPoint {
    **/
   void runTests();
 
+  bool iterate();
+
   /**
    * @brief hasTests
    * @return ( tests.size() > 0 )
@@ -144,7 +151,7 @@ class InjectionPoint {
    * Returns true if the injection point has tests defined.
    */
   bool hasTests();
-
+  bool hasIterators();
 };  // end InjectionPoint.
 
 }  // namespace VnV

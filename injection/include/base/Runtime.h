@@ -150,6 +150,14 @@ class RunTime {
   // Cpp interface.
   void injectionPoint(VnV_Comm comm, std::string pname, std::string id,
                       const CppInjection::DataCallback& callback, NTV& args);
+  
+ 
+  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id, 
+		          NTV &inputs, NTV &outputs, int  once);
+  
+  int injectionIterationRun(VnV_Iterator *iterator);
+
+  
   void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id,
                             const CppInjection::DataCallback& callback,
                             NTV& args);

@@ -33,8 +33,22 @@ void VnV::CppInjection::IterLoop(const char* package, const char* id,
   VnV::RunTime::instance().injectionPoint_iter(package, id, iterId);
 }
 
-void VnV::CppInjection::Register(const char* package, const char* id,
+void VnV::CppInjection::Register(const char* package, const char* id, bool iterative,
                                  std::string json) {
   VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint(
-      package, id, json);
+      package, id, iterative, json);
 }
+
+void VnV::CppInjection::UnwrapParameterPack_iter(int inputs, NTV& mm, NTV& m) {
+
+}
+
+VnV_Iterator VnV::CppInjection::BeginIteration(VnV_Comm comm, const char* package, const char* id,
+                                               int once, NTV&inputs, NTV& ouputs) {
+    return VnV::RunTime::instance().injectionIteration(comm, package,id,inputs,ouputs,once);
+}
+
+int VnV::CppInjection::Iterate(VnV_Iterator* iterator) {
+    return VnV::RunTime::instance().injectionIterationRun(iterator);
+}
+

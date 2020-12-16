@@ -14,6 +14,7 @@ VNVEXTERNC void _VnV_injectionPoint_loop(const char* packageName,
                                          const char* id, const char* stageId);
 VNVEXTERNC void _VnV_registerInjectionPoint(const char* packageName,
                                             const char* id,
+                                            int iterative,
                                             const char* parameters_str);
 VNVEXTERNC void _VnV_injectionPoint_begin(VnV_Comm comm,
                                           const char* packageName,
@@ -23,8 +24,23 @@ VNVEXTERNC void _VnV_injectionPoint(VnV_Comm comm, const char* packageName,
                                     const char* id,
                                     injectionDataCallback* callback, ...);
 
+VNVEXTERNC VnV_Iterator  _VnV_injectionIteration(VnV_Comm comm, const char* packageName, const char* name,
+                                int once, int inputParameters,...);
+
+VNVEXTERNC int  _VnV_injectionIterate(VnV_Iterator *iterator);
+
 #  define DOIT(X) #  X, (void*)(&X),
 #  define EVERYONE(...) FOR_EACH(DOIT, __VA_ARGS__)
+
+// Macro for an iterative vnv injection point. 
+# define INJECTION_ITERATION(PNAME, COMM, NAME, ONCE, INPUTS, ...)\
+   VnV_Iterator VNV_JOIN(PNAME,_iterator_,NAME) = _VnV_injectionIteration(COMM, VNV_STR(PNANE), VNV_STR(NAME), \
+                    ONCE, INPUTS, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S); \
+   while(_VnV_injectionIterate(&VNV_JOIN(PNAME,_iterator_,NAME)))
+
+
+
+
 
 // Macro for an injection point with a callback
 #  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...)          \
@@ -63,8 +79,8 @@ VNVEXTERNC void _VnV_injectionPoint(VnV_Comm comm, const char* packageName,
     _VnV_injectionPoint_loop(VNV_STR(PNAME), VNV_STR(NAME), #STAGE);
 
 // REGISTER AN INJECTION POINT
-#  define Register_Injection_Point(PNAME, NAME, PARAMETERS) \
-    _VnV_registerInjectionPoint(VNV_STR(PNAME), VNV_STR(NAME), PARAMETERS);
+#  define Register_Injection_Point(PNAME, NAME, ITERATIVE, PARAMETERS) \
+    _VnV_registerInjectionPoint(VNV_STR(PNAME), VNV_STR(NAME), ITERATIVE, PARAMETERS);
 
 #else
 
