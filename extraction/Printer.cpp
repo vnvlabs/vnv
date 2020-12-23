@@ -129,7 +129,6 @@ class VnVPrinter : public MatchFinder::MatchCallback {
         json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
         json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
         singleJson["Begin"] = info;
-        count--; // Remove this when we add a callback to the iteration
         count++; // Skip the value provided for parameter once
         count++; // Skip the value provided for input parameters (todo extract this?)
         addParameters(E, idJson, count);

@@ -86,6 +86,12 @@ class RunTime {
   void makeLibraryRegistrationCallbacks(
       std::map<std::string, std::string> packageNames);
 
+  std::shared_ptr<InjectionPoint> getNewInjectionIteration(std::string pname,
+                                                       std::string id,
+                                                       InjectionPointType type,
+                                                       NTV& in_args,
+                                                       NTV&out_args);
+
   std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string pname,
                                                        std::string id,
                                                        InjectionPointType type,
@@ -153,8 +159,11 @@ class RunTime {
   
  
   VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id, 
-		          NTV &inputs, NTV &outputs, int  once);
+                  injectionDataCallback* callback, NTV &inputs, NTV &outputs, int  once);
   
+  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id,
+                  const CppInjection::DataCallback& callback, NTV &inputs, NTV &outputs, int  once);
+
   int injectionIterationRun(VnV_Iterator *iterator);
 
   

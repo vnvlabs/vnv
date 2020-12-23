@@ -246,10 +246,10 @@ void CommMapper::logComm(Communication::ICommunicator_ptr comm) {
 
 std::set<CommWrap_ptr> CommMapper::gatherCommInformation(ICommunicator_ptr worldComm) {
     //First do a Gather to determine the number of comms on each process.
-    long send = comms.size();
+    int send = comms.size();
     std::vector<int> recv( worldComm->Rank() == root ? worldComm->Size() : 1 );
 
-    worldComm->Gather(&send,1,&recv[0], sizeof(int), root);
+    worldComm->Gather(&send,1,recv.data(), sizeof(int), root);
 
     //Now a all gatherV
     int recv2Coun = 0;
@@ -265,7 +265,7 @@ std::set<CommWrap_ptr> CommMapper::gatherCommInformation(ICommunicator_ptr world
     std::vector<long> recv2(recv2Coun);
     std::vector<long> commVec(comms.begin(), comms.end());
 
-    worldComm->GatherV(&(commVec[0]),commVec.size(), &(recv2[0]), &(recv[0]), &(displs[0]), sizeof(long), 0);
+    worldComm->GatherV(commVec.data(),commVec.size(), recv2.data(), recv.data(), displs.data(), sizeof(long), 0);
 
     if (worldComm->Rank() == root) {
         return getCommMap(recv2, recv);

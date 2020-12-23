@@ -28,15 +28,17 @@ class VnVParameter {
   std::string rtti;
   std::string type;
   bool hasRtti = true;
+  bool input = true;
 
  public:
   VnVParameter() { ptr = nullptr; }
 
-  VnVParameter(void* obj, std::string type_) {
+  VnVParameter(void* obj, std::string type_, bool input_) {
     rtti = "";
     type = type_;
     ptr = obj;
     hasRtti = false;
+    input = input_;
   }
 
   VnVParameter(const VnVParameter& copy) {
@@ -44,18 +46,22 @@ class VnVParameter {
     rtti = copy.getRtti();
     type = copy.getType();
     hasRtti = copy.hasRtti;
+    input = copy.isInput();
   }
 
-  VnVParameter(void* obj, std::string type_, std::string rtti_) {
+  VnVParameter(void* obj, std::string type_, std::string rtti_, bool input_) {
     rtti = rtti_;
     type = type_;
     ptr = obj;
     hasRtti = (rtti.size() > 0);
+    input = input_;
   }
 
   void setType(std::string type) { this->type = type; }
 
   void setRtti(std::string rtti) { this->rtti = rtti; }
+
+  void setInput(bool input) {this->input = input;}
 
   void* getRawPtr() const { return ptr; }
 
@@ -63,8 +69,9 @@ class VnVParameter {
 
   std::string getRtti() const { return rtti; }
 
+  bool isInput() const {return input;};
 
-  template <typename T> const T& getByRtti() const {
+  template <typename T> T& getByRtti() {
     if (hasRtti) {
       T* tempPtr = static_cast<T*>(getRawPtr());
       std::string typeId = typeid(tempPtr).name();
@@ -75,6 +82,15 @@ class VnVParameter {
     throw VnVExceptionBase("Invalid Parameter conversion in test");
   }
 
+
+  template <typename T> T& get_rtti_or_nothing() {
+    if (hasRtti) {
+      return getByRtti<T>();
+    } else {
+        T* tempPtr = static_cast<T*>(getRawPtr());
+        return *tempPtr;
+    }
+  }
   template <typename T> T* getByRtti_Ptr() {
     if (hasRtti) {
       T* tempPtr = static_cast<T*>(getRawPtr());
@@ -96,7 +112,7 @@ class VnVParameter {
   }
 
 
-  template <typename T> const T& getByType(std::string type) const {
+  template <typename T>  T& getByType(std::string type) {
     StringUtils::squash(type);
     if (!type.empty() && getType().compare(type) != 0) {
       throw VnVExceptionBase("type information incorrect");
@@ -104,7 +120,7 @@ class VnVParameter {
     return *(static_cast<T*>(getRawPtr()));
   }
 
-  template <typename T> const T& getByRttiOrType(std::string type) const {
+  template <typename T> T& getByRttiOrType(std::string type)  {
     try {
       return getByRtti<T>();
     } catch (...) {
@@ -127,7 +143,6 @@ class TestConfig {
  protected:
   std::map<std::string, std::shared_ptr<Transformer> > transformers;
   VnVParameterSet parameters;
-  VnVParameterSet outputParameters;
 
   std::map<std::string, std::string> testParameters;
   std::string testName;
@@ -154,18 +169,12 @@ class TestConfig {
    */
   void setName(std::string name);
 
-  const std::map<std::string, VnVParameter>& getParameterMap() const;
+  VnVParameterSet& getParameterMap() ;
 
-  void setParameterMap(std::map<std::string, VnVParameter>& args, VnVParameterSet &parameters);
 
   void setParameterMap(std::map<std::string, VnVParameter>& args);
-  void setInputParameterMap(std::map<std::string, VnVParameter>& args){ setParameterMap(args);}
-  void setOutputParameterMap(std::map<std::string, VnVParameter>& args) {setParameterMap(args,outputParameters);}
+
   bool isIterator() { return iterator; }
-
-  std::map<std::string, VnVParameter>& getInputParameterMap()  {return parameters; }
-  std::map<std::string, VnVParameter>& getOutputParameterMap() {return outputParameters; }
-
 
 
   /**
@@ -229,7 +238,7 @@ class ITest {
   const json& getConfigurationJson() const;
 
   template <typename T>
-  const T& getReference(std::string name, std::string type) const {
+  T& getReference(std::string name, std::string type) {
     StringUtils::squash(type);
     auto it = m_config.getParameterMap().find(name);
     if (it != m_config.getParameterMap().end()) {
@@ -238,28 +247,45 @@ class ITest {
     throw VnVExceptionBase("Parameter Mapping Error.");
   }
 
+  template <typename T>
+  T& getReference(std::string name) {
+    auto it = m_config.getParameterMap().find(name);
+    if (it != m_config.getParameterMap().end()) {
+      return it->second.get_rtti_or_nothing<T>();
+    }
+    throw VnVExceptionBase("Parameter Mapping Error.");
+  }
+
   int iterate_(ICommunicator_ptr comm, OutputEngineManager* engine);
 
   template <typename T>
   T* getInputParameter(std::string name, std::string type)  {
-       return getPtr<T>(name, type, m_config.getInputParameterMap());
+       return getPtr<T>(name, type, true);
   }
 
   template <typename T>
   T* getOutputParameter(std::string name, std::string type) {
-      return getPtr<T>(name, type, m_config.getOutputParameterMap());
+      return getPtr<T>(name, type, false);
   }
 
 
  protected:
+
   TestConfig m_config;
 
 
   template <typename T>
-  T* getPtr(std::string name, std::string type, VnVParameterSet &map)  {
+  T* getPtr(std::string name, std::string type, bool input)  {
     StringUtils::squash(type);
+    VnVParameterSet& map = m_config.getParameterMap();
     auto it = map.find(name);
     if (it != map.end()) {
+      if (it->second.isInput() != input) {
+          if (input) {
+             throw VnVExceptionBase("Requested an input parameter but got an output parameter");
+          }
+          throw VnVExceptionBase("Requested an output parameter but got an input parameter");
+      }
       return it->second.getByRttiOrType_Ptr<T>(type);
     }
     throw VnVExceptionBase("Parameter Mapping Error.");
@@ -317,6 +343,7 @@ template <typename Runner> class Test_T : public ITest {
 
 }  // namespace VnV
 
+
 #define INJECTION_TEST_RS(PNAME, name, Runner, schema, ...)                    \
   namespace VnV {                                                              \
   namespace PNAME {                                                            \
@@ -360,6 +387,7 @@ template <typename Runner> class Test_T : public ITest {
   }                              \
   }
 #define REGISTERTEST(PNAME, name) VnV::PNAME::Tests::register_##name();
+
 
 #define INJECTION_ITERATOR_RS(PNAME, name, Runner, schema, ...)                 \
   namespace VnV {                                                               \

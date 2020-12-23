@@ -44,7 +44,7 @@ class MPICommunicator : public ICommunicator {
   static MPIRequest* cast(IRequest_ptr ptr) { return (MPIRequest*)ptr.get(); }
   static MPIStatus* cast(IStatus_ptr ptr) { return (MPIStatus*)ptr.get(); }
 
-  static MPI_Datatype getDataType(long size) {
+  static MPI_Datatype& getDataType(long size) {
     static std::map<long, MPI_Datatype> dataTypes = {
         {sizeof(double), MPI_DOUBLE},
         {sizeof(int), MPI_INT},
@@ -62,10 +62,10 @@ class MPICommunicator : public ICommunicator {
     }
 
     MPI_Datatype dataType;
-    MPI_Type_contiguous(size, MPI_BYTE, &dataType);
-    MPI_Type_commit(&dataType);
-    dataTypes[size] = dataType;
-    return dataType;
+    dataTypes.insert(std::make_pair(size, dataType)) ;
+    MPI_Type_contiguous(size, MPI_BYTE, &(dataTypes[size]));
+    MPI_Type_commit(&(dataTypes[size]));
+    return dataTypes[size];
   }
 
   static void custom_reduction_function(void* in, void* inout, int* len,
@@ -474,6 +474,9 @@ class MPICommunicator : public ICommunicator {
               OpType op, int root) override {
     MPI_Reduce(buffer, recvBuffer, count, getDataType(dataTypeSize), getOp(op),
                root, comm);
+
+    char* coutvec = (char*) recvBuffer;
+
   }
 
   void AllReduce(void* buffer, int count, void* recvBuffer, int dataTypeSize,

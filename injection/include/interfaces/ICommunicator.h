@@ -76,8 +76,12 @@ class IReduction {
   void setKey(long long key);
 
   virtual bool communitive() = 0;  // Is this communative.
-  virtual IDataType_ptr reduce(IDataType_ptr in, IDataType_ptr out) = 0;
+  virtual IDataType_ptr reduce(IDataType_ptr &in, IDataType_ptr &out) = 0;
 };
+
+
+
+
 
 class IDataType {
  private:
@@ -90,9 +94,9 @@ class IDataType {
   virtual long long pack(void* buffer) = 0;  // pack the buffer
   virtual void unpack(void* buffer) = 0;     // unpack into a buffer
   virtual void setData(void* data) = 0;  // set from a raw pointer to the data.
-  virtual void axpy(double alpha, IDataType* y) = 0;  // y = ax + y
-  virtual int compare(IDataType* y) = 0;  // -1 less, 0 == , 1 greater.
-  virtual void mult(IDataType* y) = 0;
+  virtual void axpy(double alpha, IDataType_ptr y) = 0;  // y = ax + y
+  virtual int compare(IDataType_ptr y) = 0;  // -1 less, 0 == , 1 greater.
+  virtual void mult(IDataType_ptr y) = 0;
 
   //Put will be called when you need to "Write" this output to file.
   //Any engine functions can be called.
@@ -265,19 +269,32 @@ void registerDataType(std::string packageName,
   }
 #define REGISTERDATATYPE(PNAME, name) VnV::PNAME::DataTypes::register_##name();
 
-#define INJECTION_REDUCER(PNAME, name)                           \
+#define INJECTION_REDUCER(PNAME, name, COMM)                     \
   namespace VnV {                                                \
   namespace PNAME {                                              \
   namespace Reducers {                                           \
-  VnV::Communication::IReduction* declare_##name();              \
-  void register_##name() {                                       \
-    VnV::Communication::registerReduction(VNV_STR(PNAME), #name, \
-                                          declare_##name);       \
+    class name : public IReduction {                                 \
+        virtual bool communitive() {return COMM; }                         \
+        virtual IDataType_ptr reduce(IDataType_ptr &a, IDataType_ptr &b); \
+                                                                 \
+    };                                                           \
+                                                                 \
+    VnV::Communication::IReduction* declare_##name() {           \
+         return new name();                                      \
+    }                                                            \
+    void register_##name() {                                     \
+      VnV::Communication::registerReduction(VNV_STR(PNAME),      \
+                                            #name,               \
+                                            declare_##name);     \
   }                                                              \
   }                                                              \
   }                                                              \
   }                                                              \
-  VnV::Communication::IReduction* VnV::PNAME::Reducers::declare_##name()
+  IDataType_ptr VnV::PNAME::Reducers::name::reduce(              \
+      IDataType_ptr &in, IDataType_ptr &out                        \
+  )
+
+
 
 #define DECLAREREDUCER(PNAME, name) \
   namespace VnV {                   \
@@ -287,6 +304,7 @@ void registerDataType(std::string packageName,
   }                                 \
   }                                 \
   }
+
 #define REGISTERREDUCER(PNAME, name) VnV::PNAME::Reducers::register_##name();
 
 #endif  // ICOMMUNICATOR_H

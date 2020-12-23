@@ -107,7 +107,7 @@ class InjectionPoint {
    *
    **/
   InjectionPoint(std::string packageName, std::string name,
-                 json registrationJson, bool iterator, NTV& args);
+                 json registrationJson, bool iterator, NTV& in_args, NTV& out_args);
 
   void setInjectionPointType(InjectionPointType type, std::string stageId);
   void setCallBack(injectionDataCallback* callback);

@@ -2,31 +2,30 @@
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Not needed inside the build tree find_package(Injection)
 
-add_executable(sample.a "sample.cpp")
+function(addExecutable name packageName file)
+add_executable(${name} ${file})
+link_vnv_file(${name} ${packageName} cpp)
+if(WITH_MPI)
+  target_include_directories(${name} PRIVATE ${MPI_CXX_INCLUDE_PATH})
+  target_compile_options(${name} PRIVATE ${MPI_CXX_COMPILE_FLAGS})
+  target_link_libraries(${name} PRIVATE ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS})
+  target_compile_definitions(${name} PUBLIC -DWITH_MPI=1)
+endif()
+install(TARGETS ${name} DESTINATION examples/dummy/executables)
+endfunction()
+
+
+addExecutable(sample.a SampleExecutable "sample.cpp")
 target_link_libraries(sample.a PRIVATE dummyLibOne dummyLibTwo)
-link_vnv_file(sample.a SampleExecutable cpp)
+set_target_properties(sample.a PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/examples/dummy/lib)
 
-add_executable(read.a "read.cpp")
-link_vnv_file(read.a SampleReader cpp)
 
+addExecutable(read.a SampleReader "read.cpp")
 
 if(WITH_MPI)
-  target_include_directories(sample.a PRIVATE ${MPI_CXX_INCLUDE_PATH})
-  target_compile_options(sample.a PRIVATE ${MPI_CXX_COMPILE_FLAGS})
-  target_link_libraries(sample.a PRIVATE ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS})
-  target_compile_definitions(sample.a PUBLIC -DWITH_MPI=1)
-
-  add_executable(simple.a "simple.cpp")
-  link_vnv_file(simple.a SimpleExecutable cpp)
-  target_include_directories(simple.a PRIVATE ${MPI_CXX_INCLUDE_PATH})
-  target_compile_options(simple.a PRIVATE ${MPI_CXX_COMPILE_FLAGS})
-  target_link_libraries(simple.a PRIVATE ${MPI_CXX_LIBRARIES} ${MPI_CXX_LINK_FLAGS})
-  target_compile_definitions(simple.a PUBLIC -DWITH_MPI=1)
-  install(TARGETS simple.a DESTINATION examples/dummy/executables)
-
-
+  addExecutable(simple.a SimpleExecutable "simple.cpp" )
+  addExecutable(distributed.a Distributed "distributed.cpp")
 endif()
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json
@@ -35,17 +34,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample_with_papi.json
       ${CMAKE_CURRENT_BINARY_DIR}/vv-input-papi.json COPYONLY )
 
-# We place the test libs in a strange directory. So, for this case, we will set
-# the RPATH to those libs directory. There must be a way to set the target up to
-# inherit the RPATH from the linked library. But,
-set_target_properties(
-  sample.a PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/examples/dummy/lib)
-install(TARGETS sample.a DESTINATION examples/dummy/executables)
 install(
   FILES ${CMAKE_CURRENT_LIST_DIR}/sample.json
   DESTINATION examples/dummy/executables
   RENAME vv-input.json)
-
-set_target_properties(
-  read.a PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/examples/dummy/lib)
-install(TARGETS read.a DESTINATION examples/dummy/executables)

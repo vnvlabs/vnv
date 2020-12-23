@@ -76,6 +76,8 @@ void JsonEngineManager::WriteDataArray(std::string variableName, IDataType_vec &
      push(j, json::json_pointer("/children"));
 
      for (int i = 0; i < data.size(); i++ ) {
+       IDataType_ptr p = data[i];
+       p->maxSize();
        dataTypeStartedCallBack( std::to_string(i), data[i]->getKey() , MetaData());
        data[i]->Put(this);
        dataTypeEndedCallBack(std::to_string(i));
@@ -120,18 +122,18 @@ JsonEngineManager::JsonEngineManager() {
 void JsonEngineManager::PutGlobalArray(ICommunicator_ptr comm, long long dtype, std::string variableName, IDataType_vec data, std::vector<int> gsizes, std::vector<int> sizes, std::vector<int> offset, const MetaData& m, int onlyOne)
 {
   VnV::Communication::DataTypeCommunication d(comm);
-  if (onlyOne > 0 && onlyOne == comm->Rank() && comm->Rank() == getRoot(comm) ) {
+  if (onlyOne >= 0 && onlyOne == comm->Rank() && comm->Rank() == getRoot(comm) ) {
      // We are the root process and the only required information is on this process. So, just call put.
      WriteDataArray(variableName, data, gsizes,m);
-  } else if ( onlyOne > 0 && comm->Rank() == getRoot(comm)) {
+  } else if ( onlyOne >= 0 && comm->Rank() == getRoot(comm)) {
      // We are the root -- recv an array of shape gsizes from rank onlyOne
      int s = std::accumulate(gsizes.begin(),gsizes.end(),1, std::multiplies<int>());
      std::pair<IDataType_vec, IStatus_ptr> r = d.Recv(s,dtype, onlyOne, 223);
      WriteDataArray( variableName, r.first, gsizes,m );
-  } else if ( onlyOne > 0 && comm->Rank() == onlyOne) {
+  } else if ( onlyOne >= 0 && comm->Rank() == onlyOne) {
      //We are onlyOne, We need to send our information to the root
      d.Send(data, getRoot(comm), 223, true);
-  } else {
+  } else if (onlyOne < 0 ){
      //All GatherV
      IDataType_vec rdata = d.GatherV(data, dtype, getRoot(comm), gsizes, sizes, offset, false);
      if (comm->Rank() == getRoot(comm)) {
@@ -281,6 +283,7 @@ public:
           addChildInternal(data);
           return DataRelative::CHILD;
        }
+       return DataRelative::STRANGER;
     }
 
 };

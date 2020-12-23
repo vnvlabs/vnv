@@ -20,12 +20,13 @@ VNVEXTERNC void _VnV_injectionPoint_begin(VnV_Comm comm,
                                           const char* packageName,
                                           const char* id,
                                           injectionDataCallback* callback, ...);
+
 VNVEXTERNC void _VnV_injectionPoint(VnV_Comm comm, const char* packageName,
                                     const char* id,
                                     injectionDataCallback* callback, ...);
 
 VNVEXTERNC VnV_Iterator  _VnV_injectionIteration(VnV_Comm comm, const char* packageName, const char* name,
-                                int once, int inputParameters,...);
+                                injectionDataCallback* callback, int once, int inputParameters,...);
 
 VNVEXTERNC int  _VnV_injectionIterate(VnV_Iterator *iterator);
 
@@ -33,11 +34,14 @@ VNVEXTERNC int  _VnV_injectionIterate(VnV_Iterator *iterator);
 #  define EVERYONE(...) FOR_EACH(DOIT, __VA_ARGS__)
 
 // Macro for an iterative vnv injection point. 
-# define INJECTION_ITERATION(PNAME, COMM, NAME, ONCE, INPUTS, ...)\
+# define INJECTION_ITERATION_C(PNAME, COMM, NAME, ONCE, INPUTS, callback, ...)\
    VnV_Iterator VNV_JOIN(PNAME,_iterator_,NAME) = _VnV_injectionIteration(COMM, VNV_STR(PNANE), VNV_STR(NAME), \
-                    ONCE, INPUTS, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S); \
+                    callback, ONCE, INPUTS, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S); \
    while(_VnV_injectionIterate(&VNV_JOIN(PNAME,_iterator_,NAME)))
 
+// Injection iteration without a data callback.
+#  define INJECTION_ITEARTION(PNAME, COMM, NAME, ONCE, INPUTS, ...) \
+    INJECTION_ITERATION_C(COMM, PNAME, NAME, ONCE, INPUTS, NULL, __VA_ARGS__)
 
 
 

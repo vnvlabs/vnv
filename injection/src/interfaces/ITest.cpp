@@ -48,12 +48,7 @@ TestConfig::TestConfig(std::string package, std::string name,
   this->iterator = iterator;
 }
 
-
 void TestConfig::setParameterMap(VnVParameterSet& args) {
-   setParameterMap(args,parameters);
-}
-
-void TestConfig::setParameterMap(VnVParameterSet& args, VnVParameterSet& parameters) {
   // Create a parameterMap For this one.
   parameters.clear();
   json j = testConfigJson["parameters"];
@@ -75,7 +70,7 @@ void TestConfig::setParameterMap(VnVParameterSet& args, VnVParameterSet& paramet
         parameters.insert(std::make_pair(
             testParameter, VnVParameter(it->second->Transform(
                                             injection->second.getRawPtr(), s),
-                                        testParamType, s)));
+                                        testParamType, s, injection->second.isInput())));
       } else {
         // In a test where "isMappingValidFor..." is called, this shoud never
         // happen.
@@ -85,7 +80,7 @@ void TestConfig::setParameterMap(VnVParameterSet& args, VnVParameterSet& paramet
         parameters.insert(std::make_pair(
             testParameter, VnVParameter(it->second->Transform(
                                             injection->second.getRawPtr(), s),
-                                        testParamType, s)));
+                                        testParamType, s, injection->second.isInput())));
         transformers.insert(std::make_pair(testParameter, std::move(p)));
         VnV_Error(VNVPACKAGENAME,
                   "Transform for a test parameter was not pregenerated %s:%s",
@@ -95,9 +90,10 @@ void TestConfig::setParameterMap(VnVParameterSet& args, VnVParameterSet& paramet
   }
 }
 
-const std::map<std::string, VnVParameter>& TestConfig::getParameterMap() const {
+VnVParameterSet& TestConfig::getParameterMap() {
   return parameters;
 }
+
 
 bool TestConfig::isRequired(std::string testParameter) const {
   // TODO Tests could have optional parameters. We should define a way to

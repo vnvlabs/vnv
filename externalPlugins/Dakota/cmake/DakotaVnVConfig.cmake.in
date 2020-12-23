@@ -1,0 +1,11 @@
+get_filename_component(Dakota_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+list(APPEND CMAKE_PREFIX_PATH ${Dakota_CMAKE_DIR})
+
+
+if(NOT TARGET DakotaVnV::DakotaVnV)
+  include("${Dakota_CMAKE_DIR}/DakotaVnVTargets.cmake")
+endif()
+
+list(REMOVE_AT CMAKE_PREFIX_PATH -1)

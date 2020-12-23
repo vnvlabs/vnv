@@ -1,6 +1,7 @@
 ﻿#include "interfaces/ICommunicator.h"
 #include "base/CommunicationStore.h"
 #include "base/exceptions.h"
+#include <iostream>
 
 VnV::Communication::IRequest::~IRequest() {
   if (buffer) {
@@ -51,15 +52,30 @@ void VnV::Communication::OpTypeEncodedReduction(void* invec, void* outvec,
   char* coutvec = (char*)outvec;
 
   for (int i = 0; i < *len; i++) {
-    long long* buff = (long long*)&(cinvec[i * dataSize]);
+    buff = (long long*) &(cinvec[i * dataSize]);
     auto in = CommunicationStore::instance().getDataType(dataKey);
     in->unpack(&(buff[2]));
 
     buff = (long long*)&(coutvec[i * dataSize]);
     auto out = CommunicationStore::instance().getDataType(dataKey);
     out->unpack(&(buff[2]));
-    reducer->reduce(in, out)->pack(&(buff[2]));
+
+
+
+    out = reducer->reduce(in, out);
+    out->pack(&(buff[2]));
+
+    double* dd = (double*) &(buff[2]);
+    std::cout << *dd << std::endl;
+
   }
+
+  for (int i = 0; i < *len; i++) {
+      buff = (long long*) &(coutvec[i * dataSize]);
+      double* d = (double*) &(buff[2]);
+      std::cout << buff[0] << " " << buff[1] << " " << *d << std::endl;;
+  }
+
 }
 VnV::Communication::IStatus::~IStatus() {}
 

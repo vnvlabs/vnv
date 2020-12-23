@@ -15,8 +15,9 @@ using namespace VnV;
 InjectionPointStore::InjectionPointStore() {}
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
-    std::string packageName, std::string name, NTV& args) {
-  std::string key = packageName + ":" + name;
+    std::string packageName, std::string name, NTV& in_args, NTV& out_args) {
+
+    std::string key = packageName + ":" + name;
   auto it = injectionPoints.find(key);
   auto reg = registeredInjectionPoints.find(key);
 
@@ -25,7 +26,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
     // InjectionPointStore.
     std::shared_ptr<InjectionPoint> injectionPoint;
     injectionPoint.reset(
-        new InjectionPoint(packageName, name, reg->second.specJson, reg->second.iterator, args));
+        new InjectionPoint(packageName, name, reg->second.specJson, reg->second.iterator, in_args, out_args));
 
     for (auto& test : it->second.tests) {
       injectionPoint->addTest(test);
@@ -68,17 +69,17 @@ void InjectionPointStore::registerInjectionPoint(std::string packageName,
 }
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(
-    std::string package, std::string name, InjectionPointType type, NTV& args) {
+    std::string package, std::string name, InjectionPointType type, NTV& in_args, NTV& out_args) {
   std::string key = package + ":" + name;
   std::shared_ptr<InjectionPoint> ptr;
   if (injectionPoints.find(key) == injectionPoints.end()) {
     return nullptr;  // Not configured
   } else if (type == InjectionPointType::Single) {
-    ptr = newInjectionPoint(package, name, args);
+    ptr = newInjectionPoint(package, name, in_args,out_args);
   } else if (type == InjectionPointType::Begin) { /* New staged injection point.
                                                   -- Add it to the stack */
     ptr = newInjectionPoint(package, name,
-                            args); /*Not nullptr because we checked above*/
+                            in_args,out_args); /*Not nullptr because we checked above*/
     registerLoopedInjectionPoint(package, name, ptr);
   } else {
     // Should never happen.

@@ -40,12 +40,13 @@ int _VnV_injectionPoint_end(const char* package, const char* id) {
 }
 
 VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName, const char* name,
+                                injectionDataCallback* callback,
                                 int once, int inputParameters, ...) {
   va_list argp;
   va_start(argp, inputParameters);
   NTV inputs = VariadicUtils::UnwrapVariadicArgs(argp,inputParameters);
   NTV outputs = VariadicUtils::UnwrapVariadicArgs(argp);
-  VnV_Iterator v = VnV::RunTime::instance().injectionIteration(comm, packageName, name, inputs,outputs, once);
+  VnV_Iterator v = VnV::RunTime::instance().injectionIteration(comm, packageName, name, callback, inputs,outputs, once);
   va_end(argp);
   return v;
 }

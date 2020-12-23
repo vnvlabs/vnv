@@ -18,24 +18,30 @@ using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
 InjectionPoint::InjectionPoint(std::string packageName, std::string name,
-                               json registrationJson, bool iterator, NTV& args) {
+                               json registrationJson, bool iterator, NTV& in_args, NTV& out_args) {
   this->name = name;
   this->package = packageName;
   this->iterator = iterator;
-  for (auto it : args) {
-    auto rparam = registrationJson.find(it.first);  // Find a parameter with this name.
-    if (rparam != registrationJson.end()) {
-      parameterMap[it.first] = VnVParameter(
-          it.second.second, rparam.value().get<std::string>(), it.second.first);
-    } else {
-      VnV_Warn(
-          VNVPACKAGENAME,
-          "Injection Point is not configured Correctly. Unrecognized parameter "
-          "%s",
-          it.first.c_str());
-      parameterMap[it.first] =
-          VnVParameter(it.second.second, "void*", it.second.first);
-    }
+
+  for (int arg_switch = 0; arg_switch<2; arg_switch++) {
+    bool inputs = (arg_switch==0);
+    NTV& args = (inputs) ? in_args : out_args;
+
+    for (auto it : args) {
+        auto rparam = registrationJson.find(it.first);  // Find a parameter with this name.
+        if (rparam != registrationJson.end()) {
+             parameterMap.insert(std::make_pair(it.first, VnVParameter(
+                 it.second.second, rparam.value().get<std::string>(), it.second.first, inputs)));
+        } else {
+          VnV_Warn(
+              VNVPACKAGENAME,
+              "Injection Point is not configured Correctly. Unrecognized parameter "
+              "%s",
+              it.first.c_str());
+              parameterMap.insert(std::make_pair(it.first,
+                  VnVParameter(it.second.second, "void*", it.second.first,inputs)));
+        }
+     }
   }
 }
 

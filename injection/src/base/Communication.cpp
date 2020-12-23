@@ -223,10 +223,14 @@ IDataType_vec DataTypeCommunication::GatherV(IDataType_vec &data, long long dtyp
       comm->AllGather(&(sendBuffer[0]), csize, &(result[0]), sizeof(int));
    }
 
-   for (int i =0; i < result.size(); i+=csize )  {
+   // displs is the displacement where we put the vector data in. Count is
+   // the number from each process.
+
+   // results = [[ count , xdim, xoff, ydim, yoff, zdim, zoff, ...] ,[...]]
+   for (int i =0; i < counts.size(); i++ )  {
      displs[i] = total;
-     counts[i] = result[i];
-     total += result[i];
+     total += result[i*csize];
+     counts[i] = result[i*csize];
    }
 
    // Pop the send buffer -- Everyone has one already,
@@ -257,9 +261,7 @@ IDataType_vec DataTypeCommunication::GatherV(IDataType_vec &data, long long dtyp
   // A_{ijk...} = vec[i*xs + j*ys + ...]
   // Result = [ [total, xsize, xoff, ysize, yoff, zsize, zoff...] repeat]
 
-  IDataType_vec results;
-  results.reserve(total);
-
+  IDataType_vec results(total);
 
   if (comm->Rank() == root || allGather) {
      //Get the multipliers for the flatter operation.
@@ -277,8 +279,8 @@ IDataType_vec DataTypeCommunication::GatherV(IDataType_vec &data, long long dtyp
       std::vector<int> sizes(dim);
       std::vector<int> offs(dim);
       for (int k = 0; k < dim; k++) {
-        sizes.push_back( result[i*csize + 1 + 2*k*dim]);
-        offs.push_back( result[i*csize + 2 + 2*k*dim]);
+        sizes[k] = ( result[i*csize + 1 + 2*k]);
+        offs[k] = ( result[i*csize + 2 + 2*k]);
       }
 
       std::vector<int> iters(dim,0);
@@ -307,7 +309,9 @@ IDataType_vec DataTypeCommunication::GatherV(IDataType_vec &data, long long dtyp
     }
 
   }
-  free(recvBuffer);
+  if (comm->Rank() == root || allGather) {
+    free(recvBuffer);
+  }
   return results;
 }
 
@@ -393,12 +397,12 @@ IDataType_vec DataTypeCommunication::ReduceMultiple(IDataType_vec &data, long lo
   return ReduceMultiple(data, dtype, CommunicationStore::instance().getReducer(packageColonName),root);
 }
 
-IDataType_ptr ReduceLocalVec(IDataType_vec &data, IReduction_ptr reducer) {
+IDataType_ptr DataTypeCommunication::ReduceLocalVec(IDataType_vec &data, IReduction_ptr reducer) {
    if (data.size() == 0 ) return nullptr;
 
    IDataType_ptr result = data[0];
    for (int i = 1; i < data.size(); i++) {
-      reducer->reduce(data[i],result);
+      result = reducer->reduce(data[i],result);
    }
    return result;
 }
@@ -413,7 +417,7 @@ IDataType_vec DataTypeCommunication::ReduceMultiple(IDataType_vec& data, long lo
   long dataSize = CommunicationStore::instance().getDataType(dtype)->maxSize() + 2 * sizeof(long long);
   char* buffer = (char*)malloc(data.size() * dataSize);
   for (int i = 0; i < data.size(); i++) {
-    long long* lptr = (long long*)&(buffer[i * dataSize]);
+    long long* lptr = (long long*) &(buffer[i * dataSize]);
     lptr[0] = reducerKey;       // reducer
     lptr[1] = dtype;          // key
     data[i]->pack(&(lptr[2]));  // data
@@ -422,8 +426,8 @@ IDataType_vec DataTypeCommunication::ReduceMultiple(IDataType_vec& data, long lo
   // Call the reduction operation
   OpType op = (reduction->communitive()) ? OpType::ENCODED_COMMUTE
                                          : OpType::ENCODED_NONCOMMUTE;
-  long long* recvBuffer = (root < 0 || rank == root)
-                              ? (long long*)malloc(data.size() * dataSize)
+  char* recvBuffer = (root < 0 || rank == root)
+                              ? (char*) malloc(data.size() * dataSize)
                               : nullptr;
   if (root == -1) {
     comm->AllReduce(buffer, data.size(), recvBuffer, dataSize, op);
@@ -435,15 +439,16 @@ IDataType_vec DataTypeCommunication::ReduceMultiple(IDataType_vec& data, long lo
 
   // Unpack.
   IDataType_vec results;
+  results.reserve(data.size());
   if (root < 0 || rank == root) {
     for (int i = 0; i < data.size(); i++) {
-      long long* lptr = (long long*)recvBuffer[i * dataSize];
+      long long* lptr = (long long*) &(recvBuffer[i * dataSize]);
       IDataType_ptr result =
           CommunicationStore::instance().getDataType(dtype);
       result->unpack(&(lptr[2]));
       results.push_back(result);
-      free(recvBuffer);
     }
+    free(recvBuffer);
   }
   free(buffer);
   return results;

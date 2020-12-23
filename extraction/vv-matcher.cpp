@@ -146,6 +146,7 @@ int main(int argc, const char** argv) {
      return 0;
   }
 
+
   if (modFiles.first.size() != 0 ) {
 
     std::cout << "VnV Detected Changes in the following files:\n";
@@ -172,26 +173,16 @@ int main(int argc, const char** argv) {
       cacheFiles[it.key()] = incs;
 
       json& data = it.value()["data"];
+      std::cout << data.dump(4) << std::endl;
+      std::cout << packageName_ << std::endl;
       if (data.contains("InjectionPoints") &&
           data["InjectionPoints"].size() > 0) {
-        bool add = false;
-        if (packageName_.empty()) {
-          add = true;
-        } else {
-          for (auto itt : data["InjectionPoints"].items()) {
-            if (itt.value()["packageName"].get<std::string>() == packageName_) {
-              add = true;
-              break;
-            }
-          }
-        }
-        if (add) {
-          injectionFiles.push_back(it.key());
-        }
+            injectionFiles.push_back(it.key());
       }
       cacheData[it.key()] = data;
 
     }
+    std::cout << injectionFiles.size() << "SS " << std::endl;
     json found = runFinder(OptionsParser.getCompilations(), injectionFiles);
     std::cout << found.dump(3)<<std::endl;
     // Add the injection point data to the cacheData object.
@@ -200,13 +191,9 @@ int main(int argc, const char** argv) {
       auto ips = cfileJson.find("InjectionPoints");
       if (ips != cfileJson.end()) {
         for (auto injectionPoint : ips.value().items()) {
-          if (packageName_.empty() ||
-              packageName_.compare(injectionPoint.value()["packageName"]) ==
-                  0) {
             auto info = found.find(injectionPoint.key());
             if (info != found.end()) {
-              injectionPoint.value()["parameters"] =
-                  (info.value().contains("parameters")
+              injectionPoint.value()["parameters"] = (info.value().contains("parameters")
                        ? info.value()["parameters"]
                        : json::array());
 
@@ -215,16 +202,9 @@ int main(int argc, const char** argv) {
               for (auto& stage : info.value()["stages"].items()) {
                 stages[stage.key()]["info"] = stage.value();
               }
-            } else {
-              std::cout << "ERROR: Looking for " << injectionPoint.key()
-                        << " in " << found.dump(4) << "But could not find it."
-                        << std::endl;
-              ;
-              throw VnV::VnVExceptionBase(
-                  "Injection point with no matching parameter info");
             }
           }
-        }
+
       }
     }
   }

@@ -50,6 +50,7 @@ void BeginLoop(VnV_Comm comm, const char* package, const char* id,
 void UnwrapParameterPack_iter(int inputs, NTV &mm, NTV& m);
 
 VnV_Iterator BeginIteration(VnV_Comm comm, const char* package, const char* id,
+                   const CppInjection::DataCallback& callback,
                     int once, NTV&inputs, NTV& ouputs);
 
 int Iterate(VnV_Iterator* iterator);
@@ -102,11 +103,12 @@ void BeginPack(VnV_Comm comm, const char* package, const char* id,
 
 template <typename... Args>
 VnV_Iterator IterationPack(VnV_Comm comm, const char* package, const char* id,
+               const CppInjection::DataCallback& callback,
                int once, int inputs, Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> minputs;
   std::map<std::string, std::pair<std::string, void*>> moutputs;
   UnwrapParameterPack_iter(inputs, minputs, moutputs, std::forward<Args>(args)...);
-  return BeginIteration(comm, package, id, once, minputs, moutputs);
+  return BeginIteration(comm, package, id, callback, once, minputs, moutputs);
 }
 
 
@@ -142,10 +144,15 @@ VnV_Iterator IterationPack(VnV_Comm comm, const char* package, const char* id,
 
 
 // Macro for an iterative vnv injection point.
-# define INJECTION_ITERATION(PNAME, COMM, NAME, ONCE, INPUTS, ...)\
+# define INJECTION_ITERATION_C(PNAME, COMM, NAME, ONCE, INPUTS, callback, ...)\
    VnV_Iterator VNV_JOIN(PNAME,_iterator_,NAME) = VnV::CppInjection::IterationPack(COMM, VNV_STR(PNAME), VNV_STR(NAME), \
-                    ONCE, INPUTS EVERYONE(__VA_ARGS__)); \
+                    callback, ONCE, INPUTS EVERYONE(__VA_ARGS__)); \
    while(VnV::CppInjection::Iterate(&VNV_JOIN(PNAME,_iterator_,NAME)))
+
+
+#  define INJECTION_ITERATION(PNAME, COMM, NAME, ONCE, INPUTS, ...) \
+    INJECTION_ITERATION_C(PNAME, COMM, NAME, ONCE, INPUTS,          \
+                           &VnV::CppInjection::defaultCallBack, __VA_ARGS__)
 
 
 

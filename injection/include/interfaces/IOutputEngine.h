@@ -43,6 +43,19 @@ class BaseAction {
 public:
   virtual void write(ICommunicator_ptr comm, long long dtype, std::string variableName, IDataType_vec data, IOutputEngine *engine, const MetaData &m) const  = 0;
   virtual int count(ICommunicator_ptr comm, int engineRoot) const = 0;
+
+
+  template<typename T>
+  std::vector<T> flatten(std::vector<std::vector<T>> &data) {
+      return std::accumulate(
+          data.begin(), data.end(),
+          std::vector<T>(),
+          [](std::vector<T> a, std::vector<T> b) {
+              a.insert(a.end(), b.begin(), b.end());
+              return a;
+          });
+  }
+
 };
 
 
@@ -166,6 +179,160 @@ public:
                               const MetaData& m,
                               int onlyOne=-1 ) = 0;
 
+  // Write a vector of size using data only on rank r!
+  template <typename T>
+  void Put_Rank(ICommunicator_ptr comm, std::string variableName, std::vector<T> &data, int rank=-1, const MetaData &m = MetaData());
+
+  template <typename T>
+  void Put_Rank(ICommunicator_ptr comm, std::string variableName, int size, T* data, int rank=-1, const MetaData &m = MetaData());
+
+  //Write the value on rank r only!
+  template <typename T>
+  void Put_Rank(ICommunicator_ptr comm, std::string variableName, T& data, int rank=-1, const MetaData &m = MetaData());
+
+
+  //Write a global vector. This assumes vector size is same on all procs. Values are indexed by rank!
+  template <typename T>
+  void Put_Vector(ICommunicator_ptr comm, std::string variableName, std::vector<T> &data, const MetaData &m = MetaData());
+
+  //Write a global vector. This assumes vector size is same on all procs. Values are indexed by rank!
+  template <typename T>
+  void Put_Vector(ICommunicator_ptr comm, std::string variableName, int size, T* data, const MetaData &m = MetaData());
+
+  //Write a global vector -- one element per rank. This assumes vector size is same on all procs. Values are indexed by rank!
+  template <typename T>
+  void Put_Vector(ICommunicator_ptr comm, std::string variableName, T& data, const MetaData &m = MetaData());
+
+
+  //Take a [x,y] matrix on each processor and turn it into a [a*x,y*cols] matrix block indexed by the processor.
+  // An error will be thrown when cols is not a factor of the comm->Size().
+  template <typename T>
+  void Put_Matrix(ICommunicator_ptr comm, std::string variableName, std::vector<std::vector<T>> &data, int cols, const MetaData &m = MetaData());
+
+  template <typename T>
+  void Put_Matrix(ICommunicator_ptr comm, std::string variableName, int xdim, std::vector<T> &data, int cols, const MetaData &m = MetaData());
+
+  template <typename T>
+  void Put_Matrix(ICommunicator_ptr comm, std::string variableName, int xdim, int ydim, T* data, int cols, const MetaData &m = MetaData());
+
+
+  //Take a generic matrix with offsets. You should pass in the global size and the offsets. We assume the size of the
+  //data is accurate such that all data should be sent.
+  template <typename T>
+  void Put_Matrix(ICommunicator_ptr comm,
+                  std::string variableName,
+                  std::vector<std::vector<T>> &data,
+                  std::pair<int,int> &gsize,
+                  std::pair<int,int> &offsets,
+                  const MetaData &m = MetaData());
+
+  template <typename T>
+  void Put_Matrix(ICommunicator_ptr comm,
+                  std::string variableName,
+                  int xdim,
+                  std::vector<T> &data,
+                  std::pair<int,int> &gsize,
+                  std::pair<int,int> &offsets,
+                  const MetaData &m = MetaData());
+
+  template <typename T>
+  void Put_Matrix(ICommunicator_ptr comm,
+                  std::string variableName,
+                  T* data,
+                  std::pair<int,int> &lsize,
+                  std::pair<int,int> &gsize,
+                  std::pair<int,int> &offsets,
+                  const MetaData &m = MetaData());
+
+
+  // Apply a reduction across a global reducer. Here reducer is the name of some VnV::IReducer interface.
+  // root is the process to reduce the data too. root<0 means the toolkit can decide the root. This is usually
+  // best as we can set the root process equal to the root process of the IOutputEngine.
+  template<typename T>
+  void Put_ReduceVector(ICommunicator_ptr comm, std::string variableName,
+                        std::string reducer,
+                        std::vector<T> &data,
+                        int root = -1,
+                        const MetaData &m = MetaData());
+
+  template<typename T>
+  void Put_ReduceVector(ICommunicator_ptr comm, std::string variableName,
+                        std::string reducer,
+                        int size,
+                        T* data,
+                        int root = -1,
+                        const MetaData &m = MetaData());
+
+
+  // Apply a reduction across a scalar. Here reducer is the name of some VnV::IReducer interface.
+  // root is the process to reduce the data too.
+  template<typename T>
+  void Put_ReduceScalar(ICommunicator_ptr comm, std::string variableName,
+                        std::string reducer,
+                        T& data,
+                        int root = -1,
+                        const MetaData &m = MetaData());
+
+  // Apply a reduction across a global reducer. Here reducer is the name of some VnV::IReducer interface.
+  // root is the process to reduce the data too.
+  // This reduces the vector element wise. So, in the end you get a vector the same size as data.
+  // This is similar to how MPI_Reduce works. Put_ReduceVector does a local reduction on the local vector
+  // and then performs an elementwise reduction on the result (a vector of length 1).
+  template<typename T>
+  void Put_ReduceVectorElementWise(ICommunicator_ptr comm, std::string variableName,
+                                   std::string reducer,
+                                   std::vector<T> &data,
+                                   int root = -1,
+                                   const MetaData &m = MetaData());
+  template<typename T>
+  void Put_ReduceVectorElementWise(ICommunicator_ptr comm, std::string variableName,
+                                   std::string reducer,
+                                   int size,
+                                   T *data,
+                                   int root = -1,
+                                   const MetaData &m = MetaData());
+
+
+  //This one reduces the vector processor wise. You end up with a vector of length = MPI_COMM_SIZE
+  // where each element v_r is the result of the reduction applied to the local vector on rank r. This
+  // one does a local reduction then calls PutGlobalArray (rather than allReducing to the root and writing
+  // a local array.
+  template<typename T>
+  void Put_ReduceVectorRankWise(ICommunicator_ptr comm, std::string variableName,
+                                   std::string reducer,
+                                   std::vector<T> &data,
+                                   int root = -1,
+                                const MetaData &m = MetaData());
+
+  template<typename T>
+  void Put_ReduceVectorRankWise(ICommunicator_ptr comm, std::string variableName,
+                                   std::string reducer,
+                                   int size,
+                                   T* data,
+                                   int root = -1,
+                                const MetaData &m = MetaData());
+
+
+  //This one reduces the vector on rank == root and writes the result as a scalar value. This is
+  // a local reduction on a single core. Use this one if the data has already been reduced to
+  // a single processor for some other reason.
+  template<typename T>
+  void Put_ReduceVectorRankOnly(ICommunicator_ptr comm, std::string variableName,
+                                   std::string reducer,
+                                   std::vector<T> &data,
+                                   int root = -1,
+                                const MetaData &m = MetaData());
+
+  template<typename T>
+  void Put_ReduceVectorRankOnly(ICommunicator_ptr comm, std::string variableName,
+                                   std::string reducer,
+                                   int size,
+                                   T* data,
+                                   int root = -1,
+                                const MetaData &m = MetaData());
+
+
+
 
   template <typename T>
   void Write(ICommunicator_ptr comm, std::string variableName, T* data, const BaseAction& action, const MetaData& m = MetaData()) {
@@ -179,8 +346,8 @@ public:
     if (it != nullptr ) {
       long long key = it->getKey();
       for (int i = 0; i < total; i++) {
-          vec.push_back( c.getDataType(key) );
-          vec.back()->setData((void*) &(data[i]));
+          vec[i] = c.getDataType(key) ;
+          (vec[i])->setData((void*) &(data[i]));
       }
     } else {
        throw VnVExceptionBase("DataType unknown");
@@ -203,16 +370,29 @@ public:
     val[0] = ( (rank < 0 && comm->Rank() == engine->getRoot(comm))  || (comm->Rank() == rank)  ) ? size : 0 ;
     engine->PutGlobalArray(comm, dtype, variableName,data, {size} , val , {0}, m, rank );
   }
+
   virtual int count(ICommunicator_ptr comm, int engineRoot) const override {
     return ( (rank < 0 && comm->Rank() == engineRoot ) || (comm->Rank() == rank)  ) ? size : 0 ;
   };
 
 };
 
-class SingleScalarAction : public ScalarAction {
-public:
-  SingleScalarAction(int r = -1) : ScalarAction(1,r) {}
-};
+// Write a vector of size using data only on rank r!
+template <typename T>
+void IOutputEngine::Put_Rank(ICommunicator_ptr comm, std::string variableName, std::vector<T> &data, int rank, const MetaData &m) {
+    Put_Rank(comm,variableName, data.size(),data.data(),rank,m);
+}
+template <typename T>
+void IOutputEngine::Put_Rank(ICommunicator_ptr comm, std::string variableName, int size, T* data, int rank, const MetaData &m) {
+    ScalarAction action(size,rank);
+    Write(comm,variableName,data,action,m);
+}
+
+//Write one value from rank r only!
+template <typename T>
+void IOutputEngine::Put_Rank(ICommunicator_ptr comm, std::string variableName, T& data, int rank, const MetaData &m){
+    Put_Rank(comm,variableName, 1,&data,rank,m);
+}
 
 //Write a global vector with <size> elements off every process. This is
 // indexed by the rank.
@@ -228,6 +408,28 @@ public:
   };
 };
 
+
+//Write a global vector. This assumes vector size is same on all procs. Values are indexed by rank!
+template <typename T>
+void IOutputEngine::Put_Vector(ICommunicator_ptr comm, std::string variableName, int size, T* data,const  MetaData &m){
+    VectorAction action(size);
+    Write(comm,variableName,data,action,m);
+}
+
+//Write a global vector. This assumes vector size is same on all procs. Values are indexed by rank!
+template <typename T>
+void IOutputEngine::Put_Vector(ICommunicator_ptr comm, std::string variableName, std::vector<T> &data,const  MetaData &m){
+    Put_Vector(comm,variableName,data.size(),data.data(),m);
+}
+
+
+//Write a global vector -- one element per rank. This assumes vector size is same on all procs. Values are indexed by rank!
+template <typename T>
+void IOutputEngine::Put_Vector(ICommunicator_ptr comm, std::string variableName, T& data, const MetaData &m){
+    Put_Vector(comm,variableName,1,&data,m);
+}
+
+
 // Take a [x,y] matrix on each processor and turn it into a [a*x,y*ymax] matrix indexed by the processor.
 // An error will be thrown when ymax is not a factor of the comm->Size ().
 class MatrixAction : public BaseAction {
@@ -235,20 +437,53 @@ public:
   int x, y, ymax;
   MatrixAction(int x_, int y_, int columns = 1) : x(x_), y(y_), ymax(columns) {}
   virtual void write(ICommunicator_ptr comm, long long dtype, std::string variableName, IDataType_vec data, IOutputEngine *engine, const MetaData& m) const override {
-    int s = comm->Size();
-    if (s % ymax != 0) throw VnV::VnVExceptionBase("Invalid matrix Size given for Matrix Action");
+
+    int s = comm->Size(); // number of processors.
+
+    // If ymax is not a multiple of y we have an issue
+    // If ymax/y is not a multiple of s we have an issue
+    if ( ( ymax % y != 0 ) && (s % (ymax/y) != 0) )  throw VnV::VnVExceptionBase("Invalid matrix Size given for Matrix Action");
 
     int r = comm->Rank();
-    int xs = x * comm->Size() / ymax;
-    int ys = y * ymax ;
-    int xoff = r / ymax ;
-    int yoff = r % ymax ;
+    int xs = x * y * comm->Size() / ymax;
+    int ys = ymax ;
+    int xoff = (r*x*y) / ymax ;
+    int yoff = (r*y) % ymax ;
     engine->PutGlobalArray(comm, dtype, variableName,data, {xs,ys}, {x,y} , {xoff,yoff},m);
+
   }
   virtual int count(ICommunicator_ptr ptr, int engineRoot) const override {
     return x*y ;
   };
+
+
 };
+
+template <typename T>
+void IOutputEngine::Put_Matrix(ICommunicator_ptr comm, std::string variableName, int x, int y, T* data, int cols, const MetaData &m){
+    MatrixAction action(x,y,cols);
+    Write(comm,variableName, data,action,m);
+}
+
+
+template <typename T>
+void IOutputEngine::Put_Matrix(ICommunicator_ptr comm, std::string variableName, std::vector<std::vector<T>> &data, int cols, const MetaData &m){
+    if ( data.size() == 0 ) {
+        return;
+    }
+    int ydim = data[0].size();
+    MatrixAction action(data.size(),ydim,cols);
+    std::vector<T> flatData = action.flatten(data);
+    Write(comm,variableName, flatData.data(),action,m);
+}
+
+
+template <typename T>
+void IOutputEngine::Put_Matrix(ICommunicator_ptr comm, std::string variableName, int x, std::vector<T> &data, int cols, const MetaData &m){
+    Put_Matrix(comm,variableName,x,data.size()/x, data.data(),cols,m);
+}
+
+
 
 // GlobalArrayAction --> The most generic action --> Just put a global array
 // with user supplied global size, local size and offsets.
@@ -262,9 +497,71 @@ public:
   }
   virtual int count(ICommunicator_ptr ptr, int engineRoot) const override {
     return std::accumulate(lsize.begin(), lsize.end(), 1, std::multiplies<int>());
-  };
+  }
 
 };
+
+//Take a generic matrix with offsets. You should pass in the global size and the offsets. We assume the size of the
+//data is accurate such that all data should be sent.
+template <typename T>
+void IOutputEngine::IOutputEngine::Put_Matrix(ICommunicator_ptr comm,
+                std::string variableName,
+                std::vector<std::vector<T>> &data,
+                std::pair<int,int> &gsize,
+                std::pair<int,int> &offsets,
+                const MetaData &m) {
+
+    if ( data.size() == 0 ) {
+        return;
+    }
+    int dsize = data.size();
+    int ddsize = data[0].size();
+    std::vector<int> lsizes = {dsize,ddsize};
+    std::vector<int> gsizes = {gsize.first,gsize.second};
+    std::vector<int> offs = {offsets.first, offsets.second};
+
+    GlobalArrayAction action(gsizes, lsizes, offs);
+    std::vector<T> flatData = action.flatten(data);
+    Write(comm,variableName,flatData.data(),action,m);
+}
+
+//Take a generic matrix with offsets. You should pass in the global size and the offsets. We assume the size of the
+//data is accurate such that all data should be sent. Xdim is the x dimension of the local matrix -- we figure out the ydim
+// from there.
+
+template <typename T>
+void IOutputEngine::IOutputEngine::Put_Matrix(ICommunicator_ptr comm,
+                std::string variableName,
+                T* data,
+                std::pair<int,int> &lsize,
+                std::pair<int,int> &gsize,
+                std::pair<int,int> &offsets,
+                const MetaData &m) {
+
+    std::vector<int> lsizes = {lsize.first,lsize.second};
+    std::vector<int> gsizes = {gsize.first,gsize.second};
+    std::vector<int> offs = {offsets.first, offsets.second};
+
+    GlobalArrayAction action(gsizes, lsizes, offs);
+    Write(comm,variableName,data,action,m);
+}
+
+template <typename T>
+void IOutputEngine::IOutputEngine::Put_Matrix(ICommunicator_ptr comm,
+                std::string variableName,
+                int xdim,
+                std::vector<T> &data,
+                std::pair<int,int> &gsize,
+                std::pair<int,int> &offsets,
+                const MetaData &m) {
+            Put_Matrix(comm,variableName,xdim,data.data(), data.size()/xdim, gsize, offsets,m);
+    }
+
+//Take a generic matrix with offsets. You should pass in the global size and the offsets. We assume the size of the
+//data is accurate such that all data should be sent. Xdim is the x dimension of the local matrix -- we figure out the ydim
+// from there.
+
+
 
 //Reduce a global vector. Here reducer is the name of some VnV::IReduction registered
 // with the CommunicationStore. <s> is the size of the vector on the "LOCAL" processor.
@@ -287,13 +584,49 @@ public:
 
     IDataType_ptr result = d.ReduceVector(data, dtype, reducer, rank);
     std::vector<int> r(1);
-    r[0] = (comm->Rank() == rank ) ? 1 : 0;
-    engine->PutGlobalArray(comm, dtype, variableName, {result}, {1}, r , {0}, m, rank);
+    if (comm->Rank() == rank) {
+        engine->PutGlobalArray(comm, dtype, variableName, {result}, {1}, {1} , {0}, m, rank);
+    } else {
+        engine->PutGlobalArray(comm, dtype, variableName, {}, {1}, {0} , {0}, m, rank);
+    }
   }
   virtual int count(ICommunicator_ptr ptr, int engineRoot) const override {
     return size;
   };
 };
+
+// Apply a reduction across a global reducer. Here reducer is the name of some VnV::IReducer interface.
+// root is the process to reduce the data too. root<0 means the toolkit can decide the root. This is usually
+// best as we can set the root process equal to the root process of the IOutputEngine.
+template<typename T>
+void IOutputEngine::Put_ReduceVector(ICommunicator_ptr comm, std::string variableName,
+                      std::string reducer,
+                      std::vector<T> &data,
+                      int root,
+                      const MetaData &m) {
+    Put_ReduceVector(comm,variableName,reducer,data.size(),data.data(),root,m);
+}
+
+template<typename T>
+void IOutputEngine::Put_ReduceVector(ICommunicator_ptr comm, std::string variableName,
+                      std::string reducer,
+                      int size,
+                      T* data,
+                      int root,
+                      const MetaData &m) {
+    ReductionAction action(reducer,size,root);
+    Write(comm,variableName,data,action,m);
+}
+
+
+template<typename T>
+void IOutputEngine::Put_ReduceScalar(ICommunicator_ptr comm, std::string variableName,
+                      std::string reducer,
+                      T& data,
+                      int root,
+                      const MetaData &m) {
+       Put_ReduceVector(comm,variableName,reducer,1,&data,root,m);
+}
 
 //Reduce a global vector. Here reducer is the name of some VnV::IReduction registered
 // with the CommunicationStore. <s> is the size of the vector on the "LOCAL" processor.
@@ -309,23 +642,60 @@ public:
     reducer = CommunicationStore::instance().getReducer(red);
   }
   virtual void write(ICommunicator_ptr comm, long long dtype, std::string variableName, IDataType_vec data, IOutputEngine *engine, const MetaData& m) const override {
+
+
+    // We end up with a vector of lenfth size on the root processor. We then want to write a vector from the root
+    // processor with all those values. We still run int through put global array anyway ?
+
     int rank =  (root < 0 ) ? engine->getRoot(comm) : root ; // r<0 uses the engine root as root to save communication .
     Communication::DataTypeCommunication d(comm);
     IDataType_vec result = d.ReduceMultiple(data, dtype ,reducer, rank);
-    std::vector<int> offs(size,0);
+    std::vector<int> offs = {0};
     std::vector<int> lsize(1);
-    lsize[0] = (comm->Rank() == rank) ? 1 : 0 ;
-    engine->PutGlobalArray(comm, dtype, variableName,result, {size} ,  lsize ,  offs, m,rank);
+    lsize[0] = (comm->Rank() == rank) ? size : 0 ;
+    if (comm->Rank() == rank) {
+        engine->PutGlobalArray(comm, dtype, variableName,result, {size} ,  {size} ,  {0}, m,rank);
+    } else {
+        // No data if not the root.
+        engine->PutGlobalArray(comm, dtype, variableName,{}, {size} , {0} , {0}, m,rank);
+    }
   }
   virtual int count(ICommunicator_ptr ptr, int engineRoot) const override {
     return size;
   };
 };
 
+// Apply a reduction across a global reducer. Here reducer is the name of some VnV::IReducer interface.
+// root is the process to reduce the data too.
+// This reduces the vector element wise. So, in the end you get a vector the same size as data.
+// This is similar to how MPI_Reduce works. Put_ReduceVector does a local reduction on the local vector
+// and then performs an elementwise reduction on the result (a vector of length 1).
+template<typename T>
+void IOutputEngine::Put_ReduceVectorElementWise(ICommunicator_ptr comm, std::string variableName,
+                                 std::string reducer,
+                                 int size,
+                                 T* data,
+                                 int root ,
+                                 const MetaData &m) {
+    ElementWiseReductionAction action(reducer,size,root);
+    Write(comm,variableName,data,action,m);
+}
+
+template<typename T>
+void IOutputEngine::Put_ReduceVectorElementWise(ICommunicator_ptr comm, std::string variableName,
+                                 std::string reducer,
+                                 std::vector<T> &data,
+                                 int root ,
+                                 const MetaData &m) {
+    Put_ReduceVectorElementWise(comm,variableName,reducer,data.size(),data.data(),root,m);
+}
+
 // Reduce the vector on the local processor and write one value per processor.
 // If size is one, this is the same as Scalar Action.
 class ProcessorWiseReductionAction : public ElementWiseReductionAction {
 public:
+
+    ProcessorWiseReductionAction(std::string red, int s = 1, int r = -1) : ElementWiseReductionAction(red,s,r){}
   virtual void write(ICommunicator_ptr comm, long long dtype, std::string variableName, IDataType_vec data, IOutputEngine *engine, const MetaData& m) const  override {
       Communication::DataTypeCommunication d(comm);
       IDataType_ptr result = d.ReduceLocalVec(data, reducer);
@@ -333,19 +703,56 @@ public:
   }
 };
 
+
+//This one reduces the vector processor wise. You end up with a vector of length = MPI_COMM_SIZE
+// where each element v_r is the result of the reduction applied to the local vector on rank r. This
+// one does a local reduction then calls PutGlobalArray (rather than allReducing to the root and writing
+// a local array.
+template<typename T>
+void IOutputEngine::Put_ReduceVectorRankWise(ICommunicator_ptr comm, std::string variableName,
+                                 std::string reducer,
+                                 int size,
+                                 T* data,
+                                 int root ,
+                                 const MetaData &m ) {
+
+    ProcessorWiseReductionAction action(reducer,size,root);
+    Write(comm,variableName,data,action,m);
+}
+
+template<typename T>
+void IOutputEngine::Put_ReduceVectorRankWise(ICommunicator_ptr comm, std::string variableName,
+                                 std::string reducer,
+                                 std::vector<T> &data,
+                                 int root ,
+                                 const MetaData &m ) {
+
+    Put_ReduceVectorRankWise(comm,variableName,reducer,data.size(),data.data(),root,m);
+}
+
+
+
+
 class SingleProcessorReductionAction : public ProcessorWiseReductionAction {
 public:
+
+  SingleProcessorReductionAction(std::string red, int s = 1, int r = -1) : ProcessorWiseReductionAction(red,s,r){}
+
   virtual void write(ICommunicator_ptr comm, long long dtype, std::string variableName, IDataType_vec data, IOutputEngine *engine, const MetaData& m) const override {
     int rank =  (root < 0 ) ? engine->getRoot(comm) : root ; // r<0 uses the engine root as root to save communication .
     Communication::DataTypeCommunication d(comm);
-    IDataType_vec result;
+    IDataType_ptr result;
     if ( comm->Rank() == rank) {
-        result = d.ReduceMultiple(data, dtype ,reducer, rank);
+        result = d.ReduceLocalVec(data,reducer);
     }
-        std::vector<int> offs(size,0);
+    std::vector<int> offs(1,0);
     std::vector<int> lsize(1);
     lsize[0] = (comm->Rank() == rank) ? 1 : 0 ;
-    engine->PutGlobalArray(comm, dtype, variableName,result, {size} ,  lsize ,  offs, m, rank);
+    if (comm->Rank() == rank) {
+        engine->PutGlobalArray(comm, dtype, variableName,{result}, {1} ,  {1} ,  {0}, m, rank);
+    } else {
+        engine->PutGlobalArray(comm, dtype, variableName,{} , {1} ,  {0} ,  {0}, m, rank);
+    }
   }
 
   virtual int count(ICommunicator_ptr comm, int engineRoot) const override {
@@ -354,6 +761,30 @@ public:
   }
 
 };
+
+//This one reduces the vector on rank == root and writes the result as a scalar value. This is
+// a local reduction on a single core. Use this one if the data has already been reduced to
+// a single processor for some other reason.
+template<typename T>
+void IOutputEngine::Put_ReduceVectorRankOnly(ICommunicator_ptr comm, std::string variableName,
+                                 std::string reducer,
+                                 int size,
+                                 T* data,
+                                 int root,
+                                 const MetaData &m) {
+    SingleProcessorReductionAction action(reducer, size,root);
+    Write(comm,variableName,data,action,m);
+}
+
+template<typename T>
+void IOutputEngine::Put_ReduceVectorRankOnly(ICommunicator_ptr comm, std::string variableName,
+                                 std::string reducer,
+                                 std::vector<T> &data,
+                                 int root,
+                                 const MetaData &m) {
+    Put_ReduceVectorRankOnly(comm,variableName,reducer,data.size(),data.data(),root,m);
+}
+
 
 class IInternalOutputEngine : public IOutputEngine {
  public:

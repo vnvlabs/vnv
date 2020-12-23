@@ -19,29 +19,35 @@ template <typename T> class GenericDataType : public Communication::IDataType {
   void set(T d) { data = d; }
 
   long long maxSize() { return sizeof(T); }
-  long long pack(void* buffer) { ((T*)buffer)[0] = data; }
-  void unpack(void* buffer) { data = ((T*)buffer)[0]; }
+  long long pack(void* buffer) {
+      ((T*)buffer)[0] = data;
+      return sizeof(T);
+  }
+  void unpack(void* buffer) {
+      T* tbuffer = (T*) buffer;
+      data = tbuffer[0];
+  }
 
   void setData(void* dat) { data = *((T*)dat); }
 
-
-  void axpy(double alpha, Communication::IDataType* y) {
-    GenericDataType<T>* yy = (GenericDataType<T>*)y;
-    yy->set(yy->get() + alpha * data);
+  // this = this + ay
+  void axpy(double alpha, Communication::IDataType_ptr y) {
+    GenericDataType<T>* yy = (GenericDataType<T>*)y.get();
+    data += yy->get()*alpha;
   }
 
-  int compare(Communication::IDataType* y) {
-    GenericDataType<T>* yy = (GenericDataType<T>*)y;
-    if (yy->get() == get())
+  int compare(Communication::IDataType_ptr y) {
+    GenericDataType<T>* yy = (GenericDataType<T>*)y.get();
+    if (yy->get() == data)
       return 0;
-    else if (get() < yy->get())
+    else if (data < yy->get())
       return -1;
     return 1;
   }
-  // y = xy;
-  void mult(Communication::IDataType* y) {
-    GenericDataType<T>* yy = (GenericDataType<T>*)y;
-    yy->set(yy->get() * get());
+  // this = this * y;
+  void mult(Communication::IDataType_ptr y) {
+    GenericDataType<T>* yy = (GenericDataType<T>*)y.get();
+    data = data*yy->get();
   }
 
   void Put(IOutputEngine* engine) override {
@@ -73,6 +79,7 @@ public:
      
   }
   void unpack(void* buffer) { 
+
     data = (char*) buffer ; 
   }
 
@@ -81,18 +88,18 @@ public:
   }
 
 
-  void axpy(double alpha, Communication::IDataType* y) {
+  void axpy(double alpha, Communication::IDataType_ptr y) {
     VnV_Warn(VNVPACKAGENAME, "AXPY not implemented for String");
   
   }
 
-  int compare(Communication::IDataType* y) {
-    StringDataType* yy = (StringDataType*)y;
+  int compare(Communication::IDataType_ptr y) {
+    StringDataType* yy = (StringDataType*)y.get();
     return yy->get().compare(get());
   }
 
   // y = xy;
-  void mult(Communication::IDataType* y) {
+  void mult(Communication::IDataType_ptr y) {
     VnV_Warn(VNVPACKAGENAME, "MULT not implemented for String");
   }
 

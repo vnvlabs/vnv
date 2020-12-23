@@ -63,9 +63,10 @@ public:
   }
 
   IDataType_ptr ReduceLocalVec(IDataType_vec &data, IReduction_ptr reducer);
-     IDataType_ptr ReduceLocalVec(IDataType_vec &data, std::string reducer) {
+
+  IDataType_ptr ReduceLocalVec(IDataType_vec &data, std::string reducer) {
        return ReduceLocalVec(data, CommunicationStore::instance().getReducer(reducer));
-     }
+  }
 };
 
 }  // namespace Communication

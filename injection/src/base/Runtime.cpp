@@ -74,20 +74,26 @@ void RunTime::logUnhandled(std::string name, std::string id, NTV& args) {
   VnV_EndStage(VNVPACKAGENAME, a);
 }
 
-std::shared_ptr<InjectionPoint> RunTime::getNewInjectionPoint(
-    std::string pname, std::string id, InjectionPointType type, NTV& args) {
+std::shared_ptr<InjectionPoint> RunTime::getNewInjectionIteration(
+    std::string pname, std::string id, InjectionPointType type, NTV& in_args, NTV& out_args) {
   if (runTests) {
     std::shared_ptr<InjectionPoint> ipd =
         InjectionPointStore::getInjectionPointStore().getNewInjectionPoint(
-            pname, id, type, args);
+            pname, id, type, in_args,out_args);
     if (ipd != nullptr) {
       ipd->setInjectionPointType(type, "Begin");
       return ipd;
     } else if (runTimeOptions.logUnhandled) {
-      logUnhandled(pname, id, args);
+      logUnhandled(pname, id, in_args);
     }
   }
   return nullptr;
+}
+
+std::shared_ptr<InjectionPoint> RunTime::getNewInjectionPoint(
+    std::string pname, std::string id, InjectionPointType type, NTV& args) {
+   NTV fargs;
+   return getNewInjectionIteration(pname,id,type,args,fargs);
 }
 
 std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(
@@ -170,20 +176,33 @@ public:
 }
 
 VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::string id,
-                             NTV& inputs, NTV& outputs, int once) {
+                             const CppInjection::DataCallback& callback, NTV& inputs, NTV& outputs, int once) {
  
-  NTV parameters = inputs;
-  parameters.insert(outputs.begin(),outputs.end());
-  auto it = getNewInjectionPoint(pname, id, InjectionPointType::Begin, parameters);
+  auto it = getNewInjectionIteration(pname, id, InjectionPointType::Begin, inputs,outputs);
   if (it != nullptr) {
     it->setComm(getComm(comm));
+    it->setCallBack(callback);
     it->runTests();
   }
-
   VnV_Iterator_Info* info = new VnV_Iterator_Info(id,pname, once);
   return { (void*) info };
 
 }
+
+VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::string id,
+                             injectionDataCallback* callback, NTV& inputs, NTV& outputs, int once) {
+
+  auto it = getNewInjectionIteration(pname, id, InjectionPointType::Begin, inputs,outputs);
+  if (it != nullptr) {
+    it->setComm(getComm(comm));
+    it->setCallBack(callback);
+    it->runTests();
+  }
+  VnV_Iterator_Info* info = new VnV_Iterator_Info(id,pname, once);
+  return { (void*) info };
+
+}
+
 
 int RunTime::injectionIterationRun(VnV_Iterator *iterator) {
    VnV_Iterator_Info* info = (VnV_Iterator_Info*) iterator->data;

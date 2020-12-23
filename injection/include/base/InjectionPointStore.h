@@ -106,7 +106,7 @@ class InjectionPointStore {
   // RTODO IMPLEMENT THIS FUNCTIONS.
   std::shared_ptr<InjectionPoint> newInjectionPoint(std::string packageName,
                                                     std::string name,
-                                                    NTV& args);
+                                                    NTV& in_args, NTV& out_args);
   std::shared_ptr<InjectionPoint> fetchFromQueue(std::string packageName,
                                                  std::string name,
                                                  InjectionPointType stage);
@@ -142,7 +142,7 @@ class InjectionPointStore {
   std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string package,
                                                        std::string name,
                                                        InjectionPointType type,
-                                                       NTV& args);
+                                                       NTV& in_args, NTV& out_args);
 
   std::shared_ptr<InjectionPoint> getExistingInjectionPoint(
       std::string package, std::string name, InjectionPointType type);
