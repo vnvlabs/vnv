@@ -152,11 +152,11 @@ public:
         env->plugin_interface(model_type, interf_type, an_driver, serial_iface);
 
         // Need to start the dakota thread that calls the run function
-        status = 0;
-        workers.push_back(std::thread([this](){
-            env->execute();
-            status = 2;
-        }));
+        status = 2;
+        //workers.push_back(std::thread([this](){
+        //    env->execute();
+        //    status = 2;
+        //}));
      }
     }
 

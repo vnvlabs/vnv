@@ -197,7 +197,7 @@ int main(int argc, const char** argv) {
                        ? info.value()["parameters"]
                        : json::array());
 
-              injectionPoint.value()["iterator"] = info.value().value("/iterator"_json_pointer,false);
+              //injectionPoint.value()["iterator"] = info.value().value("/iterator"_json_pointer,false);
               json& stages = injectionPoint.value()["stages"];
               for (auto& stage : info.value()["stages"].items()) {
                 stages[stage.key()]["info"] = stage.value();

@@ -35,7 +35,7 @@ find_package(Threads REQUIRED)
 
 add_library(DakotaVnV SHARED "")
 add_subdirectory(src)
-
+add_subdirectory(examples)
 
 link_vnv_file(DakotaVnV Dakota cpp)
 

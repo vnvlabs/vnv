@@ -25,12 +25,12 @@ public:
     ITest* test;
     double* x, *y, *z;
 
-    virtual Dakota::LibraryEnvironment* setup(ITest* tests) override {
+    virtual Dakota::LibraryEnvironment* setup(ITest* test) override {
 
         this->test = test;
-        x = test->getInputParameter<double>("x","double");
-        y = test->getInputParameter<double>("y","double");
-        z = test->getOutputParameter<double>("z","double");
+        x = test->getInputParameter<double>("x0","double");
+        y = test->getInputParameter<double>("x1","double");
+        z = test->getOutputParameter<double>("f","double");
 
         Dakota::ProgramOptions opts;
         opts.input_string(serial_input);

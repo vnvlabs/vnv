@@ -1,4 +1,4 @@
-﻿{
+{
   "runTests": true,
   "runScopes": [
     {
@@ -12,9 +12,7 @@
     "logs" : {}
   },
   "additionalPlugins": {
-    "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so",
-    "Papi" : "../../../../externalPlugins/papiTests/build/libpapiTest.so",
-    "VnVDakota" : "../../../../externalPlugins/Dakota/build/libDakotaVnV.so"
+    "Dakota" : "../libDakotaVnV.so"
   },
   "outputEngine": {
     "type": "json",
@@ -45,36 +43,25 @@
         ]
       },
       {
-        "name" : "initialization",
-        "package" : "VNV",
-        "tests" : [
+        "name" : "dakotaLoop",
+        "package" : "DakotaExample",
+        "iterators" : [
             {
-                "name" : "cputime",
-                "package" : "VNV",
+                "name" : "parameter_search",
+                "package" : "Dakota",
                 "runScope" : ["all"],
                 "config" : {
                     "expectedResult" : {},
                     "configuration": {
                     },
                     "parameters": {
+                        "x0" : "x",
+                        "x1" : "y",
+                        "f" : "f"
                     }
                 }
             }
         ]
-      },
-      {
-         "name" : "loopTest",
-         "package" : "SampleExecutable",
-         "tests" : [{
-           "name" : "flops",
-           "package" : "Papi",
-           "runScope" : ["all"],
-           "config" : {
-             "expectedResult" : {},
-              "configuration" : {},
-              "parameters" : {}
-           }
-        }]
       }
   ]
 }

@@ -104,6 +104,7 @@ class RegistrationWriter {
 
   RegistrationWriter(json& j, std::string packageName = "") {
     registerHelper(j, "Tests", "TEST", packageName);
+    registerHelper(j, "Iterators", "ITERATOR", packageName);
     registerHelper(j, "Engines", "ENGINE", packageName);
     registerHelper(j, "UnitTests", "UNITTEST", packageName);
     registerHelper(j, "Serializers", "SERIALIZER", packageName);
@@ -193,9 +194,9 @@ class RegistrationWriter {
           json& params =it.value()["parameters"][0];  // TODO TEMPLATE ARGUEMENTS NOT SUPPORTED ?
           pjson[pname]["InjectionPoints"][name] = it.value();
           createPackageOss(pname);
+          std::cout << "JJ :" << it.value().dump(3) << std::endl;
 
-          bool iterator = j.value("/iterator"_json_pointer, false);
-
+          bool iterator = it.value().value("/iterator"_json_pointer, false);
           std::string escaped = VnV::StringUtils::escapeQuotes(params.dump(), true);
           oss_register[pname] << "\tRegister_Injection_Point(" << pname << ","
                               << name << "," << iterator << "," << escaped << ");\n";
@@ -216,7 +217,7 @@ void writeFileAndCache(json& cacheInfo, std::string outputFileName,
   json finalJson = json::object();
   for (auto it : cacheInfo["data"].items()) {
     for (std::string type :
-         {"InjectionPoints", "SubPackages", "LogLevels", "Tests", "Engines",
+         {"InjectionPoints", "SubPackages", "LogLevels", "Tests", "Iterators", "Engines",
           "Comms", "Reducers", "DataTypes", "Serializers", "Transforms",
           "UnitTests", "Options", "Introduction", "Conclusion", "Package",
           "Communicator"}) {

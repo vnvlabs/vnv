@@ -234,6 +234,11 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
           getDef("Tests", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
       jj["parameters"] = parseArgs(pp, Args->getUnexpArgument(4));
+    } else if (nae == "INJECTION_ITERATOR_RS") {
+        json& jj =
+            getDef("Iterators", getPackageName(Args, 0), getPackageName(Args, 1));
+        jj["docs"] = getDocs(Range);
+        jj["parameters"] = parseArgs(pp, Args->getUnexpArgument(4));
     } else if (nae == "INJECTION_SERIALIZER_R") {
       json& jj = getDef("Serializers", getPackageName(Args, 0),
                         getPackageName(Args, 1));
@@ -306,7 +311,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range);
       thisStage["docs"] = "";
-    } else if (nae == "INJECTION_ITERATION") {
+    } else if (nae == "INJECTION_ITERATION_C" || nae == "INJECTION_ITERATION") {
         json& jj = getDef("InjectionPoints", getPackageName(Args, 0),
                           getPackageName(Args, 2));
         json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
