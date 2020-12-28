@@ -117,10 +117,13 @@ enum class CommCompareType { EXACT, GROUP, SIMILAR, UNEQUAL };
 class ICommunicator {
  private:
   std::string packageName;
+  std::string keyName;
 
  public:
-  void setPackage(std::string package);
+  void setPackage(std::string package, std::string id);
   std::string getPackage();
+  std::string getName();
+
   VnV_Comm asComm();
 
   virtual ~ICommunicator() {}
