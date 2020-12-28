@@ -95,17 +95,16 @@ IReduction_ptr CommunicationStore::getReducer(std::string packageColonName) {
 ICommunicator_ptr CommunicationStore::getCommunicator(std::string packageName,
                                                       std::string name,
                                                       CommType type) {
-  return getCommunicator(getKey(packageName, name), type);
-}
-
-ICommunicator_ptr CommunicationStore::getCommunicator(long long key,
-                                                      CommType type) {
+  long long key = getKey(packageName, name);
   auto it = communicator_factory.find(key);
   if (it != communicator_factory.end()) {
-    return ICommunicator_ptr(it->second(type));
+    ICommunicator_ptr t(it->second(type));
+    t->setName(packageName + ":" + name);
+    return t;
   }
   throw VnV::VnVExceptionBase("Un supported Data Type)");
 }
+
 
 Communication::ICommunicator_ptr CommunicationStore::getCommForPackage(
     std::string packageName, Communication::CommType type) {
@@ -113,6 +112,8 @@ Communication::ICommunicator_ptr CommunicationStore::getCommForPackage(
   if (it != commMap.end()) {
     auto c = getCommunicator(it->second.first, it->second.second, type);
     c->setPackage(packageName);
+
+
     return c;
   }
 

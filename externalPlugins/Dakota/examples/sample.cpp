@@ -1,12 +1,14 @@
 
 #include "VnV.h"
+#include <mpi.h>
 
 #define SPNAME DakotaExample
 
-INJECTION_EXECUTABLE(SPNAME, VNV, serial)
+INJECTION_EXECUTABLE(SPNAME, VNV, mpi)
 
 int main(int argc, char** argv) {
 
+ MPI_Init(&argc, &argv);
  /**
    * Dakota Example
    * =================
@@ -44,4 +46,5 @@ int main(int argc, char** argv) {
   */
   INJECTION_FINALIZE(SPNAME);
 
+  MPI_Finalize();
 }

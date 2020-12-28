@@ -62,9 +62,6 @@ class CommunicationStore {
   ICommunicator_ptr getCommunicator(std::string packageName, std::string name,
                                     Communication::CommType type);
 
-  ICommunicator_ptr getCommunicator(long long key,
-                                    Communication::CommType type);
-
   ICommunicator_ptr getCommForPackage(std::string packageName,
                                       Communication::CommType type);
 

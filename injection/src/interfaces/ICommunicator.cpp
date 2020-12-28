@@ -79,9 +79,8 @@ void VnV::Communication::OpTypeEncodedReduction(void* invec, void* outvec,
 }
 VnV::Communication::IStatus::~IStatus() {}
 
-void VnV::Communication::ICommunicator::setPackage(std::string package, std::string name) {
+void VnV::Communication::ICommunicator::setPackage(std::string package) {
   packageName = package;
-  keyName=  name;
 }
 
 std::string VnV::Communication::ICommunicator::getPackage() {
@@ -90,6 +89,9 @@ std::string VnV::Communication::ICommunicator::getPackage() {
 
 std::string VnV::Communication::ICommunicator::getName() {
    return keyName;
+}
+void VnV::Communication::ICommunicator::setName(std::string name) {
+   keyName = name;
 }
 
 VnV_Comm VnV::Communication::ICommunicator::asComm() {

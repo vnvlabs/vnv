@@ -120,16 +120,18 @@ class ICommunicator {
   std::string keyName;
 
  public:
-  void setPackage(std::string package, std::string id);
+  void setPackage(std::string package);
   std::string getPackage();
   std::string getName();
+  void setName(std::string name);
 
   VnV_Comm asComm();
 
   virtual ~ICommunicator() {}
 
   virtual void setData(void* data) = 0;  // The communicator passed in.
-  virtual void* getData() = 0;
+  virtual void* getData() = 0; // Data is everything needed to rebuild this communicator.
+  virtual void* raw() = 0; // Raw is a direct pointer to the comm a user of the internal proceedure might expect (e.g. MPI_Comm)
 
   virtual long uniqueId() = 0;  // Unique id such that the same comm data returns// the same comm.
   virtual int Size() = 0;

@@ -23,7 +23,7 @@ public:
     VnVStudy(){}
     virtual ~VnVStudy(){}
 
-    virtual Dakota::LibraryEnvironment* setup(VnV::ITest* test)=0;
+    virtual Dakota::LibraryEnvironment* setup(VnV::ITest* test, ICommunicator_ptr comm)=0;
 
     virtual int setInputs(const Dakota::RealVector& c_vars) = 0;
 
@@ -129,6 +129,7 @@ public:
     T eval;
 
     VnV::IOutputEngine *engine;
+    VnV::ICommunicator_ptr comm;
     std::vector<std::thread> workers;
     std::shared_ptr<VnVDakotaInterface<T>> serial_iface;
 
@@ -143,11 +144,12 @@ public:
         // set up a Dakota instance, with the right MPI configuration if a
         // parallel run (don't need to pass the MPI comm here, just doing to
         // demonstrate/test).
-        env.reset(eval.setup(test));
+        env.reset(eval.setup(test,comm));
 
         std::string model_type(""); // demo: empty string will match any model type
         std::string interf_type("direct");
         std::string an_driver("plugin_vnv");
+
 
         Dakota::ProblemDescDB& problem_db = env->problem_description_db();
         serial_iface.reset( new VnVDakotaInterface<T>(problem_db, eval) );
@@ -174,12 +176,14 @@ public:
     RunningStatus runnerStatus() {
         return serial_iface->status;
     }
-    int setRunnerStatus(RunningStatus status){
+
+    void setRunnerStatus(RunningStatus status){
         serial_iface->status = status;
     }
 
-    int run(VnV::ITest* test, VnV::IOutputEngine* engine) {
+    int run(VnV::ITest* test, VnV::IOutputEngine* engine, VnV::ICommunicator_ptr comm) {
         this->engine = engine;
+        this->comm = comm;
 
         initialize(test);
 

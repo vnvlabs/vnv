@@ -136,6 +136,7 @@ class MPICommunicator : public ICommunicator {
 
   }
 
+
   void setData(void* data) override {
     CommKeeper* comm = (CommKeeper*) data;
     setComm(comm->comm);
@@ -179,6 +180,10 @@ class MPICommunicator : public ICommunicator {
   void* getData() override {
         CommKeeper *k = new CommKeeper(comm);
         return k;
+  }
+
+  void* raw() override {
+      return &comm;
   }
 
   long uniqueId() override {
@@ -493,4 +498,6 @@ class MPICommunicator : public ICommunicator {
 
   void Abort(int errorcode) override { MPI_Abort(comm, errorcode); }
 };
+
+
 INJECTION_COMM(VNVPACKAGENAME, mpi) { return new MPICommunicator(type); }

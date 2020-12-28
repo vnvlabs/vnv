@@ -128,6 +128,9 @@ class SerialCommunicator : public VnV::Communication::ICommunicator {
 
   void setData(void* data) { commId = *((int*)data); }
   void* getData() { return &commId; }
+  void* raw() override {
+      return getData();
+  }
   long uniqueId() { return getpid(); } //All serial communicators are the same from a uid perspective. }
   int Size() { return 1; }
   int Rank() { return 0; }
