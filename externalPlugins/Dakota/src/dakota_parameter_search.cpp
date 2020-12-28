@@ -20,6 +20,7 @@ static const char serial_input[] =
   "             no_hessians";
 
 
+
 class ParameterStudy : public VnVStudy {
 public:
     ITest* test;
@@ -41,13 +42,21 @@ public:
     virtual int setInputs(const Dakota::RealVector& c_vars) override {
         *x = c_vars[0];
         *y = c_vars[1];
+        std::cout << "XX " << *x << " " << *y << " " << *z << std::endl;
         return 0;
     }
 
     virtual int setOutputs(short asv, Dakota::Real& fn_val, Dakota::RealVector& fn_grad, Dakota::RealSymMatrix& fn_hess) override {
         fn_val = *z;
+
+        std::cout << "YY " << *x << " " << *y << " " << *z << std::endl;
         return 0;
     }
+
+    std::string getInputString() {
+
+    }
+
 };
 typedef DakotaInterface<ParameterStudy> VnVParameterStudy;
 
@@ -74,5 +83,6 @@ typedef DakotaInterface<ParameterStudy> VnVParameterStudy;
  *
  */
 INJECTION_ITERATOR_R(PNAME, parameter_search, VnVParameterStudy, double x0, double x1, double f ) {
+    std::cout << "HERE" << std::endl;
     return runner->run(this, engine);
 }

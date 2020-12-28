@@ -2,7 +2,8 @@
 #include "VnV.h"
 
 #define SPNAME DakotaExample
-INJECTION_EXECUTABLE(SPNAME, VNV, serial)
+
+INJECTION_EXECUTABLE(SPNAME, VNV, serial);
 
 int main(int argc, char** argv) {
 

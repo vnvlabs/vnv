@@ -34,12 +34,14 @@ public:
                   ) = 0;
 };
 
+enum class RunningStatus { SETUP, INPUTS_SET, EVALUATING_FUNCTION, FUNCTION_EVALUATION_COMPLETE, ITERATING, FINISHED };
+
 
 template<typename T>
 class VnVDakotaInterface : public Dakota::DirectApplicInterface {
 public:
 
-    int status = 0;
+    RunningStatus status = RunningStatus::SETUP;
     T& eval;
 
     VnVDakotaInterface(const Dakota::ProblemDescDB& problem_db, T& eval_ ) : Dakota::DirectApplicInterface(problem_db), eval(eval_) {}
@@ -51,10 +53,11 @@ public:
 
       // Set the input parameters.
       eval.setInputs(c_vars);
-      status = 1;
-      while (status == 1 ) {} //  This runs in a thread ONLY
+      status = RunningStatus::INPUTS_SET;
+      while (status != RunningStatus::FUNCTION_EVALUATION_COMPLETE ) {
+      } //  This runs in a thread ONLY
       eval.setOutputs(asv,fn_val,fn_grad,fn_hess);
-      status = 0;
+      status = RunningStatus::ITERATING;
       return 0;
   }
 
@@ -122,7 +125,6 @@ public:
 
     bool initialized;
 
-    int status = 0;
 
     T eval;
 
@@ -152,19 +154,28 @@ public:
         env->plugin_interface(model_type, interf_type, an_driver, serial_iface);
 
         // Need to start the dakota thread that calls the run function
-        status = 2;
-        //workers.push_back(std::thread([this](){
-        //    env->execute();
-        //    status = 2;
-        //}));
+        serial_iface->status = RunningStatus::SETUP;
+        workers.push_back(std::thread([this](){            
+            env->execute();
+            serial_iface->status = RunningStatus::FINISHED;
+        }));
      }
+    }
+
+    ~DakotaInterface() {
+        for ( auto &it : workers) {
+            it.join();
+        }
     }
 
     // 0 waiting for variables to be set.
     // 1 waiting for output to be calculated
     // 2 finished iterating.
-    int runnerStatus() {
-        return (status == 2) ? 2 : serial_iface->status;
+    RunningStatus runnerStatus() {
+        return serial_iface->status;
+    }
+    int setRunnerStatus(RunningStatus status){
+        serial_iface->status = status;
     }
 
     int run(VnV::ITest* test, VnV::IOutputEngine* engine) {
@@ -173,11 +184,15 @@ public:
         initialize(test);
 
         while (true) {
-            int r = runnerStatus();
-            if (r == 2) {
+            RunningStatus r = runnerStatus();
+            if (r == RunningStatus::FINISHED) {
+                std::cout << "Finished " << std::endl;
                 return 0; // Done. no more iterations
-            } else if (r == 1 ) {
+            } else if ( r == RunningStatus::INPUTS_SET ) {
+                setRunnerStatus(RunningStatus::EVALUATING_FUNCTION);
                 return 1;
+            } else if (r == RunningStatus::EVALUATING_FUNCTION) {
+                setRunnerStatus(RunningStatus::FUNCTION_EVALUATION_COMPLETE);
             }
         }
     }
