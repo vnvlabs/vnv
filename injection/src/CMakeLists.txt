@@ -6,7 +6,14 @@ add_subdirectory(dist)
 add_subdirectory(python)
 
 target_link_libraries(injection PRIVATE dl)
+
+
 target_link_libraries(injection PUBLIC jsv::jsv)
+
+set_target_properties(injection PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+set_target_properties(injection PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
+
 
 # Message pack is used by the parallel output engine to pack buffers. This is
 # listed as public to get the unit tests working.

@@ -12,7 +12,7 @@ if(WITH_EXTRACTION AND TARGET Injection::Extraction)
 #This target is always out of date. The dummyFile is never created, so it always runs.
 #Output may or may not change
 
-function(link_vnv_file targetName packageName extension)
+function(link_vnv_file_main targetName packageName extension)
 
 add_custom_command(
    OUTPUT  ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}.__cache__
@@ -29,26 +29,37 @@ add_custom_command(
      DEPENDS ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}.__cache__
 )
 
-target_sources(${targetName} PRIVATE ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension})
 set_source_files_properties(${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
-target_link_libraries(${targetName} PRIVATE Injection::Injection)
 
 endfunction()
 
 else()
 # No extraction to be used. Hope that the distpath has a up to date copy.
-function(link_vnv_file targetName packageName extension)
+function(link_vnv_file_main targetName packageName extension)
 
 add_custom_command(
      OUTPUT ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension}
      COMMAND test -e ${VNV_OUT_DIR} || ${CMAKE_COMMAND} -E make_directory ${VNV_OUT_DIR}
      COMMAND cp ${VNV_DIST_PATH}/${VNV_OUT_PREFIX}_${packageName}.${extension} ${VNV_OUT_DIR}
 )
-target_sources(${targetName} PRIVATE ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension})
 set_source_files_properties(${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
-target_link_libraries(${targetName} PRIVATE Injection::Injection)
+
+endfunction()
+
+endif()
+
+function(link_vnv_file targetName packageName extension)
+	message(${targetName} aaa ${packageName} bbb ${extension})
+	link_vnv_file_main(${targetName} ${packageName} ${extension})
+        target_sources(${targetName} PRIVATE ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension})
+        target_link_libraries(${targetName} PRIVATE Injection::Injection)
+endfunction()
+
+function(link_vnv_file_plain targetName packageName extension)
+    link_vnv_file_main(${targetName} ${packageName} ${extension} )
+    target_sources(${targetName} PRIVATE ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension})
+    target_link_libraries(${targetName} PRIVATE Injection::Injection)
 
 endfunction()
 
 
-endif()

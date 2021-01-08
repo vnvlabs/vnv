@@ -362,7 +362,7 @@ class PreProcessVnV : public PreprocessorFrontendAction {
     Preprocessor& PP = getCompilerInstance().getPreprocessor();
     SourceManager& SRC = PP.getSourceManager();
 
-    filename = SRC.getFileEntryForID(SRC.getMainFileID())->getName().str();
+    filename = SRC.getFileEntryForID(SRC.getMainFileID())->tryGetRealPathName().str();
     subJson = json::object();
     PP.addPPCallbacks(
         std::make_unique<PreprocessCallback>(packName, subJson, includes, PP));

@@ -198,6 +198,13 @@ class ICommunicator {
                     OpType op) = 0;
 
   virtual void Abort(int errorcode) = 0;
+
+
+  template<typename T>
+  T* getRaw() {
+      return (T*) raw();
+  }
+
 };
 
 enum class CommType { World, Self, Default };

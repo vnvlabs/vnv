@@ -134,7 +134,11 @@ int main(int argc, const char** argv) {
   for (auto it : OptionsParser.getCompilations().getAllCompileCommands()) {
     auto s = std::find(it.CommandLine.begin(), it.CommandLine.end(), search);
     if (s == it.CommandLine.end()) {
-      theFiles.push_back(it.Filename);
+        if (it.Filename[0] != '/') {
+           theFiles.push_back(it.Directory + "/" + it.Filename);
+        } else {
+           theFiles.push_back(it.Filename);
+        }
     }
   }
 
@@ -182,7 +186,7 @@ int main(int argc, const char** argv) {
       cacheData[it.key()] = data;
 
     }
-    std::cout << injectionFiles.size() << "SS " << std::endl;
+    std::cout << injectionFiles.size() << "SS " << injectionFiles[0] << std::endl;
     json found = runFinder(OptionsParser.getCompilations(), injectionFiles);
     std::cout << found.dump(3)<<std::endl;
     // Add the injection point data to the cacheData object.
