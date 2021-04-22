@@ -6,37 +6,16 @@
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "interfaces/ICommunicator.h"
-
 #include <iostream>
 #include <unistd.h>
+#include "plugins/comms/MPICommunicator.h"
 
 // CommType conflicts with CommType in openmpi.
 using VnVCommType = VnV::Communication::CommType;
 
-using namespace VnV::Communication;
-
-class MPIStatus : public IStatus {
- public:
-  MPI_Status status;
-  int source() { return status.MPI_SOURCE; }
-  int tag() { return status.MPI_TAG; }
-  int error() { return status.MPI_ERROR; }
-  virtual ~MPIStatus() {}
-};
-
-class MPIRequest : public IRequest {
- public:
-  MPI_Request request;
-  virtual ~MPIRequest() {}
-};
-
-class CommKeeper {
-public:
-  MPI_Comm comm;
-  CommKeeper(MPI_Comm comm_){
-    comm = comm_;
-  }
-};
+namespace VnV {
+namespace Communication {
+namespace MPI {
 
 class MPICommunicator : public ICommunicator {
   static int destMap(int dest) { return (dest < 0) ? MPI_ANY_SOURCE : dest; }
@@ -62,7 +41,7 @@ class MPICommunicator : public ICommunicator {
     }
 
     MPI_Datatype dataType;
-    dataTypes.insert(std::make_pair(size, dataType)) ;
+    dataTypes.insert(std::make_pair(size, dataType));
     MPI_Type_contiguous(size, MPI_BYTE, &(dataTypes[size]));
     MPI_Type_commit(&(dataTypes[size]));
     return dataTypes[size];
@@ -114,7 +93,7 @@ class MPICommunicator : public ICommunicator {
     }
     throw VnV::VnVExceptionBase("Un supported Operation type");
   }
-    MPI_Comm comm;
+  MPI_Comm comm;
 
   // ICommunicator interface
  public:
@@ -123,7 +102,6 @@ class MPICommunicator : public ICommunicator {
   int worldSize, worldRank;
 
   MPICommunicator(VnVCommType type) : mtype(type) {
-
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
 
@@ -132,63 +110,51 @@ class MPICommunicator : public ICommunicator {
     } else if (type == VnVCommType::World) {
       setComm(MPI_COMM_WORLD);
     }
-
-
   }
 
-
   void setData(void* data) override {
-    CommKeeper* comm = (CommKeeper*) data;
+    CommKeeper* comm = (CommKeeper*)data;
+    commUniqueId = comm->uniqueId;
     setComm(comm->comm);
   }
 
-  static int getWorldSize() {
-    static int worldSize;
-
-  }
-
   void setComm(MPI_Comm comm_) {
-     comm = comm_;
-
-     if (Size() == worldSize) {
+    comm = comm_;
+    if (commUniqueId < 0) {
+      if (Size() == worldSize) {
         commUniqueId = worldSize;
-     } else if (Size() == 1 ) {
-       commUniqueId = getpid();
-     } else {
+      } else if (Size() == 1) {
+        commUniqueId = getpid();
+      } else {
+        MPI_Group grp, world_grp;
+        MPI_Comm_group(MPI_COMM_WORLD, &world_grp);
+        MPI_Comm_group(comm, &grp);
 
-       MPI_Group grp, world_grp;
-       MPI_Comm_group(MPI_COMM_WORLD, &world_grp);
-       MPI_Comm_group(comm, &grp);
+        int grp_size = Size();
 
-       int grp_size = Size();
+        std::vector<int> ranks(grp_size);
+        std::iota(ranks.begin(), ranks.end(), 0);
 
-       std::vector<int> ranks(grp_size);
-       std::iota(ranks.begin(), ranks.end(), 0);
+        std::vector<int> wranks(grp_size);
+        MPI_Group_translate_ranks(grp, grp_size, &(ranks[0]), world_grp,
+                                  &(wranks[0]));
 
-       std::vector<int> wranks(grp_size);
-       MPI_Group_translate_ranks(grp, grp_size, &(ranks[0]), world_grp, &(wranks[0]));
+        commUniqueId = VnV::HashUtils::vectorHash(wranks);
 
-       commUniqueId = VnV::HashUtils::vectorHash(wranks);
-
-
-       MPI_Group_free(&grp);
-       MPI_Group_free(&world_grp);
-     }
+        MPI_Group_free(&grp);
+        MPI_Group_free(&world_grp);
+      }
+    }
   }
-
 
   void* getData() override {
-        CommKeeper *k = new CommKeeper(comm);
-        return k;
+    CommKeeper* k = new CommKeeper(comm, commUniqueId);
+    return k;
   }
 
-  void* raw() override {
-      return &comm;
-  }
+  void* raw() override { return &comm; }
 
-  long uniqueId() override {
-    return commUniqueId;
-  }
+  long uniqueId() override { return commUniqueId; }
 
   int Size() override {
     int x;
@@ -211,6 +177,7 @@ class MPICommunicator : public ICommunicator {
     std::string s(name);
     return s;
   }
+
   double time() override { return MPI_Wtime(); }
 
   double tick() override { return MPI_Wtick(); }
@@ -253,7 +220,6 @@ class MPICommunicator : public ICommunicator {
   ICommunicator_ptr self() {
     return ICommunicator_ptr(new MPICommunicator(VnVCommType::Self));
   }
-
 
   // Want procs in range [start,end). Make sure to put end-1.
   ICommunicator_ptr create(int start, int end, int stride, int tag) override {
@@ -451,12 +417,16 @@ class MPICommunicator : public ICommunicator {
     MPI_Allgather(buffer, count, getDataType(dataTypeSize), recvBuffer, count,
                   getDataType(dataTypeSize), comm);
   }
-  void GatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize, int root) {
-    MPI_Gatherv(buffer,count,getDataType(dataTypeSize),recvBuffer,recvCount,recvDispl, getDataType(dataTypeSize),root, comm);
+  void GatherV(void* buffer, int count, void* recvBuffer, int* recvCount,
+               int* recvDispl, int dataTypeSize, int root) {
+    MPI_Gatherv(buffer, count, getDataType(dataTypeSize), recvBuffer, recvCount,
+                recvDispl, getDataType(dataTypeSize), root, comm);
   }
 
-  void AllGatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize) {
-    MPI_Allgatherv(buffer,count,getDataType(dataTypeSize),recvBuffer,recvCount,recvDispl, getDataType(dataTypeSize),comm);
+  void AllGatherV(void* buffer, int count, void* recvBuffer, int* recvCount,
+                  int* recvDispl, int dataTypeSize) {
+    MPI_Allgatherv(buffer, count, getDataType(dataTypeSize), recvBuffer,
+                   recvCount, recvDispl, getDataType(dataTypeSize), comm);
   }
 
   void BroadCast(void* buffer, int count, int dataTypeSize, int root) override {
@@ -480,8 +450,7 @@ class MPICommunicator : public ICommunicator {
     MPI_Reduce(buffer, recvBuffer, count, getDataType(dataTypeSize), getOp(op),
                root, comm);
 
-    char* coutvec = (char*) recvBuffer;
-
+    char* coutvec = (char*)recvBuffer;
   }
 
   void AllReduce(void* buffer, int count, void* recvBuffer, int dataTypeSize,
@@ -499,5 +468,10 @@ class MPICommunicator : public ICommunicator {
   void Abort(int errorcode) override { MPI_Abort(comm, errorcode); }
 };
 
+}
+}
+}
 
-INJECTION_COMM(VNVPACKAGENAME, mpi) { return new MPICommunicator(type); }
+INJECTION_COMM(VNVPACKAGENAME, mpi) {
+  return new VnV::Communication::MPI::MPICommunicator(type);
+}

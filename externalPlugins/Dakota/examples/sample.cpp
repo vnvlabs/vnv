@@ -23,18 +23,16 @@ int main(int argc, char** argv) {
   double f = 0;
 
   /**
-   * Example Iteration point. This example iterator evaluates the function
+   * Simple Function evaluation of the function
    *
-   * TODO [vnv-math] (x + y)*(x+y) + 100*x - 10*y
+   * ..math::
    *
-   * TODO: Plot the function + mathjax to display the function.
-   * TODO: Add a default callback option that writes the data automatically
-   * for use in this comment.
+   *     f(x,y) = (x+y)^2 + 100x - 10y
+   *
    *
    */
-  INJECTION_ITERATION(SPNAME, VWORLD(SPNAME), dakotaLoop, 1, 2, x , y, f ) {
+  INJECTION_ITERATION(SampleApplication, VWORLD, dakotaLoop, 1, 2, x , y, f ) {
      f = (x + y)*(x + y) + 100*x - 10*y;
-     std::cout << "( f, x, y) : " << f << " " << x << " " << y << std::endl;
   }
 
 

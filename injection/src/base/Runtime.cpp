@@ -155,6 +155,8 @@ RunTimeOptions* RunTime::getRunTimeOptions() { return &runTimeOptions; }
 void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
                              const CppInjection::DataCallback& callback,
                              NTV& args) {
+  INJECTION_LOOP_ITER(VNVPACKAGENAME, initialization, cpi);
+
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Single, args);
   if (it != nullptr) {
     it->setCallBack(callback);
@@ -227,6 +229,8 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
                                    std::string id,
                                    const CppInjection::DataCallback& callback,
                                    NTV& args) {
+  INJECTION_LOOP_ITER(VNVPACKAGENAME, initialization, cppi);
+
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Begin, args);
   if (it != nullptr) {
     it->setCallBack(callback);
@@ -237,6 +241,9 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
 
 void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
                              injectionDataCallback* callback, NTV& args) {
+
+    INJECTION_LOOP_ITER(VNVPACKAGENAME, initialization, cpp);
+
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Single, args);
   if (it != nullptr) {
     it->setCallBack(callback);
@@ -248,7 +255,9 @@ void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
 void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
                                    std::string id,
                                    injectionDataCallback* callback, NTV& args) {
-  auto it = getNewInjectionPoint(pname, id, InjectionPointType::Begin, args);
+  INJECTION_LOOP_ITER(VNVPACKAGENAME, initialization, cp);
+
+    auto it = getNewInjectionPoint(pname, id, InjectionPointType::Begin, args);
   if (it != nullptr) {
     it->setCallBack(callback);
     it->setComm(getComm(comm));

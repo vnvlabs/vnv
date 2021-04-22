@@ -321,16 +321,7 @@ void join(std::shared_ptr<IData> &datastruct, long commId, std::map<long,CommWra
      //
 }
 
-void commsMapSetToMap(CommWrap_ptr ptr, std::map<long,CommWrap_ptr> &comms) {
-   auto it = comms.find(ptr->id);
-   if (it == comms.end()) {
-      comms.insert(std::make_pair(ptr->id,ptr));
-      for (auto ch : ptr->children) {
-        commsMapSetToMap(ch.second, comms);
-      }
 
-   }
-}
 
 
 void join(std::string outputfile, std::set<CommWrap_ptr> &comms, int worldSize) {
@@ -339,38 +330,33 @@ void join(std::string outputfile, std::set<CommWrap_ptr> &comms, int worldSize) 
   //The goal here it to join all the output files into a single file
    //We should get a single output file that contains all injection points.
    if (comms.size() == 0 ) return;
-   if (comms.size() > 1 )
-      throw VnVExceptionBase("To many root communicators");
-
-   std::map<long, CommWrap_ptr> commsMap;
-   for (auto it : comms) {
-     commsMapSetToMap(it, commsMap);
+   if (comms.size() > 1 ) {
+     throw VnVExceptionBase("To many root communicators");
    }
-
-   std::shared_ptr<IData> dstruct = nullptr;
-   std::set<long> done;
 
    json jcomm = json::object();
    std::set<long> done1;
    for (auto it : comms) {
       it->toJson1(jcomm,done1);
-  }
-
-   for (auto it : commsMap) {
-      join(dstruct, it.second->id, commsMap, outputfile, done);
    }
-
-   json joinedJson = dstruct->write();
-   joinedJson["spec"] = RunTime::instance().getFullJson();
    json comMap = json::object();
    comMap["worldSize"] = worldSize;
    comMap["map"] = jcomm;
-   joinedJson["commMap"] = comMap;
 
+  std::map<long, CommWrap_ptr> commsMap = CommMapper::convertToMap(comms);
+  std::shared_ptr<IData> dstruct = nullptr;
+  std::set<long> done;
+  for (auto it : commsMap) {
+      join(dstruct, it.second->id, commsMap, outputfile, done);
+  }
+  json joinedJson = dstruct->write();
 
-   std::ofstream f(outputfile);
-   f << joinedJson.dump(4);
-   f.close();
+  joinedJson["commMap"] = comMap;
+  joinedJson["spec"] = RunTime::instance().getFullJson();
+
+  std::ofstream f(outputfile);
+  f << joinedJson.dump(4);
+  f.close();
 
 }
 

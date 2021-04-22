@@ -92,7 +92,25 @@ cpuRunner::~cpuRunner() {}
  *             "borderColor": "rgb(255, 99, 132)",
  *             "data": $$ydata$$
  *           }]
- *       }
+ *       },
+ *       "options" : {
+ *           "responsive" : true,
+ *           "title" : { "display" : true, "text" : "CPU Time at the begining of each injection point." },
+ *           "scales": {
+ *               "yAxes": [{
+ *                   "scaleLabel": {
+ *                       "display": true,
+ *                       "labelString": "CPU Time (nanoseconds)"
+ *                   }
+ *               }],
+ *               "xAxes": [{
+ *                   "scaleLabel": {
+ *                       "display":true,
+ *                       "labelString": "Injection Point Stage"
+ *                   }
+ *               }]
+ *            }
+ *        }
  *    }
  *
  */

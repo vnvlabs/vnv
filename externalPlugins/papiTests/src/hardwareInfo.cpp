@@ -128,7 +128,7 @@ public:
        if (r == PAPI_OK)
          EventSetCounter++;
        else
-         std::cout << PAPI_descr_error(r) << std::endl;;
+         std::cout << "SDFSDFSDF " << id << " " << PAPI_TOT_CYC << PAPI_descr_error(r) << std::endl;;
        return r;
     }
     return -1;

@@ -41,6 +41,22 @@ std::string VnV::ProvenanceUtils::cmdLineToString(int argc, char** argv) {
   return commandline.str();
 }
 
+std::string VnV::StringUtils::metaDataToJsonString(const std::map<std::string,std::string> &metadata) {
+    std::ostringstream oss;
+    oss << "{";
+    
+    int count = 0;
+    for (auto &it : metadata) {
+      if (count > 0 ) {
+        oss << ",";
+      }
+      oss << "\"" << it.first << "\" : \"" << it.second << "\"";
+      count++;
+    }
+    oss << "}";
+    return oss.str();
+}
+
 std::string VnV::StringUtils::escapeQuotes(std::string str,
                                            bool escapeFullString) {
   std::ostringstream oss;
@@ -146,6 +162,17 @@ std::string VnV::StringUtils::get_type(std::string s) {
   } else {
     return s;
   }
+}
+
+std::string VnV::StringUtils::toString(std::vector<std::size_t> vector) {
+  std::ostringstream oss;
+  oss << "[";
+  if (vector.size() > 0) oss << vector[0];
+  for (int i = 1; i < vector.size(); i++) {
+    oss << "," << vector[i];
+  }
+  oss << "]";
+  return oss.str();
 }
 
 int VnV::StringUtils::StringSplit(const std::string& s, const char* delim,

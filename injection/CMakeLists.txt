@@ -6,7 +6,7 @@ endif()
 
 # Add the third party targets ( json-schema-validator TODO github-link)
 
-add_library(injection SHARED "")
+add_library(injection SHARED "" include/plugins/comms/MPICommunicator.h)
 link_vnv_file(injection VNV cpp)
 
 set_target_properties(injection PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION

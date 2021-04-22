@@ -86,6 +86,7 @@ def collapseStart(title, comm=None, show=False, icon=""):
     s = ".show" if show else ""
     id_ = getCollapseId()
     comm_ = "" if comm is None else 'vnvcomm="{}"'.format(comm)
+    title = title if comm is None else "{} (comm {})".format(title,comm)
     return collapse_start.format(title=title, id=id_, show=s, icon=icon, comm=comm_), id_
 
 

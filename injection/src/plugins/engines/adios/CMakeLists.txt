@@ -5,7 +5,9 @@ if(WITH_MPI)
     find_package(ADIOS2)
     if(ADIOS2_FOUND)
       target_sources(injection
-                     PRIVATE ${CMAKE_CURRENT_LIST_DIR}/AdiosEngineManager.cpp)
+                     PRIVATE ${CMAKE_CURRENT_LIST_DIR}/AdiosEngineManager.cpp
+                             ${CMAKE_CURRENT_LIST_DIR}/AdiosEngineImpl.cpp
+                     )
       target_link_libraries(injection PRIVATE adios2::adios2)
       target_compile_definitions(injection PRIVATE WITH_ADIOS=1)
     endif()

@@ -51,6 +51,22 @@ void getAllLinkedLibraryData(libData* data);
 void callAllLibraryRegistrationFunctions(
     std::map<std::string, std::string> packageNames);
 
+/**
+ * Make the directory with the given mode.
+ * @param filename
+ * @param mode
+ * @return
+ */
+bool makedir(std::string filename, mode_t mode );
+
+/**
+ * Make the nested directories with the given mode.
+ * @param filename
+ * @param mode
+ * @return
+ */
+std::string makeDirectories(std::vector<std::string> vector, mode_t i);
+
 }  // namespace DistUtils
 }  // namespace VnV
 

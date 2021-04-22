@@ -16,4 +16,5 @@
           ${CMAKE_CURRENT_LIST_DIR}/Logger.cpp
           ${CMAKE_CURRENT_LIST_DIR}/OffloaderStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/Communication.cpp
+          ${CMAKE_CURRENT_LIST_DIR}/CommMapper.cpp
           ${CMAKE_CURRENT_LIST_DIR}/CommunicationStore.cpp)

@@ -33,6 +33,8 @@ namespace StringUtils {
 
 std::string escapeQuotes(std::string str, bool escapeFullString);
 
+std::string metaDataToJsonString(const std::map<std::string,std::string> &metadata);
+
 void ltrim(std::string& s);
 
 // trim from end (in place)
@@ -87,6 +89,8 @@ void erase_if(ContainerT& items, const PredicateT& predicate) {
       ++it;
   }
 }
+
+std::string toString(std::vector<std::size_t> vector);
 
 }  // namespace StringUtils
 

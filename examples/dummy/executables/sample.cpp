@@ -114,6 +114,119 @@ class test1 {
 
 #include <map>
 
+double func(double x)
+{
+    return x*x*x - x*x + 2;
+}
+
+// Derivative of the above function which is 3*x^x - 2*x
+double derivFunc(double x)
+{
+    return 3*x*x - 2*x;
+}
+
+void newtonRaphson(double x, double eps, int rank)
+{
+    double f = func(x);
+    double fp = derivFunc(x);
+    double h = f/fp;
+    double iter = 0;
+
+    /**
+     *
+     *  Newton Raphson Method for finding the root of a function
+     *  ========================================================
+     *
+     *  This function uses the NewtonRaphson method to solve
+     *  the function
+     *
+     *  .. math::
+     *
+     *     f(x) = x^3 - x^2 + 2 = 0.
+     *
+     *  where the formula for the Newton Raphson method is:
+     *
+     *  .. math::
+     *
+     *     x_{n+1} = x_{n} + \frac{f(x_n)}{f'(x_n)}.
+     *
+     *  The solution is x = -1.
+     *
+     *  The newton raphson method is expected to converge quadratically to
+     *  the root. The following chart shows the current value of the best
+     *  guess at each iteration of the algorithm.
+     *
+     *  .. vnv-chart::
+     *     :labels: Data.Data[?Name == 'iter'].to_string(Value)
+     *     :vals: Data.Data[?Name == 'root'].Value
+     *
+     *
+     *     {
+     *        "type" : "line",
+     *        "data" : {
+     *           "labels": $$labels$$,
+     *           "datasets" : [
+     *              {
+     *                "label" : "Approximate Root",
+     *                "data": $$vals$$,
+     *                "fill" : true,
+     *                "backgroundColor": "rgb(255, 99, 132)",
+     *                "borderColor": "rgb(255, 99, 132)"
+     *              }
+     *           ]
+     *        },
+     *        "options" : {
+     *           "responsive" : true,
+     *           "title" : { "display" : true, "text" : "Convergence of the Newton Raphson Method" },
+     *           "scales": {
+     *               "yAxes": [{
+     *                   "scaleLabel": {
+     *                       "display": true,
+     *                       "labelString": "Current Guess"
+     *                   }
+     *               }],
+     *               "xAxes": [{
+     *                   "scaleLabel": {
+     *                       "display":true,
+     *                       "labelString": "Iteration Number"
+     *                   }
+     *               }]
+     *            }
+     *        }
+     *     }
+     *
+    **/
+    INJECTION_LOOP_BEGIN_C(
+        SPNAME, VSELF(SPNAME), NewtonRaphson,
+        [](VnV_Comm comm, VnV::VnVParameterSet& p,
+           VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
+           std::string stageId) {
+        const double& x = p["x"].getByRtti<double>();
+        const double& iter = p["iter"].getByRtti<double>();
+        const int& rank = p["rank"].getByRtti<int>();
+
+        engine->Put("Rank", rank);
+
+        engine->Put("root",x);
+        engine->Put("iter",iter);
+        },
+        x, iter, rank );
+
+
+    while (std::abs(h) >= eps)
+    {
+        f = func(x);
+        fp = derivFunc(x);
+        h = f/fp;
+        x = x - h;
+        iter++;
+        INJECTION_LOOP_ITER(SPNAME,NewtonRaphson, iteration)
+    }
+    INJECTION_LOOP_END(SPNAME, NewtonRaphson)
+}
+
+
+
 int function1(int x) {
   std::map<double, double> samplePoints;
   /**
@@ -208,8 +321,15 @@ int main(int argc, char** argv) {
   int i = min;
 
 
+  double start = -10*(rank+1);
+  newtonRaphson(start, 0.000001, rank);
+
+
   INJECTION_POINT(SPNAME, VWORLD(SPNAME), functionTest, function1)
 
+  MPI_Comm comm, comm1;
+  MPI_Comm_split(MPI_COMM_WORLD, rank % 2, rank, &comm);
+  MPI_Comm_split(MPI_COMM_WORLD, rank / 2, rank, &comm1);
   /**
    *
    *  Looped Injection Point with a Callback function
@@ -255,11 +375,6 @@ int main(int argc, char** argv) {
    *     }
    *
   **/
-   MPI_Comm comm, comm1;
-
-  MPI_Comm_split(MPI_COMM_WORLD, rank % 2, rank, &comm);
-  MPI_Comm_split(MPI_COMM_WORLD, rank / 2, rank, &comm1);
-
   INJECTION_LOOP_BEGIN_C(
       SPNAME, VCUST(SPNAME,comm), loopTest1,
       [](VnV_Comm comm, VnV::VnVParameterSet& p,

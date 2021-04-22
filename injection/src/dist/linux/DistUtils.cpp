@@ -56,6 +56,33 @@ std::string getAbsolutePath(std::string filename) {
   return filename;
 }
 
+bool makedir(std::string filename, mode_t mode ) {
+  return mkdir(filename.c_str(), mode) == 0;
+}
+
+std::string makeDirectories(std::vector<std::string> vector, mode_t i) {
+  if (vector.size() > 0 ) {
+     std::string s = "";
+     for (auto it : vector) {
+        s = s + it + "/";
+
+       struct stat sb;
+       if ( stat(s.c_str(), &sb) == 0 ) {
+          if ( S_ISDIR(sb.st_mode)) {
+            continue;
+          } else {
+            throw VnVExceptionBase("Cannot create directory as file with that name exists");
+          }
+       } else if ( !makedir(s,i)) {
+          throw VnV::VnVExceptionBase("Cannot make directory");
+        }
+     }
+     return s;
+  }
+  throw VnV::VnVExceptionBase("Empty directory list");
+}
+
+
 static int info_callback(struct dl_phdr_info* info, size_t /*size*/,
                          void* data) {
   std::string name(info->dlpi_name);

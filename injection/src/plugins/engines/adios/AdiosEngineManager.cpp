@@ -1,6 +1,11 @@
 ﻿
 /** @file AdiosOutputEngineImpl.cpp **/
 #include "plugins/engines/adios/AdiosEngineManager.h"
+#include <fstream>
+#include <chrono>
+#include "base/Runtime.h"
+#include "plugins/comms/MPICommunicator.h"
+#include "base/DistUtils.h"
 
 using nlohmann::json;
 
@@ -33,60 +38,112 @@ namespace VnV {
 namespace VNVPACKAGENAME {
 namespace Engines {
 
-OutputEngineManager* AdiosEngineBuilder() { return new AdiosEngineManager(); }
 
-AdiosEngineManager::AdiosEngineManager() {}
+int AdiosEngineManager::ADIOS_ENGINE_MANAGER_VERSION = 1;
+
+
+AdiosEngineManager::AdiosEngineManager() {
+
+}
 
 AdiosEngineManager::~AdiosEngineManager() {}
 
 void AdiosEngineManager::Put( std::string variableName,
                              const double& value,const MetaData& m) {
-  engine.Put(variableName, value);
+  curr->Put(variableName, value, m ,0);
 }
 
 void AdiosEngineManager::Put(std::string variableName,
                              const long long& value,const MetaData& m) {
-  engine.Put(variableName, value);
+  curr->Put(variableName, value, m, 0);
 }
 
 void AdiosEngineManager::Put(std::string variableName,
                              const bool& value,const MetaData& m) {
-  const int val = value;
-  engine.Put(variableName, val);
+  curr->Put(variableName, value, m, 0);
 }
 
 void AdiosEngineManager::Put(std::string variableName,
                              const nlohmann::json& value,const MetaData& m) {
-  engine.Put(variableName, value.dump());
+  curr->Put(variableName, value, m, 0);
 }
 
-void AdiosEngineManager::Put(std::string variableName,
-                             const std::string& value,const MetaData& m) {
-  engine.Put(variableName, value);
+void AdiosEngineManager::Put(std::string variableName, const std::string& value,const MetaData& m) {
+  curr->Put(variableName, value, m, 0);
 }
 
 
-void AdiosEngineManager::Log(ICommunicator_ptr, const char* package, int stage,
+void AdiosEngineManager::PutGlobalArray(long long dtype,
+                    std::string variableName,
+                    IDataType_vec data,
+                    std::vector<std::size_t> gsizes,
+                    std::vector<std::size_t> sizes,
+                    std::vector<std::size_t> offset,
+                    const MetaData& m,
+                    int onlyOne ) {
+
+    curr->PutGlobalArray(variableName,data,gsizes,sizes,offset,m);
+}
+
+
+void AdiosEngineManager::Log(ICommunicator_ptr comm, const char* package, int stage,
                              std::string level, std::string message) {
-  std::ostringstream oss;
-  oss << "[" << package << ":" << level << "]: " << message;
-  engine.Put("LOGS", oss.str());
+   setComm(comm);
+   long nextId = getNextId(comm); // Could do nullptr here as logs  are root only at the moment.  
+   curr->Log(nextId, package, stage, level, message);
+ }
+
+std::string AdiosEngineManager::getFileName( std::vector<std::string> fname) {
+   fname.insert(fname.begin(),outfile);
+   std::string filename = fname.back();
+   fname.pop_back();
+   std::string fullname = DistUtils::makeDirectories(fname,0777);
+   return fullname + filename;
 }
+
 
 void AdiosEngineManager::finalize(ICommunicator_ptr worldComm) {
-  if (engine) {
-    engine.Close();
-  }
+
+   //Finalize all the engines.
+   for( auto it : routes) {
+     it.second->finalize();
+   }
+
+   // Get the comm map information and write it to file.
+   auto comms = commMapper.gatherCommInformation(worldComm);
+   if (worldComm->Rank() == getRoot(worldComm)) {
+
+      if (comms.size() > 1 ) {
+       throw VnVExceptionBase("To many root communicators");
+      } else if (comms.size() == 1 ) {
+        // Write the comm information to json/
+        json jcomm = json::object();
+        std::set<long> done1;
+        for (auto it : comms) {
+          it->toJson1(jcomm, done1);
+        }
+
+        json comMap = json::object();
+        comMap["worldSize"] = worldComm->Size();
+        comMap["map"] = jcomm;
+
+        worldEngine.Put("commMap", comMap.dump());
+      }
+      worldEngine.Close();
+   }  
 }
 
 void AdiosEngineManager::setFromJson(nlohmann::json& config) {
+  
   bool debug = false;
   std::string configFile = "";
-  std::string outfile = "./vnv-adios.out";
 
-  if (config.find("debug") != config.end()) debug = config["debug"].get<bool>();
+  if (config.find("debug") != config.end()) 
+    debug = config["debug"].get<bool>();
+  
   if (config.find("outFile") != config.end())
     outfile = config["outFile"].get<std::string>();
+  
   if (config.find("configFile") != config.end())
     configFile = config["configFile"].get<std::string>();
 
@@ -96,116 +153,121 @@ void AdiosEngineManager::setFromJson(nlohmann::json& config) {
     adios = new adios2::ADIOS(configFile, MPI_COMM_WORLD, debug);
 
   bpWriter = adios->DeclareIO("BPWriter");
-  outputFile = bpWriter.AddTransport(
-      "File", {{"Library", "POSIX"}, {"Name", outfile.c_str()}});
-  identifier = bpWriter.DefineVariable<std::string>("identifier");
-  stage = bpWriter.DefineVariable<std::string>("stage");
-  type = bpWriter.DefineVariable<std::string>("type");
-  markdown = bpWriter.DefineVariable<std::string>("markdown");
-  result = bpWriter.DefineVariable<int>("result");
-  engine = bpWriter.Open(outfile, adios2::Mode::Write);
+  outputFile = bpWriter.AddTransport("File", {{"Library", "POSIX"}, {"Name", outfile.c_str()}});
+
+  bpWriter.DefineVariable<long>("identity");
+  bpWriter.DefineVariable<double>("double");
+  bpWriter.DefineVariable<long long>("longlong");
+  bpWriter.DefineVariable<std::string>("string");
+  bpWriter.DefineVariable<bool>("bool");
+  bpWriter.DefineVariable<std::string>("json");
+  bpWriter.DefineVariable<std::string>("metadata");
+  bpWriter.DefineVariable<std::string>("name");
+  bpWriter.DefineVariable<std::string>("package");
+  bpWriter.DefineVariable<int>("stage");
+  bpWriter.DefineVariable<std::string>("level");
+
+  MPI_Comm_rank(MPI_COMM_WORLD,&worldRank);
+  worldEngine = bpWriter.Open(getFileName({"info.json"}), adios2::Mode::Write, MPI_COMM_WORLD);
+
+  int worldSize;
+  MPI_Comm_size(MPI_COMM_WORLD,&worldSize);
+
+  if (worldRank == 0) {
+     json info = json::object();
+     info["title"] = "VnV Simulation Report";
+     info["date"] = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+     info["spec"] = RunTime::instance().getFullJson();
+     info["engine"] = "Adios";
+     info["commsize"] = worldSize;
+     info["version"] = ADIOS_ENGINE_MANAGER_VERSION;
+
+     worldEngine.BeginStep();
+      worldEngine.Put("info", info.dump());
+     worldEngine.EndStep();
+  }
+
 }
 
-void AdiosEngineManager::injectionPointEndedCallBack(ICommunicator_ptr, std::string id,
+
+
+void AdiosEngineManager::setComm(ICommunicator_ptr comm) {
+  commMapper.logComm(comm);
+  long uid = comm->uniqueId();
+  auto it = routes.find(uid);
+  if (it == routes.end()) {
+
+    std::string datafname = getFileName({"comms",std::to_string(comm->uniqueId()),"data.bp3"});
+    std::string metafname = getFileName({"comms",std::to_string(comm->uniqueId()),"meta.bp3"});
+
+    MPI_Comm mpicomm = VnV::Communication::MPI::castToMPIComm(comm);
+
+    curr = std::make_shared<AdiosEngineImpl>(bpWriter, datafname, metafname, mpicomm, comm->uniqueId(), comm->Rank()==0);
+    routes[uid] = curr;
+
+  } else {
+    curr = it->second;
+  } 
+}
+
+long AdiosEngineManager::getNextId(ICommunicator_ptr comm) {
+    if (comm != nullptr) {
+      id = commMapper.getNextId(comm,id);
+    }
+    return id++;
+}
+
+void AdiosEngineManager::injectionPointEndedCallBack(ICommunicator_ptr comm, std::string id,
                                                      InjectionPointType type_,
                                                      std::string stageId) {
-  if (engine) {
-    engine.BeginStep();
-    engine.Put(identifier, id);
-    std::string ss = InjectionPointTypeUtils::getType(type_, stageId);
-    engine.Put(stage, ss);
-    std::string s = "EndIP";
-    engine.Put(type, s);
-    engine.EndStep();
-  } else {
-    throw VnVExceptionBase("Engine not initialized");
-  }
+  
+  setComm(comm);
+  curr->injectionPointEndedCallBack(id, type_, stageId);
 }
 
-void AdiosEngineManager::injectionPointStartedCallBack(ICommunicator_ptr,
+void AdiosEngineManager::injectionPointStartedCallBack(ICommunicator_ptr comm,
                                                        std::string packageName,
                                                        std::string id,
 
                                                        InjectionPointType type_,
                                                        std::string stageId) {
-  if (engine) {
-    engine.BeginStep();
-    engine.Put(identifier, id);
-    std::string ss = InjectionPointTypeUtils::getType(type_, stageId);
-    engine.Put(stage, ss);
-    std::string s = "StartIP";
-    engine.Put(type, s);
-    engine.EndStep();
-  } else {
-    throw VnVExceptionBase("Engine not initialized");
-  }
+  setComm(comm);
+  long nextId = getNextId(comm); 
+  curr->injectionPointStartedCallBack(nextId, packageName, id, type_, stageId);
 }
 
-void AdiosEngineManager::testStartedCallBack(ICommunicator_ptr, std::string packageName,
+void AdiosEngineManager::testStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                                              std::string testName,
                                              bool internal) {
-  if (engine) {
-    engine.BeginStep();
-    engine.Put(identifier, testName);
-    std::string test = "StartTest";
-    engine.Put(type, test);
-  } else {
-    throw VnVExceptionBase("Engine not setup correctly");
-  }
+    setComm(comm);
+    curr->testStartedCallBack(packageName, testName, internal);
 }
 
-void AdiosEngineManager::testFinishedCallBack(ICommunicator_ptr, bool result_) {
-  if (engine) {
-    int res = (result_) ? 1 : 0;
-    engine.Put(result, res);
-    engine.EndStep();
-  }
+void AdiosEngineManager::testFinishedCallBack(ICommunicator_ptr comm, bool result_) {
+    setComm(comm);
+    curr->testFinishedCallBack(result_);
 }
 
-void AdiosEngineManager::unitTestStartedCallBack(ICommunicator_ptr,
+void AdiosEngineManager::unitTestStartedCallBack(ICommunicator_ptr comm,
                                                  std::string packageName,
                                                  std::string unitTestName) {
-  if (engine) {
-    engine.BeginStep();
-    engine.Put(identifier, unitTestName);
-    std::string test = "StartUnitTest";
-    engine.Put(type, test);
-  } else {
-    throw VnVExceptionBase("Engine not setup correctly.");
-  }
+  setComm(comm);
+  curr->unitTestStartedCallBack(packageName, unitTestName);
 }
 
-void AdiosEngineManager::unitTestFinishedCallBack(ICommunicator_ptr, IUnitTest* tester) {
-  if (engine) {
-    int suiteSuccess = 1;
-    for (auto it : tester->getResults()) {
-      int res = (std::get<2>(it)) ? 1 : 0;
-      engine.Put(identifier, std::get<0>(it));
-      engine.Put(result, res);
-      if (suiteSuccess && !std::get<2>(it)) suiteSuccess = false;
-    }
-    engine.Put(result, suiteSuccess);
-    engine.EndStep();
-  }
+void AdiosEngineManager::unitTestFinishedCallBack(ICommunicator_ptr comm, IUnitTest* tester) {
+  setComm(comm);
+  curr->unitTestFinishedCallBack(tester);
 }
 void AdiosEngineManager::dataTypeStartedCallBack(
                                                  std::string variableName,
                                                  long long dtype,const MetaData& m ) {
-  if (engine) {
-    engine.BeginStep();
-    engine.Put(identifier, variableName);
-    std::string test = "StartDataType";
-    engine.Put(type, test);
-  } else {
-    throw VnVExceptionBase("Engine not setup correctly.");
-  }
+    curr->dataTypeStartedCallBack(variableName,dtype, m);
 }
 
 void AdiosEngineManager::dataTypeEndedCallBack(
                                                std::string variableName) {
-  if (engine) {
-    engine.EndStep();
-  }
+     curr->dataTypeEndedCallBack(variableName);
 }
 nlohmann::json AdiosEngineManager::getConfigurationSchema() {
   return __adios_input_schema__;

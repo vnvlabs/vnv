@@ -186,7 +186,6 @@ int main(int argc, const char** argv) {
       cacheData[it.key()] = data;
 
     }
-    std::cout << injectionFiles.size() << "SS " << injectionFiles[0] << std::endl;
     json found = runFinder(OptionsParser.getCompilations(), injectionFiles);
     std::cout << found.dump(3)<<std::endl;
     // Add the injection point data to the cacheData object.
