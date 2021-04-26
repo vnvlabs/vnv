@@ -17,14 +17,13 @@ struct IOutputEngineWrapper {
 
 #define OUTPUTENGINESUPPORTEDTYPES X(double) X(int) X(long)
 #define X(type)                                                               \
-  VNVEXTERNC void VnV_Output_Put_##type(VnV_Comm comm,                        \
+  VNVEXTERNC void VnV_Output_Put_##type(                        \
                                         struct IOutputEngineWrapper* wrapper, \
                                         const char* name, type* value);
 OUTPUTENGINESUPPORTEDTYPES
 #undef X
 
-VNVEXTERNC void VnV_Output_Put_String(VnV_Comm comm,
-                                      struct IOutputEngineWrapper* wrapper,
+VNVEXTERNC void VnV_Output_Put_String(struct IOutputEngineWrapper* wrapper,
                                       const char* name, const char* value);
 
 struct ParameterDTO {

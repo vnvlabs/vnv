@@ -15,6 +15,8 @@
 
 typedef void (*vnv_registration_function)();
 
+
+
 // Put comma before the first variable -- Because we have nothing after
 #  define DOIT(X) , #  X, X
 #  define EVERYONE(...) FOR_EACH(DOIT, __VA_ARGS__)
@@ -47,11 +49,14 @@ void BeginPoint(VnV_Comm comm, const char* package, const char* id,
 void BeginLoop(VnV_Comm comm, const char* package, const char* id,
                const DataCallback& callback, NTV& map);
 
-void UnwrapParameterPack_iter(int inputs, NTV &mm, NTV& m);
 
 VnV_Iterator BeginIteration(VnV_Comm comm, const char* package, const char* id,
-                   const CppInjection::DataCallback& callback,
-                    int once, NTV&inputs, NTV& ouputs);
+                            const CppInjection::DataCallback& callback,
+                            int once, NTV&inputs, NTV& ouputs);
+
+
+void UnwrapParameterPack_iter(int inputs, NTV &mm, NTV& m);
+
 
 int Iterate(VnV_Iterator* iterator);
 
@@ -85,24 +90,24 @@ void UnwrapParameterPack_iter(int inputs, NTV& minputs, NTV&moutputs, V& name, T
 
 
 
-template <typename... Args>
-void BeginLoopPack(VnV_Comm comm, const char* package, const char* id,
+template <typename A, typename... Args>
+void BeginLoopPack(A comm, const char* package, const char* id,
                    const DataCallback& callback, Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> m;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
   BeginLoop(comm, package, id, callback, m);
 }
 
-template <typename... Args>
-void BeginPack(VnV_Comm comm, const char* package, const char* id,
+template <typename A, typename... Args>
+void BeginPack(A comm, const char* package, const char* id,
                const DataCallback& callback, Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> m;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
   BeginPoint(comm, package, id, callback, m);
 }
 
-template <typename... Args>
-VnV_Iterator IterationPack(VnV_Comm comm, const char* package, const char* id,
+template <typename A, typename... Args>
+VnV_Iterator IterationPack(A comm, const char* package, const char* id,
                const CppInjection::DataCallback& callback,
                int once, int inputs, Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> minputs;
@@ -117,7 +122,7 @@ VnV_Iterator IterationPack(VnV_Comm comm, const char* package, const char* id,
 }  // namespace VnV
 
 #  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...) \
-    VnV::CppInjection::BeginPack(COMM, VNV_STR(PNAME), #NAME, \
+    VnV::CppInjection::BeginPack(createComm(COMM,VNV_STR(PNAME)), VNV_STR(PNAME), #NAME, \
                                  callback EVERYONE(__VA_ARGS__));
 
 // SINGULAR INJECTION POINT.
@@ -127,7 +132,7 @@ VnV_Iterator IterationPack(VnV_Comm comm, const char* package, const char* id,
 
 // BEGIN A LOOPED INJECTION POINT
 #  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...) \
-    VnV::CppInjection::BeginLoopPack(COMM, VNV_STR(PNAME), #NAME,  \
+    VnV::CppInjection::BeginLoopPack(createComm(COMM, VNV_STR(PNAME)), VNV_STR(PNAME), #NAME,  \
                                      callback EVERYONE(__VA_ARGS__));
 
 #  define INJECTION_LOOP_BEGIN(PNAME, COMM, NAME, ...) \
@@ -145,7 +150,7 @@ VnV_Iterator IterationPack(VnV_Comm comm, const char* package, const char* id,
 
 // Macro for an iterative vnv injection point.
 # define INJECTION_ITERATION_C(PNAME, COMM, NAME, ONCE, INPUTS, callback, ...)\
-   VnV_Iterator VNV_JOIN(PNAME,_iterator_,NAME) = VnV::CppInjection::IterationPack(COMM, VNV_STR(PNAME), VNV_STR(NAME), \
+   VnV_Iterator VNV_JOIN(PNAME,_iterator_,NAME) = VnV::CppInjection::IterationPack(createComm(COMM, VNV_STR(PNAME)), VNV_STR(PNAME), VNV_STR(NAME), \
                     callback, ONCE, INPUTS EVERYONE(__VA_ARGS__)); \
    while(VnV::CppInjection::Iterate(&VNV_JOIN(PNAME,_iterator_,NAME)))
 

@@ -7,6 +7,10 @@
 #  include "c-interfaces/PackageName.h"
 #  include "c-interfaces/Wrappers.h"
 
+#define VSELF(PNAME) VnV_Comm_Self(VNV_STR(PNAME))
+#define VWORLD(PNAME) VnV_Comm_World(VNV_STR(PNAME))
+#define VCUST(PNAME,data) VnV_Comm_Custom(VNV_STR(PNAME), &data)
+
 typedef void (*vnv_registration_function)();
 
 VNVEXTERNC int _VnV_injectionPoint_end(const char* packageName, const char* id);

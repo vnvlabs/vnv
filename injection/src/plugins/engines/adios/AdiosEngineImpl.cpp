@@ -9,13 +9,40 @@ namespace VnV {
 namespace VNVPACKAGENAME {
 namespace Engines {
 
-void AdiosEngineImpl::Declare(adios2::IO& io, std::set<std::string> exists) {
+namespace {
 
-
-
+template <typename T>
+adios2::Variable<T> define(adios2::IO& io, std::string variable) {
+  adios2::Variable<T> v = io.InquireVariable<T>(variable);
+  if (v) {
+    throw VnVExceptionBase("Exists");
+  } else {
+    return io.DefineVariable<T>(variable);
+  }
+}
+template <typename T>
+adios2::Variable<T> define_local(adios2::IO& io, std::string variable) {
+  adios2::Variable<T> v = io.InquireVariable<T>(variable);
+  if (v) {
+    throw VnVExceptionBase("Exists");
+  } else {
+    return io.DefineVariable<T>(variable, {adios2::LocalValueDim});
+  }
+}
+template <typename T>
+adios2::Variable<T> define_global(adios2::IO& io, std::string variable,
+                                  const std::vector<std::size_t>& gsize,
+                                  const std::vector<std::size_t>& offsets,
+                                  const std::vector<std::size_t>& sizes) {
+  adios2::Variable<T> v = io.InquireVariable<T>(variable);
+  if (v) {
+    throw VnVExceptionBase("Exists");
+  } else {
+    return io.DefineVariable<T>(variable, gsize, offsets, sizes);
+  }
 }
 
-
+}
 
 AdiosEngineImpl::AdiosEngineImpl(adios2::IO& io_, std::string dataFname, std::string metaFname,
                                  MPI_Comm comm_, long uid, int rootRank)
@@ -23,33 +50,57 @@ AdiosEngineImpl::AdiosEngineImpl(adios2::IO& io_, std::string dataFname, std::st
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &size);
   root = (rootRank == rank);
-  std::string variablename = "worldrank-" + std::to_string(uid);
 
-  io.DefineVariable<int>(variablename ,
-                         {static_cast<unsigned long>(size)},
-                         {static_cast<unsigned long>(rank)},
-                         {1}
-                         );
+  define<long>(io,"id");
+  define<int>(io,"size");
+  define<std::string>(io,"type");
+  define<std::string>(io, "json");
+  define<std::string>(io,"string");
+  define<bool>(io,"bool");
+  define<long long>(io,"longlong");
+  define<double>(io,"double");
+  define_local<std::string>(io, "localjson");
+  define_local<std::string>(io,"localstring");
+  define_local<bool>(io,"localbool");
+  define_local<long long>(io,"locallonglong");
+  define_local<double>(io,"localdouble");
+  define<std::string>(io,"name");
+  define<std::string>(io,"metaData");
+  define<int>(io,"stage");
+  define_local<int>(io,"localstage");
+  define<long>(io,"dtype");
+
+  define<int>(io,"output");
+  define<long>(io,"identity");
+  define<int>(io,"stageVal");
+  define<std::string>(io,"levelVal");
+  define<std::string>(io,"message");
+  define<std::string>(io,"package");
+  define<std::string>(io,"dim");
+  define<std::string>(io,"shape");
+  define<std::string>(io,"sizes");
+  define<std::string>(io,"offsets");
+  define<std::string>(io,"test");
+  define<bool>(io,"internal");
+  define<bool>(io,"result");
+  define<std::size_t>(io,"size");
+
+  std::string variablename = "worldrank-" + std::to_string(uid);
+  define_global<int>(io, variablename, {static_cast<unsigned long>(size)},{static_cast<unsigned long>(rank)}, {1});
 
   engine = io.Open(dataFname, adios2::Mode::Write, comm);
   engine.BeginStep();
 
   engine.Put(variablename, &rank);
+
   engine.EndStep();
 
-  // RootEngine is in charge of writing the heirarchy.
-  // Basically -- the root engine writes all the metadata to the heirarchy file.
-  // Any time there is a parallel write, we write to the "engine". We know how
-  // many times we write to the engine file, so we know which "step" goes with
-  // which data.
-
+  engine.BeginStep();
   if (root) {
-    rootEngine = io.Open(metaFname, adios2::Mode::Write, MPI_COMM_SELF);
-    rootEngine.BeginStep();
-    rootEngine.Put("id", uid);
-    rootEngine.Put("size", size);
-    rootEngine.EndStep();
+    engine.Put("id", uid);
+    engine.Put("size", size);
   }
+  engine.EndStep();
 
 }
 
@@ -57,51 +108,51 @@ AdiosEngineImpl::~AdiosEngineImpl() {}
 
 void AdiosEngineImpl::Put(const json& value, bool local) {
   if (root) {
-    rootEngine.Put("type", "json");
+    engine.Put("type", "json");
   }
   if (local) {
     engine.Put("localjson", value.dump());
-  } else {
+  } else if (root) {
     engine.Put("json", value.dump());
   }
 }
 void AdiosEngineImpl::Put(const std::string& value, bool local) {
   if (root) {
-    rootEngine.Put("type", "string");
+    engine.Put("type", "string");
   }
   if (local) {
     engine.Put("localstring", value);
-  } else {
+  } else if (root) {
     engine.Put("string", value);
   }
 }
 void AdiosEngineImpl::Put(const double& value, bool local) {
   if (root) {
-    rootEngine.Put("type", "double");
+    engine.Put("type", "double");
   }
   if (local) {
     engine.Put("localdouble", value);
-  } else {
+  } else if (root){
     engine.Put("double", value);
   }
 }
 void AdiosEngineImpl::Put(const bool& value, bool local) {
   if (root) {
-    rootEngine.Put("type", "bool");
+    engine.Put("type", "bool");
   }
   if (local) {
     engine.Put("localbool", value);
-  } else {
+  } else if (root){
     engine.Put("bool", value);
   }
 }
 void AdiosEngineImpl::Put(const long long& value, bool local) {
   if (root) {
-    rootEngine.Put("type", "longlong");
+    engine.Put("type", "longlong");
   }
   if (local) {
     engine.Put("locallonglong", value);
-  } else {
+  } else if (root){
     engine.Put("longlong", value);
   }
 }
@@ -109,91 +160,150 @@ void AdiosEngineImpl::Put(const long long& value, bool local) {
 void AdiosEngineImpl::Put(std::string variableName, IDataType_ptr ptr,
                           const MetaData& m, IOutputEngine* oengine,
                           int writerank) {
+
+
+  engine.BeginStep();
   if (root) {
-    rootEngine.BeginStep();
-    rootEngine.Put("name", variableName);
-    rootEngine.Put("metaData", StringUtils::metaDataToJsonString(m));
-    rootEngine.Put("stage", engineStep);
-    rootEngine.Put("output", writerank);
-    rootEngine.Put("type", "dt");
-    rootEngine.EndStep();
+      engine.Put("stage", engineStep++);
+      engine.Put("type", "dts");
+      engine.Put("name", variableName);
+      engine.Put("metaData", StringUtils::metaDataToJsonString(m));
+      engine.Put("stage", engineStep);
+      engine.Put("output", writerank);
+      engine.Put("dtype", ptr->getKey());
   }
+  engine.EndStep();
 
-  bool write = (rank == writerank || writerank < 0);
+  ptr->Put(oengine);
 
-  if (write) {
-    engine.BeginStep();
-    engine.Put("stage", engineStep++);
-    engine.Put("type", "dts");
-    engine.Put("dtype", ptr->getKey());
-    engine.EndStep();
-
-    // Data Type Put Methods are local only !!!!!!!
-    // TODO How to enforce this?
-    ptr->Put(oengine);  // ptr->Put(oengine, writeRank == raml  )
-
-    engine.BeginStep();
+  engine.BeginStep();
+  if (root) {
     engine.Put("type", "dte");
-    engine.EndStep();
   }
+  engine.EndStep();
+
 }
 
 void AdiosEngineImpl::Log(long id, const char* package, int stage,
                           std::string level, std::string message, int rank) {
   if (root) {
     std::string s = package;
+
     engine.BeginStep();
-    rootEngine.Put("identity", id);
-    rootEngine.Put("stageVal", stage);
-    rootEngine.Put("levelVal", level);
-    rootEngine.Put("stringVal", message);
-    rootEngine.Put("packageVal", s);
-    rootEngine.EndStep();
+    engine.Put("identity", id);
+    engine.Put("stageVal", stage);
+    engine.Put("levelVal", level);
+    engine.Put("message", message);
+    engine.Put("package", s);
+    engine.EndStep();
   }
+
 }
 
-void AdiosEngineImpl::PutGlobalArray(std::string variableName,
-                                     IDataType_vec local_data,
-                                     std::vector<std::size_t> gsizes,
-                                     std::vector<std::size_t> sizes,
-                                     std::vector<std::size_t> offset,
-                                     const MetaData& metadata) {
+void AdiosEngineImpl::PutGlobalArray(long long dtype, std::string variableName,
+                    IDataType_vec data,std::vector<size_t> gsizes,
+                    std::vector<std::size_t> sizes, std::vector<std::size_t> offset,
+                    const MetaData& m)  {
+
+  engine.BeginStep();
   if (root) {
-    std::string s = "vector";
-    rootEngine.BeginStep();
-    rootEngine.Put("name", variableName);
-    rootEngine.Put("type", "vector");
-    rootEngine.Put("dtype", local_data[0]->getKey());
-    rootEngine.Put("stage", engineStep);
-    rootEngine.Put("metadata", StringUtils::metaDataToJsonString(metadata));
-    rootEngine.Put("dim", gsizes.size());
-    rootEngine.Put("shape", StringUtils::toString(gsizes));
-    rootEngine.EndStep();
+    engine.Put("name", variableName);
+    engine.Put("type", "vector");
+    engine.Put("stage", engineStep);
+    engine.Put("metadata", StringUtils::metaDataToJsonString(m));
+    engine.Put("dim", gsizes.size());
+    engine.Put("shape", StringUtils::toString(gsizes));
   }
 
-  engine.BeginStep();
-  engine.Put("type", "ba");
-  engine.Put("size", local_data.size());
-  engine.Put("sizes", StringUtils::toString(sizes));
-  engine.Put("offsets", StringUtils::toString(offset));
-  engine.Put("stage", engineStep++);
+  for (int i = 0; i < gsizes.size(); i++) {
+
+    adios2::Variable<std::size_t> offsetv;
+    adios2::Variable<std::size_t> dim =
+        io.InquireVariable<std::size_t>("size-" + std::to_string(i));
+    if (!dim) {
+      dim = io.DefineVariable<std::size_t>("size-" + std::to_string(i),{adios2::LocalValueDim});
+      offsetv = io.DefineVariable<std::size_t>("offset-" + std::to_string(i),{adios2::LocalValueDim});
+    }
+    engine.Put(dim, sizes[i]);
+    engine.Put(offsetv, offset[i]);
+  }
+
+  IDataType_ptr d = CommunicationStore::instance().getDataType(dtype);
+  std::vector<SupportedDataType> types = d->getLocalPutVariableCount();
+
+  for (int i = 0; i < types.size(); i++ ) {
+
+     int mycount = 0;
+     if (data.size() == 0 ) {
+       switch(types[i]) {
+       case SupportedDataType::DOUBLE:
+         io.DefineVariable<double>("todo", {},{},{0});
+         break;
+       case SupportedDataType::LONG:
+         io.DefineVariable<long>("todo", {},{},{0});
+         break;
+       case SupportedDataType::JSON:
+       case SupportedDataType::STRING:
+         io.DefineVariable<char>("todo", {},{},{0});
+         break;
+       }
+     }
+
+     for (int j = 0; j < data.size(); j++ ) {
+
+     }
+     io.DefineVariable("todo", {}, {} , )
+  }
   engine.EndStep();
+  // Now we need to write the values.
+  SupportedDataType t = SupportedDataType::STRING;
 
-  for (auto it : local_data) {
+  auto types = CommunicationStore::instance().getLocalPutData(dtype);
+  void* outdata;
+  int count = 0;
+  for (auto &it : types) {
     engine.BeginStep();
-    engine.Put("type", "dts");
-    engine.Put("dtype", it->getKey());
-    engine.EndStep();
+    if (root) {
+      engine.Put("variableName", it.name);
+    }
 
-    it->Put(oengine);
+    switch (it.datatype) {
 
-    engine.BeginStep();
-    engine.Put("type", "dte");
+    case SupportedDataType::DOUBLE: {
+
+      io.DefineVariable<double>("doublevalue", gsizes, offset, sizes);
+      std::vector<double> ddata(data.size());
+      for (auto it : data) {
+
+        double* dd = (double*) outdata;
+        ddata.push_back(*dd);
+      }
+      engine.Put("value", ddata.data());
+      break;
+
+    }
+
+    case SupportedDataType::LONG: {
+      io.DefineVariable<long>("longvalue", gsizes, offset, sizes);
+      std::vector<long> ddata(data.size());
+      for (auto it : data) {
+        long* dd = (long*) it->LocalPut(count);
+        ddata.push_back(*dd);
+      }
+      engine.Put("value", ddata.data());
+      break;
+    }
+
+    case SupportedDataType::STRING:
+      break;
+    case SupportedDataType::JSON:
+      break;
+    }
     engine.EndStep();
+    count++;
   }
 
-  engine.BeginStep();
-  engine.Put("type", "ea");
+
   engine.EndStep();
 }
 

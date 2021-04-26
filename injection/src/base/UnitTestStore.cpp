@@ -30,7 +30,7 @@ Communication::ICommunicator_ptr UnitTestStore::dispatch(VnV_Comm comm,
   if (c->Rank() == 0) {
     if (cores > c->Size()) {
       VnV_Warn_MPI(
-          VNVPACKAGENAME, VSELF(VNVPACKAGENAME),
+          VNVPACKAGENAME, createComm(VSELF,VNV_STR(VNVPACKAGENAME)),
           "Test Requested %d cores but only %d are available -- skipping",
           cores, c->Size());
       return nullptr;
@@ -71,7 +71,7 @@ void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,
   // for supporting comms in C).
   engineManager->unitTestStartedCallBack(comm, packageName, name);
   tester->run();
-  engineManager->unitTestFinishedCallBack(comm, tester);
+  engineManager->unitTestFinishedCallBack(tester);
 }
 
 void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,

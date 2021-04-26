@@ -13,8 +13,13 @@ namespace DataTypes {
 // and compare operators.
 template <typename T> class GenericDataType : public Communication::IDataType {
   T data;
-
+  SupportedDataType dtype;
  public:
+
+  GenericDataType(SupportedDataType type) {
+    dtype = type;
+  }
+
   T get() { return data; }
   void set(T d) { data = d; }
 
@@ -52,6 +57,28 @@ template <typename T> class GenericDataType : public Communication::IDataType {
 
   void Put(IOutputEngine* engine) override {
     engine->Put("value", get());
+  }
+
+  long long datalong;
+  double datadouble;
+  SupportedDataType LocalPut(std::string &name, void** data, int& writeRank, int iteration ) {
+
+    writeRank = -1;
+
+    if (iteration == 0 ) {
+      name = "value";
+      if (dtype == SupportedDataType::LONG) {
+          datalong = get();
+          *data = &datalong;
+          return SupportedDataType::LONG;
+      } else {
+          datadouble = get();
+          *data = &datalong;
+          return SupportedDataType::DOUBLE;
+      }
+    }  else {
+      return SupportedDataType::DONE;
+    }
   }
 
 };
@@ -107,6 +134,19 @@ public:
     engine->Put("value", get());
   }
 
+
+  SupportedDataType LocalPut(std::string &name, void** data, int& writeRank, int iteration ) {
+      if (iteration == 0 ) {
+         name = "value";
+         *data = &data;
+         writeRank = -1;
+         return SupportedDataType::STRING;
+      }  else {
+         return SupportedDataType::DONE;
+      }
+  }
+
+
 };
 
 }  // namespace DataTypes
@@ -118,26 +158,26 @@ INJECTION_DATATYPE(VNVPACKAGENAME, string, std::string) {
 }
 
 INJECTION_DATATYPE(VNVPACKAGENAME,double, double) {
-  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<double>();
+  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<double>(VnV::SupportedDataType::DOUBLE);
 };
 
 INJECTION_DATATYPE(VNVPACKAGENAME,int, int) {
-  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<int>();
+  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<int>(VnV::SupportedDataType::LONG);
 };
 
 INJECTION_DATATYPE(VNVPACKAGENAME,float, float) {
-  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<float>();
+  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<float>(VnV::SupportedDataType::DOUBLE);
 }
 
 INJECTION_DATATYPE(VNVPACKAGENAME,long, long) {
-  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<long>();
+  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<long>(VnV::SupportedDataType::LONG);
 }
 
 INJECTION_DATATYPE(VNVPACKAGENAME, longlong, long long) {
-  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<long long>();
+  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<long long>(VnV::SupportedDataType::LONG);
 }
 
 INJECTION_DATATYPE(VNVPACKAGENAME, short, short) {
-  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<short>();
+  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<short>(VnV::SupportedDataType::LONG);
 }
 

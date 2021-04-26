@@ -1,6 +1,7 @@
 ﻿#include "interfaces/ICommunicator.h"
 #include "base/CommunicationStore.h"
 #include "base/exceptions.h"
+#include "interfaces/IOutputEngine.h"
 #include <iostream>
 
 VnV::Communication::IRequest::~IRequest() {
@@ -82,6 +83,7 @@ VnV::Communication::IStatus::~IStatus() {}
 void VnV::Communication::ICommunicator::setPackage(std::string package) {
   packageName = package;
 }
+
 
 std::string VnV::Communication::ICommunicator::getPackage() {
   return packageName;

@@ -12,8 +12,6 @@
 #include "VnV.h"
 
 #define SPNAME SimpleExecutable
-
-
 INJECTION_EXECUTABLE(SPNAME, VNV, mpi)
 
 
@@ -41,7 +39,7 @@ int main(int argc, char** argv) {
     * -----------------------------------------
     *
     */
-   INJECTION_ITERATION(SPNAME, VSELF(SPNAME), FunctionEvaluation , 1, 1, x, f) {
+   INJECTION_ITERATION(SPNAME, VSELF, FunctionEvaluation , 1, 1, x, f) {
        f = 10*x*x - 200;
    }
 

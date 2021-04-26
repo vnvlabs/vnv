@@ -2,7 +2,6 @@
 #define LOGGINGINTERFACE_H
 
 #ifndef WITHOUT_VNV
-
 #  include "c-interfaces/Communication.h"
 #  include "c-interfaces/PackageName.h"
 
@@ -51,6 +50,24 @@ VNVEXTERNC void _VnV_EndStage(VnV_Comm comm, int ref);
       _VnV_BeginStage(comm, VNV_STR(PNAME), __VA_ARGS__)
 #    define VnV_EndStage_MPI(comm, ref) _VnV_EndStage(comm, ref)
 
+#ifdef __cplusplus
+
+#include <cstring>
+
+#    define VnV_Debug(PNAME, ...) \
+      VnV_Debug_MPI(PNAME, createComm("world",VNV_STR(PNAME)), __VA_ARGS__)
+#    define VnV_Warn(PNAME, ...) VnV_Warn_MPI(PNAME, createComm("world",VNV_STR(PNAME)), __VA_ARGS__)
+#    define VnV_Error(PNAME, ...) \
+      VnV_Error_MPI(PNAME, createComm("world",VNV_STR(PNAME)), __VA_ARGS__)
+#    define VnV_Info(PNAME, ...) VnV_Info_MPI(PNAME, createComm("world",VNV_STR(PNAME)), __VA_ARGS__)
+#    define VnV_Log(PNAME, ...) VnV_Log_MPI(PNAME, createComm("world",VNV_STR(PNAME)), __VA_ARGS__)
+#    define VnV_BeginStage(PNAME, ...) \
+      VnV_BeginStage_MPI(PNAME, createComm("world",VNV_STR(PNAME)), __VA_ARGS__)
+#    define VnV_EndStage(PNAME, ...) \
+      VnV_EndStage_MPI(createComm("world",VNV_STR(PNAME)), __VA_ARGS__)
+
+#else
+
 #    define VnV_Debug(PNAME, ...) \
       VnV_Debug_MPI(PNAME, VWORLD(PNAME), __VA_ARGS__)
 #    define VnV_Warn(PNAME, ...) VnV_Warn_MPI(PNAME, VWORLD(PNAME), __VA_ARGS__)
@@ -62,6 +79,9 @@ VNVEXTERNC void _VnV_EndStage(VnV_Comm comm, int ref);
       VnV_BeginStage_MPI(PNAME, VWORLD(PNAME), __VA_ARGS__)
 #    define VnV_EndStage(PNAME, ...) \
       VnV_EndStage_MPI(VWORLD(PNAME), __VA_ARGS__)
+
+#endif
+
 
 #  else
 #    define VnV_Debug(...)

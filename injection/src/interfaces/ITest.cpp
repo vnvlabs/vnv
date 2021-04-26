@@ -110,9 +110,9 @@ ITest::ITest(TestConfig& config) : m_config(config) {}
 // point that this test is being run inside.
 int ITest::iterate_(ICommunicator_ptr comm, OutputEngineManager* engine) {
 
-  engine->testStartedCallBack(comm, m_config.getPackage(), m_config.getName(), false);
+  engine->testStartedCallBack(m_config.getPackage(), m_config.getName(), false);
   int s =iterate(comm, engine->getOutputEngine());
-  engine->testFinishedCallBack(comm, true );
+  engine->testFinishedCallBack(true );
   return s;
 }
 
@@ -171,10 +171,10 @@ TestStatus ITest::_runTest(ICommunicator_ptr comm, OutputEngineManager* engine,
   VnV_Debug_MPI(VNVPACKAGENAME, comm->asComm(), "Runnnig Test %s ",
                 m_config.getName().c_str());
 
-  engine->testStartedCallBack(comm, m_config.getPackage(), m_config.getName(),
+  engine->testStartedCallBack( m_config.getPackage(), m_config.getName(),
                               false);
   TestStatus s = runTest(comm, engine->getOutputEngine(), type, stageId);
-  engine->testFinishedCallBack(comm, (s == SUCCESS) ? true : false);
+  engine->testFinishedCallBack( (s == SUCCESS) ? true : false);
   return s;
 }
 

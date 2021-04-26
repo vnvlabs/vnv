@@ -110,13 +110,13 @@ void InjectionPoint::runTests() {
   wrapper->injectionPointStartedCallBack(comm, package, getScope(), type,
                                          stageId);
   runTestsInternal(wrapper);
-  wrapper->injectionPointEndedCallBack(comm, getScope(), type, stageId);
+  wrapper->injectionPointEndedCallBack(getScope(), type, stageId);
 }
 
 void InjectionPoint::runTestsInternal(OutputEngineManager *wrapper) {
 
     if (callbackType > 0) {
-      wrapper->testStartedCallBack(comm, package, "__internal__", true);
+      wrapper->testStartedCallBack( package, "__internal__", true);
       if (callbackType == 1) {
         IOutputEngineWrapper engineWraper = {
             static_cast<void*>(wrapper->getOutputEngine())};
@@ -126,8 +126,7 @@ void InjectionPoint::runTestsInternal(OutputEngineManager *wrapper) {
       } else {
         cppCallback(comm->asComm(), parameterMap, wrapper, type, stageId);
       }
-      wrapper->testFinishedCallBack(
-          comm, true);  // TODO callback should return bool "__internal__");
+      wrapper->testFinishedCallBack(true);  // TODO callback should return bool "__internal__");
     }
     for (auto it : m_tests) {
       it->_runTest(comm, wrapper, type, stageId);
@@ -151,6 +150,6 @@ bool InjectionPoint::iterate() {
         result = itIndex < m_iterators.size();
     }
     runTestsInternal(wrapper);
-    wrapper->injectionPointEndedCallBack(comm, getScope(), type, stageId);
+    wrapper->injectionPointEndedCallBack(getScope(), type, stageId);
     return result;
 }

@@ -24,7 +24,7 @@ template <typename T> class f {
   int ggg;
   int getF(int t) {
     /** sdfsdfsdfsdf **/
-    INJECTION_POINT(SPNAME, VSELF(SPNAME), sdfsdf, ff, gg, ggg);
+    INJECTION_POINT(SPNAME, VSELF, sdfsdf, ff, gg, ggg);
     return 1;
   }
 };
@@ -55,8 +55,8 @@ INJECTION_TRANSFORM(SPNAME, sampleTransform, std::vector<double>, double) {
 INJECTION_TEST(SPNAME, sampleTest, std::vector<double> vals) {
   auto vals = get<std::vector<double>>("vals");
   for (auto& it : vals) {
-    engine->Put( "Key", it);
-    engine->Put( "Value", it);
+    engine->serial()->Put( "Key", it);
+    engine->serial()->Put( "Value", it);
   }
   return SUCCESS;
 }
@@ -70,7 +70,7 @@ template <typename T, typename X> int templateFnc(int x, T y, X xx) {
    *  functions are interesting because it can be hard to map between injection
    *  points and tests in these cases.
    */
-  INJECTION_POINT(SPNAME, VSELF(SPNAME), templateFn, x, y, xx);
+  INJECTION_POINT(SPNAME, VSELF, templateFn, x, y, xx);
   return 0;
 }
 
@@ -84,7 +84,7 @@ class test1 {
 
         A simple looped injection point wrapping a for loop.
     */
-    INJECTION_LOOP_BEGIN(SPNAME, VWORLD(SPNAME), Function1Class1, samplePoints,
+    INJECTION_LOOP_BEGIN(SPNAME, VWORLD, Function1Class1, samplePoints,
                          samplePoints1, samplePoints3)
     for (int i = 0; i < 10; i++) {
       samplePoints.push_back(i);
@@ -197,7 +197,7 @@ void newtonRaphson(double x, double eps, int rank)
      *
     **/
     INJECTION_LOOP_BEGIN_C(
-        SPNAME, VSELF(SPNAME), NewtonRaphson,
+        SPNAME, VSELF, NewtonRaphson,
         [](VnV_Comm comm, VnV::VnVParameterSet& p,
            VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
            std::string stageId) {
@@ -205,10 +205,10 @@ void newtonRaphson(double x, double eps, int rank)
         const double& iter = p["iter"].getByRtti<double>();
         const int& rank = p["rank"].getByRtti<int>();
 
-        engine->Put("Rank", rank);
+        engine->serial()->Put("Rank", rank);
 
-        engine->Put("root",x);
-        engine->Put("iter",iter);
+        engine->serial()->Put("root",x);
+        engine->serial()->Put("iter",iter);
         },
         x, iter, rank );
 
@@ -237,7 +237,7 @@ int function1(int x) {
       part of a global function.
 
   **/
-  INJECTION_LOOP_BEGIN(SPNAME, VSELF(SPNAME), Function1, samplePoints)
+  INJECTION_LOOP_BEGIN(SPNAME, VSELF, Function1, samplePoints)
   for (int i = 0; i < 10; i++) {
     samplePoints[i] = i;
     INJECTION_LOOP_ITER(SPNAME, Function1, inner)
@@ -325,7 +325,7 @@ int main(int argc, char** argv) {
   newtonRaphson(start, 0.000001, rank);
 
 
-  INJECTION_POINT(SPNAME, VWORLD(SPNAME), functionTest, function1)
+  INJECTION_POINT(SPNAME, VWORLD, functionTest, function1)
 
   MPI_Comm comm, comm1;
   MPI_Comm_split(MPI_COMM_WORLD, rank % 2, rank, &comm);
@@ -376,20 +376,20 @@ int main(int argc, char** argv) {
    *
   **/
   INJECTION_LOOP_BEGIN_C(
-      SPNAME, VCUST(SPNAME,comm), loopTest1,
+      SPNAME, comm, loopTest1,
       [](VnV_Comm comm, VnV::VnVParameterSet& p,
          VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         if (type == VnV::InjectionPointType::Iter) {
           const double& ab = p["aa"].getByRtti<double>();
           const int& i = p["i"].getByRtti<int>();
-          engine->Put( "y", ab);
-          engine->Put( "x", i);
+          engine->serial()->Put( "y", ab);
+          engine->serial()->Put( "x", i);
         } else if (type == VnV::InjectionPointType::Begin) {
           /** Comment block in lambda function **/
-          engine->Put( "min", p["min"].getByRtti<int>());
-          engine->Put( "max", p["max"].getByRtti<int>());
-          engine->Put( "count", p["count"].getByRtti<int>());
+          engine->serial()->Put( "min", p["min"].getByRtti<int>());
+          engine->serial()->Put( "max", p["max"].getByRtti<int>());
+          engine->serial()->Put( "count", p["count"].getByRtti<int>());
         }
       },
       aa, min, max, count, i);
@@ -405,20 +405,20 @@ int main(int argc, char** argv) {
   INJECTION_LOOP_END(SPNAME, loopTest1)
 
   INJECTION_LOOP_BEGIN_C(
-      SPNAME, VCUST(SPNAME,comm1), loopTest2,
+      SPNAME, comm1, loopTest2,
       [](VnV_Comm comm, VnV::VnVParameterSet& p,
          VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         if (type == VnV::InjectionPointType::Iter) {
           const double& ab = p["aa"].getByRtti<double>();
           const int& i = p["i"].getByRtti<int>();
-          engine->Put( "y", ab);
-          engine->Put( "x", i);
+          engine->serial()->Put( "y", ab);
+          engine->serial()->Put( "x", i);
         } else if (type == VnV::InjectionPointType::Begin) {
           /** Comment block in lambda function **/
-          engine->Put( "min", p["min"].getByRtti<int>());
-          engine->Put( "max", p["max"].getByRtti<int>());
-          engine->Put( "count", p["count"].getByRtti<int>());
+          engine->serial()->Put( "min", p["min"].getByRtti<int>());
+          engine->serial()->Put( "max", p["max"].getByRtti<int>());
+          engine->serial()->Put( "count", p["count"].getByRtti<int>());
         }
       },
       aa, min, max, count, i);
@@ -435,20 +435,20 @@ int main(int argc, char** argv) {
 
 
     INJECTION_LOOP_BEGIN_C(
-      SPNAME, VSELF(SPNAME), loopTest,
+      SPNAME, VSELF, loopTest,
       [](VnV_Comm comm, VnV::VnVParameterSet& p,
          VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         if (type == VnV::InjectionPointType::Iter) {
           const double& ab = p["aa"].getByRtti<double>();
           const int& i = p["i"].getByRtti<int>();
-          engine->Put( "y", ab);
-          engine->Put( "x", i);
+          engine->serial()->Put( "y", ab);
+          engine->serial()->Put( "x", i);
         } else if (type == VnV::InjectionPointType::Begin) {
           /** Comment block in lambda function **/
-          engine->Put( "min", p["min"].getByRtti<int>());
-          engine->Put( "max", p["max"].getByRtti<int>());
-          engine->Put( "count", p["count"].getByRtti<int>());
+          engine->serial()->Put( "min", p["min"].getByRtti<int>());
+          engine->serial()->Put( "max", p["max"].getByRtti<int>());
+          engine->serial()->Put( "count", p["count"].getByRtti<int>());
         }
       },
       aa, min, max, count, i);

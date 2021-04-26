@@ -6,7 +6,6 @@
 namespace VnV {
 namespace Communication {
 
-
 class DataTypeCommunication {
   ICommunicator_ptr comm;
 

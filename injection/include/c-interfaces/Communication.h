@@ -20,12 +20,35 @@ VNVEXTERNC void VnV_Declare_Communicator(const char* packageName,
                                          const char* commPackage,
                                          const char* commName);
 
-#define VSELF(PNAME) \
-  VnV_Comm_Self(VNV_STR(PNAME))  // Built in comm for serial programs, (like
-                                 // MPI_COMM_SELF));
+
+
+#ifdef __cplusplus
+
+#include <cstring>
+
+#define VSELF "self"
+#define VWORLD "world"
+
+VnV_Comm createComm(const char* str, const char* package) {
+  if (std::strcmp(str,VWORLD) ==  0 ) {
+      return VnV_Comm_World(package);
+  } else {
+    return VnV_Comm_Self(package);
+  }
+}
+
+template<typename T>
+VnV_Comm createComm(T a, const char* package) {
+  return VnV_Comm_Custom(package, (void*)&a);
+}
+
+#else
+
+#define VSELF(PNAME) VnV_Comm_Self(VNV_STR(PNAME))
 #define VWORLD(PNAME) VnV_Comm_World(VNV_STR(PNAME))
-#define VCUST(PNAME, data) VnV_Comm_Custom(VNV_STR(PNAME), &data)
-#define VCOMM(PNAME) VnV_Comm_Custom(VNV_STR(PNAME), &comm)
+#define VCUST(PNAME,data) VnV_Comm_Custom(VNV_STR(PNAME), (void*) &data)
+
+#endif
 
 // This is used to define the communicator for the package that calls it.
 // The Clang tool picks up this macro when defined and creates a registration

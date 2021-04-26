@@ -35,6 +35,7 @@ INJECTION_OPTIONS(PNAME,schemaCallback){
 
 int main(int argc, char** argv) {
   MPI_Init(&argc, &argv);
+
   INJECTION_INITIALIZE(PNAME, &argc, &argv, (argc==2) ? argv[1] : "./sample.json");
   function1(10);
   INJECTION_FINALIZE(PNAME);

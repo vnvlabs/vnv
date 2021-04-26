@@ -5,13 +5,15 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <string>
 
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/PackageName.h"
 
 namespace VnV {
+
+class ISerialOutputEngine;
 class IOutputEngine;
+
 namespace Communication {
 
 class IDataType;
@@ -81,7 +83,16 @@ class IReduction {
 
 
 
+enum class SupportedDataType {
+    DONE, DOUBLE, LONG, STRING, JSON
+};
 
+class PutData {
+ public:
+  std::string name;
+  SupportedDataType datatype;
+  int count;
+};
 
 class IDataType {
  private:
@@ -99,8 +110,15 @@ class IDataType {
   virtual void mult(IDataType_ptr y) = 0;
 
   //Put will be called when you need to "Write" this output to file.
-  //Any engine functions can be called.
-  virtual void Put(IOutputEngine* engine) = 0;
+  // Put is called when someone type Put("name","datatype"). This is
+  // collective on the Communicator used to type Put. So, this function
+  // can output things like global vectors.
+  virtual void Put(VnV::IOutputEngine* engine) = 0;
+
+  virtual std::vector<PutData> getLocalPutData() = 0;
+
+  virtual int getLocalPutVariableCount() = 0;
+  virtual PutData getPutData( int iteration ) = 0;
 
   void setKey(long long key);
   long long getKey();

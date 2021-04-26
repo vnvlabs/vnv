@@ -1,6 +1,8 @@
 ﻿#ifndef COMMUNICATIONSTORE_H
 #define COMMUNICATIONSTORE_H
 
+#include <interfaces/ICommunicator.h>
+
 #include <type_traits>
 
 #include "c-interfaces/Communication.h"
@@ -16,6 +18,7 @@ using VnV::Communication::IDataType_ptr;
 using VnV::Communication::IReduction;
 using VnV::Communication::IReduction_ptr;
 using VnV::Communication::reduction_ptr;
+using VnV::Communication::SupportedDataType;
 
 namespace VnV {
 
@@ -53,6 +56,10 @@ class CommunicationStore {
 
   template <typename T> IDataType_ptr getDataType() {
     return getDataType(typeid(T).name());
+  }
+
+  std::vector<VnV::Communication::PutData> getLocalPutData(long long key) {
+    return getDataType(key)->getLocalPutData();
   }
 
   IReduction_ptr getReducer(long long key);
