@@ -11,7 +11,6 @@
 
 namespace VnV {
 
-class ISerialOutputEngine;
 class IOutputEngine;
 
 namespace Communication {
@@ -117,8 +116,8 @@ class IDataType {
 
   virtual std::vector<PutData> getLocalPutData() = 0;
 
-  virtual int getLocalPutVariableCount() = 0;
-  virtual PutData getPutData( int iteration ) = 0;
+  virtual void* getPutData( int iteration) = 0;
+
 
   void setKey(long long key);
   long long getKey();
@@ -146,6 +145,8 @@ class ICommunicator {
   VnV_Comm asComm();
 
   virtual ~ICommunicator() {}
+
+
 
   virtual void setData(void* data) = 0;  // The communicator passed in.
   virtual void* getData() = 0; // Data is everything needed to rebuild this communicator.
@@ -217,6 +218,8 @@ class ICommunicator {
 
   virtual void Abort(int errorcode) = 0;
 
+  virtual void Initialize();
+  virtual void Finalize();
 
   template<typename T>
   T* getRaw() {

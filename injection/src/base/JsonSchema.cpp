@@ -5,7 +5,9 @@
 #include "base/JsonSchema.h"
 
 namespace VnV {
-static const json __vv_schema__ = R"(
+
+const json& getVVSchema() {
+  static const json __vv_schema__ = R"(
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "http://rnet-tech.net/vv.schema.json",
@@ -92,9 +94,21 @@ static const json __vv_schema__ = R"(
        "type" : "object",
        "properties" : {
           "runTests" : {"type" : "boolean"},
-          "config" : {"type" : "object"}
-       },
-       "required" : ["runTests","config"]
+          "config" : {
+                "type" : "object",
+                "additionalProperties" : {
+                     "type" : "object",
+                     "properties" : {
+                         "runUnitTests" : {"type" : "boolean"},
+                         "unitTests" : {
+                            "type" : "object",
+                            "additionalProperties" : { "type" : "boolean" }
+                         }
+                     }
+                }
+          },
+          "exitAfter" : {"type" : "boolean" }
+       }
     },
     "offload": {
        "type":"object",
@@ -191,52 +205,27 @@ static const json __vv_schema__ = R"(
   }
 })"_json;
 
-const json& getVVSchema() { return __vv_schema__; }
-
-static json __test_declaration_schema__ = R"(
-{
- "$schema": "http://json-schema.org/draft-07/schema#",
- "$id": "http://rnet-tech.net/vv.schema.json",
- "title": "test declaration schema",
- "type": "object",
- "properties" : {
-     "configuration" : {"$ref":"#/raw"},
-     "expectedResult" : {"$ref":"#/raw"},
-     "description" : {"type" : "string"},
-     "title" : {"type" : "string" },
-     "iterator" : {"type" : "boolean" },
-     "supports" : {"oneOf":[{"type" : "array" , "items" : {"type" : "string", "enum" : ["Linux","MacOs"] }}, {"type" : "string", "enum" : ["all"]}]},
-     "parameters" :{
-           "type": "object",
-           "additionalProperties" : { "type" : "string" }
-      },
-      "requiredParameters" : {
-          "type":"array",
-          "items" : {"type": "string"}
-      }
-  },
-  "required" : ["expectedResult","configuration","description","title","parameters","iterator","requiredParameters"],
-  "definitions" : {}
+  return __vv_schema__;
 }
-)"_json;
 
-// Get rid of this
-static json __base_options_schema__ = R"({
+json& getBaseOptionsSchema() {
+  // Get rid of this
+  static json __base_options_schema__ = R"({
          "type" : "object",
          "parameters" : {
              "logUnhandled" : { "type" : "boolean" },
-             "dumpConfig" : {"type" : "boolean" },
-             "command-line" : {
-                "type" : "object"
-            }
+             "dumpConfig" : {"type" : "string" },
+             "exitAfterDumpConfig" : {"type" : "boolean"}
          },
          "additionalParameters" : false
       }
 )"_json;
 
-json& getBaseOptionsSchema() { return __base_options_schema__; }
+  return __base_options_schema__;
+}
 
-static json __transform_declaration_schema__ = R"({
+json getTransformDeclarationSchema() {
+  static json __transform_declaration_schema__ = R"({
  "$schema": "http://json-schema.org/draft-07/schema#",
  "$id": "http://rnet-tech.net/vv.transform.schema.json",
  "title": "transform declaration schema",
@@ -245,11 +234,11 @@ static json __transform_declaration_schema__ = R"({
 }
 )"_json;
 
-json getTransformDeclarationSchema() {
   return __transform_declaration_schema__;
 }
 
-static json __injectionPoint_declaration_schema__ = R"({
+json getInjectionPointDeclarationSchema() {
+  static json __injectionPoint_declaration_schema__ = R"({
 "$schema": "http://json-schema.org/draft-07/schema#",
 "$id": "http://rnet-tech.net/vv.injectionPoint.schema.json",
 "title": "injection point declaration schema",
@@ -302,18 +291,43 @@ static json __injectionPoint_declaration_schema__ = R"({
 }
 })"_json;
 
-json getInjectionPointDeclarationSchema() {
   return __injectionPoint_declaration_schema__;
 }
 
 json getTestDelcarationJsonSchema() {
+  static json __test_declaration_schema__ = R"(
+{
+ "$schema": "http://json-schema.org/draft-07/schema#",
+ "$id": "http://rnet-tech.net/vv.schema.json",
+ "title": "test declaration schema",
+ "type": "object",
+ "properties" : {
+     "configuration" : {"$ref":"#/raw"},
+     "expectedResult" : {"$ref":"#/raw"},
+     "description" : {"type" : "string"},
+     "title" : {"type" : "string" },
+     "iterator" : {"type" : "boolean" },
+     "supports" : {"oneOf":[{"type" : "array" , "items" : {"type" : "string", "enum" : ["Linux","MacOs"] }}, {"type" : "string", "enum" : ["all"]}]},
+     "parameters" :{
+           "type": "object",
+           "additionalProperties" : { "type" : "string" }
+      },
+      "requiredParameters" : {
+          "type":"array",
+          "items" : {"type": "string"}
+      }
+  },
+  "required" : ["expectedResult","configuration","description","title","parameters","iterator","requiredParameters"],
+  "definitions" : {}
+}
+)"_json;
+
   if (__test_declaration_schema__.find("raw") ==
       __test_declaration_schema__.end())
     __test_declaration_schema__["raw"] =
         nlohmann::json_schema::draft7_schema_builtin;
   return __test_declaration_schema__;
 }
-
 
 json getTestValidationSchema(std::map<std::string, std::string>& params,
                              json& optsschema) {
@@ -340,10 +354,10 @@ json getTestValidationSchema(std::map<std::string, std::string>& params,
 
   properties["parameters"] = parameters;
   schema["properties"] = properties;
-  if (params.size()>0) {
+  if (params.size() > 0) {
     schema["required"] = R"(["configuration","parameters"])"_json;
   } else {
-      schema["required"] = R"(["configuration"])"_json;
+    schema["required"] = R"(["configuration"])"_json;
   }
   return schema;
 }

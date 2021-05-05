@@ -6,6 +6,7 @@
 #include "base/OutputEngineStore.h"
 
 #include "base/exceptions.h"
+#include "base/Runtime.h"
 #include "c-interfaces/Logging.h"
 
 using namespace VnV;
@@ -14,12 +15,12 @@ using nlohmann::json_schema::json_validator;
 
 bool OutputEngineStore::isInitialized() { return initialized; }
 
-void OutputEngineStore::setEngineManager(std::string type, json& config) {
+void OutputEngineStore::setEngineManager(ICommunicator_ptr world, std::string type, json& config) {
    
   auto it = registeredEngines.find(type);
   if (it != registeredEngines.end()) {
     manager.reset(it->second());
-    manager->set(config);
+    manager->set(world, config);
     initialized = true;
     engineName = type;
     return;
@@ -66,7 +67,8 @@ Nodes::IRootNode* OutputEngineStore::readFile(std::string filename,
   auto it = registeredEngines.find(engineType);
   if (it != registeredEngines.end()) {
     std::unique_ptr<OutputEngineManager> engine(it->second());
-    engine->set(config);
+    ICommunicator_ptr ptr = CommunicationStore::instance().getCommForPackage(VnV::RunTime::instance().getPackageName(),CommType::World);
+    engine->set(ptr,config);
     Nodes::IRootNode* rootNode = engine->readFromFile(filename, idCounter);
     engine->finalize(CommunicationStore::instance().worldComm(VNVPACKAGENAME_S));
     return rootNode;

@@ -177,8 +177,6 @@ int main(int argc, const char** argv) {
       cacheFiles[it.key()] = incs;
 
       json& data = it.value()["data"];
-      std::cout << data.dump(4) << std::endl;
-      std::cout << packageName_ << std::endl;
       if (data.contains("InjectionPoints") &&
           data["InjectionPoints"].size() > 0) {
             injectionFiles.push_back(it.key());
@@ -187,7 +185,6 @@ int main(int argc, const char** argv) {
 
     }
     json found = runFinder(OptionsParser.getCompilations(), injectionFiles);
-    std::cout << found.dump(3)<<std::endl;
     // Add the injection point data to the cacheData object.
     for (auto cachedFile : injectionFiles) {
       json& cfileJson = cacheData[cachedFile];
@@ -211,6 +208,7 @@ int main(int argc, const char** argv) {
       }
     }
   }
+
 
   writeFile(cacheInfo, outputFileName, cacheFile_, packageName_,
             modFiles.second, extension_, !nowrite.getValue());

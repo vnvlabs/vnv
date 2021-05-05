@@ -5,6 +5,7 @@
 using namespace dummyLibOne;
 
 int class2::function1(int x) {
-  INJECTION_POINT(DLPNAME, VSELF(DLPNAME), class2_function1, x);
+
+  INJECTION_POINT(VNV_STR(DLPNAME), VSELF, "class2_function1", x);
   return x;
 }

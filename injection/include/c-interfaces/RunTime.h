@@ -13,7 +13,7 @@
 
 #  define INJECTION_INITIALIZE(PNAME, argc, argv, filename) \
     VnV_init(VNV_STR(PNAME), argc, argv, filename,          \
-             VNV_REGISTRATION_CALLBACK_NAME(PNAME));
+             VNV_REGISTRATION_CALLBACK_NAME(PNAME))
 
 #  define INJECTION_FINALIZE(PNAME) VnV_finalize();
 
@@ -46,7 +46,7 @@ VNVEXTERNC void VnV_declarePackageJson(const char* packageName,
  * Initialize the VnV library. If this function is not called, no injection
  * point testing will take place.
  */
-VNVEXTERNC void VnV_init(const char* packageName, int* argc, char*** argv,
+VNVEXTERNC int VnV_init(const char* packageName, int* argc, char*** argv,
                          const char* filename, registrationCallBack callback);
 /**
  * @brief VnV_finalize

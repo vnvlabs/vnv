@@ -11,7 +11,9 @@ Welcome to VnV: End to End Verification and Validation's documentation!
    :caption: Contents:
    
    about 
+   
    usage/installation
+   usage/injectionpoints
    usage/quickstart
    api/library_root
 

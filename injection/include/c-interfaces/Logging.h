@@ -15,11 +15,16 @@ VNVEXTERNC void _VnV_Log(VnV_Comm comm, const char* p, const char* level,
                          const char* message, ...)
     __attribute__((format(printf, 4, 5)));
 
+
+
+
 VNVEXTERNC int _VnV_BeginStage(VnV_Comm comm, const char* p,
                                const char* message, ...)
     __attribute__((format(printf, 3, 4)));
 
 VNVEXTERNC void _VnV_EndStage(VnV_Comm comm, int ref);
+
+
 
 // This macro allows packages to define custom logging levels. Here the
 // name is the name of the log level (i.e., DEGUB,WARN,...). The color
@@ -53,6 +58,9 @@ VNVEXTERNC void _VnV_EndStage(VnV_Comm comm, int ref);
 #ifdef __cplusplus
 
 #include <cstring>
+#include <string>
+#include <vector>
+#include <map>
 
 #    define VnV_Debug(PNAME, ...) \
       VnV_Debug_MPI(PNAME, createComm("world",VNV_STR(PNAME)), __VA_ARGS__)
@@ -65,6 +73,8 @@ VNVEXTERNC void _VnV_EndStage(VnV_Comm comm, int ref);
       VnV_BeginStage_MPI(PNAME, createComm("world",VNV_STR(PNAME)), __VA_ARGS__)
 #    define VnV_EndStage(PNAME, ...) \
       VnV_EndStage_MPI(createComm("world",VNV_STR(PNAME)), __VA_ARGS__)
+
+
 
 #else
 

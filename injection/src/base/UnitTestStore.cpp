@@ -66,9 +66,6 @@ void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,
   tester->setComm(comm);
   OutputEngineManager* engineManager =
       OutputEngineStore::getOutputEngineStore().getEngineManager();
-  // TODO These callbacks should accept the ICommunicator_ptr, not the VnV_Comm
-  // (which is an interface
-  // for supporting comms in C).
   engineManager->unitTestStartedCallBack(comm, packageName, name);
   tester->run();
   engineManager->unitTestFinishedCallBack(tester);
@@ -93,19 +90,44 @@ void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,
 // are finished. The tests are just allocated sequentially based on
 // the available ranks and the remaining tests.
 
-void UnitTestStore::runAll(VnV_Comm comm, bool /*stopOnFail*/) {
+void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
+  if (!info.runUnitTests) {
+    return;
+  }
+
   auto c = CommunicationStore::instance().getCommunicator(comm);
   int size = c->Size();
   int rank = c->Rank();
   // Transform the tess vector of tuples and sort largest to smallest.
   std::vector<std::tuple<int, std::string, std::string, tester_ptr*>> tests;
   for (auto it : tester_factory) {
-    for (auto itt : it.second) {
-      std::string key = it.first + ":" + itt.first;
-      int cores = tester_cores[key];
-      tests.push_back(std::make_tuple(cores, it.first, itt.first, itt.second));
+    std::set<std::string> blist;
+    if (info.unitTestConfig.contains(it.first) ) {
+        json& pconfig = info.unitTestConfig[it.first];
+        if (pconfig.contains("runUnitTests") && !pconfig["runUnitTests"].get<bool>()) {
+          continue;
+        }
+        if (pconfig.contains("unitTests")) {
+           for (auto &n : pconfig["unitTests"].items()) {
+             if (!n.value().get<bool>()) {
+                blist.insert(n.key());
+             }
+           }
+        }
+    }
+
+    for (const auto& itt : it.second) {
+      if (blist.find(itt.first) == blist.end()) {
+        std::string key = it.first + ":" + itt.first;
+        int cores = tester_cores[key];
+
+        tests.push_back(
+            std::make_tuple(cores, it.first, itt.first, itt.second)
+        );
+      }
     }
   }
+
   std::sort(
       tests.begin(), tests.end(),
       [](const std::tuple<int, std::string, std::string, tester_ptr*>& p1,

@@ -106,7 +106,7 @@ class OutputEngineStore {
    * additionalPropertiesSchema (if one is supplied).
    *
    */
-  void setEngineManager(std::string key, json& config);
+  void setEngineManager(ICommunicator_ptr world, std::string key, json& config);
 
   /**
    * @brief getEngineStore

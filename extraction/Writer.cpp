@@ -186,6 +186,7 @@ class RegistrationWriter {
     }
 
     // Catch the injection points
+
     if (j.contains("InjectionPoints")) {
       for (auto it : j["InjectionPoints"].items()) {
         std::string pname = it.value()["packageName"];
@@ -194,12 +195,11 @@ class RegistrationWriter {
           json& params =it.value()["parameters"][0];  // TODO TEMPLATE ARGUEMENTS NOT SUPPORTED ?
           pjson[pname]["InjectionPoints"][name] = it.value();
           createPackageOss(pname);
-          std::cout << "JJ :" << it.value().dump(3) << std::endl;
 
           bool iterator = it.value().value("/iterator"_json_pointer, false);
           std::string escaped = VnV::StringUtils::escapeQuotes(params.dump(), true);
-          oss_register[pname] << "\tRegister_Injection_Point(" << pname << ","
-                              << name << "," << iterator << "," << escaped << ");\n";
+          oss_register[pname] << "\tRegister_Injection_Point(\"" << pname << "\",\""
+                              << name << "\"," << iterator << "," << escaped << ");\n";
         }
       }
     }

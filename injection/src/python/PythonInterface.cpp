@@ -49,20 +49,21 @@ std::vector<char*> stringsToChars(std::vector<std::string> vec) {
 }
 }  // namespace
 
-void VnVInit_Str(std::vector<std::string> args, std::string configStr) {
+bool VnVInit_Str(std::vector<std::string> args, std::string configStr) {
   json conf = json::parse(configStr);
   int argc = args.size();
   std::vector<char*> cstrings = stringsToChars(args);
   char** argv = &cstrings[0];
-  RunTime::instance().InitFromJson("PYTHON_READER", &argc, &argv, conf,
+  bool success = RunTime::instance().InitFromJson("PYTHON_READER", &argc, &argv, conf,
                                    nullptr);
+  return success == 0;
 }
 
-void VnVInit(std::vector<std::string> args, std::string config) {
+bool VnVInit(std::vector<std::string> args, std::string config) {
   int argc = args.size();
   std::vector<char*> cstrings = stringsToChars(args);
   char** argv = &cstrings[0];
-  RunTime::instance().InitFromFile("PYTHON_READER", &argc, &argv, config,
+  return RunTime::instance().InitFromFile("PYTHON_READER", &argc, &argv, config,
                                    nullptr);
 }
 

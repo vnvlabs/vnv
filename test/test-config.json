@@ -1,18 +1,21 @@
 ﻿{
   "runTests": true,
-  "runScopes": [],
+
   "logging": {
     "on" : true,
     "filename" : "stdout",
     "logs" : {}
   },
-  "additionalPlugins": {},
+
   "outputEngine": {
     "type": "json",
     "config": {
        "outputFile":"test-results.json"
     }
   },
-  "injectionPoints": [
-  ]
+
+  "unit-testing" : {
+     "runUnitTests" : true
+  }
+
 }

@@ -2,9 +2,13 @@
 #define COMMMAPPER_H
 
 #include "interfaces/ICommunicator.h"
+#include "json-schema.hpp"
 
+using nlohmann::json;
 
 namespace VnV {
+
+using VnV::Communication::ICommunicator_ptr;
 
 class CommWrap {
 public:

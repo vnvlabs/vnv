@@ -98,21 +98,23 @@ bool makedir(std::string filename, mode_t mode ) {
   return mkdir(filename.c_str(), mode) == 0;
 }
 
-std::string makeDirectories(std::vector<std::string> vector, mode_t i) {
+std::string join(std::vector<std::string> vector, mode_t i, bool makeDir) {
   if (vector.size() > 0 ) {
     std::string s = "";
     for (auto it : vector) {
       s = s + it + "/";
-
-      struct stat sb;
-      if ( stat(s.c_str(), &sb) == 0 ) {
-        if ( S_ISDIR(sb.st_mode)) {
-          continue;
-        } else {
-          throw VnVExceptionBase("Cannot create directory as file with that name exists");
+      if (makeDir) {
+        struct stat sb;
+        if (stat(s.c_str(), &sb) == 0) {
+          if (S_ISDIR(sb.st_mode)) {
+            continue;
+          } else {
+            throw VnVExceptionBase(
+                "Cannot create directory as file with that name exists");
+          }
+        } else if (!makedir(s, i)) {
+          throw VnV::VnVExceptionBase("Cannot make directory");
         }
-      } else if ( !makedir(s,i)) {
-        throw VnV::VnVExceptionBase("Cannot make directory");
       }
     }
     return s;

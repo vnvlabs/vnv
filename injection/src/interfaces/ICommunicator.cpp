@@ -99,6 +99,9 @@ void VnV::Communication::ICommunicator::setName(std::string name) {
 VnV_Comm VnV::Communication::ICommunicator::asComm() {
   return VnV_Create_Comm(getPackage().c_str(), getData());
 }
+void VnV::Communication::ICommunicator::Initialize(){}
+void VnV::Communication::ICommunicator::Finalize(){}
+
 
 long long VnV::Communication::IReduction::getKey() { return key; }
 

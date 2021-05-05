@@ -3,17 +3,19 @@
 #ifdef __cplusplus
   #warning "Compiling C example with a C++ compiler."
 #endif
+
+
 #define PNAME SampleCExecutable
 
 int function1(int x) {
 
-  INJECTION_LOOP_BEGIN(PNAME, VWORLD(PNAME), CFunction, x)
+  INJECTION_LOOP_BEGIN(VNV_STR(PNAME), VWORLD(PNAME), "CFunction", x)
   for (int i = 0; i < 10; i++) {
     x += i;
-    INJECTION_LOOP_ITER(PNAME,CFunction, inner);
+    INJECTION_LOOP_ITER(VNV_STR(PNAME),"CFunction", "inner");
   }
 
-  INJECTION_LOOP_END(PNAME,CFunction);
+  INJECTION_LOOP_END(VNV_STR(PNAME),"CFunction");
   return x;
 }
 

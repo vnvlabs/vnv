@@ -38,6 +38,16 @@ void ParallelEngine::Put(std::string variableName,
   Put( variableName, str,m);
 }
 
+
+void ParallelEngine::Put(std::string variableName,
+                             IDataType_ptr data,
+                             const MetaData& m ) {
+  printf("Parallel ENGINE DATATYPE PUT START\n");
+  data->Put(this);
+  printf("DEBUG ENGINE DATATYPE PUT End\n");
+}
+
+
 void ParallelEngine::Put( std::string variableName,
                          const bool& value,const MetaData& m) {
   std::string str = std::to_string(value);
@@ -72,12 +82,12 @@ void ParallelEngine::finalize(ICommunicator_ptr worldComm) {
   VnV_Info(VNVPACKAGENAME, "PARALLEL ENGINE: FINALIZE");
 }
 
-void ParallelEngine::setFromJson(json& config) {
+void ParallelEngine::setFromJson(ICommunicator_ptr comm, json& config) {
   printf("PARALLEL ENGINE WRAPPER Init with file %s\n", config.dump().c_str());
   // router = new Router();
 }
 
-void ParallelEngine::injectionPointEndedCallBack(ICommunicator_ptr comm, std::string id,
+void ParallelEngine::injectionPointEndedCallBack(std::string id,
                                                  InjectionPointType type,
                                                  std::string stageVal) {
   printf("PARALLEL ENGINE End Injection Point %s : %s \n", id.c_str(),
@@ -95,23 +105,14 @@ void ParallelEngine::injectionPointStartedCallBack(ICommunicator_ptr comm,
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
 }
 
-void ParallelEngine::testStartedCallBack(ICommunicator_ptr comm, std::string packageName,
+void ParallelEngine::testStartedCallBack(std::string packageName,
                                          std::string testName, bool internal) {
   currComm = comm;
   printf("PARALLEL ENGINE Start Test %s \n", testName.c_str());
 }
 
-void ParallelEngine::testFinishedCallBack(ICommunicator_ptr comm, bool result_) {
+void ParallelEngine::testFinishedCallBack(bool result_) {
   printf("PARALLEL ENGINE Stop Test. Test Was Successful-> %d\n", result_);
-}
-void ParallelEngine::dataTypeStartedCallBack(
-                                             std::string variableName,
-                                             long long dtype,const MetaData& m) {
-  printf("PARALLEL ENGINE Data Type Started %s", variableName.c_str());
-}
-void ParallelEngine::dataTypeEndedCallBack(
-                                           std::string variableName) {
-  printf("PARALLEL ENGINE Data Type Finished %s ", variableName.c_str());
 }
 
 void ParallelEngine::unitTestStartedCallBack(ICommunicator_ptr comm,
@@ -121,7 +122,7 @@ void ParallelEngine::unitTestStartedCallBack(ICommunicator_ptr comm,
   printf("PARALLEL ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
 }
 
-void ParallelEngine::unitTestFinishedCallBack(ICommunicator_ptr comm,
+void ParallelEngine::unitTestFinishedCallBack(
                                               IUnitTest* tester) {
   printf("Test Results\n");
   bool suiteSuccessful = true;

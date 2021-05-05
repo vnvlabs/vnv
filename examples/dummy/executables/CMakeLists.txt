@@ -15,18 +15,20 @@ endif()
 install(TARGETS ${name} DESTINATION examples/dummy/executables)
 endfunction()
 
+if (WITH_MPI)
 
 addExecutable(sample.a SampleExecutable "sample.cpp")
 target_link_libraries(sample.a PRIVATE dummyLibOne dummyLibTwo)
 set_target_properties(sample.a PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/examples/dummy/lib)
 
-
 addExecutable(read.a SampleReader "read.cpp")
+addExecutable(simple.a SimpleExecutable "simple.cpp" )
+addExecutable(distributed.a Distributed "distributed.cpp")
 
-if(WITH_MPI)
-  addExecutable(simple.a SimpleExecutable "simple.cpp" )
-  addExecutable(distributed.a Distributed "distributed.cpp")
 endif()
+
+addExecutable(serial.a SerialExample "serial.cpp")
+
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json
                ${CMAKE_CURRENT_BINARY_DIR}/vv-input.json COPYONLY)

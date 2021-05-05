@@ -188,7 +188,7 @@ int main(int argc, char** argv) {
    *    This comment will show up in the final report as the introduction. It
    * supports restructured text markup.
    */
-  INJECTION_INITIALIZE(SPNAME, &argc, &argv, "./vv-dist-data.json")
+  INJECTION_INITIALIZE(SPNAME, &argc, &argv, "./vv-dist-data.json");
 
   std::cout << sizeof(long long) << " " << sizeof(double) << "  "
             << sizeof(double) << std::endl;
@@ -223,7 +223,7 @@ int main(int argc, char** argv) {
    *  vector and matrix.
    *
    */
-  INJECTION_POINT(SPNAME, VWORLD, distribute, local_vec, local_mat)
+  INJECTION_POINT(VNV_STR(SPNAME), VWORLD, "distribute", local_vec, local_mat);
 
   /**
      Conclusion.

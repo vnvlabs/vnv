@@ -25,6 +25,9 @@ void VnV_Declare_Communicator(const char* packageName, const char* commPackage,
                                                   commName);
 }
 
+
+
+
 VnV_Comm VnV_Create_Comm(const char* packageName, void* data) {
   auto length = std::strlen(packageName);
   if (length > MAX_PACKAGE_NAME_SIZE) {
@@ -38,4 +41,12 @@ VnV_Comm VnV_Create_Comm(const char* packageName, void* data) {
   comm.data = data;
   return comm;
 }
+}
+
+VnV_Comm createComm(const char* str, const char* package) {
+  if (std::strcmp(str,VWORLD) ==  0 ) {
+    return VnV_Comm_World(package);
+  } else {
+    return VnV_Comm_Self(package);
+  }
 }

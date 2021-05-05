@@ -80,7 +80,7 @@ std::string VariableEnumFactory::toString(VariableEnum e) {
 }
 
 
-void OutputEngineManager::set(json& inputjson) {
+void OutputEngineManager::set(ICommunicator_ptr world, json& inputjson) {
   json schema = getConfigurationSchema();
 
   if (!schema.empty()) {
@@ -88,7 +88,8 @@ void OutputEngineManager::set(json& inputjson) {
     validator.set_root_schema(schema);
     validator.validate(inputjson);
   }
-  setFromJson(inputjson);
+
+  setFromJson(world, inputjson);
 }
 
 IOutputEngine* OutputEngineManager::getOutputEngine() {

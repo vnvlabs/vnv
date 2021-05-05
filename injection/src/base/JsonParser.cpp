@@ -121,8 +121,20 @@ OffloadInfo JsonParser::getOffloadInfo(const json& offloadJson) {
 
 UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json& unitTestJson) {
   UnitTestInfo info;
-  info.runUnitTests = unitTestJson["runTests"].get<bool>();
-  info.unitTestConfig = unitTestJson["config"];
+  if (unitTestJson.contains("runUnitTests")) {
+    info.runUnitTests = unitTestJson["runUnitTests"].get<bool>();
+    info.unitTestConfig = unitTestJson["config"];
+  } else {
+    info.runUnitTests = false;
+    info.unitTestConfig = json::object();
+  }
+
+  if ( unitTestJson.contains("exitAfter")) {
+     info.exitAfterTests = unitTestJson["exitAfter"].get<bool>();
+  } else {
+     info.exitAfterTests = false;
+  }
+
   return info;
 }
 

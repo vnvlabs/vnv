@@ -6,6 +6,7 @@
 #define VNV_MPICOMMUNICATOR_H
 
 #include <mpi.h>
+#include "interfaces/ICommunicator.h"
 
 namespace VnV {
 namespace Communication {
@@ -37,18 +38,7 @@ class MPIRequest : public IRequest {
   virtual ~MPIRequest() {}
 };
 
-MPI_Comm castToMPIComm(ICommunicator_ptr ptr) {
-  MPI_Comm mpicomm;
-  if ( ptr->getName() == "serial") {
-    mpicomm = MPI_COMM_SELF;
-  } else if (ptr->getName() == "mpi") {
-    VnV::Communication::MPI::CommKeeper* k = (VnV::Communication::MPI::CommKeeper*) ptr->getData();
-    mpicomm = k->comm;
-  } else {
-    throw VnV::VnVExceptionBase("Cannot convert communicator to MPI");
-  }
-  return mpicomm;
-}
+MPI_Comm castToMPIComm(ICommunicator_ptr ptr);
 
 }
 

@@ -7,9 +7,6 @@
 #  include "c-interfaces/PackageName.h"
 #  include "c-interfaces/Wrappers.h"
 
-#define VSELF(PNAME) VnV_Comm_Self(VNV_STR(PNAME))
-#define VWORLD(PNAME) VnV_Comm_World(VNV_STR(PNAME))
-#define VCUST(PNAME,data) VnV_Comm_Custom(VNV_STR(PNAME), &data)
 
 typedef void (*vnv_registration_function)();
 
@@ -39,7 +36,7 @@ VNVEXTERNC int  _VnV_injectionIterate(VnV_Iterator *iterator);
 
 // Macro for an iterative vnv injection point. 
 # define INJECTION_ITERATION_C(PNAME, COMM, NAME, ONCE, INPUTS, callback, ...)\
-   VnV_Iterator VNV_JOIN(PNAME,_iterator_,NAME) = _VnV_injectionIteration(COMM, VNV_STR(PNANE), VNV_STR(NAME), \
+   VnV_Iterator VNV_JOIN(PNAME,_iterator_,NAME) = _VnV_injectionIteration(COMM, PNANE, NAME, \
                     callback, ONCE, INPUTS, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S); \
    while(_VnV_injectionIterate(&VNV_JOIN(PNAME,_iterator_,NAME)))
 
@@ -52,7 +49,7 @@ VNVEXTERNC int  _VnV_injectionIterate(VnV_Iterator *iterator);
 
 // Macro for an injection point with a callback
 #  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...)          \
-    _VnV_injectionPoint(COMM, VNV_STR(PNAME), VNV_STR(NAME), callback, \
+    _VnV_injectionPoint(COMM, PNAME, NAME, callback, \
                         EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
 // Injection point without a data callback.
@@ -61,7 +58,7 @@ VNVEXTERNC int  _VnV_injectionIterate(VnV_Iterator *iterator);
 
 // BEGIN A LOOPED INJECTION POINT with a callback
 #  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...)           \
-    _VnV_injectionPoint_begin(COMM, VNV_STR(PNAME), VNV_STR(NAME), callback, \
+    _VnV_injectionPoint_begin(COMM, PNAME, NAME, callback, \
                               EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
 // Begin a looped injection point without a data callback.
@@ -70,7 +67,7 @@ VNVEXTERNC int  _VnV_injectionIterate(VnV_Iterator *iterator);
 
 // END A LOOPED INJECTION POINT.
 #  define INJECTION_LOOP_END(PNAME, NAME) \
-    _VnV_injectionPoint_end(VNV_STR(PNAME), #NAME);
+    _VnV_injectionPoint_end(PNAME, NAME);
 
 #  define INJECTION_FUNCTION_WRAPPER_C(PNAME, COMM, NAME, function, callback, \
                                        ...)                                   \
@@ -84,11 +81,12 @@ VNVEXTERNC int  _VnV_injectionIterate(VnV_Iterator *iterator);
 
 // INTERNAL ITERATION OF A LOOPED INJECTION POINT.
 #  define INJECTION_LOOP_ITER(PNAME, NAME, STAGE) \
-    _VnV_injectionPoint_loop(VNV_STR(PNAME), VNV_STR(NAME), #STAGE);
+    _VnV_injectionPoint_loop(PNAME, NAME, STAGE);
+
 
 // REGISTER AN INJECTION POINT
 #  define Register_Injection_Point(PNAME, NAME, ITERATIVE, PARAMETERS) \
-    _VnV_registerInjectionPoint(VNV_STR(PNAME), VNV_STR(NAME), ITERATIVE, PARAMETERS);
+    _VnV_registerInjectionPoint(PNAME, NAME, ITERATIVE, PARAMETERS);
 
 #else
 

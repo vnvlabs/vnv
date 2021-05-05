@@ -50,6 +50,7 @@ class RunTimeOptions {
   bool logUnhandled = false;
   std::string dumpConfigFilename = "";
   bool dumpConfig = false;
+  bool exitAfterDumpConfig = false;
   void fromJson(json& jsonObject);
   static void callback(json& j);
 };
@@ -68,6 +69,8 @@ class RunTime {
    */
   RunTime();
 
+  std::map<int,std::function<void(ICommunicator_ptr)>> cleanupActions;
+
   std::string mainPackageName;
   std::set<std::string> plugins;
   std::set<std::string> packages;
@@ -79,6 +82,11 @@ class RunTime {
 
   bool runTests; /**< Should tests be run */
   bool terminalSupportsAsciiColors = true;
+
+  UnitTestInfo unitTestInfo;
+
+
+
 
   void loadPlugin(std::string filename, std::string packageName);
 
@@ -127,18 +135,25 @@ class RunTime {
    */
   bool InitFromFile(const char* packageName, int* argc, char*** argv,
                     std::string configFile, registrationCallBack* callback);
+
   bool InitFromJson(const char* packageName, int* argc, char*** argv,
                     json& configFile, registrationCallBack* callback);
 
+
+
+  int cleanupActionCounter = 0;
+
+  int registerCleanUpAction(std::function<void(ICommunicator_ptr)> action) ;
+
   void declarePackageJson(std::string pname, vnvFullJsonStrCallback callback);
 
-  void declareCommunicator(std::string pname, std::string commPack,
-                           std::string comm);
+  void declareCommunicator(std::string pname, std::string commPack, std::string comm);
 
   bool useAsciiColors();
+
   /**
-   * @brief printRunTimeInformation
-   * Write all run infomation to the logs.
+    * @brief printRunTimeInformation
+    * Write all run infomation to the logs.
    */
   void printRunTimeInformation();
 
@@ -250,9 +265,10 @@ class RunTime {
    *
    * Run all user configured unit testers.
    */
-  void runUnitTests(VnV_Comm comm);
+  void runUnitTests(VnV_Comm comm, UnitTestInfo info);
 
   void readFile(std::string filename, long& idCounter);
+  std::string getPackageName();
 };
 }  // namespace VnV
 

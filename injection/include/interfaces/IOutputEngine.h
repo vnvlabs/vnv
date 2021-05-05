@@ -74,10 +74,6 @@ class IOutputEngine  {
                    std::string level, std::string message) = 0;
 
 
-  virtual void dataTypeStartedCallBack(std::string variableName,
-                                       long long dtype, const MetaData& m) = 0;
-  virtual void dataTypeEndedCallBack(std::string variableName) = 0;
-
   virtual void Put(std::string variableName, const bool& value,
                    const MetaData& m = MetaData()) = 0;
 
@@ -95,11 +91,17 @@ class IOutputEngine  {
                    const std::string& value,
                    const MetaData& m = MetaData()) = 0;
 
+  virtual void Put(std::string variableName,
+                   IDataType_ptr data,
+                   const MetaData& m = MetaData()) = 0;
+
+
   virtual void Put(std::string variableName, const char* value,
                    const MetaData& m = MetaData()) {
     std::string s(value);
     Put(variableName, value, m);
   }
+
 
   // Get all the integral types and feed them to long long.
   template <typename T, typename std::enable_if<std::is_integral<T>::value,
@@ -120,45 +122,6 @@ class IOutputEngine  {
     this->Put(variableName, b, m);
   }
 
-  // If the class has a Put(engine) method, then use that.
-  template <typename, typename T> struct has_put {
-    static_assert(std::integral_constant<T, false>::value,
-                  "Second template parameter needs to be of function type.");
-  };
-
-
-
-
-  // specialization that does the checking
-
-  template <typename C, typename Ret, typename... Args>
-  struct has_put<C, Ret(Args...)> {
-   private:
-    template <typename T>
-    static constexpr auto check(T*) -> typename std::is_same<
-        decltype(std::declval<T>().Put(std::declval<Args>()...)),
-        Ret       // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    >::type;  // attempt to call it and see if the return type is correct
-
-    template <typename> static constexpr std::false_type check(...);
-
-    typedef decltype(check<C>(0)) type;
-
-   public:
-    static constexpr bool value = type::value;
-  };
-
-  template <typename T,
-      typename std::enable_if<has_put<T, void(ISerialOutputEngine*)>::value,
-          T>::type* = nullptr>
-  void Put(std::string variableName, const T& value,
-           const MetaData& m = MetaData()) {
-
-    dataTypeStartedCallBack(variableName, 0, m);
-    value.Put(this);
-    dataTypeEndedCallBack(variableName);
-  }
-
   // Get all the  class types that might have a datatype wrapper.
   template <typename T, typename std::enable_if<std::is_class<T>::value,
       T>::type* = nullptr>
@@ -166,9 +129,8 @@ class IOutputEngine  {
            const MetaData& m = MetaData()) {
     auto it = CommunicationStore::instance().getDataType(typeid(T).name());
     if (it != nullptr) {
-      dataTypeStartedCallBack(variableName, it->getKey(), m);
-      it->Put(this);
-      dataTypeEndedCallBack(variableName);
+      it->setData(&value);
+
     }
     VnV_Warn(VNVPACKAGENAME, "Could not write variable. Unsupported Datatype");
   }
@@ -831,7 +793,7 @@ void IOutputEngine::Put_ReduceVectorRankOnly(
 
 class IInternalOutputEngine : public IOutputEngine {
  public:
-  virtual void setFromJson(json& configuration) = 0;
+  virtual void setFromJson(ICommunicator_ptr worldComm, json& configuration) = 0;
 
   virtual json getConfigurationSchema() = 0;
 
@@ -870,7 +832,7 @@ class IInternalOutputEngine : public IOutputEngine {
  */
 class OutputEngineManager : public IInternalOutputEngine {
  public:
-  void set(json& configuration);
+  void set(ICommunicator_ptr world, json& configuration);
   IOutputEngine* getOutputEngine();
   virtual ~OutputEngineManager() = default;
 };

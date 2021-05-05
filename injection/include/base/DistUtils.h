@@ -65,7 +65,7 @@ bool makedir(std::string filename, mode_t mode );
  * @param mode
  * @return
  */
-std::string makeDirectories(std::vector<std::string> vector, mode_t i);
+std::string join(std::vector<std::string> vector, mode_t i, bool makeDirs);
 
 }  // namespace DistUtils
 }  // namespace VnV

@@ -168,12 +168,12 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
                          Range.getBegin());
   }
 
-  std::string getPackageName(const MacroArgs* Args, int c) {
+  std::string getPackageName(const MacroArgs* Args, int c, bool removeQuotes = false) {
     std::string s = "";
     for (auto it : const_cast<MacroArgs*>(Args)->getPreExpArgument(c, pp)) {
       s += pp.getSpelling(it);
     }
-    return s;
+    return removeQuotes ? s.substr(1, s.size()-2) : s;
   }
 
   void FileChanged(SourceLocation Loc, FileChangeReason Reason,
@@ -305,14 +305,13 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jk["package"] = getPackageName(Args, 1);
       jk["name"] = getPackageName(Args, 2);
     } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 0),
-                        getPackageName(Args, 2));
+      json& jj = getDef("InjectionPoints", getPackageName(Args, 0,true),getPackageName(Args, 2,true));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range);
       thisStage["docs"] = "";
     } else if (nae == "INJECTION_ITERATION_C" || nae == "INJECTION_ITERATION") {
-        json& jj = getDef("InjectionPoints", getPackageName(Args, 0),
+        json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true),
                           getPackageName(Args, 2));
         json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
         json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
@@ -320,15 +319,15 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
         jj["iterator"] = true;
         thisStage["docs"] = "";
       } else if (nae == "INJECTION_LOOP_ITER") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 0),
-                        getPackageName(Args, 1));
+      json& jj = getDef("InjectionPoints", getPackageName(Args, 0,true),
+                        getPackageName(Args, 1,true));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage =
-          VnV::JsonUtilities::getOrCreate(stages, getPackageName(Args, 2));
+          VnV::JsonUtilities::getOrCreate(stages, getPackageName(Args, 2,true));
       thisStage["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_LOOP_END") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 0),
-                        getPackageName(Args, 1));
+      json& jj = getDef("InjectionPoints", getPackageName(Args, 0,true),
+                        getPackageName(Args, 1,true));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "End");
       thisStage["docs"] = getDocs(Range);

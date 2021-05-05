@@ -1,4 +1,5 @@
 ﻿
+
 /** @file AdiosOutputEngineImpl.cpp **/
 #include "plugins/engines/adios/AdiosEngineManager.h"
 
@@ -25,7 +26,7 @@ static json __adios_input_schema__ = R"(
         "configFile": {
             "type": "string"
         },
-        "outFile": {
+        "outputFile": {
             "type": "string"
         }
     },
@@ -40,11 +41,10 @@ namespace VnV {
 namespace VNVPACKAGENAME {
 namespace Engines {
 
-int AdiosEngineManager::ADIOS_ENGINE_MANAGER_VERSION = 1;
 
-AdiosEngineManager::AdiosEngineManager() {}
+AdiosEngineManager::AdiosEngineManager() = default;
 
-AdiosEngineManager::~AdiosEngineManager() {}
+AdiosEngineManager::~AdiosEngineManager() = default;
 
 void AdiosEngineManager::Put(std::string variableName, const double& value,
                              const MetaData& m) {
@@ -71,6 +71,10 @@ void AdiosEngineManager::Put(std::string variableName, const std::string& value,
   curr->Put(variableName, value, m, 0);
 }
 
+void AdiosEngineManager::Put(std::string variableName, IDataType_ptr data, const MetaData& m) {
+  curr->Put(variableName,data,m, this,0);
+}
+
 void AdiosEngineManager::PutGlobalArray(
     long long dtype, std::string variableName, IDataType_vec data,
     std::vector<int> gsizes, std::vector<int> sizes, std::vector<int> offset,
@@ -95,50 +99,54 @@ std::string AdiosEngineManager::getFileName(std::vector<std::string> fname) {
   fname.insert(fname.begin(), outfile);
   std::string filename = fname.back();
   fname.pop_back();
-  std::string fullname = DistUtils::makeDirectories(fname, 0777);
+  std::string fullname = DistUtils::join(fname, 0777, comm->Rank() == getRoot() );
   return fullname + filename;
 }
 
 void AdiosEngineManager::finalize(ICommunicator_ptr worldComm) {
   setComm(worldComm);
 
-  // Finalize all the engines.
-  for (auto it : routes) {
-    it.second->finalize();
-  }
-
   // Get the comm map information and write it to file.
   auto comms = commMapper.gatherCommInformation(worldComm);
   if (worldComm->Rank() == getRoot()) {
+
     if (comms.size() > 1) {
       throw VnVExceptionBase("To many root communicators");
     } else if (comms.size() == 1) {
+
       // Write the comm information to json/
       json jcomm = json::object();
       std::set<long> done1;
-      for (auto it : comms) {
+      for (const auto& it : comms) {
         it->toJson1(jcomm, done1);
       }
 
       json comMap = json::object();
       comMap["worldSize"] = worldComm->Size();
       comMap["map"] = jcomm;
-      worldEngine.BeginStep();
-      worldEngine.Put("commMap", comMap.dump());
-      worldEngine.EndStep();
+
+      curr->writeCommMap(comMap);
     }
-    worldEngine.Close();
+  } else {
+    curr->writeCommMap(json::object());
   }
+
+  // Finalize all the engines.
+  for (auto it : routes) {
+    it.second->finalize();
+  }
+
 }
 
-void AdiosEngineManager::setFromJson(nlohmann::json& config) {
+void AdiosEngineManager::setFromJson(ICommunicator_ptr worldComm, nlohmann::json& config) {
+
   bool debug = false;
   std::string configFile = "";
 
   if (config.find("debug") != config.end()) debug = config["debug"].get<bool>();
 
-  if (config.find("outFile") != config.end())
-    outfile = config["outFile"].get<std::string>();
+  if (config.find("outputFile") != config.end())
+    outfile = config["outputFile"].get<std::string>();
 
   if (config.find("configFile") != config.end())
     configFile = config["configFile"].get<std::string>();
@@ -149,46 +157,20 @@ void AdiosEngineManager::setFromJson(nlohmann::json& config) {
     adios = new adios2::ADIOS(configFile, MPI_COMM_WORLD, debug);
 
   bpWriter = adios->DeclareIO("BPWriter");
-  outputFile = bpWriter.AddTransport("File", {{"Library", "POSIX"}, {"Name", outfile.c_str()}});
+  bpWriter.AddTransport("File",{{"Library", "POSIX"}, {"Name", outfile.c_str()}});
+  AdiosEngineImpl::Define(bpWriter);
 
-  bpWriter.DefineVariable<long>("identity");
-  bpWriter.DefineVariable<double>("double");
-  bpWriter.DefineVariable<long long>("longlong");
-  bpWriter.DefineVariable<std::string>("string");
-  bpWriter.DefineVariable<bool>("bool");
-  bpWriter.DefineVariable<std::string>("json");
-  bpWriter.DefineVariable<std::string>("metadata");
-  bpWriter.DefineVariable<std::string>("name");
-  bpWriter.DefineVariable<std::string>("package");
-  bpWriter.DefineVariable<int>("stage");
-  bpWriter.DefineVariable<std::string>("level");
+  // Set the communicator to be the main communication. 0
+  setComm(worldComm);
 
-  MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
-  worldEngine = bpWriter.Open(getFileName({"info.json"}), adios2::Mode::Write,
-                              MPI_COMM_WORLD);
+  // Write the beginining inforation.
+  curr->writeInfo();
 
-  int worldSize;
-  MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
-
-  if (worldRank == 0) {
-    json info = json::object();
-    info["title"] = "VnV Simulation Report";
-    info["date"] = std::chrono::duration_cast<std::chrono::milliseconds>(
-                       std::chrono::system_clock::now().time_since_epoch())
-                       .count();
-    info["spec"] = RunTime::instance().getFullJson();
-    info["engine"] = "Adios";
-    info["commsize"] = worldSize;
-    info["version"] = ADIOS_ENGINE_MANAGER_VERSION;
-
-    worldEngine.BeginStep();
-    worldEngine.Put("info", info.dump());
-    worldEngine.EndStep();
-  }
 }
 
-void AdiosEngineManager::setComm(ICommunicator_ptr comm) {
-  commMapper.logComm(comm);
+ void AdiosEngineManager::setComm(const ICommunicator_ptr& comm) {
+   setCommunicator(comm);
+   commMapper.logComm(comm);
   long uid = comm->uniqueId();
   auto it = routes.find(uid);
   if (it == routes.end()) {
@@ -209,29 +191,27 @@ void AdiosEngineManager::setComm(ICommunicator_ptr comm) {
   }
 }
 
-long AdiosEngineManager::getNextId(ICommunicator_ptr comm) {
+long AdiosEngineManager::getNextId(const ICommunicator_ptr& comm) {
   if (comm != nullptr) {
     id = commMapper.getNextId(comm, id);
   }
   return id++;
 }
 
-void AdiosEngineManager::injectionPointEndedCallBack(std::string id,
+void AdiosEngineManager::injectionPointEndedCallBack(std::string id_,
                                                      InjectionPointType type_,
                                                      std::string stageId) {
-  setComm(comm);
-  curr->injectionPointEndedCallBack(id, type_, stageId);
+  curr->injectionPointEndedCallBack(id_, type_, stageId);
 }
 
 void AdiosEngineManager::injectionPointStartedCallBack(ICommunicator_ptr comm,
                                                        std::string packageName,
-                                                       std::string id,
+                                                       std::string id_,
 
                                                        InjectionPointType type_,
                                                        std::string stageId) {
-  setComm(comm);
   long nextId = getNextId(comm);
-  curr->injectionPointStartedCallBack(nextId, packageName, id, type_, stageId);
+  curr->injectionPointStartedCallBack(nextId, packageName, id_, type_, stageId);
 }
 
 void AdiosEngineManager::testStartedCallBack(std::string packageName,
@@ -255,15 +235,7 @@ void AdiosEngineManager::unitTestFinishedCallBack(IUnitTest* tester) {
   setComm(comm);
   curr->unitTestFinishedCallBack(tester);
 }
-void AdiosEngineManager::dataTypeStartedCallBack(std::string variableName,
-                                                 long long dtype,
-                                                 const MetaData& m) {
-  curr->dataTypeStartedCallBack(variableName, dtype, m);
-}
 
-void AdiosEngineManager::dataTypeEndedCallBack(std::string variableName) {
-  curr->dataTypeEndedCallBack(variableName);
-}
 nlohmann::json AdiosEngineManager::getConfigurationSchema() {
   return __adios_input_schema__;
 }

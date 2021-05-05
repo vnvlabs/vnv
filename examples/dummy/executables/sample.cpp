@@ -1,4 +1,5 @@
 ﻿
+#include <mpi.h>
 #include <time.h>
 
 #include <chrono>
@@ -16,7 +17,6 @@
 
 #define SPNAME SampleExecutable
 
-
 template <typename T> class f {
  public:
   T ff;
@@ -24,7 +24,7 @@ template <typename T> class f {
   int ggg;
   int getF(int t) {
     /** sdfsdfsdfsdf **/
-    INJECTION_POINT(SPNAME, VSELF, sdfsdf, ff, gg, ggg);
+    INJECTION_POINT(VNV_STR(SPNAME), VSELF, "sdfsdf", ff, gg, ggg);
     return 1;
   }
 };
@@ -32,13 +32,12 @@ template <typename T> class f {
 /**
  * Create a custom log level with stanadrd coloring.
  **/
-INJECTION_LOGLEVEL(SPNAME, custom, )
+INJECTION_LOGLEVEL(VNV_STR(SPNAME), custom, )
 
 /**
  * Let the VnV Toolkit know there is a subpackage linked to this executable.
  */
 INJECTION_SUBPACKAGE(SPNAME, DummyLibOne)
-
 
 INJECTION_TRANSFORM(SPNAME, sampleTransform, std::vector<double>, double) {
   return NULL;
@@ -55,8 +54,8 @@ INJECTION_TRANSFORM(SPNAME, sampleTransform, std::vector<double>, double) {
 INJECTION_TEST(SPNAME, sampleTest, std::vector<double> vals) {
   auto vals = get<std::vector<double>>("vals");
   for (auto& it : vals) {
-    engine->serial()->Put( "Key", it);
-    engine->serial()->Put( "Value", it);
+    engine->Put("Key", it);
+    engine->Put("Value", it);
   }
   return SUCCESS;
 }
@@ -70,7 +69,8 @@ template <typename T, typename X> int templateFnc(int x, T y, X xx) {
    *  functions are interesting because it can be hard to map between injection
    *  points and tests in these cases.
    */
-  INJECTION_POINT(SPNAME, VSELF, templateFn, x, y, xx);
+  INJECTION_POINT(VNV_STR(SPNAME), VSELF, "templateFn", x, y, xx);
+
   return 0;
 }
 
@@ -84,8 +84,8 @@ class test1 {
 
         A simple looped injection point wrapping a for loop.
     */
-    INJECTION_LOOP_BEGIN(SPNAME, VWORLD, Function1Class1, samplePoints,
-                         samplePoints1, samplePoints3)
+    INJECTION_LOOP_BEGIN(VNV_STR(SPNAME), VWORLD, "Function1Class1",
+                         samplePoints, samplePoints1, samplePoints3);
     for (int i = 0; i < 10; i++) {
       samplePoints.push_back(i);
 
@@ -98,7 +98,7 @@ class test1 {
        * it has the same access to the dat aelements of the overall injection
        * points.
        */
-      INJECTION_LOOP_ITER(SPNAME, Function1Class1, inner)
+      INJECTION_LOOP_ITER(VNV_STR(SPNAME), "Function1Class1", "inner");
       samplePoints1.push_back(i * i);
     }
     /**
@@ -107,125 +107,111 @@ class test1 {
 
        The function ended.
     */
-    INJECTION_LOOP_END(SPNAME, Function1Class1)
+    INJECTION_LOOP_END(VNV_STR(SPNAME), "Function1Class1");
     return 11;
   }
 };
 
 #include <map>
 
-double func(double x)
-{
-    return x*x*x - x*x + 2;
-}
+double func(double x) { return x * x * x - x * x + 2; }
 
 // Derivative of the above function which is 3*x^x - 2*x
-double derivFunc(double x)
-{
-    return 3*x*x - 2*x;
-}
+double derivFunc(double x) { return 3 * x * x - 2 * x; }
 
-void newtonRaphson(double x, double eps, int rank)
-{
-    double f = func(x);
-    double fp = derivFunc(x);
-    double h = f/fp;
-    double iter = 0;
+void newtonRaphson(double x, double eps, int rank) {
+  double f = func(x);
+  double fp = derivFunc(x);
+  double h = f / fp;
+  double iter = 0;
 
-    /**
-     *
-     *  Newton Raphson Method for finding the root of a function
-     *  ========================================================
-     *
-     *  This function uses the NewtonRaphson method to solve
-     *  the function
-     *
-     *  .. math::
-     *
-     *     f(x) = x^3 - x^2 + 2 = 0.
-     *
-     *  where the formula for the Newton Raphson method is:
-     *
-     *  .. math::
-     *
-     *     x_{n+1} = x_{n} + \frac{f(x_n)}{f'(x_n)}.
-     *
-     *  The solution is x = -1.
-     *
-     *  The newton raphson method is expected to converge quadratically to
-     *  the root. The following chart shows the current value of the best
-     *  guess at each iteration of the algorithm.
-     *
-     *  .. vnv-chart::
-     *     :labels: Data.Data[?Name == 'iter'].to_string(Value)
-     *     :vals: Data.Data[?Name == 'root'].Value
-     *
-     *
-     *     {
-     *        "type" : "line",
-     *        "data" : {
-     *           "labels": $$labels$$,
-     *           "datasets" : [
-     *              {
-     *                "label" : "Approximate Root",
-     *                "data": $$vals$$,
-     *                "fill" : true,
-     *                "backgroundColor": "rgb(255, 99, 132)",
-     *                "borderColor": "rgb(255, 99, 132)"
-     *              }
-     *           ]
-     *        },
-     *        "options" : {
-     *           "responsive" : true,
-     *           "title" : { "display" : true, "text" : "Convergence of the Newton Raphson Method" },
-     *           "scales": {
-     *               "yAxes": [{
-     *                   "scaleLabel": {
-     *                       "display": true,
-     *                       "labelString": "Current Guess"
-     *                   }
-     *               }],
-     *               "xAxes": [{
-     *                   "scaleLabel": {
-     *                       "display":true,
-     *                       "labelString": "Iteration Number"
-     *                   }
-     *               }]
-     *            }
-     *        }
-     *     }
-     *
-    **/
-    INJECTION_LOOP_BEGIN_C(
-        SPNAME, VSELF, NewtonRaphson,
-        [](VnV_Comm comm, VnV::VnVParameterSet& p,
-           VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
-           std::string stageId) {
+  /**
+   *
+   *  Newton Raphson Method for finding the root of a function
+   *  ========================================================
+   *
+   *  This function uses the NewtonRaphson method to solve
+   *  the function
+   *
+   *  .. math::
+   *
+   *     f(x) = x^3 - x^2 + 2 = 0.
+   *
+   *  where the formula for the Newton Raphson method is:
+   *
+   *  .. math::
+   *
+   *     x_{n+1} = x_{n} + \frac{f(x_n)}{f'(x_n)}.
+   *
+   *  The solution is x = -1.
+   *
+   *  The newton raphson method is expected to converge quadratically to
+   *  the root. The following chart shows the current value of the best
+   *  guess at each iteration of the algorithm.
+   *
+   *  .. vnv-chart::
+   *     :labels: Data.Data[?Name == 'iter'].to_string(Value)
+   *     :vals: Data.Data[?Name == 'root'].Value
+   *
+   *
+   *     {
+   *        "type" : "line",
+   *        "data" : {
+   *           "labels": $$labels$$,
+   *           "datasets" : [
+   *              {
+   *                "label" : "Approximate Root",
+   *                "data": $$vals$$,
+   *                "fill" : true,
+   *                "backgroundColor": "rgb(255, 99, 132)",
+   *                "borderColor": "rgb(255, 99, 132)"
+   *              }
+   *           ]
+   *        },
+   *        "options" : {
+   *           "responsive" : true,
+   *           "title" : { "display" : true, "text" : "Convergence of the Newton
+   *Raphson Method" }, "scales": { "yAxes": [{ "scaleLabel": { "display": true,
+   *                       "labelString": "Current Guess"
+   *                   }
+   *               }],
+   *               "xAxes": [{
+   *                   "scaleLabel": {
+   *                       "display":true,
+   *                       "labelString": "Iteration Number"
+   *                   }
+   *               }]
+   *            }
+   *        }
+   *     }
+   *
+   **/
+  INJECTION_LOOP_BEGIN_C(
+      VNV_STR(SPNAME), VSELF, "NewtonRaphson",
+      [](VnV_Comm comm, VnV::VnVParameterSet& p,
+         VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
+         std::string stageId) {
         const double& x = p["x"].getByRtti<double>();
         const double& iter = p["iter"].getByRtti<double>();
         const int& rank = p["rank"].getByRtti<int>();
 
-        engine->serial()->Put("Rank", rank);
+        engine->Put("Rank", rank);
 
-        engine->serial()->Put("root",x);
-        engine->serial()->Put("iter",iter);
-        },
-        x, iter, rank );
+        engine->Put("root", x);
+        engine->Put("iter", iter);
+      },
+      x, iter, rank);
 
-
-    while (std::abs(h) >= eps)
-    {
-        f = func(x);
-        fp = derivFunc(x);
-        h = f/fp;
-        x = x - h;
-        iter++;
-        INJECTION_LOOP_ITER(SPNAME,NewtonRaphson, iteration)
-    }
-    INJECTION_LOOP_END(SPNAME, NewtonRaphson)
+  while (std::abs(h) >= eps) {
+    f = func(x);
+    fp = derivFunc(x);
+    h = f / fp;
+    x = x - h;
+    iter++;
+    INJECTION_LOOP_ITER(VNV_STR(SPNAME), "NewtonRaphson", "iteration");
+  }
+  INJECTION_LOOP_END(VNV_STR(SPNAME), "NewtonRaphson");
 }
-
-
 
 int function1(int x) {
   std::map<double, double> samplePoints;
@@ -237,12 +223,12 @@ int function1(int x) {
       part of a global function.
 
   **/
-  INJECTION_LOOP_BEGIN(SPNAME, VSELF, Function1, samplePoints)
+  INJECTION_LOOP_BEGIN(VNV_STR(SPNAME), VSELF, "Function1", samplePoints);
   for (int i = 0; i < 10; i++) {
     samplePoints[i] = i;
-    INJECTION_LOOP_ITER(SPNAME, Function1, inner)
+    INJECTION_LOOP_ITER(VNV_STR(SPNAME), "Function1", "inner");
   }
-  INJECTION_LOOP_END(SPNAME, Function1)
+  INJECTION_LOOP_END(VNV_STR(SPNAME), "Function1");
 
   return 11;
 }
@@ -259,21 +245,15 @@ static const char* schemaCallback = "{\"type\": \"object\", \"required\":[]}";
 INJECTION_OPTIONS(SPNAME, schemaCallback) {}
 
 // If compiled with MPI, then set the comm for this package to mpi.
-#ifdef WITH_MPI
-#  include <mpi.h>
+
 INJECTION_EXECUTABLE(SPNAME, VNV, mpi)
-#else
-#  define MPI_Init(...)
-#  define MPI_Finalize()
-INJECTION_EXECUTABLE(SPNAME, VNV, serial)
-#endif
 
 int main(int argc, char** argv) {
   MPI_Init(&argc, &argv);
   int rank;
-  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-      /**
+  /**
    * Sample Executable
    * =================
    *
@@ -320,12 +300,10 @@ int main(int argc, char** argv) {
   int count = 2;
   int i = min;
 
-
-  double start = -10*(rank+1);
+  double start = -10 * (rank + 1);
   newtonRaphson(start, 0.000001, rank);
 
-
-  INJECTION_POINT(SPNAME, VWORLD, functionTest, function1)
+  INJECTION_POINT(VNV_STR(SPNAME), VWORLD, "functionTest", function1);
 
   MPI_Comm comm, comm1;
   MPI_Comm_split(MPI_COMM_WORLD, rank % 2, rank, &comm);
@@ -339,11 +317,13 @@ int main(int argc, char** argv) {
    *  Callback functions are usefull as they allow data to be injected directly
    *  into the injection point description (this comment)
    *
-   *  In this loop, we iterate across a range [ :vnv:`Data.Data.min`, :vnv:`Data.Data.max`] with a step of :vnv:`Data.Data.count`.
-   *  At each step, the INJECTION_LOOP_ITER call is made, representing an internal stage
-   *  of the injection point. This is turn calls the injection point call back, which logs
-   *  the value of the injection point parameter "aa" (aa is a double set randomly in each step of
-   *  the for loop). We plot aa against the step value using the chart directive.
+   *  In this loop, we iterate across a range [ :vnv:`Data.Data.min`,
+   *:vnv:`Data.Data.max`] with a step of :vnv:`Data.Data.count`. At each step,
+   *the INJECTION_LOOP_ITER call is made, representing an internal stage of the
+   *injection point. This is turn calls the injection point call back, which
+   *logs the value of the injection point parameter "aa" (aa is a double set
+   *randomly in each step of the for loop). We plot aa against the step value
+   *using the chart directive.
    *
    *  .. vnv-chart::
    *     :labels: Data.Data[?Name == 'x'].to_string(Value)
@@ -364,32 +344,30 @@ int main(int argc, char** argv) {
    *        },
    *        "options" : {
    *           "responsive" : true,
-   *           "title" : { "display" : true, "text" : "A sample Graph using the Chart directive" },
-   *           "yaxis" : { "display" : true,
-   *             "scaleLabel" : {
-   *               "display" : true,
-   *               "labelString": "Value"
+   *           "title" : { "display" : true, "text" : "A sample Graph using the
+   *Chart directive" }, "yaxis" : { "display" : true, "scaleLabel" : { "display"
+   *: true, "labelString": "Value"
    *             }
    *           }
    *        }
    *     }
    *
-  **/
+   **/
   INJECTION_LOOP_BEGIN_C(
-      SPNAME, comm, loopTest1,
+      VNV_STR(SPNAME), comm, "loopTest1",
       [](VnV_Comm comm, VnV::VnVParameterSet& p,
          VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         if (type == VnV::InjectionPointType::Iter) {
           const double& ab = p["aa"].getByRtti<double>();
           const int& i = p["i"].getByRtti<int>();
-          engine->serial()->Put( "y", ab);
-          engine->serial()->Put( "x", i);
+          engine->Put("y", ab);
+          engine->Put("x", i);
         } else if (type == VnV::InjectionPointType::Begin) {
           /** Comment block in lambda function **/
-          engine->serial()->Put( "min", p["min"].getByRtti<int>());
-          engine->serial()->Put( "max", p["max"].getByRtti<int>());
-          engine->serial()->Put( "count", p["count"].getByRtti<int>());
+          engine->Put("min", p["min"].getByRtti<int>());
+          engine->Put("max", p["max"].getByRtti<int>());
+          engine->Put("count", p["count"].getByRtti<int>());
         }
       },
       aa, min, max, count, i);
@@ -399,26 +377,26 @@ int main(int argc, char** argv) {
 
     /** Testing stufff
      */
-    INJECTION_LOOP_ITER(SPNAME, loopTest1, internal)
+    INJECTION_LOOP_ITER(VNV_STR(SPNAME), "loopTest1", "internal");
   }
   /** sdfsdfsdfsdf**/
-  INJECTION_LOOP_END(SPNAME, loopTest1)
+  INJECTION_LOOP_END("SPNAME", "loopTest1");
 
   INJECTION_LOOP_BEGIN_C(
-      SPNAME, comm1, loopTest2,
+      VNV_STR(SPNAME), "comm1", "loopTest2",
       [](VnV_Comm comm, VnV::VnVParameterSet& p,
          VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         if (type == VnV::InjectionPointType::Iter) {
           const double& ab = p["aa"].getByRtti<double>();
           const int& i = p["i"].getByRtti<int>();
-          engine->serial()->Put( "y", ab);
-          engine->serial()->Put( "x", i);
+          engine->Put("y", ab);
+          engine->Put("x", i);
         } else if (type == VnV::InjectionPointType::Begin) {
           /** Comment block in lambda function **/
-          engine->serial()->Put( "min", p["min"].getByRtti<int>());
-          engine->serial()->Put( "max", p["max"].getByRtti<int>());
-          engine->serial()->Put( "count", p["count"].getByRtti<int>());
+          engine->Put("min", p["min"].getByRtti<int>());
+          engine->Put("max", p["max"].getByRtti<int>());
+          engine->Put("count", p["count"].getByRtti<int>());
         }
       },
       aa, min, max, count, i);
@@ -428,27 +406,26 @@ int main(int argc, char** argv) {
 
     /** Testing stufff
      */
-    INJECTION_LOOP_ITER(SPNAME, loopTest2, internal)
+    INJECTION_LOOP_ITER(VNV_STR(SPNAME), "loopTest2", "internal");
   }
   /** sdfsdfsdfsdf**/
-  INJECTION_LOOP_END(SPNAME, loopTest2)
+  INJECTION_LOOP_END(VNV_STR(SPNAME), "loopTest2");
 
-
-    INJECTION_LOOP_BEGIN_C(
-      SPNAME, VSELF, loopTest,
+  INJECTION_LOOP_BEGIN_C(
+      VNV_STR(SPNAME), VSELF, "loopTest",
       [](VnV_Comm comm, VnV::VnVParameterSet& p,
          VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         if (type == VnV::InjectionPointType::Iter) {
           const double& ab = p["aa"].getByRtti<double>();
           const int& i = p["i"].getByRtti<int>();
-          engine->serial()->Put( "y", ab);
-          engine->serial()->Put( "x", i);
+          engine->Put("y", ab);
+          engine->Put("x", i);
         } else if (type == VnV::InjectionPointType::Begin) {
           /** Comment block in lambda function **/
-          engine->serial()->Put( "min", p["min"].getByRtti<int>());
-          engine->serial()->Put( "max", p["max"].getByRtti<int>());
-          engine->serial()->Put( "count", p["count"].getByRtti<int>());
+          engine->Put("min", p["min"].getByRtti<int>());
+          engine->Put("max", p["max"].getByRtti<int>());
+          engine->Put("count", p["count"].getByRtti<int>());
         }
       },
       aa, min, max, count, i);
@@ -458,10 +435,10 @@ int main(int argc, char** argv) {
 
     /** Testing stufff
      */
-    INJECTION_LOOP_ITER(SPNAME, loopTest, internal)
+    INJECTION_LOOP_ITER(VNV_STR(SPNAME), "loopTest", "internal");
   }
   /** sdfsdfsdfsdf**/
-  INJECTION_LOOP_END(SPNAME, loopTest)
+  INJECTION_LOOP_END(VNV_STR(SPNAME), "loopTest");
 
   sample_class_1.function1(10);
   sample_class_2.function1(10);

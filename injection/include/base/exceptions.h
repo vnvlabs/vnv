@@ -4,6 +4,8 @@
 #include <exception>
 #include <sstream>
 #include <string>
+#include <stdio.h>
+#include <cstdarg>
 
 namespace VnV {
 
@@ -11,11 +13,9 @@ struct VnVExceptionBase : public std::exception {
   std::string message;
 
   VnVExceptionBase(std::string message);
-  const char* what() const throw();
+  const char* what() const noexcept;
 
-  VnVExceptionBase(const char* format, ...) {
-    
-  }
+  VnVExceptionBase(const char* format, ...);
 };
 
 namespace Exceptions {

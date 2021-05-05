@@ -10,7 +10,8 @@ class class1 {
  public:
   int function1(int x);
   int function2(int y) {
-    INJECTION_POINT(DLPNAME, VSELF(DLPNAME), function_in_header, y);
+    INJECTION_POINT(VNV_STR(DLPNAME), VSELF, "function_in_header", y);
+
     return 0;
   }
 };

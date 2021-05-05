@@ -28,14 +28,13 @@
 #  include "c-interfaces/Injection.h"
 #endif
 
-// C Interface for the Json Object. These functions allow C libraries to utilize
-// the JSON input file options.
-#include "c-interfaces/CJson.h"
-
-// C Interface for defining the communicator.
+// Interface for defining the communicator.
 #include "c-interfaces/Communication.h"
 
-// C Interface for the Logging components of VnV
+// Interface for the Logging components of VnV
 #include "c-interfaces/Logging.h"
+
+//Interfaces for the options api.
+#  include "c-interfaces/CJson.h"
 
 #endif  // GAURD

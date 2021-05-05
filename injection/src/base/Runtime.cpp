@@ -52,6 +52,12 @@ void RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
   }
 }
 
+int RunTime::registerCleanUpAction(std::function<void(ICommunicator_ptr)> action) {
+  int i = cleanupActionCounter++;
+  cleanupActions[i] =  action;
+  return i;
+}
+
 void RunTime::makeLibraryRegistrationCallbacks(
     std::map<std::string, std::string> packageNames) {
   for (auto it : packageNames) {
@@ -155,7 +161,7 @@ RunTimeOptions* RunTime::getRunTimeOptions() { return &runTimeOptions; }
 void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
                              const CppInjection::DataCallback& callback,
                              NTV& args) {
-  INJECTION_LOOP_ITER(VNVPACKAGENAME, initialization, cpi);
+  INJECTION_LOOP_ITER(VNV_STR(VNVPACKAGENAME), "initialization", "cpi");
 
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Single, args);
   if (it != nullptr) {
@@ -229,7 +235,7 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
                                    std::string id,
                                    const CppInjection::DataCallback& callback,
                                    NTV& args) {
-  INJECTION_LOOP_ITER(VNVPACKAGENAME, initialization, cppi);
+  INJECTION_LOOP_ITER(VNV_STR(VNVPACKAGENAME), "initialization", "cppi");
 
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Begin, args);
   if (it != nullptr) {
@@ -242,7 +248,7 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
 void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
                              injectionDataCallback* callback, NTV& args) {
 
-    INJECTION_LOOP_ITER(VNVPACKAGENAME, initialization, cpp);
+    INJECTION_LOOP_ITER(VNV_STR(VNVPACKAGENAME), "initialization", "cpp");
 
   auto it = getNewInjectionPoint(pname, id, InjectionPointType::Single, args);
   if (it != nullptr) {
@@ -255,7 +261,7 @@ void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
 void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
                                    std::string id,
                                    injectionDataCallback* callback, NTV& args) {
-  INJECTION_LOOP_ITER(VNVPACKAGENAME, initialization, cp);
+  INJECTION_LOOP_ITER(VNV_STR(VNVPACKAGENAME), "initialization", "cp");
 
     auto it = getNewInjectionPoint(pname, id, InjectionPointType::Begin, args);
   if (it != nullptr) {
@@ -316,16 +322,7 @@ void RunTimeOptions::fromJson(json& j) {
   if (j.contains("dumpConfig")) {
     dumpConfigFilename = j["dumpConfig"].get<std::string>();
     dumpConfig = true;
-  }
-  if (j.contains("command-line")) {
-    json& cmd = j["command-line"];
-    if (cmd.contains("dumpConfig")) {
-      dumpConfig = true;
-      dumpConfigFilename = cmd["dumpConfig"].get<std::string>();
-    }
-    if (cmd.contains("logUnhandled")) {
-      logUnhandled = true;
-    }
+    exitAfterDumpConfig = j.contains("exitAfterDumpConfig") && j["exitAfterDumpConfig"].get<bool>();
   }
 }
 
@@ -350,34 +347,49 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
       logger.addToBlackList(it);
     }
   }
+  std::cout << "1Starting engine creation" << std::endl;
+
   runTimePackageRegistration(VNV_STR(VNVPACKAGENAME),
                              INJECTION_REGISTRATION_PTR(VNVPACKAGENAME));
+
+  std::cout << "2Starting engine creation" << std::endl;
 
   // Register the Executable.
   if (callback != nullptr) {
     runTimePackageRegistration(mainPackageName, *callback);
   }
+  std::cout << "Starting engine creation" << std::endl;
 
   // Register the plugins specified in the input file.
   makeLibraryRegistrationCallbacks(info.additionalPlugins);
+
+  std::cout << "Starting engine creation" << std::endl;
 
   // Process the configs (wait until now because it allows loaded test libraries
   // to register options objects.
   processToolConfig(info.pluginConfig, info.cmdline);
 
+
+
   if (getRunTimeOptions()->dumpConfig) {
     writeSpecification(getRunTimeOptions()->dumpConfigFilename);
+    if (getRunTimeOptions()->exitAfterDumpConfig) {
+      return;
+    }
   }
-
 
   bool offloading = setupOffloadConfiguration(info.offloadInfo);
 
+  ICommunicator_ptr world = CommunicationStore::instance().getCommForPackage(mainPackageName, CommType::World);
+
   if (!OutputEngineStore::getOutputEngineStore().isInitialized()) {
     VnV_Debug(VNVPACKAGENAME, "Configuring The Output Engine");
-    OutputEngineStore::getOutputEngineStore().setEngineManager(
+    OutputEngineStore::getOutputEngineStore().setEngineManager(world,
         info.engineInfo.engineType, info.engineInfo.engineConfig);
     VnV_Debug(VNVPACKAGENAME, "Output Engine Configuration Successful");
   }
+
+  std::cout << "Ending engine creation" << std::endl;
 
   VnV_Debug(
       VNVPACKAGENAME,
@@ -420,7 +432,10 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
     ;
     std::abort();
   }
-  runTests = configure(packageName, info, callback);
+  bool exitStatus = configure(packageName, info, callback);
+  if (exitStatus != 0 ) {
+     return true;
+  }
 
   /**
    * Injection point documentation.
@@ -450,7 +465,7 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
    *
    */
   INJECTION_POINT_C(
-      VNVPACKAGENAME, comm, configuration,
+      VNV_STR(VNVPACKAGENAME), comm, "configuration",
       [&](VnV_Comm comm, VnVParameterSet& p, OutputEngineManager* engine,
           InjectionPointType type, std::string stageId) {
         // caught everything, so internal ones can ignore parameters and put
@@ -482,9 +497,9 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
    *application between the VnVInit and VnVFinalize functions.
    *
    */
-  INJECTION_LOOP_BEGIN(VNVPACKAGENAME, comm, initialization, runTests);
+  INJECTION_LOOP_BEGIN(VNV_STR(VNVPACKAGENAME), comm, "initialization", runTests);
 
-  return runTests;
+  return false;
 }
 
 bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv,
@@ -513,14 +528,18 @@ bool RunTime::configure(std::string packageName, RunInfo info,
     loadRunInfo(info, callback);
 
     if (info.unitTestInfo.runUnitTests) {
-      runUnitTests(VnV_Comm_World(packageName.c_str()));
-    }
+      runUnitTests(VnV_Comm_World(packageName.c_str()), info.unitTestInfo);
 
+      if (info.unitTestInfo.exitAfterTests) {
+        return 1;  // Exit because user asked to exit after unit tests
+      }
+   }
   } else if (info.error) {
-    runTests = false;
-    processToolConfig(info.pluginConfig, info.cmdline);
+    return 2; // Exit because there was an error.
   }
-  return runTests;
+
+  return ( getRunTimeOptions()->dumpConfig && getRunTimeOptions()->exitAfterDumpConfig ) ? 1 : 0;
+
 }
 
 void RunTime::processToolConfig(json config, json& cmdline) {
@@ -540,12 +559,23 @@ void RunTime::runTimePackageRegistration(std::string packageName,
 
 bool RunTime::Finalize() {
   if (runTests) {
+
     auto comm = CommunicationStore::instance().worldComm(mainPackageName);
-    INJECTION_LOOP_END(VNVPACKAGENAME, initialization);
+
+    INJECTION_LOOP_END(VNV_STR(VNVPACKAGENAME), "initialization");
     OutputEngineStore::getOutputEngineStore().getEngineManager()->finalize(comm);
+
+    // Call any cleanup actions that were registered.
+    for (auto& it : cleanupActions) {
+      it.second(comm);
+    }
+
   }
+
   return true;
 }
+
+
 
 bool RunTime::isRunTests() { return runTests; }
 
@@ -561,8 +591,8 @@ int RunTime::beginStage(VnV_Comm comm, std::string pname, std::string message,
 
 void RunTime::endStage(VnV_Comm comm, int ref) { logger.endStage(comm, ref); }
 
-void RunTime::runUnitTests(VnV_Comm comm) {
-  UnitTestStore::getUnitTestStore().runAll(comm, false);
+void RunTime::runUnitTests(VnV_Comm comm, UnitTestInfo info) {
+  UnitTestStore::getUnitTestStore().runAll(comm, info);
 }
 
 void RunTime::readFile(std::string filename, long& idCounter) {
@@ -578,3 +608,4 @@ void RunTime::printRunTimeInformation() {
   InjectionPointStore::getInjectionPointStore().print();
   VnV_EndStage(VNVPACKAGENAME, a);
 }
+std::string RunTime::getPackageName() { return mainPackageName; }

@@ -14,8 +14,8 @@ VnVParameterSet* ParameterWrapperCast(ParameterSetWrapper* wrapper) {
   return static_cast<VnVParameterSet*>(wrapper->ptr);
 }
 
-ISerialOutputEngine* EngineWrapperCast(IOutputEngineWrapper* wrapper) {
-  return static_cast<ISerialOutputEngine*>(wrapper->ptr);
+IOutputEngine* EngineWrapperCast(IOutputEngineWrapper* wrapper) {
+  return static_cast<IOutputEngine*>(wrapper->ptr);
 }
 
 }  // namespace

@@ -46,6 +46,7 @@ long long CommunicationStore::getKey(IDataType_ptr ptr) {
 void CommunicationStore::addCommunicator(std::string packageName,
                                          std::string name,
                                          comm_register_ptr m) {
+  m(CommType::World)->Initialize();
   communicator_factory.insert(std::make_pair(getKey(packageName, name), m));
 }
 
@@ -164,6 +165,11 @@ VnV_Comm CommunicationStore::selfData(std::string packageName) {
 CommunicationStore& CommunicationStore::instance() {
   static CommunicationStore store;
   return store;
+}
+void CommunicationStore::Finalize() {
+  for (const auto& item : communicator_factory) {
+      item.second(CommType::World)->Finalize();
+  }
 }
 
 }  // namespace VnV

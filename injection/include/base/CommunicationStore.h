@@ -89,6 +89,9 @@ class CommunicationStore {
   VnV_Comm selfData(std::string packageName);
 
   static CommunicationStore& instance();
+
+
+  void Finalize();
 };
 
 }  // namespace VnV

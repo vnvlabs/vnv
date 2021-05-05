@@ -8,6 +8,7 @@
 #include <map>
 #include <string>
 
+#include "JsonParser.h"
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/PackageName.h"
 #include "interfaces/IUnitTest.h"
@@ -40,7 +41,7 @@ class UnitTestStore {
   void runTest(Communication::ICommunicator_ptr comm, std::string packageName,
                std::string testName);
 
-  void runAll(VnV_Comm comm, bool stopOnFail);
+  void runAll(VnV_Comm comm, VnV::UnitTestInfo info);
 
   void print();
 };

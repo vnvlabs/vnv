@@ -31,7 +31,7 @@ INJECTION_TEST(VNVPACKAGENAME, vectorDump) {
   double val = comm->Rank();
 
   // Vector Action dumps one value from every processor into a global array
-  engine->Write(comm, "result", &val, VnV::VectorAction());
+  engine->Write("result", &val, VnV::VectorAction());
 
   return SUCCESS;
 }

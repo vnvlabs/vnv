@@ -1,14 +1,17 @@
 ﻿
 
-#include <mpi.h>
+#include "plugins/comms/MPICommunicator.h"
 
+#include <mpi.h>
+#include <unistd.h>
+
+#include <iostream>
 #include <map>
+
 #include "base/Utilities.h"
 #include "base/exceptions.h"
+#include "base/Runtime.h"
 #include "interfaces/ICommunicator.h"
-#include <iostream>
-#include <unistd.h>
-#include "plugins/comms/MPICommunicator.h"
 
 // CommType conflicts with CommType in openmpi.
 using VnVCommType = VnV::Communication::CommType;
@@ -22,6 +25,8 @@ class MPICommunicator : public ICommunicator {
   static int tagMap(int tag) { return (tag < 0) ? MPI_ANY_TAG : tag; }
   static MPIRequest* cast(IRequest_ptr ptr) { return (MPIRequest*)ptr.get(); }
   static MPIStatus* cast(IStatus_ptr ptr) { return (MPIStatus*)ptr.get(); }
+
+  static bool finalizeMPI;
 
   static MPI_Datatype& getDataType(long size) {
     static std::map<long, MPI_Datatype> dataTypes = {
@@ -45,6 +50,26 @@ class MPICommunicator : public ICommunicator {
     MPI_Type_contiguous(size, MPI_BYTE, &(dataTypes[size]));
     MPI_Type_commit(&(dataTypes[size]));
     return dataTypes[size];
+  }
+
+  void Initialize() override {
+    int flag;
+    MPI_Initialized(&flag);
+    if (!flag) {
+
+        VnV_Warn(VNVPACKAGENAME,"We are Initializing MPI for you. If this is not the intended behaviour, please "
+          "call MPI_Init before called INJECTION_INITIALIZE. ");
+        MPI_Init(NULL,NULL);
+        finalizeMPI = true;
+    }
+  }
+
+  void Finalize() override {
+    int flag;
+    MPI_Finalized(&flag);
+    if (  finalizeMPI && !flag  ) {
+       MPI_Finalize();
+    }
   }
 
   static void custom_reduction_function(void* in, void* inout, int* len,
@@ -102,6 +127,7 @@ class MPICommunicator : public ICommunicator {
   int worldSize, worldRank;
 
   MPICommunicator(VnVCommType type) : mtype(type) {
+    Initialize();
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
 
@@ -223,20 +249,27 @@ class MPICommunicator : public ICommunicator {
 
   // Want procs in range [start,end). Make sure to put end-1.
   ICommunicator_ptr create(int start, int end, int stride, int tag) override {
+
     MPICommunicator* p = new MPICommunicator(VnVCommType::Default);
+
     MPI_Group group, newGroup;
     MPI_Comm_group(comm, &group);
+
     int range[1][3];
+
     range[0][0] = start;
     range[0][1] = end - 1;
     range[0][2] = stride;
     MPI_Group_range_incl(group, 1, range, &newGroup);
 
+
     MPI_Comm newComm;
     MPI_Comm_create_group(comm, newGroup, tagMap(tag), &newComm);
     p->setComm(newComm);
 
+
     return ICommunicator_ptr(p);
+
   }
 
   CommCompareType compare(ICommunicator_ptr ptr) override {
@@ -468,10 +501,37 @@ class MPICommunicator : public ICommunicator {
   void Abort(int errorcode) override { MPI_Abort(comm, errorcode); }
 };
 
-}
-}
+bool MPICommunicator::finalizeMPI = false;
+
+MPI_Comm castToMPIComm(ICommunicator_ptr ptr) {
+  MPI_Comm mpicomm;
+
+  std::cout << " MPI : " << ptr->getName() << std::endl;
+
+  if (ptr->getName() == "VNV:serial") {
+
+     mpicomm = MPI_COMM_SELF;
+
+  } else if (ptr->getName() == "VNV:mpi") {
+
+    VnV::Communication::MPI::CommKeeper* k =
+        (VnV::Communication::MPI::CommKeeper*)ptr->getData();
+    mpicomm = k->comm;
+
+  } else {
+
+    throw VnV::VnVExceptionBase("Cannot convert communicator to MPI");
+
+  }
+  return mpicomm;
 }
 
+}  // namespace MPI
+}  // namespace Communication
+}  // namespace VnV
+
 INJECTION_COMM(VNVPACKAGENAME, mpi) {
+
   return new VnV::Communication::MPI::MPICommunicator(type);
+
 }

@@ -29,13 +29,7 @@ VNVEXTERNC void VnV_Declare_Communicator(const char* packageName,
 #define VSELF "self"
 #define VWORLD "world"
 
-VnV_Comm createComm(const char* str, const char* package) {
-  if (std::strcmp(str,VWORLD) ==  0 ) {
-      return VnV_Comm_World(package);
-  } else {
-    return VnV_Comm_Self(package);
-  }
-}
+VnV_Comm createComm(const char* str, const char* package);
 
 template<typename T>
 VnV_Comm createComm(T a, const char* package) {

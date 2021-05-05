@@ -56,6 +56,8 @@ struct InjectionPointInfo {
 struct UnitTestInfo {
   bool runUnitTests;
   json unitTestConfig;
+  bool exitAfterTests;
+
 };
 
 /**

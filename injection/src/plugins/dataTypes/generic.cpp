@@ -61,92 +61,97 @@ template <typename T> class GenericDataType : public Communication::IDataType {
 
   long long datalong;
   double datadouble;
-  SupportedDataType LocalPut(std::string &name, void** data, int& writeRank, int iteration ) {
+  std::vector<PutData> getLocalPutData() override {
+    PutData p;
+    p.datatype = dtype;
+    p.count = 1;
+    p.name = "value";
+    return {p};
+  }
 
-    writeRank = -1;
 
-    if (iteration == 0 ) {
-      name = "value";
-      if (dtype == SupportedDataType::LONG) {
-          datalong = get();
-          *data = &datalong;
-          return SupportedDataType::LONG;
-      } else {
-          datadouble = get();
-          *data = &datalong;
-          return SupportedDataType::DOUBLE;
-      }
-    }  else {
-      return SupportedDataType::DONE;
-    }
+  void* getPutData(int iteration) override {
+      return &data;
   }
 
 };
 
-#define VNV_MAX_STR_SIZE 100
+template<unsigned int N, typename T>
 class StringDataType : public Communication::IDataType {
 public:
-   std::string data;
+   T data;
+   std::function<std::string(const T&)> toString;
+   std::function<T(char *)> fromCharStar;
+   std::function<int(const T&,const T&)> compareT;
+   SupportedDataType dtype;
 
- public:
+   StringDataType(
+                   SupportedDataType dtype,
+                   std::function<std::string(const T&)> toString,
+                   std::function<T(char *)> fromCharStar,
+                   std::function<int(const T&,const T&)> compareT
+                  ) {
+
+     this->compareT = compareT;
+     this->fromCharStar = fromCharStar;
+     this->toString = toString;
+     this->dtype = dtype;
+   }
+
+public:
   std::string get() { return data; }
-  void set(std::string d) { 
-   if (data.size() >= VNV_MAX_STR_SIZE) {
+
+  void set(T d) {
+   if (toString(data).size() >= N) {
      throw VnV::VnVExceptionBase("String to large");
    } 
    data = d;
   }
+  void setData(void* dat) {
+    data =  *((T*) dat);
+  }
 
-  long long maxSize() { return sizeof(char)*(1+VNV_MAX_STR_SIZE); }
-  long long pack(void* buffer) { 
+  long long maxSize() { return sizeof(char)*(1+N); }
+
+  long long pack(void* buffer) {
     char* b = (char*) buffer;
-    std::size_t length = data.copy( b , data.size());
+    std::string str = toString(data);
+    std::size_t length = str.copy( b , str.size());
     b[length] = '\0';
-    return data.size() + 1;
-     
-  }
-  void unpack(void* buffer) { 
-
-    data = (char*) buffer ; 
+    return str.size() + 1;
   }
 
-  void setData(void* dat) { 
-    data = (char*) dat;
+  void unpack(void* buffer) {
+    data = fromCharStar((char*) buffer) ;
   }
-
 
   void axpy(double alpha, Communication::IDataType_ptr y) {
-    VnV_Warn(VNVPACKAGENAME, "AXPY not implemented for String");
-  
+    throw VnV::VnVExceptionBase("axpy not supported for string data types");
   }
 
   int compare(Communication::IDataType_ptr y) {
     StringDataType* yy = (StringDataType*)y.get();
-    return yy->get().compare(get());
+    return compareT(get(),yy->get());
   }
 
-  // y = xy;
   void mult(Communication::IDataType_ptr y) {
-    VnV_Warn(VNVPACKAGENAME, "MULT not implemented for String");
+    throw VnV::VnVExceptionBase("multiplication not supported for string data types");
   }
 
   void Put(IOutputEngine* engine) override {
     engine->Put("value", get());
   }
 
-
-  SupportedDataType LocalPut(std::string &name, void** data, int& writeRank, int iteration ) {
-      if (iteration == 0 ) {
-         name = "value";
-         *data = &data;
-         writeRank = -1;
-         return SupportedDataType::STRING;
-      }  else {
-         return SupportedDataType::DONE;
-      }
+  std::vector<PutData> getLocalPutData() override {
+    PutData p;
+    p.datatype = dtype;
+    p.count = 1;
+    p.name = "value";
+    return {p};
   }
-
-
+  void* getPutData(int iteration) override {
+    return &data;
+  }
 };
 
 }  // namespace DataTypes
@@ -154,7 +159,21 @@ public:
 }  // namespace VnV
 
 INJECTION_DATATYPE(VNVPACKAGENAME, string, std::string) {
-  return new VnV::VNVPACKAGENAME::DataTypes::StringDataType();
+  return new VnV::VNVPACKAGENAME::DataTypes::StringDataType<1024,std::string>(
+      SupportedDataType::STRING,
+      [](const std::string &a){return a; },
+      [](char * a){ return std::string(a);},
+      [](const std::string &o1, const std::string &o2){ return o1.compare(o2);}
+  );
+}
+
+INJECTION_DATATYPE(VNVPACKAGENAME, json, nlohmann::json) {
+  return new VnV::VNVPACKAGENAME::DataTypes::StringDataType<1024,nlohmann::json>(
+      SupportedDataType::STRING,
+      [](const nlohmann::json &a){return a.dump(); },
+      [](char * a){ return json::parse(a);},
+      [](const nlohmann::json &o1, const nlohmann::json &o2){ return o1.dump().compare(o2.dump());}
+  );
 }
 
 INJECTION_DATATYPE(VNVPACKAGENAME,double, double) {

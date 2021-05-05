@@ -13,9 +13,9 @@
 
 extern "C" {
 
-void VnV_init(const char* packageName, int* argc, char*** argv,
+int VnV_init(const char* packageName, int* argc, char*** argv,
               const char* filename, registrationCallBack callback) {
-  VnV::RunTime::instance().InitFromFile(packageName, argc, argv, filename,
+  return VnV::RunTime::instance().InitFromFile(packageName, argc, argv, filename,
                                         &callback);
 }
 
@@ -33,7 +33,7 @@ void VnV_declarePackageJson(const char* packageName,
 void VnV_finalize() { VnV::RunTime::instance().Finalize(); }
 
 void VnV_runUnitTests(VnV_Comm comm) {
-  VnV::RunTime::instance().runUnitTests(comm);
+  VnV::RunTime::instance().runUnitTests(comm, VnV::UnitTestInfo());
 }
 
 void VnV_Registration_Info(const char* filename) {

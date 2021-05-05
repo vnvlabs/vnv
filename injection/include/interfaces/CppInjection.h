@@ -36,8 +36,9 @@ void defaultCallBack(VnV_Comm comm, std::map<std::string, VnVParameter>& ntv,
                      IOutputEngine* engine, InjectionPointType type,
                      std::string stageId);
 
-#  define VNVCB(capture)                                                \
-    [capture](VnV_Comm comm, std::map<std::string, VnVParameter> & ntv, \
+
+#  define VNV_CALLBACK                                                \
+    [](VnV_Comm comm, std::map<std::string, VnVParameter> & ntv, \
               IOutputEngine * engine, InjectionPointType type,          \
               std::string stageId)
 
@@ -122,18 +123,18 @@ VnV_Iterator IterationPack(A comm, const char* package, const char* id,
 }  // namespace VnV
 
 #  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...) \
-    VnV::CppInjection::BeginPack(createComm(COMM,VNV_STR(PNAME)), VNV_STR(PNAME), #NAME, \
-                                 callback EVERYONE(__VA_ARGS__));
+    VnV::CppInjection::BeginPack(createComm(COMM,PNAME), PNAME, NAME, \
+                                 callback EVERYONE(__VA_ARGS__))
 
 // SINGULAR INJECTION POINT.
 #  define INJECTION_POINT(PNAME, COMM, NAME, ...)                             \
     INJECTION_POINT_C(PNAME, COMM, NAME, &VnV::CppInjection::defaultCallBack, \
-                      __VA_ARGS__);
+                      __VA_ARGS__)
 
 // BEGIN A LOOPED INJECTION POINT
 #  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...) \
-    VnV::CppInjection::BeginLoopPack(createComm(COMM, VNV_STR(PNAME)), VNV_STR(PNAME), #NAME,  \
-                                     callback EVERYONE(__VA_ARGS__));
+    VnV::CppInjection::BeginLoopPack(createComm(COMM, PNAME), PNAME, NAME,  \
+                                     callback EVERYONE(__VA_ARGS__))
 
 #  define INJECTION_LOOP_BEGIN(PNAME, COMM, NAME, ...) \
     INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME,          \
@@ -141,22 +142,23 @@ VnV_Iterator IterationPack(A comm, const char* package, const char* id,
 
 // END A LOOPED INJECTION POINT.
 #  define INJECTION_LOOP_END(PNAME, NAME) \
-    VnV::CppInjection::EndLoop(VNV_STR(PNAME), VNV_STR(NAME));
+    VnV::CppInjection::EndLoop(PNAME, NAME)
 
 // INTERNAL ITERATION OF A LOOPED INJECTION POINT.
 #  define INJECTION_LOOP_ITER(PNAME, NAME, STAGE) \
-    VnV::CppInjection::IterLoop(VNV_STR(PNAME), #NAME, #STAGE);
+    VnV::CppInjection::IterLoop(PNAME, NAME, STAGE)
 
 
 // Macro for an iterative vnv injection point.
-# define INJECTION_ITERATION_C(PNAME, COMM, NAME, ONCE, INPUTS, callback, ...)\
-   VnV_Iterator VNV_JOIN(PNAME,_iterator_,NAME) = VnV::CppInjection::IterationPack(createComm(COMM, VNV_STR(PNAME)), VNV_STR(PNAME), VNV_STR(NAME), \
-                    callback, ONCE, INPUTS EVERYONE(__VA_ARGS__)); \
-   while(VnV::CppInjection::Iterate(&VNV_JOIN(PNAME,_iterator_,NAME)))
+# define INJECTION_ITERATION_C(VAR, PNAME, COMM, NAME, ONCE, INPUTS, callback, ...)\
+   VnV_Iterator VAR = VnV::CppInjection::IterationPack(createComm(COMM, PNAME), PNAME, NAME, \
+                    callback, ONCE, INPUTS EVERYONE(__VA_ARGS__));                                                                            \
+   while(VnV::CppInjection::Iterate(&VAR))
 
 
-#  define INJECTION_ITERATION(PNAME, COMM, NAME, ONCE, INPUTS, ...) \
-    INJECTION_ITERATION_C(PNAME, COMM, NAME, ONCE, INPUTS,          \
+
+#  define INJECTION_ITERATION(VAR, PNAME, COMM, NAME, ONCE, INPUTS, ...) \
+    INJECTION_ITERATION_C(VAR, PNAME, COMM, NAME, ONCE, INPUTS,          \
                            &VnV::CppInjection::defaultCallBack, __VA_ARGS__)
 
 
@@ -165,7 +167,7 @@ VNVEXTERNC int  _VnV_injectionIterate(VnV_Iterator *iterator);
 
 #  define INJECTION_FUNCTION_WRAPPER_C(PNAME, COMM, NAME, function, callback, \
                                        ...)                                   \
-    INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, function, __VA_ARGS__);         \
+    INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, __VA_ARGS__);         \
     function(__VA_ARGS__);                                                    \
     INJECTION_LOOP_END(PNAME, NAME)
 
@@ -175,8 +177,14 @@ VNVEXTERNC int  _VnV_injectionIterate(VnV_Iterator *iterator);
                                  __VA_ARGS__);
 
 // REGISTER AN INJECTION POINT
+
 #  define Register_Injection_Point(PNAME, NAME, ITERATIVE, PARAMETERS) \
-    VnV::CppInjection::Register(VNV_STR(PNAME), #NAME, ITERATIVE, PARAMETERS);
+    VnV::CppInjection::Register(PNAME, NAME, ITERATIVE, PARAMETERS);
+
+
+
+
+
 
 #else
 

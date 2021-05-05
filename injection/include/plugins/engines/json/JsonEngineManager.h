@@ -14,6 +14,9 @@ namespace VNVPACKAGENAME {
 namespace Engines {
 
 class JsonEngineManager : public OutputEngineManager {
+ protected:
+  bool inMemory;
+
   json mainJson;
   std::map<long, json::json_pointer> ptr;
   long id = 0;
@@ -23,21 +26,20 @@ class JsonEngineManager : public OutputEngineManager {
 
   std::string getId();
 
-  void append(json& jsonOb);
+  virtual void append(json& jsonOb);
 
-  void pop(int num);
+  virtual void pop(int num);
 
-  void add(std::string key, const json& ob);
+  virtual void add(std::string key, const json& ob);
 
-  void push(json& jsonOb);
+  virtual void push(json& jsonOb);
 
-  void append(json::json_pointer ptr);
+  virtual void append(json::json_pointer ptr);
 
-  void push(json& jsonOb, json::json_pointer ptr);
+  virtual void push(json& jsonOb, json::json_pointer ptr);
 
-  std::string Dump(int d);
 
-  void setComm(ICommunicator_ptr comm) {
+  virtual void setComm(ICommunicator_ptr comm) {
     setCommunicator(comm);
     commMapper.logComm(comm);
     long id = comm->uniqueId();
@@ -60,6 +62,8 @@ class JsonEngineManager : public OutputEngineManager {
     }
   }
 
+  std::string Dump(int d);
+
  public:
   JsonEngineManager();
 
@@ -71,9 +75,9 @@ class JsonEngineManager : public OutputEngineManager {
 #undef X
 #undef LTypes
 
-      void
-      WriteDataArray(std::string variableName, IDataType_vec& data,
-                     std::vector<int>& shape, const MetaData& m);
+  void Put(std::string variableName, IDataType_ptr data,
+                   const MetaData& m);
+
 
   void PutGlobalArray(long long dtype, std::string variableName,
                       IDataType_vec data, std::vector<int> gsizes,
@@ -87,7 +91,7 @@ class JsonEngineManager : public OutputEngineManager {
 
   void finalize(ICommunicator_ptr worldComm) override;
 
-  void setFromJson(json& config) override;
+  void setFromJson(ICommunicator_ptr worldComm, json& config) override;
 
   void injectionPointEndedCallBack(std::string id, InjectionPointType type,
                                    std::string stageVal) override;
@@ -106,14 +110,13 @@ class JsonEngineManager : public OutputEngineManager {
                                std::string unitTestName) override;
 
   void unitTestFinishedCallBack(IUnitTest* tester) override;
-  void dataTypeStartedCallBack(std::string variableName, long long dtype,
-                               const MetaData& m) override;
-  void dataTypeEndedCallBack(std::string variableName) override;
+
 
   Nodes::IRootNode* readFromFile(std::string file, long& idCounter) override;
 
   // IInternalOutputEngine interface
   std::string print() override;
+
 };
 }  // namespace Engines
 }  // namespace VNVPACKAGENAME
