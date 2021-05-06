@@ -36,6 +36,9 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample_with_papi.json
       ${CMAKE_CURRENT_BINARY_DIR}/vv-input-papi.json COPYONLY )
 
+configure_file(${CMAKE_CURRENT_LIST_DIR}/distributed.json
+        ${CMAKE_CURRENT_BINARY_DIR}/vv-dist-data.json COPYONLY )
+
 install(
   FILES ${CMAKE_CURRENT_LIST_DIR}/sample.json
   DESTINATION examples/dummy/executables

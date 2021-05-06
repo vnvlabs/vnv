@@ -190,9 +190,6 @@ int main(int argc, char** argv) {
    */
   INJECTION_INITIALIZE(SPNAME, &argc, &argv, "./vv-dist-data.json");
 
-  std::cout << sizeof(long long) << " " << sizeof(double) << "  "
-            << sizeof(double) << std::endl;
-
 
   // Assign the global vector. This is a vector of "doubles" where
   // the values is g[i] = i. The vector is distributed across the processes

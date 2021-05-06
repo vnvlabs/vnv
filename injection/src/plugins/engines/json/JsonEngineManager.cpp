@@ -60,6 +60,7 @@ LTypes
 #undef LTypes
 
 void JsonEngineManager::Put(std::string variableName, IDataType_ptr data, const MetaData& m) {
+
   if (comm->Rank() == getRoot()) {
     json j;
     j["id"] = JsonEngineManager::id++;
@@ -71,7 +72,9 @@ void JsonEngineManager::Put(std::string variableName, IDataType_ptr data, const 
     j["results"] = json::array();
     push(j, json::json_pointer("/children"));
   }
+
   data->Put(this);
+
   if (comm->Rank() == getRoot()) {
     pop(2);
   }
@@ -217,6 +220,7 @@ void JsonEngineManager::PutGlobalArray(
         append(cj);
       }
     }
+    pop(2);
   }
 }
 
@@ -291,12 +295,15 @@ class IData {
   IData(json& m, std::map<long, std::shared_ptr<CommWrap>>& comms,
         bool isR = false)
       : isRoot(isR), main(m) {
+
     if (!isRoot) {
+      std::cout << "Main" << main.dump(3) << std::endl;
       idstart = main["id"].get<long>();
       idstop = main["endid"].get<long>();
       comm = main["comm"].get<long>();
       chain = comms.find(comm)->second->getCommChain();
     }
+
     if (main.contains("children")) {
       json& cc = main["children"];
       for (auto c = cc.begin(); c != cc.end();) {
