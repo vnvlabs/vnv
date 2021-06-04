@@ -58,10 +58,6 @@ class CommunicationStore {
     return getDataType(typeid(T).name());
   }
 
-  std::vector<VnV::Communication::PutData> getLocalPutData(long long key) {
-    return getDataType(key)->getLocalPutData();
-  }
-
   IReduction_ptr getReducer(long long key);
   IReduction_ptr getReducer(std::string packageName, std::string name);
   IReduction_ptr getReducer(std::string packageColonName);

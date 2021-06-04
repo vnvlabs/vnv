@@ -1,13 +1,15 @@
 ﻿#ifndef NODES_H
 #define NODES_H
 
+#include <assert.h>
+
 #include <functional>
 #include <map>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <assert.h>
+
 #include "base/exceptions.h"
 #include "json-schema.hpp"
 
@@ -15,26 +17,9 @@ namespace VnV {
 
 namespace Nodes {
 
-class IArrayNode;
-class IDoubleNode;
-class IIntegerNode;
-class IStringNode;
-class ILongNode;
-class IFloatNode;
-class ILogNode;
-class IBoolNode;
-class IShapeNode;
-class IMapNode;
-class IInfoNode;
-class ITestNode;
-class IInjectionPointNode;
-class IUnitTestNode;
-class IDataTypeNode;
-class IRootNode;
-
-class MetaDataWrapper  {
-public:
-  std::map<std::string,std::string> m;
+class MetaDataWrapper {
+ public:
+  std::map<std::string, std::string> m;
   std::string get(std::string key) {
     auto it = m.find(key);
     if (it != m.end()) {
@@ -42,80 +27,83 @@ public:
     }
     throw VnV::VnVExceptionBase("Bad MetaData Key");
   }
-  bool has(std::string key) {
-     return (m.find(key) != m.end());
-  }
+  bool has(std::string key) { return (m.find(key) != m.end()); }
   MetaDataWrapper& add(std::string key, std::string value) {
-    m.insert(std::make_pair(key,value));
+    m.insert(std::make_pair(key, value));
     return *this;
   }
 
   std::string asJson() {
-
-     nlohmann::json j = m;
-     return j.dump();
+    nlohmann::json j = m;
+    return j.dump();
   }
 };
 
 
+#define DTYPES X(Bool,bool) X(Integer,int) X(Float,float) X(Double,double) X(String,std::string) X(Json, std::string) X(Long,long) X(Shape,std::shared_ptr<DataBase>)
+#define STYPES X(Array) X(Map) X(Log) X(InjectionPoint) X(Info) X(CommInfo) X(Test) X(UnitTest) X(Data)
+#define RTYPES X(Root)
+
+#define X(x,y) class I##x##Node;
+DTYPES
+#undef X
+#define X(x) class I##x##Node;
+STYPES
+RTYPES
+#undef X
+
+
 class DataBase {
  public:
-  enum class DataType {
-    Bool,
-    Integer,
-    Float,
-    Double,
-    String,
-    Long,
-    ShapeArray,
-    Array,
-    Map,
-    Log,
-    InjectionPoint,
-    Info,
-    Test,
-    UnitTest,
-    DataNode,
-    RootNode
-  };
 
+  enum class DataType {
+    #define X(x,y) x,
+      DTYPES
+    #undef X
+
+    #define X(x) x,
+      STYPES
+    #undef X
+
+    Root
+  };
+  bool open = false;
 
   long id;
-  DataBase* parent = nullptr;
+  std::vector<std::shared_ptr<DataBase>> parent;
 
   MetaDataWrapper metaData;
-  MetaDataWrapper& getMetaData() {
-    return metaData;
-  }
+  MetaDataWrapper& getMetaData() { return metaData; }
 
-  std::string name;  // name can be assigned, default is to use id (which is unique).
+  std::string
+      name;  // name can be assigned, default is to use id (which is unique).
   DataType dataType;
   bool check(DataType type);
   DataBase(DataType type);
+
   DataType getType();
-  IBoolNode* getAsBoolNode();
-  IDoubleNode* getAsDoubleNode();
-  IIntegerNode* getAsIntegerNode();
-  IStringNode* getAsStringNode();
-  ILongNode* getAsLongNode();
-  IFloatNode* getAsFloatNode();
-  IShapeNode* getAsShapeNode();
-  IArrayNode* getAsArrayNode();
-  ILogNode* getAsLogNode();
-  IInjectionPointNode* getAsInjectionPointNode();
-  IInfoNode* getAsInfoNode();
-  ITestNode* getAsTestNode();
-  IDataTypeNode* getAsDataTypeNode();
-  IUnitTestNode* getAsUnitTestNode();
-  IMapNode* getAsMapNode();
-  IRootNode* getAsRootNode();
+
+#define X(x,y) I##x##Node* getAs##x##Node();
+  DTYPES
+#undef X
+#define X(x) I##x##Node* getAs##x##Node();
+  STYPES
+  RTYPES
+#undef X
+
   long getId();
   std::string getName();
 
   virtual ~DataBase();
   std::string getTypeStr();
 
-  DataBase* getParent() { return parent; }
+  std::vector<DataBase*> getParents() {
+    std::vector<DataBase*> db(parent.size());
+    for (auto it : parent) {
+      db.push_back(it.get());
+    }
+    return db;
+  }
 
   virtual std::string toString() {
     std::ostringstream oss;
@@ -123,6 +111,35 @@ class DataBase {
     return oss.str();
   }
 };
+
+class DataBaseWithChildren {
+ public:
+  virtual IArrayNode* getChildren() = 0;
+};
+
+#define X(X,x)                                          \
+  class I##X##Node : public DataBase {                             \
+   public:                                                         \
+    I##X##Node();                                                  \
+    virtual const std::vector<std::size_t>& getShape() = 0;               \
+    virtual x getValue(const std::vector<std::size_t>& shape) = 0; \
+    virtual x getValue(const std::size_t ind) = 0;           \
+    virtual ~I##X##Node();                                         \
+  };
+DTYPES
+#undef X
+
+
+class IDataNode : public DataBase {
+ public:
+  IDataNode();
+  virtual IMapNode* getChildren() = 0;
+  virtual long long getDataTypeKey() = 0;
+  virtual std::string getValue() = 0;
+  virtual bool getLocal() = 0;
+  virtual ~IDataNode();
+};
+
 
 class IMapNode : public DataBase {
  public:
@@ -141,9 +158,12 @@ class IMapNode : public DataBase {
 class IArrayNode : public DataBase {
  public:
   IArrayNode();
-  virtual DataBase* get(std::size_t idx) = 0;
+  virtual DataBase* get(std::size_t idx){
+      return getShared(idx).get();
+  };
   virtual std::size_t size() = 0;
   virtual IArrayNode* add(std::shared_ptr<DataBase> data) = 0;
+  virtual std::shared_ptr<DataBase> getShared(std::size_t idx) = 0;
   virtual ~IArrayNode();
 
   // Get the value for inserting into a text object.
@@ -152,59 +172,7 @@ class IArrayNode : public DataBase {
   void iter(std::function<void(DataBase*)>& lambda);
 };
 
-class IBoolNode : public DataBase {
- public:
-  IBoolNode();
-  virtual bool getValue() = 0;
-  virtual ~IBoolNode();
-};
 
-class IDoubleNode : public DataBase {
- public:
-  IDoubleNode();
-  virtual double getValue() = 0;
-  virtual ~IDoubleNode();
-};
-
-class IIntegerNode : public DataBase {
- public:
-  IIntegerNode();
-  virtual int getValue() = 0;
-  virtual ~IIntegerNode();
-};
-
-class ILongNode : public DataBase {
- public:
-  ILongNode();
-  virtual long getValue() = 0;
-  virtual ~ILongNode();
-};
-
-class IStringNode : public DataBase {
- public:
-  IStringNode();
-  virtual std::string getValue() = 0;
-  virtual bool isJson() = 0;
-  virtual ~IStringNode();
-};
-
-class IFloatNode : public DataBase {
- public:
-  IFloatNode();
-  virtual float getValue() = 0;
-  virtual ~IFloatNode();
-};
-
-class IShapeNode : public DataBase {
-public:
-  IShapeNode();
-  virtual ~IShapeNode();
-  virtual IArrayNode* getChildren() = 0;
-  virtual std::string getShape() = 0;
-
-  virtual DataBase* get(int index);
-
-};
 
 class IInfoNode : public DataBase {
  public:
@@ -215,7 +183,15 @@ class IInfoNode : public DataBase {
   virtual ~IInfoNode();
 };
 
-class ITestNode : public DataBase {
+class ICommInfoNode : public DataBase {
+ public:
+   ICommInfoNode();
+   virtual int getWorldSize() = 0;
+   virtual std::string getCommMap() = 0;
+   virtual ~ICommInfoNode();
+};
+
+class ITestNode : public DataBase, public DataBaseWithChildren {
  public:
   ITestNode();
   virtual std::string getPackage() = 0;
@@ -225,7 +201,7 @@ class ITestNode : public DataBase {
   virtual ~ITestNode();
 };
 
-class IInjectionPointNode : public DataBase {
+class IInjectionPointNode : public DataBase, public DataBaseWithChildren {
  public:
   IInjectionPointNode();
   virtual std::string getPackage() = 0;
@@ -236,13 +212,6 @@ class IInjectionPointNode : public DataBase {
   virtual std::string getComm() = 0;
   virtual ~IInjectionPointNode();
 };
-
-/// TODO -- __internal__ test doesn't get handled very well. In particular, we
-/// need to figure out how to access the data for the injection point internal
-/// tests and get it inserted into the documentation. getData() -> Array of data
-/// elements written during the callback that can be used in the injection point
-/// documentation.
-///
 
 class ILogNode : public DataBase {
  public:
@@ -256,7 +225,7 @@ class ILogNode : public DataBase {
   virtual ~ILogNode();
 };
 
-class IUnitTestNode : public DataBase {
+class IUnitTestNode : public DataBase, public DataBaseWithChildren {
  public:
   IUnitTestNode();
   virtual std::string getPackage() = 0;
@@ -267,21 +236,14 @@ class IUnitTestNode : public DataBase {
   virtual ~IUnitTestNode();
 };
 
-class IDataTypeNode : public DataBase {
- public:
-  IDataTypeNode();
-  virtual IMapNode* getChildren() = 0;
-  virtual long long getDataTypeKey() = 0;
-  virtual std::string getValue() = 0;
-  virtual ~IDataTypeNode();
-};
 
-class IRootNode : public DataBase {
+class IRootNode : public DataBase, public DataBaseWithChildren {
  public:
   IRootNode();
   virtual IArrayNode* getChildren() = 0;
   virtual IArrayNode* getUnitTests() = 0;
   virtual IInfoNode* getInfoNode() = 0;
+  virtual ICommInfoNode* getCommInfoNode() = 0;
 
   virtual std::string getIntro() = 0;
   virtual std::string getConclusion() = 0;

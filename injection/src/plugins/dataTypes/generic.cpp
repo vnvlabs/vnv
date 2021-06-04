@@ -61,16 +61,16 @@ template <typename T> class GenericDataType : public Communication::IDataType {
 
   long long datalong;
   double datadouble;
-  std::vector<PutData> getLocalPutData() override {
+  std::map<std::string,PutData> getLocalPutData() override {
     PutData p;
     p.datatype = dtype;
-    p.count = 1;
+    p.shape = {};
     p.name = "value";
-    return {p};
+    return {std::make_pair("value",p)};
   }
 
 
-  void* getPutData(int iteration) override {
+  void* getPutData(std::string name) override {
       return &data;
   }
 
@@ -142,14 +142,14 @@ public:
     engine->Put("value", get());
   }
 
-  std::vector<PutData> getLocalPutData() override {
+  std::map<std::string,PutData> getLocalPutData() override {
     PutData p;
     p.datatype = dtype;
-    p.count = 1;
+    p.shape = {};
     p.name = "value";
-    return {p};
+    return {std::make_pair("value",p)};
   }
-  void* getPutData(int iteration) override {
+  void* getPutData(std::string name) override {
     return &data;
   }
 };

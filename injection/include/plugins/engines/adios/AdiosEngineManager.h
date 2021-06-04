@@ -41,7 +41,14 @@ class AdiosEngineManager : public OutputEngineManager {
   void setComm(const ICommunicator_ptr& comm);
   long getNextId(const ICommunicator_ptr& comm);
 
-  std::string getFileName(std::vector<std::string> fname);
+
+  static std::string getFileName(std::string root, std::vector<std::string> fname, bool mkdir);
+
+  std::string getFileName(const std::vector<std::string> &fname, bool mkdir);
+
+  std::string getFileName(long long commId, bool mkdir);
+
+  static std::string getMetaDataFileName(std::string dir);
 
   void Put(std::string variableName, const double& value,
            const MetaData& m) override;

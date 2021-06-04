@@ -18,39 +18,7 @@ namespace VnV {
 namespace VNVPACKAGENAME {
 namespace Engines {
 
-enum class AdiosDataType {
-  JSON = 0,
-  STRING = 1,
-  DOUBLE = 2,
-  BOOL = 3,
-  LONGLONG = 4,
-  DATA_TYPE_START = 5,
-  DATA_TYPE_END = 6,
-  TEST_START = 7,
-  TEST_END = 8,
-  VECTOR_START = 9,
-  VECTOR_END = 10,
-  INJECTION_POINT_BEGIN_BEGIN = 11,
-  INJECTION_POINT_BEGIN_END = 12,
-  INJECTION_POINT_ITER_BEGIN = 13,
-  INJECTION_POINT_ITER_END = 14,
-  INJECTION_POINT_END_BEGIN = 15,
-  INJECTION_POINT_END_END = 16,
-  UNIT_TEST_START = 17,
-  UNIT_TEST_END = 18,
-  INFO = 19,
-  COMM_MAP=20,
-  LOG=21,
-  INJECTION_POINT_SINGLE_BEGIN = 22,
-  INJECTION_POINT_SINGLE_END = 23
-};
-
-
-class AdiosEngineImpl {
-  int rank;
-  int size;
-  int engineStep;
-  MPI_Comm comm;
+class AdiosReaderImpl {
 
   adios2::IO& io; /**< @todo  */
   adios2::Engine engine;
@@ -58,18 +26,16 @@ class AdiosEngineImpl {
 
  public:
 
-    AdiosEngineImpl(adios2::IO& io_, const std::string& filename, MPI_Comm comm, long uid, int rootRank = 0);
+    AdiosReaderImpl(adios2::IO& io_, const std::string& filename, const std::string& metafname);
+
 
   ~AdiosEngineImpl();
-
-  void type(AdiosDataType type);
 
   void Put(const std::string& variableName, const IDataType_ptr& ptr, const MetaData& m,
            IOutputEngine* oengine, int writeRank);
 
   template <typename T>
-  void Put(std::string variableName, const T& value,
-                            const MetaData& m, int writerank) {
+  void Get(adios) {
     engine.BeginStep();
     if (root) {
       engine.Put("name", variableName);
@@ -101,7 +67,7 @@ class AdiosEngineImpl {
 
   void finalize();
 
-  void injectionPointEndedCallBack(long long nextId, const std::string& id, InjectionPointType type_,
+  void injectionPointEndedCallBack(const std::string& id, InjectionPointType type_,
                                    const std::string& stageId);
 
   void injectionPointStartedCallBack(long uid, const std::string& packageName,
@@ -120,6 +86,8 @@ class AdiosEngineImpl {
 
   static long ADIOS_ENGINE_IMPL_VERSION;
   void writeInfo();
+
+  void writeCommMap(const json& commMap);
 
   static void Define(adios2::IO& io);
 };

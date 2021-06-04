@@ -12,6 +12,9 @@
 namespace VnV {
 namespace VNVPACKAGENAME {
 namespace Engines {
+namespace Json {
+
+VnV::Nodes::IRootNode* parse(std::string filename, long& idCounter);
 
 class JsonEngineManager : public OutputEngineManager {
  protected:
@@ -37,7 +40,6 @@ class JsonEngineManager : public OutputEngineManager {
   virtual void append(json::json_pointer ptr);
 
   virtual void push(json& jsonOb, json::json_pointer ptr);
-
 
   virtual void setComm(ICommunicator_ptr comm) {
     setCommunicator(comm);
@@ -75,17 +77,16 @@ class JsonEngineManager : public OutputEngineManager {
 #undef X
 #undef LTypes
 
-  void Put(std::string variableName, IDataType_ptr data,
-                   const MetaData& m);
-
+      void
+      Put(std::string variableName, IDataType_ptr data, const MetaData& m);
 
   void PutGlobalArray(long long dtype, std::string variableName,
                       IDataType_vec data, std::vector<int> gsizes,
                       std::vector<int> sizes, std::vector<int> offset,
                       const MetaData& m) override;
 
-  void Log(ICommunicator_ptr comm, const char* package, int stage, std::string level,
-           std::string message) override;
+  void Log(ICommunicator_ptr comm, const char* package, int stage,
+           std::string level, std::string message) override;
 
   json getConfigurationSchema() override;
 
@@ -111,13 +112,12 @@ class JsonEngineManager : public OutputEngineManager {
 
   void unitTestFinishedCallBack(IUnitTest* tester) override;
 
-
   Nodes::IRootNode* readFromFile(std::string file, long& idCounter) override;
 
   // IInternalOutputEngine interface
   std::string print() override;
-
 };
+}
 }  // namespace Engines
 }  // namespace VNVPACKAGENAME
 }  // namespace VnV

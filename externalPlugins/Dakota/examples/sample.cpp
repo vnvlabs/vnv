@@ -35,7 +35,6 @@ int main(int argc, char** argv) {
      f = (x + y)*(x + y) + 100*x - 10*y;
   }
 
-
   /**
      Conclusion.
      ===========
@@ -43,6 +42,9 @@ int main(int argc, char** argv) {
      That concludes the Dakota example -- I hope you enjoyed the show.
   */
   INJECTION_FINALIZE(SPNAME);
+
+
+
 
   MPI_Finalize();
 }
