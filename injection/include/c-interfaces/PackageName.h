@@ -71,10 +71,10 @@
 
 #ifdef __cplusplus
 #  define INJECTION_REGISTRATION(PNAME) \
-    extern "C" void VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
+    extern "C" void __attribute__((visibility("default"))) VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
 #else
 #  define INJECTION_REGISTRATION(PNAME) \
-    void VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
+    void __attribute__((visibility("default"))) VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
 #endif
 
 #define INJECTION_REGISTRATION_CALL(PNAME) VNV_REGISTRATION_CALLBACK_NAME(PNAME)
