@@ -4,9 +4,11 @@
 **/
 #include "interfaces/ITest.h"
 
-#include "base/OutputEngineStore.h"
-#include "base/TransformStore.h"
+#include "base/stores/OutputEngineStore.h"
+#include "base/stores/TransformStore.h"
 #include "c-interfaces/Logging.h"
+#include "base/stores/TestStore.h"
+
 
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
@@ -40,12 +42,11 @@ void TestConfig::print() {
 
 TestConfig::TestConfig(std::string package, std::string name,
                        json& testConfigJson,
-                       std::map<std::string, std::string>& params, bool iterator) {
+                       std::map<std::string, std::string>& params) {
   setName(name);
   this->package = package;
   this->testConfigJson = testConfigJson;
   this->testParameters = params;
-  this->iterator = iterator;
 }
 
 void TestConfig::setParameterMap(VnVParameterSet& args) {
@@ -105,16 +106,6 @@ bool TestConfig::isRequired(std::string testParameter) const {
 
 ITest::ITest(TestConfig& config) : m_config(config) {}
 
-
-// Index is the injection point index. That is, the injection
-// point that this test is being run inside.
-int ITest::iterate_(ICommunicator_ptr comm, OutputEngineManager* engine) {
-
-  engine->testStartedCallBack(m_config.getPackage(), m_config.getName(), false);
-  int s =iterate(comm, engine->getOutputEngine());
-  engine->testFinishedCallBack(true );
-  return s;
-}
 
 // parameters is a map of injectionpoint name to injection point type.
 bool TestConfig::preLoadParameterSet(std::map<std::string, std::string>& parameters) {
@@ -180,3 +171,7 @@ TestStatus ITest::_runTest(ICommunicator_ptr comm, OutputEngineManager* engine,
 
 ITest::~ITest() {}
 
+void VnV::registerTest(std::string package, std::string name, std::string schema, maker_ptr m,
+                       std::map<std::string, std::string> map) {
+  TestStore::instance().addTest(package, name, schema, m, map);
+}

@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include "base/CommunicationStore.h"
+#include "base/stores/CommunicationStore.h"
 #include "base/Utilities.h"
 #include "c-interfaces/Logging.h"
 namespace VnV {

@@ -6,7 +6,7 @@
 
 #include <sstream>  //stringstream
 
-#include "base/OutputEngineStore.h"  // OutputEngineStore
+#include "base/stores/OutputEngineStore.h"  // OutputEngineStore
 #include "base/Runtime.h"            // RunTime.
 #include "c-interfaces/Logging.h"    // Logging macros
 using namespace VnV;

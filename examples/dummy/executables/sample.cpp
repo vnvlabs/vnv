@@ -211,6 +211,42 @@ void newtonRaphson(double x, double eps, int rank) {
     INJECTION_LOOP_ITER(VNV_STR(SPNAME), "NewtonRaphson", "iteration");
   }
   INJECTION_LOOP_END(VNV_STR(SPNAME), "NewtonRaphson");
+
+  /** TODO With a small modification to the iterators support, we can implement Plugable functions.Pluggable
+   * functions will allow users to plug in functions at a certain point. If nothing is specified in the input 
+   * file, the default code will run. 
+   * 
+   * This would let testers switch out code through the command line without recompiling the source code. I.e., 
+   * you could throw in a near linearSolve method or something. 
+   * 
+   * Ie. 
+   * 
+   *   
+  
+  //RETURN version.  
+  INJECTION_FUNCTION_RETURN(VNV, FISH, a, x, y, z ) {
+    a = linearSolve(x,y,z,w);
+  }
+  
+  // Expands to:
+
+  if (!VnV_Runtime_Plug_R(VNV,FISH, (void*) &a, (void*) &x, *void*) &y, (void*) &z) ) {
+    a = linearSolve(x,y,z);
+  }
+ 
+
+  // No return version. 
+  INJECTION_FUNCTION(VNV, FISH, x, y, z) {
+    linearSolve(x,y,z,w);
+  }
+  
+  if (!VnV_Runtime_Plug(VNV,FISH, (void*) &x, *void*) &y, (void*) &z) ) {
+    linearSolve(x,y,z,w);
+  }
+  
+  **/
+
+
 }
 
 int function1(int x) {

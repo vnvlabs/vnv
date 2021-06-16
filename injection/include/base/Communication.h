@@ -1,7 +1,7 @@
 ﻿#ifndef COMMUNICATION_RUNTIME_H
 #define COMMUNICATION_RUNTIME_H
 #include "interfaces/ICommunicator.h"
-#include "base/CommunicationStore.h"
+#include "base/stores/CommunicationStore.h"
 
 namespace VnV {
 namespace Communication {

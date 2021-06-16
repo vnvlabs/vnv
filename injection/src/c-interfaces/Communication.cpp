@@ -2,7 +2,7 @@
 #include <cstring>
 #include <sstream>
 
-#include "base/CommunicationStore.h"
+#include "base/stores/CommunicationStore.h"
 #include "base/exceptions.h"
 
 extern "C" {

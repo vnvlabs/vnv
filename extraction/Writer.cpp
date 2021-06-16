@@ -105,8 +105,10 @@ class RegistrationWriter {
   RegistrationWriter(json& j, std::string packageName = "") {
     registerHelper(j, "Tests", "TEST", packageName);
     registerHelper(j, "Iterators", "ITERATOR", packageName);
+    registerHelper(j, "Plugs", "PLUG", packageName);
     registerHelper(j, "Engines", "ENGINE", packageName);
     registerHelper(j, "UnitTests", "UNITTEST", packageName);
+    registerHelper(j, "Actions", "ACTION", packageName);
     registerHelper(j, "Serializers", "SERIALIZER", packageName);
     registerHelper(j, "Transforms", "TRANSFORM", packageName);
     registerHelper(j, "Comms", "COMM", packageName);
@@ -197,9 +199,11 @@ class RegistrationWriter {
           createPackageOss(pname);
 
           bool iterator = it.value().value("/iterator"_json_pointer, false);
+          bool plug = it.value().value("/plug"_json_pointer, false);
           std::string escaped = VnV::StringUtils::escapeQuotes(params.dump(), true);
-          oss_register[pname] << "\tRegister_Injection_Point(\"" << pname << "\",\""
-                              << name << "\"," << iterator << "," << escaped << ");\n";
+          std::string t = iterator ? "Iterator" : plug ? "Plug" : "Point";
+          oss_register[pname] << "\tRegister_Injection_" << t << "(\"" << pname << "\",\""
+                              << name << "\"," << escaped << ");\n";
         }
       }
     }
@@ -217,9 +221,9 @@ void writeFileAndCache(json& cacheInfo, std::string outputFileName,
   json finalJson = json::object();
   for (auto it : cacheInfo["data"].items()) {
     for (std::string type :
-         {"InjectionPoints", "SubPackages", "LogLevels", "Tests", "Iterators", "Engines",
+         {"InjectionPoints", "SubPackages", "LogLevels", "Tests", "Iterators", "Plugs", "Engines",
           "Comms", "Reducers", "DataTypes", "Serializers", "Transforms",
-          "UnitTests", "Options", "Introduction", "Conclusion", "Package",
+          "UnitTests", "Actions", "Options", "Introduction", "Conclusion", "Package",
           "Communicator"}) {
       json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);
       for (auto it :

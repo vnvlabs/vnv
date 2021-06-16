@@ -11,30 +11,40 @@
 // C Interface for the runtime functions.
 #include "c-interfaces/RunTime.h"
 
-// Cpp Injection Includes. Allows specification of Injection points with Runtime
-// type info
+// C Interface for defining the communicator.
+#include "c-interfaces/Communication.h"
+
+// C Interface for the Logging components of VnV
+#include "c-interfaces/Logging.h"
+
+// C Interfaces for the options api.
+#  include "c-interfaces/CJson.h"
+
+
 #ifdef __cplusplus
 
-#  include "interfaces/CppInjection.h"
+#  include "interfaces/points/Injection.h"
+#  include "interfaces/points/Iteration.h"
+#  include "interfaces/points/Plug.h"
+
 #  include "interfaces/ICommunicator.h"
 #  include "interfaces/IOutputEngine.h"
 #  include "interfaces/ISerializer.h"
 #  include "interfaces/ITest.h"
 #  include "interfaces/ITransform.h"
 #  include "interfaces/IUnitTest.h"
+
+#  include "interfaces/IIterator.h"
+#  include "interfaces/IPlug.h"
 #  include "interfaces/argType.h"
 
 #else
-#  include "c-interfaces/Injection.h"
+
+#  include "c-interfaces/points/Injection.h"
+#  include "c-interfaces/points/Iteration.h"
+#  include "c-interfaces/points/Plug.h"
+
 #endif
 
-// Interface for defining the communicator.
-#include "c-interfaces/Communication.h"
-
-// Interface for the Logging components of VnV
-#include "c-interfaces/Logging.h"
-
-//Interfaces for the options api.
-#  include "c-interfaces/CJson.h"
 
 #endif  // GAURD

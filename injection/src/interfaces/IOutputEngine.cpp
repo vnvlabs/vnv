@@ -6,9 +6,9 @@
 
 #include <stdarg.h>
 
-#include "base/InjectionPoint.h"
-#include "base/OutputEngineStore.h"
-#include "base/SerializerStore.h"
+#include "base/points/InjectionPoint.h"
+#include "base/stores/OutputEngineStore.h"
+#include "base/stores/SerializerStore.h"
 #include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
 #include "json-schema.hpp"

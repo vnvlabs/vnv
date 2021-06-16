@@ -8,8 +8,8 @@
 
 #include <stdexcept>
 
-#include "base/CommunicationStore.h"
-#include "base/OptionsParserStore.h"
+#include "base/stores/CommunicationStore.h"
+#include "base/stores/OptionsParserStore.h"
 
 extern "C" {
 
@@ -43,4 +43,5 @@ void VnV_Registration_Info(const char* filename) {
 void VnV_readFile(const char* filename, long* idCounter) {
   VnV::RunTime::instance().readFile(filename, *idCounter);
 }
+
 }

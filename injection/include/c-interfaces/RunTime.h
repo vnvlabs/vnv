@@ -8,6 +8,8 @@
 
 // All packages can register a function that returns a char* with the package
 // json.
+
+
 #  define REGISTER_FULL_JSON(PNAME, callback) \
     VnV_declarePackageJson(VNV_STR(PNAME), callback);
 
@@ -28,6 +30,7 @@
 #  define INJECTION_SUBPACKAGE(PNAME, NAME)
 
 typedef void (*registrationCallBack)();
+
 VNVEXTERNC void VnV_Register_Subpackage(const char* packageName,
                                         const char* Name,
                                         registrationCallBack callback);

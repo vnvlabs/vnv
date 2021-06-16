@@ -132,7 +132,14 @@ class VnVPrinter : public MatchFinder::MatchCallback {
         count++; // Skip the value provided for parameter once
         count++; // Skip the value provided for input parameters (todo extract this?)
         addParameters(E, idJson, count);
-    } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iteration")) {
+    } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite_plug")) {
+        unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+        json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
+        json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
+        singleJson["Begin"] = info;
+        count++; // Skip the value provided for input parameters (todo extract this?)
+        addParameters(E, idJson, count);
+    }  else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iteration")) {
        unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
        json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
        json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
@@ -215,12 +222,20 @@ class VnVFinder : public MatchFinder {
         callExpr(hasAncestor(functionDecl().bind("function")),
                  callee(functionDecl(hasName("VnV::CppInjection::EndLoop"))))
             .bind("callsite_end");
+    
+    StatementMatcher functionMatcher5C =
+        callExpr(hasAncestor(functionDecl().bind("function")),
+                 callee(functionDecl(hasName("VnV::CppInjection::Plug"))))
+            .bind("cpp_callsite_plug");
+
 
     addMatcher(functionMatcherC, &Printer);
     addMatcher(functionMatcher1C, &Printer);
     addMatcher(functionMatcher2C, &Printer);
     addMatcher(functionMatcher3C, &Printer);
     addMatcher(functionMatcher4C, &Printer);
+    addMatcher(functionMatcher5C, &Printer);
+    
     addMatcher(functionMatcher, &Printer);
     addMatcher(functionMatcher1, &Printer);
     addMatcher(functionMatcher2, &Printer);

@@ -5,7 +5,7 @@
 #include <type_traits>
 
 #include "base/Communication.h"
-#include "base/CommunicationStore.h"
+#include "base/stores/CommunicationStore.h"
 #include "base/exceptions.h"
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/Logging.h"

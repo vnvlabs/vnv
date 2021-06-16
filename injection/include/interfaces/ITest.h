@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-#include "base/TransformStore.h"
+#include "base/stores/TransformStore.h"
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "c-interfaces/Communication.h"
@@ -22,6 +22,8 @@ using nlohmann::json_schema::json_validator;
 namespace VnV {
 
 enum TestStatus { SUCCESS, FAILURE, NOTRUN };
+
+
 
 class VnVParameter {
   void* ptr;
@@ -139,6 +141,7 @@ class VnVParameter {
 };
 typedef std::map<std::string, VnVParameter> VnVParameterSet;
 
+
 class TestConfig {
  protected:
   std::map<std::string, std::shared_ptr<Transformer> > transformers;
@@ -148,11 +151,10 @@ class TestConfig {
   std::string testName;
   std::string package;
   json testConfigJson;
-  bool iterator;
 
  public:
   TestConfig(std::string package, std::string name, json& usersConfig,
-             std::map<std::string, std::string>& params, bool iterator);
+             std::map<std::string, std::string>& params);
 
   bool isRequired(std::string parmaeterName) const;
   /**
@@ -174,9 +176,6 @@ class TestConfig {
 
   void setParameterMap(std::map<std::string, VnVParameter>& args);
 
-  bool isIterator() { return iterator; }
-
-
   /**
    * @brief getName
    * @return
@@ -190,6 +189,15 @@ class TestConfig {
 
   void setUnknownInjectionPoint();
 };
+
+typedef std::function<void(
+    VnV_Comm comm, std::map<std::string, VnV::VnVParameter>& ntv,
+    VnV::OutputEngineManager* engine, VnV::InjectionPointType type, std::string stageId)>
+    DataCallback;
+
+void defaultCallBack(VnV_Comm comm, std::map<std::string, VnVParameter>& ntv,
+                     IOutputEngine* engine, InjectionPointType type,
+                     std::string stageId);
 
 /**
  * @brief The ITest class
@@ -228,7 +236,6 @@ class ITest {
                              InjectionPointType type, std::string stageId) = 0;
 
 
-  virtual int iterate(ICommunicator_ptr comm, IOutputEngine* engine) = 0;
 
 
   /**
@@ -256,7 +263,6 @@ class ITest {
     throw VnVExceptionBase("Parameter Mapping Error.");
   }
 
-  int iterate_(ICommunicator_ptr comm, OutputEngineManager* engine);
 
   template <typename T>
   T* getInputParameter(std::string name, std::string type)  {
@@ -301,27 +307,25 @@ class ITest {
    */
 };
 
+typedef ITest* maker_ptr(TestConfig config);
+void registerTest(std::string package, std::string name,std::string schema, VnV::maker_ptr m,
+                  std::map<std::string, std::string> parameters);
+
+
+
+
+
 // Search in s for a VnVParameter named "name". Convert the raw ptr to class T
 // with checking.
 #define GetRef(a, name, T) auto a = getReference<T>(name, #T);
 
-typedef ITest* maker_ptr(TestConfig config);
-
-void registerTest(std::string package, std::string name, bool iterator, std::string schema, VnV::maker_ptr m,
-                  std::map<std::string, std::string> parameters);
-
-/// Macros to make it easier to define one.
-
-// Process a list of comma seperated variadic args into a map.
-
-#define VNVVARSTR(...) StringUtils::variadicProcess(#__VA_ARGS__)
-
-template <typename Runner> class Test_T : public ITest {
+template <typename Runner, typename Type> class Test_T : public Type {
  public:
+
   std::map<std::string, std::string> parameters;
   std::shared_ptr<Runner> runner;
 
-  Test_T(TestConfig& config, const char* params) : ITest(config) {
+  Test_T(TestConfig& config, const char* params) : Type(config) {
     runner.reset(new Runner());
     parameters = StringUtils::variadicProcess(params);
   }
@@ -329,117 +333,47 @@ template <typename Runner> class Test_T : public ITest {
   template <typename T> const T& get(std::string param) {
     auto it = parameters.find(param);
     if (it != parameters.end()) {
-      return getReference<T>(param, it->second);
+      return this-> template getReference<T>(param, it->second);
     }
     throw VnV::VnVExceptionBase("Parameter does not exist");
   }
 
-  static void registerTest(std::string packageName, std::string name, 
-                           bool iterator, std::string schema, maker_ptr* maker, const char* params) {
-    VnV::registerTest(packageName, name, iterator, schema,maker,
-                      StringUtils::variadicProcess(params));
-  }
 };
 
 }  // namespace VnV
+
+#define VNVDECLAREMACRO(Type, PNAME, name) namespace VnV { namespace PNAME { namespace Type { void register_##name(); }}}
+  #define VNVREGISTERMACRO(Type, PNAME, name) VnV::PNAME::Type::register_##name();
+
 
 
 #define INJECTION_TEST_RS(PNAME, name, Runner, schema, ...)                    \
   namespace VnV {                                                              \
   namespace PNAME {                                                            \
   namespace Tests {                                                            \
-  class name : public Test_T<VnV_Arg_Type(Runner)> {                           \
+  class name : public Test_T<VnV_Arg_Type(Runner), ITest> {                           \
    public:                                                                     \
-    name(TestConfig& config)                                                   \
-        : Test_T<VnV_Arg_Type(Runner)>(config, #__VA_ARGS__) {                 \
-             if (config.isIterator()) {                                              \
-                throw VnV::VnVExceptionBase("Iteration config passed to test"); \
-             } \
-    } \
-    TestStatus runTest(ICommunicator_ptr comm, IOutputEngine* engine,                   \
-                       InjectionPointType type, std::string stageId);          \
-    int iterate(ICommunicator_ptr comm, IOutputEngine *engine) {               \
-       throw VnV::VnVExceptionBase("Iterate called on test object");            \
-    }                                                                          \
-};                                                                             \
+    name(TestConfig& config) : Test_T<VnV_Arg_Type(Runner), ITest>(config, #__VA_ARGS__) {}         \
+    TestStatus runTest(ICommunicator_ptr comm, IOutputEngine* engine,  InjectionPointType type, std::string stageId); \
+  };                                                                               \
   ITest* declare_##name(TestConfig config) { return new name(config); }        \
   void register_##name() {                                                     \
-    name::registerTest(VNV_STR(PNAME), #name, false, schema, declare_##name, #__VA_ARGS__);   \
+      VnV::registerTest(VNV_STR(PNAME), #name, schema,declare_##name, VnV::StringUtils::variadicProcess(#__VA_ARGS__)); \
+  }                                                                           \
   }                                                                            \
   }                                                                            \
   }                                                                            \
-  }                                                                            \
-  VnV::TestStatus VnV::PNAME::Tests::name::runTest(                            \
-      ICommunicator_ptr comm, VnV::IOutputEngine* engine, VnV::InjectionPointType type, \
-      std::string stageId)
+  VnV::TestStatus VnV::PNAME::Tests::name::runTest(ICommunicator_ptr comm, VnV::IOutputEngine* engine, VnV::InjectionPointType type, std::string stageId)
+
+#define DECLARETEST(PNAME, name) VNVDECLAREMACRO(Tests, PNAME, name)  
+
+#define REGISTERTEST(PNAME, name) VNVREGISTERMACRO(Tests, PNAME, name) 
+
 
 #define INJECTION_TEST_R(PNAME, name, runner, ...) \
   INJECTION_TEST_RS(PNAME, name, runner, R"({"type":"object"})", __VA_ARGS__)
+
 #define INJECTION_TEST(PNAME, name, ...) \
   INJECTION_TEST_R(PNAME, name, int, __VA_ARGS__)
-
-#define DECLARETEST(PNAME, name) \
-  namespace VnV {                \
-  namespace PNAME {              \
-  namespace Tests {              \
-  void register_##name();        \
-  }                              \
-  }                              \
-  }
-#define REGISTERTEST(PNAME, name) VnV::PNAME::Tests::register_##name();
-
-
-#define INJECTION_ITERATOR_RS(PNAME, name, Runner, schema, ...)                 \
-  namespace VnV {                                                               \
-  namespace PNAME {                                                             \
-  namespace Tests {                                                             \
-  class name : public Test_T<VnV_Arg_Type(Runner)> {                            \
-   public:                                                                      \
-    name(TestConfig& config)                                                    \
-        : Test_T<VnV_Arg_Type(Runner)>(config, #__VA_ARGS__) {                  \
-              if (!config.isIterator())                                             \
-                throw VnV::VnVExceptionBase("Test called on iterator");}        \
-    TestStatus runTest(ICommunicator_ptr comm, IOutputEngine* engine,           \
-    InjectionPointType type, std::string stageId)                               \
-    {                                                                           \
-       throw VnV::VnVExceptionBase("Run tests called on iterative test object");\
-    }                                                                           \
-    int iterate(ICommunicator_ptr comm, IOutputEngine *engine);                 \
-  };                                                                            \
-  ITest* declare_##name(TestConfig config) { return new name(config); }         \
-  void register_##name() {                                                      \
-    name::registerTest(VNV_STR(PNAME), #name, true, schema, declare_##name, #__VA_ARGS__);    \
-  }                                                                             \
-  }                                                                             \
-  }                                                                             \
-  }                                                                             \
-  int VnV::PNAME::Tests::name::iterate(                             \
-      ICommunicator_ptr comm, VnV::IOutputEngine* engine)
-
-#define INJECTION_ITERATOR_R(PNAME, name, runner, ...) \
-  INJECTION_ITERATOR_RS(PNAME, name, runner, R"({"type":"object"})", __VA_ARGS__)
-#define INJECTION_ITEATOR(PNAME, name, ...) \
-  INJECTION_ITERATOR_R(PNAME, name, int, __VA_ARGS__)
-
-#define DECLAREITERATOR(PNAME, name) \
-  namespace VnV {                \
-  namespace PNAME {              \
-  namespace Tests {              \
-  void register_##name();        \
-  }                              \
-  }                              \
-  }
-#define REGISTERITERATOR(PNAME, name) VnV::PNAME::Tests::register_##name();
-
-
-
-
-
-
-
-
-
-
-
 
 #endif  // ITEST_H

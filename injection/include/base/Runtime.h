@@ -16,13 +16,15 @@
 #include <map>
 #include <string>
 
-#include "base/InjectionPoint.h"
-#include "base/JsonParser.h"
+#include "base/points/InjectionPoint.h"
+#include "base/points/PlugPoint.h"
+#include "base/points/IteratorPoint.h"
+
+#include "base/parser/JsonParser.h"
 #include "base/Logger.h"
 #include "c-interfaces/CJson.h"
 #include "c-interfaces/RunTime.h"
 #include "c-interfaces/Wrappers.h"
-#include "interfaces/CppInjection.h"
 #include "interfaces/IOffloader.hpp"
 /**
  * VnV Namespace
@@ -82,38 +84,16 @@ class RunTime {
 
   bool runTests; /**< Should tests be run */
   bool terminalSupportsAsciiColors = true;
+  int cleanupActionCounter = 0;
 
   UnitTestInfo unitTestInfo;
-
-
+  RunTimeOptions runTimeOptions;
 
 
   void loadPlugin(std::string filename, std::string packageName);
-
   void loadRunInfo(RunInfo& info, registrationCallBack* callback);
-  void makeLibraryRegistrationCallbacks(
-      std::map<std::string, std::string> packageNames);
-
-  std::shared_ptr<InjectionPoint> getNewInjectionIteration(std::string pname,
-                                                       std::string id,
-                                                       InjectionPointType type,
-                                                       NTV& in_args,
-                                                       NTV&out_args);
-
-  std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string pname,
-                                                       std::string id,
-                                                       InjectionPointType type,
-                                                       NTV& args);
-  std::shared_ptr<InjectionPoint> getExistingInjectionPoint(
-      std::string pname, std::string id, InjectionPointType type,
-      std::string stageId);
-
-  // TODO Getter and setter.
-  RunTimeOptions runTimeOptions;
-
-  bool configure(std::string packageName, RunInfo info,
-                 registrationCallBack* callback);
-
+  void makeLibraryRegistrationCallbacks( std::map<std::string, std::string> packageNames);
+  bool configure(std::string packageName, RunInfo info, registrationCallBack* callback);
   bool setupOffloadConfiguration(OffloadInfo& info);
 
  public:
@@ -133,22 +113,16 @@ class RunTime {
    * information. The Provenance test included in the tests/provenance is
    * designed to work with this injection point in mind.
    */
-  bool InitFromFile(const char* packageName, int* argc, char*** argv,
-                    std::string configFile, registrationCallBack* callback);
+  bool InitFromFile(const char* packageName, int* argc, char*** argv, std::string configFile, registrationCallBack* callback);
+  bool InitFromJson(const char* packageName, int* argc, char*** argv, json& configFile, registrationCallBack* callback);
 
-  bool InitFromJson(const char* packageName, int* argc, char*** argv,
-                    json& configFile, registrationCallBack* callback);
-
-
-
-  int cleanupActionCounter = 0;
 
   int registerCleanUpAction(std::function<void(ICommunicator_ptr)> action) ;
-
+  
   void declarePackageJson(std::string pname, vnvFullJsonStrCallback callback);
-
+  
   void declareCommunicator(std::string pname, std::string commPack, std::string comm);
-
+  
   bool useAsciiColors();
 
   /**
@@ -165,37 +139,53 @@ class RunTime {
 
   void processToolConfig(json config, json& cmdline);
 
-  void runTimePackageRegistration(std::string packageName,
-                                  vnv_registration_function reg);
+  void runTimePackageRegistration(std::string packageName, registrationCallBack reg);
 
-  // Cpp interface.
-  void injectionPoint(VnV_Comm comm, std::string pname, std::string id,
-                      const CppInjection::DataCallback& callback, NTV& args);
   
- 
-  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id, 
-                  injectionDataCallback* callback, NTV &inputs, NTV &outputs, int  once);
-  
-  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id,
-                  const CppInjection::DataCallback& callback, NTV &inputs, NTV &outputs, int  once);
-
+  /****************** ITERATIONS ************************************/
+private:
+  std::shared_ptr<IterationPoint> getNewInjectionIteration(std::string pname, std::string id, InjectionPointType type, int once, NTV& in_args, NTV&out_args);
+public:  
   int injectionIterationRun(VnV_Iterator *iterator);
-
   
-  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id,
-                            const CppInjection::DataCallback& callback,
-                            NTV& args);
+  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id, const DataCallback& callback, NTV &inputs, NTV &outputs, int  once);
+  
+  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id, injectionDataCallback* callback, NTV &inputs, NTV &outputs, int  once);
 
-  // C Interface
-  void injectionPoint(VnV_Comm comm, std::string pname, std::string id,
-                      injectionDataCallback* callback, NTV& args);
-  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id,
-                            injectionDataCallback* callback, NTV& args);
+  /****************** PLUGS ************************************/
+private:
+  std::shared_ptr<PlugPoint> getNewInjectionPlug( std::string pname, std::string id, NTV& in_args, NTV& out_args);
+public:
+  // Cpp Interface for an Injection Plug
+  VnV_Iterator injectionPlug(VnV_Comm, std::string pname, std::string id, const DataCallback& callback, NTV &inputs, NTV &outputs);
+
+  int injectionPlugRun(VnV_Iterator *iterator);
+
+  // C Interface for an Iteration Point. 
+  VnV_Iterator injectionPlug(VnV_Comm, std::string pname, std::string id, injectionDataCallback* callback, NTV &inputs, NTV &outputs);
+
+  /************************ INJECTION POINTS **************************/
+private:
+  
+  std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string pname, std::string id,  InjectionPointType type,NTV& args);
+  
+  std::shared_ptr<InjectionPoint> getExistingInjectionPoint( std::string pname, std::string id, InjectionPointType type, std::string stageId);
+
+public:
+
+  void injectionPoint(VnV_Comm comm, std::string pname, std::string id, const DataCallback& callback, NTV& args);  
+
+  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id, const DataCallback& callback, NTV& args);
 
   void injectionPoint_end(std::string pname, std::string id);
-  void injectionPoint_iter(std::string pname, std::string id,
-                           std::string iterid);
 
+  void injectionPoint_iter(std::string pname, std::string id, std::string iterid);
+
+  void injectionPoint(VnV_Comm comm, std::string pname, std::string id, injectionDataCallback* callback, NTV& args);
+
+  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id, injectionDataCallback* callback, NTV& args);
+
+  
   /**
    * @brief Finalize
    * @return
@@ -236,6 +226,7 @@ class RunTime {
 
   int beginStage(VnV_Comm comm, std::string pname, std::string message,
                  va_list args);
+
   void endStage(VnV_Comm comm, int ref);
 
   /**
@@ -267,7 +258,15 @@ class RunTime {
    */
   void runUnitTests(VnV_Comm comm, UnitTestInfo info);
 
+  /**
+   * @brief runActions
+   *
+   * Run all user requested actions.
+   */
+  void runActions(VnV_Comm comm, ActionInfo info);
+
   void readFile(std::string filename, long& idCounter);
+
   std::string getPackageName();
 };
 }  // namespace VnV
