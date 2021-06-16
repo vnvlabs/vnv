@@ -15,9 +15,12 @@ namespace Engines {
 
 class JsonStream {
 public:
+  virtual void initialize(std::string filestub) = 0;
+  virtual void finalize() = 0;
   virtual void newComm(long id, json obj) = 0;
   virtual void write(long id, json obj) = 0 ;
-
+  virtual void parse(std::string filename) = 0;
+  virtual json next() = 0;
 };
 
 class JsonStreamingEngineManager : public OutputEngineManager {
@@ -115,6 +118,9 @@ class JsonStreamingEngineManager : public OutputEngineManager {
   std::string print() override;
 
 };
+
+
+
 }  // namespace Engines
 }  // namespace VNVPACKAGENAME
 }  // namespace VnV

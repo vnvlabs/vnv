@@ -452,9 +452,19 @@ void JsonEngineManager::finalize(ICommunicator_ptr worldComm) {
 
     // Finish up the FileIO
     worldComm->Barrier();
+    
     if (worldComm->Rank() == getRoot()) {
       join(outputFile, p, worldComm->Size());
+
+      for (auto it : mainJson.items()) {
+        std::ofstream f;
+        std::ostringstream oss;
+        oss << outputFile << "_" << it.key();
+        std::remove(oss.str().c_str());
+      }
+
     }
+
 
   } else {
     std::cout << Dump(3);

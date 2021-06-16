@@ -1,11 +1,5 @@
 ﻿{
   "runTests": true,
-  "runScopes": [
-    {
-      "name": "all",
-      "run": true
-    }
-  ],
   "logging": {
     "on" : true,
     "filename" : "stdout",
@@ -28,18 +22,13 @@
             {
                 "name" : "provenance",
                 "package" : "VNV",
-                "runScope" : ["all"],
-                "config" : {
-                    "expectedResult" : {},
-                    "configuration": {
-                    },
-                    "parameters": {
+                "parameters": {
                         "argc" : "argc",
                         "argv" : "argv",
                         "config" : "config"
-                    }
-                }
-            }
+          	
+		}
+	    }
         ]
       },
       {
@@ -47,16 +36,10 @@
         "package" : "VNV",
         "tests" : [
             {
-                "name" : "cputime",
-                "package" : "VNV",
-                "runScope" : ["all"],
-                "config" : {
-                    "expectedResult" : {},
-                    "configuration": {
-		    },
-                    "parameters": {
-                    }
-                }
+              "name" : "cputime",
+              "package" : "VNV",
+              "runScope" : ["all"],
+              "parameters": {}
             }
         ]
       }

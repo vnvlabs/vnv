@@ -49,7 +49,6 @@ endfunction()
 endif()
 
 function(link_vnv_file targetName packageName extension)
-	message(${targetName} aaa ${packageName} bbb ${extension})
 	link_vnv_file_main(${targetName} ${packageName} ${extension})
         target_sources(${targetName} PRIVATE ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension})
         target_link_libraries(${targetName} PRIVATE Injection::Injection)

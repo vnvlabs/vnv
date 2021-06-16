@@ -18,7 +18,6 @@ class RegistrationWriter {
   std::map<std::string, json> pjson;
   bool finalized = false;
 
-  std::string reg_attr = "__attribute__((visibility (\"default\")))";
 
 
   void createPackageOss(std::string packageName) {
@@ -29,7 +28,7 @@ class RegistrationWriter {
       oss_declare[packageName] = std::move(os_declare);
 
       std::ostringstream os_register;
-      os_register << "INJECTION_REGISTRATION(" << packageName << "," << reg_attr << "){\n";
+      os_register << "INJECTION_REGISTRATION(" << packageName << "){\n";
       oss_register[packageName] = std::move(os_register);
       pjson[packageName] = json::object();
     }

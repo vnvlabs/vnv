@@ -28,16 +28,10 @@
             {
                 "name" : "provenance",
                 "package" : "VNV",
-                "runScope" : ["all"],
-                "config" : {
-                    "expectedResult" : {},
-                    "configuration": {
-                    },
-                    "parameters": {
+                "parameters": {
                         "argc" : "argc",
                         "argv" : "argv",
                         "config" : "config"
-                    }
                 }
             }
         ]
@@ -49,14 +43,7 @@
             {
                 "name" : "cputime",
                 "package" : "VNV",
-                "runScope" : ["all"],
-                "config" : {
-                    "expectedResult" : {},
-                    "configuration": {
-		    },
-                    "parameters": {
-                    }
-                }
+                "parameters": {}
             }
         ]
       }
