@@ -105,6 +105,7 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
     if (info.unitTestConfig.contains(it.first) ) {
         json& pconfig = info.unitTestConfig[it.first];
         if (pconfig.contains("runUnitTests") && !pconfig["runUnitTests"].get<bool>()) {
+          // run unit tests was false --> so we continue without adding any from this pacakge. 
           continue;
         }
         if (pconfig.contains("unitTests")) {

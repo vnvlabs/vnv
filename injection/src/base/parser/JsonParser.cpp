@@ -151,7 +151,7 @@ UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json& unitTestJson) {
   UnitTestInfo info;
   if (unitTestJson.contains("runUnitTests")) {
     info.runUnitTests = unitTestJson["runUnitTests"].get<bool>();
-    info.unitTestConfig = unitTestJson["config"];
+    info.unitTestConfig = unitTestJson.contains("config") ? unitTestJson["config"] : json::object() ;
   } else {
     info.runUnitTests = false;
     info.unitTestConfig = json::object();
