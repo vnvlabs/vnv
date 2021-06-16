@@ -9,7 +9,6 @@
 #include "base/Runtime.h"
 #include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
-#include "plugins/engines/json/JsonOutputReader.h"
 
 using nlohmann::json;
 
@@ -33,12 +32,13 @@ static json __json_engine_schema__ = R"(
 
 **/
 INJECTION_ENGINE(VNVPACKAGENAME, json) {
-  return new VnV::VNVPACKAGENAME::Engines::JsonEngineManager();
+  return new VnV::VNVPACKAGENAME::Engines::Json::JsonEngineManager();
 }
 
 namespace VnV {
 namespace VNVPACKAGENAME {
 namespace Engines {
+namespace Json {
 
 #define LTypes X(double) X(long long) X(bool) X(std::string) X(json)
 #define X(type)                                                            \
@@ -51,6 +51,7 @@ namespace Engines {
     j["name"] = variableName;                                              \
     j["type"] = #type;                                                     \
     j["value"] = value;                                                    \
+    j["shape"] = {};                                                       \
     j["node"] = "Data";                                                    \
     j["meta"] = m;                                                         \
     append(j);                                                             \
@@ -59,7 +60,9 @@ LTypes
 #undef X
 #undef LTypes
 
-void JsonEngineManager::Put(std::string variableName, IDataType_ptr data, const MetaData& m) {
+void
+JsonEngineManager::Put(std::string variableName, IDataType_ptr data,
+                           const MetaData& m) {
 
   if (comm->Rank() == getRoot()) {
     json j;
@@ -80,53 +83,43 @@ void JsonEngineManager::Put(std::string variableName, IDataType_ptr data, const 
   }
 }
 
-
-    std::string JsonEngineManager::getId() {
+std::string JsonEngineManager::getId() {
   return std::to_string(JsonEngineManager::id++);
 }
 
 void JsonEngineManager::append(nlohmann::json& jsonOb) {
-
   mainJson[std::to_string(comm->uniqueId())]
       .at(ptr[comm->uniqueId()])
       .push_back(jsonOb);
-
 }
 
 void JsonEngineManager::add(std::string key, const nlohmann::json& jsonOb) {
-
-  mainJson[std::to_string(comm->uniqueId())].at(ptr[comm->uniqueId()])[key] = jsonOb;
-
+  mainJson[std::to_string(comm->uniqueId())].at(ptr[comm->uniqueId()])[key] =
+      jsonOb;
 }
 
 void JsonEngineManager::pop(int num) {
-
   while (num-- > 0)
     ptr[comm->uniqueId()] = ptr[comm->uniqueId()].parent_pointer();
-
 }
 
 void JsonEngineManager::push(nlohmann::json& jsonOb) {
-
   // Add an element to the current array then set up to write to that
   // element
   append(jsonOb);
 
   ptr[comm->uniqueId()] /= mainJson[std::to_string(comm->uniqueId())]
-                               .at(ptr[comm->uniqueId()]).size() - 1;
+                               .at(ptr[comm->uniqueId()])
+                               .size() - 1;
 }
 
 void JsonEngineManager::append(json::json_pointer ptr) {
-
   this->ptr[comm->uniqueId()] /= ptr;
-
 }
 
 void JsonEngineManager::push(nlohmann::json& jsonOb, json::json_pointer ptr) {
-
   push(jsonOb);
   this->ptr[comm->uniqueId()] /= ptr;
-
 }
 
 std::string JsonEngineManager::Dump(int d) { return mainJson.dump(d); }
@@ -139,7 +132,7 @@ void JsonEngineManager::PutGlobalArray(
     const MetaData& m) {
   VnV::Communication::DataTypeCommunication d(comm);
 
-  //Gather all on the root processor
+  // Gather all on the root processor
   IDataType_vec gather =
       d.GatherV(data, dtype, getRoot(), gsizes, sizes, offset, false);
 
@@ -150,6 +143,7 @@ void JsonEngineManager::PutGlobalArray(
     j["node"] = "Data";
     j["type"] = "shape";
     j["shape"] = gsizes;
+    j["key"] = dtype;
     j["meta"] = m;
     j["children"] = json::array();
     push(j, json::json_pointer("/children"));
@@ -160,65 +154,50 @@ void JsonEngineManager::PutGlobalArray(
     for (int i = 0; i < gather.size(); i++) {
       IDataType_ptr d = gather[i];
       json cj;
-      int iter = 0;
-      std::vector<PutData> types = d->getLocalPutData();
-      for (int j = 0; j < types.size(); j++) {
-        PutData& p = types[j];
-        outdata = d->getPutData(j);
-        cj["name"] = p.name;
+      std::map<std::string,PutData> types = d->getLocalPutData();
+      for (auto &it : types) {
+        json childJson;
+
+        PutData& p = it.second;
+        outdata = d->getPutData(it.first);
+        childJson["name"] = p.name;
+        childJson["shape"] = p.shape;
+        childJson["type"] = p.datatype;
+        int count = std::accumulate(p.shape.begin(), p.shape.end(), 1, std::multiplies<>());
 
         switch (p.datatype) {
 
         case SupportedDataType::DOUBLE: {
           double* dd = (double*)outdata;
-          if (p.count > 1) {
-            std::vector<double> da(dd, dd + p.count);
-            cj["value"] = da;
-          } else {
-            cj["value"] = *dd;
-          }
+          std::vector<double> da(dd, dd + count);
+          childJson["value"] = da;
           break;
         }
 
         case SupportedDataType::LONG: {
-
           long* dd = (long*)outdata;
-          if (p.count > 1) {
-            std::vector<long> da(dd, dd + p.count);
-            cj["value"] = da;
-          } else {
-            cj["value"] = *dd;
-          }
+          std::vector<long> da(dd, dd + count);
+          childJson["value"] = da;
           break;
         }
 
         case SupportedDataType::STRING: {
-
           std::string* dd = (std::string*)outdata;
-          if (p.count > 1) {
-            std::vector<std::string> da(dd, dd + p.count);
-            cj["value"] = da;
-          } else {
-            cj["value"] = *dd;
-          }
+          std::vector<std::string> da(dd, dd + count);
+          childJson["value"] = da;
           break;
         }
 
         case SupportedDataType::JSON: {
-
           json* dd = (json*)outdata;
-          if (p.count > 1) {
-            std::vector<json> da(dd, dd + p.count);
-            cj["value"] = da;
-          } else {
-            cj["value"] = *dd;
-          }
-          break;
+          std::vector<json> da(dd, dd + count);
+          childJson["value"] = da;
+         break;
         }
         }
-
-        append(cj);
+        cj[p.name] = childJson;
       }
+      append(cj);
     }
     pop(2);
   }
@@ -288,6 +267,7 @@ class IData {
   long idstart = -1;
   long idstop = -1;
   long comm = -1;
+
   std::map<long, std::set<std::shared_ptr<IData>>> children;
   std::set<long> chain;
   CommWrap_ptr commWrap;
@@ -352,16 +332,14 @@ class IData {
       return DataRelative::PARENT;
     } else if (isRoot || (data->idstart > idstart && data->idstop < idstop)) {
       bool isNewChild = true;
-      for (auto childStartId = children.begin();
-           childStartId != children.end();) {
-        for (auto child = childStartId->second.begin();
-             child != childStartId->second.end();) {
+      for (auto childStartId = children.begin(); childStartId != children.end();) {
+        for (auto child = childStartId->second.begin(); child != childStartId->second.end();) {
+
           auto r = (*child)->getRelation(data);
           if (r == DataRelative::CHILD) {
             return DataRelative::CHILD;  // child so its handled --> Return .
           } else if (r == DataRelative::PARENT) {
-            // The get realation call has already added child as a child of
-            // data.
+            // The get realation call has already added child as a child data.
             data->getRelation(*child);
             child = childStartId->second.erase(child);  // erase this as child.
             isNewChild = true;
@@ -388,6 +366,7 @@ class IData {
 void join(std::shared_ptr<IData>& datastruct, long commId,
           std::map<long, CommWrap_ptr> comms, std::string outfile,
           std::set<long>& done) {
+
   // Don't add comms twice.
   auto comm = comms.find(commId)->second;
   if (done.find(commId) != done.end())
@@ -482,7 +461,8 @@ void JsonEngineManager::finalize(ICommunicator_ptr worldComm) {
   }
 }
 
-void JsonEngineManager::setFromJson(ICommunicator_ptr comm, nlohmann::json& config) {
+void JsonEngineManager::setFromJson(ICommunicator_ptr comm,
+                                    nlohmann::json& config) {
   if (config.contains("inMemory")) {
     this->inMemory = config["inMemory"].get<bool>();
   }
@@ -587,7 +567,6 @@ void JsonEngineManager::unitTestStartedCallBack(ICommunicator_ptr comm,
   push(j, json::json_pointer("/children"));
 }
 
-
 void JsonEngineManager::unitTestFinishedCallBack(IUnitTest* tester) {
   if (comm->Rank() != getRoot()) return;  // pop the children node
   pop(1);
@@ -604,11 +583,12 @@ void JsonEngineManager::unitTestFinishedCallBack(IUnitTest* tester) {
 
 Nodes::IRootNode* JsonEngineManager::readFromFile(std::string file,
                                                   long& idCounter) {
-  return VnV::VNVPACKAGENAME::Engines::JsonReader::parse(file, idCounter);
+  return VnV::VNVPACKAGENAME::Engines::Json::parse(file, idCounter);
 }
 
 std::string JsonEngineManager::print() { return "VnV Json Engine Manager"; }
 
+}  // namespace Json
 }  // namespace Engines
 }  // namespace VNVPACKAGENAME
 }  // namespace VnV

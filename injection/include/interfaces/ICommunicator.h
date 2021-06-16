@@ -83,14 +83,14 @@ class IReduction {
 
 
 enum class SupportedDataType {
-    DONE, DOUBLE, LONG, STRING, JSON
+    DOUBLE, LONG, STRING, JSON
 };
 
 class PutData {
  public:
   std::string name;
   SupportedDataType datatype;
-  int count;
+  std::vector<std::size_t> shape;
 };
 
 class IDataType {
@@ -108,21 +108,46 @@ class IDataType {
   virtual int compare(IDataType_ptr y) = 0;  // -1 less, 0 == , 1 greater.
   virtual void mult(IDataType_ptr y) = 0;
 
-  //Put will be called when you need to "Write" this output to file.
+  // Put will be called when you need to "Write" this output to file.
   // Put is called when someone type Put("name","datatype"). This is
   // collective on the Communicator used to type Put. So, this function
   // can output things like global vectors.
+  // Put should call other Put actions
   virtual void Put(VnV::IOutputEngine* engine) = 0;
 
-  virtual std::vector<PutData> getLocalPutData() = 0;
 
-  virtual void* getPutData( int iteration) = 0;
+  // getLocalPutData is called when someone tries to write
+  // a global vector containing objects of the this datatype
+  // This is a "local" operation across the communicator set within
+  // the engine.
 
+  // This should be used to support writing vectors of a datatype. I.e., a
+  // double vector. The Put is used to
+  // support writing a (potentially distributed) data structure to file. This function
+  // is used to support writing a distributed vector containing the data structure to
+  // file.
+
+  // The function should return a map of PutData objects that describe the different
+  // parameters in the data structure.
+  // THIS MUST BE CONSTANT ACROSS ALL INSTANCES OF THE DATA TYPE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // WE DO NOT SUPPORT DIFFERENT SIZES
+  virtual std::map<std::string, PutData> getLocalPutData() = 0;
+
+  // VnV will call this function when writing a distributed vector to file that contains
+  // this data structure. The parameter name will be one of the keys returned in the getLocalPutData
+  // map. The function should return a pointer to the data associated with this key.
+  virtual void* getPutData(std::string name) = 0;
 
   void setKey(long long key);
   long long getKey();
   virtual ~IDataType();
 };
+
+
+// DataType -- This is a type that can be put into a
+
+// Distributed Data Type --> Data Type that can be put into a global array.
+
 
 // Enum class to describe the different return types for a comm compare.
 // Exact means the comms have same contexts and groups
