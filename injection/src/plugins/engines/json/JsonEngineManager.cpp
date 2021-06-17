@@ -51,7 +51,7 @@ namespace Json {
     j["name"] = variableName;                                              \
     j["type"] = #type;                                                     \
     j["value"] = value;                                                    \
-    j["shape"] = {};                                                       \
+    j["shape"] = nlohmann::json::array();                                 \
     j["node"] = "Data";                                                    \
     j["meta"] = m;                                                         \
     append(j);                                                             \

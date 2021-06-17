@@ -68,7 +68,7 @@ void registerIterator(std::string package, std::string name,std::string schema, 
 #define INJECTION_ITERATOR_R(PNAME, name, runner, ...) \
   INJECTION_ITERATOR_RS(PNAME, name, runner, R"({"type":"object"})", __VA_ARGS__)
 
-#define INJECTION_ITEATOR(PNAME, name, ...) \
+#define INJECTION_ITERATOR(PNAME, name, ...) \
   INJECTION_ITERATOR_R(PNAME, name, int, __VA_ARGS__)
 
 

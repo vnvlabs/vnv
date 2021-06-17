@@ -56,12 +56,6 @@ def add_js_files(outdir, files, srcdir):
 def getVnVConfigFile():
     return {
         "runTests": True,
-        "runScopes": [
-            {
-                "name": "all",
-                "run": True
-            }
-        ],
         "logging": {
             "on": True,
             "filename": "stdout",

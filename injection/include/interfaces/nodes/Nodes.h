@@ -125,6 +125,10 @@ class DataBaseWithChildren {
     virtual x getValue(const std::vector<std::size_t>& shape) = 0; \
     virtual x getValue(const std::size_t ind) = 0;           \
     virtual ~I##X##Node();                                         \
+    virtual std::string getShapeJson() { \
+       nlohmann::json j = this->getShape(); \
+       return j.dump(); \
+    }\
   };
 DTYPES
 #undef X

@@ -87,10 +87,14 @@ class shapeClassIterator:
          def __init__(self, obj):
            self.obj = obj
            self.iterCounter = 0
+           self.shape = json.loads(self.obj.getShapeJson())
+           if len(self.shape)==0:
+               raise TypeError("Cannot iterate a Scalar Shape class")
+         
 
          def __next__(self):
-           shape = json.loads(self.obj.getShape())
-           if (self.iterCounter) < shape[0]:
+
+           if (self.iterCounter) < self.shape[-1]:
                 self.iterCounter += 1
                 return self.obj[self.iterCounter - 1]
 
@@ -105,16 +109,20 @@ dataBaseCastMap = {
     DataBase.DataType_Double : "AsDoubleNode",
     DataBase.DataType_String : "AsStringNode",
     DataBase.DataType_Long : "AsLongNode",
+    DataBase.DataType_Shape : "AsShapeNode",
+    DataBase.DataType_Json : "AsJsonNode",
+    
+
     DataBase.DataType_Array : "AsArrayNode",
     DataBase.DataType_Map : "AsMapNode",
     DataBase.DataType_Log : "AsLogNode",
     DataBase.DataType_InjectionPoint : "AsInjectionPointNode",
     DataBase.DataType_Info : "AsInfoNode",
+    DataBase.DataType_CommInfo : "AsCommInfoNode",
     DataBase.DataType_Test : "AsTestNode",
-    DataBase.DataType_ShapeArray : "AsShapeNode",
     DataBase.DataType_UnitTest : "AsUnitTestNode",
-    DataBase.DataType_DataNode : "AsDataTypeNode",
-    DataBase.DataType_RootNode : "AsRootNode"
+    DataBase.DataType_Data : "AsDataNode",
+    DataBase.DataType_Root : "AsRootNode"
 }
 
 type2Str = {
@@ -129,11 +137,12 @@ type2Str = {
     DataBase.DataType_Log : "Log",
     DataBase.DataType_InjectionPoint : "InjectionPoint",
     DataBase.DataType_Info : "Info",
+    DataBase.DataType_Info : "CommInfo",
     DataBase.DataType_Test : "Test",
-    DataBase.DataType_ShapeArray : "ShapeArray",
+    DataBase.DataType_Shape : "Shape",
     DataBase.DataType_UnitTest : "UnitTest",
-    DataBase.DataType_DataNode : "DataTypeNode",
-    DataBase.DataType_RootNode : "RootNode"
+    DataBase.DataType_Data : "DataNode",
+    DataBase.DataType_Root : "RootNode"
 }
 
 vnv_initialized = False
@@ -197,9 +206,11 @@ def castDataBase(obj) :
 
          res = getattr(self,"get"+key)
          if res is not None:
+            
             if hasattr(self,"isJson") and self.isJson():
               return json.loads(res())
             return res()
+
          print("Not a key {} {} ".format(key, self.__class__))
          raise KeyError("not a valid key")
 
@@ -245,17 +256,13 @@ def castDataBase(obj) :
 
 PY_GETATTR(VnV::Nodes::IRootNode)
 PY_GETATTR(VnV::Nodes::IUnitTestNode)
-PY_GETATTR(VnV::Nodes::IDataTypeNode)
+PY_GETATTR(VnV::Nodes::IDataNode)
 PY_GETATTR(VnV::Nodes::ILogNode)
 PY_GETATTR(VnV::Nodes::IInjectionPointNode)
 PY_GETATTR(VnV::Nodes::ITestNode)
 PY_GETATTR(VnV::Nodes::IInfoNode)
-PY_GETATTR(VnV::Nodes::IDoubleNode)
-PY_GETATTR(VnV::Nodes::IIntegerNode)
-PY_GETATTR(VnV::Nodes::IFloatNode)
-PY_GETATTR(VnV::Nodes::IStringNode)
-PY_GETATTR(VnV::Nodes::ILongNode)
-PY_GETATTR(VnV::Nodes::IBoolNode)
+PY_GETATTR(VnV::Nodes::ICommInfoNode)
+
 
 
 %define PY_GETATTRLIST(Typename)
@@ -364,31 +371,34 @@ PY_GETATTRMAP(VnV::Nodes::IMapNode)
           if isinstance(i,list):
              result.append(self.recursive_pop(i))
           else:
-             result.append(self.getChildren().get(i))
+             result.append(self.getValue(i))
         return result
 
+      def shape(self):
+         if not hasattr(self, shape):
+            self.shape = json.loads(self.getShapeJson());
+            self.tot = np.prod(shape)  #total size of the list.
+            self.npshape = np.reshape(range(0,self.tot), tuple(self.shape) ) #array with values as correct index.
+         return self.shape, self.tot, self.npshape
+
+         
       def __getitem__(self,key):
         if key == "metaData" or key == "MetaData":
             return json.loads(self.getMetaData().asJson()) 
-        if isinstance(key,str):
-           res = []
-           for i in self:
-             if i.getName() == key:
-               res.append(castDataBase(i))
-           if len(res) == 1:
-              return res[0]
-           elif len(res)>1:
-              return res
+
 
         try:
-         shape = json.loads(self.getShape());
-         tot = np.prod(shape)  #total size of the list.
-         a = np.reshape(range(0,tot), tuple(shape) ) #array with values as correct index.
-         b = a[key].tolist() # Slice the array. Now b is a numpy array with values equal to the index we need from the global vector.
+         s,t,nps = self.shape()
+         if (len(s) == 0) :
+            raise TypeError("Scalar Shape has no __getitem__ method")
+         
+         
+         b = nps[key].tolist() # Slice the array
+
          if (isinstance(b,list)):
-            return self.recursive_pop(b)
+            return np.ndarray(self.recursive_pop(b))
          else:
-             return self.getChildren().get(b)
+             return self.getValue(b)
         except:
              pass
 
@@ -396,10 +406,14 @@ PY_GETATTRMAP(VnV::Nodes::IMapNode)
         raise KeyError("not a valid key")
 
       def __len__(self):
-        return self.getChildren().size();
+         shape = json.loads(self.getShapeJson());
+         if (len(shape) == 0) :
+            raise TypeError("Scalar Object has no length")
+         
+         return shape[-1]
 
       def __iter__(self):
-        return shapeclassIterator(self.getChildren())
+        return shapeclassIterator(self)
 
       def __getType__(self):
         return "list"
@@ -410,5 +424,12 @@ PY_GETATTRMAP(VnV::Nodes::IMapNode)
 }
 %enddef
 
+PY_GETATTRSHAPE(VnV::Nodes::IDoubleNode)
+PY_GETATTRSHAPE(VnV::Nodes::IIntegerNode)
+PY_GETATTRSHAPE(VnV::Nodes::IFloatNode)
+PY_GETATTRSHAPE(VnV::Nodes::IStringNode)
+PY_GETATTRSHAPE(VnV::Nodes::ILongNode)
+PY_GETATTRSHAPE(VnV::Nodes::IBoolNode)
+PY_GETATTRSHAPE(VnV::Nodes::IJsonNode)
 PY_GETATTRSHAPE(VnV::Nodes::IShapeNode)
 
