@@ -14,6 +14,7 @@
 #include "base/parser/JsonParser.h"
 namespace VnV {
 
+
 class ActionStore {
  private:
   std::map<std::string, std::map<std::string, action_ptr*, std::less<std::string>>> action_factory;
@@ -21,7 +22,7 @@ class ActionStore {
   ActionStore();
 
   void runAction(Communication::ICommunicator_ptr comm, std::string packageName,
-               std::string Name, const json& config, IAction* tester);
+               std::string Name, const json& config, IAction* tester, ActionType& type);
 
 
  public:
@@ -32,10 +33,10 @@ class ActionStore {
   static ActionStore& getActionStore();
 
   void runAction(Communication::ICommunicator_ptr comm, std::string packageName,
-               std::string testName, const json& config);
+               std::string testName, const json& config, ActionType& type);
 
 
-  void runAll(VnV_Comm comm, VnV::ActionInfo info);
+  void runAll(VnV_Comm comm, VnV::ActionInfo info, ActionType& type);
 
   void print();
 };

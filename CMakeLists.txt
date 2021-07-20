@@ -20,6 +20,11 @@ if(WITH_MPI)
   find_package(MPI REQUIRED)
 endif()
 
+## Python is required to build the reports. 
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+
+
+
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type selected, default to RelWithDebInfo")
   set(CMAKE_BUILD_TYPE
@@ -40,6 +45,7 @@ include("${CMAKE_SOURCE_DIR}/cmake/Registration.cmake")
 add_subdirectory(injection)
 add_subdirectory(generation)
 
+
 option(BUILD_TESTS "Build the test runner" ON)
 if(BUILD_TESTS)
   add_subdirectory(test)
@@ -48,6 +54,7 @@ endif()
 if(BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
+
 add_subdirectory(docs)
 
 install(

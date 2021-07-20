@@ -116,7 +116,7 @@ class RootInterpreter(RootNodeVisitor):
             list) or (
             hasattr(
                 element,
-                "__getType__") and element.__getType__() == "list")
+                "__getType__") and element.__getType__() == "array")
 
     def __init__(self, options=None):
         super(RootInterpreter, self).__init__()

@@ -425,7 +425,7 @@ void AdiosEngineImpl::writeInfo() {
 
 
 void AdiosEngineImpl::testStartedCallBack(const std::string& packageName,
-                                          const std::string& testName, bool internal) {
+                                          const std::string& testName, bool internal, long uid) {
 
   engine.BeginStep();
   if (root) {

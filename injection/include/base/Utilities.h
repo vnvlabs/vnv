@@ -104,6 +104,8 @@ enum class CreateType { Object, Array, String, Float, Integer };
 nlohmann::json& getOrCreate(nlohmann::json& parent, std::string key,
                             CreateType type = CreateType::Object);
 
+nlohmann::json load(std::string s);
+
 }  // namespace JsonUtilities
 
 namespace MapUtilities {

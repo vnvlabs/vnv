@@ -52,14 +52,23 @@ class JsonParserImpl {
   std::shared_ptr<T> genDataNode(const json& j, std::shared_ptr<DataBase> parent) {
     std::shared_ptr<T> n = mks<T>(JN(j), parent);
 
-    n->shape.reserve(j["shape"].size());
+    std::size_t shapeSize = j["shape"].size();
+
+    // Set the shape object.
+    n->shape.reserve(shapeSize);
     for (auto it : j["shape"].items()) {
       n->shape.push_back(it.value().get<std::size_t>());
     }
 
-    n->value.reserve(j["value"].size());
-    for (auto it : j["value"].items()) {
-       n->value.push_back(it.value().get<V>());
+    // Set the scalar value. 
+    if (shapeSize == 0 ) {
+      n->value.reserve(1);
+      n->value.push_back(j["value"].get<V>());
+    } else {
+      n->value.reserve(shapeSize);
+      for (auto it : j["value"].items()) {
+         n->value.push_back(it.value().get<V>());
+      }
     }
     addMetaData(j,n);
     return n;
@@ -67,15 +76,19 @@ class JsonParserImpl {
 
   std::shared_ptr<JsonNode> genJsonNode(const json& j, std::shared_ptr<DataBase> parent) {
     auto n = mks<JsonNode>(JN(j), parent);
+    std::size_t shapeSize = j["shape"].size();
 
-    n->shape.reserve(j["shape"].size());
+    n->shape.reserve(shapeSize);
     for (auto it : j["shape"].items()) {
       n->shape.push_back(it.value().get<std::size_t>());
     }
-
-    n->value.reserve(j["value"].size());
-    for (auto it : j["value"].items()) {
-      n->value.push_back(it.value().dump());
+    if (shapeSize == 0 ) {
+       n->value.push_back(j["value"].dump()); 
+    } else {
+      n->value.reserve(j["value"].size());
+      for (auto it : j["value"].items()) {
+        n->value.push_back(it.value().dump());
+      }
     }
     addMetaData(j,n);
     return n;
@@ -118,6 +131,22 @@ class JsonParserImpl {
     return n;
   }
 
+  std::shared_ptr<UnitTestResultNode> genUnitTestResultNode(const json&j, std::shared_ptr<DataBase> parent) {
+    auto r = mks<UnitTestResultNode>(JN(j), parent);
+    r->result = j["result"].get<bool>();
+    r->desc = j["desc"].get<std::string>();
+    return r;
+  }
+
+  std::shared_ptr<UnitTestResultsNode> genUnitTestResultsNode(const json&j, std::shared_ptr<DataBase> parent) {
+    auto n = mks<UnitTestResultsNode>(JN(j), parent);
+    for (auto it : j.items()) {
+        auto r = genUnitTestResultNode(it.value(),n);
+        n->m[r->name] = r;
+    }
+    return n;
+  }
+
   std::shared_ptr<UnitTestNode> genUnitTestNode(const json& j,
                                                 std::shared_ptr<DataBase> parent) {
     auto n = mks<UnitTestNode>(JN(j), parent);
@@ -131,7 +160,7 @@ class JsonParserImpl {
     }
 
     n->children = genArrayNode(j["children"], "children", n);
-    n->resultsMap = genMapNode(j["results"], "results", n);
+    n->resultsMap = genUnitTestResultsNode(j["results"], n);
     addMetaData(j,n);
     return n;
   }
@@ -344,14 +373,18 @@ class JsonParserImpl {
     return mainJson["commMap"]["worldSize"].get<int>();
   }
 
-  std::string getCommMap() {
-    return mainJson["commMap"]["map"].dump(0);
+  CommMap getCommMap() {
+     
+     //TODO Update the comm Wrapper for this one. 
+     CommMap c;
+     return c;
   }
 
   std::shared_ptr<RootNode> genRootNode() {
     rootInternal.reset(new RootNode());  // For id tracking in a single loop.
 
     rootInternal->id = idCounter++;
+  
     rootInternal->name = "Root";
     rootInternal->parent = {};
 
@@ -360,8 +393,7 @@ class JsonParserImpl {
     a->worldSize = getWorldSize();
     rootInternal->commInfo = a;
 
-    rootInternal->intro = getTemplate("", "", "Introduction");
-    rootInternal->concl = getTemplate("", "", "Conclusion");
+    rootInternal->spec.reset(new VnVSpec(mainJson["spec"]));
     rootInternal->infoNode = genInfoNode(mainJson["info"], rootInternal);
 
     rootInternal->children = mks<ArrayNode>("children", rootInternal);
@@ -375,18 +407,17 @@ class JsonParserImpl {
         rootInternal->children->add(nodeDispatcher(it, rootInternal->children));
       }
     }
-
     return rootInternal;
   }
 };
 
 }  // namespace
 
-IRootNode* parse(std::string filename, long& idCounter) {
+std::shared_ptr<IRootNode> parse(std::string filename, long& idCounter) {
   std::ifstream ifs(filename);
   json j = json::parse(ifs);
   JsonParserImpl impl(j, idCounter);
-  return new SharedRootNodeWrapper(impl.genRootNode());
+  return impl.genRootNode();
 }
 
 }  // namespace Json

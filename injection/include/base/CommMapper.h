@@ -130,6 +130,15 @@ public:
    // for communicators with the same processors in them.
    void logComm(Communication::ICommunicator_ptr comm);
    
+   json getCommWorldMap(Communication::ICommunicator_ptr comm, int root=0) {
+      std::vector<int> res( comm->Rank()==root ? comm->Size() : 0);
+      int rank = comm->Rank();
+      comm->Gather(&rank,1,res.data(),sizeof(int),root);
+      json nJson = res; 
+      return nJson;
+   }
+
+
    long getNextId(Communication::ICommunicator_ptr comm, long myVal);
    
    std::set<CommWrap_ptr> gatherCommInformation(ICommunicator_ptr worldComm);

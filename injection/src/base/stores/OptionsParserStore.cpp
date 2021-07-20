@@ -18,6 +18,7 @@ void OptionsParserStore::add(std::string name, json& schema,
   std::pair<options_callback_ptr*, options_cpp_callback_ptr*> x = {v, nullptr};
   factory[name] = {schema, x};
 }
+
 void OptionsParserStore::add(std::string name, json& schema,
                              options_cpp_callback_ptr* v) {
   std::pair<options_callback_ptr*, options_cpp_callback_ptr*> x = {nullptr, v};

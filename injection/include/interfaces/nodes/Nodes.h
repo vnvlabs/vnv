@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <set>
 
 #include "base/exceptions.h"
 #include "json-schema.hpp"
@@ -20,6 +21,7 @@ namespace Nodes {
 class MetaDataWrapper {
  public:
   std::map<std::string, std::string> m;
+  
   std::string get(std::string key) {
     auto it = m.find(key);
     if (it != m.end()) {
@@ -41,7 +43,7 @@ class MetaDataWrapper {
 
 
 #define DTYPES X(Bool,bool) X(Integer,int) X(Float,float) X(Double,double) X(String,std::string) X(Json, std::string) X(Long,long) X(Shape,std::shared_ptr<DataBase>)
-#define STYPES X(Array) X(Map) X(Log) X(InjectionPoint) X(Info) X(CommInfo) X(Test) X(UnitTest) X(Data)
+#define STYPES X(Array) X(Map) X(Log) X(InjectionPoint) X(Info) X(CommInfo) X(Test) X(UnitTest) X(Data) X(UnitTestResult) X(UnitTestResults)
 #define RTYPES X(Root)
 
 #define X(x,y) class I##x##Node;
@@ -68,36 +70,31 @@ class DataBase {
     Root
   };
   bool open = false;
-
   long id;
   std::vector<std::shared_ptr<DataBase>> parent;
-
   MetaDataWrapper metaData;
-  MetaDataWrapper& getMetaData() { return metaData; }
-
-  std::string
-      name;  // name can be assigned, default is to use id (which is unique).
+  std::string name;  // name can be assigned, default is to use id (which is unique).
   DataType dataType;
-  bool check(DataType type);
+  
   DataBase(DataType type);
-
-  DataType getType();
-
-#define X(x,y) I##x##Node* getAs##x##Node();
+  virtual ~DataBase();
+  
+#define  X(x,y) virtual I##x##Node* getAs##x##Node();
   DTYPES
 #undef X
-#define X(x) I##x##Node* getAs##x##Node();
+#define X(x) virtual I##x##Node* getAs##x##Node();
   STYPES
   RTYPES
 #undef X
 
-  long getId();
-  std::string getName();
-
-  virtual ~DataBase();
-  std::string getTypeStr();
-
-  std::vector<DataBase*> getParents() {
+  virtual long getId();
+  virtual std::string getName();
+  virtual std::string getTypeStr();
+  virtual MetaDataWrapper& getMetaData() { return metaData; }
+  virtual bool check(DataType type);
+  virtual DataType getType();
+  
+  virtual std::vector<DataBase*> getParents() {
     std::vector<DataBase*> db(parent.size());
     for (auto it : parent) {
       db.push_back(it.get());
@@ -110,7 +107,9 @@ class DataBase {
     oss << "Node: " << id << "Name: " << name << "DataType: " << getTypeStr();
     return oss.str();
   }
+
 };
+
 
 class DataBaseWithChildren {
  public:
@@ -122,8 +121,10 @@ class DataBaseWithChildren {
    public:                                                         \
     I##X##Node();                                                  \
     virtual const std::vector<std::size_t>& getShape() = 0;               \
-    virtual x getValue(const std::vector<std::size_t>& shape) = 0; \
-    virtual x getValue(const std::size_t ind) = 0;           \
+    virtual x getValueByShape(const std::vector<std::size_t>& shape) = 0; \
+    virtual x getValueByIndex(const std::size_t ind) = 0;           \
+    virtual x getScalarValue() = 0;           \
+    virtual int getNumElements() = 0;\
     virtual ~I##X##Node();                                         \
     virtual std::string getShapeJson() { \
        nlohmann::json j = this->getShape(); \
@@ -187,13 +188,27 @@ class IInfoNode : public DataBase {
   virtual ~IInfoNode();
 };
 
+
+class CommMap {
+   std::map<long, std::set<int> > procs;
+public:  
+ 
+ void add(long id, std::set<int> & comms) {
+    procs[id] = comms;
+ }
+
+};
+
+
 class ICommInfoNode : public DataBase {
  public:
    ICommInfoNode();
    virtual int getWorldSize() = 0;
-   virtual std::string getCommMap() = 0;
+   virtual const CommMap& getCommMap() = 0;
    virtual ~ICommInfoNode();
 };
+
+
 
 class ITestNode : public DataBase, public DataBaseWithChildren {
  public:
@@ -205,15 +220,18 @@ class ITestNode : public DataBase, public DataBaseWithChildren {
   virtual ~ITestNode();
 };
 
-class IInjectionPointNode : public DataBase, public DataBaseWithChildren {
+class IInjectionPointNode : public DataBase {
  public:
   IInjectionPointNode();
+  virtual long getStartIndex() = 0;
+  virtual long getEndIndex() = 0;
+  virtual std::string getComm() = 0;
+  virtual double getTime() = 0;
   virtual std::string getPackage() = 0;
   virtual IArrayNode* getTests() = 0;
-  virtual IArrayNode* getChildren() = 0;
   virtual std::string getValue() = 0;
   virtual ITestNode* getData() = 0;
-  virtual std::string getComm() = 0;
+
   virtual ~IInjectionPointNode();
 };
 
@@ -226,7 +244,26 @@ class ILogNode : public DataBase {
   virtual std::string getValue() = 0;
   virtual std::string getStage() = 0;
   virtual std::string getComm() = 0;
+  virtual double getTime() = 0;
   virtual ~ILogNode();
+};
+
+class IUnitTestResultNode : public DataBase {
+public:
+  IUnitTestResultNode();
+  virtual std::string getTemplate() = 0;
+  virtual std::string getDescription() = 0;
+  virtual bool getResult() = 0;
+  virtual ~IUnitTestResultNode();
+};
+
+class IUnitTestResultsNode : public DataBase {
+public:
+  IUnitTestResultsNode();
+  virtual IUnitTestResultNode* get(std::string key) = 0;
+  virtual bool contains(std::string key) = 0;
+  virtual std::vector<std::string> fetchkeys() = 0;
+  virtual ~IUnitTestResultsNode(); 
 };
 
 class IUnitTestNode : public DataBase, public DataBaseWithChildren {
@@ -234,11 +271,43 @@ class IUnitTestNode : public DataBase, public DataBaseWithChildren {
   IUnitTestNode();
   virtual std::string getPackage() = 0;
   virtual IArrayNode* getChildren() = 0;
-  virtual IMapNode* getResults() = 0;
+  virtual IUnitTestResultsNode* getResults() = 0;
   virtual std::string getValue() = 0;
   virtual std::string getTestTemplate(std::string name) = 0;
   virtual ~IUnitTestNode();
 };
+
+class VnVSpec {
+  nlohmann::json spec;
+
+  std::string getter(std::string r, std::string key) const {
+     return spec[r][key]["docs"].get<std::string>();
+   } 
+   
+   public:
+   VnVSpec(const nlohmann::json &j) : spec(j) {}
+
+   std::string intro() { return spec["Introduction"]["docs"].get<std::string>();}
+   std::string conclusion() { return spec["Conclusion"]["docs"].get<std::string>();}
+   
+   
+   std::string injectionPoint(std::string package, std::string name) const {
+     return getter("InjectionPoints", package + ":" + name);
+   }
+
+   std::string dataType(std::string key) const {
+     return getter("DataTypes", key);
+   }
+   std::string test(std::string package, std::string name) const {
+     return getter("Tests", package + ":" + name);
+   }
+
+   nlohmann::json unitTest(std::string package, std::string name) const {
+     return spec["UnitTests"][package + ":" + name];
+   }
+
+};
+
 
 
 class IRootNode : public DataBase, public DataBaseWithChildren {
@@ -249,13 +318,11 @@ class IRootNode : public DataBase, public DataBaseWithChildren {
   virtual IInfoNode* getInfoNode() = 0;
   virtual ICommInfoNode* getCommInfoNode() = 0;
 
-  virtual std::string getIntro() = 0;
-  virtual std::string getConclusion() = 0;
-  virtual int getWorldSize() = 0;
-  virtual std::string getCommMap() = 0;
   virtual DataBase* findById(long id) = 0;
 
   virtual bool hasId(long id) { return findById(id) != NULL; }
+
+  virtual const VnVSpec& getVnVSpec() = 0;
 
   virtual ~IRootNode();
 };

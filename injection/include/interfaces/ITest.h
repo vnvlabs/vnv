@@ -204,6 +204,10 @@ void defaultCallBack(VnV_Comm comm, std::map<std::string, VnVParameter>& ntv,
  */
 class ITest {
  public:
+  
+  static long uid;
+  long uuid; 
+  
   /**
    * @brief ITest
    */

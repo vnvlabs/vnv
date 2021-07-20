@@ -44,6 +44,8 @@ json getLibInfo(std::string filepath, unsigned long add) {
   return libJson;
 }
 
+
+
 char* getCurrentDirectory() { return get_current_dir_name(); }
 
 std::string getAbsolutePath(std::string filename) {
@@ -155,6 +157,12 @@ void callAllLibraryRegistrationFunctions(
   }
   dl_iterate_phdr(load_callback, &linked);
 }
+
+std::string getEnvironmentVariable(std::string name) {
+    std::string s = std::getenv(name.c_str());
+    return s;
+}
+
 
 }  // namespace DistUtils
 }  // namespace VnV

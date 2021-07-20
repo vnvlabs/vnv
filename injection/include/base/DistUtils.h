@@ -59,6 +59,10 @@ void callAllLibraryRegistrationFunctions(
  */
 bool makedir(std::string filename, mode_t mode );
 
+
+std::string getEnvironmentVariable(std::string val);
+
+
 /**
  * Make the nested directories with the given mode.
  * @param filename

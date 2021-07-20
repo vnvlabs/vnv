@@ -10,9 +10,8 @@ swig_add_library(
 
 # Add the python include directories and link the library. For some reason, we
 # don't need to link the library on linux, but we do need to link it on mac.
-target_include_directories(VnVReader PRIVATE ../injection/include
-                                             ${PYTHON_INCLUDE_DIRS})
-target_link_libraries(VnVReader PRIVATE ${PYTHON_LIBRARIES})
+#target_include_directories(VnVReader PRIVATE ../injection/include)
+target_link_libraries(VnVReader PRIVATE Python3::Python)
 target_compile_definitions(VnVReader PRIVATE -DVNV_IGNORE=0)
 set_property(TARGET VnVReader PROPERTY SWIG_USE_TARGET_INCLUDE_DIRECTORIES ON)
 target_link_libraries(VnVReader PRIVATE Injection::Injection)

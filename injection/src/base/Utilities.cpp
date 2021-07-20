@@ -417,3 +417,19 @@ std::size_t VnV::HashUtils::vectorHash(std::vector<int> const& vec) {
   }
   return seed;
 }
+
+json VnV::JsonUtilities::load(std::string configFile) {
+  std::ifstream fstream(configFile);
+  json mainJson;
+  if (!fstream.good()) {
+    throw Exceptions::fileReadError(configFile);
+  }
+
+  try {
+    mainJson = json::parse(fstream);
+  } catch (json::parse_error e) {
+    throw Exceptions::parseError(fstream, e.byte, e.what());
+  }
+  return mainJson;
+}
+

@@ -95,7 +95,7 @@ void InjectionPointBase::setComm(ICommunicator_ptr comm) { this->comm = comm; }
 void InjectionPointBase::runTestsInternal(OutputEngineManager *wrapper) {
 
     if (callbackType > 0) {
-      wrapper->testStartedCallBack( package, "__internal__", true);
+      wrapper->testStartedCallBack( package, "__internal__", true, -1);
       if (callbackType == 1) {
         IOutputEngineWrapper engineWraper = {
             static_cast<void*>(wrapper->getOutputEngine())};

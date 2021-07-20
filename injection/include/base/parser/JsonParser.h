@@ -69,7 +69,7 @@ struct ActionConfig {
   json config;
   std::string name;
   std::string package;
-  bool run;
+  std::string run = "";
 };
 
 struct ActionInfo {
@@ -97,6 +97,10 @@ struct RunInfo {
   OffloadInfo offloadInfo;
 
   ActionInfo actionInfo;
+
+  json template_overrides = json::object();
+
+  bool hotpatch = false;
 
   bool error; /**< Was there an error when parsing */
   std::string
@@ -168,7 +172,7 @@ class JsonParser {
   EngineInfo getEngineInfo(const json& engineJson);
 
 
-  ActionInfo getActionInfo(const json& actionJson);
+  ActionInfo getActionInfo(const json& actionJson, std::string type);
 
   /**
    * @brief getUnitTestInfo

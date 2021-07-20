@@ -8,6 +8,8 @@
 
 #include "interfaces/ICommunicator.h"
 #include "base/parser/JsonSchema.h"
+#include "base/ActionType.h"
+#include "interfaces/argType.h"
 namespace VnV {
 
 class IAction {
@@ -30,7 +32,7 @@ class IAction {
   /**
    * @brief run the action
    */
-  virtual void run() = 0;
+  virtual void run(ActionType type) = 0;
 
   bool setConfig(const json& conf) { 
     bool r = VnV::validateSchema(conf, schema, false);
@@ -58,7 +60,7 @@ template <typename Runner> class Actioner_T : public IAction {
 }  // namespace VnV
 
 
-#define INJECTION_Action_R(PNAME, name, Runner, Schema)              \
+#define INJECTION_ACTION_R(PNAME, name, Runner, Schema)              \
   namespace VnV {                                                     \
   namespace PNAME {                                                   \
   namespace Actions {                                               \
@@ -67,7 +69,7 @@ template <typename Runner> class Actioner_T : public IAction {
     name() : VnV::Actioner_T<VnV_Arg_Type(Runner)>(Schema) {             \
                                                                     \
     }                                                                \
-    virtual void run() override;                                      \
+    virtual void run(ActionType type) override;                       \
   };                                                                  \
   IAction* declare_##name() { return new name(); }                  \
   void register_##name() {                                            \
@@ -76,7 +78,7 @@ template <typename Runner> class Actioner_T : public IAction {
   }                                                                   \
   }                                                                   \
   }                                                                   \
-  void VnV::PNAME::Actions::name::run()
+  void VnV::PNAME::Actions::name::run(ActionType type)
 
 #define INJECTION_ACTION(PNAME, name) \
   INJECTION_ACTION_R(PNAME, name, int, "{\"type\": \"object\"}")
@@ -98,7 +100,7 @@ template <typename Runner> class Actioner_T : public IAction {
   }                                                           \
   }
 
-#define DECLAREAction(PNAME, name) \
+#define DECLAREACTION(PNAME, name) \
   namespace VnV {                    \
   namespace PNAME {                  \
   namespace Actions {              \

@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <string>
 
 #include "c-interfaces/PackageName.h"
 #include "interfaces/nodes/Nodes.h"
@@ -50,8 +51,10 @@ class ArrayNode : public IArrayNode {
     std::vector<y> value;                                               \
     const std::vector<std::size_t>& getShape() override;                \
     x##Node();                                                          \
-    y getValue(const std::vector<std::size_t>& rshape) override; \
-    y getValue(const size_t ind) override;                       \
+    y getValueByShape(const std::vector<std::size_t>& rshape) override; \
+    y getValueByIndex(const size_t ind) override;                       \
+    y getScalarValue() override;                                        \
+    int getNumElements() override;                                      \
     virtual ~x##Node();                                                 \
   };
 DTYPES
@@ -70,19 +73,23 @@ class InfoNode : public IInfoNode {
 class CommInfoNode : public ICommInfoNode {
  public:
   CommInfoNode();
-  nlohmann::json commMap;
+  CommMap commMap;
   int worldSize;
 
   virtual int getWorldSize() override;
-  virtual std::string getCommMap() override;
+  virtual const CommMap& getCommMap() override;
   virtual ~CommInfoNode(){};
 };
 
 class TestNode : public ITestNode {
  public:
+
+  long uid;
+
   std::string package, templ;
   std::shared_ptr<ArrayNode> data;
   std::shared_ptr<ArrayNode> children;
+  bool result;
   TestNode();
   virtual std::string getPackage() override;
   virtual IArrayNode* getData() override;
@@ -98,8 +105,12 @@ class InjectionPointNode : public IInjectionPointNode {
   std::string package;
   std::string templ;
 
-  std::pair<int,int> identity;
+  long startIndex = -1;
+  long endIndex = -1;
   long long commId;
+  double time;
+
+  bool isIter = false; //internal property to help with parsing. 
 
   InjectionPointNode();
   virtual std::string getPackage() override;
@@ -107,14 +118,16 @@ class InjectionPointNode : public IInjectionPointNode {
   virtual ITestNode* getData() override { return internal.get(); }
   virtual std::string getComm() override { return std::to_string(commId); }
   virtual std::string getValue() override { return templ; }
-  virtual IArrayNode* getChildren() override;
+  virtual long getStartIndex() override { return startIndex; }
+  virtual long getEndIndex() override { return endIndex; }
+  virtual double getTime() override { return time;};
 };
 
 class LogNode : public ILogNode {
  public:
   static std::string def;
   std::string package, level, stage, message, templ, comm;
-
+  double time;
   int identity;
 
   LogNode();
@@ -133,6 +146,7 @@ class LogNode : public ILogNode {
     }
     return ".. note::\n    " + def;
   }
+  virtual double getTime() { return time;};
 
   virtual std::string getStage() override;
 };
@@ -150,11 +164,46 @@ class DataNode : public IDataNode {
   virtual std::string getValue() override { return templ; }
 };
 
+class UnitTestResultNode : public IUnitTestResultNode {
+public:
+   std::string desc;
+   std::string templ;
+   bool result;
+   
+   virtual std::string getDescription() override { return desc;}
+   virtual bool getResult() override { return result;}
+   virtual std::string getTemplate() override { return templ;}    
+};
+
+
+class UnitTestResultsNode : public IUnitTestResultsNode {
+  public:
+   std::map<std::string, std::shared_ptr<UnitTestResultNode>> m;
+   virtual IUnitTestResultNode* get(std::string key) {
+     if (m.find(key) != m.end() ) {
+       return m[key].get();
+     }
+     throw VnVExceptionBase("Key error");
+   };
+  
+  virtual bool contains(std::string key) {
+    return m.find(key) != m.end();
+  }
+
+  virtual std::vector<std::string> fetchkeys() {
+    std::vector<std::string>s;
+    for (auto &it : m) { s.push_back(it.first);} 
+    return s;
+  };
+  
+  virtual ~UnitTestResultsNode() {}; 
+};
+
 class UnitTestNode : public IUnitTestNode {
  public:
   std::string package, templ;
   std::shared_ptr<ArrayNode> children;
-  std::shared_ptr<MapNode> resultsMap;
+  std::shared_ptr<UnitTestResultsNode> resultsMap;
   std::map<std::string, std::string> testTemplate;
 
   UnitTestNode();
@@ -166,22 +215,25 @@ class UnitTestNode : public IUnitTestNode {
     return (it == testTemplate.end()) ? "" : it->second;
   }
 
-  virtual IMapNode* getResults() override;
+  virtual IUnitTestResultsNode* getResults() override;
 };
+
+
 
 class RootNode : public IRootNode {
  public:
-  std::string intro, concl;
+
+  RootNode();
+
   std::map<long, std::shared_ptr<DataBase>> idMap;
   long lowerId, upperId;
+
+  std::shared_ptr<VnVSpec> spec;
 
   std::shared_ptr<ArrayNode> children;
   std::shared_ptr<ArrayNode> unitTests;
   std::shared_ptr<InfoNode> infoNode;
-  std::shared_ptr<ICommInfoNode> commInfo;
-
-  virtual std::string getCommMap() override { return commInfo->getCommMap(); }
-  virtual int getWorldSize() override { return commInfo->getWorldSize(); }
+  std::shared_ptr<CommInfoNode> commInfo;
 
   virtual IArrayNode* getChildren() override;
   virtual IArrayNode* getUnitTests() override;
@@ -192,35 +244,12 @@ class RootNode : public IRootNode {
 
   void add(std::shared_ptr<DataBase> ptr) { idMap[ptr->getId()] = ptr; }
 
-  virtual std::string getConclusion() override { return concl; }
-
-  virtual std::string getIntro() override { return intro; }
-};
-
-
-class SharedRootNodeWrapper : public IRootNode {
-
-  std::shared_ptr<RootNode> root;
- public:
-
-  SharedRootNodeWrapper(std::shared_ptr<RootNode> wrapper ) : root(wrapper){
+  virtual const VnVSpec& getVnVSpec() {
+    return *spec;
   }
 
-  virtual std::string getCommMap() override { return root->getCommMap(); }
-  virtual int getWorldSize() override { return root->getWorldSize(); }
-
-  virtual IArrayNode* getChildren() override {return root->getChildren();}
-  virtual IArrayNode* getUnitTests() override {return root->getUnitTests();}
-  virtual IInfoNode* getInfoNode() override {return root->getInfoNode();}
-  virtual ICommInfoNode* getCommInfoNode() override {return root->getCommInfoNode();}
-
-  virtual DataBase* findById(long id) override {return root->findById(id);}
-
-  virtual std::string getConclusion() override { return root->getConclusion(); }
-
-  virtual std::string getIntro() override { return root->getIntro(); }
-
 };
+
 
 
 }  // namespace Nodes

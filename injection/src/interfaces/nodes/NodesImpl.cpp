@@ -10,31 +10,39 @@ namespace Nodes {
   x##Node::x##Node() : I##x##Node() {}                           \
   x##Node::~x##Node(){};                                         \
   const std::vector<std::size_t>& x##Node::getShape() { return shape; } \
-  y x##Node::getValue(const std::vector<std::size_t>& rshape) {  \
+  y x##Node::getValueByShape(const std::vector<std::size_t>& rshape) {  \
     if (shape.size() == 0) {                                     \
       return value[0];                                           \
     }                                                            \
+    if (rshape.size() != shape.size())                           \
+     throw VnVExceptionBase("Invalid Shape");                    \
     int index = 0;                                               \
     for (int i = 0; i < shape.size(); i++) {                     \
       index += rshape[i] * shape[i];                             \
     }                                                            \
-    return getValue(index);                                      \
+    return getValueByIndex(index);                                      \
   }                                                              \
-  y x##Node::getValue(const std::size_t ind) {            \
+  y x##Node::getValueByIndex(const std::size_t ind) {                   \
     return value[ind];                                           \
-  }
+  }\
+  y x##Node::getScalarValue() {\
+    if (shape.size()==0) return value[0];\
+    else throw VnVExceptionBase("No shape provided to non scalar shape tensor object");\
+  }\
+  int x##Node::getNumElements() { return value.size();}
+  
 DTYPES
 #undef X
 
-TestNode::TestNode() : ITestNode() {}
+TestNode::TestNode() : ITestNode(), children(new ArrayNode()), data(new ArrayNode()) {}
 std::string TestNode::getPackage() { return package; }
 IArrayNode* TestNode::getData() { return data.get(); }
 IArrayNode* TestNode::getChildren() { return children.get(); }
 
-UnitTestNode::UnitTestNode() : IUnitTestNode() {}
+UnitTestNode::UnitTestNode() : IUnitTestNode(), children(new ArrayNode()), resultsMap(new UnitTestResultsNode()) {}
 std::string UnitTestNode::getPackage() { return package; }
 IArrayNode* UnitTestNode::getChildren() { return children.get(); }
-IMapNode* UnitTestNode::getResults() { return resultsMap.get(); }
+IUnitTestResultsNode* UnitTestNode::getResults() { return resultsMap.get(); }
 
 IArrayNode* RootNode::getChildren() { return children.get(); }
 IArrayNode* RootNode::getUnitTests() { return unitTests.get(); }
@@ -49,6 +57,8 @@ DataBase* RootNode::findById(long id) {
   else
     return nullptr;
 }
+
+RootNode:: RootNode() : IRootNode() , children(new ArrayNode()), unitTests(new ArrayNode()) {}
 
 ArrayNode::ArrayNode() : IArrayNode() {}
 std::size_t ArrayNode::size() { return value.size(); }
@@ -68,10 +78,9 @@ std::string LogNode::getStage() { return stage; }
 std::string LogNode::def =
     R"(:vnv:`$.package` : :vnv:`$.stage`: :vnv:`$.message`)";
 
-InjectionPointNode::InjectionPointNode() : IInjectionPointNode() {}
+InjectionPointNode::InjectionPointNode() : IInjectionPointNode(), tests(new ArrayNode()), children(new ArrayNode()) {}
 std::string InjectionPointNode::getPackage() { return package; }
 IArrayNode* InjectionPointNode::getTests() { return tests.get(); }
-IArrayNode* InjectionPointNode::getChildren() { return children.get(); }
 
 InfoNode::InfoNode() : IInfoNode() {}
 std::string InfoNode::getTitle() { return title; }
@@ -80,7 +89,7 @@ long InfoNode::getDate() { return date; }
 
 CommInfoNode::CommInfoNode() : ICommInfoNode() {}
 int CommInfoNode::getWorldSize() {return worldSize;};
-std::string CommInfoNode::getCommMap() { return commMap.dump(); }
+const CommMap& CommInfoNode::getCommMap() { return commMap; }
 
 
 std::vector<std::string> MapNode::fetchkeys() {
@@ -106,7 +115,7 @@ IMapNode* MapNode::add(std::string key, std::shared_ptr<DataBase> v) {
   return this;
 }
 
-DataNode::DataNode() : IDataNode() {}
+DataNode::DataNode() : IDataNode(), children(new MapNode()) {}
 long long DataNode::getDataTypeKey() { return key; }
 IMapNode* DataNode::getChildren() { return children.get(); }
 

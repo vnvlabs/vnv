@@ -30,7 +30,10 @@ const json& getVVSchema() {
     "unit-testing" : {
        "$ref" : "#/definitions/unit-testing"
     },
-    "actions" : {
+    "configure-actions" : {
+       "$ref" : "#/definitions/actions"
+    },
+    "finalize-actions" : {
        "$ref" : "#/definitions/actions"
     },
     "additionalPlugins": {
@@ -42,6 +45,9 @@ const json& getVVSchema() {
     "runScopes": {
       "$ref": "#/definitions/runScopes"
     },
+    "hot-patch" : {
+      "type" : "bool"
+    },
     "injectionPoints": {
       "$ref": "#/definitions/injectionPoints"
     },
@@ -52,6 +58,9 @@ const json& getVVSchema() {
       "$ref": "#/definitions/plugs"
     },
     "options" : {
+      "type" : "object"
+    },
+    "template-overrides" : {
       "type" : "object"
     }
   },
@@ -81,26 +90,9 @@ const json& getVVSchema() {
       "additionalProperties": false
     },
     "runScopes": {
-      "description": "",
+      "description": "List of scopes to run. Empty indicates all scopes should run. Type an invalid runscope to turn of all e.g. none ",
       "type": "array",
-      "items": {
-        "type": "object",
-        "description": " A single run Scope",
-        "properties": {
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "run": {
-            "type": "boolean",
-            "default": true
-          }
-        },
-        "required": [
-          "name",
-          "run"
-        ]
-      }
+      "items" : {"type" : "string" } 
     },
     "unit-testing" : {
        "type" : "object",
@@ -124,22 +116,7 @@ const json& getVVSchema() {
     },
     "actions" : {
       "type" : "object",
-      "properties" : {
-         "run" : {"type" : "boolean" },
-         "config" : { "$ref" : "#/definitions/actionConfig" }
-      }
-    },
-    "actionConfig" : {
-       "type" : "array",
-       "items" : {
-          "type" : "object",
-          "properties" : {
-              "package" : { "type" : "string" },
-              "action" : {"type" : "string" },
-              "config" : {"type" : "object" },
-              "run" : {"type" : "boolean" }
-          }
-       }
+      "additionalProperties" : {"type" : "object"  }
     },
     "offload": {
        "type":"object",
@@ -171,6 +148,12 @@ const json& getVVSchema() {
          "$ref": "#/definitions/injectionPoint"
        }
     },
+    "runScope" : {
+      "type": "array",
+          "items": {
+            "type": "string"
+          }
+    },
     "injectionPoint": {
       "description": "An injection Point defined somewhere in the code",
       "type": "object",
@@ -185,10 +168,7 @@ const json& getVVSchema() {
            "type" : "boolean"
         },
         "runScope": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+          "$ref" : "#/definitions/runScope"
         },
         "tests": {
           "type": "array",
@@ -201,7 +181,7 @@ const json& getVVSchema() {
         "name","package"
       ]
     },
-       "iterators": {
+    "iterators": {
       "description": "Injection Iteration Points",
       "type": "array",
       "items" : {
@@ -449,12 +429,13 @@ json getTestDelcarationJsonSchema() {
   return __test_declaration_schema__;
 }
 
+
+
 json getTestValidationSchema(std::map<std::string, std::string>& params,
                              json& optsschema) {
   json schema = R"(
     {
        "$schema": "http://json-schema.org/draft-07/schema#",
-       "$id": "http://rnet-tech.net/vv.schema.json",
        "type": "object"
     })"_json;
 
@@ -464,8 +445,7 @@ json getTestValidationSchema(std::map<std::string, std::string>& params,
   json properties = R"({})"_json;
   properties["configuration"] = optsschema;
 
-  json parameters =
-      R"({"type":"object" ,"properties" : {}, "additionalProperties" : false})"_json;
+  json parameters = R"({"type":"object" ,"properties" : {}, "additionalProperties" : false})"_json;
   parameters["required"] = json::array();
   for (auto it : params) {
     parameters["properties"][it.first] = R"({"type":"string"})"_json;
@@ -482,6 +462,8 @@ json getTestValidationSchema(std::map<std::string, std::string>& params,
   return schema;
 }
 
+
+
 bool validateSchema(const json& config, const json& schema, bool throwOnInvalid) {
   json_validator validator;
   validator.set_root_schema(schema);
@@ -496,6 +478,7 @@ bool validateSchema(const json& config, const json& schema, bool throwOnInvalid)
       }
   }
 }
+
 
 
 }  // namespace VnV

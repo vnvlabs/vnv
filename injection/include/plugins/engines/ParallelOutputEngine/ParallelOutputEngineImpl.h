@@ -133,7 +133,7 @@ class ParallelEngine : public OutputEngineManager {
    * @param testStageVal
    */
   void testStartedCallBack(std::string packageName,
-                           std::string testName, bool internal) override;
+                           std::string testName, bool internal, long uid) override;
 
   /**
    * @brief stopTest
@@ -151,7 +151,7 @@ class ParallelEngine : public OutputEngineManager {
    * @brief getOutputEngine
    * @return
    */
-  Nodes::IRootNode* readFromFile(std::string file, long& idCOunter) override {
+  std::shared_ptr<Nodes::IRootNode> readFromFile(std::string file, long& idCOunter) override {
     throw VnV::VnVExceptionBase(
         "Read From File Not implemented for Parallel Output Engine");
   }

@@ -43,37 +43,37 @@ IAction* ActionStore::getAction(std::string packageName,
 void ActionStore::runAction(Communication::ICommunicator_ptr comm,
                             std::string packageName, std::string name,
                             const json& config,
-                            IAction* action) {
+                            IAction* action, ActionType& type) {
   
   
   action->setComm(comm);
   if (action->setConfig(config)) {
-    action->run();
+    action->run(type);
   } else {
     VnV_Warn(VNVPACKAGENAME, "Invalid configuration for action %s:%s", packageName.c_str(), name.c_str());
   }
 }
 
 void ActionStore::runAction(Communication::ICommunicator_ptr comm,
-                            std::string packageName, std::string name, const json& config) {
+                            std::string packageName, std::string name, const json& config, ActionType& type) {
   auto it = action_factory.find(packageName);
   if (it != action_factory.end()) {
     auto itt = it->second.find(name);
     if (itt != it->second.end()) {
-      runAction(comm, packageName, name, config, itt->second());
+      runAction(comm, packageName, name, config, itt->second(),type);
     }
   }
 }
 
-void ActionStore::runAll(VnV_Comm comm, VnV::ActionInfo info) {
+void ActionStore::runAll(VnV_Comm comm, VnV::ActionInfo info, ActionType& type) {
   if (!info.run) {
     return;
   }
 
   auto c = CommunicationStore::instance().getCommunicator(comm);
   for (auto & it : info.actions) {
-    if (it.run) {
-       runAction(c,it.package, it.name, it.config);
+    if ( type.equals(it.run) ) {
+       runAction(c,it.package, it.name, it.config,type);
     }
   }
 

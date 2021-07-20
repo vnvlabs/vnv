@@ -1,12 +1,8 @@
 ﻿{
   "runTests": true,
-  "runScopes": [
-    {
-      "name": "all",
-      "run": true
-    }
-  ],
+  "reporting" : {},
   "logging": {
+
     "on" : true,
     "filename" : "stdout",
     "logs" : {}
@@ -17,7 +13,7 @@
   "outputEngine": {
     "type": "json",
     "config": {
-       "outputFile" : "vv-output.json"	    
+       "outputFile" : "vv-output.json"
     }
   },
   "injectionPoints": [

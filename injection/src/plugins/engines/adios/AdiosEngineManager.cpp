@@ -103,44 +103,13 @@ std::string AdiosEngineManager::getFileName(std::string root, std::vector<std::s
 }
 
 std::string AdiosEngineManager::getFileName(const std::vector<std::string>& fname, bool mkdir) {
-  getFileName(outfile,fname, mkdir );
+  return getFileName(outfile,fname, mkdir );
 }
 
 void AdiosEngineManager::finalize(ICommunicator_ptr worldComm) {
   setComm(worldComm);
 
-  // Get the comm map information and write it to file.
-  /** Adios now writes the comm data to file and lets the reader figure out
-   * the map. This allows support for streaming.
 
-     YOU CAN REMOVE ALL THIS CODE IF YOU SEE IT.
-
-  auto comms = commMapper.gatherCommInformation(worldComm);
-  if (worldComm->Rank() == getRoot()) {
-
-    if (comms.size() > 1) {
-      throw VnVExceptionBase("To many root communicators");
-    } else if (comms.size() == 1) {
-
-      // Write the comm information to json/
-      json jcomm = json::object();
-      std::set<long> done1;
-      for (const auto& it : comms) {
-        it->toJson1(jcomm, done1);
-      }
-
-      json comMap = json::object();
-      comMap["worldSize"] = worldComm->Size();
-      comMap["map"] = jcomm;
-
-      curr->writeCommMap(comMap);
-    }
-  } else {
-    curr->writeCommMap(json::object());
-  }
-  */
-
-   // Finalize all the engines.
   for (auto it : routes) {
     it.second->finalize();
   }
@@ -213,6 +182,8 @@ std::string AdiosEngineManager::getFileName(long long commId, bool mkdir) {
   } else {
     curr = it->second;
   }
+
+    
 }
 
 long AdiosEngineManager::getNextId(const ICommunicator_ptr& comm) {
@@ -241,8 +212,8 @@ void AdiosEngineManager::injectionPointStartedCallBack(ICommunicator_ptr comm,
 
 void AdiosEngineManager::testStartedCallBack(std::string packageName,
                                              std::string testName,
-                                             bool internal) {
-  curr->testStartedCallBack(packageName, testName, internal);
+                                             bool internal, long uid) {
+  curr->testStartedCallBack(packageName, testName, internal, uid);
 }
 
 void AdiosEngineManager::testFinishedCallBack(bool result_) {

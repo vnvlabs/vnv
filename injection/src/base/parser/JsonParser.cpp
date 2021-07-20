@@ -167,18 +167,17 @@ UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json& unitTestJson) {
 }
 
 
-ActionInfo JsonParser::getActionInfo(const nlohmann::json& actionJson) {
+ActionInfo JsonParser::getActionInfo(const nlohmann::json& actionJson, std::string type) {
   ActionInfo info;
-  info.run = actionJson.contains("run") ?  actionJson["run"].get<bool>() : true ;
-  if (actionJson.contains("config")) {
-      for (auto it : actionJson["config"].items()) {
+  info.run = true;
+  for (auto it : actionJson.items()) {
          ActionConfig config;
-         config.name = it.value()["name"].get<std::string>();
-         config.package = it.value()["package"].get<std::string>();
-         config.run = it.value().contains("run") ? it.value()["run"].get<bool>() : true;
-         config.config = it.value().contains("config") ? it.value()["config"] :  json::object();
+         size_t colon_pos = it.key().find(':');
+         config.package = it.key().substr(0,colon_pos);
+         config.name = it.key().substr(colon_pos+1); 
+         config.config = it.value();
+         config.run = type;
          info.actions.push_back(std::move(config));
-      }  
   }
   return info;
 }
@@ -207,21 +206,12 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
 
   // Get the run Scopes info.
   std::set<std::string> runScopes;
-  if (main.find("runScopes") != main.end()) {
-    int count = 0;
+  if (main.find("runScopes") != main.end()) {  
     for (auto& it : main["runScopes"].items()) {
-      if (it.value()["run"].get<bool>()) {
-        runScopes.insert(it.value()["name"].get<std::string>());
+        runScopes.insert(it.value().get<std::string>());
       }
-      count++;
-    }
-    // Run scopes was defined, all were false
-    if (runScopes.size() == 0 && count > 0) {
-      info.runTests = false;
-      return info;
-    }
   }
-
+  
   // Get the output Engine information.
   if (main.find("outputEngine") != main.end()) {
     info.engineInfo = getEngineInfo(main["outputEngine"]);
@@ -244,11 +234,21 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
         getUnitTestInfo(R"({"runTests" : false , "config" : {} })"_json);
   }
 
-  if (main.contains("actions")) {
-     info.actionInfo = getActionInfo(main["actions"]);
-  } else {
-    info.actionInfo = { false, {}};
-  }
+  info.actionInfo = { false, {}};
+  if (main.contains("configure-actions")) {
+     info.actionInfo.run = true;
+     ActionInfo f  = getActionInfo(main["configure-actions"],"configure");
+     for (auto it : f.actions) {
+       info.actionInfo.actions.push_back(it);
+     }
+  } 
+  if (main.contains("finalize-actions")) {
+     info.actionInfo.run = true;
+     ActionInfo f  = getActionInfo(main["finalize-actions"],"finalize");
+     for (auto it : f.actions) {
+       info.actionInfo.actions.push_back(it);
+     }
+  } 
 
 
   // Get the test libraries infomation.
@@ -270,8 +270,15 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
     addInjectionPoint(main["plugs"], runScopes, info.injectionPoints, InjectionType::PLUG);
   }
 
+  if (main.find("hotpatch") != main.end()) {
+    info.hotpatch = main["hotpatch"].get<bool>();
+  }
 
-
+// Add all the injection points;
+  if (main.find("template-overrides") != main.end()) {
+    info.template_overrides = main["template-overrides"];
+  }
+ 
   return info;
 }
 

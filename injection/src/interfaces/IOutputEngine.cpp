@@ -80,7 +80,10 @@ std::string VariableEnumFactory::toString(VariableEnum e) {
 }
 
 
-void OutputEngineManager::set(ICommunicator_ptr world, json& inputjson) {
+void OutputEngineManager::set(ICommunicator_ptr world, json& inputjson, std::string key) {
+  
+  this->key = key;
+  
   json schema = getConfigurationSchema();
 
   if (!schema.empty()) {

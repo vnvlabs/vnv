@@ -148,7 +148,7 @@ class MPICommunicator : public ICommunicator {
     comm = comm_;
     if (commUniqueId < 0) {
       if (Size() == worldSize) {
-        commUniqueId = worldSize;
+        commUniqueId = worldSize == 1 ? getpid() : worldSize;
       } else if (Size() == 1) {
         commUniqueId = getpid();
       } else {

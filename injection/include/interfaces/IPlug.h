@@ -22,7 +22,7 @@ public:
   };
   virtual bool plug(ICommunicator_ptr comm, IOutputEngine* engine) = 0;
   bool plug_(ICommunicator_ptr comm, OutputEngineManager* engine) {
-       engine->testStartedCallBack(m_config.getPackage(), m_config.getName(), false);
+       engine->testStartedCallBack(m_config.getPackage(), m_config.getName(), false, uuid);
        bool s =plug(comm, engine->getOutputEngine());
        engine->testFinishedCallBack(true );
        return s;

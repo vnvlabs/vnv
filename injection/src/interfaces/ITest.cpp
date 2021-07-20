@@ -104,7 +104,9 @@ bool TestConfig::isRequired(std::string testParameter) const {
   return true;
 }
 
-ITest::ITest(TestConfig& config) : m_config(config) {}
+ITest::ITest(TestConfig& config) : m_config(config) {
+   uuid = uid++;
+}
 
 
 // parameters is a map of injectionpoint name to injection point type.
@@ -163,13 +165,15 @@ TestStatus ITest::_runTest(ICommunicator_ptr comm, OutputEngineManager* engine,
                 m_config.getName().c_str());
 
   engine->testStartedCallBack( m_config.getPackage(), m_config.getName(),
-                              false);
+                              false, uuid);
   TestStatus s = runTest(comm, engine->getOutputEngine(), type, stageId);
   engine->testFinishedCallBack( (s == SUCCESS) ? true : false);
   return s;
 }
 
 ITest::~ITest() {}
+
+long ITest::uid = 0;
 
 void VnV::registerTest(std::string package, std::string name, std::string schema, maker_ptr m,
                        std::map<std::string, std::string> map) {

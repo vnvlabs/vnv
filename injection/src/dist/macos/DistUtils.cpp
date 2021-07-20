@@ -3,7 +3,7 @@
 #include <mach-o/dyld.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
+#include <stdlib.h>
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
@@ -92,6 +92,12 @@ bool searchLibrary(std::string name, std::set<std::string>& packageNames) {
   }
   dlclose(dylib);
   return false;
+}
+
+// Not sure if works on mac -- please fix and commit if not compile. 
+std::string getEnvironmentVariable(std::string name) {
+    std::string s = std::getenv(name.c_str());
+    return s;
 }
 
 bool makedir(std::string filename, mode_t mode ) {

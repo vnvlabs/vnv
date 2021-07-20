@@ -109,7 +109,7 @@ class AdiosEngineImpl {
                                      const std::string& stageId);
 
   void testStartedCallBack(const std::string& packageName, const std::string& testName,
-                           bool internal);
+                           bool internal, long uid);
 
   void testFinishedCallBack(bool result_);
 

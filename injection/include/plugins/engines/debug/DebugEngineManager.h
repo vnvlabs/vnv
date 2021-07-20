@@ -55,7 +55,7 @@ class DebugEngineManager : public OutputEngineManager {
                                      std::string stageVal) override;
 
   void testStartedCallBack( std::string packageName,
-                           std::string testName, bool internal) override;
+                           std::string testName, bool internal, long uid) override;
 
   void testFinishedCallBack( bool result_) override;
 
@@ -65,7 +65,8 @@ class DebugEngineManager : public OutputEngineManager {
 
   void unitTestFinishedCallBack(IUnitTest* tester) override;
 
-  Nodes::IRootNode* readFromFile(std::string file, long&) override;
+  std::shared_ptr<Nodes::IRootNode> readFromFile(std::string file, long&) override;
+
 
   std::string print() override;
 };

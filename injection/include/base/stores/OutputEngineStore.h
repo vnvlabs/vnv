@@ -89,7 +89,7 @@ class OutputEngineStore {
    * @param config config options for the engine.
    * @return
    */
-  Nodes::IRootNode* readFile(std::string filename, std::string engine,
+  std::shared_ptr<Nodes::IRootNode> readFile(std::string filename, std::string engine,
                              json& config);
 
   /**

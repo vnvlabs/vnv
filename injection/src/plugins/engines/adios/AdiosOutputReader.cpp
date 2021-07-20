@@ -632,7 +632,7 @@ class AdiosParserImpl {
     n->commId = stream.commId;
     n->children = mks<ArrayNode>("children", {n});
     n->tests = mks<ArrayNode>("tests", {n});
-    n->identity.first = stream.getVariable<int>("identity");
+    n->startIndex = stream.getVariable<long>("identity");
 
     setParents(stream,n);
 
@@ -640,7 +640,7 @@ class AdiosParserImpl {
       AdiosDataType d = stream.getType();
       switch (d) {
       case AdiosDataType::INJECTION_POINT_SINGLE_END: {
-        n->identity.second = stream.getVariable<int>("identity");
+        n->endIndex = stream.getVariable<long>("identity");
         return n;
       }
       case AdiosDataType::INJECTION_POINT_BEGIN_END: {
@@ -689,7 +689,7 @@ class AdiosParserImpl {
         return n;
       }
       case AdiosDataType::INJECTION_POINT_END_END: {
-        n->identity.second = stream.getVariable<int>("identity");
+        n->endIndex = stream.getVariable<long>("identity");
         closeInjectionPoint(stream, n);
         return n;
       }
@@ -864,9 +864,9 @@ class AdiosParserImpl {
 
 }  // namespace Adios
 
-Nodes::IRootNode* AdiosEngineManager::readFromFile(std::string filename, long& counter) {
+std::shared_ptr<Nodes::IRootNode> AdiosEngineManager::readFromFile(std::string filename, long& counter) {
    Adios::AdiosParserImpl handler(counter);
-   return new SharedRootNodeWrapper(handler.read_from_file(filename));
+   return handler.read_from_file(filename);
 }
 
 }  // namespace Engines

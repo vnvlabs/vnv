@@ -9,18 +9,110 @@
 #include "interfaces/ICommunicator.h"
 #include "interfaces/IOutputEngine.h"
 
+
+
+
 namespace VnV {
 namespace VNVPACKAGENAME {
 namespace Engines {
+
+std::shared_ptr<Nodes::IRootNode> parseJsonFileStream(long& idCounter, std::string filestub);
+
+namespace JSD {
+constexpr auto outputFile = "outputFile";
+constexpr auto extension = ".jstream";
+
+
+
+static json __json_engine_schema__ = R"(
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://rnet-tech.net/vv-debug-schema.json",
+    "title": "Json Engine Input Schema",
+    "description": "Schema for the debug engine",
+    "type": "object",
+    "parameters" : {
+       "outputFile" : {"type":"string"},
+       "inMemory" : {"type" : "boolean" , "default" : true }
+     }
+}
+)"_json;
+
+#define NTYPES                                                             \
+  X(id)                                                                    \
+  X(name) X(package) X(value) X(shape) X(node) X(meta) X(comm) X(children) \
+      X(key) X(stage) X(message) X(internal) X(description) X(result)      \
+          X(stageId) X(level) X(dtype) X(endid) X(results) X(time) X(spec) \
+          X(commList) X(testuid)
+#define X(a) constexpr auto a = #a;
+NTYPES
+#undef X
+#undef NTYPES
+
+}  // namespace JSD
+
+namespace JSN {
+#define NTYPES                                                          \
+  X(log)                                                                \
+  X(shape) X(dataTypeStarted) X(dataTypeEnded) X(injectionPointStarted) \
+      X(injectionPointEnded) X(injectionPointIterStarted)               \
+          X(injectionPointIterEnded) X(testStarted) X(testFinished)     \
+          X(unitTestStarted) X(unitTestFinished) X(commInfo) X(info)    
+          
+#define X(a) constexpr auto a = #a;
+NTYPES
+#undef X
+#undef NTYPES
+}  // namespace JSN
+
+
+class JsonEntry {
+  public:
+  
+  long id;
+  json j;
+  JsonEntry(const json& j_, long id_) : j(j_), id(id_) {}
+};
+
+
+class JsonIterator {
+public:
+
+  JsonIterator();
+  virtual bool hasNext() const = 0;
+  virtual bool isDone() const = 0;
+  virtual JsonEntry next()  = 0; 
+  virtual long peekId() const = 0; 
+  virtual ~JsonIterator();
+
+  virtual void push(std::shared_ptr<Nodes::DataBase> d) = 0;
+
+  virtual std::shared_ptr<Nodes::DataBase> pop() = 0; 
+
+  virtual std::shared_ptr<Nodes::DataBase> top()=0;
+
+};
 
 class JsonStream {
 public:
   virtual void initialize(std::string filestub) = 0;
   virtual void finalize() = 0;
   virtual void newComm(long id, json obj) = 0;
-  virtual void write(long id, json obj) = 0 ;
-  virtual void parse(std::string filename) = 0;
-  virtual json next() = 0;
+  virtual void write(long id, json obj, long jid) = 0 ;
+  JsonStream() {};
+  virtual ~JsonStream() {};
+};
+
+class JsonStreamReader {
+  public:
+  virtual JsonEntry next() = 0;
+  virtual bool hasNext() = 0;
+  virtual bool isDone() = 0;
+  virtual void push(std::shared_ptr<Nodes::DataBase> d) = 0;
+  virtual std::shared_ptr<Nodes::DataBase> pop() = 0;
+  virtual std::shared_ptr<Nodes::DataBase> top() = 0;
+  virtual ~JsonStreamReader(){}
+
 };
 
 class JsonStreamingEngineManager : public OutputEngineManager {
@@ -40,29 +132,39 @@ class JsonStreamingEngineManager : public OutputEngineManager {
   std::string getId();
   
   virtual void write(json& j) {
-    stream->write(comm->uniqueId(), j);
+    stream->write(comm->uniqueId(), j, JsonStreamingEngineManager::id++);
   }
 
-  virtual void setComm(ICommunicator_ptr comm) {
+  virtual void syncId() {
+    JsonStreamingEngineManager::id = commMapper.getNextId(comm, JsonStreamingEngineManager::id);
+  }
+  
+  virtual void setComm(ICommunicator_ptr comm, bool syncIds) {
+    
     setCommunicator(comm);
     commMapper.logComm(comm);
     long id = comm->uniqueId();
     
+
+    json procList = commMapper.getCommWorldMap(comm);
     if (comm->Rank() == getRoot() && commids.find(id) == commids.end() ) {
       json nJson;
-      nJson["info"] = json::object();
-      nJson["info"]["title"] = "VnV Simulation Report";
-      nJson["info"]["date"] =
-          std::chrono::duration_cast<std::chrono::milliseconds>(
-              std::chrono::system_clock::now().time_since_epoch())
-              .count();
-      nJson["info"]["id"] = getId();
-      nJson["info"]["name"] = "info";
-      nJson["children"] = json::array();
-      nJson["comm"] = json::object();
-      stream->newComm(id, nJson);
+
+      nJson = json::object();
+      nJson[JSD::name] = "comminfo";
+      nJson[JSD::node] = JSN::commInfo;
+      nJson[JSD::comm] = id;
+      nJson[JSD::commList] = procList;
+ 
+      stream->newComm(id, nJson); 
       commids.insert(id);
+      
     }
+
+    if (syncIds) {
+      syncId();
+    }
+
   }
 
  public:
@@ -102,7 +204,7 @@ class JsonStreamingEngineManager : public OutputEngineManager {
                                      std::string stageVal) override;
 
   void testStartedCallBack(std::string packageName, std::string testName,
-                           bool internal) override;
+                           bool internal, long uuid) override;
 
   void testFinishedCallBack(bool result_) override;
 
@@ -112,7 +214,7 @@ class JsonStreamingEngineManager : public OutputEngineManager {
   void unitTestFinishedCallBack(IUnitTest* tester) override;
 
 
-  Nodes::IRootNode* readFromFile(std::string file, long& idCounter) override;
+  std::shared_ptr<Nodes::IRootNode> readFromFile(std::string file, long& idCounter) override;
 
   // IInternalOutputEngine interface
   std::string print() override;

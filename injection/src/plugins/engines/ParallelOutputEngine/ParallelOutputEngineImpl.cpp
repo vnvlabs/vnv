@@ -106,7 +106,7 @@ void ParallelEngine::injectionPointStartedCallBack(ICommunicator_ptr comm,
 }
 
 void ParallelEngine::testStartedCallBack(std::string packageName,
-                                         std::string testName, bool internal) {
+                                         std::string testName, bool internal, long uid) {
   currComm = comm;
   printf("PARALLEL ENGINE Start Test %s \n", testName.c_str());
 }

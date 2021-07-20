@@ -409,6 +409,7 @@ void join(std::string outputfile, std::set<CommWrap_ptr>& comms,
   json jcomm = json::object();
   std::set<long> done1;
   for (auto it : comms) {
+    
     it->toJson1(jcomm, done1);
   }
   json comMap = json::object();
@@ -460,6 +461,7 @@ void JsonEngineManager::finalize(ICommunicator_ptr worldComm) {
         std::ofstream f;
         std::ostringstream oss;
         oss << outputFile << "_" << it.key();
+        outputFileAvailable = true;
         std::remove(oss.str().c_str());
       }
 
@@ -480,6 +482,9 @@ void JsonEngineManager::setFromJson(ICommunicator_ptr comm,
     this->outputFile = config["outputFile"].get<std::string>();
   }
   setComm(comm);
+
+  
+
 }
 
 void JsonEngineManager::injectionPointEndedCallBack(std::string id,
@@ -540,7 +545,7 @@ void JsonEngineManager::injectionPointStartedCallBack(ICommunicator_ptr comm,
 
 void JsonEngineManager::testStartedCallBack(std::string packageName,
                                             std::string testName,
-                                            bool internal) {
+                                            bool internal, long uid) {
   JsonEngineManager::id = commMapper.getNextId(comm, JsonEngineManager::id);
   if (comm->Rank() != getRoot()) return;
 
@@ -584,14 +589,19 @@ void JsonEngineManager::unitTestFinishedCallBack(IUnitTest* tester) {
   // push to the results node
   append(json::json_pointer("/results"));
   for (auto it : tester->getResults()) {
-    Put(std::get<0>(it), std::get<2>(it), MetaData());
+    json j = json::object();
+    j["result"] = std::get<2>(it);
+    j["name"] = std::get<0>(it);
+    j["desc"] = std::get<1>(it);
+    append(j);
+ 
   }
 
   // pop the results and the unit-test itself.
   pop(2);
 }
 
-Nodes::IRootNode* JsonEngineManager::readFromFile(std::string file,
+std::shared_ptr<Nodes::IRootNode> JsonEngineManager::readFromFile(std::string file,
                                                   long& idCounter) {
   return VnV::VNVPACKAGENAME::Engines::Json::parse(file, idCounter);
 }

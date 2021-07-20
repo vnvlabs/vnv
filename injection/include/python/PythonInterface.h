@@ -18,7 +18,7 @@ namespace Python {
 
 class ReaderWrapper {
  private:
-  std::unique_ptr<Nodes::IRootNode> rootNode;
+  std::shared_ptr<Nodes::IRootNode> rootNode;
   long lowerId, upperId;
 
  public:
@@ -33,6 +33,7 @@ class ReaderWrapper {
 
 bool VnVInit(std::vector<std::string> args, std::string configFilename);
 bool VnVInit_Str(std::vector<std::string> args, std::string configStr);
+bool VnVIsInitialized();
 void VnVFinalize();
 
 }  // namespace Python

@@ -406,7 +406,7 @@ class Functions(with_metaclass(FunctionRegistry, object)):
         if array:
             return max(array, key=keyfunc)
         else:
-            return None
+            return Nonex
 
     def _create_key_func(self, expref, allowed_types, function_name):
         def keyfunc(x):

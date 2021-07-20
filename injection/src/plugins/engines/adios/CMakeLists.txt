@@ -7,7 +7,6 @@ if(WITH_MPI)
       target_sources(injection
                      PRIVATE ${CMAKE_CURRENT_LIST_DIR}/AdiosEngineManager.cpp
                              ${CMAKE_CURRENT_LIST_DIR}/AdiosEngineImpl.cpp
-                             ${CMAKE_CURRENT_LIST_DIR}/AdiosOutputReader.cpp
 
               )
       target_link_libraries(injection PRIVATE adios2::adios2)

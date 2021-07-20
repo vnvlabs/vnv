@@ -89,7 +89,7 @@ class AdiosEngineManager : public OutputEngineManager {
                                      std::string stageId) override;
 
   void testStartedCallBack(std::string packageName, std::string testName,
-                           bool internal) override;
+                           bool internal, long uid) override;
 
   void testFinishedCallBack(bool result_) override;
 
@@ -102,8 +102,8 @@ class AdiosEngineManager : public OutputEngineManager {
 
   std::string print() override;
 
-  Nodes::IRootNode* readFromFile(std::string /**filename**/,
-                                 long& idCounter) override;
+  std::shared_ptr<Nodes::IRootNode> readFromFile(std::string /**filename**/,
+                                 long& idCounter) {return nullptr;};
 
   void commsMapSetToMap(const CommWrap_ptr& ptr, std::map<long, CommWrap_ptr>& comms) {
     auto it = comms.find(ptr->id);

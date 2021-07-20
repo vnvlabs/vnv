@@ -49,8 +49,9 @@ class VnVCommMapDirective(Directive):
         env = self.state.document.settings.env
         commMap = env.vnv_current_reader.get().getCommMap()
         worldsize = env.vnv_current_reader.get().getWorldSize()
-        return [nodes.raw('', self.getHtml(commMap,worldsize), format="html")]
-
+        if worldsize > 1:
+            return [nodes.raw('', self.getHtml(commMap,worldsize), format="html")]
+        return []
 
 
 

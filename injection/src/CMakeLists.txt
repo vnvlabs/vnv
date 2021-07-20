@@ -6,9 +6,10 @@ add_subdirectory(dist)
 add_subdirectory(python)
 
 target_link_libraries(injection PRIVATE dl)
-
-
 target_link_libraries(injection PUBLIC jsv::jsv)
+
+target_link_libraries(injection PRIVATE Python3::Python)
+
 
 set_target_properties(injection PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 set_target_properties(injection PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")

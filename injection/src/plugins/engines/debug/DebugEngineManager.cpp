@@ -103,7 +103,7 @@ void DebugEngineManager::injectionPointStartedCallBack(ICommunicator_ptr comm,
 void DebugEngineManager::testStartedCallBack(
                                              std::string packageName,
                                              std::string testName,
-                                             bool internal) {
+                                             bool internal, long uid) {
   printf("DEBUG ENGINE Start Test %s \n", testName.c_str());
 }
 
@@ -134,7 +134,7 @@ void DebugEngineManager::unitTestFinishedCallBack(
          (suiteSuccessful) ? "Successfully" : "Unsuccessfully");
 }
 
-Nodes::IRootNode* DebugEngineManager::readFromFile(std::string file, long&) {
+std::shared_ptr<Nodes::IRootNode> DebugEngineManager::readFromFile(std::string file, long&) {
   throw VnVExceptionBase("The debug engine does not support reading from file");
 }
 

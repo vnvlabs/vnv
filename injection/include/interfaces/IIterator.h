@@ -18,7 +18,7 @@ public:
 
   int iterate_(ICommunicator_ptr comm, OutputEngineManager* engine) {
       
-      engine->testStartedCallBack(m_config.getPackage(), m_config.getName(), false);
+      engine->testStartedCallBack(m_config.getPackage(), m_config.getName(), false, uuid);
       int s =iterate(comm, engine->getOutputEngine());
       engine->testFinishedCallBack(true );
       return s;

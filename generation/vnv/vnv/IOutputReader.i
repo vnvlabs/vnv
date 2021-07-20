@@ -111,8 +111,6 @@ dataBaseCastMap = {
     DataBase.DataType_Long : "AsLongNode",
     DataBase.DataType_Shape : "AsShapeNode",
     DataBase.DataType_Json : "AsJsonNode",
-    
-
     DataBase.DataType_Array : "AsArrayNode",
     DataBase.DataType_Map : "AsMapNode",
     DataBase.DataType_Log : "AsLogNode",
@@ -145,6 +143,21 @@ type2Str = {
     DataBase.DataType_Root : "RootNode"
 }
 
+def igetattr(obj, attr):
+   if not hasattr(obj, attr): 
+      res = []
+      for a in dir(obj):
+         if a.lower() == attr.lower():
+            res.append(a)
+      if len(res)==1:
+         print("Warning: Case Insensitive Match -- You typed " + attr + " when you should have typed " + res[0])
+         print("Warning: We are automatically using the correct value. Please fix to avoid issues in the future")
+         return getattr(obj,res[0]) # Only one match so use it (case insensitive)
+      elif len(res)>1:         
+         raise KeyError("Key '" + attr + "' is ambiguous.: Did you mean: " + str(res))   
+      raise KeyError("Key '" + attr + "' not Found.")
+   return getattr(obj,attr)
+
 vnv_initialized = False
 vnv_finalized = False
 
@@ -152,18 +165,18 @@ def Initialize(args, config):
    global vnv_initialized
    if vnv_initialized:
       raise RuntimeError("Cannot initialize twice")
+   if not VnVIsInitialized():
+      r = charVector()
+      r.push_back(__file__)
+      for i in args:
+        if isinstance(i,str):
+          r.push_back(i)
 
-   r = charVector()
-   r.push_back(__file__)
-   for i in args:
+      if isinstance(config,dict):
+         VnVInit_Str(r, json.dumps(config))
+      else:
+         VnVInit(r,config)
 
-     if isinstance(i,str):
-       r.push_back(i)
-
-   if isinstance(config,dict):
-      VnVInit_Str(r, json.dumps(config))
-   else:
-      VnVInit(r,config)
    vnv_initialized = True
 
 def Finalize():
@@ -188,7 +201,7 @@ def Read(filename,reader,config):
 
 
 def castDataBase(obj) :
-    return getattr(obj, "get" + dataBaseCastMap[obj.getType()])()
+    return igetattr(obj, "get" + dataBaseCastMap[obj.getType()])()
 
 %}
 
@@ -204,7 +217,7 @@ def castDataBase(obj) :
          if key == "metaData" or key == "MetaData":
             return json.loads(self.getMetaData().asJson())
 
-         res = getattr(self,"get"+key)
+         res = igetattr(self,"get"+key)
          if res is not None:
             
             if hasattr(self,"isJson") and self.isJson():
@@ -215,7 +228,7 @@ def castDataBase(obj) :
          raise KeyError("not a valid key")
 
       def __getType__(self):
-         return "dict"
+         return "object"
 
       def __len__(self):
          count = 0
@@ -305,7 +318,7 @@ PY_GETATTR(VnV::Nodes::ICommInfoNode)
         return listclassIterator(self)
 
       def __getType__(self):
-        return "list"
+        return "array"
 
       def __str__(self):
               return str(self.getValue())
@@ -336,7 +349,7 @@ PY_GETATTRLIST(VnV::Nodes::IArrayNode)
             return mapclassIterator(self)
 
         def __getType__(self):
-            return "dict"
+            return "object"
 
         def values(self):
             res = []
@@ -371,34 +384,66 @@ PY_GETATTRMAP(VnV::Nodes::IMapNode)
           if isinstance(i,list):
              result.append(self.recursive_pop(i))
           else:
-             result.append(self.getValue(i))
+             result.append(self.valueIsJson(self.getValueByIndex(i)))
         return result
 
-      def shape(self):
-         if not hasattr(self, shape):
-            self.shape = json.loads(self.getShapeJson());
-            self.tot = np.prod(shape)  #total size of the list.
-            self.npshape = np.reshape(range(0,self.tot), tuple(self.shape) ) #array with values as correct index.
-         return self.shape, self.tot, self.npshape
+      def getValue(self):
+         s,t,nps = self.shape()
+         if len(s) == 0:
+            return self.valueIsJson(self.getScalarValue())
+         else:
+            res = []
+            for i in range(0,t):
+               res.append(self.valueIsJson(self.getValueByIndex(i)))
+            return np.asarray(res).reshape(s)     
 
+      def shape(self):
+         if not hasattr(self, "shapeval"):
+            self.shapeval = json.loads(self.getShapeJson());
+            self.tot = self.getNumElements()
+            if len(self.shapeval) > 0:
+               self.npshape = np.reshape(range(0,self.tot), tuple(self.shapeval) ) #array with values as correct index.
+            else:
+               self.npshape = None
+         return self.shapeval, self.tot, self.npshape
+
+      def valueIsJson(self, value):
+         if self.getTypeStr() == "Json":
+            return json.loads(value)
+         return value
          
       def __getitem__(self,key):
-        if key == "metaData" or key == "MetaData":
+        
+        if key.lower() == "metadata":
             return json.loads(self.getMetaData().asJson()) 
+        
+        #Value gets the entire array as a scalar or as a np array. 
+        if key.lower() == "value":
+            return self.getValue()
+            
+        #Get any other ones (like name, TypeStr, etc. ) 
+        if isinstance(key,str) :
+            res = igetattr(self,"get"+key)
+            if res is not None:
+               return res()
+            raise KeyError("Unknown String Key " + key + " in " + str(self.__class__))   
 
-
+        # Now we assume we have a slice of some kind.   
         try:
          s,t,nps = self.shape()
-         if (len(s) == 0) :
-            raise TypeError("Scalar Shape has no __getitem__ method")
+        
+         if (nps is None) :
+            raise TypeError("Scalar Shape has no __getitem__ method. Call .value instead. ")
          
-         
+         # We apply the splice to the numpy array to get a list of lists 
+         # containing the indices we need to extract. 
          b = nps[key].tolist() # Slice the array
 
+         # If b is a list, we need to extract the values recursivly.
          if (isinstance(b,list)):
             return np.ndarray(self.recursive_pop(b))
          else:
-             return self.getValue(b)
+             return self.valueIsJson(self.getValueByIndex(b))
         except:
              pass
 
@@ -416,10 +461,10 @@ PY_GETATTRMAP(VnV::Nodes::IMapNode)
         return shapeclassIterator(self)
 
       def __getType__(self):
-        return "list"
+        return "array"
 
       def __str__(self):
-          return str(self.getValue())
+          return str(self.valueIsJson(self.getValue()))
    %}
 }
 %enddef

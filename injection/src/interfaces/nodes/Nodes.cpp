@@ -9,7 +9,7 @@
 namespace VnV {
 namespace Nodes {
 
-long DataBase::getId() { return id; }
+long DataBase::getId() { std::cout << "Getting Id " << id << std::endl; return id; }
 
 bool DataBase::check(DataType type) { return type == dataType; }
 

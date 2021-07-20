@@ -104,12 +104,13 @@ class IOutputEngine  {
 
 
   // Get all the integral types and feed them to long long.
-  template <typename T, typename std::enable_if<std::is_integral<T>::value,
-      T>::type* = nullptr>
+  template <typename T, typename std::enable_if<std::is_integral<T>::value, T>::type* = nullptr>
   void Put(std::string variableName, const T& value,
            const MetaData& m = MetaData()) {
     long long b = value;
     this->Put(variableName, b, m);
+
+    
   }
 
   // Get all the floating point types and feed them to double.
@@ -338,8 +339,7 @@ class ScalarAction : public BaseAction {
 
   virtual int count(ICommunicator_ptr comm, int engineRoot) const override {
     return ((rank < 0 && comm->Rank() == engineRoot) || (comm->Rank() == rank))
-               ? size
-               : 0;
+               ? size : 0;
   };
 };
 
@@ -791,6 +791,7 @@ void IOutputEngine::Put_ReduceVectorRankOnly(
                            data.data(), root, m);
 }
 
+
 class IInternalOutputEngine : public IOutputEngine {
  public:
   virtual void setFromJson(ICommunicator_ptr worldComm, json& configuration) = 0;
@@ -808,7 +809,7 @@ class IInternalOutputEngine : public IOutputEngine {
                                            std::string stageId) = 0;
 
   virtual void testStartedCallBack(std::string packageName,
-                                   std::string testName, bool internal) = 0;
+                                   std::string testName, bool internal, long uuid) = 0;
 
   virtual void testFinishedCallBack( bool result_) = 0;
 
@@ -818,7 +819,7 @@ class IInternalOutputEngine : public IOutputEngine {
 
   virtual void unitTestFinishedCallBack(IUnitTest* tester) = 0;
 
-  virtual Nodes::IRootNode* readFromFile(std::string file, long& idCounter) = 0;
+  virtual std::shared_ptr<Nodes::IRootNode> readFromFile(std::string file, long& idCounter) = 0;
 
   virtual std::string print() = 0;
 
@@ -831,10 +832,27 @@ class IInternalOutputEngine : public IOutputEngine {
  * @brief The OutputEngineManager class
  */
 class OutputEngineManager : public IInternalOutputEngine {
+ 
+ std::string key;
+ 
+ 
  public:
-  void set(ICommunicator_ptr world, json& configuration);
+  
+  std::string getKey() { return key; } ;
+
+  
+  void set(ICommunicator_ptr world, json& configuration, std::string key);
+  
+  virtual std::string getMainFilePath() {
+     throw VnVExceptionBase("Engine does not write to file");
+  }
+
   IOutputEngine* getOutputEngine();
+  
   virtual ~OutputEngineManager() = default;
+
+
+
 };
 
 typedef OutputEngineManager* engine_register_ptr();

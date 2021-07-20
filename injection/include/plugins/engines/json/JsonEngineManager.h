@@ -14,12 +14,12 @@ namespace VNVPACKAGENAME {
 namespace Engines {
 namespace Json {
 
-VnV::Nodes::IRootNode* parse(std::string filename, long& idCounter);
+std::shared_ptr<VnV::Nodes::IRootNode> parse(std::string filename, long& idCounter);
 
 class JsonEngineManager : public OutputEngineManager {
  protected:
   bool inMemory;
-
+  bool outputFileAvailable = false;
   json mainJson;
   std::map<long, json::json_pointer> ptr;
   long id = 0;
@@ -103,7 +103,7 @@ class JsonEngineManager : public OutputEngineManager {
                                      std::string stageVal) override;
 
   void testStartedCallBack(std::string packageName, std::string testName,
-                           bool internal) override;
+                           bool internal, long uid) override;
 
   void testFinishedCallBack(bool result_) override;
 
@@ -112,7 +112,16 @@ class JsonEngineManager : public OutputEngineManager {
 
   void unitTestFinishedCallBack(IUnitTest* tester) override;
 
-  Nodes::IRootNode* readFromFile(std::string file, long& idCounter) override;
+  std::shared_ptr<Nodes::IRootNode> readFromFile(std::string file, long& idCounter) override;
+
+  virtual std::string getMainFilePath() override {
+    if (outputFileAvailable) {
+      return outputFile;
+    } else {
+      throw VnVExceptionBase("The output file is not available yet");
+    }
+  }
+
 
   // IInternalOutputEngine interface
   std::string print() override;
