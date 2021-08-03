@@ -3,8 +3,9 @@
     base/JsonSchema.h
 **/
 #include "base/parser/JsonSchema.h"
-#include "json-schema.hpp"
+
 #include "base/exceptions.h"
+#include "json-schema.hpp"
 using nlohmann::json_schema::json_validator;
 
 namespace VnV {
@@ -23,9 +24,6 @@ const json& getVVSchema() {
     },
     "logging" : {
        "$ref": "#/definitions/logger"
-    },
-    "offloading" : {
-       "$ref": "#/definitions/offload"
     },
     "unit-testing" : {
        "$ref" : "#/definitions/unit-testing"
@@ -62,7 +60,8 @@ const json& getVVSchema() {
     },
     "template-overrides" : {
       "type" : "object"
-    }
+    },
+    "communicator" : {"type" : "string" , "default" : "mpi" }
   },
   "additionalProperties": false,
   "definitions": {
@@ -118,14 +117,6 @@ const json& getVVSchema() {
       "type" : "object",
       "additionalProperties" : {"type" : "object"  }
     },
-    "offload": {
-       "type":"object",
-       "properties" : {
-           "on" : {"type":"boolean"},
-           "type" : {"type" : "string"},
-           "config" : {"type":"object"}
-        }
-    },
     "logger": {
         "description" : "VnV Logging Configuration",
         "type" : "object",
@@ -167,6 +158,9 @@ const json& getVVSchema() {
         "runInternal": {
            "type" : "boolean"
         },
+        "sampler" : {
+           "$ref" : "#/definitions/sampler"
+        },
         "runScope": {
           "$ref" : "#/definitions/runScope"
         },
@@ -180,6 +174,15 @@ const json& getVVSchema() {
       "required": [
         "name","package"
       ]
+    },
+    "sampler" : {
+      "type" : "object",
+      "properties" : {
+         "name" : {"type" : "string" },
+         "package" : {"type" : "string" },
+         "config" : {"type" : "object" }
+      },
+      "required" : ["name","package"]
     },
     "iterators": {
       "description": "Injection Iteration Points",
@@ -274,9 +277,6 @@ const json& getVVSchema() {
         "package" : {
           "type" : "string"
         },
-        "offload" : {
-          "type" : "boolean"
-        },
         "config" : {
             "type" : "object"
         },
@@ -323,7 +323,6 @@ json& getDefaultOptionsSchema() {
   static json __default_options_schema__ = R"({"type" : "object"})"_json;
   return __default_options_schema__;
 }
-
 
 json getTransformDeclarationSchema() {
   static json __transform_declaration_schema__ = R"({
@@ -429,8 +428,6 @@ json getTestDelcarationJsonSchema() {
   return __test_declaration_schema__;
 }
 
-
-
 json getTestValidationSchema(std::map<std::string, std::string>& params,
                              json& optsschema) {
   json schema = R"(
@@ -445,7 +442,8 @@ json getTestValidationSchema(std::map<std::string, std::string>& params,
   json properties = R"({})"_json;
   properties["configuration"] = optsschema;
 
-  json parameters = R"({"type":"object" ,"properties" : {}, "additionalProperties" : false})"_json;
+  json parameters =
+      R"({"type":"object" ,"properties" : {}, "additionalProperties" : false})"_json;
   parameters["required"] = json::array();
   for (auto it : params) {
     parameters["properties"][it.first] = R"({"type":"string"})"_json;
@@ -462,23 +460,20 @@ json getTestValidationSchema(std::map<std::string, std::string>& params,
   return schema;
 }
 
-
-
-bool validateSchema(const json& config, const json& schema, bool throwOnInvalid) {
+bool validateSchema(const json& config, const json& schema,
+                    bool throwOnInvalid) {
   json_validator validator;
   validator.set_root_schema(schema);
   try {
-      validator.validate(config);
-      return true;
+    validator.validate(config);
+    return true;
   } catch (std::exception e) {
-      if (throwOnInvalid) {
-          throw VnVExceptionBase(e.what());
-      } else {
-          return false;
-      }
+    if (throwOnInvalid) {
+      throw VnVExceptionBase(e.what());
+    } else {
+      return false;
+    }
   }
 }
-
-
 
 }  // namespace VnV

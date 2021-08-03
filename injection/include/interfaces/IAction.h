@@ -14,7 +14,7 @@ namespace VnV {
 
 class IAction {
  protected:
-  Communication::ICommunicator_ptr comm;
+  ICommunicator_ptr comm;
   json config = nlohmann::json::object();
   json schema = getDefaultOptionsSchema();
  
@@ -43,8 +43,8 @@ class IAction {
     schema = json::parse(schemaStr);
   }
 
-  void setComm(Communication::ICommunicator_ptr ptr) { comm = ptr; }
-  Communication::ICommunicator_ptr getComm() { return comm; }
+  void setComm(ICommunicator_ptr ptr) { comm = ptr; }
+  ICommunicator_ptr getComm() { return comm; }
 
 };
 

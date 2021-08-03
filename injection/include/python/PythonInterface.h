@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "base/exceptions.h"
-#include "interfaces/nodes/Nodes.h"
+#include "interfaces/Nodes.h"
 //#include "json-schema.hpp"
 
 namespace VnV {

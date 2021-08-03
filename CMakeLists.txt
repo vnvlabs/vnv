@@ -32,6 +32,9 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
       CACHE STRING "Build type (default RelWitDebInfo)")
 endif()
 
+
+
+
 option(BUILD_EXAMPLES "Build the examples" ON)
 
 option(ALLERRORS OFF)
@@ -40,6 +43,7 @@ if(ALLERRORS)
 endif()
 
 add_subdirectory(extraction)
+
 include("${CMAKE_SOURCE_DIR}/cmake/Registration.cmake")
 
 add_subdirectory(injection)
@@ -89,8 +93,7 @@ configure_package_config_file(
   ${CMAKE_CURRENT_BINARY_DIR}/InjectionConfig.cmake
   INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 
-file(COPY ${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake
-     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake)
 
 # Install the config, configversion and custom find modules
 install(

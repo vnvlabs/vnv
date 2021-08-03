@@ -71,6 +71,12 @@ std::string getEnvironmentVariable(std::string val);
  */
 std::string join(std::vector<std::string> vector, mode_t i, bool makeDirs);
 
+/**
+ * List Files in Directory
+ */
+std::vector<std::string> listFilesInDirectory(std::string directory);
+
+
 }  // namespace DistUtils
 }  // namespace VnV
 

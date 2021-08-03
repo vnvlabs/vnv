@@ -1,0 +1,24 @@
+
+// This file was create automatically by CMake.
+#pragma once
+
+#define VNVVERSIONINFOCALLBACK(PNAME)                                      \
+  const char* __vnv__verison_info_##PNAME() {                              \
+    return "{"                                                             \
+       "\"git_retrieved_state\" : @GIT_RETRIEVED_STATE@," \
+       "\"git_head_sha1\"       : \"@GIT_HEAD_SHA1@\"," \
+       "\"git_dirty\"           : \"@GIT_IS_DIRTY@," \
+       "\"git_author\"          : \"@GIT_AUTHOR_NAME@\"," \
+       "\"git_author_email\"    : \"@GIT_AUTHOR_EMAIL@\"," \
+       "\"git_commit_date\"     : \"@GIT_COMMIT_DATE_ISO8601@\"," \
+       "\"git_describe\"        : \"@GIT_DESCRIBE@\"," \
+       "\"c_compiler\"          : \"@VNV_C_COMPILER@\"," \
+       "\"c_compiler_version\"  : \"@VNV_C_COMPILER_VERSION@\"," \
+       "\"cxx_compiler\"        : \"@VNV_CXX_COMPILER@\"," \
+       "\"cxx_compiler_version\": \"@VNV_CXX_COMPILER_VERSION@\"," \
+       "\"mpi_c_compiler\"      : \"@VNV_MPI_C_COMPILER@\"," \
+       "\"mpi_c_version\"       : \"@VNV_MPI_C_VERSION@\"," \
+       "\"mpi_cxx_compiler\"    : \"@VNV_MPI_CXX_COMPILER@\"," \
+       "\"mpi_cxx_version\"     : \"@VNV_MPI_CXX_VERSION@\"" \
+       "}";\
+  }

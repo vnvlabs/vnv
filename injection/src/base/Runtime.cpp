@@ -19,7 +19,6 @@
 #include "base/stores/InjectionPointStore.h"
 #include "base/stores/IteratorStore.h"
 #include "base/stores/IteratorsStore.h"
-#include "base/stores/OffloaderStore.hpp"
 #include "base/stores/OptionsParserStore.h"
 #include "base/stores/OutputEngineStore.h"
 #include "base/stores/PlugStore.h"
@@ -37,8 +36,9 @@ INJECTION_OPTIONS(VNVPACKAGENAME, getBaseOptionsSchema().dump().c_str()) {
 }
 
 namespace {
+  
 ICommunicator_ptr getComm(VnV_Comm comm) {
-  return CommunicationStore::instance().customComm(comm.name, comm.data);
+  return CommunicationStore::instance().getCommunicator(comm);
 }
 }  // namespace
 
@@ -78,16 +78,12 @@ void RunTime::makeLibraryRegistrationCallbacks(
 bool RunTime::useAsciiColors() { return terminalSupportsAsciiColors; }
 
 void RunTime::logUnhandled(std::string name, std::string id, NTV& args) {
-  int a = VnV_BeginStage(VNVPACKAGENAME, "Unhandled Injection Point");
   VnV_Info(VNVPACKAGENAME, "Name: %s", name.c_str());
   VnV_Info(VNVPACKAGENAME, "ID: %s", id.c_str());
-  int aa = VnV_BeginStage(VNVPACKAGENAME, "Parameters");
   for (auto& it : args) {
     VnV_Info(VNVPACKAGENAME, "%s : (%s)", it.first.c_str(),
              it.second.first.c_str());
   }
-  VnV_EndStage(VNVPACKAGENAME, aa);
-  VnV_EndStage(VNVPACKAGENAME, a);
 }
 
 void RunTime::writeSpecification(std::string filename) {
@@ -379,11 +375,6 @@ void RunTime::injectionPoint_end(std::string pname, std::string id) {
   }
 }
 
-void RunTime::declareCommunicator(std::string packageName, std::string commpack,
-                                  std::string communicator) {
-  CommunicationStore::instance().declareComm(packageName, commpack,
-                                             communicator);
-}
 
 void RunTime::declarePackageJson(std::string pname,
                                  vnvFullJsonStrCallback callback) {
@@ -418,15 +409,6 @@ void RunTimeOptions::fromJson(json& j) {
   }
 }
 
-bool RunTime::setupOffloadConfiguration(OffloadInfo& info) {
-  if (info.on) {
-    offloader = OffloaderStore::get().setOffloader(info.offloadType,
-                                                   info.offloadConfig);
-  }
-
-  return info.on;
-}
-
 void RunTime::getFullSchema(std::string filename) {}
 
 void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
@@ -449,6 +431,7 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
     // that should be merged into the final specificiation.
     template_patch = info.template_overrides;
 
+    //Register VnV. 
     runTimePackageRegistration(VNV_STR(VNVPACKAGENAME),
                                INJECTION_REGISTRATION_PTR(VNVPACKAGENAME));
 
@@ -456,6 +439,11 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
     if (callback != nullptr) {
       runTimePackageRegistration(mainPackageName, *callback);
     }
+
+    // Now we register VnVs communicator. The VnV communicator is set to be the same as the communicator
+    // for the executable.
+    //CommunicationStore::instance().copySettings(mainPackageName,VNVPACKAGENAME_S);
+
   }
 
   // Register the plugins specified in the input file.
@@ -472,12 +460,11 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
     }
   }
 
-  ICommunicator_ptr world = CommunicationStore::instance().getCommForPackage(
-      mainPackageName, CommType::World);
+  ICommunicator_ptr world = CommunicationStore::instance().worldComm();
 
   if (initializedCount == 1) {
-    bool offloading = setupOffloadConfiguration(info.offloadInfo);
-    if (!OutputEngineStore::getOutputEngineStore().isInitialized()) {
+
+     if (!OutputEngineStore::getOutputEngineStore().isInitialized()) {
       VnV_Debug(VNVPACKAGENAME, "Configuring The Output Engine");
       OutputEngineStore::getOutputEngineStore().setEngineManager(
           world, info.engineInfo.engineType, info.engineInfo.engineConfig);
@@ -493,10 +480,11 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
       "objects");
 
   for (auto it : info.injectionPoints) {
+
     auto x = TestStore::instance().validateTests(it.second.tests);
+
     if (it.second.type == InjectionType::ITER) {
-      auto iterations =
-          IteratorsStore::instance().validateTests(it.second.iterators);
+      auto iterations = IteratorsStore::instance().validateTests(it.second.iterators);
       IteratorStore::instance().addIterator(it.second.package, it.second.name,
                                             it.second.runInternal, x,
                                             iterations);
@@ -508,8 +496,9 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
                                         it.second.runInternal, x, plug);
     }
 
+    SamplerConfig sconfig(it.second); 
     InjectionPointStore::getInjectionPointStore().addInjectionPoint(
-        it.second.package, it.second.name, it.second.runInternal, x);
+        it.second.package, it.second.name, it.second.runInternal, x, sconfig);
   }
 }
 
@@ -576,7 +565,9 @@ void RunTime::loadHotPatch(VnV_Comm comm) {
 // Cant overload the name because "json" can be a "string".
 bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
                            json& config, registrationCallBack* callback) {
+  
   mainPackageName = packageName;
+
 
   JsonParser parser;
   try {
@@ -596,7 +587,7 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
    * Injection point documentation.
    **/
 
-  VnV_Comm comm = CommunicationStore::instance().worldData(packageName);
+  VnV_Comm comm = CommunicationStore::instance().world();
 
   /**
    * VnV Configuration and provenance Tracking information.
@@ -665,19 +656,26 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv,
 
 bool RunTime::configure(std::string packageName, RunInfo info,
                         registrationCallBack* callback) {
+  
   runTests = info.runTests;
+  
+  
+  
   if (runTests) {
+  
+    CommunicationStore::instance().set(info.communicator);
+
     loadRunInfo(info, callback);
 
     if (info.unitTestInfo.runUnitTests) {
-      runUnitTests(VnV_Comm_World(packageName.c_str()), info.unitTestInfo);
+      runUnitTests(VnV_Comm_World(), info.unitTestInfo);
 
       if (info.unitTestInfo.exitAfterTests) {
         return 1;  // Exit because user asked to exit after unit tests
       }
     }
 
-    runActions(VnV_Comm_World(packageName.c_str()), info.actionInfo,
+    runActions(VnV_Comm_World(), info.actionInfo,
                ActionType::configure());
 
   } else if (info.error) {
@@ -707,7 +705,7 @@ void RunTime::runTimePackageRegistration(std::string packageName,
 
 bool RunTime::Finalize() {
   if (runTests) {
-    auto comm = CommunicationStore::instance().worldComm(mainPackageName);
+    auto comm = CommunicationStore::instance().worldComm();
 
     INJECTION_LOOP_END(VNV_STR(VNVPACKAGENAME), "initialization");
     OutputEngineStore::getOutputEngineStore().getEngineManager()->finalize(
@@ -718,8 +716,7 @@ bool RunTime::Finalize() {
       it.second(comm);
     }
 
-    runActions(VnV_Comm_World(mainPackageName.c_str()), info.actionInfo,
-               ActionType::finalize());
+    runActions(VWORLD, info.actionInfo, ActionType::finalize());
   }
   return true;
 }
@@ -730,13 +727,6 @@ void RunTime::log(VnV_Comm comm, std::string pname, std::string level,
                   std::string message, va_list args) {
   logger.log_c(comm, pname, level, message, args);
 }
-
-int RunTime::beginStage(VnV_Comm comm, std::string pname, std::string message,
-                        va_list args) {
-  return logger.beginStage(comm, pname, message, args);
-}
-
-void RunTime::endStage(VnV_Comm comm, int ref) { logger.endStage(comm, ref); }
 
 void RunTime::runUnitTests(VnV_Comm comm, UnitTestInfo info) {
   loadHotPatch(comm);
@@ -755,11 +745,9 @@ void RunTime::readFile(std::string filename, long& idCounter) {
 }
 
 void RunTime::printRunTimeInformation() {
-  int a = VnV_BeginStage(VNVPACKAGENAME, "Runtime Configuration");
   logger.print();
   OutputEngineStore::getOutputEngineStore().print();
   TestStore::instance().print();
   InjectionPointStore::getInjectionPointStore().print();
-  VnV_EndStage(VNVPACKAGENAME, a);
 }
 std::string RunTime::getPackageName() { return mainPackageName; }

@@ -8,7 +8,6 @@
 
 #include "base/points/InjectionPoint.h"
 #include "base/stores/OutputEngineStore.h"
-#include "base/stores/SerializerStore.h"
 #include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
 #include "json-schema.hpp"
@@ -80,11 +79,11 @@ std::string VariableEnumFactory::toString(VariableEnum e) {
 }
 
 
-void OutputEngineManager::set(ICommunicator_ptr world, json& inputjson, std::string key) {
+void OutputEngineManager::set(ICommunicator_ptr world, json& inputjson, std::string key, bool readMode) {
   
   this->key = key;
   
-  json schema = getConfigurationSchema();
+  json schema = getConfigurationSchema(readMode);
 
   if (!schema.empty()) {
     json_validator validator;
@@ -92,7 +91,7 @@ void OutputEngineManager::set(ICommunicator_ptr world, json& inputjson, std::str
     validator.validate(inputjson);
   }
 
-  setFromJson(world, inputjson);
+  setFromJson(world, inputjson,readMode);
 }
 
 IOutputEngine* OutputEngineManager::getOutputEngine() {

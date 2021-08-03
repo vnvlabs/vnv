@@ -65,7 +65,7 @@ class Transform_T : public ITransform {
 
 }  // namespace VnV
 
-#define INJECTION_TRANSFORM_INTERNAL(PNAME, NAME, Runner, To, From)          \
+#define INJECTION_TRANSFORM_INTERNAL(PNAME, NAME, Runner, From, To)          \
   namespace VnV {                                                            \
   namespace PNAME {                                                          \
   namespace Transforms {                                                     \
@@ -91,8 +91,8 @@ class Transform_T : public ITransform {
 
 // Macro indirection to help clang tool support cases where these
 // are macros -- TODO.
-#define INJECTION_TRANSFORM_R(PNAME, NAME, Runner, To, From) \
-  INJECTION_TRANSFORM_INTERNAL(PNAME, NAME, Runner, To, From)
+#define INJECTION_TRANSFORM_R(PNAME, NAME, Runner, From, To) \
+  INJECTION_TRANSFORM_INTERNAL(PNAME, NAME, Runner, From, To)
 
 #define INJECTION_TRANSFORM(PNAME, name, from, to) \
   INJECTION_TRANSFORM_R(PNAME, name, int, from, to)

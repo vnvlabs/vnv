@@ -282,7 +282,7 @@ INJECTION_OPTIONS(SPNAME, schemaCallback) {}
 
 // If compiled with MPI, then set the comm for this package to mpi.
 
-INJECTION_EXECUTABLE(SPNAME, VNV, mpi)
+INJECTION_EXECUTABLE(SPNAME)
 
 int main(int argc, char** argv) {
   MPI_Init(&argc, &argv);
@@ -390,7 +390,7 @@ int main(int argc, char** argv) {
    *
    **/
   INJECTION_LOOP_BEGIN_C(
-      VNV_STR(SPNAME), comm, "loopTest1",
+      VNV_STR(SPNAME), VMPI(comm), "loopTest1",
       [](VnV_Comm comm, VnV::VnVParameterSet& p,
          VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
@@ -419,7 +419,7 @@ int main(int argc, char** argv) {
   INJECTION_LOOP_END("SPNAME", "loopTest1");
 
   INJECTION_LOOP_BEGIN_C(
-      VNV_STR(SPNAME), "comm1", "loopTest2",
+      VNV_STR(SPNAME), VMPI(comm1), "loopTest2",
       [](VnV_Comm comm, VnV::VnVParameterSet& p,
          VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {

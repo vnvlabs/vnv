@@ -9,7 +9,7 @@
 
 #define modulo(x, N) (((x) % (N) + (N)) % (N))
 
-using namespace VnV::Communication;
+using namespace VnV;
 
 int Router::parent_of(int id, int root, int fanout) {
   if (id == root) {
@@ -89,7 +89,7 @@ int Router::forward() {
     for (const int child : children) {
       //#ifdef WITH_MPI
       // Check for a message from the child
-      std::pair<VnV::Communication::IStatus_ptr, int> s =
+      std::pair<VnV::IStatus_ptr, int> s =
           m_comm->IProbe(child, -1);
       if (s.second) {
         if (s.first->tag() == 1) {
@@ -165,7 +165,7 @@ int Router::forward() {
   return 0;
 }
 
-void Router::init(VnV::Communication::ICommunicator_ptr ptr) {
+void Router::init(VnV::ICommunicator_ptr ptr) {
   //#ifdef WITH_MPI
   m_comm = ptr->duplicate();
   m_id = m_comm->Rank();
@@ -186,9 +186,9 @@ void Router::init(VnV::Communication::ICommunicator_ptr ptr) {
   m_children = children_of(m_id, m_root, m_fanout);
 }
 
-Router::Router(VnV::Communication::ICommunicator_ptr ptr) { init(ptr); }
+Router::Router(VnV::ICommunicator_ptr ptr) { init(ptr); }
 
-Router::Router(VnV::Communication::ICommunicator_ptr ptr, int fanout) {
+Router::Router(VnV::ICommunicator_ptr ptr, int fanout) {
   m_fanout = fanout;
   init(ptr);
 }

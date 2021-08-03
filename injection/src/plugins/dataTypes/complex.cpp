@@ -11,7 +11,7 @@ namespace DataTypes {
 
 // This will work with any <T> that has addition, multiplication
 // and compare operators.
-template <typename T> class GenericDataType : public Communication::IDataType {
+template <typename T> class GenericDataType : public IDataType {
   T data;
   SupportedDataType dtype;
  public:
@@ -36,12 +36,12 @@ template <typename T> class GenericDataType : public Communication::IDataType {
   void setData(void* dat) { data = *((T*)dat); }
 
   // this = this + ay
-  void axpy(double alpha, Communication::IDataType_ptr y) {
+  void axpy(double alpha, IDataType_ptr y) {
     GenericDataType<T>* yy = (GenericDataType<T>*)y.get();
     data += yy->get()*alpha;
   }
 
-  int compare(Communication::IDataType_ptr y) {
+  int compare(IDataType_ptr y) {
     GenericDataType<T>* yy = (GenericDataType<T>*)y.get();
     if (yy->get() == data)
       return 0;
@@ -50,7 +50,7 @@ template <typename T> class GenericDataType : public Communication::IDataType {
     return 1;
   }
   // this = this * y;
-  void mult(Communication::IDataType_ptr y) {
+  void mult(IDataType_ptr y) {
     GenericDataType<T>* yy = (GenericDataType<T>*)y.get();
     data = data*yy->get();
   }
@@ -77,7 +77,7 @@ template <typename T> class GenericDataType : public Communication::IDataType {
 };
 
 template<unsigned int N, typename T>
-class StringDataType : public Communication::IDataType {
+class StringDataType : public IDataType {
 public:
    T data;
    std::function<std::string(const T&)> toString;
@@ -125,16 +125,16 @@ public:
     data = fromCharStar((char*) buffer) ;
   }
 
-  void axpy(double alpha, Communication::IDataType_ptr y) {
+  void axpy(double alpha, IDataType_ptr y) {
     throw VnV::VnVExceptionBase("axpy not supported for string data types");
   }
 
-  int compare(Communication::IDataType_ptr y) {
+  int compare(IDataType_ptr y) {
     StringDataType* yy = (StringDataType*)y.get();
     return compareT(get(),yy->get());
   }
 
-  void mult(Communication::IDataType_ptr y) {
+  void mult(IDataType_ptr y) {
     throw VnV::VnVExceptionBase("multiplication not supported for string data types");
   }
 

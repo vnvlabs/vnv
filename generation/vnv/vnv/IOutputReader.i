@@ -26,7 +26,7 @@
 %include "std_string.i"
 %include "std_vector.i"
 %include "std_map.i"
-%include "interfaces/nodes/Nodes.h"
+%include "interfaces/Nodes.h"
 %include "python/PythonInterface.h"
 
 namespace std {

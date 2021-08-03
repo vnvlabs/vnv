@@ -14,7 +14,7 @@ class IUnitTest {
  protected:
   UnitTestResults results;
   bool continue_on_fail = true;
-  Communication::ICommunicator_ptr comm;
+  ICommunicator_ptr comm;
 
  public:
   /**
@@ -37,8 +37,8 @@ class IUnitTest {
    */
   UnitTestResults getResults() { return results; }
 
-  void setComm(Communication::ICommunicator_ptr ptr) { comm = ptr; }
-  Communication::ICommunicator_ptr getComm() { return comm; }
+  void setComm(ICommunicator_ptr ptr) { comm = ptr; }
+  ICommunicator_ptr getComm() { return comm; }
 
   /**
    * @brief stop/continue on test failure

@@ -8,7 +8,7 @@
 #include <link.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
+#include <dirent.h>
 #include <iostream>
 
 #include "base/Utilities.h"
@@ -161,6 +161,27 @@ void callAllLibraryRegistrationFunctions(
 std::string getEnvironmentVariable(std::string name) {
     std::string s = std::getenv(name.c_str());
     return s;
+}
+
+// Really trying to not need boost -- can get rid of this in C++17 (14
+// is we use std::experimental and replace with std::filesystem. )
+std::vector<std::string> listFilesInDirectory(std::string directory) {
+  
+  std::vector<std::string> res;
+  
+  DIR *dir;
+  struct dirent *ent;
+  VnV_Debug(VNVPACKAGENAME,"Openning directory %d", directory.size());
+  if ((dir = opendir (directory.c_str())) != NULL) {
+  while ((ent = readdir (dir)) != NULL) {
+    res.push_back(ent->d_name);
+  }
+  closedir (dir);
+  return res;
+} else {
+  throw VnVExceptionBase("Could not open directory");
+}
+
 }
 
 

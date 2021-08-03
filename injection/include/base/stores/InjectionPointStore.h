@@ -21,7 +21,7 @@ namespace VnV {
 typedef std::map<std::string, std::pair<std::string, void*>> NTV;
 class InjectionPoint;
 class TestConfig;
-
+class SamplerConfig;
 enum class InjectionPointType;
 
 /**
@@ -152,7 +152,7 @@ class InjectionPointStore {
   void addInjectionPoint(std::string package,
                          std::string name,
                          bool runInternal,
-                         std::vector<TestConfig> &tests);
+                         std::vector<TestConfig> &tests, const SamplerConfig& config);
 
   // Register Injection point. JsonStr must be json that validates against the
   // injection point schema OR an array of objects that individually validate

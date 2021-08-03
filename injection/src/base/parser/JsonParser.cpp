@@ -40,6 +40,14 @@ bool JsonParser::add(const json& testJson,
 }
 
 
+SamplerInfo JsonParser::getSamplerInfo(const json& samplerJson) {
+   SamplerInfo info;
+   info.name = samplerJson["name"].get<std::string>();
+   info.package = samplerJson["package"].get<std::string>();
+   info.config = samplerJson.contains("config") ? samplerJson["config"] : json::object();
+   return info;
+}
+
 void JsonParser::addInjectionPoint(
     const json& ip, std::set<std::string>& runScopes,
     std::map<std::string, InjectionPointInfo>& ips, InjectionType type) {
@@ -71,11 +79,17 @@ void JsonParser::addInjectionPoint(
             aip->second.plug = c;
           }
       }
+
+      if (values.find("sampler") != values.end()) {
+          aip->second.sampler = getSamplerInfo(values["sampler"]);
+      }
+
     } else {
       InjectionPointInfo ipInfo;
       ipInfo.type = type;
       ipInfo.name = name;
       ipInfo.package = package;
+
       if (values.find("tests") != values.end() ) {
             for (auto test : values["tests"].items()) {
               addTest(test.value(), ipInfo.tests, runScopes);
@@ -92,6 +106,11 @@ void JsonParser::addInjectionPoint(
             aip->second.plug = c;
           }
       }
+      if (values.find("sampler") != values.end()) {
+          ipInfo.sampler = getSamplerInfo(values["sampler"]);
+      }
+
+
       if (values.contains("runInternal")) {
         ipInfo.runInternal = values["runInternal"].get<bool>();
       } else {
@@ -137,15 +156,7 @@ EngineInfo JsonParser::getEngineInfo(const json& engine) {
   return einfo;
 }
 
-OffloadInfo JsonParser::getOffloadInfo(const json& offloadJson) {
-   OffloadInfo oinfo;
-   oinfo.on = (offloadJson.contains("on")) ? offloadJson["on"].get<bool>() : false;
-   if (oinfo.on) {
-        oinfo.offloadType = (offloadJson.contains("type")) ? offloadJson["type"].get<std::string>() : "";
-        oinfo.offloadConfig = (offloadJson.contains("config"))?offloadJson["config"] : json::object();
-   }
-   return oinfo;
-}
+
 
 UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json& unitTestJson) {
   UnitTestInfo info;
@@ -217,13 +228,7 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
     info.engineInfo = getEngineInfo(main["outputEngine"]);
   } else {
     info.engineInfo =
-        getEngineInfo(R"({"type" : "debug" , "config" : {} })"_json);
-  }
-
-  if (main.find("offloading") != main.end()) {
-    info.offloadInfo = getOffloadInfo(main["offloading"]);
-  } else {
-    info.offloadInfo = getOffloadInfo(R"({"on" : false })"_json);
+        getEngineInfo(R"({"type" : "json_stdout" , "config" : {} })"_json);
   }
 
   // Get the output Engine information.
@@ -249,7 +254,11 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
        info.actionInfo.actions.push_back(it);
      }
   } 
-
+  if (main.contains("communicator")) {
+    info.communicator = main["communicator"].get<std::string>();
+  } else {
+    info.communicator = ""; // Use the default. 
+  }
 
   // Get the test libraries infomation.
   if (main.find("additionalPlugins") != main.end())

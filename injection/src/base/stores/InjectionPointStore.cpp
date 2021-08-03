@@ -9,6 +9,7 @@ defined in base/InjectionPointStore.h.
 #include "base/parser/JsonSchema.h"       // getInjectionPointDeclarationSchema
 #include "c-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
 #include "interfaces/ITest.h"      // TestConfig
+#include "base/stores/SamplerStore.h"
 
 using namespace VnV;
 
@@ -33,6 +34,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(
     }
  
     injectionPoint->runInternal = it->second.runInternal;
+    
     return injectionPoint;
   }
   return nullptr;
@@ -132,7 +134,8 @@ InjectionPointStore& InjectionPointStore::getInjectionPointStore() {
 void InjectionPointStore::addInjectionPoint(std::string package,
                                             std::string name,
                                             bool runInternal,
-                                            std::vector<TestConfig>&tests) {
+                                            std::vector<TestConfig>&tests,
+                                            const SamplerConfig& sinfo) {
 
  std::string key = package + ":" + name;
 
@@ -160,30 +163,23 @@ void InjectionPointStore::addInjectionPoint(std::string package,
                      }),
   tests.end());
 
+  if (!sinfo.name.empty() && ! SamplerStore::instance().createSampler(sinfo)) {
+    VnV_Warn(VNVPACKAGENAME, "Sampler configuration is invalid");
+  }
+
   injectionPoints.insert(std::make_pair(key, InjectionPointConfig(package,name,runInternal,tests)));
 }
 
 void InjectionPointStore::print() {
-  auto rip = VnV_BeginStage(VNVPACKAGENAME, "Registered Injection Points");
   for (auto it : registeredInjectionPoints) {
     VnV_Info(VNVPACKAGENAME, "%s(%s)", it.first.c_str(),
              it.second.specJson.dump().c_str());
   }
-  VnV_EndStage(VNVPACKAGENAME, rip);
-
-  int ups = VnV_BeginStage(VNVPACKAGENAME, "InjectionPointStore Configuration");
+ 
   for (auto it : injectionPoints) {
-    int s = VnV_BeginStage(VNVPACKAGENAME, "Key: %s", it.first.c_str());
     VnV_Info("Iternal Run Configuration is %s",
              (it.second.runInternal) ? "On" : "Off");
-    for (auto itt : it.second.tests) {
-      auto ss =
-          VnV_BeginStage(VNVPACKAGENAME, "Test %s:", itt.getName().c_str());
-      itt.print();
-      VnV_EndStage(VNVPACKAGENAME, ss);
-    }
+  
    
-    VnV_EndStage(VNVPACKAGENAME, s);
   }
-  VnV_EndStage(VNVPACKAGENAME, ups);
 }

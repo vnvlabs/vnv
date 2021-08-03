@@ -40,7 +40,7 @@ IAction* ActionStore::getAction(std::string packageName,
   return nullptr;
 }
 
-void ActionStore::runAction(Communication::ICommunicator_ptr comm,
+void ActionStore::runAction(ICommunicator_ptr comm,
                             std::string packageName, std::string name,
                             const json& config,
                             IAction* action, ActionType& type) {
@@ -54,7 +54,7 @@ void ActionStore::runAction(Communication::ICommunicator_ptr comm,
   }
 }
 
-void ActionStore::runAction(Communication::ICommunicator_ptr comm,
+void ActionStore::runAction(ICommunicator_ptr comm,
                             std::string packageName, std::string name, const json& config, ActionType& type) {
   auto it = action_factory.find(packageName);
   if (it != action_factory.end()) {
@@ -80,16 +80,12 @@ void ActionStore::runAll(VnV_Comm comm, VnV::ActionInfo info, ActionType& type) 
 }
 
 void ActionStore::print() {
-  int a = VnV_BeginStage(VNVPACKAGENAME, "Registered Actions");
   for (auto it : action_factory) {
     VnV_Info(VNVPACKAGENAME, "Action Package: %s ", it.first.c_str());
-    auto aa = VnV_BeginStage(VNVPACKAGENAME, "Actions");
     for (auto itt : it.second) {
       VnV_Info(VNVPACKAGENAME, "%s", itt.first.c_str());
     }
-    VnV_EndStage(VNVPACKAGENAME, aa);
   }
-  VnV_EndStage(VNVPACKAGENAME, a);
 }
 
 

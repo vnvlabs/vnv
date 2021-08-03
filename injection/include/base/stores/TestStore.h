@@ -163,14 +163,11 @@ class TestStoreTemplate {
    * @brief print out test store configuration information.
    */
   void print() {
-    auto b = VnV_BeginStage(VNVPACKAGENAME, "Loaded Tests");
     for (auto it : test_factory) {
-      auto c = VnV_BeginStage(VNVPACKAGENAME, "Test: %s", it.first.c_str());
-      VnV_EndStage(VNVPACKAGENAME, c);
     }
-    VnV_EndStage(VNVPACKAGENAME, b);
   }
 };
+
 
 class TestStore : public  TestStoreTemplate<ITest, maker_ptr, TestConfig> {
 public:

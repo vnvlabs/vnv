@@ -39,11 +39,12 @@ struct EngineInfo {
   json engineConfig;      /**< additional parameters provided by the user */
 };
 
-struct OffloadInfo {
-  bool on;
-  json offloadConfig;
-  std::string offloadType;
+struct SamplerInfo {
+  std::string name = "";
+  std::string package = "";
+  nlohmann::json config = json::object();
 };
+
 
 enum class InjectionType { POINT, ITER, PLUG};
 
@@ -54,6 +55,9 @@ struct InjectionPointInfo {
   std::vector<json> tests;
   std::vector<json> iterators;
   json plug = json::object();
+  
+  SamplerInfo sampler;
+
   bool runInternal;
 };
 
@@ -84,6 +88,9 @@ struct ActionInfo {
  */
 struct RunInfo {
   bool runTests; /**< Should any tests be run */
+  
+  std::string communicator="mpi"; //**< should we use mpi. If yes, vnv will use mpi communicator. if false, we will use serial. 
+  
   std::map<std::string, std::string>
       additionalPlugins; /*< List of file paths to included plugin libraries */
   std::map<std::string, InjectionPointInfo> injectionPoints; /**< all injection points with tests */
@@ -94,7 +101,6 @@ struct RunInfo {
   UnitTestInfo unitTestInfo;
   LoggerInfo logInfo;
   EngineInfo engineInfo; /**< Information about the IO engine */
-  OffloadInfo offloadInfo;
 
   ActionInfo actionInfo;
 
@@ -152,16 +158,6 @@ class JsonParser {
   LoggerInfo getLoggerInfo(const json& loggingJson);
 
   /**
-   * @brief getOffloadInfo
-   * @param offloadJson
-   * @return
-   *
-   * This function parses the offload configuration information provided by the user
-   * in the input file.
-   */
-  OffloadInfo getOffloadInfo(const json& offloadJson);
-
-  /**
    * @brief getEngineInfo
    * @param engineJson The Json extracted from main["engine"]
    * @return A EngineInfo struct describing the users desired Engine type and
@@ -173,6 +169,8 @@ class JsonParser {
 
 
   ActionInfo getActionInfo(const json& actionJson, std::string type);
+
+  SamplerInfo getSamplerInfo(const json& samplerJson);
 
   /**
    * @brief getUnitTestInfo

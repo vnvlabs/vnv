@@ -6,7 +6,7 @@ void nonlinear(double* x, double* fv, int size) {}
 void nlnewt3(void (*f)(double* x, double* fv, int n), double* x, double* fv,
              int n, double eps, int* maxiter);
 
-INJECTION_EXECUTABLE(Newton, VNV, serial)
+INJECTION_EXECUTABLE(Newton)
 
 int main(int argc, char** argv) {
   INJECTION_INITIALIZE(Newton, &argc, &argv,

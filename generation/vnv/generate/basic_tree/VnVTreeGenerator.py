@@ -96,15 +96,14 @@ def writeNode(node, stream):
 
 class VnVTreeGenerator:
     title = "VnV Testing Report"
-    worldSize = -1
+    commMapOn = False
     commMap = {}
 
     def setTitle(self, title):
         self.title = title
 
-    def setCommMap(self, on):
-        self.worldSize = on
-
+    def setCommMapOn(self, on):
+        self.commMapOn = on
 
     def getRestructuredText(self, node):
         return self.dispatcher(node)
@@ -210,12 +209,12 @@ class VnVTreeGenerator:
         t, i = collapseStart(self.title, show=True)
         stream.write(t)
 
-        if (self.worldSize > -1 ):
+        if (self.commMapOn):
             stream.write(getCommMap())
             stream.write("\n\n")
 
         # Write the introduction.
-        stream.write(textwrap.dedent(node.getIntro()))
+        stream.write(textwrap.dedent(node.getVnVSpec().intro()))
 
         # Add the unit testing report for the node.
         if len(node.getUnitTests()) > 0:
@@ -267,7 +266,7 @@ class VnVTreeGenerator:
         # accordingly.
         stream.write(
             "\n\n.. vnv-set-id:: {id}\n\n".format(id=str(node.getId())))
-        stream.write(textwrap.dedent(node.getConclusion()))
+        stream.write(textwrap.dedent(node.getVnVSpec().conclusion()))
         stream.write(collapse_end(i))
         return stream.getvalue()
 

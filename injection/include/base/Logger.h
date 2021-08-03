@@ -120,9 +120,6 @@ class Logger {
   void log_c(VnV_Comm comm, std::string pname, std::string level,
              std::string format, va_list args);
 
-  int beginStage(VnV_Comm comm, std::string pname, std::string format,
-                 va_list args);
-  void endStage(VnV_Comm comm, int ref);
   /**
    * @brief print
    * Print out Logger configuration information.

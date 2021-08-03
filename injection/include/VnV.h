@@ -29,13 +29,15 @@
 
 #  include "interfaces/ICommunicator.h"
 #  include "interfaces/IOutputEngine.h"
-#  include "interfaces/ISerializer.h"
 #  include "interfaces/ITest.h"
 #  include "interfaces/ITransform.h"
 #  include "interfaces/IUnitTest.h"
+#  include "interfaces/IDataType.h"
+#  include "interfaces/IReduction.h"
 #  include "interfaces/IAction.h"
 #  include "interfaces/IIterator.h"
 #  include "interfaces/IPlug.h"
+#  include "interfaces/ISampler.h"
 #  include "interfaces/argType.h"
 
 #else

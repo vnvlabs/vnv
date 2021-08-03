@@ -12,53 +12,127 @@ if(WITH_EXTRACTION AND TARGET Injection::Extraction)
 #This target is always out of date. The dummyFile is never created, so it always runs.
 #Output may or may not change
 
-function(link_vnv_file_main targetName packageName extension)
 
-add_custom_command(
-   OUTPUT  ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}.__cache__
-   COMMAND mkdir -p ${VNV_OUT_DIR}
-   COMMAND Injection::Extraction --output ${VNV_OUT_DIR}/${VNV_OUT_PREFIX} --nowrite ${CMAKE_BINARY_DIR}/compile_commands.json
-   COMMENT "Generating VnV Registration Cache"
-)
+function( add_vnv_generation_target packageName filename cac deps) 
+    
+   if (deps) 
+     set(depfiles ${cac} ${filename})
+   else()
+     set(depfiles ${cac})  
+   endif()
 
-add_custom_command(
-     OUTPUT ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension}
-     COMMAND test -e ${VNV_OUT_DIR} || ${CMAKE_COMMAND} -E make_directory ${VNV_OUT_DIR}
-     COMMAND Injection::Extraction --package ${packageName} --output ${VNV_OUT_DIR}/${VNV_OUT_PREFIX} --extension ${extension} ${CMAKE_BINARY_DIR}/compile_commands.json
-     COMMAND cp ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension} ${VNV_DIST_PATH}
-     DEPENDS ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}.__cache__
-)
+   add_custom_target(
+        vnv_gen_${packageName}
+        COMMAND Injection::Extraction 
+               --output ${filename} 
+               --cache ${cac} 
+               --package ${packageName} 
+               {CMAKE_BINARY_DIR}/compile_commands.json
+        BYPRODUCTS ${depfiles}       
+   )
+   
+   add_custom_target(
+        vnv_force_${packageName}
+        COMMAND Injection::Extraction 
+               --output ${filename} 
+               --cache ${cac} 
+               --force 
+               --package ${packageName} 
+               {CMAKE_BINARY_DIR}/compile_commands.json
+          BYPRODUCTS ${depfiles}
+               )
+   
+   add_custom_target(
+        vnv_reset_${packageName}
+        COMMAND Injection::Extraction 
+               --output ${filename} 
+               --cache ${cac} 
+               --reset 
+               --package ${packageName} 
+               {CMAKE_BINARY_DIR}/compile_commands.json
+          BYPRODUCTS ${depfiles}
+               )
 
-set_source_files_properties(${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
+   add_custom_target(
+        vnv_reset_force_${packageName}
+        COMMAND Injection::Extraction 
+               --output ${filename} 
+               --cache ${cac} 
+               --force 
+               --reset
+               --package ${packageName} 
+               {CMAKE_BINARY_DIR}/compile_commands.json
+          BYPRODUCTS ${depfiles}
+   )
+      
+endfunction()
+
+
+# This function sets the vnv targets as dependencies of some 
+# list of targets (pass them in after packageName). This is usefull 
+# in situations where you generate code containing injection points. 
+function( add_generation_dependencies packageName ) 
+   add_dependencies(vnv_gen_${packageName} ${ARGN})
+   add_dependencies(vnv_force_${packageName} ${ARGN})
+   add_dependencies(vnv_reset_${packageName} ${ARGN})
+   add_dependencies(vnv_reset_force_${packageName} ${ARGN})
+
+   verify_compiler_and_mpi()
 
 endfunction()
 
-else()
-# No extraction to be used. Hope that the distpath has a up to date copy.
-function(link_vnv_file_main targetName packageName extension)
 
-add_custom_command(
-     OUTPUT ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension}
-     COMMAND test -e ${VNV_OUT_DIR} || ${CMAKE_COMMAND} -E make_directory ${VNV_OUT_DIR}
-     COMMAND cp ${VNV_DIST_PATH}/${VNV_OUT_PREFIX}_${packageName}.${extension} ${VNV_OUT_DIR}
-)
-set_source_files_properties(${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
+# This one adds all the targets but makes it up to you 
+function(link_vnv_file_root targetName packageName filename deps )
+
+   #Link the vnv library
+   target_link_libraries(${targetName} PRIVATE Injection::Injection)
+
+   #Add all the custom vnv code generation targets. 
+   add_vnv_generation_target( ${packageName} ${filename} ${CMAKE_BINARY_DIR}/vnv_cache.__cache__ deps )
+   
+endfunction()
+
+
+function(link_vnv_file_man targetName packageName filename)
+   link_vnv_file_root(${targetName} ${packageName} ${filename} false)
+endfunction()   
+
+# This one adds all the targets but makes it up to you 
+# to add the source. 
+function(link_vnv_file_semi targetName packageName filename)
+   link_vnv_file_root(${targetName} ${packageName} ${filename} true)
+   
+   #Add the file as a source
+   target_sources( ${targetName} PRIVATE ${filename} )
+   
+   #Ignore the generated file when processing vnv stuff. We need this because other wise
+   # the parser tries to find these files which dont exist yet. 
+   set_source_files_properties(
+        ${filename}
+        PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0
+   )
 
 endfunction()
+
+
+
+function(link_vnv_file targetName packageName extension)
+   link_vnv_file_semi(${targetName} ${packageName} ${CMAKE_BINARY_DIR}/vnv_registration_${packageName}.${extension})
+      
+   # Make the main target depend on the regen step so regen happens during 
+   # the build/                          
+   add_dependencies(${targetName} vnv_gen_${packageName})
+   
+endfunction()
+
+
+
 
 endif()
 
-function(link_vnv_file targetName packageName extension)
-	link_vnv_file_main(${targetName} ${packageName} ${extension})
-        target_sources(${targetName} PRIVATE ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension})
-        target_link_libraries(${targetName} PRIVATE Injection::Injection)
-endfunction()
 
-function(link_vnv_file_plain targetName packageName extension)
-    link_vnv_file_main(${targetName} ${packageName} ${extension} )
-    target_sources(${targetName} PRIVATE ${VNV_OUT_DIR}/${VNV_OUT_PREFIX}_${packageName}.${extension})
-    target_link_libraries(${targetName} PRIVATE Injection::Injection)
 
-endfunction()
+
 
 

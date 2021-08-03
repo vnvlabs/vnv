@@ -25,10 +25,10 @@ class UnitTestStore {
 
   UnitTestStore();
 
-  void runTest(Communication::ICommunicator_ptr comm, std::string packageName,
+  void runTest(ICommunicator_ptr comm, std::string packageName,
                std::string Name, IUnitTest* tester);
 
-  Communication::ICommunicator_ptr dispatch(VnV_Comm comm, int cores);
+  ICommunicator_ptr dispatch(VnV_Comm comm, int cores);
 
  public:
   void addUnitTester(std::string packageName, std::string name, tester_ptr m,
@@ -38,7 +38,7 @@ class UnitTestStore {
 
   static UnitTestStore& getUnitTestStore();
 
-  void runTest(Communication::ICommunicator_ptr comm, std::string packageName,
+  void runTest(ICommunicator_ptr comm, std::string packageName,
                std::string testName);
 
   void runAll(VnV_Comm comm, VnV::UnitTestInfo info);

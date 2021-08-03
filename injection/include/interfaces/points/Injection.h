@@ -15,7 +15,7 @@
 
 typedef void (*vnv_registration_function)();
 
-
+#define IPCALLBACK [](VnV_Comm comm, VnV::VnVParameterSet &ntv, VnV::OutputEngineManager *engine, VnV::InjectionPointType type, std::string stageId) 
 
 // Put comma before the first variable -- Because we have nothing after
 #  define DOIT(X) , #  X, X
@@ -64,7 +64,7 @@ void BeginPack(A comm, const char* package, const char* id,
 }  // namespace VnV
 
 #  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...) \
-    VnV::CppInjection::BeginPack(createComm(COMM,PNAME), PNAME, NAME, \
+    VnV::CppInjection::BeginPack(COMM, PNAME, NAME, \
                                  callback EVERYONE(__VA_ARGS__))
 
 // SINGULAR INJECTION POINT.
@@ -74,7 +74,7 @@ void BeginPack(A comm, const char* package, const char* id,
 
 // BEGIN A LOOPED INJECTION POINT
 #  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...) \
-    VnV::CppInjection::BeginLoopPack(createComm(COMM, PNAME), PNAME, NAME,  \
+    VnV::CppInjection::BeginLoopPack(COMM, PNAME, NAME,  \
                                      callback EVERYONE(__VA_ARGS__))
 
 #  define INJECTION_LOOP_BEGIN(PNAME, COMM, NAME, ...) \

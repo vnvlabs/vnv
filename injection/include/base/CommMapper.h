@@ -12,7 +12,7 @@ using nlohmann::json;
 
 namespace VnV {
 
-using VnV::Communication::ICommunicator_ptr;
+using VnV::ICommunicator_ptr;
 
 class CommWrap {
 public:
@@ -30,6 +30,7 @@ public:
         j["nodes"] = json::array();
         j["links"] = json::array();
       }
+      
       if (done.find(id) == done.end()) {
 
           json jj = json::object();
@@ -123,14 +124,14 @@ public:
    std::set<long> comms;
    std::set<long> rootComms;
 
-   bool isNew(Communication::ICommunicator_ptr comm);
+   bool isNew(ICommunicator_ptr comm);
 
    //This should track the cores present in a communicator. This should
    //return a unique id to use for this communicator where the id is constant
    // for communicators with the same processors in them.
-   void logComm(Communication::ICommunicator_ptr comm);
+   void logComm(ICommunicator_ptr comm);
    
-   json getCommWorldMap(Communication::ICommunicator_ptr comm, int root=0) {
+   json getCommWorldMap(ICommunicator_ptr comm, int root=0) {
       std::vector<int> res( comm->Rank()==root ? comm->Size() : 0);
       int rank = comm->Rank();
       comm->Gather(&rank,1,res.data(),sizeof(int),root);
@@ -139,7 +140,7 @@ public:
    }
 
 
-   long getNextId(Communication::ICommunicator_ptr comm, long myVal);
+   long getNextId(ICommunicator_ptr comm, long myVal);
    
    std::set<CommWrap_ptr> gatherCommInformation(ICommunicator_ptr worldComm);
 

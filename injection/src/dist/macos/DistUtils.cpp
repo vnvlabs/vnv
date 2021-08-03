@@ -1,6 +1,7 @@
 ﻿#include "base/DistUtils.h"
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
+#include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -126,6 +127,26 @@ std::string join(std::vector<std::string> vector, mode_t i, bool makeDir) {
     return s;
   }
   throw VnV::VnVExceptionBase("Empty directory list");
+}
+
+
+// Really trying to not need boost -- can get rid of this in C++17 (14
+// is we use std::experimental and replace with std::filesystem. )
+// Untested in macos; 
+std::vector<std::string> listFilesInDirectory(std::string directory) {
+  
+  std::vector<std::string> res;
+  
+  DIR *dir;
+  struct dirent *ent;
+  if ((dir = opendir (directory.c_str())) != NULL) {
+  while ((ent = readdir (dir)) != NULL) {
+    res.push_back(ent->d_name);
+  }
+  closedir (dir);
+} else {
+  throw VnVExceptionBase("Could not open directory");
+}
 }
 
 

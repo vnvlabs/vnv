@@ -23,7 +23,7 @@ static const char* schemaCallback = "{\"type\": \"object\", \"required\":[]}";
  * point to aid in the development of input files.
  */
 INJECTION_OPTIONS(SPNAME, schemaCallback) {}
-INJECTION_EXECUTABLE(SPNAME, VNV, serial)
+INJECTION_EXECUTABLE(SPNAME)
 
 int main(int argc, char** argv) {
 

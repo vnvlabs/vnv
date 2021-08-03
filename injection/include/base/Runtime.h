@@ -25,7 +25,7 @@
 #include "c-interfaces/CJson.h"
 #include "c-interfaces/RunTime.h"
 #include "c-interfaces/Wrappers.h"
-#include "interfaces/IOffloader.hpp"
+
 #include "base/ActionType.h"
 /**
  * VnV Namespace
@@ -79,7 +79,6 @@ class RunTime {
   std::set<std::string> packages;
   std::map<std::string, vnvFullJsonStrCallback> jsonCallbacks;
 
-  std::shared_ptr<IOffloader> offloader;
 
   std::set<std::string> registeredPackages;
   int initializedCount = 0;
@@ -103,7 +102,6 @@ class RunTime {
   
   void makeLibraryRegistrationCallbacks( std::map<std::string, std::string> packageNames);
   bool configure(std::string packageName, RunInfo info, registrationCallBack* callback);
-  bool setupOffloadConfiguration(OffloadInfo& info);
 
  public:
   /**
@@ -236,10 +234,7 @@ public:
   void registerLogLevel(std::string packageName, std::string logLevel,
                         std::string color);
 
-  int beginStage(VnV_Comm comm, std::string pname, std::string message,
-                 va_list args);
 
-  void endStage(VnV_Comm comm, int ref);
 
   /**
    * @brief instance

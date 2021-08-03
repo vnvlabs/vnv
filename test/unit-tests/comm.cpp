@@ -27,17 +27,17 @@ INJECTION_UNITTEST(VnVTestRunner,Communication,4) {
 
     bool rworkd = false;
     bool workd = (rank == 0 ) ? false : true;
-    comm->Reduce(&workd,1,&rworkd,sizeof(bool), VnV::Communication::OpType::LAND, 0 );
+    comm->Reduce(&workd,1,&rworkd,sizeof(bool), VnV::OpType::LAND, 0 );
     if (rank == 0 ) {
        TEST_ASSERT_EQUALS("reduce LAND", rworkd, false);
     }
-    comm->Reduce(&workd,1,&rworkd,sizeof(bool), VnV::Communication::OpType::LOR, 0 );
+    comm->Reduce(&workd,1,&rworkd,sizeof(bool), VnV::OpType::LOR, 0 );
     if (rank == 0 ) {
        TEST_ASSERT_EQUALS("reduce LOR", rworkd, true);
     }
     double d = 10.2;
     double s = -1;
-    comm->Reduce(&d,1,&s,sizeof(double), VnV::Communication::OpType::SUM, 0 );
+    comm->Reduce(&d,1,&s,sizeof(double), VnV::OpType::SUM, 0 );
     if (rank == 0 ) {
        TEST_ASSERT_EQUALS("reduce SUM", d*size , s );
     }
@@ -50,17 +50,17 @@ INJECTION_UNITTEST(VnVTestRunner,Communication,4) {
     RANK(0,TEST_ASSERT_EQUALS("comm not contained in ", false, cc));
 
 
-    bool cd = VnV::Communication::CommCompareType::EXACT ==  comm->compare(comm);
+    bool cd = VnV::CommCompareType::EXACT ==  comm->compare(comm);
     RANK(0,TEST_ASSERT_EQUALS("Comm compare with self", true, cd));
 
-    cd = VnV::Communication::CommCompareType::GROUP ==  comm->compare(comm->duplicate());
+    cd = VnV::CommCompareType::GROUP ==  comm->compare(comm->duplicate());
     RANK(0,TEST_ASSERT_EQUALS("Comm compare with duplicate of self", true, cd));
 
-    cd = VnV::Communication::CommCompareType::UNEQUAL ==  comm->compare(comm->create(ranks,10));
+    cd = VnV::CommCompareType::UNEQUAL ==  comm->compare(comm->create(ranks,10));
     RANK(0,TEST_ASSERT_EQUALS("Comm compare with different comm", true, cd));
 
     std::vector<int> re(4);
-    comm->AllReduce(&data[0],2,&re[0],sizeof(int),VnV::Communication::OpType::PROD);
+    comm->AllReduce(&data[0],2,&re[0],sizeof(int),VnV::OpType::PROD);
     cc = (re[0] = 1 && re[1] == 16 );
     RANK(0, TEST_ASSERT_EQUALS("All Reduce", true, cc);)
 
@@ -85,7 +85,7 @@ INJECTION_UNITTEST(VnVTestRunner,Communication,4) {
 
     if (rank == 0) {
       re[1] = -10;
-      VnV::Communication::IStatus_ptr ptr = comm->Probe(1,1);
+      VnV::IStatus_ptr ptr = comm->Probe(1,1);
       TEST_ASSERT_EQUALS("Probe Tag" , 1, ptr->tag());
       TEST_ASSERT_EQUALS("Probe Source", 1, ptr->source());
       comm->Recv(&re[1],1,1,1,sizeof(int));

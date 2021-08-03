@@ -96,7 +96,7 @@ class ParallelEngine : public OutputEngineManager {
   /**
    * @brief Get the configuration Schema for the Debug engine.
    */
-  json getConfigurationSchema() override;
+  json getConfigurationSchema(bool readMode) override;
 
   /**
    * @brief finalize
@@ -107,7 +107,7 @@ class ParallelEngine : public OutputEngineManager {
    * @brief set
    * @param config
    */
-  void setFromJson(ICommunicator_ptr worldComm,json& config) override;
+  void setFromJson(ICommunicator_ptr worldComm,json& config, bool readMode) override;
 
   /**
    * @brief endInjectionPoint

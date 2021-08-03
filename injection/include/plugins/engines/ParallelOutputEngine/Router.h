@@ -31,20 +31,20 @@ class Router {
   std::unordered_map<std::string, std::unordered_map<std::string, Route>>
       put_map;
 
-  VnV::Communication::ICommunicator_ptr m_comm;
+  VnV::ICommunicator_ptr m_comm;
 
   //#ifdef WITH_MPI
   //    MPI_Comm m_comm;
   //#endif /* WITH_MPI */
   int parent_of(int id, int root, int fanout);
   Route children_of(int id, int root, int fanout);
-  void init(VnV::Communication::ICommunicator_ptr ptr);
+  void init(VnV::ICommunicator_ptr ptr);
   int send(int id, Route route, const std::string name,
            const std::string value);
 
  public:
-  Router(VnV::Communication::ICommunicator_ptr ptr);
-  Router(VnV::Communication::ICommunicator_ptr ptr, int fanout);
+  Router(VnV::ICommunicator_ptr ptr);
+  Router(VnV::ICommunicator_ptr ptr, int fanout);
   Router(int id, int root, int size, int fanout);  // Does not set comm ?
   ~Router() {}
   int send(std::string name, std::string value);

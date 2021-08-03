@@ -21,7 +21,7 @@ class ActionStore {
 
   ActionStore();
 
-  void runAction(Communication::ICommunicator_ptr comm, std::string packageName,
+  void runAction(ICommunicator_ptr comm, std::string packageName,
                std::string Name, const json& config, IAction* tester, ActionType& type);
 
 
@@ -32,7 +32,7 @@ class ActionStore {
 
   static ActionStore& getActionStore();
 
-  void runAction(Communication::ICommunicator_ptr comm, std::string packageName,
+  void runAction(ICommunicator_ptr comm, std::string packageName,
                std::string testName, const json& config, ActionType& type);
 
 

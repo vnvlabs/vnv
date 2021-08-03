@@ -1,10 +1,12 @@
 ﻿#ifndef COMMUNICATION_RUNTIME_H
 #define COMMUNICATION_RUNTIME_H
 #include "interfaces/ICommunicator.h"
+#include "interfaces/IReduction.h"
+#include "interfaces/IDataType.h"
 #include "base/stores/CommunicationStore.h"
+#include "base/stores/ReductionStore.h"
 
 namespace VnV {
-namespace Communication {
 
 class DataTypeCommunication {
   ICommunicator_ptr comm;
@@ -52,7 +54,7 @@ public:
 
 
   IDataType_ptr ReduceVector(IDataType_vec &data, long long dtype, std::string reducer, int root) {
-    return ReduceVector(data, dtype, CommunicationStore::instance().getReducer(reducer),root);
+    return ReduceVector(data, dtype, ReductionStore::instance().getReducer(reducer),root);
   }
 
   IDataType_ptr ReduceVector(IDataType_vec &data, long long dtype, IReduction_ptr reducer, int root) {
@@ -64,10 +66,9 @@ public:
   IDataType_ptr ReduceLocalVec(IDataType_vec &data, IReduction_ptr reducer);
 
   IDataType_ptr ReduceLocalVec(IDataType_vec &data, std::string reducer) {
-       return ReduceLocalVec(data, CommunicationStore::instance().getReducer(reducer));
+       return ReduceLocalVec(data, ReductionStore::instance().getReducer(reducer));
   }
 };
 
-}  // namespace Communication
 }  // namespace VnV
 #endif  // COMMUNICATION_H

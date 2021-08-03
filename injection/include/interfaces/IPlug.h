@@ -45,10 +45,10 @@ void registerPlug(std::string package, std::string name,std::string schema, VnV:
     name(PlugConfig& config)                                                    \
         : Test_T<VnV_Arg_Type(Runner), IPlug>(config, #__VA_ARGS__) {}          \
                                                                                 \
-    bool plug(ICommunicator_ptr comm, IOutputEngine *engine) override          \
+    bool plug(ICommunicator_ptr comm, VnV::IOutputEngine *engine) override ;        \
                                                                                 \
   };                                                                            \
-  ITest* declare_##name(TestConfig config) { return new name(config); }         \
+  IPlug* declare_##name(PlugConfig config) { return new name(config); }         \
   void register_##name() {                                                      \
     VnV::registerPlug(#PNAME, #name, schema,declare_##name, VnV::StringUtils::variadicProcess(#__VA_ARGS__)); \
   }                                                                             \
@@ -57,8 +57,8 @@ void registerPlug(std::string package, std::string name,std::string schema, VnV:
   }                                                                             \
   bool VnV::PNAME::Plugs::name::plug(ICommunicator_ptr comm, VnV::IOutputEngine* engine)
 
-#define DECLAREPLUG(PNAME, name) VNVDECLAREMACRO(Plug, PNAME, name)  
-#define REGISTERPLUG(PNAME, name) VNVREGISTERMACRO(Plug, PNAME, name) 
+#define DECLAREPLUG(PNAME, name) VNVDECLAREMACRO(Plugs, PNAME, name)  
+#define REGISTERPLUG(PNAME, name) VNVREGISTERMACRO(Plugs, PNAME, name) 
 
 
 #define INJECTION_PLUG_R(PNAME, name, runner, ...) \
@@ -69,3 +69,6 @@ void registerPlug(std::string package, std::string name,std::string schema, VnV:
 
 
 #endif
+
+
+

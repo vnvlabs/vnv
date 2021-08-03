@@ -74,7 +74,7 @@ void ParallelEngine::Log(ICommunicator_ptr comm, const char* package, int stage,
   }
 }
 
-json ParallelEngine::getConfigurationSchema() {
+json ParallelEngine::getConfigurationSchema(bool radMode) {
   return __parallel_engine_schema__;
 }
 
@@ -82,7 +82,7 @@ void ParallelEngine::finalize(ICommunicator_ptr worldComm) {
   VnV_Info(VNVPACKAGENAME, "PARALLEL ENGINE: FINALIZE");
 }
 
-void ParallelEngine::setFromJson(ICommunicator_ptr comm, json& config) {
+void ParallelEngine::setFromJson(ICommunicator_ptr comm, json& config, bool readMode) {
   printf("PARALLEL ENGINE WRAPPER Init with file %s\n", config.dump().c_str());
   // router = new Router();
 }

@@ -26,19 +26,14 @@ std::string TestConfig::getName() const { return testName; }
 std::string TestConfig::getPackage() const { return package; }
 
 void TestConfig::print() {
-  int a = VnV_BeginStage(VNVPACKAGENAME, "Test Configuration %s",
-                         getName().c_str());
-  VnV_Info(VNVPACKAGENAME, "Configuration Options: %s",
+   VnV_Info(VNVPACKAGENAME, "Configuration Options: %s",
            getAdditionalParameters().dump().c_str());
-  int b = VnV_BeginStage(VNVPACKAGENAME, "Injection Point Mapping");
   for (auto it : parameters) {
     VnV_Info(VNVPACKAGENAME, "(Name, type, rtti) = (%s, %s, %s) ",
              it.first.c_str(), it.second.getType().c_str(),
              it.second.getRtti().c_str());
   }
-  VnV_EndStage(VNVPACKAGENAME, b);
-  VnV_EndStage(VNVPACKAGENAME, a);
-}
+  }
 
 TestConfig::TestConfig(std::string package, std::string name,
                        json& testConfigJson,
@@ -161,6 +156,7 @@ bool TestConfig::preLoadParameterSet(std::map<std::string, std::string>& paramet
 // point that this test is being run inside.
 TestStatus ITest::_runTest(ICommunicator_ptr comm, OutputEngineManager* engine,
                            InjectionPointType type, std::string stageId) {
+  
   VnV_Debug_MPI(VNVPACKAGENAME, comm->asComm(), "Runnnig Test %s ",
                 m_config.getName().c_str());
 

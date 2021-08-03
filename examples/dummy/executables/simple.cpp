@@ -12,7 +12,7 @@
 #include "VnV.h"
 
 #define SPNAME SimpleExecutable
-INJECTION_EXECUTABLE(SPNAME, VNV, mpi)
+INJECTION_EXECUTABLE(SPNAME)
 
 
 

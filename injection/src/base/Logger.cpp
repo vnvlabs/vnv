@@ -78,13 +78,13 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level,
       while (savedLogs.size() > 0) {
         auto& t = savedLogs.front();
         VnV_Comm cc = std::get<4>(t);
-        auto c = CommunicationStore::instance().customComm(cc.name,cc.data);
+        auto c = CommunicationStore::instance().getCommunicator(cc);
         eng->Log(c, std::get<0>(t).c_str(), std::get<1>(t),
                  std::get<2>(t), std::get<3>(t));
         savedLogs.pop();
       }
 
-      auto c = CommunicationStore::instance().customComm(comm.name,comm.data);
+      auto c = CommunicationStore::instance().getCommunicator(comm);
       eng->Log(c, pname.c_str(), stage.size(), level, format);
     } catch (...) {
       // Logging statements that occur prior to the engine being configured at
@@ -113,32 +113,6 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level,
       (*fileptr) << getIndent(stage.size()) << oss.str() << format << std::endl;
     }
   }
-}
-
-int Logger::beginStage(VnV_Comm comm, std::string pname, std::string format,
-                       va_list args) {
-  log_c(comm, pname, "STAGE_START", format, args);
-  stage.push({refcount, pname});
-  return refcount++;
-}
-
-void Logger::endStage(VnV_Comm comm, int ref) {
-  if (stage.size() == 0) return;
-
-  std::pair<int, std::string> cStage = stage.top();
-  while (cStage.first != ref) {
-    VnV_Warn(VNVPACKAGENAME,
-             "Incorrect stage name or missing StageEnd call %d (expected: %d)",
-             ref, cStage.first);
-    stage.pop();
-    if (stage.size() == 0) {
-      break;
-    } else {
-      cStage = stage.top();
-    }
-  }
-  if (stage.size() > 0) stage.pop();
-  log(comm, cStage.second, "STAGE_END", "");
 }
 
 void Logger::log_c(VnV_Comm comm, std::string pname, std::string level,
@@ -182,7 +156,5 @@ void Logger::setLog(const std::string& filename) {
 }
 
 void Logger::print() {
-  int a = VnV_BeginStage(VNVPACKAGENAME, "Logger Configuration");
   VnV_Info(VNVPACKAGENAME, "Outfile Name: %s", outFileName.c_str());
-  VnV_EndStage(VNVPACKAGENAME, a);
 }

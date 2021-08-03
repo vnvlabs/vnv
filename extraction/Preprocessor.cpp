@@ -96,7 +96,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
   std::set<std::string>& modTime;
   std::vector<std::unique_ptr<RawComment>> currComment;
   std::vector<SourceLocation> currentLoc;
-  std::string packName;
 
   json* lastTestJson = nullptr;
 
@@ -105,11 +104,10 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
   bool active = false;
   bool realFile = false;
 
-  PreprocessCallback(std::string packageName, json& j,
+  PreprocessCallback(json& j,
                      std::set<std::string>& includes, Preprocessor& PP)
       : PPCallbacks(), pp(PP), thisJson(j), modTime(includes) {
     commentOptions.ParseAllComments = false;
-    packName = packageName;
     // PP.addCommentHandler(this);
   }
 
@@ -294,6 +292,10 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       json& jj =
           getDef("Reducers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
+    } else if (nae == "INJECTION_SAMPLER_RS") {
+      json& jj =
+          getDef("Samplers", getPackageName(Args, 0), getPackageName(Args, 1));
+      jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_COMM") {
       json& jj =
           getDef("Comms", getPackageName(Args, 0), getPackageName(Args, 1));
@@ -308,29 +310,22 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Package");
       std::string pname = pp.getSpelling(*Args->getUnexpArgument(0));
       jj[pname] = getDocs(Range);
-    } else if (nae == "INJECTION_COMMUNICATOR" ||
-               nae == "INJECTION_EXECUTABLE") {
-      json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Communicator");
-      json& jk = VnV::JsonUtilities::getOrCreate(jj, getPackageName(Args, 0));
-      jk["docs"] = getDocs(Range);
-      jk["package"] = getPackageName(Args, 1);
-      jk["name"] = getPackageName(Args, 2);
     } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 0,true),getPackageName(Args, 2,true));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range);
       thisStage["docs"] = "";
-    } else if (nae == "INJECTION_ITERATION_C" || nae == "INJECTION_ITERATION") {
-        json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true),
-                          getPackageName(Args, 2));
+    } else if (nae == "INJECTION_ITERATION_C") {
+        json& jj = getDef("InjectionPoints", getPackageName(Args, 1, true), getPackageName(Args, 3,true));
         json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
         json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
         jj["docs"] = getDocs(Range);
         jj["iterator"] = true;
         thisStage["docs"] = "";
-    } else if (nae == "INJECTION_PLUGGABLE") {
-        json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 2));
+
+    } else if (nae == "INJECTION_FUNCTION_PLUG_C") {
+        json& jj = getDef("InjectionPoints", getPackageName(Args, 1, true), getPackageName(Args, 3,true));
         json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
         json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
         jj["docs"] = getDocs(Range);
@@ -369,10 +364,9 @@ class PreProcessVnV : public PreprocessorFrontendAction {
   json& mainJson;
   json subJson;
   std::string filename;
-  std::string packName;
   std::set<std::string> includes;
-  PreProcessVnV(json& m, std::string packageName)
-      : mainJson(m), packName(packageName) {}
+  PreProcessVnV(json& m)
+      : mainJson(m){}
   ~PreProcessVnV() {}
 
   void ExecuteAction() {
@@ -382,7 +376,7 @@ class PreProcessVnV : public PreprocessorFrontendAction {
     filename = SRC.getFileEntryForID(SRC.getMainFileID())->tryGetRealPathName().str();
     subJson = json::object();
     PP.addPPCallbacks(
-        std::make_unique<PreprocessCallback>(packName, subJson, includes, PP));
+        std::make_unique<PreprocessCallback>( subJson, includes, PP));
     PP.IgnorePragmas();
 
     Token Tok;
@@ -405,26 +399,27 @@ class PreProcessVnV : public PreprocessorFrontendAction {
 class VnVPackageFinderFrontendActionFactory
     : public tooling::FrontendActionFactory {
  public:
-  VnVPackageFinderFrontendActionFactory(json& processed, std::string pname)
-      : packageName(pname), mainJson(processed) {}
+  VnVPackageFinderFrontendActionFactory(json& processed)
+      : mainJson(processed) {}
 
   std::unique_ptr<FrontendAction> create() override {
-    return std::make_unique<PreProcessVnV>(mainJson, packageName);
+    return std::make_unique<PreProcessVnV>(mainJson);
   }
 
  private:
   std::unique_ptr<PreProcessVnV> ptr;
-  std::string packageName;
   json& mainJson;
 };
 
 json runPreprocessor(CompilationDatabase& comps,
-                     std::vector<std::string>& files,
-                     std::string packageName_) {
-  // Generate the main VnV Declares object.
-  ClangTool VnVTool(comps, files);
+                     std::set<std::string>& files) {
+
+  // Generate the main VnV Declares object.  
+  std::vector<std::string> files_vec(files.begin(),files.end());
+  ClangTool VnVTool(comps, files_vec);
   json j = json::object();
-  VnVPackageFinderFrontendActionFactory factory(j, packageName_);
+  VnVPackageFinderFrontendActionFactory factory(j);
   VnVTool.run(&factory);
   return j;
+
 }

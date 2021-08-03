@@ -4,7 +4,7 @@
 #define RPNAME SampleReader
 #include "VnV.h"
 
-INJECTION_EXECUTABLE(RPNAME, VNV, serial)
+INJECTION_EXECUTABLE(RPNAME)
 
 int main(int argc, char** argv) {
 

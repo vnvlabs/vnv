@@ -129,10 +129,9 @@ class VnVIncludeDirective(Directive):
 
         if "title" in self.options:
             configs.getGenerator().setTitle(self.options['title'])
+        
         if "commmap" in self.options:
-            commMap = env.vnv_current_reader.get().getCommMap()
-            worldSize = env.vnv_current_reader.get().getWorldSize()
-            configs.getGenerator().setCommMap(2)
+            configs.getGenerator().setCommMapOn(True)
 
         # Second, replace myself with a directive for defining the node. .
         unparsedRestructuredText = "\n\n.. vnv-node:: {id}\n\n".format(

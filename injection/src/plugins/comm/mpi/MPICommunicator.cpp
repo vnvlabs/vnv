@@ -14,7 +14,7 @@
 #include "interfaces/ICommunicator.h"
 
 // CommType conflicts with CommType in openmpi.
-using VnVCommType = VnV::Communication::CommType;
+using VnVCommType = VnV::CommType;
 
 namespace VnV {
 namespace Communication {
@@ -204,7 +204,11 @@ class MPICommunicator : public ICommunicator {
     return s;
   }
 
-  double time() override { return MPI_Wtime(); }
+  double time() override {
+     std::cout << "GERERERER " << std::endl;
+     return MPI_Wtime(); 
+     
+  }
 
   double tick() override { return MPI_Wtick(); }
 
@@ -241,6 +245,27 @@ class MPICommunicator : public ICommunicator {
 
   ICommunicator_ptr world() {
     return ICommunicator_ptr(new MPICommunicator(VnVCommType::World));
+  }
+
+  ICommunicator_ptr get() {
+    
+    return ICommunicator_ptr(new MPICommunicator(VnVCommType::World));
+  }
+
+  virtual ICommunicator_ptr handleOtherCommunicators(std::string name, void* data) {
+     if (name.compare("serial") == 0) {
+       return self();
+     } else {
+       throw VnVExceptionBase("MPI Executable cannot handle communicator with name %s",name);
+     }
+  }
+
+  
+  ICommunicator_ptr custom(void* data) {
+     ICommunicator_ptr p;
+     p.reset(new MPICommunicator(VnVCommType::Default));
+     p->setData(data);
+     return p;
   }
 
   ICommunicator_ptr self() {
@@ -514,8 +539,7 @@ MPI_Comm castToMPIComm(ICommunicator_ptr ptr) {
 
   } else if (ptr->getName() == "VNV:mpi") {
 
-    VnV::Communication::MPI::CommKeeper* k =
-        (VnV::Communication::MPI::CommKeeper*)ptr->getData();
+    CommKeeper* k = (CommKeeper*)ptr->getData();
     mpicomm = k->comm;
 
   } else {
@@ -530,8 +554,7 @@ MPI_Comm castToMPIComm(ICommunicator_ptr ptr) {
 }  // namespace Communication
 }  // namespace VnV
 
-INJECTION_COMM(VNVPACKAGENAME, mpi) {
 
+INJECTION_COMM(VNVPACKAGENAME,mpi) {
   return new VnV::Communication::MPI::MPICommunicator(type);
-
 }

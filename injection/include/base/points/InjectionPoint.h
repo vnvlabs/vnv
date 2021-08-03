@@ -16,6 +16,7 @@
 #include "c-interfaces/Wrappers.h"
 #include "json-schema.hpp"
 #include "interfaces/ITest.h"
+#include "interfaces/ISampler.h"
 #include "interfaces/ICommunicator.h"
 
 using nlohmann::json;
@@ -79,6 +80,8 @@ class InjectionPointBase {
   std::string name;
   std::string package;
 
+  std::shared_ptr<ISampler> sampler = nullptr;
+
   std::vector<std::shared_ptr<ITest>> m_tests; /**< Vector of tests given to this injection point */
   std::shared_ptr<IPlug> m_plug = nullptr; 
 
@@ -90,6 +93,10 @@ class InjectionPointBase {
   int callbackType = 0;
   DataCallback cppCallback = nullptr;
   injectionDataCallback* cCallback = nullptr;
+
+  //We set this true when the sampler says we should skip. We cant just
+  //throw away the data structure for heirarchy reasons, 
+  bool skipped = false;
 
   virtual void runTestsInternal(OutputEngineManager* wrapper);  
 

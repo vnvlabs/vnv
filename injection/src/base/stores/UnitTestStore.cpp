@@ -24,13 +24,12 @@ UnitTestStore& UnitTestStore::getUnitTestStore() {
   return store;
 }
 
-Communication::ICommunicator_ptr UnitTestStore::dispatch(VnV_Comm comm,
-                                                         int cores) {
+ICommunicator_ptr UnitTestStore::dispatch(VnV_Comm comm, int cores) {
   auto c = CommunicationStore::instance().getCommunicator(comm);
   if (c->Rank() == 0) {
     if (cores > c->Size()) {
       VnV_Warn_MPI(
-          VNVPACKAGENAME, createComm(VSELF,VNV_STR(VNVPACKAGENAME)),
+          VNVPACKAGENAME, VSELF,
           "Test Requested %d cores but only %d are available -- skipping",
           cores, c->Size());
       return nullptr;
@@ -60,7 +59,7 @@ IUnitTest* UnitTestStore::getUnitTester(std::string packageName,
   return nullptr;
 }
 
-void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,
+void UnitTestStore::runTest(ICommunicator_ptr comm,
                             std::string packageName, std::string name,
                             IUnitTest* tester) {
   tester->setComm(comm);
@@ -71,7 +70,7 @@ void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,
   engineManager->unitTestFinishedCallBack(tester);
 }
 
-void UnitTestStore::runTest(Communication::ICommunicator_ptr comm,
+void UnitTestStore::runTest(ICommunicator_ptr comm,
                             std::string packageName, std::string name) {
   auto it = tester_factory.find(packageName);
   if (it != tester_factory.end()) {
@@ -193,16 +192,12 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
 }
 
 void UnitTestStore::print() {
-  int a = VnV_BeginStage(VNVPACKAGENAME, "Registered Unit Test Modules");
   for (auto it : tester_factory) {
     VnV_Info(VNVPACKAGENAME, "Unit Test Module: %s ", it.first.c_str());
-    auto aa = VnV_BeginStage(VNVPACKAGENAME, "Test Suites");
     for (auto itt : it.second) {
       VnV_Info(VNVPACKAGENAME, "%s", itt.first.c_str());
     }
-    VnV_EndStage(VNVPACKAGENAME, aa);
   }
-  VnV_EndStage(VNVPACKAGENAME, a);
 }
 
 void VnV::registerUnitTester(std::string packageName, std::string name,

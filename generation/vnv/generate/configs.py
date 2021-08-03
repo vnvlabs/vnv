@@ -55,19 +55,7 @@ def add_js_files(outdir, files, srcdir):
 
 def getVnVConfigFile():
     return {
-        "runTests": True,
-        "logging": {
-            "on": True,
-            "filename": "stdout",
-            "logs": {}
-        },
         "additionalPlugins": vnv_plugins,
-        "outputEngine": {
-            "type": "json",
-            "config": {}
-        },
-        "injectionPoints": [
-        ]
     }
 
 

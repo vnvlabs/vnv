@@ -8,19 +8,17 @@
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/PackageName.h"
 #include "interfaces/ICommunicator.h"
+#include "interfaces/IDataType.h"
 
-using VnV::Communication::comm_register_ptr;
-using VnV::Communication::dataType_ptr;
-using VnV::Communication::ICommunicator;
-using VnV::Communication::ICommunicator_ptr;
-using VnV::Communication::IDataType;
-using VnV::Communication::IDataType_ptr;
-using VnV::Communication::IReduction;
-using VnV::Communication::IReduction_ptr;
-using VnV::Communication::reduction_ptr;
-using VnV::Communication::SupportedDataType;
+using VnV::comm_register_ptr;
+using VnV::ICommunicator;
+using VnV::ICommunicator_ptr;
+
+
+
 
 namespace VnV {
+
 
 class CommunicationStore {
  private:
@@ -28,61 +26,37 @@ class CommunicationStore {
   // keys across processors in buffers. Long long avoids sending the char
   // arrays.
 
-  std::map<std::string, std::pair<std::string, std::string>> commMap;
-  std::map<long long, dataType_ptr> dataType_factory;
-  std::map<long long, reduction_ptr> reduction_factory;
-  std::map<long long, comm_register_ptr> communicator_factory;
+
+  ICommunicator_ptr root;
+  std::string name; 
+
+  std::map<std::string, comm_register_ptr> communicator_factory;
+
   CommunicationStore();
 
-  long long getKey(std::string name);
-  long long getKey(std::string packageName, std::string name);
+  void addCommunicator(std::string name, comm_register_ptr factory);
 
  public:
-  void declareComm(std::string packageName, std::string commPackageName,
-                   std::string commName);
 
-  long long getKey(VnV::Communication::IDataType_ptr ptr);
+  void set(std::string name);
 
-  void addCommunicator(std::string packageName, std::string name,
-                       comm_register_ptr factory);
+  VnV_Comm toVnVComm(ICommunicator_ptr ptr);
+  VnV_Comm toVnVComm(ICommunicator* ptr);
 
-  void addReduction(std::string packageName, std::string name, reduction_ptr m);
 
-  void addDataType(std::string packageName, std::string name, dataType_ptr m);
+  VnV_Comm custom(std::string packageName, void* data);
 
-  IDataType_ptr getDataType(long long key);
+  VnV_Comm world();
 
-  IDataType_ptr getDataType(std::string name);
-
-  template <typename T> IDataType_ptr getDataType() {
-    return getDataType(typeid(T).name());
-  }
-
-  IReduction_ptr getReducer(long long key);
-  IReduction_ptr getReducer(std::string packageName, std::string name);
-  IReduction_ptr getReducer(std::string packageColonName);
-
-  ICommunicator_ptr getCommunicator(std::string packageName, std::string name,
-                                    Communication::CommType type);
-
-  ICommunicator_ptr getCommForPackage(std::string packageName,
-                                      Communication::CommType type);
+  VnV_Comm self();
 
   ICommunicator_ptr getCommunicator(VnV_Comm comm);
 
-  ICommunicator_ptr worldComm(std::string packageName);
+  ICommunicator_ptr worldComm();
 
-  ICommunicator_ptr selfComm(std::string packageName);
+  ICommunicator_ptr selfComm();
 
   ICommunicator_ptr customComm(std::string packageName, void* data);
-
-  VnV_Comm toVnVComm(ICommunicator_ptr ptr);
-
-  VnV_Comm customData(std::string packageName, void* data);
-
-  VnV_Comm worldData(std::string packageName);
-
-  VnV_Comm selfData(std::string packageName);
 
   static CommunicationStore& instance();
 

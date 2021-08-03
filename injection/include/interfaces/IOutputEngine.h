@@ -6,13 +6,14 @@
 
 #include "base/Communication.h"
 #include "base/stores/CommunicationStore.h"
+#include "base/stores/ReductionStore.h"
+#include "base/stores/DataTypeStore.h"
 #include "base/exceptions.h"
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/Logging.h"
 #include "c-interfaces/PackageName.h"
 #include "c-interfaces/Wrappers.h"
 #include "interfaces/IUnitTest.h"
-#include "interfaces/nodes/Nodes.h"
 #include "json-schema.hpp"
 
 /**
@@ -24,7 +25,7 @@ namespace VnV {
 
 class IOutputEngine;
 
-using namespace Communication;
+namespace Nodes { class IRootNode; }
 
 enum class InjectionPointType { Single, Begin, End, Iter };
 namespace InjectionPointTypeUtils {
@@ -128,7 +129,7 @@ class IOutputEngine  {
       T>::type* = nullptr>
   void Put(std::string variableName, const T& value,
            const MetaData& m = MetaData()) {
-    auto it = CommunicationStore::instance().getDataType(typeid(T).name());
+    auto it = DataTypeStore::instance().getDataType(typeid(T).name());
     if (it != nullptr) {
       it->setData(&value);
 
@@ -303,7 +304,7 @@ class IOutputEngine  {
 
     IDataType_vec vec(total);
 
-    auto& c = CommunicationStore::instance();
+    auto& c = DataTypeStore::instance();
     auto it = c.getDataType(typeid(T).name());
     if (it != nullptr) {
       long long key = it->getKey();
@@ -561,12 +562,12 @@ class ReductionAction : public BaseAction {
   IReduction_ptr reducer;
   int size, root;
   ReductionAction(std::string red, int s = 1, int r = -1) : size(s), root(r) {
-    reducer = CommunicationStore::instance().getReducer(red);
+    reducer = ReductionStore::instance().getReducer(red);
   }
   virtual void write(ICommunicator_ptr comm, long long dtype,
                      std::string variableName, IDataType_vec data,
                      IOutputEngine* engine, const MetaData& m) const override {
-    Communication::DataTypeCommunication d(comm);
+    DataTypeCommunication d(comm);
 
     int rank =
         (root < 0)
@@ -632,7 +633,7 @@ class ElementWiseReductionAction : public BaseAction {
   int size, root;
   ElementWiseReductionAction(std::string red, int s = 1, int r = -1)
       : size(s), root(r) {
-    reducer = CommunicationStore::instance().getReducer(red);
+    reducer = ReductionStore::instance().getReducer(red);
   }
   virtual void write( ICommunicator_ptr comm, long long dtype,
                      std::string variableName, IDataType_vec data,
@@ -645,7 +646,7 @@ class ElementWiseReductionAction : public BaseAction {
         (root < 0)
             ? engine->getRoot()
             : root;  // r<0 uses the engine root as root to save communication .
-    Communication::DataTypeCommunication d(comm);
+    DataTypeCommunication d(comm);
     IDataType_vec result = d.ReduceMultiple(data, dtype, reducer, rank);
     std::vector<int> offs = {0};
     std::vector<int> lsize(1);
@@ -698,7 +699,7 @@ class ProcessorWiseReductionAction : public ElementWiseReductionAction {
   virtual void write(ICommunicator_ptr comm, long long dtype,
                      std::string variableName, IDataType_vec data,
                      IOutputEngine* engine, const MetaData& m) const override {
-    Communication::DataTypeCommunication d(comm);
+    DataTypeCommunication d(comm);
     IDataType_ptr result = d.ReduceLocalVec(data, reducer);
     engine->PutGlobalArray( dtype, variableName, {result}, {comm->Size()},
                            {1}, {comm->Rank()}, m);
@@ -742,7 +743,7 @@ class SingleProcessorReductionAction : public ProcessorWiseReductionAction {
         (root < 0)
             ? engine->getRoot()
             : root;  // r<0 uses the engine root as root to save communication .
-    Communication::DataTypeCommunication d(comm);
+    DataTypeCommunication d(comm);
     IDataType_ptr result;
     if (comm->Rank() == rank) {
       result = d.ReduceLocalVec(data, reducer);
@@ -794,9 +795,9 @@ void IOutputEngine::Put_ReduceVectorRankOnly(
 
 class IInternalOutputEngine : public IOutputEngine {
  public:
-  virtual void setFromJson(ICommunicator_ptr worldComm, json& configuration) = 0;
+  virtual void setFromJson(ICommunicator_ptr worldComm, json& configuration, bool readMode) = 0;
 
-  virtual json getConfigurationSchema() = 0;
+  virtual json getConfigurationSchema(bool readMode) = 0;
 
   virtual void injectionPointStartedCallBack(ICommunicator_ptr comm,
                                              std::string packageName,
@@ -841,7 +842,7 @@ class OutputEngineManager : public IInternalOutputEngine {
   std::string getKey() { return key; } ;
 
   
-  void set(ICommunicator_ptr world, json& configuration, std::string key);
+  void set(ICommunicator_ptr world, json& configuration, std::string key, bool readMode);
   
   virtual std::string getMainFilePath() {
      throw VnVExceptionBase("Engine does not write to file");
