@@ -12,11 +12,11 @@ long_description = (here / 'README.md').read_text(encoding='utf-8')
 
 
 setup(
-    name='vnv-generator',  # Required
+    name='vnv-python-binding',  # Required
 
     version='0.0.1',  # Required
 
-    description='VnV Report Generation extension for Sphinx',  # Optional
+    description='VnV python API for reading VnV files',  # Optional
 
     long_description=long_description,  # Optional
 
@@ -64,11 +64,7 @@ setup(
     },
 
     package_data={  # Optional
-        "vnv.vnv": ["*.so"],
-        "vnv.directives.charts": ["data/*"],
-        "vnv.directives.paraview": ["data/*"],
-        "vnv.generate": ["data/*"],
-        "vnv.generate.basic_tree": ["data/*"]
+        "vnv.vnv": ["*.so"]
     },
 
 
@@ -80,9 +76,6 @@ setup(
     # For example, the following would provide a command called `sample` which
     # executes the function `main` from this package when invoked:
     entry_points={  # Optional
-        'console_scripts': [
-            'vnv-quickstart=vnv:main',
-        ],
     },
 
     # List additional URLs that are relevant to your project as a dict.

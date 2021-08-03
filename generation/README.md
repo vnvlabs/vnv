@@ -1,1 +1,0 @@
-VnV Toolkit Sphinx Extension

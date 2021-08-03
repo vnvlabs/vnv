@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.6)
-
 project(vnv LANGUAGES CXX C)
 
 set(PROJECT_VERSION 1.0.0)
@@ -47,7 +46,7 @@ add_subdirectory(extraction)
 include("${CMAKE_SOURCE_DIR}/cmake/Registration.cmake")
 
 add_subdirectory(injection)
-add_subdirectory(generation)
+add_subdirectory(python-api)
 
 
 option(BUILD_TESTS "Build the test runner" ON)
