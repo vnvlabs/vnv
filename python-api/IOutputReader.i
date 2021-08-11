@@ -4,9 +4,9 @@
 
 //%include <std_shared_ptr.i>
 //%shared_ptr(VnV::Nodes::IRootNode)
-//%shared_ptr(VnV::Nodes::ITreeGenerator)
-//%shared_ptr(VnV::Nodes::IReader)
- %{
+
+
+%{
  #include "python/PythonInterface.h"
 %}
 
@@ -198,6 +198,9 @@ def Read(filename,reader,config):
             raise RuntimeError("Cannot extract reader information from file extension")
        return ReaderWrapper(filename,ext[1:],config)
    return ReaderWrapper(filename,reader,config)
+
+def LoadPlugin(name, filename):
+   VnVLoadPlugin(name,filename);
 
 
 def castDataBase(obj) :

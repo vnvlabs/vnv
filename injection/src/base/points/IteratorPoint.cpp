@@ -38,7 +38,7 @@ void IterationPoint::addIterator(IteratorConfig &config) {
 
 bool IterationPoint::iterate() {
     
-    OutputEngineManager* wrapper = OutputEngineStore::getOutputEngineStore().getEngineManager();
+    OutputEngineManager* wrapper = OutputEngineStore::instance().getEngineManager();
     
     // On the first iteration, call INjectionPointBegin and run all the tests. 
     if (started == 0) {

@@ -21,6 +21,10 @@ using nlohmann::json_schema::json_validator;
 
 using namespace VnV;
 
+#include "base/Runtime.h"
+BaseStoreInstance(TransformStore)
+
+
 Transformer::Transformer(
     std::string from_,
     std::vector<std::pair<std::string, ITransform*>>& trans) {
@@ -46,10 +50,7 @@ void* Transformer::Transform(void* ptr, std::string& rtti) {
 
 TransformStore::TransformStore() {}
 
-TransformStore& TransformStore::getTransformStore() {
-  static TransformStore store;
-  return store;
-}
+
 
 std::shared_ptr<Transformer> TransformStore::getTransformer(std::string from,
                                                             std::string to) {
@@ -92,5 +93,5 @@ void TransformStore::addTransform(std::string name, trans_ptr t,
 
 void VnV::registerTransform(std::string name, trans_ptr t, std::string from,
                             std::string to) {
-  TransformStore::getTransformStore().addTransform(name, t, from, to);
+  TransformStore::instance().addTransform(name, t, from, to);
 }

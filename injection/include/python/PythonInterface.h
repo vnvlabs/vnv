@@ -25,16 +25,19 @@ class ReaderWrapper {
   ReaderWrapper(std::string filename);
   ReaderWrapper(std::string filename, std::string config);
   ReaderWrapper(std::string filename, std::string reader, std::string config);
+
   Nodes::IRootNode* get();
 
   long getLowerId() { return lowerId; }
   long getUpperId() { return upperId; }
 };
 
+
 bool VnVInit(std::vector<std::string> args, std::string configFilename);
 bool VnVInit_Str(std::vector<std::string> args, std::string configStr);
 bool VnVIsInitialized();
 void VnVFinalize();
+void VnVLoadPlugin(std::string name, std::string filepath);
 
 }  // namespace Python
 

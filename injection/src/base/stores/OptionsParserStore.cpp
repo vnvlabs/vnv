@@ -9,6 +9,8 @@
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
+#include "base/Runtime.h"
+
 using namespace VnV;
 
 OptionsParserStore::OptionsParserStore() {}
@@ -45,11 +47,6 @@ void OptionsParserStore::callBack(std::string name, json info) {
   }
 }
 
-OptionsParserStore& OptionsParserStore::instance() {
-  static OptionsParserStore store;
-  return store;
-}
-
 void OptionsParserStore::parse(json info, json& cmdline) {
   for (auto& it : factory) {
     json& found = JsonUtilities::getOrCreate(info, it.first,
@@ -68,3 +65,5 @@ nlohmann::json& OptionsParserStore::getSchema(std::string package) {
   }
   throw VnV::VnVExceptionBase("no such package");
 }
+
+BaseStoreInstance(OptionsParserStore)

@@ -24,7 +24,9 @@
 #include "base/stores/PlugStore.h"
 #include "base/stores/PlugsStore.h"
 #include "base/stores/TestStore.h"
+#include "base/stores/SamplerStore.h"
 #include "base/stores/UnitTestStore.h"
+#include "base/stores/WalkerStore.h"
 #include "c-interfaces/Logging.h"
 #include "interfaces/IAction.h"
 #include "interfaces/points/Injection.h"
@@ -34,6 +36,34 @@ using namespace VnV;
 INJECTION_OPTIONS(VNVPACKAGENAME, getBaseOptionsSchema().dump().c_str()) {
   RunTime::instance().getRunTimeOptions()->fromJson(config);
 }
+
+
+
+void RunTime::setupStores() {
+    addStore<ActionStore>();
+    addStore<CommunicationStore>();
+    addStore<DataTypeStore>();
+    addStore<InjectionPointStore>();
+    addStore<IteratorStore>();
+    addStore<OptionsParserStore>();
+    addStore<OutputEngineStore>();
+    addStore<PlugStore>();
+    addStore<ReductionStore>();
+    addStore<SamplerStore>();
+    addStore<TestStore>();
+    addStore<TransformStore>();
+    addStore<UnitTestStore>();
+    addStore<WalkerStore>();
+}
+
+
+
+void RunTime::resetStore() {
+    stores.clear();
+    setupStores();
+}
+
+
 
 namespace {
   
@@ -74,6 +104,8 @@ void RunTime::makeLibraryRegistrationCallbacks(
     loadPlugin(it.second, it.first);
   }
 }
+
+
 
 bool RunTime::useAsciiColors() { return terminalSupportsAsciiColors; }
 
@@ -231,7 +263,7 @@ std::shared_ptr<PlugPoint> RunTime::getNewInjectionPlug(VnV_Comm comm,
     loadHotPatch(comm);
 
     std::shared_ptr<PlugPoint> ipd =
-        PlugStore::getPlugStore().getNewPlug(pname, id, in_args, out_args);
+        PlugStore::instance().getNewPlug(pname, id, in_args, out_args);
     if (ipd != nullptr) {
       return ipd;
     } else if (runTimeOptions.logUnhandled) {
@@ -288,7 +320,7 @@ std::shared_ptr<InjectionPoint> RunTime::getNewInjectionPoint(VnV_Comm comm,
     loadHotPatch(comm);
 
     std::shared_ptr<InjectionPoint> ipd =
-        InjectionPointStore::getInjectionPointStore().getNewInjectionPoint(
+        InjectionPointStore::instance().getNewInjectionPoint(
             pname, id, type, in_args);
     if (ipd != nullptr) {
       ipd->setInjectionPointType(type, "Begin");
@@ -305,7 +337,7 @@ std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(
     std::string stageId) {
   if (runTests) {
     std::shared_ptr<InjectionPoint> ipd =
-        InjectionPointStore::getInjectionPointStore().getExistingInjectionPoint(
+        InjectionPointStore::instance().getExistingInjectionPoint(
             pname, id, type);
     if (ipd != nullptr) {
       ipd->setInjectionPointType(type, stageId);
@@ -381,12 +413,23 @@ void RunTime::declarePackageJson(std::string pname,
   jsonCallbacks.insert(std::make_pair(pname, callback));
 }
 
-RunTime& RunTime::instance() {
+RunTime& RunTime::instance(bool reset) {
   static RunTime store;
+  if (reset) {
+    store = RunTime();
+  }
   return store;
 }
+RunTime& RunTime::instance() {
+  return instance(false);
+}
+RunTime& RunTime::reset() {
+  return instance(true);
+}
 
-RunTime::RunTime() {}
+RunTime::RunTime() {
+  setupStores();
+}
 
 void RunTime::registerLogLevel(std::string packageName, std::string name,
                                std::string color) {
@@ -464,9 +507,9 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
 
   if (initializedCount == 1) {
 
-     if (!OutputEngineStore::getOutputEngineStore().isInitialized()) {
+     if (!OutputEngineStore::instance().isInitialized()) {
       VnV_Debug(VNVPACKAGENAME, "Configuring The Output Engine");
-      OutputEngineStore::getOutputEngineStore().setEngineManager(
+      OutputEngineStore::instance().setEngineManager(
           world, info.engineInfo.engineType, info.engineInfo.engineConfig);
       VnV_Debug(VNVPACKAGENAME, "Output Engine Configuration Successful");
     }
@@ -492,12 +535,12 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
     } else if (it.second.type == InjectionType::PLUG) {
       auto plug = std::make_shared<PlugConfig>(
           std::move(PlugsStore::instance().validateTest(it.second.plug)));
-      PlugStore::getPlugStore().addPlug(it.second.package, it.second.name,
+      PlugStore::instance().addPlug(it.second.package, it.second.name,
                                         it.second.runInternal, x, plug);
     }
 
     SamplerConfig sconfig(it.second); 
-    InjectionPointStore::getInjectionPointStore().addInjectionPoint(
+    InjectionPointStore::instance().addInjectionPoint(
         it.second.package, it.second.name, it.second.runInternal, x, sconfig);
   }
 }
@@ -708,7 +751,7 @@ bool RunTime::Finalize() {
     auto comm = CommunicationStore::instance().worldComm();
 
     INJECTION_LOOP_END(VNV_STR(VNVPACKAGENAME), "initialization");
-    OutputEngineStore::getOutputEngineStore().getEngineManager()->finalize(
+    OutputEngineStore::instance().getEngineManager()->finalize(
         comm);
 
     // Call any cleanup actions that were registered.
@@ -718,6 +761,7 @@ bool RunTime::Finalize() {
 
     runActions(VWORLD, info.actionInfo, ActionType::finalize());
   }
+  resetStore();
   return true;
 }
 
@@ -730,24 +774,24 @@ void RunTime::log(VnV_Comm comm, std::string pname, std::string level,
 
 void RunTime::runUnitTests(VnV_Comm comm, UnitTestInfo info) {
   loadHotPatch(comm);
-  UnitTestStore::getUnitTestStore().runAll(comm, info);
+  UnitTestStore::instance().runAll(comm, info);
 }
 
 void RunTime::runActions(VnV_Comm comm, ActionInfo info, ActionType t) {
   // Load any hot patches.
   loadHotPatch(comm);
-  ActionStore::getActionStore().runAll(comm, info, t);
+  ActionStore::instance().runAll(comm, info, t);
 }
 
 void RunTime::readFile(std::string filename, long& idCounter) {
-  OutputEngineStore::getOutputEngineStore().getEngineManager()->readFromFile(
+  OutputEngineStore::instance().getEngineManager()->readFromFile(
       filename, idCounter);
 }
 
 void RunTime::printRunTimeInformation() {
   logger.print();
-  OutputEngineStore::getOutputEngineStore().print();
+  OutputEngineStore::instance().print();
   TestStore::instance().print();
-  InjectionPointStore::getInjectionPointStore().print();
+  InjectionPointStore::instance().print();
 }
 std::string RunTime::getPackageName() { return mainPackageName; }

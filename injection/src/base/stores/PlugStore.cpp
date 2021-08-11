@@ -2,14 +2,20 @@
   @file PlugStore.cpp Implementation of the injection point store as
 defined in base/PlugStore.h.
 **/
-
+#include "base/stores/PlugsStore.h"
 #include "base/stores/PlugStore.h"
 #include "base/parser/JsonSchema.h"       // getplugDeclarationSchema
 #include "c-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
 #include "interfaces/ITest.h"      // TestConfig
 #include "interfaces/IPlug.h"
 #include "base/points/PlugPoint.h"
+#include "base/Runtime.h"
+
 using namespace VnV;
+
+BaseStoreInstance(PlugStore)
+BaseStoreInstance(PlugsStore)
+
 
 PlugStore::PlugStore() {}
 
@@ -75,11 +81,6 @@ std::shared_ptr<PlugPoint> PlugStore::getNewPlug(
   return newPlug(package, name, in_args,out_args);
 }
 
-
-PlugStore& PlugStore::getPlugStore() {
-  static PlugStore store;
-  return store;
-}
 
 void PlugStore::addPlug(std::string package,
                                             std::string name,

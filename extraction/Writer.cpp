@@ -115,7 +115,9 @@ class RegistrationWriter {
     registerHelper(j, "Transforms", "TRANSFORM", packageName);
     registerHelper(j, "Reducers", "REDUCER", packageName);
     registerHelper(j, "Samplers", "SAMPLER", packageName);
+    registerHelper(j, "Walkers", "WALKER", packageName);
     registerHelper(j, "DataTypes", "DATATYPE", packageName);
+    
     if (j.contains("LogLevels")) {
       for (auto it : j["LogLevels"].items()) {
         std::string pname = it.value()["packageName"].get<std::string>();
@@ -231,7 +233,7 @@ void writeFile(json& cacheInfo, std::string outputFileName,
   for (auto it : cacheInfo["data"].items()) {
     for (std::string type :
          {"InjectionPoints", "SubPackages", "LogLevels", "Tests", "Iterators",
-          "Plugs", "Engines", "Comms", "Reducers", "Samplers", "DataTypes", "Serializers",
+          "Plugs", "Engines", "Comms", "Reducers", "Samplers", "Walkers", "DataTypes", "Serializers",
           "Transforms", "UnitTests", "Actions", "Options", "Introduction",
           "Conclusion", "Package", "Communicator"}) {
       json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);

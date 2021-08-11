@@ -12,19 +12,19 @@
 #include "c-interfaces/PackageName.h"
 #include "interfaces/IDataType.h"
 #include "base/parser/JsonParser.h"
+#include "base/stores/BaseStore.h"
+
 namespace VnV {
 
 
-class DataTypeStore {
- private:
+class DataTypeStore : public BaseStore {
+
   std::map<long long, dataType_ptr> dataType_factory;
+ public:
 
   DataTypeStore(){}
 
 
- public:
-
-  static DataTypeStore& instance();
 
 
    void addDataType(std::string packageName, std::string name, dataType_ptr m);
@@ -38,6 +38,9 @@ class DataTypeStore {
   }
 
   void print();
+
+  static DataTypeStore& instance();
+
 };
 
 }  // namespace VnV

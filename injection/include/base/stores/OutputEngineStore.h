@@ -10,6 +10,8 @@
 #include <string>
 
 #include "interfaces/IOutputEngine.h"
+#include "base/stores/BaseStore.h"
+
 /**
   \file Headers for the Engine Store.
 */
@@ -44,24 +46,27 @@ namespace VnV {
  * registered with the VnV Engine store through the input file.
  *
  */
-class OutputEngineStore {
+class OutputEngineStore :public  BaseStore {
+
  private:
   std::map<std::string, engine_register_ptr*>
       registeredEngines; /**< List of all registered engines */
   std::shared_ptr<OutputEngineManager>
       manager; /**< The current Engine Manager being used in VnV for all IO */
   std::string engineName;
-  /**
-   * @brief EngineStore
-   * Private constructor called through public static function getEngineStore()
-   */
-  OutputEngineStore();
 
   bool initialized = false; /**< Set when the Engine has been initialized */
 
   long idCounter = 0;
 
  public:
+
+   /**
+   * @brief EngineStore
+   * Private constructor called through public static function getEngineStore()
+   */
+  OutputEngineStore();
+
   /**
    * @brief registerEngine
    * @param name The name of this engine.
@@ -108,11 +113,7 @@ class OutputEngineStore {
    */
   void setEngineManager(ICommunicator_ptr world, std::string key, json& config);
 
-  /**
-   * @brief getEngineStore
-   * @return The EngineStore.
-   */
-  static OutputEngineStore& getOutputEngineStore();
+  
   /**
    * @brief printAvailableEngines
    *
@@ -128,6 +129,8 @@ class OutputEngineStore {
    * @brief print
    */
   void print();
+
+  static OutputEngineStore& instance(); 
 };
 
 }  // namespace VnV

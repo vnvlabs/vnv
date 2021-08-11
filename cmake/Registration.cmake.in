@@ -33,7 +33,7 @@ function( verify_compiler_and_mpi)
    checkcompiler("MPI C compiler version" ${VNV_MPI_C_VERSION} ${MPI_C_VERSION})
    checkcompiler("MPI CXX compiler" ${VNV_MPI_CXX_COMPILER} ${MPI_CXX_COMPILER})
    checkcompiler("MPI CXX compiler version" ${VNV_MPI_CXX_VERSION} ${MPI_CXX_VERSION})
-endif()
+endfunction()
 
 
 function( add_vnv_generation_target packageName filename cac deps) 

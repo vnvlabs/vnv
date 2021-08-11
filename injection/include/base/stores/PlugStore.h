@@ -9,6 +9,8 @@
 #include "base/stores/InjectionPointStore.h"
 #include "interfaces/IPlug.h"
 #include "base/points/PlugPoint.h"
+#include "base/stores/BaseStore.h"
+
 using nlohmann::json;
 
 namespace VnV {
@@ -33,14 +35,14 @@ public:
 };
 
 
-class PlugStore {
- private:
+class PlugStore: public BaseStore {
+
+private:
 
   std::map<std::string, InjectionPlugConfig>  plugs; /**< The stored configurations */
   std::map<std::string, PlugSpec> registeredPlugs;
 
 
-  PlugStore();
 
   std::shared_ptr<PlugPoint> newPlug(std::string packageName,
                                                     std::string name,
@@ -48,6 +50,9 @@ class PlugStore {
 
 
 public:
+
+  PlugStore();
+
 
   void registerPlug(std::string packageName, std::string id, json& jsonObject);
 
@@ -68,15 +73,8 @@ public:
   // injection point schema OR an array of objects that individually validate
   // against that same schema.
   void registerPlug(std::string packageName, std::string name, std::string json_str);
- 
-  /**
-   * @brief getInjectionPointStore
-   * @return The InjectionPointStore
-   *
-   * static initializer for the InjectionPointStore. This function creates a
-   * static store on first call, returning that object on each subsequent call.
-   */
-  static PlugStore& getPlugStore();
+   static PlugStore& instance();
+
 
 };  // end InjectionPointStore
 

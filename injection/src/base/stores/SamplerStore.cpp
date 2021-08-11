@@ -4,8 +4,11 @@
 
 #include "base/Utilities.h"
 #include "base/exceptions.h"
+#include "base/Runtime.h"
 
 namespace VnV {
+
+BaseStoreInstance(SamplerStore)
 
 void SamplerStore::addSampler(std::string packageName, std::string name, std::string schema,
                               sampler_ptr m) {
@@ -40,11 +43,6 @@ bool SamplerStore::createSampler(const SamplerConfig& config) {
     }
   }
   return false;
-}
-
-SamplerStore& SamplerStore::instance() {
-  static SamplerStore store;
-  return store;
 }
 
 }  // namespace VnV

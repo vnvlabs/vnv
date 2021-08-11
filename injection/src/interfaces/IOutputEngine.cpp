@@ -99,5 +99,5 @@ IOutputEngine* OutputEngineManager::getOutputEngine() {
 }
 
 void VnV::registerEngine(std::string name, engine_register_ptr r) {
-  OutputEngineStore::getOutputEngineStore().registerEngine(name, r);
+  OutputEngineStore::instance().registerEngine(name, r);
 }

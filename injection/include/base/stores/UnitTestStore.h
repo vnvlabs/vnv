@@ -12,18 +12,19 @@
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/PackageName.h"
 #include "interfaces/IUnitTest.h"
+#include "base/stores/BaseStore.h"
 
 namespace VnV {
 
-class UnitTestStore {
- private:
+class UnitTestStore : public BaseStore {
+
+private:
   std::map<std::string,
            std::map<std::string, tester_ptr*, std::less<std::string>>>
       tester_factory;
 
   std::map<std::string, int> tester_cores;
 
-  UnitTestStore();
 
   void runTest(ICommunicator_ptr comm, std::string packageName,
                std::string Name, IUnitTest* tester);
@@ -31,12 +32,13 @@ class UnitTestStore {
   ICommunicator_ptr dispatch(VnV_Comm comm, int cores);
 
  public:
+
+  UnitTestStore();
+
   void addUnitTester(std::string packageName, std::string name, tester_ptr m,
                      int cores);
 
   IUnitTest* getUnitTester(std::string packageName, std::string name);
-
-  static UnitTestStore& getUnitTestStore();
 
   void runTest(ICommunicator_ptr comm, std::string packageName,
                std::string testName);
@@ -44,6 +46,10 @@ class UnitTestStore {
   void runAll(VnV_Comm comm, VnV::UnitTestInfo info);
 
   void print();
+
+  
+  static UnitTestStore& instance();
+
 };
 
 }  // namespace VnV

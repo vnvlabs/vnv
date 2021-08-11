@@ -106,6 +106,8 @@ nlohmann::json& getOrCreate(nlohmann::json& parent, std::string key,
 
 nlohmann::json load(std::string s);
 
+bool validate(nlohmann::json& obj, nlohmann::json& schema);
+
 }  // namespace JsonUtilities
 
 namespace MapUtilities {

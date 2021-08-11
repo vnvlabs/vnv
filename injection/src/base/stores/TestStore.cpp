@@ -16,10 +16,12 @@
 #include "base/stores/OutputEngineStore.h"
 #include "c-interfaces/Logging.h"
 #include "json-schema.hpp"
+#include "base/Runtime.h"
+
 using nlohmann::json_schema::json_validator;
 
 using namespace VnV;
 
-
+BaseStoreInstance(TestStore)
 
 

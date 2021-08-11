@@ -8,6 +8,8 @@
 
 #include "base/points/IteratorPoint.h"
 #include "base/stores/InjectionPointStore.h"
+#include "base/stores/BaseStore.h"
+
 using nlohmann::json;
 
 namespace VnV {
@@ -22,19 +24,23 @@ class InjectionIteratorConfig : public InjectionPointConfig {
         iterators(iterators_) {}
 };
 
-class IteratorStore {
+class IteratorStore : public BaseStore {
+ 
+ 
  private:
   std::map<std::string, InjectionIteratorConfig>
       iterators; /**< The stored configurations */
   std::map<std::string, InjectionPointSpec> registeredIterators;
 
-  IteratorStore();
 
   std::shared_ptr<IterationPoint> newIterator(std::string packageName,
                                               std::string name, int once_,
                                               NTV& in_args, NTV& out_args);
 
  public:
+
+  IteratorStore();
+
   void registerIterator(std::string packageName, std::string id,
                         json& jsonObject);
 
@@ -52,13 +58,6 @@ class IteratorStore {
   void registerIterator(std::string packageName, std::string name,
                         std::string json_str);
 
-  /**
-   * @brief getInjectionPointStore
-   * @return The InjectionPointStore
-   *
-   * static initializer for the InjectionPointStore. This function creates a
-   * static store on first call, returning that object on each subsequent call.
-   */
   static IteratorStore& instance();
 
 };  // end InjectionPointStore

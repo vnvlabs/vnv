@@ -4,11 +4,13 @@ defined in base/IteratorStore.h.
 **/
 
 #include "base/stores/IteratorStore.h"
+#include "base/stores/IteratorsStore.h"
 #include "base/parser/JsonSchema.h"       // getInjectionPointDeclarationSchema
 #include "c-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
 #include "interfaces/ITest.h"      // TestConfig
 #include "base/points/IteratorPoint.h"
 #include "interfaces/IIterator.h"
+#include "base/Runtime.h"
 
 using namespace VnV;
 
@@ -78,14 +80,6 @@ std::shared_ptr<IterationPoint> IteratorStore::getNewIterator(
 }
 
 
-
-
-
-IteratorStore& IteratorStore::instance() {
-  static IteratorStore store;
-  return store;
-}
-
 void IteratorStore::addIterator(std::string package,
                                             std::string name,
                                             bool runInternal,
@@ -138,4 +132,6 @@ void IteratorStore::addIterator(std::string package,
   iterators.insert(std::make_pair(key, InjectionIteratorConfig(package,name,runInternal,tests,niterators)));
 }
 
+BaseStoreInstance(IteratorStore)
+BaseStoreInstance(IteratorsStore)
 

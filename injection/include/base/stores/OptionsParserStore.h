@@ -14,20 +14,29 @@
 using nlohmann::json;
 
 #include "c-interfaces/CJson.h"
+#include "base/stores/BaseStore.h"
+
 
 namespace VnV {
 
-class OptionsParserStore {
+class OptionsParserStore :public BaseStore {
+ friend class Runtime; 
+ 
+ 
  private:
+
   std::map<std::string,
            std::pair<json, std::pair<options_callback_ptr*,
                                      options_cpp_callback_ptr*>>,
            std::less<std::string>>
       factory;
 
-  OptionsParserStore();
 
  public:
+
+  OptionsParserStore();
+
+
   void add(std::string name, json& m, options_callback_ptr v);
   void add(std::string name, json& m, options_cpp_callback_ptr v);
   void callBack(std::string name, json info);
@@ -37,6 +46,8 @@ class OptionsParserStore {
   json& getSchema(std::string package);
 
   static OptionsParserStore& instance();
+
+
 };
 
 }  // namespace VnV

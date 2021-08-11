@@ -4,9 +4,12 @@
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 
+#include "base/Runtime.h"
 
 
 namespace VnV {
+
+BaseStoreInstance(ReductionStore)
 
 namespace { 
   
@@ -46,10 +49,6 @@ IReduction_ptr ReductionStore::getReducer(std::string packageColonName) {
 }
 
 
-ReductionStore& ReductionStore::instance() {
-  static ReductionStore store;
-  return store;
-}
 
 
 }  // namespace VnV

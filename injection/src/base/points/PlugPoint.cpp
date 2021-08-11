@@ -36,7 +36,7 @@ bool PlugPoint::plug() {
       return false;
     }
 
-    OutputEngineManager* wrapper = OutputEngineStore::getOutputEngineStore().getEngineManager();
+    OutputEngineManager* wrapper = OutputEngineStore::instance().getEngineManager();
     InjectionPointBase::setInjectionPointType(InjectionPointType::Begin,"Begin");
     
     started = true;    

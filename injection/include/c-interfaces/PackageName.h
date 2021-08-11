@@ -84,6 +84,12 @@
 // be picked up by the clang parser.
 #define INJECTION_PACKAGEDOCS(PNAME)
 
+// Allows the user to define a comment for any vnv injection object at some other place.
+// Comments will be inserted based on the IMPORTANCE rating. The comment specified above
+// a VNV Object has an importance rating of 0  
+#define INJECTION_COMMENT(PNAME, NAME, TYPE, IMPORTANT)
+
+
 // Forward declare the VNV Registration Function.
 INJECTION_REGISTRATION(VNVPACKAGENAME);
 

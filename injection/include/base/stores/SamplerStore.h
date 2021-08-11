@@ -9,20 +9,21 @@
 #include <string>
 
 #include "interfaces/ISampler.h"
+#include "base/stores/BaseStore.h"
+
 
 namespace VnV {
 
 
-class SamplerStore {
- private:
+class SamplerStore : public BaseStore {
+
+private:
   std::map<std::string, ISampler_ptr> samplers;
   std::map<std::string, std::pair<sampler_ptr, std::string>> sampler_factory;
-  SamplerStore(){}
   
 
  public:
-
-  static SamplerStore& instance();
+  SamplerStore(){}
 
   ISampler_ptr getSamplerForInjectionPoint(std::string ipPackage, std::string ipName);
 
@@ -31,6 +32,9 @@ class SamplerStore {
   bool createSampler(const SamplerConfig& config);
 
   void print();
+
+  static SamplerStore& instance();
+
 };
 
 }  // namespace VnV

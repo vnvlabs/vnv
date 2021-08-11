@@ -8,6 +8,7 @@
 #include "base/exceptions.h"
 #include "base/Runtime.h"
 #include "c-interfaces/Logging.h"
+#include "base/Runtime.h"
 
 using namespace VnV;
 using nlohmann::json;
@@ -36,11 +37,6 @@ void OutputEngineStore::printAvailableEngines() {
 }
 
 OutputEngineStore::OutputEngineStore() {}
-
-OutputEngineStore& OutputEngineStore::getOutputEngineStore() {
-  static OutputEngineStore engine;
-  return engine;
-}
 
 void OutputEngineStore::print() {
   printAvailableEngines();
@@ -73,3 +69,5 @@ OutputEngineManager* OutputEngineStore::getEngineManager() {
   if (manager != nullptr) return manager.get();
   throw VnVExceptionBase("Engine Not Initialized Error");
 }
+
+BaseStoreInstance(OutputEngineStore)

@@ -59,8 +59,8 @@ void generateReport(const ReportingInfo& reportConfig) {
       Py_Initialize();
     }
 
-    std::string reader = VnV::OutputEngineStore::getOutputEngineStore().getEngineManager()->getKey();
-    std::string file = VnV::OutputEngineStore::getOutputEngineStore().getEngineManager()->getMainFilePath();
+    std::string reader = VnV::OutputEngineStore::instance().getEngineManager()->getKey();
+    std::string file = VnV::OutputEngineStore::instance().getEngineManager()->getMainFilePath();
 
     std::ostringstream oss;
     oss << "import sys\ntry:\n  from vnv import quickstart\nexcept ModuleNotFoundError as err:\n  print(err)\n  sys.exit(1)\n";

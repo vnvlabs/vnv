@@ -9,17 +9,17 @@
 #include "base/stores/TestStore.h"
 #include "interfaces/IPlug.h"
 #include "base/points/PlugPoint.h"
+#include "base/stores/BaseStore.h"
+
 namespace VnV {
 
 
-class PlugsStore : public  TestStoreTemplate<IPlug, plug_maker_ptr, PlugConfig> {
+class PlugsStore : public  TestStoreTemplate<IPlug, plug_maker_ptr, PlugConfig> , public BaseStore {
+
 public:
    PlugsStore() : TestStoreTemplate<IPlug, plug_maker_ptr, PlugConfig> (){}
+   static PlugsStore& instance();
 
-   static PlugsStore& instance() {
-     static PlugsStore store;
-     return store;
-  }
 };
 
 } // namespace VnV

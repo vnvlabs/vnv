@@ -34,6 +34,6 @@ void VnV::CppInjection::IterLoop(const char* package, const char* id,
 }
 
 void VnV::CppInjection::RegisterInjectionPoint(const char* package, const char* id,std::string json) {
-  VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint( package, id, json);
+  VnV::InjectionPointStore::instance().registerInjectionPoint( package, id, json);
 }
 

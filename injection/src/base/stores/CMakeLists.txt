@@ -13,6 +13,8 @@
           ${CMAKE_CURRENT_LIST_DIR}/DataTypeStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/ReductionStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/SamplerStore.cpp
+          ${CMAKE_CURRENT_LIST_DIR}/WalkerStore.cpp
+          
           
                              
 )

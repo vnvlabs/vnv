@@ -31,7 +31,7 @@ int  _VnV_injectionPlugRun(VnV_Iterator *iterator) {
 }
 
 void _VnV_registerInjectionPlug(const char* package, const char* id, const char* parameters ) {
-  VnV::PlugStore::getPlugStore().registerPlug( package, id, parameters);
+  VnV::PlugStore::instance().registerPlug( package, id, parameters);
 }
 
 

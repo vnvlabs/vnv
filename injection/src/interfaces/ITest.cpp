@@ -71,7 +71,7 @@ void TestConfig::setParameterMap(VnVParameterSet& args) {
         // In a test where "isMappingValidFor..." is called, this shoud never
         // happen.
         std::shared_ptr<Transformer> p =
-            TransformStore::getTransformStore().getTransformer(
+            TransformStore::instance().getTransformer(
                 injection->second.getType(), testParamType);
         parameters.insert(std::make_pair(
             testParameter, VnVParameter(it->second->Transform(
@@ -133,13 +133,13 @@ bool TestConfig::preLoadParameterSet(std::map<std::string, std::string>& paramet
             VNVPACKAGENAME,
             "Injection point parameters unknown. Parameters will be passed "
             "without type checking");
-        tran = TransformStore::getTransformStore().getTransformer(
+        tran = TransformStore::instance().getTransformer(
             testParameterType->second, testParameterType->second);
       } else {
         return false;  // required parameter not found.
       }
     } else {
-      tran = TransformStore::getTransformStore().getTransformer(
+      tran = TransformStore::instance().getTransformer(
           StringUtils::squash_copy(injectionParamType->second),
           StringUtils::squash_copy(testParameterType->second));
     }

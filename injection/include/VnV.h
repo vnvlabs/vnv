@@ -38,6 +38,7 @@
 #  include "interfaces/IIterator.h"
 #  include "interfaces/IPlug.h"
 #  include "interfaces/ISampler.h"
+#  include "interfaces/IWalker.h"
 #  include "interfaces/argType.h"
 
 #else

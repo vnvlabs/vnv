@@ -72,7 +72,7 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level,
     try {
       // Next statement throws if true.
       OutputEngineManager* eng =
-          OutputEngineStore::getOutputEngineStore().getEngineManager();
+          OutputEngineStore::instance().getEngineManager();
 
       // Clear any saved logs.
       while (savedLogs.size() > 0) {

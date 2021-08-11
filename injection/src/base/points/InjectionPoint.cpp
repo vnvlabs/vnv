@@ -134,7 +134,7 @@ void InjectionPoint::run() {
 
   if (runIt) {
 
-    OutputEngineManager* wrapper = OutputEngineStore::getOutputEngineStore().getEngineManager();
+    OutputEngineManager* wrapper = OutputEngineStore::instance().getEngineManager();
 
     wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId);
 

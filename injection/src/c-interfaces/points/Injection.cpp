@@ -44,7 +44,7 @@ int _VnV_injectionPoint_end(const char* package, const char* id) {
 }
 
 void _VnV_registerInjectionPoint(const char* package, const char* id, const char* parameters) {
-  VnV::InjectionPointStore::getInjectionPointStore().registerInjectionPoint( package, id, parameters);
+  VnV::InjectionPointStore::instance().registerInjectionPoint( package, id, parameters);
 }
 
 

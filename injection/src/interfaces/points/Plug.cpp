@@ -4,7 +4,7 @@
 
 
 void VnV::CppPlug::Register(const char* package, const char* id, std::string json) {
-  VnV::PlugStore::getPlugStore().registerPlug(package, id, json);
+  VnV::PlugStore::instance().registerPlug(package, id, json);
 }
 
 

@@ -11,6 +11,7 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include "base/stores/BaseStore.h"
 
 #include "json-schema.hpp"
 using nlohmann::json;
@@ -74,17 +75,13 @@ public:
 };
 
 
-class InjectionPointStore {
- private:
+class InjectionPointStore : public BaseStore {
+
+   
   std::map<std::string, std::stack<std::shared_ptr<InjectionPoint>>> active; /**< Active injection point stack*/
   std::map<std::string, InjectionPointConfig>  injectionPoints; /**< The stored configurations */
   std::map<std::string, InjectionPointSpec> registeredInjectionPoints;
 
-  /**
-   * @brief InjectionPointStore
-   * Private constructor. The class creates itself on first use.
-   */
-  InjectionPointStore();
 
   /**
    * @brief newInjectionPoint
@@ -113,6 +110,14 @@ class InjectionPointStore {
 
 
  public:
+
+   /**
+   * @brief InjectionPointStore
+   * Private constructor. The class creates itself on first use.
+   */
+   InjectionPointStore();
+
+
   /**
    * @brief getInjectionPoint
    * @param key The name of the injection point requested.
@@ -160,18 +165,12 @@ class InjectionPointStore {
   void registerInjectionPoint(std::string packageName, std::string name, std::string json_str);
 
   /**
-   * @brief getInjectionPointStore
-   * @return The InjectionPointStore
-   *
-   * static initializer for the InjectionPointStore. This function creates a
-   * static store on first call, returning that object on each subsequent call.
-   */
-  static InjectionPointStore& getInjectionPointStore();
-
-  /**
    * @brief print out injection point infomration.
    */
   void print();
+
+  static InjectionPointStore& instance();
+
 
 };  // end InjectionPointStore
 

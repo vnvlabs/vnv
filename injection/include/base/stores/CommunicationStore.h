@@ -9,7 +9,7 @@
 #include "c-interfaces/PackageName.h"
 #include "interfaces/ICommunicator.h"
 #include "interfaces/IDataType.h"
-
+#include "base/stores/BaseStore.h"
 using VnV::comm_register_ptr;
 using VnV::ICommunicator;
 using VnV::ICommunicator_ptr;
@@ -20,7 +20,10 @@ using VnV::ICommunicator_ptr;
 namespace VnV {
 
 
-class CommunicationStore {
+class CommunicationStore :public BaseStore {
+ friend class Runtime; 
+
+
  private:
   // Using long long here as the key because we want to be able to pass these
   // keys across processors in buffers. Long long avoids sending the char
@@ -31,12 +34,12 @@ class CommunicationStore {
   std::string name; 
 
   std::map<std::string, comm_register_ptr> communicator_factory;
+ public:
 
   CommunicationStore();
 
   void addCommunicator(std::string name, comm_register_ptr factory);
 
- public:
 
   void set(std::string name);
 
@@ -58,10 +61,9 @@ class CommunicationStore {
 
   ICommunicator_ptr customComm(std::string packageName, void* data);
 
-  static CommunicationStore& instance();
-
-
   void Finalize();
+
+  static CommunicationStore& instance();
 };
 
 }  // namespace VnV

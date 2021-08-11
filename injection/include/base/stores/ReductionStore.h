@@ -12,20 +12,18 @@
 #include "c-interfaces/PackageName.h"
 #include "interfaces/IReduction.h"
 #include "base/parser/JsonParser.h"
+#include "base/stores/BaseStore.h"
+
 namespace VnV {
 
 
-class ReductionStore {
- private:
+class ReductionStore : public BaseStore{
 
   std::map<long long, reduction_ptr> reduction_factory;
 
+ public:
   ReductionStore(){}
 
-
- public:
-
-  static ReductionStore& instance();
 
   IReduction_ptr getReducer(long long key);
 
@@ -36,6 +34,9 @@ class ReductionStore {
   void addReduction(std::string packageName, std::string name, reduction_ptr m);
 
   void print();
+
+  static ReductionStore& instance();
+
 };
 
 }  // namespace VnV

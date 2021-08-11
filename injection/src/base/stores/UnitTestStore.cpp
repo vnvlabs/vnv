@@ -12,17 +12,17 @@
 #include "base/Utilities.h"
 #include "c-interfaces/Logging.h"
 
+#include "base/Runtime.h"
+
 using namespace VnV;
+
+BaseStoreInstance(UnitTestStore)
 
 UnitTestStore::UnitTestStore() {}
 
 IUnitTest::IUnitTest() {}
 IUnitTest::~IUnitTest() {}
 
-UnitTestStore& UnitTestStore::getUnitTestStore() {
-  static UnitTestStore store;
-  return store;
-}
 
 ICommunicator_ptr UnitTestStore::dispatch(VnV_Comm comm, int cores) {
   auto c = CommunicationStore::instance().getCommunicator(comm);
@@ -64,7 +64,7 @@ void UnitTestStore::runTest(ICommunicator_ptr comm,
                             IUnitTest* tester) {
   tester->setComm(comm);
   OutputEngineManager* engineManager =
-      OutputEngineStore::getOutputEngineStore().getEngineManager();
+      OutputEngineStore::instance().getEngineManager();
   engineManager->unitTestStartedCallBack(comm, packageName, name);
   tester->run();
   engineManager->unitTestFinishedCallBack(tester);
@@ -202,5 +202,5 @@ void UnitTestStore::print() {
 
 void VnV::registerUnitTester(std::string packageName, std::string name,
                              tester_ptr m, int cores) {
-  UnitTestStore::getUnitTestStore().addUnitTester(packageName, name, m, cores);
+  UnitTestStore::instance().addUnitTester(packageName, name, m, cores);
 }

@@ -10,17 +10,17 @@
 
 #include "base/stores/TestStore.h"
 #include "interfaces/IIterator.h"
+#include "base/stores/BaseStore.h"
 
 namespace VnV {
 
-class IteratorsStore : public  TestStoreTemplate<IIterator, iterator_maker_ptr, IteratorConfig> {
+class IteratorsStore : public  TestStoreTemplate<IIterator, iterator_maker_ptr, IteratorConfig>, public BaseStore {
+
 public:
    IteratorsStore() : TestStoreTemplate<IIterator, iterator_maker_ptr, IteratorConfig>() {}
+   
+   static IteratorsStore& instance();
 
-   static IteratorsStore& instance() {
-     static IteratorsStore store;
-     return store;
-  }
 };
 
 

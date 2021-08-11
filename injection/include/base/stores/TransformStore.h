@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "interfaces/ITransform.h"
+#include "base/stores/BaseStore.h"
 
 namespace VnV {
 
@@ -34,19 +35,23 @@ class Transformer {
 /**
  * @brief The TestStore class
  */
-class TransformStore {
+class TransformStore : public BaseStore  {
+
  private:
   /**
    * @brief trans_factory
    */
   std::map<std::string, trans_ptr*, std::less<std::string>> trans_factory;
   std::map<std::string, std::map<std::string, std::string>> trans_map;
+
+
+ public:
+
   /**
    * @brief TestStore
    */
   TransformStore();
 
- public:
   /**
    * @brief addTransform
    * @param name
@@ -63,15 +68,12 @@ class TransformStore {
   std::shared_ptr<Transformer> getTransformer(std::string from, std::string to);
 
   /**
-   * @brief getTestStore
-   * @return
-   */
-  static TransformStore& getTransformStore();
-
-  /**
    * @brief print out test store configuration information.
    */
   void print();
+
+  static TransformStore& instance();
+
 };
 
 }  // namespace VnV

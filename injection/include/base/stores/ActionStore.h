@@ -12,12 +12,16 @@
 #include "c-interfaces/PackageName.h"
 #include "interfaces/IAction.h"
 #include "base/parser/JsonParser.h"
+#include "base/stores/BaseStore.h"
 namespace VnV {
 
 
-class ActionStore {
- private:
+class ActionStore : public BaseStore {
+  
   std::map<std::string, std::map<std::string, action_ptr*, std::less<std::string>>> action_factory;
+ 
+ public:
+
 
   ActionStore();
 
@@ -25,12 +29,9 @@ class ActionStore {
                std::string Name, const json& config, IAction* tester, ActionType& type);
 
 
- public:
   void addAction(std::string packageName, std::string name, action_ptr m);
 
   IAction* getAction(std::string packageName, std::string name);
-
-  static ActionStore& getActionStore();
 
   void runAction(ICommunicator_ptr comm, std::string packageName,
                std::string testName, const json& config, ActionType& type);
@@ -39,6 +40,9 @@ class ActionStore {
   void runAll(VnV_Comm comm, VnV::ActionInfo info, ActionType& type);
 
   void print();
+
+  static ActionStore& instance();
+
 };
 
 }  // namespace VnV

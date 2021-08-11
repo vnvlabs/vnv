@@ -92,6 +92,9 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
  public:
   Preprocessor& pp;
   json& thisJson;
+
+  json docOverrides;
+
   CommentOptions commentOptions;
   std::set<std::string>& modTime;
   std::vector<std::unique_ptr<RawComment>> currComment;
@@ -109,6 +112,18 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       : PPCallbacks(), pp(PP), thisJson(j), modTime(includes) {
     commentOptions.ParseAllComments = false;
     // PP.addCommentHandler(this);
+  }
+
+  void override_comment(SourceRange range, std::string packageName, std::string name, std::string type, int importannce) {
+        json& docOverrides = VnV::JsonUtilities::getOrCreate(thisJson, "doc_overrides");
+        json& j = VnV::JsonUtilities::getOrCreate(docOverrides, type);
+        json& jj = VnV::JsonUtilities::getOrCreate(j, packageName + ":" + name);
+        
+        if (jj.contains("imp") && jj["imp"].get<int>() > importannce ) {
+           return;
+        } 
+        jj["imp"] = importannce;
+        jj["docs"] = getDocs(range);   
   }
 
   std::string getCommentFor(DiagnosticsEngine& eng, SourceManager& SM,
@@ -227,7 +242,15 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
 
     // Reset the lastTestJson object as we have a new Injection macro.
     lastTestJson = nullptr;
-    if (nae == "INJECTION_TEST_RS") {
+    if (nae == "INJECTION_COMMENT") {
+        
+        std::string pname = getPackageName(Args,0);
+        std::string name = getPackageName(Args,1);
+        std::string type = getPackageName(Args,2);
+        int import = std::atoi(getPackageName(Args,3).c_str());
+        override_comment(Range, pname,name,type, import);
+
+    } else if (nae == "INJECTION_TEST_RS") {
       json& jj =
           getDef("Tests", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
@@ -295,6 +318,10 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     } else if (nae == "INJECTION_SAMPLER_RS") {
       json& jj =
           getDef("Samplers", getPackageName(Args, 0), getPackageName(Args, 1));
+      jj["docs"] = getDocs(Range);
+    } else if (nae == "INJECTION_WALKER_S") {
+      json& jj =
+          getDef("Walkers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_COMM") {
       json& jj =
@@ -406,6 +433,30 @@ class VnVPackageFinderFrontendActionFactory
     return std::make_unique<PreProcessVnV>(mainJson);
   }
 
+  void finalize() {
+    if (mainJson.contains("doc_overrides")) {
+      nlohmann::json overrides = mainJson["doc_overrides"];
+      for (auto type : overrides.items() ) {
+      
+           if (mainJson.contains(type.key())) {
+             
+             json tjson = mainJson[type.key()];
+             for (auto & n : type.value().items()) {
+                if (tjson.contains(n.key())) {
+                   tjson[n.key()]["docs"] = n.value()["docs"];
+                } else {
+                  std::cout << "Error -- No " << type.key() << " named " << n.key() << std::endl;
+                }
+             }    
+           } else {
+             std::cout << "Error -- No type named " << type.key() << std::endl;
+           }
+      }
+      mainJson.erase("doc_overrides");
+    }
+  }
+
+
  private:
   std::unique_ptr<PreProcessVnV> ptr;
   json& mainJson;
@@ -420,6 +471,7 @@ json runPreprocessor(CompilationDatabase& comps,
   json j = json::object();
   VnVPackageFinderFrontendActionFactory factory(j);
   VnVTool.run(&factory);
+  factory.finalize();
   return j;
 
 }

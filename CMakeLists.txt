@@ -43,11 +43,11 @@ endif()
 
 add_subdirectory(extraction)
 
+configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake @ONLY)
 include("${CMAKE_SOURCE_DIR}/cmake/Registration.cmake")
 
 add_subdirectory(injection)
 add_subdirectory(python-api)
-
 
 option(BUILD_TESTS "Build the test runner" ON)
 if(BUILD_TESTS)
@@ -92,7 +92,6 @@ configure_package_config_file(
   ${CMAKE_CURRENT_BINARY_DIR}/InjectionConfig.cmake
   INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake)
 
 # Install the config, configversion and custom find modules
 install(

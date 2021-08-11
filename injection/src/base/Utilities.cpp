@@ -211,6 +211,18 @@ nlohmann::json& VnV::JsonUtilities::getOrCreate(json& parent, std::string key,
   return parent[key];
 }
 
+bool VnV::JsonUtilities::validate(nlohmann::json& obj, nlohmann::json& schema) {
+  try {
+     nlohmann::json_schema::json_validator validator;
+     validator.set_root_schema(schema);
+     validator.validate(obj);
+     return true;
+  } catch (std::exception e) {
+    return false;
+  }
+}
+
+
 std::string VnV::getFileExtension(const std::string& fileName) {
   if (fileName.find_last_of(".") != std::string::npos)
     return fileName.substr(fileName.find_last_of(".") + 1);

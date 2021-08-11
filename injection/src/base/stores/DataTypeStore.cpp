@@ -3,9 +3,12 @@
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "base/stores/DataTypeStore.h"
+#include "base/Runtime.h"
 
 
 namespace VnV {
+
+BaseStoreInstance(DataTypeStore)
 
 namespace {
 
@@ -40,11 +43,6 @@ IDataType_ptr DataTypeStore::getDataType(long long key) {
 
 IDataType_ptr DataTypeStore::getDataType(std::string name) {
    return getDataType(getKey("",name));
-}
-
-DataTypeStore& DataTypeStore::instance() {
-  static DataTypeStore store;
-  return store;
 }
 
 

@@ -30,7 +30,10 @@ void VnV_declarePackageJson(const char* packageName,
   VnV::RunTime::instance().declarePackageJson(packageName, callback);
 }
 
-void VnV_finalize() { VnV::RunTime::instance().Finalize(); }
+void VnV_finalize() { 
+  VnV::RunTime::instance().Finalize();
+  VnV::RunTime::reset();
+}
 
 void VnV_runUnitTests(VnV_Comm comm) {
   VnV::RunTime::instance().runUnitTests(comm, VnV::UnitTestInfo());

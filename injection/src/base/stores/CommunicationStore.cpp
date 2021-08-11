@@ -3,6 +3,7 @@
 
 #include "base/Utilities.h"
 #include "base/exceptions.h"
+#include "base/Runtime.h"
 
 using VnV::CommType;
 
@@ -121,12 +122,10 @@ VnV_Comm CommunicationStore::self() {
   return {self_str,NULL};
 }
 
-CommunicationStore& CommunicationStore::instance() {
-  static CommunicationStore store;
-  return store;
-}
 void CommunicationStore::Finalize() {
   root->Finalize();
 }
+
+BaseStoreInstance(CommunicationStore)
 
 }  // namespace VnV

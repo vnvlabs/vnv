@@ -10,6 +10,7 @@ defined in base/InjectionPointStore.h.
 #include "c-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
 #include "interfaces/ITest.h"      // TestConfig
 #include "base/stores/SamplerStore.h"
+#include "base/Runtime.h"
 
 using namespace VnV;
 
@@ -126,10 +127,6 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::fetchFromQueue(
   return ptr;
 }
 
-InjectionPointStore& InjectionPointStore::getInjectionPointStore() {
-  static InjectionPointStore store;
-  return store;
-}
 
 void InjectionPointStore::addInjectionPoint(std::string package,
                                             std::string name,
@@ -183,3 +180,5 @@ void InjectionPointStore::print() {
    
   }
 }
+
+BaseStoreInstance(InjectionPointStore)

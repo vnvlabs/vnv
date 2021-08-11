@@ -17,6 +17,8 @@
 
 
 #include "interfaces/ITest.h"
+#include "base/stores/BaseStore.h"
+
 
 namespace VnV {
 
@@ -169,14 +171,12 @@ class TestStoreTemplate {
 };
 
 
-class TestStore : public  TestStoreTemplate<ITest, maker_ptr, TestConfig> {
+class TestStore : public  TestStoreTemplate<ITest, maker_ptr, TestConfig>, public BaseStore {
+
 public:
    TestStore() : TestStoreTemplate<ITest, maker_ptr, TestConfig>() {}
+   static TestStore& instance();
 
-   static TestStore& instance() {
-     static TestStore store;
-     return store;
-  }
 };
 
 } // namespace VnV

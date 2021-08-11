@@ -11,15 +11,11 @@
 #include "base/stores/OutputEngineStore.h"
 #include "base/Utilities.h"
 #include "c-interfaces/Logging.h"
+#include "base/Runtime.h"
 
 using namespace VnV;
 
 ActionStore::ActionStore() {}
-
-ActionStore& ActionStore::getActionStore() {
-  static ActionStore store;
-  return store;
-}
 
 void ActionStore::addAction(std::string packageName, std::string name,  action_ptr m) {
   if (action_factory.find(packageName) == action_factory.end()) {
@@ -88,8 +84,11 @@ void ActionStore::print() {
   }
 }
 
+ActionStore& ActionStore::instance() {
+  return RunTime::instance().store<ActionStore>();
+}
 
 void VnV::registerAction(std::string packageName, std::string name,
                              action_ptr m) {
-  ActionStore::getActionStore().addAction(packageName, name, m);
+  ActionStore::instance().addAction(packageName, name, m);
 }
