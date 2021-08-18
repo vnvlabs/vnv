@@ -44,6 +44,7 @@ class JsonFileIterator : public Iterator<json> {
   ~JsonFileIterator() { ifs.close(); }
 };
 
+
 class JsonFileStream : public FileStream<JsonFileIterator,json> {
   
   std::map<long, std::ofstream> streams;
@@ -74,6 +75,8 @@ class JsonFileStream : public FileStream<JsonFileIterator,json> {
       it->second << "\n{ \"id\": " << jid << ", \"object\" : " << obj.dump() << "}";
     }
   };
+
+
 };
 
 INJECTION_ENGINE(VNVPACKAGENAME, json_file) { 

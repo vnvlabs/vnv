@@ -19,6 +19,7 @@
 namespace VnV {
 
 class IWalker;
+class WalkerNode;
 
 namespace Nodes {
 
@@ -305,9 +306,9 @@ class VnVSpec {
   VnVSpec() {}
   void set(const nlohmann::json& s) { spec = s; }
 
-  std::string intro() {
-    std::cout << spec.dump(3) << std::endl;
+  std::string get() { return spec.dump(); }
 
+  std::string intro() {
     return spec["Introduction"]["docs"].get<std::string>();
   }
 
@@ -335,17 +336,12 @@ enum class node_type { ROOT, POINT, START, ITER, END, LOG, DONE };
 
 class WalkerWrapper {
   std::shared_ptr<IWalker> ptr;
-  WalkerNode node;
+  std::shared_ptr<WalkerNode> node;
  public:
-  WalkerWrapper(std::shared_ptr<IWalker> walker) : ptr(walker) {}
+  WalkerWrapper(std::shared_ptr<IWalker> walker);
   
-  WalkerNode* next() { 
-    if (ptr->next(node)) {
-      return &node;
-    }
-    return nullptr;
-  }
-  
+  WalkerNode* next();
+
 };
 
 class IRootNode : public DataBase, public DataBaseWithChildren {

@@ -9,17 +9,23 @@ target_sources( injection PRIVATE
 
 
 
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(CURL)
-if (CURL_FOUND) 
+find_package(Microhttpd)
+
+if (CURL_FOUND AND MICROHTTPD_FOUND) 
 
 target_link_libraries(injection PRIVATE ${CURL_LIBRARIES})
 target_include_directories(injection PRIVATE ${CURL_INCLUDE_DIRS})
+target_include_directories(injection PRIVATE ${MICROHTTPD_INCLUDE_DIRS})
+target_link_libraries(injection PRIVATE ${MICROHTTPD_LIBRARIES})
+
 target_sources( injection PRIVATE 
     ${CMAKE_CURRENT_LIST_DIR}/json_http.cpp
 )
 
 endif()
-
 
 option(WITH_ADIOS_ENGINE "Use the Adios Engine" ON)
 if(WITH_ADIOS_ENGINE AND WITH_MPI)

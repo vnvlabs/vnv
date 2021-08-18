@@ -1146,8 +1146,11 @@ template <typename T> class StreamManager : public OutputEngineManager {
 };
 
 template <class T> class ParserVisitor {
+ 
  public:
-  Iterator<T>& jstream;
+  
+ 
+  std::shared_ptr<Iterator<T>> jstream;
   std::shared_ptr<RootNode> rootInternal;
   long& idCounter;
 
@@ -1163,7 +1166,7 @@ template <class T> class ParserVisitor {
     std::shared_ptr<A> base_ptr(new A());
     base_ptr->name = noName;
     base_ptr->id = idCounter++;
-    base_ptr->streamId = jstream.streamId();
+    base_ptr->streamId = jstream->streamId();
     rootInternal->add(base_ptr);
     return base_ptr;
   }
@@ -1246,12 +1249,12 @@ template <class T> class ParserVisitor {
       elm->key = key;
 
       // Push elm to the top of this stream.
-      jstream.push(elm);
+      jstream->push(elm);
       int count1 = 0;
       for (auto& itt : it.value().items()) {
         visit(itt.value(), count1++);
       }
-      jstream.pop();
+      jstream->pop();
       n->value.push_back(elm);
     }
     return n;
@@ -1386,19 +1389,21 @@ template <class T> class ParserVisitor {
     return n;
   }
 
-  ParserVisitor(Iterator<T>& jstream_, long& idStart,
+  ParserVisitor(std::shared_ptr<Iterator<T>> jstream_, long& idStart,
                 std::shared_ptr<RootNode> rootNode)
       : jstream(jstream_), idCounter(idStart), rootInternal(rootNode) {}
 
   void process() {
-    while (jstream.hasNext()) {
-      auto p = jstream.next();
-      visit(p.first, p.second);
+    while (!jstream->isDone()) {
+      if (jstream->hasNext()) {
+        auto p = jstream->next();
+        visit(p.first, p.second);
+      }
     }
   }
 
   void childNodeDispatcher(std::shared_ptr<DataBase> child, long elementId) {
-    std::shared_ptr<DataBase> parent = jstream.top();
+    std::shared_ptr<DataBase> parent = jstream->top();
     if (parent == nullptr) {
       parent = rootInternal;
     }
@@ -1466,12 +1471,12 @@ template <class T> class ParserVisitor {
       rootInternal->getCommInfoNode()->getCommMap()->add(p.first, p.second);
 
     } else if (node == JSN::dataTypeEnded) {
-      visitDataNodeEnded(j, jstream.pop());
+      visitDataNodeEnded(j, jstream->pop());
 
     } else if (node == JSN::dataTypeStarted) {
       auto n = visitDataNodeStarted(j);
       childNodeDispatcher(n, elementId);
-      jstream.push(n);
+      jstream->push(n);
 
     } else if (node == JSN::info) {
       rootInternal->infoNode = visitInfoNode(j);
@@ -1479,7 +1484,7 @@ template <class T> class ParserVisitor {
     } else if (node == JSN::injectionPointEnded) {
       // This injection point is done.
       std::shared_ptr<InjectionPointNode> p =
-          std::dynamic_pointer_cast<InjectionPointNode>(jstream.pop());
+          std::dynamic_pointer_cast<InjectionPointNode>(jstream->pop());
       p->__isOpen = false;
       visitInjectionPointEndedNode(j, p, elementId);
 
@@ -1492,21 +1497,21 @@ template <class T> class ParserVisitor {
 
       p->__isOpen == true;
       childNodeDispatcher(p, elementId);
-      jstream.push(p);
+      jstream->push(p);
 
       rootInternal->addIDN(p->id, p->streamId, node_type::START,
                            elementId);
 
     } else if (node == JSN::injectionPointIterEnded) {
       std::shared_ptr<InjectionPointNode> p =
-          std::dynamic_pointer_cast<InjectionPointNode>(jstream.top());
+          std::dynamic_pointer_cast<InjectionPointNode>(jstream->top());
       visitInjectionPointIterEndedNode(j, p, elementId);
       p->__isOpen = false;
       p->isIter = false;
 
     } else if (node == JSN::injectionPointIterStarted) {
       std::shared_ptr<InjectionPointNode> p =
-          std::dynamic_pointer_cast<InjectionPointNode>(jstream.top());
+          std::dynamic_pointer_cast<InjectionPointNode>(jstream->top());
 
       visitInjectionPointIterStartedNode(j, p, elementId);
 
@@ -1521,9 +1526,9 @@ template <class T> class ParserVisitor {
       childNodeDispatcher(n, elementId);
 
     } else if (node == JSN::testFinished) {
-      auto p = jstream.pop();
+      auto p = jstream->pop();
 
-      if (std::dynamic_pointer_cast<InjectionPointNode>(jstream.top())
+      if (std::dynamic_pointer_cast<InjectionPointNode>(jstream->top())
               ->isIter) {
         visitTestNodeIterEnded(j, p);
       } else {
@@ -1531,7 +1536,7 @@ template <class T> class ParserVisitor {
       }
 
     } else if (node == JSN::testStarted) {
-      auto p = jstream.top();
+      auto p = jstream->top();
       if (p->getType() != DataBase::DataType::InjectionPoint) {
         throw VnVExceptionBase("Bad Heirrarchy");
       }
@@ -1545,23 +1550,23 @@ template <class T> class ParserVisitor {
           auto t = std::dynamic_pointer_cast<TestNode>(it);
           if (t->uid == uid) {
             visitTestNodeIterStarted(j, t);
-            jstream.push(t);
+            jstream->push(t);
             break;
           }
         }
       } else {
         std::shared_ptr<TestNode> t = visitTestNodeStarted(j);
         childNodeDispatcher(t, elementId);
-        jstream.push(t);
+        jstream->push(t);
       }
 
     } else if (node == JSN::unitTestFinished) {
-      visitUnitTestNodeEnded(j, jstream.pop());
+      visitUnitTestNodeEnded(j, jstream->pop());
 
     } else if (node == JSN::unitTestStarted) {
       auto u = visitUnitTestNodeStarted(j);
       rootInternal->unitTests->add(u);
-      jstream.push(u);
+      jstream->push(u);
 
     } else if (node == JSN::shape) {
       std::string type = j[JSD::dtype].template get<std::string>();
@@ -1640,7 +1645,9 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
 
   virtual std::shared_ptr<IRootNode> parse(std::string file, long& id) {
     this->filestub = file;
-    MultiStreamIterator<T, V> stream;
+    
+    
+    auto stream = std::make_shared<MultiStreamIterator<T,V>>();
 
     std::string meta = VnV::DistUtils::join({filestub, ".meta"}, 0777, false);
     std::vector<std::string> files =
@@ -1652,7 +1659,7 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
         if (it.substr(dot).compare(JSD::extension) == 0) {
           long id = std::atol(it.substr(0, dot).c_str());
           std::string fname = VnV::DistUtils::join({filestub, it}, 0777, false);
-          stream.add(std::make_shared<T>(id, fname));
+          stream->add(std::make_shared<T>(id, fname));
         }
       } catch (...) {
       }

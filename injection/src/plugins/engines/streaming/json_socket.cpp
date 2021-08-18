@@ -4,15 +4,17 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <netdb.h> //hostent
+#include <thread>
 
 #include "base/DistUtils.h"
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "interfaces/IOutputEngine.h"
-#include "plugins/engines/streaming/streamtemplate.h"
+#include "plugins/engines/streaming/streamreader.h"
 
 using namespace VnV::VNVPACKAGENAME::Engines::Streaming;
 using nlohmann::json;
+using namespace VnV::StreamReader; 
 
 class TcpClient {
  private:
@@ -80,9 +82,41 @@ class TcpClient {
   }
 };
 
+
+
+class JsonSocketStreamIterator : public VnV::StreamReader::JsonStreamIterator {
+  int port = 0;
+  struct MHD_Daemon* daemon;
+
+ public:
+  JsonSocketStreamIterator(int port_) : JsonStreamIterator(), port(port_){};
+
+  bool start_stream_reader() override {
+    if (daemon != NULL) {
+       throw VnV::VnVExceptionBase("Socket Reader not implemented yet");
+    }
+    return daemon != NULL;
+  }
+
+  void stop_stream_reader() override {
+    if (daemon != NULL) {
+   
+    }
+  }
+
+  bool stream_reader_running() const override { return daemon == NULL; }
+
+  ~JsonSocketStreamIterator() {
+     stop_stream_reader();
+  }
+};
+
+
+
 class JsonSocketStream : public StreamWriter<json> {
   std::unique_ptr<TcpClient> client;
-  
+  long port;
+
  public:
   virtual void initialize(json& config, bool readMode) override {
     if (readMode) {
@@ -117,9 +151,22 @@ class JsonSocketStream : public StreamWriter<json> {
     std::string s = j.dump();
   };
 
-  virtual std::shared_ptr<IRootNode> parse(std::string file, long& id) {
-    VnV_Error(VNVPACKAGENAME, "Http File Stream has no read option");
-    return nullptr;
+   // Wrap the root node with a parser and thread so we dont 
+  // loose these until the node is deleted. 
+  class RootNodeWithThread : public RootNode {
+  public:
+    std::shared_ptr<ParserVisitor<json>> visitor;
+    std::thread worker;
+
+    void run() {
+      worker = std::thread(&ParserVisitor<json>::process, visitor.get());
+    }
+  };
+
+
+  virtual std::shared_ptr<IRootNode> parse(std::string file, long& id) override {
+    auto stream = std::make_shared<JsonSocketStreamIterator>(std::atoi(file.c_str()));
+    return VnV::StreamReader::RootNodeWithThread::parse(id,stream);
   }
 };
 

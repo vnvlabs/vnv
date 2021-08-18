@@ -6,6 +6,9 @@
 *.bak
 *.removed
 *.idea 
+
+.vscode
+
 __pycache__
 CMakeLists.txt.user
 node_modules/

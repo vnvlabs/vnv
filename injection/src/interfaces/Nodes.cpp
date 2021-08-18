@@ -88,6 +88,18 @@ void IRootNode::addIDN(long id, long streamId, node_type type, long index) {
   }
 }
 
+WalkerWrapper::WalkerWrapper(std::shared_ptr<IWalker> walker) : ptr(walker) {
+  node.reset(new WalkerNode());
+}
+
+WalkerNode* WalkerWrapper::next() { 
+    if (ptr->next(*node)) {
+      return node.get();
+    }
+    return nullptr;
+  }
+
+
 WalkerWrapper IRootNode::getWalker(std::string package, std::string name,
                                    std::string config) {
   nlohmann::json j = nlohmann::json::parse(config);
