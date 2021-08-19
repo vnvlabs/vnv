@@ -205,7 +205,6 @@ class MPICommunicator : public ICommunicator {
   }
 
   double time() override {
-     std::cout << "GERERERER " << std::endl;
      return MPI_Wtime(); 
      
   }

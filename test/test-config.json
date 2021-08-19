@@ -8,7 +8,7 @@
   },
 
   "outputEngine": {
-    "type": "json",
+    "type": "json_stdout",
     "config": {
        "outputFile":"test-results.json"
     }

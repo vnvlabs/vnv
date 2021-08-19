@@ -49,7 +49,7 @@ namespace VnV {
 class OutputEngineStore :public  BaseStore {
 
  private:
-  std::map<std::string, engine_register_ptr*>
+  std::map<std::string, engine_register_ptr>
       registeredEngines; /**< List of all registered engines */
   std::shared_ptr<OutputEngineManager>
       manager; /**< The current Engine Manager being used in VnV for all IO */
@@ -77,7 +77,7 @@ class OutputEngineStore :public  BaseStore {
    * of a child impl of OutputEngineManager.
    *
    */
-  void registerEngine(std::string name, engine_register_ptr* engine_ptr);
+  void registerEngine(std::string name, engine_register_ptr engine_ptr);
 
   /**
    * @brief getEngineManager

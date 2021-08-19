@@ -261,15 +261,22 @@ class RunTime {
                         std::string color);
 
   std::map<std::type_index, std::unique_ptr<BaseStore>> stores;
-  void setupStores();
   void resetStore();
 
-  template <typename T>
-  void addStore() {
-    stores[typeid(T)] = std::make_unique<T>();
+
+  template <typename T> T* store_ptr() { 
+    auto it = stores.find(typeid(T));
+    if (it != stores.end()) {
+      return (T*) it->second.get();
+    } else {
+      stores[typeid(T)] = std::make_unique<T>(); 
+      return (T*) stores.find(typeid(T))->second.get();
+    }
   }
 
-  template <typename T> T& store() { return *((T*)stores[typeid(T)].get()); }
+  template <typename T> T& store() { 
+     return *store_ptr<T>();
+  }
 
   /**
    * @brief instance

@@ -9,7 +9,7 @@
     "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so"
   },
   "outputEngine": {
-    "type": "json",
+    "type": "json_stdout",
     "config": {
 	"outputFile" : "vv-output.json"
     }

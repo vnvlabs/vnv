@@ -39,28 +39,9 @@ INJECTION_OPTIONS(VNVPACKAGENAME, getBaseOptionsSchema().dump().c_str()) {
 
 
 
-void RunTime::setupStores() {
-    addStore<ActionStore>();
-    addStore<CommunicationStore>();
-    addStore<DataTypeStore>();
-    addStore<InjectionPointStore>();
-    addStore<IteratorStore>();
-    addStore<OptionsParserStore>();
-    addStore<OutputEngineStore>();
-    addStore<PlugStore>();
-    addStore<ReductionStore>();
-    addStore<SamplerStore>();
-    addStore<TestStore>();
-    addStore<TransformStore>();
-    addStore<UnitTestStore>();
-    addStore<WalkerStore>();
-}
-
-
 
 void RunTime::resetStore() {
     stores.clear();
-    setupStores();
 }
 
 
@@ -428,7 +409,7 @@ RunTime& RunTime::reset() {
 }
 
 RunTime::RunTime() {
-  setupStores();
+  
 }
 
 void RunTime::registerLogLevel(std::string packageName, std::string name,

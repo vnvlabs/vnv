@@ -29,7 +29,8 @@ public:
   }
 };
 
-typedef IPlug* plug_maker_ptr(PlugConfig config);
+typedef IPlug* (*plug_maker_ptr)(PlugConfig config);
+
 void registerPlug(std::string package, std::string name,std::string schema, VnV::plug_maker_ptr m,
                   std::map<std::string, std::string> parameters);
 
@@ -50,7 +51,7 @@ void registerPlug(std::string package, std::string name,std::string schema, VnV:
   };                                                                            \
   IPlug* declare_##name(PlugConfig config) { return new name(config); }         \
   void register_##name() {                                                      \
-    VnV::registerPlug(#PNAME, #name, schema,declare_##name, VnV::StringUtils::variadicProcess(#__VA_ARGS__)); \
+    VnV::registerPlug(#PNAME, #name, schema, &declare_##name, VnV::StringUtils::variadicProcess(#__VA_ARGS__)); \
   }                                                                             \
   }                                                                             \
   }                                                                             \

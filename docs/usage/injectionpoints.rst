@@ -602,7 +602,7 @@ Here is an example of the configuration for the JSON engine schema. Like the opt
 .. code-block::
 
     "outputEngine": {
-    "type": "json",
+    "type": "json_stdout",
     "config": {
        "outputFile" : "vv-output.json"
     }

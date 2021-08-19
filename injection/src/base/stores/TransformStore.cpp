@@ -63,7 +63,7 @@ std::shared_ptr<Transformer> TransformStore::getTransformer(std::string from,
     std::vector<std::pair<std::string, std::string>> r =
         bfs(trans_map, from, to);
     for (auto it : r) {
-      m.push_back({it.first, trans_factory.find(it.second)->second()});
+      m.push_back({it.first, (*trans_factory.find(it.second)->second)()});
     }
     return std::make_shared<Transformer>(from, m);
   } catch (...) {

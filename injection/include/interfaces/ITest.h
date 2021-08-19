@@ -311,7 +311,7 @@ class ITest {
    */
 };
 
-typedef ITest* maker_ptr(TestConfig config);
+typedef ITest* (*maker_ptr)(TestConfig config);
 void registerTest(std::string package, std::string name,std::string schema, VnV::maker_ptr m,
                   std::map<std::string, std::string> parameters);
 
@@ -362,7 +362,7 @@ template <typename Runner, typename Type> class Test_T : public Type {
   };                                                                               \
   ITest* declare_##name(TestConfig config) { return new name(config); }        \
   void register_##name() {                                                     \
-      VnV::registerTest(VNV_STR(PNAME), #name, schema,declare_##name, VnV::StringUtils::variadicProcess(#__VA_ARGS__)); \
+      VnV::registerTest(VNV_STR(PNAME), #name, schema, &declare_##name, VnV::StringUtils::variadicProcess(#__VA_ARGS__)); \
   }                                                                           \
   }                                                                            \
   }                                                                            \

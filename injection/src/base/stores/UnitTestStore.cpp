@@ -98,7 +98,7 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
   int size = c->Size();
   int rank = c->Rank();
   // Transform the tess vector of tuples and sort largest to smallest.
-  std::vector<std::tuple<int, std::string, std::string, tester_ptr*>> tests;
+  std::vector<std::tuple<int, std::string, std::string, tester_ptr>> tests;
   for (auto it : tester_factory) {
     std::set<std::string> blist;
     if (info.unitTestConfig.contains(it.first) ) {
@@ -130,8 +130,8 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
 
   std::sort(
       tests.begin(), tests.end(),
-      [](const std::tuple<int, std::string, std::string, tester_ptr*>& p1,
-         const std::tuple<int, std::string, std::string, tester_ptr*>& p2) {
+      [](const std::tuple<int, std::string, std::string, tester_ptr>& p1,
+         const std::tuple<int, std::string, std::string, tester_ptr>& p2) {
         return std::get<0>(p1) > std::get<0>(p2);
       });
 
@@ -141,7 +141,7 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
   int myEnd = -1;
   std::string myName;
   std::string myPackage;
-  tester_ptr* myTester;
+  tester_ptr myTester;
   while (tests.size() > 0) {
     if (it == tests.end()) {
       it = tests.begin();
@@ -180,7 +180,7 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
         auto pcomm = CommunicationStore::instance().toVnVComm(p);
         VnV_Debug_MPI(VNVPACKAGENAME, pcomm, "Running %s %s on range [%d,%d)",
                       myName.c_str(), myPackage.c_str(), myStart, myEnd);
-        runTest(p, myPackage, myName, myTester());
+        runTest(p, myPackage, myName, (*myTester)());
       }
       currentBuffer = 0;
       myStart = -1;

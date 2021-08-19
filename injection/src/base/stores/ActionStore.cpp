@@ -56,7 +56,7 @@ void ActionStore::runAction(ICommunicator_ptr comm,
   if (it != action_factory.end()) {
     auto itt = it->second.find(name);
     if (itt != it->second.end()) {
-      runAction(comm, packageName, name, config, itt->second(),type);
+      runAction(comm, packageName, name, config, (*itt->second)(),type);
     }
   }
 }

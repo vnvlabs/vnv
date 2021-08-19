@@ -36,7 +36,7 @@ class ITransform {
                           std::string& rtti);
 };
 
-typedef ITransform* trans_ptr();
+typedef ITransform* (*trans_ptr)();
 void registerTransform(std::string name, VnV::trans_ptr t, std::string from,
                        std::string to);
 
@@ -79,7 +79,7 @@ class Transform_T : public ITransform {
   };                                                                         \
   ITransform* declare_##NAME() { return new NAME(); }                        \
   void register_##NAME() {                                                   \
-    registerTransform(#NAME, declare_##NAME,                                 \
+    registerTransform(#NAME, &declare_##NAME,                                 \
                       VnV::StringUtils::get_type(#From),                     \
                       VnV::StringUtils::get_type(#To));                      \
   }                                                                          \

@@ -20,7 +20,7 @@ void OutputEngineStore::setEngineManager(ICommunicator_ptr world, std::string ty
    
   auto it = registeredEngines.find(type);
   if (it != registeredEngines.end()) {
-    manager.reset(it->second());
+    manager.reset((*it->second)());
     manager->set(world, config,type,false);
     initialized = true;
     engineName = type;
@@ -46,7 +46,7 @@ void OutputEngineStore::print() {
  }
 
 void OutputEngineStore::registerEngine(std::string name,
-                                       engine_register_ptr* engine_ptr) {
+                                       engine_register_ptr engine_ptr) {
   registeredEngines.insert(std::make_pair(name, engine_ptr));
 }
 
@@ -55,7 +55,7 @@ std::shared_ptr<Nodes::IRootNode> OutputEngineStore::readFile(std::string filena
                                               json& config) {
   auto it = registeredEngines.find(engineType);
   if (it != registeredEngines.end()) {
-    std::unique_ptr<OutputEngineManager> engine(it->second());
+    std::unique_ptr<OutputEngineManager> engine((*it->second)());
     ICommunicator_ptr ptr = CommunicationStore::instance().worldComm();
     engine->set(ptr,config,engineType,true);
     std::shared_ptr<Nodes::IRootNode> rootNode = engine->readFromFile(filename, idCounter);

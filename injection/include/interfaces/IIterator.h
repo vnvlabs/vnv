@@ -33,7 +33,7 @@ public:
 };
 
 
-typedef IIterator* iterator_maker_ptr(IteratorConfig config);
+typedef IIterator* (*iterator_maker_ptr)(IteratorConfig config);
 
 void registerIterator(std::string package, std::string name,std::string schema, VnV::iterator_maker_ptr m,
                   std::map<std::string, std::string> parameters);
@@ -53,7 +53,7 @@ void registerIterator(std::string package, std::string name,std::string schema, 
   };                                                                            \
   IIterator* declare_##name(IteratorConfig config) { return new name(config); }         \
   void register_##name() {                                                      \
-    VnV::registerIterator(#PNAME, #name, schema, declare_##name, VnV::StringUtils::variadicProcess(#__VA_ARGS__)); \
+    VnV::registerIterator(#PNAME, #name, schema, &declare_##name, VnV::StringUtils::variadicProcess(#__VA_ARGS__)); \
   }                                                                             \
   }                                                                             \
   }                                                                             \

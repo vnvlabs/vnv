@@ -856,7 +856,7 @@ class OutputEngineManager : public IInternalOutputEngine {
 
 };
 
-typedef OutputEngineManager* engine_register_ptr();
+typedef OutputEngineManager* (*engine_register_ptr)();
 
 void registerEngine(std::string name, VnV::engine_register_ptr r);
 
@@ -867,7 +867,7 @@ void registerEngine(std::string name, VnV::engine_register_ptr r);
   namespace PNAME {                                                 \
   namespace Engines {                                               \
   OutputEngineManager* declare_##name();                            \
-  void register_##name() { registerEngine(#name, declare_##name); } \
+  void register_##name() { registerEngine(#name, &declare_##name); } \
   }                                                                 \
   }                                                                 \
   }                                                                 \

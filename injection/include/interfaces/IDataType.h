@@ -111,7 +111,7 @@ void registerDataType(std::string packageName,
   namespace DataTypes {                                                        \
   VnV::IDataType* declare_##name();                             \
   void register_##name() {                                                     \
-    VnV::registerDataType<cls>(VNV_STR(PNAME), declare_##name); \
+    VnV::registerDataType<cls>(VNV_STR(PNAME), &declare_##name); \
   }                                                                            \
   }                                                                            \
   }                                                                            \

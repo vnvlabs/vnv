@@ -7,6 +7,7 @@
 #include "VnV.h"
 #define SPNAME Distributed
 
+
 INJECTION_EXECUTABLE(SPNAME)
 
 /*
@@ -153,6 +154,32 @@ void cust(void* in, void* inout, int* len, MPI_Datatype* data) {
   d[1] += di[1];
 }
 
+typedef struct _options_struct {
+   int lsize = 10;
+   int gsize = 3 ;
+} options_struct; 
+options_struct options;
+
+
+INJECTION_OPTIONS(SPNAME, R"(
+  {
+     "type" : "object",
+     "properties" : {
+        "lsize" : {"type" : "integer" },
+        "vsize" : {"type" : "integer" }
+     }
+  }
+)") {
+   if ( config.contains("lsize")) {
+     options.lsize = config["lsize"].get<int>();
+   } 
+   if ( config.contains("vsize")) {
+     options.gsize = config["vsize"].get<int>();
+   } 
+   
+}
+
+
 int main(int argc, char** argv) {
   MPI_Init(&argc, &argv);
 
@@ -191,11 +218,12 @@ int main(int argc, char** argv) {
   INJECTION_INITIALIZE(SPNAME, &argc, &argv, "./vv-dist-data.json");
 
 
+
   // Assign the global vector. This is a vector of "doubles" where
   // the values is g[i] = i. The vector is distributed across the processes
   // so each process owns the range [rank*local_vec_size,
   // rank*(local_vec_size+1))
-  int local_vec_size = std::atoi(argv[1]);
+  int local_vec_size = options.lsize;
   std::vector<double> local_vec(local_vec_size);
   std::iota(local_vec.begin(), local_vec.end(), rank * local_vec_size);
 
@@ -203,7 +231,7 @@ int main(int argc, char** argv) {
   // Each process owns complete rows of the matrix. It owns local_mat_size
   // rows with size*local_mat_size elements in each row. The values are
   // are top down numbering of the matrix Aij = i*local_mat_size + j
-  int local_mat_size = std::atoi(argv[2]);
+  int local_mat_size = options.gsize;
   int global_mat_dim = size * local_mat_size;
   std::vector<std::vector<double>> local_mat(local_mat_size);
   for (int i = 0; i < local_mat_size; i++) {

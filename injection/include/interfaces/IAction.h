@@ -48,7 +48,7 @@ class IAction {
 
 };
 
-typedef IAction* action_ptr();
+typedef IAction* (*action_ptr)();
 void registerAction(std::string packageName, std::string name, VnV::action_ptr ptr);
 
 template <typename Runner> class Actioner_T : public IAction {
@@ -73,7 +73,7 @@ template <typename Runner> class Actioner_T : public IAction {
   };                                                                  \
   IAction* declare_##name() { return new name(); }                  \
   void register_##name() {                                            \
-    registerAction(VNV_STR(PNAME), #name, declare_##name); \
+    registerAction(VNV_STR(PNAME), #name, &declare_##name); \
   }                                                                   \
   }                                                                   \
   }                                                                   \

@@ -46,7 +46,7 @@ class IUnitTest {
   void setContinueOnFail(bool flag) { continue_on_fail = flag; }
 };
 
-typedef IUnitTest* tester_ptr();
+typedef IUnitTest* (*tester_ptr)();
 void registerUnitTester(std::string packageName, std::string name,
                         VnV::tester_ptr ptr, int cores);
 
@@ -93,7 +93,7 @@ template <typename Runner> class UnitTester_T : public IUnitTest {
   };                                                                  \
   IUnitTest* declare_##name() { return new name(); }                  \
   void register_##name() {                                            \
-    registerUnitTester(VNV_STR(PNAME), #name, declare_##name, cores); \
+    registerUnitTester(VNV_STR(PNAME), #name, &declare_##name, cores); \
   }                                                                   \
   }                                                                   \
   }                                                                   \
@@ -109,7 +109,7 @@ template <typename Runner> class UnitTester_T : public IUnitTest {
   namespace UnitTests {                                       \
   IUnitTest* declare_##name() { return new cls(); }           \
   void register_##name() {                                    \
-    registerUnitTester(#PNAME, #name, declare_##name, cores); \
+    registerUnitTester(#PNAME, #name, &declare_##name, cores); \
   }                                                           \
   }                                                           \
   }                                                           \

@@ -18,7 +18,7 @@ namespace VnV {
 
 class ActionStore : public BaseStore {
   
-  std::map<std::string, std::map<std::string, action_ptr*, std::less<std::string>>> action_factory;
+  std::map<std::string, std::map<std::string, action_ptr, std::less<std::string>>> action_factory;
  
  public:
 

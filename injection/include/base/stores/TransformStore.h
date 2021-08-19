@@ -41,7 +41,7 @@ class TransformStore : public BaseStore  {
   /**
    * @brief trans_factory
    */
-  std::map<std::string, trans_ptr*, std::less<std::string>> trans_factory;
+  std::map<std::string, trans_ptr, std::less<std::string>> trans_factory;
   std::map<std::string, std::map<std::string, std::string>> trans_map;
 
 

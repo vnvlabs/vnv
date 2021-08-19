@@ -24,11 +24,11 @@ namespace VnV {
 
 template <typename V> class TestInfoTemplate {
  public:
-  V* maker;
+  V maker;
   std::map<std::string, std::string> parameterMap;
   json schema;
 
-  TestInfoTemplate(std::map<std::string, std::string>& p, V* ptr,
+  TestInfoTemplate(std::map<std::string, std::string>& p, V ptr,
                   nlohmann::json s) {
     maker = ptr;
     parameterMap = p;
@@ -52,9 +52,11 @@ class TestStoreTemplate {
 
   void addTest(std::string package, std::string name, std::string s, Maker m,
                std::map<std::string, std::string> v) {
+    
     VnV_Warn(VNVPACKAGENAME, "Adding a new Test %s:%s", package.c_str(), name.c_str());
     json j = json::parse(s);
-    test_factory.insert(std::make_pair(package + ":" + name, TestInfoTemplate<Maker>(v, m, j)));
+    TestInfoTemplate<Maker> k(v,m,j);
+    test_factory.insert({package + ":" + name, k});
   }
 
   bool verifySchema(std::string package, std::string name, json& opts) {
@@ -79,7 +81,7 @@ class TestStoreTemplate {
 
     auto it = test_factory.find(key);
     if (it != test_factory.end()) {
-      Inter* t = it->second.maker(config);
+      Inter* t = (*it->second.maker)(config);
       std::shared_ptr<Inter> ptr;
       ptr.reset(t);
       return ptr;

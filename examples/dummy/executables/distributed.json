@@ -1,116 +1,74 @@
 ﻿{
   "runTests": true,
-  "runScopes": [
-    {
-      "name": "all",
-      "run": true
-    }
-  ],
   "logging": {
-    "on" : true,
-    "filename" : "stdout",
-    "logs" : {}
+    "on": true,
+    "filename": "stdout",
+    "logs": {}
   },
-  "additionalPlugins": {
-  },
+  "additionalPlugins": {},
   "outputEngine": {
-    "type": "json",
+    "type": "json_stdout",
     "config": {
-       "outputFile" : "vv-dist-output.json"
+      "outputFile": "vv-dist-output.json"
     }
   },
   "injectionPoints": [
-      {
-        "name" : "configuration",
-        "package" : "VNV",
-        "tests" : [
-            {
-                "name" : "provenance",
-                "package" : "VNV",
-                "runScope" : ["all"],
-                "config" : {
-                    "expectedResult" : {},
-                    "configuration": {
-                    },
-                    "parameters": {
-                        "argc" : "argc",
-                        "argv" : "argv",
-                        "config" : "config"
-                    }
-                }
-            }
-        ]
-      },
-      {
-        "name" : "initialization",
-        "package" : "VNV",
-        "tests" : [
-            {
-                "name" : "cputime",
-                "package" : "VNV",
-                "runScope" : ["all"],
-                "config" : {
-                    "expectedResult" : {},
-                    "configuration": {
-		    },
-                    "parameters": {
-                    }
-                }
-            }
-        ]
-      },
-      {
-      "name" : "distribute",
-      "package" : "Distributed",
-      "tests" : [
+    {
+      "name": "configuration",
+      "package": "VNV",
+      "tests": [
         {
-          "name" : "put_reduce",
-          "package" : "Distributed",
-          "runScope" : ["all"],
-          "config" : {
-            "expectedResult" : {},
-            "configuration": {
-            },
-            "parameters": {
-              "x": "local_vec"
-            }
+          "name": "provenance",
+          "package": "VNV",
+          "parameters": {
+            "argc": "argc",
+            "argv": "argv",
+            "config": "config"
           }
-        }, {
-          "name" : "put_rank",
-          "package" : "Distributed",
-          "runScope" : ["all"],
-          "config" : {
-            "expectedResult" : {},
-            "configuration": {
-            },
-            "parameters": {
-              "x": "local_vec"
-            }
-          }
-        }, {
-          "name" : "put_matrix",
-          "package" : "Distributed",
-          "runScope" : ["all"],
-          "config" : {
-            "expectedResult" : {},
-            "configuration": {
-            },
-            "parameters": {
-              "x": "local_mat"
-            }
+        }
+      ]
+    },
+    {
+      "name": "initialization",
+      "package": "VNV",
+      "tests": [
+        {
+          "name": "cputime",
+          "package": "VNV",
+          "parameters": {}
+        }
+      ]
+    },
+    {
+      "name": "distribute",
+      "package": "Distributed",
+      "tests": [
+        {
+          "name": "put_reduce",
+          "package": "Distributed",
+          "parameters": {
+            "x": "local_vec"
           }
         },
         {
-          "name" : "write_vec",
-          "package" : "Distributed",
-          "runScope" : ["all"],
-          "config" : {
-            "expectedResult" : {},
-            "configuration": {
-            },
-            "parameters": {
-              "x": "local_vec"
-            }
+          "name": "put_rank",
+          "package": "Distributed",
+          "parameters": {
+            "x": "local_vec"
+          }
+        },
+        {
+          "name": "put_matrix",
+          "package": "Distributed",
+          "parameters": {
+            "x": "local_mat"
+          }
+        },
+        {
+          "name": "write_vec",
+          "package": "Distributed",
+          "parameters": {
+            "x": "local_vec"
           }
         }
       ]

@@ -1,6 +1,5 @@
 ﻿{
   "runTests": true,
-  "reporting" : {},
   "logging": {
 
     "on" : true,
@@ -11,7 +10,7 @@
     "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so"
   },
   "outputEngine": {
-    "type": "json",
+    "type": "json_stdout",
     "config": {
        "outputFile" : "vv-output.json"
     }

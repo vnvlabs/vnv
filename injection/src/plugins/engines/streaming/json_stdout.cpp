@@ -22,7 +22,7 @@ class JsonTerminalStream : public StreamWriter<json> {
 
   virtual void finalize(ICommunicator_ptr worldComm) override {
      if (worldComm->Rank() == 0 ) {
-       std::cout <<"Bye";
+       std::cout <<"Bye" << std::endl;
      }
   }
 
@@ -31,7 +31,7 @@ class JsonTerminalStream : public StreamWriter<json> {
   };
 
   virtual void write(long id, const json& obj, long jid) override {
-    std::cout << "\n\n[STREAM " << id << "]\n" << obj.dump(3) << "\n\n;";
+    std::cout << "\n\n[STREAM " << id << "]\n" << obj.dump(3) << "\n\n";
     std::cout.flush();
   };
 
@@ -39,8 +39,14 @@ class JsonTerminalStream : public StreamWriter<json> {
     VnV_Error(VNVPACKAGENAME, "Http File Stream has no read option");
     return nullptr;
   }
+
 };
 
 INJECTION_ENGINE(VNVPACKAGENAME, json_stdout) { 
+    return new StreamManager<json>(std::make_shared<JsonTerminalStream>());
+}
+
+INJECTION_ENGINE(VNVPACKAGENAME, json) { 
+    VnV_Warn(VNVPACKAGENAME, "The \"json\" engine is DEPRECIATED, please use one of \"json_{stdout,socket,http,file}\" instead");
     return new StreamManager<json>(std::make_shared<JsonTerminalStream>());
 }

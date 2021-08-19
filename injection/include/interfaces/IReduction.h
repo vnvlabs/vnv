@@ -49,7 +49,7 @@ void registerReduction(std::string packageName, std::string name,
   VnV::IReduction* declare_##name() { return new name(); } \
   void register_##name() {                                                \
     VnV::registerReduction(VNV_STR(PNAME), #name,          \
-                                          declare_##name);                \
+                                          &declare_##name);                \
   }                                                                       \
   }                                                                       \
   }                                                                       \

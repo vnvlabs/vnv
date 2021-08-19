@@ -45,7 +45,7 @@ void registerWalker(std::string package, std::string name, std::string schema,
   IWalker* declare_##name(IRootNode* rootNode, nlohmann::json& config); \
                                                                         \
   void register_##name() {                                              \
-    VnV::registerWalker(VNV_STR(PNAME), #name, schema, declare_##name); \
+    VnV::registerWalker(VNV_STR(PNAME), #name, schema, &declare_##name); \
   }                                                                     \
   }                                                                     \
   }                                                                     \

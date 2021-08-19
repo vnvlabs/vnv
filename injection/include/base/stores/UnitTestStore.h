@@ -20,7 +20,7 @@ class UnitTestStore : public BaseStore {
 
 private:
   std::map<std::string,
-           std::map<std::string, tester_ptr*, std::less<std::string>>>
+           std::map<std::string, tester_ptr, std::less<std::string>>>
       tester_factory;
 
   std::map<std::string, int> tester_cores;

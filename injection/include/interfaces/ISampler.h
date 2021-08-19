@@ -83,7 +83,7 @@ template <typename Runner> class Sampler_T : public ISampler {
     return new name(config);                                             \
   }                                                                      \
   void register_##name() {                                               \
-    VnV::registerSampler(VNV_STR(PNAME), #name, schema, declare_##name); \
+    VnV::registerSampler(VNV_STR(PNAME), #name, schema, &declare_##name); \
   }                                                                      \
   }                                                                      \
   }                                                                      \
