@@ -4,86 +4,13 @@ stages:
   - test
   - deploy
 
-build_without_llvm:
+build_code:
   stage: build
+  tags: 
+    - dev
   script:
-    - mkdir -p build/without_llvm
-    - cd build/without_llvm
-    - cmake -DWITH_EXTRACTION=OFF ../../
-    - make
+    - ./docker.sh
 
-cmake_fails_without_llvm:
-   stage: build
-   script: 
-    - mkdir -p build/cmake_fails_without_llvm
-    - cd build/cmake_fails_without_llvm
-    - cmake ../../ || exit 0
-    - exit 1
-
-build_with_llvm_10:
-  stage: build
-  script:
-    - mkdir -p build/with_llvm_10
-    - cd build/with_llvm_10
-    - cmake -DLLVM_DIR=/usr/lib/llvm-10 ../../
-    - make
-
-build_with_llvm_11:
-   stage: build
-   script:
-    - mkdir -p build/with_llvm_11
-    - cd build/with_llvm_11
-    - cmake -DLLVM_DIR=/usr/lib/llvm-11 ../../
-    - make 
-   artifacts:
-     paths:
-       - ./build/with_llvm_11
-
-build_docs:
-  stage: test      
-  script:
-    - cd build/with_llvm_11/
-    - make docs
-
-run_tests_llvm:
-  stage: test
-  script:
-    - cd build/with_llvm_11/test
-    - echo "Running Tests"
-    - ./test-runner
-    - echo "Generating Test Docs"
-    - mkdir docs && cd docs
-    - ../../generation/vnv-quickstart.py json ../test-results.json -q -p UnitTesting -a VnV 
-    - echo "Building Test Docs"
-    - make html 
-
-run_sample_executable:
-  stage: test
-  script:  
-    - cd build/with_llvm_11/examples/dummy/executables
-    - echo "Runing Sample Executable"
-    - ./sample.a
-    - echo "Generating Docs"
-    - mkdir docs && cd docs
-    - ../../../../generation/vnv-quickstart.py json ../vv-output.json -q -p SampleExecutable -a VnV
-    - make html
-
-run_sample_cexecutable:    
-  stage: test
-  script:
-    - echo "Running C Sample"  
-    - cd build/with_llvm_11/examples/dummy/c_executables
-    - ./csample.a
-    - echo "Generating Docs for CSample"
-    - mkdir docs && cd docs
-    - ../../../../generation/vnv-quickstart.py json ../vv-output.json -q -p SampleCExecutable -a VnV
-    - make html
-
-deploy_docs:
-   stage: deploy
-   script:
-     - echo "Deploying Results"
-     - cd build/with_llvm_11/
-
+      
 
 
