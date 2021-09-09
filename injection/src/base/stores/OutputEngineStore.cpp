@@ -44,25 +44,57 @@ void OutputEngineStore::print() {
     manager->print();
   }
  }
+ 
+json OutputEngineStore::schema() {
+    
+
+   nlohmann::json oneof = json::array();
+    for (auto &it :  registeredEngines) {
+      nlohmann::json m = R"({"type":"object"})"_json;
+      
+      nlohmann::json properties = json::object();
+      
+      nlohmann::json package = json::object();
+      package["const"] = it.first;
+      properties["type"] = package;
+      properties["config"] = R"({"type":"object"})"_json; //todo 
+    
+      m["properties"] = properties;
+      m["required"] = R"(["type"])"_json;
+      oneof.push_back(m);  
+    }
+    
+   if (oneof.size() > 0 ) {
+      nlohmann::json ret = json::object();
+      ret["oneOf"] = oneof;
+      return ret;
+    } else {
+      return R"({"const" : false})"_json;
+    }
+
+}
 
 void OutputEngineStore::registerEngine(std::string name,
                                        engine_register_ptr engine_ptr) {
   registeredEngines.insert(std::make_pair(name, engine_ptr));
 }
 
+void OutputEngineStore::registerReader(std::string name,
+                                       engine_reader_ptr engine_ptr) {
+  registeredReaders.insert(std::make_pair(name, engine_ptr));
+}
+
+
 std::shared_ptr<Nodes::IRootNode> OutputEngineStore::readFile(std::string filename,
                                               std::string engineType,
                                               json& config) {
-  auto it = registeredEngines.find(engineType);
-  if (it != registeredEngines.end()) {
-    std::unique_ptr<OutputEngineManager> engine((*it->second)());
-    ICommunicator_ptr ptr = CommunicationStore::instance().worldComm();
-    engine->set(ptr,config,engineType,true);
-    std::shared_ptr<Nodes::IRootNode> rootNode = engine->readFromFile(filename, idCounter);
-    engine->finalize(CommunicationStore::instance().worldComm());
-    return rootNode;
+  auto it = registeredReaders.find(engineType);
+  
+  if (it != registeredReaders.end()) {
+    return (*it->second)(filename, idCounter, config);
   }
-  throw VnVExceptionBase("Invalid Engine Name");
+
+  throw VnVExceptionBase("Invalid Engine Reader");
 }
 
 OutputEngineManager* OutputEngineStore::getEngineManager() {

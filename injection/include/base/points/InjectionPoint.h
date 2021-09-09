@@ -153,7 +153,7 @@ class InjectionPointBase {
    * @param ipType The stage value for the injection point.
    * @param argp The va_list of parameters passed to the injection point
    */
-  virtual void run() = 0;
+  virtual void run(std::string function, int line) = 0;
 
   virtual ~InjectionPointBase() {};
 
@@ -170,7 +170,7 @@ public:
   InjectionPoint(std::string packageName, std::string name, json registrationJson, NTV& in_args)
   : InjectionPointBase(packageName, name, registrationJson, in_args, {}) {};
 
-  virtual void run() override;
+  virtual void run(std::string function, int line) override;
 };
 
 

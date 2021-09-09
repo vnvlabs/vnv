@@ -9,9 +9,10 @@ namespace Walkers {
 
 class Iter {
  protected:
+ 
   VnV::Nodes::ICommMap* commMap;
-  std::map<long, std::list<std::tuple<long, long, VnV::Nodes::node_type>>>& nodes;
-  std::map<long, std::list<std::tuple<long, long, VnV::Nodes::node_type>>>::iterator niter;
+  std::map<long, std::list<Nodes::IDN>>& nodes;
+  std::map<long, std::list<Nodes::IDN>>::iterator niter;
  
 
   virtual bool parentContainsChild(long parent, long child) {
@@ -24,7 +25,7 @@ class Iter {
 
  public:
   Iter(Nodes::ICommMap* comm,
-        std::map<long, std::list<std::tuple<long, long, VnV::Nodes::node_type>>>& n)
+        std::map<long, std::list<Nodes::IDN>>& n)
       : commMap(comm), nodes(n) {
     niter = nodes.begin();
   }

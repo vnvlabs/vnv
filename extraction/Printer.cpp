@@ -53,7 +53,6 @@ unsigned int getInfo(const CallExpr* call, const FunctionDecl* func,
       getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts()));
   std::string key = package + ":" + id;
   id = key;
-  if (begin > 0) count++;
   return count;
 }
 
@@ -104,57 +103,93 @@ class VnVPrinter : public MatchFinder::MatchCallback {
         Result.Nodes.getNodeAs<clang::FunctionDecl>("function");
     if (const CallExpr* E =
             Result.Nodes.getNodeAs<clang::CallExpr>("callsite")) {
+     
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+      count++; // Skip the filename 
+      count++; // Skip the line 
+      count++; // Skip the callback 
+      
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
       addParameters(E, idJson, count);
-    } else if (const CallExpr* E =
+   
+   } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("callsite_begin")) {
+      
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+      count++; // Skip the filename 
+      count++; // Skip the line 
+      count++; // Skip the callback 
+     
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
-
       addParameters(E, idJson, count);
+
     } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite")) {
+      
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+      count++; // Skip the filename 
+      count++; // Skip the line 
+      count++; // Skip the callback 
+      
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
       addParameters(E, idJson, count);
+    
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite_iteration")) {
                
         unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+        count++; // skip the filename
+        count++; // skip the line number
+        count++; // skip the callback 
+        count++; // skip the once parameter
+        count++; // skip the inputs parameter; 
+        
         json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
         json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
         singleJson["Begin"] = info;
-        count++; // Skip the value provided for parameter once
-        count++; // Skip the value provided for input parameters (todo extract this?)
         addParameters(E, idJson, count);
 
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite_plug")) {
         
         unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+        count++; // Skip the filename 
+        count++; // Skip the line 
+        count++; // Skip the callback 
+        count++; // skip the input parameter count 
+      
         json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
         json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
         singleJson["Begin"] = info;
-        count++; // Skip the value provided for input parameters (todo extract this?)
         addParameters(E, idJson, count);
 
     }  else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iteration")) {
+    
        unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+       count++; // skip the filename
+       count++; // skip the line number
+       count++; // skip the callback 
+       count++; // skip the once parameter
+       count++; // skip the inputs parameter; 
+       
        json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
        json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
        singleJson["Begin"] = info;
-       count++; // Skip the value provided for parameter once
-       count++; // Skip the value provided for input parameters (todo extract this?)
        addParameters(E, idJson, count);
+
    } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>(
                    "cpp_callsite_begin")) {
+      
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+      count++; // Skip the filename 
+      count++; // Skip the line 
+      count++; // Skip the callback 
+
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
@@ -162,7 +197,9 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       addParameters(E, idJson, count);
     } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iter")) {
+      
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 0);
+
       std::string iterid = VnV::StringUtils::trim_copy(
           getValueFromStringLiteral(E->getArg(count++)->IgnoreParenCasts()));
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
@@ -171,10 +208,12 @@ class VnVPrinter : public MatchFinder::MatchCallback {
 
     } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("callsite_end")) {
+      
       getInfo(E, FF, Result, info, id, filename, 0);
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["End"] = info;
+    
     }
   }
 };

@@ -5,6 +5,9 @@
 #include <list>
 #include <stack>
 #include <string>
+#include <atomic>
+#include <functional>
+
 
 #include "base/DistUtils.h"
 #include "base/Runtime.h"
@@ -15,35 +18,45 @@ namespace VNVPACKAGENAME {
 namespace Engines {
 namespace Streaming {
 
+#define STREAM_IS_CLOSED -199
+
 using namespace Nodes;
 
 namespace JSD {
 
 constexpr auto outputFile = "outputFile";
-constexpr auto extension = ".jstream";
 
-#define NTYPES   \
-  X(id)          \
-  X(name)        \
-  X(package)     \
-  X(value)       \
-  X(shape)       \
-  X(node)        \
-  X(meta)        \
-  X(comm)        \
-  X(children)    \
-  X(key)         \
-  X(stage)       \
-  X(message)     \
-  X(internal)    \
-  X(description) \
-  X(result)      \
-  X(stageId)     \
-  X(level)       \
-  X(dtype)       \
-  X(endid)       \
-  X(results)     \
-  X(time) X(spec) X(commList) X(testuid) X(sdt) X(title) X(worldSize) X(date)
+#define NTYPES                                                           \
+  X(id)                                                                  \
+  X(name)                                                                \
+  X(package)                                                             \
+  X(value)                                                               \
+  X(shape)                                                               \
+  X(node)                                                                \
+  X(meta)                                                                \
+  X(comm)                                                                \
+  X(children)                                                            \
+  X(prov)                                                                \
+  X(duration)                                                            \
+  X(key)                                                                 \
+  X(stage)                                                               \
+  X(message)                                                             \
+  X(internal)                                                            \
+  X(description)                                                         \
+  X(result)                                                              \
+  X(stageId)                                                             \
+  X(mpiversion)                                                          \
+  X(input)                                                               \
+  X(reader)                                                              \
+  X(level)                                                               \
+  X(dtype)                                                               \
+  X(endid)                                                               \
+  X(line)                                                                \
+  X(filename)                                                            \
+  X(results)                                                             \
+  X(time)                                                                \
+  X(spec) X(commList) X(testuid) X(sdt) X(title) X(nodeMap) X(worldSize) \
+      X(date)
 #define X(a) constexpr auto a = #a;
 NTYPES
 #undef X
@@ -52,17 +65,19 @@ NTYPES
 }  // namespace JSD
 
 namespace JSN {
-#define NTYPES                 \
-  X(log)                       \
-  X(shape)                     \
-  X(dataTypeStarted)           \
-  X(dataTypeEnded)             \
-  X(injectionPointStarted)     \
-  X(injectionPointEnded)       \
-  X(injectionPointIterStarted) \
-  X(injectionPointIterEnded)   \
-  X(testStarted)               \
-  X(testFinished) X(unitTestStarted) X(unitTestFinished) X(commInfo) X(info)
+#define NTYPES                                                           \
+  X(log)                                                                 \
+  X(shape)                                                               \
+  X(dataTypeStarted)                                                     \
+  X(dataTypeEnded)                                                       \
+  X(injectionPointStarted)                                               \
+  X(injectionPointEnded)                                                 \
+  X(injectionPointIterStarted)                                           \
+  X(injectionPointIterEnded)                                             \
+  X(packageOptionsStarted)                                               \
+  X(packageOptionsFinished) X(testStarted) X(file) X(done) X(duration)   \
+      X(testFinished) X(unitTestStarted) X(unitTestFinished) X(commInfo) \
+          X(info)
 
 #define X(a) constexpr auto a = #a;
 NTYPES
@@ -78,20 +93,50 @@ NTYPES
 #undef NTYPES
 }  // namespace JST
 
+class ArrayNode : public IArrayNode {
+ public:
+  std::string templ;
+  std::vector<std::shared_ptr<DataBase>> value;
+
+  ArrayNode() : IArrayNode() {}
+
+  virtual std::shared_ptr<DataBase> getShared(std::size_t idx) override {
+    return (idx < value.size()) ? (value[idx]) : nullptr;
+  }
+
+  virtual std::size_t size() override { return value.size(); };
+
+  virtual IArrayNode* add(std::shared_ptr<DataBase> data) override {
+    value.push_back(data);
+    return this;
+  }
+
+  std::string getValue() override { return templ; }
+};
+
+
 class MapNode : public IMapNode {
  public:
   std::string templ;
-  std::map<std::string, std::shared_ptr<DataBase>> value;
+  std::map<std::string, std::shared_ptr<ArrayNode>> value;
 
   MapNode() : IMapNode() {}
 
-  virtual DataBase* get(std::string key) override {
+  virtual IArrayNode* get(std::string key) override {
     auto it = value.find(key);
     return (it == value.end()) ? nullptr : (it->second).get();
   }
 
   virtual IMapNode* add(std::string key, std::shared_ptr<DataBase> v) override {
-    value.insert(std::make_pair(key, v));
+    auto it = value.find(key);
+    if (it == value.end()) {
+      auto a = std::make_shared<ArrayNode>();
+      a->add(v);
+      value.insert(std::make_pair(key, a));
+    } else {
+      it->second->add(v);
+    }
+
     return this;
   }
 
@@ -114,26 +159,6 @@ class MapNode : public IMapNode {
   virtual ~MapNode(){};
 };
 
-class ArrayNode : public IArrayNode {
- public:
-  std::string templ;
-  std::vector<std::shared_ptr<DataBase>> value;
-
-  ArrayNode() : IArrayNode() {}
-
-  virtual std::shared_ptr<DataBase> getShared(std::size_t idx) override {
-    return (idx < value.size()) ? (value[idx]) : nullptr;
-  }
-
-  virtual std::size_t size() override { return value.size(); };
-
-  virtual IArrayNode* add(std::shared_ptr<DataBase> data) override {
-    value.push_back(data);
-    return this;
-  }
-
-  std::string getValue() override { return templ; }
-};
 
 #define X(x, y)                                                           \
   class x##Node : public I##x##Node {                                     \
@@ -179,11 +204,14 @@ class InfoNode : public IInfoNode {
  public:
   long date;
   std::string title, templ;
+  std::shared_ptr<VnVProv> prov;
 
   InfoNode() : IInfoNode() {}
   virtual std::string getTitle() override { return title; }
   virtual long getDate() override { return date; }
   virtual std::string getValue() override { return templ; }
+
+  virtual VnVProv* getProv() override { return prov.get(); }
   virtual ~InfoNode() {}
 };
 
@@ -401,7 +429,8 @@ class CommMap : public ICommMap {
   bool commIsSelf(long commId, long proc) {
     auto n = nodes.find(commId);
     if (n != nodes.end()) {
-      return (n->second->procs.size() == 1 && *n->second->procs.begin() == proc);
+      return (n->second->procs.size() == 1 &&
+              *n->second->procs.begin() == proc);
     }
     return false;
   }
@@ -425,7 +454,6 @@ class CommMap : public ICommMap {
       }
     }
     return false;
-    
   }
 
   bool commContainsComm(long commId, long childId) override {
@@ -448,19 +476,21 @@ class CommMap : public ICommMap {
   nlohmann::json listComms() {
     json j = json::object();
     for (auto& it : nodes) {
-      j[it.first] = it.second->procs;
+      j[std::to_string(it.first)] = it.second->procs;
     }
     return j;
   }
 
   nlohmann::json toJson(bool strip) {
-    nlohmann::json j = R"({"nodes":[],links:[]})"_json;
+    nlohmann::json j = R"({"nodes":[],"links":[]})"_json;
     std::set<long> done;
     for (auto& it : nodes) {
       it.second->toJson(strip, j, done);
     }
     return j;
   }
+
+  std::string toJsonStr(bool strip) override { return toJson(strip).dump(); }
 
   ~CommMap() {}
 };
@@ -469,11 +499,16 @@ class CommInfoNode : public ICommInfoNode {
  public:
   std::shared_ptr<CommMap> commMap;
   int worldSize;
+  json nodeMap;
+  std::string version;
 
   CommInfoNode() : ICommInfoNode(), commMap(new CommMap()) {}
 
   virtual int getWorldSize() override { return worldSize; }
   virtual ICommMap* getCommMap() override { return commMap.get(); }
+  virtual std::string getNodeMap() override { return nodeMap.dump(); }
+  virtual std::string getVersion() override { return version; }
+
   virtual ~CommInfoNode(){};
 };
 
@@ -482,15 +517,17 @@ class TestNode : public ITestNode {
   long uid;
 
   std::string package, templ;
-  std::shared_ptr<ArrayNode> data;
+  std::shared_ptr<MapNode> data;
   std::shared_ptr<ArrayNode> logs;
   bool result;
+  bool internal;
 
-  TestNode() : ITestNode(), data(new ArrayNode()), logs(new ArrayNode()) {}
+  TestNode() : ITestNode(), data(new MapNode()), logs(new ArrayNode()) {}
   virtual std::string getPackage() override { return package; }
-  virtual IArrayNode* getData() override { return data.get(); }
+  virtual IMapNode* getData() override { return data.get(); }
   virtual IArrayNode* getLogs() override { return logs.get(); }
   virtual std::string getValue() override { return templ; }
+  virtual bool isInternal() override { return internal; }
 };
 
 class InjectionPointNode : public IInjectionPointNode {
@@ -500,12 +537,21 @@ class InjectionPointNode : public IInjectionPointNode {
   std::shared_ptr<TestNode> internal;
   std::string package;
   std::string templ;
-  nlohmann::json timing = json::array();
+
+  nlohmann::json sourceMap = json::object();
+
+  void addToSourceMap(std::string stage, std::string function, int line) {
+    if (!sourceMap.contains(stage)) {
+      json j = json::array();
+      j.push_back(function);
+      j.push_back(line);
+      sourceMap[stage] = j;
+    }
+  }
 
   long startIndex = -1;
   long endIndex = -1;
   long long commId;
-  double time;
 
   bool isIter = false;    // internal property to help with parsing.
   bool __isOpen = false;  // internal property to help with paresing
@@ -521,19 +567,16 @@ class InjectionPointNode : public IInjectionPointNode {
   virtual std::string getComm() override { return std::to_string(commId); }
   virtual std::string getValue() override { return templ; }
   virtual ArrayNode* getLogs() override { return logs.get(); };
-
-  virtual std::string getTimes() override { return timing.dump(); }
+  virtual std::string getSourceMap() override { return sourceMap.dump(); }
 
   virtual long getStartIndex() override { return startIndex; }
   virtual long getEndIndex() override { return endIndex; }
-  virtual double getTime() override { return time; };
   virtual ~InjectionPointNode() {}
 };
 
 class LogNode : public ILogNode {
  public:
   std::string package, level, stage, message, templ, comm;
-  double time;
   int identity;
 
   LogNode() : ILogNode() {}
@@ -543,7 +586,6 @@ class LogNode : public ILogNode {
   virtual std::string getComm() override { return comm; }
 
   virtual std::string getValue() override { return message; }
-  virtual double getTime() { return time; };
   virtual std::string getStage() override { return stage; }
   virtual ~LogNode() {}
 };
@@ -561,7 +603,7 @@ class DataNode : public IDataNode {
   virtual ArrayNode* getLogs() override { return logs.get(); };
   virtual bool getLocal() override { return local; }
   virtual long long getDataTypeKey() override { return key; }
-  virtual IMapNode* getChildren() override { return children.get(); }
+  virtual IMapNode* getData() override { return children.get(); }
   virtual std::string getValue() override { return templ; }
   virtual ~DataNode() {}
 };
@@ -602,18 +644,19 @@ class UnitTestResultsNode : public IUnitTestResultsNode {
 class UnitTestNode : public IUnitTestNode {
  public:
   std::string package, templ;
-  std::shared_ptr<ArrayNode> children, logs;
+  std::shared_ptr<ArrayNode> logs;
+  std::shared_ptr<MapNode> children;
   std::shared_ptr<UnitTestResultsNode> resultsMap;
   std::map<std::string, std::string> testTemplate;
 
   UnitTestNode()
       : IUnitTestNode(),
         resultsMap(new UnitTestResultsNode()),
-        children(new ArrayNode()),
+        children(new MapNode()),
         logs(new ArrayNode()) {}
 
   virtual std::string getPackage() override { return package; }
-  virtual IArrayNode* getChildren() override { return children.get(); }
+  virtual IMapNode* getData() override { return children.get(); }
   virtual std::string getValue() override { return templ; }
   virtual ArrayNode* getLogs() override { return logs.get(); };
 
@@ -627,28 +670,54 @@ class UnitTestNode : public IUnitTestNode {
   }
 };
 
+class VisitorLock {
+  public:
+  VisitorLock(){}
+  virtual ~VisitorLock(){}
+  virtual void lock() = 0;
+  virtual void release() = 0;
+};
+
 class RootNode : public IRootNode {
  public:
   long lowerId, upperId;
+  long duration = -1;
 
   std::shared_ptr<VnVSpec> spec;
-
   std::shared_ptr<ArrayNode> children;
   std::shared_ptr<ArrayNode> unitTests;
+  std::shared_ptr<MapNode> packages;
   std::shared_ptr<InfoNode> infoNode;
   std::shared_ptr<CommInfoNode> commInfo;
+
+  VisitorLock* visitorLocking = nullptr;
 
   RootNode()
       : spec(new VnVSpec()),
         children(new ArrayNode()),
         unitTests(new ArrayNode()),
+        packages(new MapNode()),
         infoNode(new InfoNode()),
         commInfo(new CommInfoNode()) {}
 
+  virtual IMapNode* getPackages() override { return packages.get(); }
   virtual IArrayNode* getChildren() override { return children.get(); }
   virtual IArrayNode* getUnitTests() override { return unitTests.get(); }
   virtual IInfoNode* getInfoNode() override { return infoNode.get(); }
   virtual ICommInfoNode* getCommInfoNode() override { return commInfo.get(); }
+  virtual long getTotalDuration() override { return duration; }
+
+  void lock() override {
+    if (visitorLocking != NULL) {
+      visitorLocking->lock();
+    }
+  }
+  void release() override {
+    if (visitorLocking != NULL) {
+      visitorLocking->release();
+    }
+  }
+
   virtual const VnVSpec& getVnVSpec() { return *spec; }
 };
 
@@ -658,6 +727,7 @@ template <typename V> class Iterator {
 
   std::stack<std::shared_ptr<DataBase>> stack;
   bool peaked = false;
+  bool donedone = false;
 
   virtual void getLine(V& currentJson, long& currentValue) = 0;
 
@@ -665,7 +735,8 @@ template <typename V> class Iterator {
   Iterator(){};
   virtual long streamId() const = 0;
   virtual bool hasNext() const = 0;
-  virtual bool isDone() const = 0;
+
+  virtual bool isDone() const { return donedone; };
 
   virtual std::pair<V, long> next() {
     pullLine(false);
@@ -675,6 +746,14 @@ template <typename V> class Iterator {
   void pullLine(bool peek) {
     if (!peaked && hasNext()) {
       getLine(current.first, current.second);
+
+      if (!current.first.contains(JSD::node)) {
+        throw VnV::VnVExceptionBase("Stream sent info without node");
+      }
+
+      if ((current.first)[JSD::node].template get<std::string>() == JSN::done) {
+        donedone = true;
+      }
     }
     peaked = peek;
   }
@@ -712,12 +791,24 @@ class MultiStreamIterator : public Iterator<V> {
     min = std::min_element(
         instreams.begin(), instreams.end(),
         [](const std::shared_ptr<T>& x, const std::shared_ptr<T>& y) {
+          if (x->isDone() && y->isDone())
+            return (x->peekId() < y->peekId());
+          else if (x->isDone())
+            return false;
+          else if (y->isDone())
+            return true;
+
           return (x->peekId() < y->peekId());
         });
+    auto p = (*min)->next();
+    current = p.first;
+    cid = p.second;
   }
 
  public:
   MultiStreamIterator() : Iterator<V>(){};
+
+  std::list<std::shared_ptr<T>>& getInputStreams() { return instreams; }
 
   virtual void add(std::shared_ptr<T> iter) { instreams.push_back(iter); }
 
@@ -736,16 +827,10 @@ class MultiStreamIterator : public Iterator<V> {
         return true;
       }
     }
-
     return false;
   }
 
   virtual long streamId() const override { return (*min)->streamId(); }
-
-  virtual std::pair<V, long> next() {
-    this->pullLine(false);
-    return (*min)->next();
-  }
 
   virtual long peekId() {
     this->pullLine(true);
@@ -842,16 +927,21 @@ template <typename T> T WriteDataJson(IDataType_vec gather) {
 template <typename T> class StreamWriter {
  public:
   virtual void initialize(nlohmann::json& config, bool readMode) = 0;
-  virtual void finalize(ICommunicator_ptr worldComm) = 0;
+  virtual void finalize(ICommunicator_ptr worldComm, long duration) = 0;
   virtual void newComm(long id, const T& obj, ICommunicator_ptr comm) = 0;
   virtual void write(long id, const T& obj, long jid) = 0;
+  
+  virtual bool fetch(long id, const json& obj, long timeoutInSeconds, json& response) {
+    return false;
+  }
+
+  
   virtual nlohmann::json getConfigurationSchema(bool readMode) = 0;
 
-  virtual std::shared_ptr<Nodes::IRootNode> parse(std::string file,
-                                                  long& id) = 0;
-
   StreamWriter(){};
-  virtual ~StreamWriter(){};
+  virtual ~StreamWriter(){
+
+  };
 };
 
 template <typename T> class StreamManager : public OutputEngineManager {
@@ -870,7 +960,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
 
   static json getWorldRanks(ICommunicator_ptr comm, int root = 0) {
     std::vector<int> res(comm->Rank() == root ? comm->Size() : 0);
-    int rank = comm->Rank();
+    int rank = comm->world()->Rank();
     comm->Gather(&rank, 1, res.data(), sizeof(int), root);
     json nJson = res;
     return nJson;
@@ -887,7 +977,10 @@ template <typename T> class StreamManager : public OutputEngineManager {
   std::string getId() { return std::to_string(StreamManager<T>::id++); }
 
   virtual void write(T& j) {
-    stream->write(comm->uniqueId(), j, StreamManager<T>::id++);
+    j[JSD::duration] = VnV::RunTime::instance().duration();
+    if (stream != nullptr) {
+      stream->write(comm->uniqueId(), j, StreamManager<T>::id++);
+    }
   }
 
   virtual void syncId() {
@@ -907,6 +1000,9 @@ template <typename T> class StreamManager : public OutputEngineManager {
         nJson[JSD::node] = JSN::commInfo;
         nJson[JSD::comm] = id;
         nJson[JSD::commList] = procList;
+
+        nJson[JSD::duration] = VnV::RunTime::instance().duration();
+
         stream->newComm(id, nJson, comm);
       }
       commids.insert(id);
@@ -919,7 +1015,38 @@ template <typename T> class StreamManager : public OutputEngineManager {
 
  public:
   StreamManager(std::shared_ptr<StreamWriter<T>> stream_) : stream(stream_) {}
+
   virtual ~StreamManager() {}
+
+
+  bool Fetch(const json& schema, long timeoutInSeconds, json& response) override {
+     
+     std::string line;
+     std::size_t size;
+
+     if (comm->Rank() == getRoot()) {                                        
+       
+       response = json::object();
+       bool worked = stream->fetch(comm->uniqueId(), schema, timeoutInSeconds, response);                      
+       
+       line = response.dump();
+       size = (worked) ? line.size() : -1 ;
+       
+     }
+
+     comm->BroadCast(&size,1,sizeof(std::size_t),getRoot());
+     if (size < 0) {
+       return false;
+     }
+     
+     line.resize(size);
+     comm->BroadCast(const_cast<char*>(line.data()), size, sizeof(char),getRoot());
+     response = json::parse(line);
+     return true;
+
+ }
+
+
 #define LTypes      \
   X(double, Double) \
   X(long long, Long) X(bool, Bool) X(std::string, String) X(json, Json)
@@ -1002,7 +1129,6 @@ template <typename T> class StreamManager : public OutputEngineManager {
       log[JSD::node] = JSN::log;
       log[JSD::name] = std::to_string(StreamManager<json>::id++);
       log[JSD::comm] = comm->uniqueId();
-      log[JSD::time] = comm->time();
       write(log);
     }
 
@@ -1016,29 +1142,84 @@ template <typename T> class StreamManager : public OutputEngineManager {
     return stream->getConfigurationSchema(readMode);
   }
 
-  void finalize(ICommunicator_ptr worldComm) override {
-    stream->finalize(worldComm);
+  void finalize(ICommunicator_ptr worldComm, long duration) override {
+    setComm(worldComm, false);
+    if (comm->Rank() == getRoot()) {
+      T nJson = T::object();
+      nJson[JSD::node] = JSN::duration;
+      nJson[JSD::duration] = duration;
+      write(nJson);
+    }
+
+    stream->finalize(worldComm, duration);
+  }
+
+  T getNodeMap(ICommunicator_ptr world) {
+    std::string name = world->ProcessorName();
+    auto h = StringUtils::simpleHash(name);
+    std::vector<long long> results(world->Rank() == getRoot() ? world->Size()
+                                                              : 0);
+    world->Gather(&h, 1, results.data(), sizeof(long long), 0);
+    if (world->Rank() == getRoot()) {
+      T j = T::object();
+      for (int i = 0; i < results.size(); i++) {
+        std::string proc = std::to_string(results[i]);
+        if (j.contains(proc)) {
+          j[proc].push_back(i);
+        } else {
+          j[proc] = {i};
+        }
+      }
+      return j;
+    }
+    return T::object();
   }
 
   void setFromJson(ICommunicator_ptr worldComm, json& config,
                    bool readMode) override {
-    stream->initialize(config, readMode);
+    if (!readMode) {
+      stream->initialize(config, readMode);
+      setComm(worldComm, false);
 
-    setComm(worldComm, false);
+      T node_map = getNodeMap(worldComm);
+
+      if (comm->Rank() == getRoot()) {
+        // This is the first one so we send over the info. .
+        T nJson = T::object();
+        nJson[JSD::title] = "VnV Simulation Report";
+        nJson[JSD::date] =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch())
+                .count();
+        nJson[JSD::name] = "MainInfo";
+        nJson[JSD::node] = JSN::info;
+        nJson[JSD::worldSize] = comm->Size();
+        nJson[JSD::spec] = RunTime::instance().getFullJson();
+        nJson[JSD::nodeMap] = node_map;
+        nJson[JSD::mpiversion] = comm->VersionLibrary();
+        nJson[JSD::prov] = RunTime::instance().getProv().toJson();
+
+        write(nJson);
+      }
+    }
+  }
+
+  void file(ICommunicator_ptr comm, std::string packageName, std::string name,
+            bool inputFile, std::string filename, std::string reader) {
+    setComm(comm, false);
 
     if (comm->Rank() == getRoot()) {
-      // This is the first one so we send over the info. .
-      T nJson = json::object();
-      nJson[JSD::title] = "VnV Simulation Report";
-      nJson[JSD::date] =
-          std::chrono::duration_cast<std::chrono::milliseconds>(
-              std::chrono::system_clock::now().time_since_epoch())
-              .count();
-      nJson[JSD::name] = "MainInfo";
-      nJson[JSD::node] = JSN::info;
-      nJson[JSD::worldSize] = comm->Size();
-      nJson[JSD::spec] = RunTime::instance().getFullJson();
-      stream->write(id, nJson, -2);
+      T j = T::object();
+      j[JSD::node] = JSN::file;
+      j[JSD::input] = inputFile;
+
+      ProvFile pf(filename, reader);
+      pf.comm = comm->uniqueId();
+      pf.package = packageName;
+      pf.name = name;
+
+      j[JSD::prov] = pf.toJson();
+      write(j);
     }
   }
 
@@ -1047,10 +1228,6 @@ template <typename T> class StreamManager : public OutputEngineManager {
     syncId();
     if (comm->Rank() == getRoot()) {
       T j = T::object();
-
-      std::cout << "COMM " << comm->time();
-
-      j[JSD::time] = comm->time();
 
       j[JSD::node] = (type == InjectionPointType::End ||
                       type == InjectionPointType::Single)
@@ -1063,21 +1240,22 @@ template <typename T> class StreamManager : public OutputEngineManager {
   void injectionPointStartedCallBack(ICommunicator_ptr comm,
                                      std::string packageName, std::string id,
                                      InjectionPointType type,
-                                     std::string stageVal) override {
+                                     std::string stageVal, std::string filename,
+                                     int line) override {
     setComm(comm, true);
-
     if (comm->Rank() == getRoot()) {
       T j = T::object();
       j[JSD::name] = id;
       j[JSD::package] = packageName;
       j[JSD::comm] = comm->uniqueId();
-      j[JSD::time] = comm->time();
+      j[JSD::filename] = filename;
+      j[JSD::line] = line;
+      j[JSD::stageId] = stageVal;
 
       if (type == InjectionPointType::Begin ||
           type == InjectionPointType::Single) {
         j[JSD::node] = JSN::injectionPointStarted;
       } else {
-        j[JSD::stageId] = stageVal;
         j[JSD::node] = JSN::injectionPointIterStarted;
       }
       write(j);
@@ -1119,6 +1297,26 @@ template <typename T> class StreamManager : public OutputEngineManager {
     }
   }
 
+  virtual void packageOptionsStartedCallBack(ICommunicator_ptr comm,
+                                             std::string packageName) override {
+    setComm(comm, true);
+
+    if (comm->Rank() == getRoot()) {
+      T j = T::object();
+      j[JSD::node] = JSN::packageOptionsStarted;
+      j[JSD::package] = packageName;
+      write(j);
+    }
+  }
+
+  virtual void packageOptionsEndedCallBack(std::string packageName) override {
+    if (comm->Rank() == getRoot()) {
+      T j = T::object();
+      j[JSD::node] = JSN::packageOptionsFinished;
+      write(j);
+    }
+  }
+
   void unitTestFinishedCallBack(IUnitTest* tester) {
     if (comm->Rank() == getRoot()) {
       T j = T::object();
@@ -1136,33 +1334,29 @@ template <typename T> class StreamManager : public OutputEngineManager {
     }
   }
 
-  std::shared_ptr<Nodes::IRootNode> readFromFile(std::string file,
-                                                 long& idCounter) override {
-    return stream->parse(file, idCounter);
-  }
-
   // IInternalOutputEngine interface
   std::string print() override { return "SS"; }
 };
 
-template <class T> class ParserVisitor {
- 
+template <class T> class ParserVisitor : public VisitorLock {
  public:
-  
- 
   std::shared_ptr<Iterator<T>> jstream;
   std::shared_ptr<RootNode> rootInternal;
   long& idCounter;
 
-  virtual std::pair<int, std::set<long>> visitCommNode(const T& j) {
-    std::pair<int, std::set<long>> res;
+  virtual std::pair<long, std::set<long>> visitCommNode(const T& j) {
+    std::pair<long, std::set<long>> res;
+
     for (auto it : j[JSD::commList].items()) {
       res.second.insert(it.value().template get<long>());
     }
+
+    res.first = j[JSD::comm].template get<long>();
+
     return res;
   }
 
-  template <typename A> std::shared_ptr<A> mks(std::string noName = "") {
+  template <typename A> std::shared_ptr<A> mks_str(std::string noName = "") {
     std::shared_ptr<A> base_ptr(new A());
     base_ptr->name = noName;
     base_ptr->id = idCounter++;
@@ -1171,8 +1365,8 @@ template <class T> class ParserVisitor {
     return base_ptr;
   }
 
-  template <typename A> std::shared_ptr<A> mks(const A& j) {
-    return mks<A>(j[JSD::name].template get<std::string>());
+  template <typename A> std::shared_ptr<A> mks(const T& j) {
+    return mks_str<A>(j[JSD::name].template get<std::string>());
   }
 
   template <typename A, typename V>
@@ -1244,7 +1438,7 @@ template <class T> class ParserVisitor {
     int count = 0;
     n->value.reserve(j[JSD::children].size());
     for (auto& it : j[JSD::children].items()) {
-      auto elm = mks<DataNode>(std::to_string(count++));
+      auto elm = mks_str<DataNode>(std::to_string(count++));
       elm->local = true;
       elm->key = key;
 
@@ -1264,10 +1458,27 @@ template <class T> class ParserVisitor {
     auto n = mks<InfoNode>(j);
     n->title = j[JSD::title].template get<std::string>();
     n->date = j[JSD::date].template get<long>();
+    n->prov = std::make_shared<VnVProv>(j[JSD::prov]);
+
     rootInternal->spec.reset(new VnVSpec(j[JSD::spec]));
     rootInternal->commInfo->worldSize = j[JSD::worldSize].template get<int>();
+    rootInternal->commInfo->nodeMap = j[JSD::nodeMap];
+    rootInternal->commInfo->version =
+        j[JSD::mpiversion].template get<std::string>();
     return n;
   };
+
+  virtual void visitFileNode(const T& j) {
+    ProvFile pf(j[JSD::prov]);
+
+    bool input = j[JSD::input].template get<bool>();
+
+    if (input) {
+      rootInternal->infoNode->prov->addInputFile(pf);
+    } else {
+      rootInternal->infoNode->prov->addOutputFile(pf);
+    }
+  }
 
   virtual std::shared_ptr<LogNode> visitLogNode(const T& j) {
     auto n = mks<LogNode>(j);
@@ -1276,7 +1487,19 @@ template <class T> class ParserVisitor {
     n->message = j[JSD::message].template get<std::string>();
     n->stage = std::to_string(j[JSD::stage].template get<int>());
     n->comm = std::to_string(j[JSD::comm].template get<long>());
-    n->time = j[JSD::time].template get<double>();
+    return n;
+  };
+
+  virtual std::shared_ptr<TestNode> visitPackageNodeStarted(const T& j) {
+    auto n = mks_str<TestNode>("Information");
+    n->package = j[JSD::package].template get<std::string>();
+    n->templ = rootInternal->spec->package(n->package);
+    return n;
+  };
+
+  virtual std::shared_ptr<TestNode> visitPackageNodeEnded(
+      const T& j, std::shared_ptr<DataBase> node) {
+    auto n = std::dynamic_pointer_cast<TestNode>(node);
     return n;
   };
 
@@ -1287,7 +1510,7 @@ template <class T> class ParserVisitor {
     json templs = rootInternal->spec->unitTest(n->package, n->name);
     n->templ = templs["docs"];
 
-    n->resultsMap = mks<UnitTestResultsNode>("results");
+    n->resultsMap = mks_str<UnitTestResultsNode>("results");
 
     for (auto it : templs["tests"].items()) {
       n->testTemplate[it.key()] = it.value().template get<std::string>();
@@ -1326,6 +1549,7 @@ template <class T> class ParserVisitor {
     n->templ = (j[JSD::internal].template get<bool>())
                    ? ""
                    : rootInternal->spec->test(n->package, n->name);
+    n->internal = j[JSD::internal];
     return n;
   }
 
@@ -1346,6 +1570,15 @@ template <class T> class ParserVisitor {
     return n;
   };
 
+  void addSource(const json& j, std::shared_ptr<InjectionPointNode> node) {
+    if (j.contains(JSD::filename)) {
+      std::string fname = j[JSD::filename].template get<std::string>();
+      long line = j[JSD::line].template get<long>();
+      std::string stage = j[JSD::stageId].template get<std::string>();
+      node->addToSourceMap(stage, fname, line);
+    }
+  }
+
   virtual std::shared_ptr<InjectionPointNode> visitInjectionPointStartedNode(
       const T& j, long elementId) {
     auto n = mks<InjectionPointNode>(j);
@@ -1353,9 +1586,7 @@ template <class T> class ParserVisitor {
     n->templ = rootInternal->spec->injectionPoint(n->package, n->name);
     n->commId = j[JSD::comm].template get<long>();
     n->startIndex = elementId;
-    nlohmann::json tim = json::object();
-    tim["ts"] = j[JSD::time].template get<double>();
-    n->timing.push_back(tim);
+    addSource(j,n);
 
     return n;
   }
@@ -1363,8 +1594,6 @@ template <class T> class ParserVisitor {
   virtual std::shared_ptr<InjectionPointNode> visitInjectionPointEndedNode(
       const T& j, std::shared_ptr<DataBase> node, long elementId) {
     auto n = std::dynamic_pointer_cast<InjectionPointNode>(node);
-    n->timing.back()["te"] = j[JSD::time].template get<double>();
-    n->timing.back()["ie"] = elementId;
     n->endIndex = elementId;
     return n;
   }
@@ -1373,36 +1602,65 @@ template <class T> class ParserVisitor {
   visitInjectionPointIterStartedNode(const T& j, std::shared_ptr<DataBase> node,
                                      long elementId) {
     auto n = std::dynamic_pointer_cast<InjectionPointNode>(node);
-    nlohmann::json tim = json::object();
-    tim["ts"] = j[JSD::time].template get<double>();
-    tim["is"] = elementId;
-    tim["iter"] = j[JSD::stageId].template get<std::string>();
-    n->timing.push_back(tim);
+    addSource(j,n);
     return n;
   };
 
   virtual std::shared_ptr<InjectionPointNode> visitInjectionPointIterEndedNode(
       const T& j, std::shared_ptr<DataBase> node, long elementId) {
     auto n = std::dynamic_pointer_cast<InjectionPointNode>(node);
-    n->timing.back()["te"] = j[JSD::time].template get<double>();
-    n->timing.back()["ie"] = elementId;
     return n;
   }
 
+  
+
   ParserVisitor(std::shared_ptr<Iterator<T>> jstream_, long& idStart,
                 std::shared_ptr<RootNode> rootNode)
-      : jstream(jstream_), idCounter(idStart), rootInternal(rootNode) {}
+      : jstream(jstream_), idCounter(idStart), rootInternal(rootNode) {
 
+      rootInternal->visitorLocking = this;
+
+  }
+
+  virtual ~ParserVisitor() {
+    rootInternal->visitorLocking = nullptr;
+  }
+  
+  
+  std::atomic_bool read_lock = ATOMIC_VAR_INIT(false);
+  std::atomic_bool write_lock = ATOMIC_VAR_INIT(false);
+  
   void process() {
+   
     while (!jstream->isDone()) {
       if (jstream->hasNext()) {
+        while(read_lock.load(std::memory_order_relaxed)){}  
+        write_lock.store(true, std::memory_order_relaxed);
         auto p = jstream->next();
         visit(p.first, p.second);
+        write_lock.store(false, std::memory_order_relaxed);
       }
     }
   }
 
-  void childNodeDispatcher(std::shared_ptr<DataBase> child, long elementId) {
+  void lock() override {
+     
+     // Set the read lock, asking the other thread to stop writing.
+     read_lock.store(true,std::memory_order_relaxed);
+
+     // Wait for the other thread to release its write lock. 
+     while(write_lock.load(std::memory_order_relaxed)){}
+
+  }
+
+  void release() override {
+     //Release the read lock. 
+     read_lock.store(false, std::memory_order_relaxed);
+  }
+
+
+  void childNodeDispatcher(std::shared_ptr<DataBase> child, long elementId,
+                           long duration) {
     std::shared_ptr<DataBase> parent = jstream->top();
     if (parent == nullptr) {
       parent = rootInternal;
@@ -1421,7 +1679,7 @@ template <class T> class ParserVisitor {
       if (ctype == DataBase::DataType::Log) {
         p1->getLogs()->add(child);
       } else {
-        p1->getData()->add(child);
+        p1->getData()->add(child->getName(), child);
       }
 
     } else if (ptype == DataBase::DataType::UnitTest) {
@@ -1429,7 +1687,7 @@ template <class T> class ParserVisitor {
       if (ctype == DataBase::DataType::Log) {
         p->getLogs()->add(child);
       } else {
-        p->getChildren()->add(child);
+        p->getData()->add(child->getName(), child);
       }
 
     } else if (ptype == DataBase::DataType::Data) {
@@ -1437,27 +1695,33 @@ template <class T> class ParserVisitor {
       if (ctype == DataBase::DataType::Log) {
         p->getLogs()->add(child);
       } else {
-        p->getChildren()->add(child->getName(), child);
+        p->getData()->add(child->getName(), child);
       }
 
     } else if (ptype == DataBase::DataType::InjectionPoint &&
                std::dynamic_pointer_cast<InjectionPointNode>(parent)
                    ->__isOpen) {
       auto p = std::dynamic_pointer_cast<InjectionPointNode>(parent);
+
       if (ctype == DataBase::DataType::Test) {
-        p->getTests()->add(child);
+        if (child->getAsTestNode()->isInternal()) {
+          p->internal = std::dynamic_pointer_cast<TestNode>(child);
+        } else {
+          p->getTests()->add(child);
+        }
+
       } else if (ctype == DataBase::DataType::Log) {
         p->getLogs()->add(child);
         rootInternal->addIDN(child->getId(), child->getStreamId(),
-                             node_type::LOG, elementId);
+                             node_type::LOG, elementId, duration, "Log");
       } else {
         throw VnVExceptionBase("Hmmmm");
       }
 
     } else if (ctype == DataBase::DataType::InjectionPoint) {
     } else if (ctype == DataBase::DataType::Log) {
-      rootInternal->addIDN(child->getId(), child->getStreamId(),
-                           node_type::LOG, elementId);
+      rootInternal->addIDN(child->getId(), child->getStreamId(), node_type::LOG,
+                           elementId, duration, "Log");
     } else {
       throw VnVExceptionBase("Unsupported Parent element type");
     }
@@ -1466,16 +1730,25 @@ template <class T> class ParserVisitor {
   void visit(const T& j, long elementId) {
     std::string node = j[JSD::node].template get<std::string>();
 
-    if (node == JSN::commInfo) {
+    long duration = j[JSD::duration].template get<long>();
+
+    if (node == JSN::duration) {
+      rootInternal->duration = j[JSD::duration].template get<long>();
+
+    } else if (node == JSN::done) {
+      // DONE
+    } else if (node == JSN::commInfo) {
       auto p = visitCommNode(j);
       rootInternal->getCommInfoNode()->getCommMap()->add(p.first, p.second);
 
+    } else if (node == JSN::file) {
+      visitFileNode(j);
     } else if (node == JSN::dataTypeEnded) {
       visitDataNodeEnded(j, jstream->pop());
 
     } else if (node == JSN::dataTypeStarted) {
       auto n = visitDataNodeStarted(j);
-      childNodeDispatcher(n, elementId);
+      childNodeDispatcher(n, elementId, duration);
       jstream->push(n);
 
     } else if (node == JSN::info) {
@@ -1488,19 +1761,19 @@ template <class T> class ParserVisitor {
       p->__isOpen = false;
       visitInjectionPointEndedNode(j, p, elementId);
 
-      rootInternal->addIDN(p->id, p->streamId, node_type::END,
-                           elementId);
+      rootInternal->addIDN(p->id, p->streamId, node_type::END, elementId,
+                           duration, "End");
 
     } else if (node == JSN::injectionPointStarted) {
       std::shared_ptr<InjectionPointNode> p =
           visitInjectionPointStartedNode(j, elementId);
 
-      p->__isOpen == true;
-      childNodeDispatcher(p, elementId);
+      p->__isOpen = true;
+      childNodeDispatcher(p, elementId, duration);
       jstream->push(p);
 
-      rootInternal->addIDN(p->id, p->streamId, node_type::START,
-                           elementId);
+      rootInternal->addIDN(p->id, p->streamId, node_type::START, elementId,
+                           duration, "Begin");
 
     } else if (node == JSN::injectionPointIterEnded) {
       std::shared_ptr<InjectionPointNode> p =
@@ -1514,19 +1787,21 @@ template <class T> class ParserVisitor {
           std::dynamic_pointer_cast<InjectionPointNode>(jstream->top());
 
       visitInjectionPointIterStartedNode(j, p, elementId);
-
+      std::string stage = j[JSD::stageId].template get<std::string>();
       p->__isOpen = true;
       p->isIter = true;
-      rootInternal->addIDN(p->id, p->streamId, node_type::ITER,
-                           elementId);
+      rootInternal->addIDN(p->id, p->streamId, node_type::ITER, elementId,
+                           duration, stage);
 
     } else if (node == JSN::log) {
       std::shared_ptr<LogNode> n = visitLogNode(j);
       n->identity = elementId;
-      childNodeDispatcher(n, elementId);
+      childNodeDispatcher(n, elementId, duration);
 
     } else if (node == JSN::testFinished) {
       auto p = jstream->pop();
+      auto pp = std::dynamic_pointer_cast<InjectionPointNode>(jstream->top());
+      std::cout << pp->isIter << std::endl;
 
       if (std::dynamic_pointer_cast<InjectionPointNode>(jstream->top())
               ->isIter) {
@@ -1543,20 +1818,38 @@ template <class T> class ParserVisitor {
 
       std::shared_ptr<InjectionPointNode> pp =
           std::dynamic_pointer_cast<InjectionPointNode>(p);
+
       if (pp->isIter) {
         long uid = j[JSD::testuid].template get<long>();
         auto tests = pp->getTests();
-        for (auto it : pp->tests->value) {
-          auto t = std::dynamic_pointer_cast<TestNode>(it);
-          if (t->uid == uid) {
-            visitTestNodeIterStarted(j, t);
-            jstream->push(t);
-            break;
+
+        if (j[JSD::internal].template get<bool>()) {
+          auto t = std::dynamic_pointer_cast<TestNode>(pp->internal);
+          if (t->uid != uid) {
+            throw VnV::VnVExceptionBase("Wrong uid for internal test");
+          }
+          visitTestNodeIterStarted(j, t);
+          jstream->push(t);
+        } else {
+          bool found = false;
+          for (auto it : pp->tests->value) {
+            auto t = std::dynamic_pointer_cast<TestNode>(it);
+            if (t->uid == uid) {
+              visitTestNodeIterStarted(j, t);
+              jstream->push(t);
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            std::cout << j.dump(2) << std::endl;
+            throw VnV::VnVExceptionBase(
+                "ERROR COULD NOT FIND TEST DURING ITERATION");
           }
         }
       } else {
         std::shared_ptr<TestNode> t = visitTestNodeStarted(j);
-        childNodeDispatcher(t, elementId);
+        childNodeDispatcher(t, elementId, duration);
         jstream->push(t);
       }
 
@@ -1568,27 +1861,36 @@ template <class T> class ParserVisitor {
       rootInternal->unitTests->add(u);
       jstream->push(u);
 
+    } else if (node == JSN::packageOptionsStarted) {
+      auto po = visitPackageNodeStarted(j);
+      rootInternal->packages->add(po->package, po);
+      jstream->push(po);
+    } else if (node == JSN::packageOptionsFinished) {
+      auto u = visitPackageNodeEnded(j, jstream->pop());
     } else if (node == JSN::shape) {
       std::string type = j[JSD::dtype].template get<std::string>();
 
       if (type == JST::String) {
         childNodeDispatcher(visitShapeNode<StringNode, std::string>(j),
-                            elementId);
+                            elementId, duration);
 
       } else if (type == JST::Bool) {
-        childNodeDispatcher(visitShapeNode<BoolNode, bool>(j), elementId);
+        childNodeDispatcher(visitShapeNode<BoolNode, bool>(j), elementId,
+                            duration);
 
       } else if (type == JST::Long) {
-        childNodeDispatcher(visitShapeNode<LongNode, long>(j), elementId);
+        childNodeDispatcher(visitShapeNode<LongNode, long>(j), elementId,
+                            duration);
 
       } else if (type == JST::Double) {
-        childNodeDispatcher(visitShapeNode<DoubleNode, double>(j), elementId);
+        childNodeDispatcher(visitShapeNode<DoubleNode, double>(j), elementId,
+                            duration);
 
       } else if (type == JST::Json) {
-        childNodeDispatcher(visitJsonNode(j), elementId);
+        childNodeDispatcher(visitJsonNode(j), elementId, duration);
 
       } else if (type == JST::GlobalArray) {
-        childNodeDispatcher(visitGlobalArrayNode(j), elementId);
+        childNodeDispatcher(visitGlobalArrayNode(j), elementId, duration);
 
       } else {
         throw VnVExceptionBase("Bad data type");
@@ -1600,15 +1902,19 @@ template <class T> class ParserVisitor {
   }
 };
 
+constexpr const char* extension = ".fs";
+
 template <typename T, typename V> class FileStream : public StreamWriter<V> {
  protected:
   std::string filestub;
-  std::string extension = ".fs";
+
+  virtual ~FileStream() {}
 
   std::string getFileName(long id, bool makedir = true) {
     std::vector<std::string> fname = {std::to_string(id)};
     return getFileName_(filestub, {std::to_string(id) + extension}, true);
   }
+
 
   std::string getFileName_(std::string root, std::vector<std::string> fname,
                            bool mkdir) {
@@ -1616,7 +1922,7 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
     std::string filename = fname.back();
     fname.pop_back();
     std::string fullname = VnV::DistUtils::join(fname, 0777, mkdir);
-    return fullname + filename;
+    return VnV::DistUtils::join({fullname, filename}, 0777, false);
   }
 
  public:
@@ -1637,26 +1943,28 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
     )"_json;
   };
 
-  virtual void finalize(ICommunicator_ptr wcomm) = 0;
+  virtual void finalize(ICommunicator_ptr wcomm, long duration) = 0;
 
   virtual void newComm(long id, const V& obj, ICommunicator_ptr comm) = 0;
 
   virtual void write(long id, const V& obj, long jid) = 0;
 
-  virtual std::shared_ptr<IRootNode> parse(std::string file, long& id) {
-    this->filestub = file;
-    
-    
-    auto stream = std::make_shared<MultiStreamIterator<T,V>>();
+
+  static std::shared_ptr<IRootNode> parse(std::string file, long& id) {
+    std::string filestub = file;
+
+    auto stream = std::make_shared<MultiStreamIterator<T, V>>();
 
     std::string meta = VnV::DistUtils::join({filestub, ".meta"}, 0777, false);
+
     std::vector<std::string> files =
         VnV::DistUtils::listFilesInDirectory(filestub);
 
     for (auto& it : files) {
+      std::cout << it << std::endl;
       std::size_t dot = it.find_first_of(".");
       try {
-        if (it.substr(dot).compare(JSD::extension) == 0) {
+        if (it.substr(dot).compare(extension) == 0) {
           long id = std::atol(it.substr(0, dot).c_str());
           std::string fname = VnV::DistUtils::join({filestub, it}, 0777, false);
           stream->add(std::make_shared<T>(id, fname));
@@ -1668,7 +1976,9 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
     std::shared_ptr<RootNode> root = std::make_shared<RootNode>();
     root->id = id++;
     root->name = "ROOT";
+    
     ParserVisitor<V> visitor(stream, id, root);
+    
     visitor.process();
     return root;
   }

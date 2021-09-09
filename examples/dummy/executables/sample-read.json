@@ -1,0 +1,12 @@
+﻿{
+  "runTests": true,
+  "logging": {
+    "on" : true,
+    "filename" : "stdout",
+    "logs" : {}
+  },
+  "outputEngine": {
+    "type": "json_stdout"
+  },
+  "injectionPoints": []
+}

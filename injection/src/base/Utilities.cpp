@@ -33,6 +33,9 @@ std::string VnV::ProvenanceUtils::timeToString(std::string format) {
 }
 
 std::string VnV::ProvenanceUtils::cmdLineToString(int argc, char** argv) {
+  std::cout << argc << std::endl;
+  std::cout << argv[0] << std::endl;
+  
   std::ostringstream commandline;
   commandline << argv[0];
   for (int i = 1; i < argc; i++) {
@@ -214,10 +217,14 @@ nlohmann::json& VnV::JsonUtilities::getOrCreate(json& parent, std::string key,
 bool VnV::JsonUtilities::validate(nlohmann::json& obj, nlohmann::json& schema) {
   try {
      nlohmann::json_schema::json_validator validator;
+     std::cout << "sdfsdf" << std::endl;
      validator.set_root_schema(schema);
+     std::cout << "sdsss" << obj.dump() << " " << schema.dump() << std::endl;
      validator.validate(obj);
+     std::cout << "ssss" << std::endl;
      return true;
   } catch (std::exception e) {
+    std::cout << e.what() << std::endl;
     return false;
   }
 }

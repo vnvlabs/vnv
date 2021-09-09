@@ -115,7 +115,7 @@ void InjectionPointBase::runTestsInternal(OutputEngineManager* wrapper) {
   }
 }
 
-void InjectionPoint::run() {
+void InjectionPoint::run(std::string function, int line) {
   
   if (skipped) {
     return; // We are marked as skipped, so don't do anything. 
@@ -136,7 +136,7 @@ void InjectionPoint::run() {
 
     OutputEngineManager* wrapper = OutputEngineStore::instance().getEngineManager();
 
-    wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId);
+    wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId, function, line);
 
     runTestsInternal(wrapper);
 

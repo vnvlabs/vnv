@@ -1,0 +1,14 @@
+
+
+<div>
+    <div class = "card" style="float:right; top:20px; position:sticky; display:flex; flex-direction:column; ">
+        <button style="width=20px; height=20px; margin-bottom:10px;" type="button" class="btn btn-icon " onclick="$('.modal:visible').modal('hide')"><i class="feather icon-x"></i></button>
+        <button style="width=20px; height=20px; margin-bottom:10px;" type="button" class="btn btn-icon " onclick="scroll_line_into_view(1)"><i class="feather icon-chevrons-up"></i></button>
+        {% if filename.hasLine() %}
+        <button style="width=20px; height=20px; margin-bottom:10px;" type="button" class="btn  btn-icon " onclick="scroll_line_into_view({{filename.getLine()|safe}})"><i class="feather icon-crosshair"></i></button>
+        {% endif %}
+
+        <button style="width=20px; height=20px;"type="button" class="btn  btn-icon" onclick="scroll_to_bottom()"><i class="feather icon-chevrons-down"></i></button>
+    </div>
+    {{filename.render() | safe }}
+</div>

@@ -1,0 +1,38 @@
+{% with loopList = [["input","Input File"],["packages","Packages"],["libraries","Libraries"],["inputfiles","Input Files"],["outputs","Outputs"]] %}
+{% with active_tab = request.args.get("btab",loopList[0][0]) %}
+<div class="fcolumn fchild">
+
+    <div class=" card">
+        <div class="card-body">
+            {%with prefix="Executable:", file=file.get_prov().get_executable() %}
+            {% include 'files/prov/file.html' %}
+            {% endwith %}
+            <h6>Command Line: {{ file.get_prov().get_command_line() }}</h6>
+            <h6>Date: {{ file.get_prov().get_timestamp() }} </h6>
+        </div>
+    </div>
+
+
+    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+        {% for i in loopList %}
+        <li class="nav-item">
+            <a class="nav-link {%if active_tab == i[0] %} active {%endif%}" id="pills-{{i[0]}}-tab" data-toggle="pill"
+               href="#pills-{{i[0]}}" role="tab"
+               aria-controls="pills-{{i[0]}}" aria-selected="true">{{i[1]}}</a>
+        </li>
+        {%endfor%}
+    </ul>
+
+    <div class="tab-content fcolumn fchild " id="pills-tabContent">
+        {% for i in loopList %}
+        <div class="tab-pane fade {% if active_tab == i[0] %} show active {%endif%} finlinecolumn fchild"
+             id="pills-{{i[0]}}" role="tabpanel"
+             aria-labelledby="pills-{{i[0]}}-tab">
+            {% include 'files/prov/' + i[0] + '.html' %}
+        </div>
+        {%endfor%}
+    </div>
+
+</div>
+{% endwith %}
+{% endwith %}

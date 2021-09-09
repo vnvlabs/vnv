@@ -27,6 +27,8 @@
 #include "c-interfaces/RunTime.h"
 #include "c-interfaces/Wrappers.h"
 #include "base/stores/BaseStore.h"
+#include "base/Provenance.h"
+
 
 /**
  * VnV Namespace
@@ -51,18 +53,19 @@ namespace VnV {
 class RunTimeOptions {
  public:
   bool logUnhandled = false;
-  std::string dumpConfigFilename = "";
-  bool dumpConfig = false;
-  bool exitAfterDumpConfig = false;
   void fromJson(json& jsonObject);
   static void callback(json& j);
 };
+
 
 class RunTime {
   friend class RunTimeOptions;
 
  private:
+
   Logger logger;
+  std::chrono::_V2::steady_clock::time_point start;
+  
 
   /**
    * @brief RunTime
@@ -90,7 +93,9 @@ class RunTime {
   RunTimeOptions runTimeOptions;
   RunInfo info;
 
-  std::string configFile;
+  std::shared_ptr<VnVProv> prov;
+
+  std::string configFile = "<unknown>";
   std::string hotpatchVar;
   bool hotpatch;
 
@@ -132,19 +137,23 @@ class RunTime {
 
   bool useAsciiColors();
 
+  long duration();
+
   /**
    * @brief printRunTimeInformation
    * Write all run infomation to the logs.
    */
   void printRunTimeInformation();
 
-  void writeSpecification(std::string filename);
+  void writeSpecification(std::string filename, bool quit);
 
   json getFullJson();
 
+  json getFullJsonSchema();
+
   RunTimeOptions* getRunTimeOptions();
 
-  void processToolConfig(json config, json& cmdline);
+  void processToolConfig(json config, json& cmdline, ICommunicator_ptr world);
 
   void runTimePackageRegistration(std::string packageName,
                                   registrationCallBack reg);
@@ -160,11 +169,11 @@ class RunTime {
  public:
   int injectionIterationRun(VnV_Iterator* iterator);
 
-  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id,
+  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id, std::string fname, int line, 
                                   const DataCallback& callback, NTV& inputs,
                                   NTV& outputs, int once);
 
-  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id,
+  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id, std::string fname, int line,
                                   injectionDataCallback* callback, NTV& inputs,
                                   NTV& outputs, int once);
 
@@ -177,14 +186,14 @@ class RunTime {
 
  public:
   // Cpp Interface for an Injection Plug
-  VnV_Iterator injectionPlug(VnV_Comm, std::string pname, std::string id,
+  VnV_Iterator injectionPlug(VnV_Comm, std::string pname, std::string id, std::string fname, int line, 
                              const DataCallback& callback, NTV& inputs,
                              NTV& outputs);
 
   int injectionPlugRun(VnV_Iterator* iterator);
 
   // C Interface for an Iteration Point.
-  VnV_Iterator injectionPlug(VnV_Comm, std::string pname, std::string id,
+  VnV_Iterator injectionPlug(VnV_Comm, std::string pname, std::string id, std::string fname, int line, 
                              injectionDataCallback* callback, NTV& inputs,
                              NTV& outputs);
 
@@ -205,21 +214,21 @@ class RunTime {
 
 
  public:
-  void injectionPoint(VnV_Comm comm, std::string pname, std::string id,
+  void injectionPoint(VnV_Comm comm, std::string pname, std::string id, std::string fname, int line,
                       const DataCallback& callback, NTV& args);
 
-  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id,
+  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id, std::string fname, int line,
                             const DataCallback& callback, NTV& args);
 
-  void injectionPoint_end(std::string pname, std::string id);
+  void injectionPoint_end(std::string pname, std::string id, std::string fname, int line);
 
   void injectionPoint_iter(std::string pname, std::string id,
-                           std::string iterid);
+                           std::string iterid, std::string fname, int line);
 
-  void injectionPoint(VnV_Comm comm, std::string pname, std::string id,
+  void injectionPoint(VnV_Comm comm, std::string pname, std::string id, std::string fname, int line,
                       injectionDataCallback* callback, NTV& args);
 
-  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id,
+  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id, std::string fname, int line,
                             injectionDataCallback* callback, NTV& args);
 
   /**
@@ -259,6 +268,8 @@ class RunTime {
 
   void registerLogLevel(std::string packageName, std::string logLevel,
                         std::string color);
+
+  void registerFile(VnV_Comm comm, std::string packageName, std::string name,  int input, std::string filename, std::string reader);
 
   std::map<std::type_index, std::unique_ptr<BaseStore>> stores;
   void resetStore();
@@ -319,11 +330,15 @@ class RunTime {
    */
   void runActions(VnV_Comm comm, ActionInfo info, ActionType t);
 
-  void readFile(std::string filename, long& idCounter);
+  std::shared_ptr<Nodes::IRootNode> readFile(std::string reader, std::string filename);
+  void readFileAndWalk(std::string reader, std::string filename, std::string package, std::string walker,  nlohmann::json config);
+
 
   void getFullSchema(std::string filename);
 
   void loadHotPatch(VnV_Comm comm);
+
+  VnVProv getProv();
 
   std::string getPackageName();
 };

@@ -16,6 +16,8 @@ using namespace VnV::VNVPACKAGENAME::Engines::Streaming;
 using nlohmann::json;
 using namespace VnV::StreamReader; 
 
+#define VNV_SPEC -100
+
 class TcpClient {
  private:
   int sock = -1 ;
@@ -104,8 +106,6 @@ class JsonSocketStreamIterator : public VnV::StreamReader::JsonStreamIterator {
     }
   }
 
-  bool stream_reader_running() const override { return daemon == NULL; }
-
   ~JsonSocketStreamIterator() {
      stop_stream_reader();
   }
@@ -131,7 +131,7 @@ class JsonSocketStream : public StreamWriter<json> {
 
   virtual nlohmann::json getConfigurationSchema(bool readMode) override { return json::object(); };
 
-  virtual void finalize(ICommunicator_ptr worldComm) override {
+  virtual void finalize(ICommunicator_ptr worldComm, long duration) override {
     // Close all the streams
     json j = json::object();
     j["DONE"] = "DONE";
@@ -148,29 +148,14 @@ class JsonSocketStream : public StreamWriter<json> {
     j["jid"] = jid;
     j["data"] = obj;
     client->send_data(j.dump());
-    std::string s = j.dump();
   };
 
-   // Wrap the root node with a parser and thread so we dont 
-  // loose these until the node is deleted. 
-  class RootNodeWithThread : public RootNode {
-  public:
-    std::shared_ptr<ParserVisitor<json>> visitor;
-    std::thread worker;
-
-    void run() {
-      worker = std::thread(&ParserVisitor<json>::process, visitor.get());
-    }
-  };
-
-
-  virtual std::shared_ptr<IRootNode> parse(std::string file, long& id) override {
-    auto stream = std::make_shared<JsonSocketStreamIterator>(std::atoi(file.c_str()));
-    return VnV::StreamReader::RootNodeWithThread::parse(id,stream);
-  }
 };
 
 INJECTION_ENGINE(VNVPACKAGENAME, json_socket) {
   return new StreamManager<json>(std::make_shared<JsonSocketStream>());
-  ;
+}
+INJECTION_ENGINE_READER(VNVPACKAGENAME, json_socket) {
+  VnV_Warn(VNVPACKAGENAME, "No reader for json sockets yet");
+  return nullptr;
 }

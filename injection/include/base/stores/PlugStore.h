@@ -61,7 +61,9 @@ public:
                                                        std::string name,
                                                        NTV& in_args, NTV& out_args);
 
- 
+
+  nlohmann::json schema();
+
   void addPlug(std::string package,
                          std::string name,
                          bool runInternal,

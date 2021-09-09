@@ -10,27 +10,27 @@ void VnV::defaultCallBack(
     std::string /*stageId*/) {}
 
 void VnV::CppInjection::BeginLoop(VnV_Comm comm, const char* package,
-                                  const char* id,
+                                  const char* id, const char* fname, int line,
                                   const DataCallback& callback,
                                   NTV& map) {
-  VnV::RunTime::instance().injectionPoint_begin(comm, package, id, callback,
+  VnV::RunTime::instance().injectionPoint_begin(comm, package, id, fname, line, callback,
                                                 map);
 }
 
 void VnV::CppInjection::BeginPoint(VnV_Comm comm, const char* package,
-                                   const char* id,
+                                   const char* id,const char* fname, int line,
                                    const DataCallback& callback,
                                    NTV& map) {
-  VnV::RunTime::instance().injectionPoint(comm, package, id, callback, map);
+  VnV::RunTime::instance().injectionPoint(comm, package, id, fname, line,  callback, map);
 }
 
-bool VnV::CppInjection::EndLoop(const char* package, const char* id) {
-  VnV::RunTime::instance().injectionPoint_end(package, id);
+bool VnV::CppInjection::EndLoop(const char* package, const char* id, const char* fname, int line) {
+  VnV::RunTime::instance().injectionPoint_end(package, id, fname, line);
   return true;
 }
 void VnV::CppInjection::IterLoop(const char* package, const char* id,
-                                 const char* iterId) {
-  VnV::RunTime::instance().injectionPoint_iter(package, id, iterId);
+                                 const char* iterId, const char* fname, int line) {
+  VnV::RunTime::instance().injectionPoint_iter(package, id, iterId, fname, line);
 }
 
 void VnV::CppInjection::RegisterInjectionPoint(const char* package, const char* id,std::string json) {

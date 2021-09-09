@@ -35,8 +35,8 @@ addExecutable(serial.a SerialExample "serial.cpp")
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json
                ${CMAKE_CURRENT_BINARY_DIR}/vv-input.json COPYONLY)
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/sample_with_papi.json
-      ${CMAKE_CURRENT_BINARY_DIR}/vv-input-papi.json COPYONLY )
+configure_file(${CMAKE_CURRENT_LIST_DIR}/sample-read.json
+               ${CMAKE_CURRENT_BINARY_DIR}/vv-read-input.json COPYONLY)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/distributed.json
         ${CMAKE_CURRENT_BINARY_DIR}/vv-dist-data.json COPYONLY )

@@ -1,0 +1,67 @@
+<script src="//unpkg.com/force-graph"></script>
+<script src="//unpkg.com/element-resize-detector/dist/element-resize-detector.min.js"></script>
+
+<div class="card">
+    <div class="card-body">
+
+        <div class=" card">
+            <div class="card-body">
+                {% with rankInfo = file.getRankInfo() %}
+                <h6> Number of MPI Processors: {{ rankInfo.size }} </h6>
+                <h6> Number of Nodes: {{ rankInfo.nodes }} </h6>
+                <h6> Max Ranks per Node: {{ rankInfo.max_rpn }} </h6>
+                <h6> Min Ranks per Node: {{ rankInfo.min_rpn }} </h6>
+                <h6> Unique Communicators: {{ rankInfo.unique_comms }} </h6>
+                <h6 title="{{rankInfo.version}}"> Version: {{ rankInfo.shortversion(130) }} </h6>
+                {% endwith %}
+            </div>
+        </div>
+        <h4 style="text-align:center"> Communication Map</h4>
+        <div id="commMapGraph"></div>
+        <div id="commMapContent">
+            {{ file.renderDefaultComm()|safe}}
+        </div>
+    </div>
+</div>
+
+<script>
+
+    const gData = JSON.parse('{{file.getGlobalCommMap()|safe}}')
+
+    selected = gData.nodes[0]
+
+    container = document.getElementById('commMapGraph')
+    const Graph = ForceGraph()(container)
+        .cooldownTicks(100)
+        .width(600).height(600)
+        .graphData(gData)
+        .onNodeClick(node => {
+
+           Graph.centerAt(node.x, node.y, 1000);
+           var url = '{{url_for('base.files.comm', id_=file.id_)}}'
+           url += "?cid=" + node.id
+           $.get(  url , function( data ) {
+               $('#commMapContent').html(data)
+           });
+           selected = node
+         })
+         .nodeColor(node => {
+            if (node == selected)
+                return "#11345d";
+            return "#73b4ff"
+         });
+
+    Graph.d3Force('center', null);
+    once = false;
+
+    // fit to canvas when engine stops
+    Graph.onEngineStop(() => { if (!once) { Graph.zoomToFit(400,100); once = true;} });
+
+    elementResizeDetectorMaker().listenTo(
+       container,
+       el => {Graph.width(el.offsetWidth); Graph.zoomToFit(400,100);}
+    );
+
+
+
+</script>

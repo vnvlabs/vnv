@@ -26,8 +26,8 @@ class OptionsParserStore :public BaseStore {
  private:
 
   std::map<std::string,
-           std::pair<json, std::pair<options_callback_ptr*,
-                                     options_cpp_callback_ptr*>>,
+           std::pair<json, std::pair<options_callback_ptr,
+                                     options_cpp_callback_ptr>>,
            std::less<std::string>>
       factory;
 
@@ -39,14 +39,15 @@ class OptionsParserStore :public BaseStore {
 
   void add(std::string name, json& m, options_callback_ptr v);
   void add(std::string name, json& m, options_cpp_callback_ptr v);
-  void callBack(std::string name, json info);
+  void callBack(std::string name, json info, ICommunicator_ptr world);
 
-  void parse(json info, json& cmdline);
+  void parse(json info, json& cmdline, ICommunicator_ptr world);
 
   json& getSchema(std::string package);
 
   static OptionsParserStore& instance();
 
+  json schema();
 
 };
 

@@ -42,21 +42,33 @@ namespace {
  * @param vec
  * @return
  */
-std::vector<char*> stringsToChars(std::vector<std::string> vec) {
-  std::vector<char*> cstrings;
+std::vector<char*> stringsToChars(std::vector<std::string> &vec) {
+  
+  std::vector<char*> cstrings;   
   cstrings.reserve(vec.size());
-  for (int i = 0; i < vec.size(); i++) {
-    cstrings.push_back(const_cast<char*>(vec[i].c_str()));
+
+  for(auto& s: vec) {
+      cstrings.push_back(&s[0]);
   }
   return cstrings;
 }
+
 }  // namespace
 
 bool VnVInit_Str(std::vector<std::string> args, std::string configStr) {
   json conf = json::parse(configStr);
   int argc = args.size();
+  
+  std::cout <<" S " << args[0] << std::endl; 
+
   std::vector<char*> cstrings = stringsToChars(args);
-  char** argv = &cstrings[0];
+  
+  char** argv = cstrings.data();
+  for (int i = 0; i < argc ; i ++ ) {
+    std::cout << args[i] << " " << argv[i] << std::endl;
+  }
+
+
   bool success = RunTime::instance().InitFromJson("PYTHON_READER", &argc, &argv, conf,
                                    nullptr);
   return success == 0;

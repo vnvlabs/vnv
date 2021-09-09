@@ -13,14 +13,14 @@ using namespace VnV;
 
 extern "C" {
 
-VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName, const char* name,
+VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName, const char* name, const char* fname, int line,
                                 injectionDataCallback* callback,
                                 int once, int inputParameters, ...) {
   va_list argp;
   va_start(argp, inputParameters);
   NTV inputs = VariadicUtils::UnwrapVariadicArgs(argp,inputParameters);
   NTV outputs = VariadicUtils::UnwrapVariadicArgs(argp);
-  VnV_Iterator v = VnV::RunTime::instance().injectionIteration(comm, packageName, name, callback, inputs,outputs, once);
+  VnV_Iterator v = VnV::RunTime::instance().injectionIteration(comm, packageName, name, fname, line, callback, inputs,outputs, once);
   va_end(argp);
   return v;
 }

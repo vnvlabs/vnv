@@ -8,7 +8,7 @@ namespace {
 class SequentialGraphIter : public VnV::Walkers::Iter {
  protected:
   long rootComm;
-  std::list<std::tuple<long, long, node_type>>::iterator indexIter;
+  std::list<IDN>::iterator indexIter;
   
   // Include a .
   bool includeProc(long streamId) {
@@ -70,23 +70,24 @@ class SequentialGraphIter : public VnV::Walkers::Iter {
     return edges;
   }
 
+  // Get the next node id->vector of parents
+
  public:
   SequentialGraphIter(
       ICommMap* comm, long commId,
-      std::map<long, std::list<std::tuple<long, long, node_type>>>& n)
+      std::map<long, std::list<IDN>>& n)
       : Iter(comm, n), rootComm(commId) {
     indexIter = niter->second.begin();
   }
-
-  // Get the next node id->vector of parents
-  virtual bool next(std::tuple<long, node_type,  std::set<long>>& res) {
+  virtual bool next(std::tuple<long, node_type, long, std::set<long>>& res) {
     while (niter != nodes.end()) {
       while (indexIter != niter->second.end()) {
-        if (includeProc(std::get<0>(*indexIter))) {
-          std::get<0>(res) = std::get<1>(*indexIter);
-          std::get<1>(res) = std::get<2>(*indexIter); 
-          std::get<2>(res).clear();
-          getEdges(std::get<0>(*indexIter), std::get<1>(*indexIter), std::get<2>(res));
+        if (includeProc(indexIter->streamId)) {
+          std::get<0>(res) = indexIter->id;
+          std::get<1>(res) = indexIter->type; 
+          std::get<2>(res) = indexIter->duration;
+          std::get<3>(res).clear();
+          getEdges(indexIter->streamId, indexIter->id, std::get<3>(res));
           ++indexIter;
           return true;
         }
@@ -97,26 +98,23 @@ class SequentialGraphIter : public VnV::Walkers::Iter {
 
     return false;
   }
+
+
 };
 
 class RootNodeGraphWalk : public VnV::IWalker {
 
   IRootNode* rootNode;
   std::shared_ptr<SequentialGraphIter> procIter;
-  std::tuple<long, node_type, std::set<long>> curr;
+  std::tuple<long, node_type, long, std::set<long>> curr;
 
- public:
-  RootNodeGraphWalk(IRootNode* root, long commId) : IWalker(root) {
-    rootNode = root;
-    procIter = std::make_shared<SequentialGraphIter>(
-         root->getCommInfoNode()->getCommMap(),commId, root->getNodes());
-    }
 
-  virtual bool next(VnV::WalkerNode& node) override { 
+  virtual bool _next(VnV::Nodes::WalkerNode& node) override { 
     if (procIter->next(curr)) {
         node.item = rootNode->findById(std::get<0>(curr));
         node.type = std::get<1>(curr);
-        node.edges = std::get<2>(curr);
+        node.time = std::get<2>(curr);
+        node.edges = std::get<3>(curr);
         return true;
     } 
 
@@ -125,6 +123,14 @@ class RootNodeGraphWalk : public VnV::IWalker {
     node.edges.clear();
     return false;
   }
+
+ public:
+  RootNodeGraphWalk(IRootNode* root, long commId) : IWalker(root) {
+    rootNode = root;
+    procIter = std::make_shared<SequentialGraphIter>(
+         root->getCommInfoNode()->getCommMap(),commId, root->getNodes());
+    }
+
 
 };
 

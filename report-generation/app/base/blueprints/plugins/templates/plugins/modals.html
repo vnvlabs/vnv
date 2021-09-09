@@ -1,0 +1,27 @@
+<div class="modal fade" id="new_plugin_modal" tabindex="-1" role="dialog" aria-labelledby="new_plugin_modal_label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="new_file_modal_label">New Plugin</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <form action="/plugin/new" method="post" id="new_plugin_form">
+                    <div class="form-group">
+                        <label for="pname" class="col-form-label">Name</label>
+                        <input type="text" class="form-control" name="name" id="pname">
+                    </div>
+                    <div class="form-group">
+                        <label for="pfilename" class="col-form-label">Filename</label>
+                        <input type="text" class="form-control" name="filename" id="pfilename">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn  btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn  btn-primary" form="new_plugin_form">Load Plugin</button>
+            </div>
+        </div>
+    </div>
+</div>

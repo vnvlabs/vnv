@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <iostream>
+#include <stdio.h>
 
 #include "base/Utilities.h"
 #include "base/exceptions.h"
@@ -19,29 +20,17 @@ using nlohmann::json;
 namespace VnV {
 namespace DistUtils {
 
-json getLibInfo(std::string filepath, unsigned long add) {
+libInfo getLibInfo(std::string filepath, unsigned long add) {
+  
+  libInfo info;
+  
   struct stat result;
   stat(filepath.c_str(), &result);
   json libJson;
-  libJson["name"] = getAbsolutePath(filepath);
-  libJson["add"] = add;
-  libJson["st_dev"] = result.st_dev;
-  libJson["st_gid"] = result.st_gid;
-  libJson["st_ino"] = result.st_ino;
-  libJson["st_uid"] = result.st_uid;
-  libJson["st_mode"] = result.st_mode;
-  libJson["st_rdev"] = result.st_rdev;
-  libJson["st_size"] = result.st_size;
-  libJson["st_nlink"] = result.st_nlink;
-  libJson["st_blocks"] = result.st_blocks;
-  libJson["st_blksize"] = result.st_blksize;
-  libJson["st_atim_sec"] = result.st_atim.tv_sec;
-  libJson["st_atim_nsec"] = result.st_atim.tv_nsec;
-  libJson["st_ctim_sec"] = result.st_ctim.tv_sec;
-  libJson["st_ctim_nsec"] = result.st_ctim.tv_nsec;
-  libJson["st_mtim_sec"] = result.st_mtim.tv_sec;
-  libJson["st_mtim_nsec"] = result.st_mtim.tv_nsec;
-  return libJson;
+  info.name = getAbsolutePath(filepath);
+  info.size = result.st_size;
+  info.timestamp = result.st_mtim.tv_sec;
+  return info;
 }
 
 
@@ -62,13 +51,17 @@ bool makedir(std::string filename, mode_t mode ) {
   return mkdir(filename.c_str(), mode) == 0;
 }
 
+bool mv(std::string oldFileName, std::string newFileName) {
+   return 0 == std::rename(oldFileName.c_str(),newFileName.c_str());
+}
 
-
-std::string join(std::vector<std::string> vector, mode_t i, bool makeDir) {
-  if (vector.size() > 0 ) {
+std::string join(std::vector<std::string> vec, mode_t i, bool makeDir) {
+  if (vec.size() > 0 ) {
      std::string s = "";
-     for (auto it : vector) {
-        s = s + it + "/";
+     for (auto it = vec.begin(); it!=vec.end(); ++it) {
+        
+        s = s + *it + ( ( (it + 1) == vec.end() ) ? "" : "/" ) ;
+        
         if (makeDir) {
           struct stat sb;
           if (stat(s.c_str(), &sb) == 0) {
@@ -171,7 +164,7 @@ std::vector<std::string> listFilesInDirectory(std::string directory) {
   
   DIR *dir;
   struct dirent *ent;
-  VnV_Debug(VNVPACKAGENAME,"Openning directory %d", directory.size());
+  VnV_Debug(VNVPACKAGENAME,"Openning directory %ld", directory.size());
   if ((dir = opendir (directory.c_str())) != NULL) {
   while ((ent = readdir (dir)) != NULL) {
     res.push_back(ent->d_name);

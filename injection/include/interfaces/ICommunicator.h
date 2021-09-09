@@ -104,7 +104,7 @@ class ICommunicator {
   virtual ICommunicator_ptr create(int start, int end, int stride, int tag) = 0;
   virtual ICommunicator_ptr world() = 0;
   virtual ICommunicator_ptr self() = 0;
-  virtual ICommunicator_ptr custom(void * data) = 0;
+  virtual ICommunicator_ptr custom(void * data, bool raw ) = 0;
   
   virtual ICommunicator_ptr handleOtherCommunicators(std::string name, void* data) = 0;
 
@@ -163,6 +163,11 @@ class ICommunicator {
 
   virtual void Initialize();
   virtual void Finalize();
+
+  virtual int  VersionMajor() = 0;
+  virtual int VersionMinor() = 0;
+  virtual std::string VersionLibrary() = 0;
+
 
   template <typename T> T* getRaw() { return (T*)raw(); }
 };

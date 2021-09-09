@@ -12,12 +12,17 @@ BaseStoreInstance(WalkerStore)
 
     void WalkerStore::addWalker(std::string packageName, std::string name,
                                 nlohmann::json& schema, walker_maker_ptr m) {
+ 
+   std::cout << packageName + ":" + name << std::endl;
   Walker_factory[packageName + ":" + name] = std::make_pair(m, schema);
 }
 
 IWalker_ptr WalkerStore::getWalker(std::string package, std::string name,
                                    Nodes::IRootNode* rootNode,
                                    nlohmann::json& config) {
+  
+  
+  
   auto it = Walker_factory.find(package + ":" + name);
   if (it != Walker_factory.end()) {
     if (JsonUtilities::validate(config, it->second.second)) {

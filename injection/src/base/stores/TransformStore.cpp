@@ -51,6 +51,26 @@ void* Transformer::Transform(void* ptr, std::string& rtti) {
 TransformStore::TransformStore() {}
 
 
+nlohmann::json TransformStore::schema() {
+
+    std::set<std::string> nodes;
+    nlohmann::json edges;
+    for (auto &it : trans_map) {
+        nodes.insert(it.first);
+        for (auto &itt : it.second) {
+          nodes.insert(itt.first);
+          json j = json::object();
+          j["source"] = it.first;
+          j["target"] = it.second;
+          edges.push_back(j);
+        }
+    }
+    nlohmann::json r = json::object();
+    r["nodes"] = nodes;
+    r["edges"] = edges;
+    return r;
+ 
+}
 
 std::shared_ptr<Transformer> TransformStore::getTransformer(std::string from,
                                                             std::string to) {
@@ -62,6 +82,7 @@ std::shared_ptr<Transformer> TransformStore::getTransformer(std::string from,
   try {
     std::vector<std::pair<std::string, std::string>> r =
         bfs(trans_map, from, to);
+    
     for (auto it : r) {
       m.push_back({it.first, (*trans_factory.find(it.second)->second)()});
     }
@@ -94,4 +115,5 @@ void TransformStore::addTransform(std::string name, trans_ptr t,
 void VnV::registerTransform(std::string name, trans_ptr t, std::string from,
                             std::string to) {
   TransformStore::instance().addTransform(name, t, from, to);
+
 }

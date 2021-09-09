@@ -82,7 +82,7 @@ class InjectionPointStore : public BaseStore {
   std::map<std::string, InjectionPointConfig>  injectionPoints; /**< The stored configurations */
   std::map<std::string, InjectionPointSpec> registeredInjectionPoints;
 
-
+  
   /**
    * @brief newInjectionPoint
    * @param key The name of the injection point
@@ -171,6 +171,8 @@ class InjectionPointStore : public BaseStore {
 
   static InjectionPointStore& instance();
 
+
+  nlohmann::json schema();
 
 };  // end InjectionPointStore
 

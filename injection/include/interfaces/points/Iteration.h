@@ -42,14 +42,14 @@ void UnwrapParameterPack(int inputs, NTV& minputs, NTV&moutputs, V& name, T& fir
 void Register(const char* package, const char* id, std::string json);
 
 
-VnV_Iterator BeginIteration(VnV_Comm comm, const char* package, const char* id,
+VnV_Iterator BeginIteration(VnV_Comm comm, const char* package, const char* id, const char* fname, int line,
                             const DataCallback& callback, int once, NTV&inputs, NTV& ouputs);
 
 int Iterate(VnV_Iterator* iterator);
 
 
 template <typename A, typename... Args>
-VnV_Iterator IterationPack(A comm, const char* package, const char* id,
+VnV_Iterator IterationPack(A comm, const char* package, const char* id, const char* fname, int line,
                const DataCallback& callback,
                int once, int inputs, Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> minputs;
@@ -57,7 +57,7 @@ VnV_Iterator IterationPack(A comm, const char* package, const char* id,
   
   UnwrapParameterPack(inputs, minputs, moutputs, std::forward<Args>(args)...);
   
-  return BeginIteration(comm, package, id, callback, once, minputs, moutputs);
+  return BeginIteration(comm, package, id, fname , line, callback, once, minputs, moutputs);
 }
 
 
@@ -66,14 +66,13 @@ VnV_Iterator IterationPack(A comm, const char* package, const char* id,
 
 
 # define INJECTION_ITERATION_C(VAR, PNAME, COMM, NAME, ONCE, INPUTS, callback, ...)\
-   VnV_Iterator VAR = VnV::CppIteration::IterationPack(COMM, PNAME, NAME, \
+   VnV_Iterator VAR = VnV::CppIteration::IterationPack(COMM, PNAME, NAME, __FILE__, __LINE__, \
                     callback, ONCE, INPUTS EVERYONE(__VA_ARGS__));                                                                            \
    while(VnV::CppIteration::Iterate(&VAR))
 
 
 #  define INJECTION_ITERATION(VAR, PNAME, COMM, NAME, ONCE, INPUTS, ...) \
-    INJECTION_ITERATION_C(VAR, PNAME, COMM, NAME, ONCE, INPUTS,          \
-                           &VnV::defaultCallBack, __VA_ARGS__)
+    INJECTION_ITERATION_C(VAR, PNAME, COMM, NAME, ONCE, INPUTS, &VnV::defaultCallBack, __VA_ARGS__)
 
 
 

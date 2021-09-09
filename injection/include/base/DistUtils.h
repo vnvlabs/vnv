@@ -9,6 +9,7 @@
 #include <set>
 
 #include "json-schema.hpp"
+#include "base/LibraryInfo.h"
 
 using nlohmann::json;
 
@@ -16,17 +17,17 @@ typedef void (*registrationCallback)();
 
 namespace VnV {
 namespace DistUtils {
-struct libData {
-  std::vector<json> libs;
-  libData() {}
-};
+
+
+
+
 
 void* loadLibrary(std::string libraryPath);
 registrationCallback searchLibrary(void* dllib, std::string packageName);
 /**
  * Get "stat" information for the file. Here add is the "address".
  **/
-json getLibInfo(std::string filepath, unsigned long add);
+libInfo getLibInfo(std::string filepath, unsigned long add);
 
 /**
  * @brief get the current working directory.
@@ -59,6 +60,7 @@ void callAllLibraryRegistrationFunctions(
  */
 bool makedir(std::string filename, mode_t mode );
 
+bool mv(std::string oldFileName, std::string newFilename);
 
 std::string getEnvironmentVariable(std::string val);
 

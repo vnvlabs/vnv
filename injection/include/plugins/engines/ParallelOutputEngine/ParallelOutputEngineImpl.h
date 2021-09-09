@@ -101,13 +101,33 @@ class ParallelEngine : public OutputEngineManager {
   /**
    * @brief finalize
    */
-  void finalize(ICommunicator_ptr worldComm) override;
+  void finalize(ICommunicator_ptr worldComm, long duration) override;
 
   /**
    * @brief set
    * @param config
    */
   void setFromJson(ICommunicator_ptr worldComm,json& config, bool readMode) override;
+
+
+  /**
+   * @brief endInjectionPoint
+   * @param id
+   * @param stageVal
+   */
+  void packageOptionsStartedCallBack(ICommunicator_ptr world, std::string packageName) override;
+
+  /**
+   * @brief startInjectionPoint
+   * @param id
+   * @param stageVal
+   */
+  void packageOptionsEndedCallBack(std::string packageName) override;
+
+  void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile, std::string filename,
+  std::string reader) {
+
+  }
 
   /**
    * @brief endInjectionPoint
@@ -125,7 +145,7 @@ class ParallelEngine : public OutputEngineManager {
    */
   void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                                      std::string id, InjectionPointType type,
-                                     std::string stageVal) override;
+                                     std::string stageVal, std::string filename, int line) override;
 
   /**
    * @brief startTest
@@ -146,15 +166,6 @@ class ParallelEngine : public OutputEngineManager {
 
   void unitTestFinishedCallBack( IUnitTest* tester) override;
 
-
-  /**
-   * @brief getOutputEngine
-   * @return
-   */
-  std::shared_ptr<Nodes::IRootNode> readFromFile(std::string file, long& idCOunter) override {
-    throw VnV::VnVExceptionBase(
-        "Read From File Not implemented for Parallel Output Engine");
-  }
 
   std::string print() override {
     throw VnV::VnVExceptionBase(

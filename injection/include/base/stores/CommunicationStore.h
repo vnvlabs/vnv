@@ -15,7 +15,7 @@ using VnV::ICommunicator;
 using VnV::ICommunicator_ptr;
 
 
-
+#include "json-schema.hpp"
 
 namespace VnV {
 
@@ -40,6 +40,7 @@ class CommunicationStore :public BaseStore {
 
   void addCommunicator(std::string name, comm_register_ptr factory);
 
+  nlohmann::json schema();
 
   void set(std::string name);
 
@@ -59,9 +60,8 @@ class CommunicationStore :public BaseStore {
 
   ICommunicator_ptr selfComm();
 
-  ICommunicator_ptr customComm(std::string packageName, void* data);
-
   void Finalize();
+
 
   static CommunicationStore& instance();
 };

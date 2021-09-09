@@ -67,6 +67,67 @@ void IteratorStore::registerIterator(std::string packageName,
   }
 }
 
+json IteratorStore::schema() {
+    
+    nlohmann::json temp = R"({
+      "description": "An injection iterator defined somewhere in the code",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "package" : {
+          "type" : "string"
+        },
+        "runInternal": {
+           "type" : "boolean"
+        },
+        "runScope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/test"
+          }
+        },
+        "iterators": {
+            "type": "array",
+            "items": {
+               "$ref": "#/definitions/test"
+            }
+        } 
+      },
+      "required": [
+        "name","package"
+      ]
+    })"_json;
+
+
+    nlohmann::json oneof = json::array();
+    for (auto &it :  registeredIterators) {
+
+      json j = temp;
+      j["properties"]["name"]["const"] = it.second.name;
+      j["properties"]["package"]["const"] = it.second.package;
+      j["vnvprops"] = it.second.specJson;
+      oneof.push_back(j);  
+    }   
+    
+    if (oneof.size() > 0 ) {
+      nlohmann::json ret = json::object();
+      ret["oneOf"] = oneof;
+      return ret;
+    } else {
+      return R"({"const" : false})"_json;
+    }
+}
+
+
+
 std::shared_ptr<IterationPoint> IteratorStore::getNewIterator(
     std::string package, std::string name, int once, NTV& in_args, NTV& out_args) {
 

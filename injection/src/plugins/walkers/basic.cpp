@@ -8,9 +8,34 @@ namespace {
 class BasicNodeIter : public VnV::IWalker {
  protected:
   IRootNode *root;
-  std::map<long, std::list<std::tuple<long, long, VnV::Nodes::node_type>>>::iterator niter;
-  std::list<std::tuple<long,long,node_type>>::iterator indexIter;
+  std::map<long, std::list<IDN>>::iterator niter;
+  std::list<IDN>::iterator indexIter;
    
+   bool _next(VnV::Nodes::WalkerNode& node) override {
+          
+     while (niter != root->getNodes().end()) {
+       while (indexIter!= niter->second.end()) {
+         
+         node.item = root->findById(indexIter->id);
+         node.type = indexIter->type; 
+         node.time = indexIter->duration;
+         node.edges.clear();
+         ++indexIter;
+         return true;
+       }
+
+       ++niter;
+       if (niter != root->getNodes().end() ) {
+          indexIter = niter->second.begin();
+       }
+
+     }
+
+     node.item = NULL;
+     node.type = node_type::DONE;
+     node.edges.clear();
+     return false;
+  } 
 
  public:
   BasicNodeIter(IRootNode* rootNode) : IWalker(rootNode), root(rootNode) {
@@ -20,26 +45,11 @@ class BasicNodeIter : public VnV::IWalker {
     }
   }
     
-  bool next(VnV::WalkerNode& node) override {
-     while (niter != root->getNodes().end()) {
-       while (indexIter!= niter->second.end()) {
-         node.item = root->findById(std::get<1>(*indexIter));
-         node.type = std::get<2>(*indexIter); 
-         node.edges.clear();
-         ++indexIter;
-         return true;
-       }
-       ++niter;
-     }
-     node.item = NULL;
-     node.type = node_type::DONE;
-     node.edges.clear();
-     return false;
-  }
+ 
   
   // Override the callback function to be informed when new nodes are added to 
   // the root node. 
-  virtual void callback(long index, std::list<std::tuple<long,long,node_type>>::iterator a) override {
+  virtual void callback(long index, std::list<IDN>::iterator a) override {
       std::cout << "New Node Available " << std::endl; 
       
   }

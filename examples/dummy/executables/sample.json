@@ -10,27 +10,12 @@
     "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so"
   },
   "outputEngine": {
-    "type": "json_stdout",
+    "type": "json_file",
     "config": {
-       "outputFile" : "vv-output.json"
+       "filename" : "vv-output"
     }
   },
   "injectionPoints": [
-      {
-        "name" : "configuration",
-        "package" : "VNV",
-        "tests" : [
-            {
-                "name" : "provenance",
-                "package" : "VNV",
-                "parameters": {
-                        "argc" : "argc",
-                        "argv" : "argv",
-                        "config" : "config"
-                }
-            }
-        ]
-      },
       {
         "name" : "initialization",
         "package" : "VNV",

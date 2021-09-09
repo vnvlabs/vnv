@@ -49,10 +49,11 @@ namespace VnV {
 class OutputEngineStore :public  BaseStore {
 
  private:
-  std::map<std::string, engine_register_ptr>
-      registeredEngines; /**< List of all registered engines */
-  std::shared_ptr<OutputEngineManager>
-      manager; /**< The current Engine Manager being used in VnV for all IO */
+  std::map<std::string, engine_register_ptr> registeredEngines; /**< List of all registered engines */
+  std::map<std::string, engine_reader_ptr> registeredReaders; /**< List of all registered engine readers */
+  
+  
+  std::shared_ptr<OutputEngineManager> manager; /**< The current Engine Manager being used in VnV for all IO */
   std::string engineName;
 
   bool initialized = false; /**< Set when the Engine has been initialized */
@@ -79,6 +80,9 @@ class OutputEngineStore :public  BaseStore {
    */
   void registerEngine(std::string name, engine_register_ptr engine_ptr);
 
+  void registerReader(std::string name, engine_reader_ptr reader_ptr);
+
+  json schema();
   /**
    * @brief getEngineManager
    * @return The currently active engine manager. nullptr if not yet configured.

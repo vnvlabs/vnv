@@ -101,3 +101,7 @@ IOutputEngine* OutputEngineManager::getOutputEngine() {
 void VnV::registerEngine(std::string name, engine_register_ptr r) {
   OutputEngineStore::instance().registerEngine(name, r);
 }
+
+void VnV::registerReader(std::string name, engine_reader_ptr r) {
+  OutputEngineStore::instance().registerReader(name, r);
+}

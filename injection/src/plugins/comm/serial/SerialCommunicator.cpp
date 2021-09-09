@@ -180,7 +180,7 @@ class SerialCommunicator : public VnV::ICommunicator {
     return duplicate();
   }
 
-  ICommunicator_ptr custom(void* data) {
+  ICommunicator_ptr custom(void* data, bool raw) {
     auto a = duplicate();
     a->setData(data);
     return a;
@@ -241,6 +241,19 @@ class SerialCommunicator : public VnV::ICommunicator {
     }
     return getSP(s->m_tag, s->m_size);
   }
+
+
+  virtual int VersionMajor() {
+     return 0;
+  }
+
+  virtual int VersionMinor() {
+     return 0;
+  }
+  virtual std::string VersionLibrary() {
+      return "Serial Communicator Version 0.0";
+  }
+
 
   VnV::IStatus_vec WaitAll(
       VnV::IRequest_vec& vec) {

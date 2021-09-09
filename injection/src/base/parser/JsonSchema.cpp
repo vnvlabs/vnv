@@ -44,7 +44,7 @@ const json& getVVSchema() {
       "$ref": "#/definitions/runScopes"
     },
     "hot-patch" : {
-      "type" : "bool"
+      "type" : "boolean"
     },
     "injectionPoints": {
       "$ref": "#/definitions/injectionPoints"
@@ -61,7 +61,7 @@ const json& getVVSchema() {
     "template-overrides" : {
       "type" : "object"
     },
-    "communicator" : {"type" : "string" , "default" : "mpi" }
+    "communicator" : {"$ref" : "#/definitions/communicator" }
   },
   "additionalProperties": false,
   "definitions": {
@@ -70,6 +70,7 @@ const json& getVVSchema() {
       "type": "object",
       "additionalProperties" : {"type" : "string" }
     },
+    "communicator" : {"type" : "string" , "default" : "mpi" },
     "outputEngine": {
       "description": "Parameters to configure the output Engine",
       "type": "object",
@@ -188,7 +189,7 @@ const json& getVVSchema() {
       "description": "Injection Iteration Points",
       "type": "array",
       "items" : {
-         "$ref": "#/definitions/iterator"
+         "$ref": "#/definitions/iteratorfunc"
        }
     },
     "iterator": {
@@ -260,12 +261,62 @@ const json& getVVSchema() {
           }
         },
         "plug" : {
-            "$ref": "#/definitions/test"
+            "$ref": "#/definitions/plugger"
         } 
       },
       "required": [
         "name","package"
       ]
+    },
+    "plugger": {
+      "description": "Test information",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "package" : {
+          "type" : "string"
+        },
+        "config" : {
+            "type" : "object"
+        },
+        "parameters" : {
+            "type" : "object",
+            "additionalParameters" : {"type" : "string" }
+        },
+        "runScope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "iteratorfunc": {
+      "description": "Test information",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "package" : {
+          "type" : "string"
+        },
+        "config" : {
+            "type" : "object"
+        },
+        "parameters" : {
+            "type" : "object",
+            "additionalParameters" : {"type" : "string" }
+        },
+        "runScope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "test": {
       "description": "Test information",

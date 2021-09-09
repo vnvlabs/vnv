@@ -1,0 +1,36 @@
+{% with injection_element = "injection-element", view = request.args.get("viewer","processor") %}
+
+<div id="view-header" class="card"
+     style="position:absolute; z-index:2; right:20px; top:20px">
+    <div class="card-body" style="display:flex; flex-direction:row; ">
+        <div class="btn-group mb-2 mr-2">
+            <button class="btn  btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">{{view}}
+            </button>
+            <div class="dropdown-menu">
+                {%for v in viewers%}
+                <a class="dropdown-item" href="{{url_for('base.files.view', id_=file.id_, viewer=v)}}">
+                    {%if v == view%} <i class="feather icon-check"></i> {%endif%} {{v}}
+                </a>
+                {%endfor%}
+            </div>
+        </div>
+        {%include view + "/menu.html" %}
+    </div>
+</div>
+
+<div id="view-view" style="position:relative">
+
+
+    <div id="view-chart">
+        {%include view + "/chart.html" %}
+    </div>
+
+
+    <div id="{{injection_element |safe }}">
+        {{ file.get_introduction() | safe }}
+    </div>
+
+</div>
+
+{%endwith%}

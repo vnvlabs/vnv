@@ -1,0 +1,49 @@
+{% with strip = request.args.get("strip"), communicator = request.args.get("communicator",file.getDefaultComm())  %}
+
+{%if file.get_world_size() > 1 %}
+
+
+<div class="btn-group mb-2 mr-2">
+    <button class="btn  btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">{{communicator}}
+    </button>
+    <div class="dropdown-menu" style="z-index:20">
+        {%for v in file.list_communicators()%}
+        <a class="dropdown-item" href="#!" onclick='updateComm("{{v}}")'>
+            {%if v == communicator%} <i class="feather icon-check"></i> {%endif%} {{v}}
+        </a>
+        {%endfor%}
+    </div>
+</div>
+
+
+<input style="width:20px; margin-left:10px;" type="checkbox" title="All" class="form-control" , id="only-check" {% if
+       strip %} checked {% endif %}>
+
+<script>
+      currentComm = {{communicator}}
+
+      function updateComm(comm) {
+               currentComm = comm
+               url = '{{url_for('base.files.view',id_=file.id_, viewer="communicator")}}'
+               if ( $('#only-check').is(':checked') ) {
+                    url += "&strip=true"
+               }
+               url += "&communicator=" + comm
+               window.location.href = url
+      }
+
+
+      $( document ).ready(function() {
+
+         $( "#only-check" ).change(function() {
+               updateComm(currentComm)
+         });
+
+     });
+
+</script>
+
+
+{%endif%}
+{%endwith%}

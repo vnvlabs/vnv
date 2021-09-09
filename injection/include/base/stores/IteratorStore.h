@@ -60,6 +60,8 @@ class IteratorStore : public BaseStore {
 
   static IteratorStore& instance();
 
+  nlohmann::json schema();
+
 };  // end InjectionPointStore
 
 }  // namespace VnV

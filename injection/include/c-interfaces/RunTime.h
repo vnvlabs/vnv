@@ -68,9 +68,10 @@ VNVEXTERNC void VnV_finalize();
 
 VNVEXTERNC void VnV_runUnitTests(VnV_Comm comm);
 
-VNVEXTERNC void VnV_Registration_Info(const char* filename);
+VNVEXTERNC void VnV_Registration_Info(const char* filename, int quit);
 
-VNVEXTERNC void VnV_readFile(const char* filename, long* idCounter);
+VNVEXTERNC void VnV_readFile(const char* reader, const char* filename);
+VNVEXTERNC void VnV_readFileAndWalk(const char* reader, const char* filename, const char* package, const char* walker, const char* config);
 
 #else  // WITHOUT_VNV
 #  define VnV_init(...)

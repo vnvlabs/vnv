@@ -1,0 +1,86 @@
+<div style="display:flex; align-items:center ">
+    <h1 style="flex:1"> Injection Point: {{iprender.getName()}} from {{ iprender.getPackage()}} </h1>
+    {% if iprender.getLogs() | length %}
+    <button class="btn  btn-icon btn-outline-primary " type="button" style="margin-right:10px"
+            onclick="$('#log-modal').modal('toggle')" aria-haspopup="true" aria-expanded="false"><i
+            class="feather icon-activity"></i>
+    </button>
+    {%endif%}
+
+    <a href="#!" onclick="$('#comm-modal').modal('toggle')" class="badge badge-success" style="margin-left:10px" ;>Communication Map </a>
+    <a href="#!" onclick="$('#source-modal').modal('toggle')" class="badge badge-info" style="margin-left:10px" ;>Source Code </a>
+
+</div>
+
+{% with testrender = iprender.getInternalTest() %}
+{%include 'viewers/test.html' %}
+{% endwith %}
+
+{% if iprender.getAdditionalTests() | length > 0 %}
+
+{% for testrender in iprender.getAdditionalTests() %}
+{%include 'viewers/test.html' %}
+{% endfor %}
+
+{% endif %}
+
+{% if iprender.getLogs() | length %}
+<div id="log-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="comm-modal-label"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="log-modal-label">Injection Point Logs</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="log-modal-body">
+                {% for logrender in iprender.getLogs() %}
+                {%include 'viewers/logs.html' %}
+                {% endfor%}
+            </div>
+        </div>
+    </div>
+</div>
+{%endif%}
+
+
+<div id="comm-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="comm-modal-label"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="comm-modal-label">Injection Point Communication Map</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="comm-modal-body">
+                {% with commrender = iprender.getCommRender() %}
+                {%include 'files/comm.html' %}
+                {%endwith%}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="source-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="source-modal-label"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width:90%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="source-modal-label">Injection Point Source</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="source-modal-body">
+                {%with sourceMap = iprender.getSourceMap() %}
+                {%include 'files/sourcemap.html'%}
+                {%endwith%}
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+</script>

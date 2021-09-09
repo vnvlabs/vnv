@@ -242,6 +242,26 @@ class MPICommunicator : public ICommunicator {
     return ICommunicator_ptr(p);
   }
 
+
+  virtual int VersionMajor() {
+     int major,minor;
+     MPI_Get_version(&major, &minor);
+     return major;
+  }
+
+  virtual int VersionMinor() {
+      int major,minor;
+     MPI_Get_version(&major, &minor);
+     return minor;
+  }
+  virtual std::string VersionLibrary() {
+      int resultlen;
+      char version[MPI_MAX_LIBRARY_VERSION_STRING];
+      MPI_Get_library_version(version, &resultlen);
+      return std::string(version, resultlen);
+  }
+
+
   ICommunicator_ptr world() {
     return ICommunicator_ptr(new MPICommunicator(VnVCommType::World));
   }
@@ -260,12 +280,18 @@ class MPICommunicator : public ICommunicator {
   }
 
   
-  ICommunicator_ptr custom(void* data) {
-     ICommunicator_ptr p;
-     p.reset(new MPICommunicator(VnVCommType::Default));
-     p->setData(data);
-     return p;
+  ICommunicator_ptr custom(void* data, bool raw) {
+     
+     MPICommunicator* p = new MPICommunicator(VnVCommType::Default);
+     if (raw) {
+       MPI_Comm* c = (MPI_Comm*) data;
+       p->setComm(*c);
+     } else {  
+       p->setData(data);
+     }
+     return ICommunicator_ptr(p);
   }
+
 
   ICommunicator_ptr self() {
     return ICommunicator_ptr(new MPICommunicator(VnVCommType::Self));
@@ -529,8 +555,6 @@ bool MPICommunicator::finalizeMPI = false;
 
 MPI_Comm castToMPIComm(ICommunicator_ptr ptr) {
   MPI_Comm mpicomm;
-
-  std::cout << " MPI : " << ptr->getName() << std::endl;
 
   if (ptr->getName() == "VNV:serial") {
 

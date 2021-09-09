@@ -5,23 +5,28 @@
 
 namespace VnV {
 
-class WalkerNode {
- public:
-  Nodes::DataBase* item;
-  Nodes::node_type type;
-  std::set<long> edges;
-};
+
 
 class IWalker {
  Nodes::IRootNode* rootNode;
+
+ virtual bool _next(Nodes::WalkerNode& item) = 0;
+
 public:    
   IWalker(Nodes::IRootNode* root) : rootNode(root) {
      rootNode->registerWalkerCallback(this);
   }
   
-  virtual void callback(long index, std::list<std::tuple<long,long,Nodes::node_type>>::iterator iter){}
+  virtual void callback(long index, std::list<Nodes::IDN>::iterator iter){}
   
-  virtual bool next(WalkerNode& item) = 0;
+  // This lets up wrap the next call at the walker level. I put this in so 
+  // we could lock the file before walking, but ended up implementing it 
+  // another way. Could be useful at a later date so am leaving the wrapper
+  // around the pure virtual _next function in place. 
+  virtual bool next(Nodes::WalkerNode& item) {
+    return _next(item);
+  }
+
   
   virtual ~IWalker(){
       rootNode->deregisterWalkerCallback(this);

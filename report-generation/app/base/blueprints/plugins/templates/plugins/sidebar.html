@@ -1,0 +1,26 @@
+<li class="nav-item pcoded-hasmenu">
+    <a href="#!" class="nav-link ">
+							 <span class="pcoded-micon">
+								 <i class="feather icon-layers"></i>
+							 </span>
+        <span class='pcoded-mtext'>Plugins</span>
+        <span onclick='add_plugin(event)' class="pcoded-micon pcoded-mtext" style="float:right; padding-right:10px;">
+							    <i class="feather icon-file-plus"></i>
+							 </span>
+
+    </a>
+
+    <ul class="pcoded-submenu">
+        {% for plugin in plugins.values() %}
+        <li id="plugin-{{plugin.id_ | safe}}"><a href="{{url_for('base.plugins.view_plugin',id_=plugin.id_)}}">
+            <div style="display:flex;">
+                <span style="flex:1;">{{plugin.name}}</span>
+                <span onclick='remove_plugin({{plugin.id_ | safe }}, event)' class="pcoded-micon"
+                      style="padding-right:10px;">
+									<i class="feather icon-delete"></i>
+								</span>
+            </div>
+        </a></li>
+        {% endfor %}
+    </ul>
+</li>

@@ -151,6 +151,7 @@ class AdiosFileIterator : public Iterator<json> {
   ~AdiosFileIterator() { ifs.close(); }
 };
 
+
 class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
  public:
   std::unique_ptr<adios2::ADIOS> adios;
@@ -163,7 +164,6 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
   virtual void initialize(json& config, bool readMode) override {
     if (!readMode) {
       this->filestub = config["filename"].get<std::string>();
-      this->extension = ".bp3";
       bool debug = false;
       std::string configFile = "";
 
@@ -188,7 +188,7 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
     }
   }
 
-  virtual void finalize(ICommunicator_ptr wcomm) override {
+  virtual void finalize(ICommunicator_ptr wcomm, long duration) override {
     // Close all the streams
     for (auto& it : streams) {
       it.second.Close();

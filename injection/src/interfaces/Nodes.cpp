@@ -45,20 +45,22 @@ std::string DataBase::getTypeStr() {
   throw VnVExceptionBase("Impossible");
 }
 
-#define X(x, y)                                                              \
-  I##x##Node::I##x##Node() : DataBase(DataBase::DataType::x) {}              \
-  I##x##Node::~I##x##Node() {}                                               \
-  I##x##Node* DataBase::getAs##x##Node() {                                   \
-    return (check(DataType::x)) ? dynamic_cast<I##x##Node*>(this) : nullptr; \
+#define X(x, y)                                                     \
+  I##x##Node::I##x##Node() : DataBase(DataBase::DataType::x) {}     \
+  I##x##Node::~I##x##Node() {}                                      \
+  I##x##Node* DataBase::getAs##x##Node() {                          \
+    if (check(DataType::x)) return dynamic_cast<I##x##Node*>(this); \
+    throw VnVExceptionBase("Invalid Cast to DataType::%s", #x);     \
   }
 DTYPES
 #undef X
 
-#define X(x)                                                                 \
-  I##x##Node::I##x##Node() : DataBase(DataBase::DataType::x) {}              \
-  I##x##Node::~I##x##Node() {}                                               \
-  I##x##Node* DataBase::getAs##x##Node() {                                   \
-    return (check(DataType::x)) ? dynamic_cast<I##x##Node*>(this) : nullptr; \
+#define X(x)                                                        \
+  I##x##Node::I##x##Node() : DataBase(DataBase::DataType::x) {}     \
+  I##x##Node::~I##x##Node() {}                                      \
+  I##x##Node* DataBase::getAs##x##Node() {                          \
+    if (check(DataType::x)) return dynamic_cast<I##x##Node*>(this); \
+    throw VnVExceptionBase("Invalid Cast to DataType::%s", #x);     \
   }
 STYPES
 RTYPES
@@ -72,13 +74,14 @@ void IArrayNode::iter(std::function<void(DataBase*)>& lambda) {
   }
 }
 
-void IRootNode::addIDN(long id, long streamId, node_type type, long index) {
+void IRootNode::addIDN(long id, long streamId, node_type type, long index,
+                       long duration, std::string stage) {
   auto it = nodes.find(index);
   if (it == nodes.end()) {
-    nodes[index] = std::list<std::tuple<long, long, node_type>>();
-    nodes[index].push_back({streamId, id, type});
+    nodes[index] = std::list<IDN>();
+    nodes[index].push_back(IDN(id, streamId, type, duration, stage));
   } else {
-    (it->second).push_back({streamId, id, type});
+    (it->second).push_back(IDN(id, streamId, type, duration, stage));
   }
 
   // Tell any listeners that we recieved a new node.
@@ -88,23 +91,31 @@ void IRootNode::addIDN(long id, long streamId, node_type type, long index) {
   }
 }
 
-WalkerWrapper::WalkerWrapper(std::shared_ptr<IWalker> walker) : ptr(walker) {
+WalkerWrapper::WalkerWrapper(std::shared_ptr<IWalker> walker, IRootNode* root)
+    : ptr(walker), rootNode(root) {
   node.reset(new WalkerNode());
 }
 
-WalkerNode* WalkerWrapper::next() { 
-    if (ptr->next(*node)) {
-      return node.get();
-    }
-    return nullptr;
+WalkerNode* WalkerWrapper::next() {
+  if (ptr->next(*node)) {
+    return node.get();
   }
-
+  node->item = rootNode;
+  node->type = node_type::DONE;
+  node->edges.clear();
+  node->time = rootNode->getTotalDuration();
+  return node.get();
+}
 
 WalkerWrapper IRootNode::getWalker(std::string package, std::string name,
                                    std::string config) {
   nlohmann::json j = nlohmann::json::parse(config);
   auto a = WalkerStore::instance().getWalker(package, name, this, j);
-  return WalkerWrapper(a);
+  if (a == nullptr) {
+    throw VnVExceptionBase("No Walker with that name");
+  }
+
+  return WalkerWrapper(a, this);
 }
 
 }  // namespace Nodes

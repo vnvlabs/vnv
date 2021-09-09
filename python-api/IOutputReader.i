@@ -7,6 +7,8 @@
 
 
 %{
+ #include "base/Provenance.h"
+ #include "base/LibraryInfo.h"
  #include "python/PythonInterface.h"
 %}
 
@@ -26,11 +28,16 @@
 %include "std_string.i"
 %include "std_vector.i"
 %include "std_map.i"
+%include "std_set.i"
+%include "base/LibraryInfo.h"
+%include "base/Provenance.h"
 %include "interfaces/Nodes.h"
 %include "python/PythonInterface.h"
 
 namespace std {
     %template(charVector) vector<string>;
+    %template(longSet) set<long>;
+    %template(provVec) vector<VnV::ProvFile>; 
 }
 
 
@@ -208,6 +215,14 @@ def castDataBase(obj) :
 
 %}
 
+%extend VnV::Nodes::DataBase {
+  %pythoncode %{
+     def cast(self):
+         return castDataBase(self)
+
+  %}
+}
+
 
 %define PY_GETATTR(Typename)
 %extend Typename {
@@ -242,6 +257,7 @@ def castDataBase(obj) :
 
       def __iter__(self):
         return classIterator(self)
+
 
 
 
@@ -315,7 +331,7 @@ PY_GETATTR(VnV::Nodes::ICommInfoNode)
         raise KeyError("not a valid key")
 
       def __len__(self):
-        return self.size();
+        return self.size()
 
       def __iter__(self):
         return listclassIterator(self)
@@ -324,7 +340,7 @@ PY_GETATTR(VnV::Nodes::ICommInfoNode)
         return "array"
 
       def __str__(self):
-              return str(self.getValue())
+         return str([ self.__getitem__(i) for i in range(0,self.size())])
    %}
 }
 %enddef
@@ -370,8 +386,8 @@ PY_GETATTRLIST(VnV::Nodes::IArrayNode)
              return self.contains(item)
 
         def __str__(self):
-             return str(self.getValue())
-    %}
+            return str({ a : str(self.__getitem__(a)) for a in self.fetchkeys() })
+   %}
 }
 %enddef
 PY_GETATTRMAP(VnV::Nodes::IMapNode)

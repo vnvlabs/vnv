@@ -39,12 +39,18 @@ void VnV_runUnitTests(VnV_Comm comm) {
   VnV::RunTime::instance().runUnitTests(comm, VnV::UnitTestInfo());
 }
 
-void VnV_Registration_Info(const char* filename) {
-  VnV::RunTime::instance().writeSpecification(filename);
+void VnV_Registration_Info(const char* filename, int quit) {
+  VnV::RunTime::instance().writeSpecification(filename, quit);
 }
 
-void VnV_readFile(const char* filename, long* idCounter) {
-  VnV::RunTime::instance().readFile(filename, *idCounter);
+void VnV_readFile(const char* reader, const char* filename) {
+  VnV::RunTime::instance().readFile(reader, filename);
 }
+
+void VnV_readFileAndWalk(const char* reader, const char* filename, const char* package, const char* walker, const char* config) {
+  VnV::RunTime::instance().readFileAndWalk(reader, filename, package, walker, json::parse(config));
+}
+
+
 
 }

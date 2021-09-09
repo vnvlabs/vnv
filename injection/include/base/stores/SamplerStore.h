@@ -33,6 +33,8 @@ private:
 
   void print();
 
+  nlohmann::json schema();
+
   static SamplerStore& instance();
 
 };

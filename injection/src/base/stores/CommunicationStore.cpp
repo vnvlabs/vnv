@@ -41,6 +41,15 @@ CommunicationStore::CommunicationStore() {
   #undef X
 }
 
+nlohmann::json CommunicationStore::schema() {
+  json j = R"({"type" : "string", "enum" : []})"_json;
+  for (auto &it : communicator_factory) {
+    j["enum"].push_back(it.first);
+  }
+  return j;
+}
+
+
 void CommunicationStore::set(std::string name)  {
     if (name.empty()) {
       return set(DEFCOMM);
@@ -68,6 +77,8 @@ void CommunicationStore::addCommunicator(std::string name,
 
 }
 
+
+
 ICommunicator_ptr CommunicationStore::getCommunicator(VnV_Comm comm) {
   
   if (comm.name == world_str ) {
@@ -75,7 +86,7 @@ ICommunicator_ptr CommunicationStore::getCommunicator(VnV_Comm comm) {
   } else if (comm.name == self_str) {
     return selfComm();
   } else if (comm.name == cust_str) {  
-    auto p = root->custom(comm.data);  
+    auto p = root->custom(comm.data,false);  
     p->setName(name);
     return p;
   }
@@ -106,7 +117,7 @@ VnV_Comm CommunicationStore::toVnVComm(ICommunicator* ptr) {
 
 VnV_Comm CommunicationStore::custom(std::string commName, void* data) {
   if (commName == name) {
-     return {cust_str, data};
+     return {cust_str, root->custom(data, true)->getData()};
   } else {
      auto p = root->handleOtherCommunicators(commName, data);
      return {cust_str, p->getData()};

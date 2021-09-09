@@ -1,0 +1,28 @@
+
+<div class="card fcolumn fchild">
+    <div class="card-body fcolumn fchild">
+
+        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+            {% for k,v in sourceMap.items() %}
+            <li class="nav-item">
+                <a class="nav-link {% if loop.index == 1 %} active {%endif%}" id="stab-{{loop.index}}" data-toggle="pill" href="#stab-c-{{loop.index}}" role="tab"
+                   aria-controls="pills-intro" aria-selected="true">{{k}}</a>
+            </li>
+            {% endfor %}
+
+        </ul>
+
+        <div class="tab-content fcolumn fchild " id="pills-tabContent">
+
+            {% for k,filename in sourceMap.items() %}
+            <div class="tab-pane fade {% if loop.index == 1 %} show active {%endif%} finlinecolumn fchild" id="stab-c-{{loop.index}}" role="tabpanel"
+                 aria-labelledby="#stab-{{loop.index}}">
+                <h5>{{filename.getFilename()}}</h5>
+
+                {% include 'files/source.html' %}
+            </div>
+            {%endfor%}
+
+        </div>
+    </div>
+</div>

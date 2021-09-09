@@ -19,7 +19,7 @@ public:
   : InjectionPoint(packageName, name, registrationJson, in_args, out_args) {};
 
   virtual void setPlug(PlugConfig &config);
-  virtual bool plug();
+  virtual bool plug(std::string function, int line);
 };
 
 

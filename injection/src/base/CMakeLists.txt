@@ -10,5 +10,7 @@ target_sources(
           ${CMAKE_CURRENT_LIST_DIR}/Utilities.cpp
           ${CMAKE_CURRENT_LIST_DIR}/Logger.cpp
           ${CMAKE_CURRENT_LIST_DIR}/ActionType.cpp
+          ${CMAKE_CURRENT_LIST_DIR}/Provenance.cpp
+          
           
 )

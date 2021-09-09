@@ -14,12 +14,15 @@
 #include <list>
 
 #include "base/exceptions.h"
+#include "base/Provenance.h"
 #include "json-schema.hpp"
 
 namespace VnV {
 
+
+
 class IWalker;
-class WalkerNode;
+
 
 namespace Nodes {
 
@@ -119,11 +122,6 @@ class DataBase {
   }
 };
 
-class DataBaseWithChildren {
- public:
-  virtual IArrayNode* getChildren() = 0;
-};
-
 #define X(X, x)                                                           \
   class I##X##Node : public DataBase {                                    \
    public:                                                                \
@@ -147,24 +145,11 @@ class IDataNode : public DataBase {
  public:
   IDataNode();
   virtual IArrayNode* getLogs() = 0;
-  virtual IMapNode* getChildren() = 0;
+  virtual IMapNode* getData() = 0;
   virtual long long getDataTypeKey() = 0;
   virtual std::string getValue() = 0;
   virtual bool getLocal() = 0;
   virtual ~IDataNode();
-};
-
-class IMapNode : public DataBase {
- public:
-  IMapNode();
-  virtual DataBase* get(std::string key) = 0;
-  virtual IMapNode* add(std::string key, std::shared_ptr<DataBase> v) = 0;
-  virtual bool contains(std::string key) = 0;
-  virtual std::vector<std::string> fetchkeys() = 0;
-  virtual std::size_t size() = 0;
-
-  virtual std::string getValue() = 0;
-  virtual ~IMapNode();
 };
 
 // ArrayNode is an array of DataNodes.
@@ -183,11 +168,41 @@ class IArrayNode : public DataBase {
   void iter(std::function<void(DataBase*)>& lambda);
 };
 
+
+
+class IMapNode : public DataBase {
+ public:
+  IMapNode();
+  virtual IArrayNode* get(std::string key) = 0;
+  virtual IMapNode* add(std::string key, std::shared_ptr<DataBase> v) = 0;
+  virtual bool contains(std::string key) = 0;
+  virtual std::vector<std::string> fetchkeys() = 0;
+  virtual std::size_t size() = 0;
+
+  virtual DataBase* get(std::string key, std::size_t index) {
+    auto a = get(key);
+    if (a == nullptr ) {
+      throw VnVExceptionBase("Key %s does not exist in map", key.c_str());
+    } else if (index > a->size() ) {
+      throw VnVExceptionBase("Index out of range error (index:%d, size: %d)", index, a->size());   
+    }
+    return a->get(index);
+  }
+
+  virtual std::string getValue() = 0;
+  virtual ~IMapNode();
+};
+
+
+
+
+
 class IInfoNode : public DataBase {
  public:
   IInfoNode();
   virtual std::string getTitle() = 0;
   virtual long getDate() = 0;
+  virtual VnV::VnVProv* getProv() = 0;
   virtual std::string getValue() = 0;
   virtual ~IInfoNode();
 };
@@ -204,12 +219,13 @@ class ICommMap {
   virtual bool commIsChild(long parentId, long childId) = 0;
   virtual bool commIsSelf(long streamId, long proc) = 0;
   virtual bool commsIntersect(long streamId, long comm) = 0;
-
+  
   virtual nlohmann::json listComms() = 0;
 
   virtual ~ICommMap() {}
 
   virtual std::string getComms() { return listComms().dump(); }
+  virtual std::string toJsonStr(bool strip) = 0;
 };
 
 class ICommInfoNode : public DataBase {
@@ -217,16 +233,21 @@ class ICommInfoNode : public DataBase {
   ICommInfoNode();
   virtual int getWorldSize() = 0;
   virtual ICommMap* getCommMap() = 0;
+  virtual std::string getNodeMap() = 0;
+  virtual std::string getVersion() = 0;
+
   virtual ~ICommInfoNode();
 };
+
 
 class ITestNode : public DataBase {
  public:
   ITestNode();
   virtual std::string getPackage() = 0;
-  virtual IArrayNode* getData() = 0;
+  virtual IMapNode* getData() = 0;
   virtual std::string getValue() = 0;
   virtual IArrayNode* getLogs() = 0;
+  virtual bool isInternal() = 0;
   virtual ~ITestNode();
 };
 
@@ -236,14 +257,12 @@ class IInjectionPointNode : public DataBase {
   virtual long getStartIndex() = 0;
   virtual long getEndIndex() = 0;
   virtual std::string getComm() = 0;
-  virtual double getTime() = 0;
   virtual std::string getPackage() = 0;
   virtual IArrayNode* getTests() = 0;
   virtual std::string getValue() = 0;
   virtual IArrayNode* getLogs() = 0;
   virtual ITestNode* getData() = 0;
-  virtual std::string getTimes() = 0;
-
+  virtual std::string getSourceMap() = 0;
   virtual ~IInjectionPointNode();
 };
 
@@ -256,7 +275,6 @@ class ILogNode : public DataBase {
   virtual std::string getValue() = 0;
   virtual std::string getStage() = 0;
   virtual std::string getComm() = 0;
-  virtual double getTime() = 0;
   virtual ~ILogNode();
 };
 
@@ -278,17 +296,18 @@ class IUnitTestResultsNode : public DataBase {
   virtual ~IUnitTestResultsNode();
 };
 
-class IUnitTestNode : public DataBase, public DataBaseWithChildren {
+class IUnitTestNode : public DataBase {
  public:
   IUnitTestNode();
   virtual std::string getPackage() = 0;
-  virtual IArrayNode* getChildren() = 0;
+  virtual IMapNode* getData() = 0;
   virtual IArrayNode* getLogs() = 0;
   virtual IUnitTestResultsNode* getResults() = 0;
   virtual std::string getValue() = 0;
   virtual std::string getTestTemplate(std::string name) = 0;
   virtual ~IUnitTestNode();
 };
+
 
 class VnVSpec {
   nlohmann::json spec;
@@ -327,26 +346,59 @@ class VnVSpec {
     return getter("Tests", package + ":" + name);
   }
 
+  std::string file(std::string package, std::string name) const {
+    return getter("Files", package + ":" + name);
+  }
+
+  std::string package(std::string package) const {
+    return getter("Options",package);
+  }
+
+
   nlohmann::json unitTest(std::string package, std::string name) const {
     return spec["UnitTests"][package + ":" + name];
   }
+
+
 };
 
 enum class node_type { ROOT, POINT, START, ITER, END, LOG, DONE };
 
+class WalkerNode {
+ public:
+  Nodes::DataBase* item;
+  Nodes::node_type type;
+  std::set<long> edges;
+  long long time;
+};
+
+
 class WalkerWrapper {
   std::shared_ptr<IWalker> ptr;
   std::shared_ptr<WalkerNode> node;
+  IRootNode* rootNode;
+ 
  public:
-  WalkerWrapper(std::shared_ptr<IWalker> walker);
-  
+  WalkerWrapper(std::shared_ptr<IWalker> walker, IRootNode* root);
   WalkerNode* next();
-
 };
 
-class IRootNode : public DataBase, public DataBaseWithChildren {
+class IDN {
+  public:
+     long id;
+     long streamId;
+     node_type type;
+     long duration;
+     std::string stage;
+
+  IDN(long a, long b, node_type c, long d, std::string e) : id(a), streamId(b), type(c), duration(d), stage(e){} 
+  IDN() : id(-1), streamId(-1), type(node_type::ROOT), duration(-1), stage("") {} 
+};
+
+
+class IRootNode : public DataBase {
   // index -> streamId -> nodeId
-  std::map<long, std::list<std::tuple<long, long, node_type>>> nodes;
+  std::map<long, std::list<IDN>> nodes;
   std::map<long, std::shared_ptr<DataBase>> idMap;
   
   std::set<IWalker*> walkers;
@@ -375,18 +427,28 @@ class IRootNode : public DataBase, public DataBaseWithChildren {
 
   virtual void add(std::shared_ptr<DataBase> ptr) { idMap[ptr->getId()] = ptr; }
 
-  virtual void addIDN(long id, long streamId, node_type type, long index);
+  virtual void addIDN(long id, long streamId, node_type type, long index, long duration, std::string stage);
 
   virtual IArrayNode* getChildren() = 0;
   virtual IArrayNode* getUnitTests() = 0;
   virtual IInfoNode* getInfoNode() = 0;
   virtual ICommInfoNode* getCommInfoNode() = 0;
+  virtual long getTotalDuration() = 0;
+
+  virtual IMapNode* getPackages() = 0;
+
+  virtual ITestNode* getPackage(std::string package) {
+    return getPackages()->get(package,0)->getAsTestNode();
+  }
+
+  virtual void lock() = 0;
+  virtual void release() = 0;
 
   virtual bool hasId(long id) { return findById(id) != NULL; }
 
   virtual const VnVSpec& getVnVSpec() = 0;
 
-  virtual std::map<long, std::list<std::tuple<long, long, node_type>>>&
+  virtual std::map<long, std::list<IDN>>&
   getNodes() {
     return nodes;
   }

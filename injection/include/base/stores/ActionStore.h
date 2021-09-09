@@ -41,6 +41,8 @@ class ActionStore : public BaseStore {
 
   void print();
 
+  nlohmann::json schema();
+
   static ActionStore& instance();
 
 };

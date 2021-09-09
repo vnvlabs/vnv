@@ -27,12 +27,12 @@ void PlugPoint::setPlug(PlugConfig &config) {
   m_plug = PlugsStore::instance().getTest(config);
 }
 
-bool PlugPoint::plug() {
+bool PlugPoint::plug(std::string filename, int line) {
     
     if (started) {
       // This happens when we dont plug so we can finalize any tests that ran at the end of the plug
       InjectionPointBase::setInjectionPointType(InjectionPointType::End,"End");
-      InjectionPoint::run();
+      InjectionPoint::run(filename, line);
       return false;
     }
 
@@ -42,7 +42,7 @@ bool PlugPoint::plug() {
     started = true;    
     
     
-    wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId);
+    wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId, filename, line);
 
     // Run the tests before setting the values.    
     InjectionPointBase::runTestsInternal(wrapper);
@@ -58,7 +58,7 @@ bool PlugPoint::plug() {
     if (result) {
       //Finalize the tests after the plug. 
       InjectionPointBase::setInjectionPointType(InjectionPointType::End,"End");
-      InjectionPoint::run();
+      InjectionPoint::run(filename, line);
     }
     
     return result;

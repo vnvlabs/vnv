@@ -24,6 +24,28 @@ void ActionStore::addAction(std::string packageName, std::string name,  action_p
   action_factory[packageName][name] = m;
 }
 
+nlohmann::json ActionStore::schema() {
+    
+    nlohmann::json m = R"({"type":"object"})"_json;
+    nlohmann::json props = json::object();  
+    for (auto &it :  action_factory) {
+      
+      nlohmann::json m1 = R"({"type":"object"})"_json;
+      nlohmann::json props1 = json::object();
+      
+      for (auto &itt : it.second) {
+         props1[itt.first] = R"({"type" : "string" , "enum" : ["off", "start","end","both"] })"_json;       
+      }
+      m1["properties"] = props1;
+      props[it.first] = m1;
+
+    }
+    m["properties"] = props;
+    m["additionalProperties"] = false;
+    return m;
+}
+
+
 IAction* ActionStore::getAction(std::string packageName,
                                         std::string name) {
   auto it = action_factory.find(packageName);
@@ -35,6 +57,8 @@ IAction* ActionStore::getAction(std::string packageName,
   }
   return nullptr;
 }
+
+
 
 void ActionStore::runAction(ICommunicator_ptr comm,
                             std::string packageName, std::string name,

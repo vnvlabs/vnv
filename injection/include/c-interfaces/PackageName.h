@@ -13,6 +13,8 @@
 
 #define VNVREGNAME __vnv_registration_callback__
 
+#define VNV_DEFAULT_INPUT_FILE "__vnv_default_input_file__"
+
 #if __cplusplus
 #  define VNVEXTERNC extern "C"
 #else

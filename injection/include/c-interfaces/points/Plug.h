@@ -12,7 +12,7 @@
 
 
 # define INJECTION_FUNCTION_PLUG_C(PNAME, COMM, NAME, INPUTS, callback, ...)\
-   VnV_Iterator VNV_JOIN(PNAME,_plug_,NAME) = _VnV_injectionPlug(COMM, PNANE, NAME, \
+   VnV_Iterator VNV_JOIN(PNAME,_plug_,NAME) = _VnV_injectionPlug(COMM, PNANE, NAME, __FILE__, __LINE__, \
                     callback, INPUTS, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S); \
    while(_VnV_injectionPlugRun(&VNV_JOIN(PNAME,_plug_,NAME)))
 
@@ -22,7 +22,7 @@
 #  define Register_Injection_Plug(PNAME, NAME, PARAMETERS) _VnV_registerInjectionPlug(PNAME, NAME, PARAMETERS);
 
 
-VNVEXTERNC VnV_Iterator  _VnV_injectionPlug(VnV_Comm comm, const char* packageName, const char* name,
+VNVEXTERNC VnV_Iterator  _VnV_injectionPlug(VnV_Comm comm, const char* packageName, const char* name, const char* fname, int line,
                                 injectionDataCallback* callback, int inputParameters,...);
 
 VNVEXTERNC int  _VnV_injectionPlugRun(VnV_Iterator *iterator);

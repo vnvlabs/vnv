@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "base/Utilities.h"
 #include "base/exceptions.h"
@@ -104,6 +105,11 @@ std::string getEnvironmentVariable(std::string name) {
 bool makedir(std::string filename, mode_t mode ) {
   return mkdir(filename.c_str(), mode) == 0;
 }
+
+bool mv(std::string oldFileName, std::string newFileName) {
+   return 0 == std::rename(oldFileName.c_str(),newFileName.c_str());
+}
+
 
 std::string join(std::vector<std::string> vector, mode_t i, bool makeDir) {
   if (vector.size() > 0 ) {

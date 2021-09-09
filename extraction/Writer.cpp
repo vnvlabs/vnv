@@ -109,6 +109,7 @@ class RegistrationWriter {
     registerHelper(j, "Iterators", "ITERATOR", packageName);
     registerHelper(j, "Plugs", "PLUG", packageName);
     registerHelper(j, "Engines", "ENGINE", packageName);
+    registerHelper(j, "EngineReaders", "ENGINEREADER", packageName);
     registerHelper(j, "UnitTests", "UNITTEST", packageName);
     registerHelper(j, "Actions", "ACTION", packageName);
     registerHelper(j, "Serializers", "SERIALIZER", packageName);
@@ -129,6 +130,21 @@ class RegistrationWriter {
           oss_register[pname] << "\tREGISTERLOGLEVEL(" << pname << " , " << n
                               << "," << c << ");\n";
           VnV::JsonUtilities::getOrCreate(pjson[pname], "LogLevels")[n] =
+              it.value();
+        }
+      }
+    }
+    
+    if (j.contains("Files")) {
+      for (auto it : j["Files"].items()) {
+        
+        std::string pname = it.value()["packageName"].get<std::string>();
+        if (packageName.empty() || pname == packageName) {
+          std::string n = it.value()["name"].get<std::string>();
+          
+          createPackageOss(pname);
+          
+          VnV::JsonUtilities::getOrCreate(pjson[pname], "Files")[n] =
               it.value();
         }
       }
@@ -232,8 +248,8 @@ void writeFile(json& cacheInfo, std::string outputFileName,
   json finalJson = json::object();
   for (auto it : cacheInfo["data"].items()) {
     for (std::string type :
-         {"InjectionPoints", "SubPackages", "LogLevels", "Tests", "Iterators",
-          "Plugs", "Engines", "Comms", "Reducers", "Samplers", "Walkers", "DataTypes", "Serializers",
+         {"InjectionPoints", "SubPackages", "LogLevels", "Files", "Tests", "Iterators",
+          "Plugs", "Engines", "EngineReaders", "Comms", "Reducers", "Samplers", "Walkers", "DataTypes", "Serializers",
           "Transforms", "UnitTests", "Actions", "Options", "Introduction",
           "Conclusion", "Package", "Communicator"}) {
       json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);

@@ -19,7 +19,7 @@ public:
   IterationPoint(std::string packageName, std::string name, json registrationJson, int once_, NTV& in_args, const NTV& out_args) 
   : InjectionPoint(packageName, name, registrationJson, in_args, out_args), once(once_) {};
   void addIterator(IteratorConfig &c);
-  virtual bool iterate();
+  virtual bool iterate(std::string function, int line);
 };
 
 }  // namespace VnV

@@ -1,0 +1,177 @@
+{% with strip = request.args.get("strip"), processor = request.args.get("processor","0")  %}
+
+<div class="card">
+    <div class="card-header">
+        <h5>Realtime Chart</h5>
+    </div>
+
+    <div class="card-body" >
+        <div id="realtime-chart"></div>
+    </div>
+
+</div>
+
+<script>
+
+  $(function() {
+            var lastDate = 0;
+            var data = [];
+            var ids = [];
+            var pause = false;
+            var running = false;
+            var depth = {}
+            var lastD = -1
+            var selectedNode = 0
+                       barH = 50
+            function totalHeight(depth) {
+               r = depth*barH + 30
+               return r.toString() + "px"
+            }
+
+            function getNewSeries(baseval, yrange) {
+
+                var url = '{{url_for('base.files.viewers.next', id_=file.id_, count=10 )}}'
+                $.get(  url , function(r) {
+
+                    r.forEach(function (item, index) {
+
+                       if ("restart" in item) {
+                          data = []
+                          depth = {}
+                          lastD = -1;
+                       }
+
+                       // r => { "x" : xx, "y" : xx, "id : xx, "done : xx }
+                       del = []
+
+                       // Did we step down
+                       down = item.y < lastD
+                       lastD = item.y
+                       for (const [key, value] of Object.entries(depth)) {
+
+                          if (item.y > key ) {
+
+                              data[value].y[1] = item.x
+
+                          } else if (item.y == key ) {
+
+                              if ( data[value].id === item.id || item.id < 0 ) {
+
+                                 data[value].y[1] = item.x
+
+                              } else {
+
+                                   data.push( {
+                                     x : String(key) ,
+                                     y : [ item.x, item.x ],
+                                     id : item.id
+                                   })
+                                   depth[key] = data.length - 1
+                              }
+                          } else {
+
+                            del.push(key)
+
+                          }
+                       }
+                       del.forEach(function(d,di) { delete depth[d]; })
+
+                       if (! (item.y in depth) ) {
+                             data.push( {
+                                 x : String(item.y) ,
+                                 y : [ item.x, item.x ],
+                                 id : item.id
+                              })
+                              depth[item.y] = data.length - 1
+                       }
+                    });
+
+                    chart.updateSeries([{name: "Bob", data:data}])
+
+                    if (( r.length == 0 || !("done" in r[r.length -1]) ) ){
+                         chartInterval = window.setTimeout(getDataFromServer,3000)
+                    }
+                });
+            }
+
+            options = {
+                series: [
+                    {
+                        name: "Bob",
+                        data: []
+                    }
+                ],
+                chart: {
+                    type: "rangeBar",
+                    events: {
+                         dataPointSelection: function(event, chartContext, config) {
+                               var url = '{{url_for('base.files.viewers.ip', id_=file.id_)}}'
+                               url += "?ipid=" + data[config.dataPointIndex].id
+
+                               $.get(  url , function( data ) {
+                                  $('#{{injection_element}}').html(data)
+                               });
+
+                               selectedNode = config.dataPointIndex;
+                               chart.updateOptions({})
+                         }
+                    },
+                    height : totalHeight(3)
+                },
+                colors: [
+                    function ({ value, seriesIndex, dataPointIndex, w }) {
+                        if (dataPointIndex == selectedNode) {
+                             return "#7E36AF";
+                         } else {
+                             return "#11345d";
+                         }
+                    }
+                ],
+
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        barHeight : barH.toString() + "px",
+                        dataLabels: {
+                           position: "center"
+                        }
+                    }
+                },
+                dataLabels : {
+                   enabled : true,
+                   formatter: function(val, opt) {
+                      var x = data[opt.dataPointIndex]
+                      return "Injection Point ID: " + x.id + "(" + x.y[0] +","+x.y[1] +")"
+                   },
+                },
+                xaxis: {
+                    type: "datetime",
+                    "labels" : { "show" : false }
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#realtime-chart"), options);
+            chart.render();
+
+
+            var dataPointsLength = 10;
+            function getDataFromServer() {
+                if (!pause) {
+
+                  getNewSeries(lastDate, {
+                     min: 10,
+                     max: 90
+                  })
+                }
+            }
+
+            if (typeof variable !== 'undefined') {
+               clearInterval(chartInterval)
+            }
+            getDataFromServer()
+
+        });
+
+</script>
+
+{%endwith%}

@@ -33,38 +33,38 @@ void UnwrapParameterPack(NTV& m, V& name, T& first, Args&&... args) {
   UnwrapParameterPack(m, std::forward<Args>(args)...);
 }
 
-void BeginPoint(VnV_Comm comm, const char* package, const char* id, const DataCallback& callback, NTV& map);
+void BeginPoint(VnV_Comm comm, const char* package, const char* id, const char* fname, int line,  const DataCallback& callback, NTV& map);
 
-void BeginLoop(VnV_Comm comm, const char* package, const char* id,
+void BeginLoop(VnV_Comm comm, const char* package, const char* id, const char* fname, int line,
                const DataCallback& callback, NTV& map);
 
-void IterLoop(const char* package, const char* id, const char* iterId);
+void IterLoop(const char* package, const char* id, const char* iterId, const char* fname, int line);
 
-bool EndLoop(const char* package, const char* id);
+bool EndLoop(const char* package, const char* id, const char* fname, int line);
             
 void RegisterInjectionPoint(const char* package, const char* id, std::string json);
 
 template <typename A, typename... Args>
-void BeginLoopPack(A comm, const char* package, const char* id,
+void BeginLoopPack(A comm, const char* package, const char* id, const char* fname, int line,
                    const DataCallback& callback, Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> m;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
-  BeginLoop(comm, package, id, callback, m);
+  BeginLoop(comm, package, id, fname, line, callback, m);
 }
 
 template <typename A, typename... Args>
-void BeginPack(A comm, const char* package, const char* id,
+void BeginPack(A comm, const char* package, const char* id,const char* fname, int line,
                const DataCallback& callback, Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> m;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
-  BeginPoint(comm, package, id, callback, m);
+  BeginPoint(comm, package, id, fname, line, callback, m);
 }
 
 }  // namespace CppInjection
 }  // namespace VnV
 
 #  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...) \
-    VnV::CppInjection::BeginPack(COMM, PNAME, NAME, \
+    VnV::CppInjection::BeginPack(COMM, PNAME, NAME, __FILE__, __LINE__,  \
                                  callback EVERYONE(__VA_ARGS__))
 
 // SINGULAR INJECTION POINT.
@@ -74,7 +74,7 @@ void BeginPack(A comm, const char* package, const char* id,
 
 // BEGIN A LOOPED INJECTION POINT
 #  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...) \
-    VnV::CppInjection::BeginLoopPack(COMM, PNAME, NAME,  \
+    VnV::CppInjection::BeginLoopPack(COMM, PNAME, NAME, __FILE__, __LINE__, \
                                      callback EVERYONE(__VA_ARGS__))
 
 #  define INJECTION_LOOP_BEGIN(PNAME, COMM, NAME, ...) \
@@ -83,11 +83,11 @@ void BeginPack(A comm, const char* package, const char* id,
 
 // END A LOOPED INJECTION POINT.
 #  define INJECTION_LOOP_END(PNAME, NAME) \
-    VnV::CppInjection::EndLoop(PNAME, NAME)
+    VnV::CppInjection::EndLoop(PNAME, NAME, __FILE__, __LINE__)
 
 // INTERNAL ITERATION OF A LOOPED INJECTION POINT.
 #  define INJECTION_LOOP_ITER(PNAME, NAME, STAGE) \
-    VnV::CppInjection::IterLoop(PNAME, NAME, STAGE)
+    VnV::CppInjection::IterLoop(PNAME, NAME, STAGE, __FILE__, __LINE__)
 
 
 #  define INJECTION_FUNCTION_WRAPPER_C(PNAME, COMM, NAME, function, callback, \

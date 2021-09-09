@@ -36,14 +36,14 @@ void IterationPoint::addIterator(IteratorConfig &config) {
 }
 
 
-bool IterationPoint::iterate() {
+bool IterationPoint::iterate(std::string filename, int line) {
     
     OutputEngineManager* wrapper = OutputEngineStore::instance().getEngineManager();
     
     // On the first iteration, call INjectionPointBegin and run all the tests. 
     if (started == 0) {
       InjectionPointBase::setInjectionPointType(InjectionPointType::Begin, "Begin");
-      InjectionPoint::run();
+      InjectionPoint::run(filename,line);
       started++;
       return true;
     } else {
@@ -51,7 +51,7 @@ bool IterationPoint::iterate() {
     } 
 
     // Set the first values();
-    wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId);
+    wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId, filename, line);
     
     InjectionPointBase::runTestsInternal(wrapper);    
     
@@ -71,7 +71,7 @@ bool IterationPoint::iterate() {
     } else {
       // No more iterations and meet the required minimum
       InjectionPointBase::setInjectionPointType(InjectionPointType::End, "End");
-      InjectionPoint::run();
+      InjectionPoint::run(filename,line);
       return false;
     } 
 

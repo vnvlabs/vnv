@@ -47,6 +47,7 @@ private:
 
   void print();
 
+  json schema();
   
   static UnitTestStore& instance();
 

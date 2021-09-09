@@ -126,7 +126,6 @@ void newtonRaphson(double x, double eps, int rank) {
   double iter = 0;
 
   /**
-   *
    *  Newton Raphson Method for finding the root of a function
    *  ========================================================
    *
@@ -170,18 +169,20 @@ void newtonRaphson(double x, double eps, int rank) {
    *        },
    *        "options" : {
    *           "responsive" : true,
-   *           "title" : { "display" : true, "text" : "Convergence of the Newton
-   *Raphson Method" }, "scales": { "yAxes": [{ "scaleLabel": { "display": true,
-   *                       "labelString": "Current Guess"
-   *                   }
-   *               }],
-   *               "xAxes": [{
-   *                   "scaleLabel": {
-   *                       "display":true,
-   *                       "labelString": "Iteration Number"
-   *                   }
-   *               }]
-   *            }
+   *           "title" : { "display" : true, "text" : "Convergence of the Newton Raphson Method" }, 
+   *           "scales": { "yAxes": [
+   *                   { "scaleLabel": { 
+   *                        "display": true, 
+   *                        "labelString": "Current Guess"
+   *                     }
+   *                   }],
+   *                   "xAxes": [{
+   *                      "scaleLabel": {
+   *                         "display":true,
+   *                         "labelString": "Iteration Number"
+   *                      }
+   *                  }]
+   *             }
    *        }
    *     }
    *
@@ -354,12 +355,12 @@ int main(int argc, char** argv) {
    *  into the injection point description (this comment)
    *
    *  In this loop, we iterate across a range [ :vnv:`Data.Data.min`,
-   *:vnv:`Data.Data.max`] with a step of :vnv:`Data.Data.count`. At each step,
-   *the INJECTION_LOOP_ITER call is made, representing an internal stage of the
-   *injection point. This is turn calls the injection point call back, which
-   *logs the value of the injection point parameter "aa" (aa is a double set
-   *randomly in each step of the for loop). We plot aa against the step value
-   *using the chart directive.
+   *  :vnv:`Data.Data.max`] with a step of :vnv:`Data.Data.count`. At each step,
+   *  the INJECTION_LOOP_ITER call is made, representing an internal stage of the
+   *  injection point. This is turn calls the injection point call back, which
+   *  logs the value of the injection point parameter "aa" (aa is a double set
+   *  randomly in each step of the for loop). We plot aa against the step value
+   *  using the chart directive.
    *
    *  .. vnv-chart::
    *     :labels: Data.Data[?Name == 'x'].to_string(Value)
@@ -380,10 +381,14 @@ int main(int argc, char** argv) {
    *        },
    *        "options" : {
    *           "responsive" : true,
-   *           "title" : { "display" : true, "text" : "A sample Graph using the
-   *Chart directive" }, "yaxis" : { "display" : true, "scaleLabel" : { "display"
-   *: true, "labelString": "Value"
-   *             }
+   *           "title" : { "display" : true, 
+   *                       "text" : "A sample Graph using the Chart directive"
+   *           }, 
+   *           "yaxis" : { "display" : true, 
+   *                       "scaleLabel" : { 
+   *                          "display" : true, 
+   *                          "labelString": "Value"
+   *                       }
    *           }
    *        }
    *     }
@@ -416,7 +421,7 @@ int main(int argc, char** argv) {
     INJECTION_LOOP_ITER(VNV_STR(SPNAME), "loopTest1", "internal");
   }
   /** sdfsdfsdfsdf**/
-  INJECTION_LOOP_END("SPNAME", "loopTest1");
+  INJECTION_LOOP_END(VNV_STR(SPNAME), "loopTest1");
 
   INJECTION_LOOP_BEGIN_C(
       VNV_STR(SPNAME), VMPI(comm1), "loopTest2",
@@ -475,6 +480,20 @@ int main(int argc, char** argv) {
   }
   /** sdfsdfsdfsdf**/
   INJECTION_LOOP_END(VNV_STR(SPNAME), "loopTest");
+
+
+  INJECTION_INPUT_FILE_(SPNAME,"IMAGE",VWORLD,"/home/ben/Downloads/mpi.jpeg", "image" );
+  INJECTION_INPUT_FILE_(SPNAME,"CSV",VWORLD,"/home/ben/te/test.csv", "csv" );
+  INJECTION_INPUT_FILE_(SPNAME,"GLVIS",VWORLD,"/home/ben/Downloads/laghos.saved", "glvis" );
+  INJECTION_INPUT_FILE_(SPNAME,"GLVIS",VWORLD,"/home/ben/Downloads/head-ascii.vti", "vti" );
+  INJECTION_INPUT_FILE_(SPNAME,"HTML",VWORLD,"/home/ben/Downloads/index.html", "html" );
+  INJECTION_INPUT_FILE_(SPNAME,"RST",VWORLD,"/home/ben/Downloads/sample.rst", "rst" );
+  INJECTION_INPUT_FILE_(SPNAME,"MARK",VWORLD,"/home/ben/Downloads/sample.md", "markdown" );
+  INJECTION_INPUT_FILE_(SPNAME,"CODE",VWORLD,"/home/ben/Downloads/sample.cpp", "code" );
+  INJECTION_INPUT_FILE_(SPNAME,"CODE",VWORLD,"/home/ben/Downloads/act_gpu.pdf", "pdf" );
+  
+
+  
 
   sample_class_1.function1(10);
   sample_class_2.function1(10);

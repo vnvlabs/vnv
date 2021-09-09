@@ -1,0 +1,36 @@
+<div>
+
+
+
+<div class="fcolumn fchild">
+    <div class="fchild" style="display:flex;">
+
+        {% if file.hasUnitTests() %}
+
+        <div class="card fchild col-sm-4" style="padding-top:20px" >
+
+                {% for package in file.list_unit_test_packages() %}
+                <div class="card {%if loop.index0 == 0 %} unit-selected {%endif%}" id={{package.name}}
+                     onclick="switch_unit_test({{file.id_}},'{{package.name}}', {{package.id}},'#unit-content')"
+                     style="display:flex; align-items:center; justify-content:center;padding:20px; height:60px">
+                    <h3>{{package.name}}</h3>
+                </div>
+
+                {% endfor %}
+
+        </div>
+
+        <div class="col-sm-8 card" id="unit-content" style="margin-left:10px; padding:20px">
+                {{  file.render_unit_test() | safe  }}
+        </div>
+
+        {% else %}
+        <h4>No Unit Testing was completed during this execution. </h4>
+        {% endif %}
+    </div>
+</div>
+<script>
+
+</script>
+
+</div>

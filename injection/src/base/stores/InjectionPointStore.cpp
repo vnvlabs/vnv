@@ -49,6 +49,58 @@ void InjectionPointStore::registerInjectionPoint(std::string packageName,
   registeredInjectionPoints.insert( std::make_pair(packageName + ":" + id, InjectionPointSpec(packageName,id,jsonObject)));
 }
 
+json InjectionPointStore::schema() {
+    
+    nlohmann::json temp = R"({
+      "description": "An injection Point defined somewhere in the code",
+      "type": "object",
+      "properties": {
+        "name": {
+          "const": "string"
+        },
+        "package" : {
+          "const" : "string"
+        },
+        "runInternal": {
+           "type" : "boolean"
+        },
+        "sampler" : {
+           "$ref" : "#/definitions/sampler"
+        },
+        "runScope": {
+          "$ref" : "#/definitions/runScope"
+        },
+        "tests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/test"
+          }
+        }
+      },
+      "required": [
+        "name","package"
+      ]
+    })"_json;
+
+
+    nlohmann::json oneof = json::array();
+    for (auto &it :  registeredInjectionPoints) {
+
+      json j = temp;
+      j["properties"]["name"]["const"] = it.second.name;
+      j["properties"]["package"]["const"] = it.second.package;
+      j["vnvprops"] = it.second.specJson;
+      oneof.push_back(j);  
+    }   
+    nlohmann::json ret = json::object();
+    if (oneof.size() > 0 ) {
+      ret["oneOf"] = oneof;
+      return ret;
+    } else {
+      return R"({"const" : false})"_json;
+    }
+}
+
 void InjectionPointStore::registerInjectionPoint(std::string packageName,
                                                  std::string id,
                                                  std::string parameters_str) {

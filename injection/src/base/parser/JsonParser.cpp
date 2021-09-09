@@ -2,59 +2,59 @@
 /** @file JsonParser.cpp Implementation of the JsonParser class as defined in
     base/JsonParser.h
 **/
+
+
 #include "base/parser/JsonParser.h"  // Prototype
 
 #include <fstream>
+#include <iostream>
 
-#include "base/parser/JsonSchema.h"  // ValidationSchema()
 #include "base/Utilities.h"
 #include "base/exceptions.h"
+#include "base/parser/JsonSchema.h"  // ValidationSchema()
 
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
 void JsonParser::addTest(const json& testJson, std::vector<json>& testConfigs,
                          std::set<std::string>& runScopes) {
-  
   if (add(testJson, runScopes)) {
-        testConfigs.push_back(testJson);
+    testConfigs.push_back(testJson);
   }
 }
 
-bool JsonParser::add(const json& testJson,
-                         std::set<std::string>& runScopes) {
-  
+bool JsonParser::add(const json& testJson, std::set<std::string>& runScopes) {
   if (runScopes.size() != 0) {
     bool add = false;
     if (testJson.contains("runScope")) {
-       for (auto& scope : testJson["runScope"].items()) {
-           if (runScopes.find(scope.value().get<std::string>()) != runScopes.end()) {
-             add = true;
-             break;
-           }
-       }
+      for (auto& scope : testJson["runScope"].items()) {
+        if (runScopes.find(scope.value().get<std::string>()) !=
+            runScopes.end()) {
+          add = true;
+          break;
+        }
+      }
     }
     return add;
   }
   return true;
 }
 
-
 SamplerInfo JsonParser::getSamplerInfo(const json& samplerJson) {
-   SamplerInfo info;
-   info.name = samplerJson["name"].get<std::string>();
-   info.package = samplerJson["package"].get<std::string>();
-   info.config = samplerJson.contains("config") ? samplerJson["config"] : json::object();
-   return info;
+  SamplerInfo info;
+  info.name = samplerJson["name"].get<std::string>();
+  info.package = samplerJson["package"].get<std::string>();
+  info.config =
+      samplerJson.contains("config") ? samplerJson["config"] : json::object();
+  return info;
 }
 
 void JsonParser::addInjectionPoint(
     const json& ip, std::set<std::string>& runScopes,
     std::map<std::string, InjectionPointInfo>& ips, InjectionType type) {
   for (auto& it : ip.items()) {
-
-    if (!add(it.value(),runScopes)) {
-        continue;
+    if (!add(it.value(), runScopes)) {
+      continue;
     }
 
     std::string name = it.value()["name"].get<std::string>();
@@ -63,25 +63,25 @@ void JsonParser::addInjectionPoint(
     const json& values = it.value();
     auto aip = ips.find(name);
     if (aip != ips.end()) {
-      if (values.find("tests") != values.end() ) {
+      if (values.find("tests") != values.end()) {
         for (auto& test : values["tests"].items()) {
           addTest(test.value(), aip->second.tests, runScopes);
         }
       }
       if (values.find("iterators") != values.end()) {
-        for (auto &test : values["iterators"].items()) {
-           addTest(test.value(), aip->second.iterators, runScopes);
+        for (auto& test : values["iterators"].items()) {
+          addTest(test.value(), aip->second.iterators, runScopes);
         }
       }
       if (values.find("plug") != values.end()) {
-          json c = values["plug"];
-          if (add(c,runScopes)) {
-            aip->second.plug = c;
-          }
+        json c = values["plug"];
+        if (add(c, runScopes)) {
+          aip->second.plug = c;
+        }
       }
 
       if (values.find("sampler") != values.end()) {
-          aip->second.sampler = getSamplerInfo(values["sampler"]);
+        aip->second.sampler = getSamplerInfo(values["sampler"]);
       }
 
     } else {
@@ -90,26 +90,26 @@ void JsonParser::addInjectionPoint(
       ipInfo.name = name;
       ipInfo.package = package;
 
-      if (values.find("tests") != values.end() ) {
-            for (auto test : values["tests"].items()) {
-              addTest(test.value(), ipInfo.tests, runScopes);
-            }
+      if (values.find("tests") != values.end()) {
+        for (auto test : values["tests"].items()) {
+          addTest(test.value(), ipInfo.tests, runScopes);
+        }
       }
-      if (type == InjectionType::ITER && values.find("iterators") != values.end() ) {
-        for (auto &test : it.value()["iterators"].items()) {
+      if (type == InjectionType::ITER &&
+          values.find("iterators") != values.end()) {
+        for (auto& test : it.value()["iterators"].items()) {
           addTest(test.value(), ipInfo.iterators, runScopes);
         }
       }
       if (type == InjectionType::PLUG && values.find("plug") != values.end()) {
-          json c = values["plug"];
-          if (add(c,runScopes)) {
-            aip->second.plug = c;
-          }
+        json c = values["plug"];
+        if (add(c, runScopes)) {
+          aip->second.plug = c;
+        }
       }
       if (values.find("sampler") != values.end()) {
-          ipInfo.sampler = getSamplerInfo(values["sampler"]);
+        ipInfo.sampler = getSamplerInfo(values["sampler"]);
       }
-
 
       if (values.contains("runInternal")) {
         ipInfo.runInternal = values["runInternal"].get<bool>();
@@ -117,7 +117,8 @@ void JsonParser::addInjectionPoint(
         ipInfo.runInternal = true;
       }
 
-      if (ipInfo.tests.size() > 0 || ipInfo.runInternal || ipInfo.iterators.size() > 0) {
+      if (ipInfo.tests.size() > 0 || ipInfo.runInternal ||
+          ipInfo.iterators.size() > 0) {
         ips.insert(std::make_pair(key, ipInfo));
       }
     }
@@ -156,44 +157,95 @@ EngineInfo JsonParser::getEngineInfo(const json& engine) {
   return einfo;
 }
 
-
-
 UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json& unitTestJson) {
   UnitTestInfo info;
   if (unitTestJson.contains("runUnitTests")) {
     info.runUnitTests = unitTestJson["runUnitTests"].get<bool>();
-    info.unitTestConfig = unitTestJson.contains("config") ? unitTestJson["config"] : json::object() ;
+    info.unitTestConfig = unitTestJson.contains("config")
+                              ? unitTestJson["config"]
+                              : json::object();
   } else {
     info.runUnitTests = false;
     info.unitTestConfig = json::object();
   }
 
-  if ( unitTestJson.contains("exitAfter")) {
-     info.exitAfterTests = unitTestJson["exitAfter"].get<bool>();
+  if (unitTestJson.contains("exitAfter")) {
+    info.exitAfterTests = unitTestJson["exitAfter"].get<bool>();
   } else {
-     info.exitAfterTests = false;
+    info.exitAfterTests = false;
   }
 
   return info;
 }
 
-
-ActionInfo JsonParser::getActionInfo(const nlohmann::json& actionJson, std::string type) {
+ActionInfo JsonParser::getActionInfo(const nlohmann::json& actionJson,
+                                     std::string type) {
   ActionInfo info;
   info.run = true;
   for (auto it : actionJson.items()) {
-         ActionConfig config;
-         size_t colon_pos = it.key().find(':');
-         config.package = it.key().substr(0,colon_pos);
-         config.name = it.key().substr(colon_pos+1); 
-         config.config = it.value();
-         config.run = type;
-         info.actions.push_back(std::move(config));
+    ActionConfig config;
+    size_t colon_pos = it.key().find(':');
+    config.package = it.key().substr(0, colon_pos);
+    config.name = it.key().substr(colon_pos + 1);
+    config.config = it.value();
+    config.run = type;
+    info.actions.push_back(std::move(config));
   }
   return info;
 }
 
-RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
+namespace {
+
+// We accept arguments of the type
+// "vnv/options/sdfsdf/sdfsdf/sdfsdf/=valid_json"
+nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile,
+                                                  int* argc, char** argv) {
+  nlohmann::json main = mainFile;
+
+  for (int i = 0; i < *argc; i++) {
+    std::string s = argv[i];
+    if (s.substr(0, 6).compare("--vnv/") == 0) {
+      std::size_t ind = s.find_first_of("=");
+      if (ind != std::string::npos) {
+        std::string point = s.substr(6, ind);
+        std::string ans = s.substr(ind + 1);
+        json ansJson;
+        json::json_pointer ptr;
+
+        try {
+          json ansJson = json::parse(ans);
+          try {
+            json::json_pointer ptr = json::json_pointer(point);
+            if (main.contains(ptr)) {
+              main[ptr] = ansJson;
+            } else {
+              std::cout
+                  << "Adding new values using command line is untested - YMMV "
+                  << std::endl;
+              main[ptr] = ansJson;
+            }
+          } catch (...) {
+            throw VnVExceptionBase("Command Json Pointer Format not right");
+          }
+
+        } catch (...) {
+          throw VnVExceptionBase("Command Json Format not right");
+        }
+
+      } else {
+        std::cout << "The command format not correct" << std::endl;
+      }
+    }
+  }
+  return main;
+}
+
+}  // namespace
+
+RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
+  
+  json main = updateFileWithCommandLineOverrides(mainFile, argc, argv);
+
   RunInfo info;
   if (main.find("logging") != main.end())
     info.logInfo = getLoggerInfo(main["logging"]);
@@ -202,8 +254,8 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
     info.logInfo.on = true;
   }
 
-  if (main.find("pluginConfig") != main.end()) {
-    info.pluginConfig = main.find("pluginConfig").value();
+  if (main.find("options") != main.end()) {
+    info.pluginConfig = main.find("options").value();
   }
   info.cmdline = commandLineParser(argc, argv);
 
@@ -217,12 +269,12 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
 
   // Get the run Scopes info.
   std::set<std::string> runScopes;
-  if (main.find("runScopes") != main.end()) {  
+  if (main.find("runScopes") != main.end()) {
     for (auto& it : main["runScopes"].items()) {
-        runScopes.insert(it.value().get<std::string>());
-      }
+      runScopes.insert(it.value().get<std::string>());
+    }
   }
-  
+
   // Get the output Engine information.
   if (main.find("outputEngine") != main.end()) {
     info.engineInfo = getEngineInfo(main["outputEngine"]);
@@ -239,25 +291,25 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
         getUnitTestInfo(R"({"runTests" : false , "config" : {} })"_json);
   }
 
-  info.actionInfo = { false, {}};
+  info.actionInfo = {false, {}};
   if (main.contains("configure-actions")) {
-     info.actionInfo.run = true;
-     ActionInfo f  = getActionInfo(main["configure-actions"],"configure");
-     for (auto it : f.actions) {
-       info.actionInfo.actions.push_back(it);
-     }
-  } 
+    info.actionInfo.run = true;
+    ActionInfo f = getActionInfo(main["configure-actions"], "configure");
+    for (auto it : f.actions) {
+      info.actionInfo.actions.push_back(it);
+    }
+  }
   if (main.contains("finalize-actions")) {
-     info.actionInfo.run = true;
-     ActionInfo f  = getActionInfo(main["finalize-actions"],"finalize");
-     for (auto it : f.actions) {
-       info.actionInfo.actions.push_back(it);
-     }
-  } 
+    info.actionInfo.run = true;
+    ActionInfo f = getActionInfo(main["finalize-actions"], "finalize");
+    for (auto it : f.actions) {
+      info.actionInfo.actions.push_back(it);
+    }
+  }
   if (main.contains("communicator")) {
     info.communicator = main["communicator"].get<std::string>();
   } else {
-    info.communicator = ""; // Use the default. 
+    info.communicator = "";  // Use the default.
   }
 
   // Get the test libraries infomation.
@@ -266,28 +318,31 @@ RunInfo JsonParser::_parse(const json& main, int* argc, char** argv) {
 
   // Add all the injection points;
   if (main.find("injectionPoints") != main.end()) {
-    addInjectionPoint(main["injectionPoints"], runScopes, info.injectionPoints, InjectionType::POINT);
+    addInjectionPoint(main["injectionPoints"], runScopes, info.injectionPoints,
+                      InjectionType::POINT);
   }
- 
+
   // Add all the injection points;
   if (main.find("iterators") != main.end()) {
-    addInjectionPoint(main["iterators"], runScopes, info.injectionPoints, InjectionType::ITER);
+    addInjectionPoint(main["iterators"], runScopes, info.injectionPoints,
+                      InjectionType::ITER);
   }
 
   // Add all the injection points;
   if (main.find("plugs") != main.end()) {
-    addInjectionPoint(main["plugs"], runScopes, info.injectionPoints, InjectionType::PLUG);
+    addInjectionPoint(main["plugs"], runScopes, info.injectionPoints,
+                      InjectionType::PLUG);
   }
 
   if (main.find("hotpatch") != main.end()) {
     info.hotpatch = main["hotpatch"].get<bool>();
   }
 
-// Add all the injection points;
+  // Add all the injection points;
   if (main.find("template-overrides") != main.end()) {
     info.template_overrides = main["template-overrides"];
   }
- 
+
   return info;
 }
 

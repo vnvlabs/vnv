@@ -9,19 +9,24 @@ struct _c_json {
   void* data;
 };
 typedef struct _c_json c_json;
-typedef void options_callback_ptr(c_json info);
-typedef char* options_schema_ptr();
+typedef void (*options_callback_ptr)(c_json info);
+typedef char* (*options_schema_ptr)();
 
 #  if __cplusplus
 #    include "json-schema.hpp"
+#    include "interfaces/ICommunicator.h"
+#    include "interfaces/IOutputEngine.h"
 using nlohmann::json;
 namespace VnV {
 json* asJson(c_json json);
-typedef void options_cpp_callback_ptr(json& info);
+typedef void (*options_cpp_callback_ptr)(json& info, IOutputEngine* engine, ICommunicator_ptr world);
+
+
+
 void RegisterOptions(std::string packageName, std::string schema,
-                     options_cpp_callback_ptr* callback);
+                     options_cpp_callback_ptr callback);
 void RegisterOptions_Json(std::string packageName, json& schema,
-                          options_cpp_callback_ptr* callback);
+                          options_cpp_callback_ptr callback);
 }  // namespace VnV
 #    define EXTERNC extern "C"
 #  else
@@ -60,20 +65,20 @@ EXTERNC void VnV_CJson_printJson(c_json json, int* err);
 EXTERNC void VnV_CJson_getErrorMessage(int err, char** message);
 
 EXTERNC void _VnV_registerOptions(const char* packageName, const char* sptr,
-                                  options_callback_ptr* ptr);
+                                  options_callback_ptr ptr);
 
 #  if __cplusplus
 
 #    define INJECTION_OPTIONS(PNAME, schema)                           \
       namespace VnV {                                                  \
       namespace PNAME {                                                \
-      void optionsCallback(json& config);                              \
+      void optionsCallback(json& config, VnV::IOutputEngine* engine, VnV::ICommunicator_ptr world);                              \
       void registerOptions() {                                         \
-        VnV::RegisterOptions(VNV_STR(PNAME), schema, optionsCallback); \
+        VnV::RegisterOptions(VNV_STR(PNAME), schema, &optionsCallback); \
       }                                                                \
       }                                                                \
       }                                                                \
-      void VnV::PNAME::optionsCallback(json& config)
+      void VnV::PNAME::optionsCallback(json& config, VnV::IOutputEngine* engine, VnV::ICommunicator_ptr world)
 
 #    define DECLAREOPTIONS(PNAME) \
       namespace VnV {             \
@@ -89,7 +94,7 @@ EXTERNC void _VnV_registerOptions(const char* packageName, const char* sptr,
       void REG_HELPER(_VnV_options_callback_, PNAME)(c_json json);       \
       void REG_HELPER(_VnV_register_options_, PNAME)() {                 \
         _VnV_registerOptions(VNV_STR(PNAME), schema,                     \
-                             REG_HELPER(_VnV_options_callback_, PNAME)); \
+                             &REG_HELPER(_VnV_options_callback_, PNAME)); \
       }                                                                  \
       void REG_HELPER(_VnV_options_callback_, PNAME)(c_json json)
 
