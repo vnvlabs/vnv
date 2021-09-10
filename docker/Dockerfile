@@ -8,5 +8,5 @@ RUN cd vv-neams  && mkdir -p build && cd build && cmake -DCMAKE_INSTALL_PREFIX=$
 
 # Run the examples. 
 RUN cd vv-neams/build/examples/dummy/executables && ./sample.a 
-RUN cd vv-neams/build/examples/dummy/executables && ./read json_file ./vv-output
+RUN cd vv-neams/build/examples/dummy/executables && ./read.a json_file ./vv-output
 
