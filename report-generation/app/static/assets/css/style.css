@@ -4570,6 +4570,13 @@ input[type="button"].btn-block {
 .prov-selected {
   border: 2px solid #11345d !important;
 }
+.steering-selected {
+  border: 2px solid #11345d !important;
+}
+.unit-selected {
+  border: 2px solid #11345d !important;
+}
+
 
 .navbar {
     position: relative;
@@ -26590,6 +26597,43 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 .vnvhigh .vm { color: #996633 } /* Name.Variable.Magic */
 .vnvhigh .il { color: #0000DD; font-weight: bold } /* Literal.Number.Integer.Long */
 
+/*the container must be positioned relative:*/
+.autocomplete {
+  position: relative;
+  display: inline-block;
+}
+
+.autocomplete-items {
+  position: absolute;
+  border: 1px solid #d4d4d4;
+  border-bottom: none;
+  border-top: none;
+  z-index: 99;
+  /*position the autocomplete items to be the same width as the container:*/
+  top: 100%;
+  left: 0;
+  max-height:300px;
+  overflow-y: auto;
+  right: 0;
+}
+
+.autocomplete-items div {
+  padding: 10px;
+  cursor: pointer;
+  background-color: #fff;
+  border-bottom: 1px solid #d4d4d4;
+}
+
+/*when hovering an item:*/
+.autocomplete-items div:hover {
+  background-color: #e9e9e9;
+}
+
+/*when navigating through the items using the arrow keys:*/
+.autocomplete-active {
+  background-color: DodgerBlue !important;
+  color: #ffffff;
+}
 
 
 /* image varient End */

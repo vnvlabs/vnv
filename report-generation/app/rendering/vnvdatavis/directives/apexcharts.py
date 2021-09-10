@@ -4,9 +4,9 @@ import re
 from sphinx.directives import optional_int
 from sphinx.util.docutils import SphinxDirective
 
-from rendering.vnvdatavis.directives import vnv_directives
-from rendering.vnvdatavis.directives.general import JsonChartDirective, VnVChartNode, ApexChartDirective
-from rendering.vnvdatavis.directives.jmes import jmes_jinja_query, get_target_node, jmes_jinja_query_json
+from app.rendering.vnvdatavis.directives import vnv_directives
+from app.rendering.vnvdatavis.directives.general import JsonChartDirective, VnVChartNode, ApexChartDirective
+from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query, get_target_node, jmes_jinja_query_json
 
 
 def jmes_expression(x):

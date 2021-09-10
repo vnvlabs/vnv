@@ -4,15 +4,14 @@ from datetime import datetime
 from urllib.request import pathname2url
 import pygments.formatters.html
 from pygments.lexers import guess_lexer, guess_lexer_for_filename
-from _VnVReader import node_type_START, node_type_POINT, node_type_DONE, node_type_ITER, node_type_ROOT, node_type_LOG, \
+from python_api.VnVReader import node_type_START, node_type_POINT, node_type_DONE, node_type_ITER, node_type_ROOT, node_type_LOG, \
     node_type_END
 from flask import render_template
 
 from app.models import VnV
-import rendering as r
-from rendering.readers import has_reader
-from rendering.vnvdatavis.directives.jmes import render_vnv_template
-
+import app.rendering as r
+from app.rendering.readers import has_reader
+from app.rendering.vnvdatavis.directives.jmes import render_vnv_template
 
 class ProvFileWrapper:
 

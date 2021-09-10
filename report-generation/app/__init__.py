@@ -6,9 +6,11 @@ Copyright (c) 2019 - present AppSeed.us
 from flask import Flask, url_for, render_template
 from logging import basicConfig, DEBUG, getLogger, StreamHandler
 import app.base
-from rendering.vnvdatavis import list_assets
+from .models.VnV import DumpReaders
+from .rendering.vnvdatavis import list_assets
 
 global_template_variables = {
+    "list_vnv_readers" : DumpReaders
 }
 
 def register_blueprints(app):

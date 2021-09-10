@@ -45,6 +45,14 @@ void OutputEngineStore::print() {
   }
  }
  
+json OutputEngineStore::listReaders() {
+  json a = json::array();
+  for (auto it : registeredReaders) {
+    a.push_back(it.first);
+  }
+  return a;
+}
+
 json OutputEngineStore::schema() {
     
 

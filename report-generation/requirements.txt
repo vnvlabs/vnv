@@ -1,10 +1,12 @@
 Flask~=2.0.0
 Pygments~=2.10.0
 Werkzeug~=2.0.1
-socketio~=0.2.1
 humanize~=3.11.0
 ipython~=7.27.0
 jmespath~=0.10.0
 docutils~=0.17.1
 Markdown~=3.3.4
 Sphinx~=4.1.2
+numpy~=1.21.2
+flask-socketio~=5.1.1
+jsonschema~=3.2.0

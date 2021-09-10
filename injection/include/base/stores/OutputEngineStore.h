@@ -82,6 +82,8 @@ class OutputEngineStore :public  BaseStore {
 
   void registerReader(std::string name, engine_reader_ptr reader_ptr);
 
+  json listReaders();
+
   json schema();
   /**
    * @brief getEngineManager

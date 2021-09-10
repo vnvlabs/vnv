@@ -28,6 +28,14 @@ function switch_package(fileId, name, element) {
 
 }
 
+function switch_pending(fileId, name, element) {
+    $(".steering-selected").removeClass("steering-selected");
+    $('#'+name).addClass("steering-selected")
+    $.get("/steering/pending/"+fileId + "?p=" + name, function(data) {
+      $(element).html(data)
+    })
+}
+
 function switch_unit(fileId, name, id, element) {
     $(".unit-selected").removeClass("unit-selected");
     $('#'+name).addClass("unit-selected")

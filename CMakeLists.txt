@@ -47,7 +47,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in ${CMAKE_CUR
 include("${CMAKE_SOURCE_DIR}/cmake/Registration.cmake")
 
 add_subdirectory(injection)
-add_subdirectory(python-api)
+add_subdirectory(report-generation)
 
 option(BUILD_TESTS "Build the test runner" ON)
 if(BUILD_TESTS)

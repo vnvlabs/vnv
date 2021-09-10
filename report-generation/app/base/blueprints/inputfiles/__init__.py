@@ -49,6 +49,5 @@ def view(id_):
 def template_globals(globs):
     globs["inputfiles"] = VnVInputFile.FILES
 
-def faker():
-    VnVInputFile.add("sample1", "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/sample.a", None)
+
 

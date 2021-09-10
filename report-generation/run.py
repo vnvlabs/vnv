@@ -1,8 +1,9 @@
+#!./virt/bin/python3
 # -*- encoding: utf-8 -*-
 
 import os
 from app import create_app
-from sockets import create_socket_app
+from app.sockets import create_socket_app
 
 class Config:
     DEBUG = True

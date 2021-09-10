@@ -9,7 +9,7 @@ from shlex import shlex
 
 from IPython.terminal.embed import InteractiveShellEmbed
 
-from sockets.namepsaces.general import read_and_forward_pty_output, set_winsize
+from app.sockets.namepsaces.general import read_and_forward_pty_output, set_winsize
 
 
 def configure_terminal(socketio, app):

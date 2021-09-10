@@ -1,0 +1,39 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} {{file.name}} {% endblock %}
+
+{% block stylesheets %}
+<link href="/static/assets/css/jsoneditor.css" rel="stylesheet" type="text/css">
+{% endblock stylesheets %}
+
+{% block content %}
+<h2> VnV Toolkit Computational Steering Interface - {{file.name}} </h2>
+<div class="fchild" style="display:flex;">
+    <div class="card fchild col-sm-2" style="padding-top:10px; ">
+        {% with pending = file.list_pending() %}
+
+        {% if pending | length > 0 %}
+          {% for package in file.list_pending() %}
+          <div class="card {%if loop.index0 == 0 %} steering-selected {%endif%}" id='{{package.id_}}'
+             onclick="switch_pending({{file.id_}},'{{package.id_}}','#steering-content')"
+             style="display:flex; align-items:center; margin-bottom:10px; justify-content:center;padding:10px;">
+            <h6 style="margin:0">{{package.id_}}</h6>
+          </div>
+          {% endfor %}
+        {%else%}
+          <div>No Pending Steering Requests  </div>
+        {%endif%}
+        {%endwith%}
+    </div>
+
+    <div class="col-sm-10 card" id="steering-content" style=" flex:1; margin-left:10px; padding:20px">
+        {{ file.getFirstPending() | safe }}
+    </div>
+
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+{% endblock javascripts %}

@@ -209,6 +209,8 @@ def Read(filename,reader,config):
 def LoadPlugin(name, filename):
    VnVLoadPlugin(name,filename);
 
+def DumpReaders():
+   VnVDumpReaders()
 
 def castDataBase(obj) :
     return igetattr(obj, "get" + dataBaseCastMap[obj.getType()])()

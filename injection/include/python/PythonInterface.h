@@ -39,6 +39,8 @@ bool VnVIsInitialized();
 void VnVFinalize();
 void VnVLoadPlugin(std::string name, std::string filepath);
 
+std::string VnVDumpReaders();
+
 }  // namespace Python
 
 }  // namespace VnV

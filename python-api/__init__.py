@@ -1,2 +1,0 @@
-
-from VnVReader import *

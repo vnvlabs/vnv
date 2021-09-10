@@ -36,6 +36,10 @@ void VnVLoadPlugin(std::string name, std::string filename ) {
   RunTime::instance().loadPlugin(filename,name);
 }
 
+std::string VnVDumpReaders() {
+  return OutputEngineStore::instance().listReaders().dump();
+}
+
 namespace {
 /**
  * @brief stringsToChars Utility to convert a vec of strings to a vec of char*

@@ -7,8 +7,8 @@ vnv_css_assets = []
 
 
 def setup(app):
-    import rendering.vnvdatavis.directives.apexcharts
-    import rendering.vnvdatavis.directives.general
+    import app.rendering.vnvdatavis.directives.apexcharts
+    import app.rendering.vnvdatavis.directives.general
 
     for node in vnv_nodes:
         app.add_node(node, **node.NODE_VISITORS)

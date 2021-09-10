@@ -12,14 +12,23 @@
                         <label for="name" class="col-form-label">Name</label>
                         <input type="text" class="form-control" name="name" id="name">
                     </div>
-                    <div class="form-group">
+                    <div class="autocomplete form-group"  style="width:100%" >
                         <label for="application" class="col-form-label">Application Path</label>
-                        <input type="text" class="form-control" id="application" name="application">
+                        <input type="text" class="form-control" id="application" name="application" autocomplete="off">
                     </div>
-                    <div class="form-group">
+
+                    <div class="autocomplete form-group" style="width:100%" >
                         <label for="defFile" class="col-form-label">File to load (leave empty to create a new file)</label>
-                        <input type="text" class="form-control" id="defFile" name="def">
+                        <input type="text" class="form-control" id="defFile" name="def" autocomplete="off">
                     </div>
+
+                    <script>
+                        $( document ).ready(function() {
+                            autocomplete(document.getElementById('defFile'))
+                            autocomplete(document.getElementById('application'))
+
+                        });
+                    </script>
                 </form>
             </div>
             <div class="modal-footer">

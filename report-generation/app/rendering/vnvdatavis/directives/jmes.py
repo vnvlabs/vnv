@@ -16,7 +16,7 @@ from pygments.lexers.data import JsonLexer
 from pygments.formatters.html import HtmlFormatter
 
 ### Fake jmes
-import rendering.fakejmes as jmespath
+import app.rendering.fakejmes as jmespath
 
 
 

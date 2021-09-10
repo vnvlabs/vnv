@@ -20,7 +20,7 @@ html_theme = "faketheme"
 html_theme_path = ["{path}"]
 exclude_patterns = ['_build']
 html_static_path = ['_static']
-'''.format(path=os.path.abspath('rendering'))
+'''.format(path=os.path.abspath(os.path.join('app','rendering')))
 
 
 def setup_build_directory(src_dir):

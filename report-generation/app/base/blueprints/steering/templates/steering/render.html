@@ -1,0 +1,18 @@
+<div> {{steer.id_}}</div>
+<div> {{steer.expiry}}</div>
+
+<div> {{steer.schema}}</div>
+
+<form id="steering_response_form" action="/steering/respond" method="post">
+
+    <input type="text" hidden class="form-control" name="id" id="id" value="{{steer.id_}}">
+    <input type="text" hidden class="form-control" name="fileId" id="fileid" value="{{steer.fileId}}">
+
+    <div class="form-group">
+        <label for="steering_response" class="col-form-label">Response Json</label>
+        <textarea class="form-control" id="steering_response" name='response' rows="10"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary mb-2">Send Response</button>
+
+</form>
+

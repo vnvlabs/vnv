@@ -15,8 +15,8 @@ import pygments
 from pygments.lexers.data import JsonLexer
 from pygments.formatters.html import HtmlFormatter
 
-from rendering.vnvdatavis.directives import vnv_roles, vnv_directives, vnv_nodes, vnv_js_assets, vnv_css_assets
-from rendering.vnvdatavis.directives.jmes import jmes_jinja_query_str, jmes_jinga_stat, DataClass, \
+from app.rendering.vnvdatavis.directives import vnv_roles, vnv_directives, vnv_nodes, vnv_js_assets, vnv_css_assets
+from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query_str, jmes_jinga_stat, DataClass, \
     jmes_jinja_codeblock, jmes_jinja_query, get_target_node
 
 class VnVChartNode(docutils.nodes.General, docutils.nodes.Element):

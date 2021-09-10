@@ -12,10 +12,15 @@
                         <label for="pname" class="col-form-label">Name</label>
                         <input type="text" class="form-control" name="name" id="pname">
                     </div>
-                    <div class="form-group">
+                    <div class="autocomplete form-group" style="width:100%">
                         <label for="pfilename" class="col-form-label">Filename</label>
-                        <input type="text" class="form-control" name="filename" id="pfilename">
+                        <input type="text" class="form-control" name="filename" id="pfilename" autocomplete="off">
                     </div>
+                      <script>
+                        $( document ).ready(function() {
+                            autocomplete(document.getElementById('pfilename'))
+                        });
+                    </script>
                 </form>
             </div>
             <div class="modal-footer">
