@@ -129,7 +129,7 @@ class CommMap : public ICommMap {
   bool addChild(Comm_ptr ptr1, Comm_ptr ptr2) {
     // A Comm is my child if I contain all of its processors.
     // That can only be true if it is smaller than me.
-    int sizeDiff = ptr1->procs.size() - ptr2->procs.size();
+    std::size_t sizeDiff = ptr1->procs.size() - ptr2->procs.size();
 
     Comm_ptr parent, child;
 

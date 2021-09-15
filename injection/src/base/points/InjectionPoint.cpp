@@ -18,10 +18,8 @@ using namespace VnV;
 
 using nlohmann::json_schema::json_validator;
 
-InjectionPointBase::InjectionPointBase(std::string packageName,
-                                       std::string name, json registrationJson,
-                                       const NTV& in_args,
-                                       const NTV& out_args) {
+InjectionPointBase::InjectionPointBase(std::string packageName, std::string name, json registrationJson,
+                                       const NTV& in_args, const NTV& out_args) {
   this->name = name;
   this->package = packageName;
 
@@ -30,22 +28,17 @@ InjectionPointBase::InjectionPointBase(std::string packageName,
     const NTV& args = (inputs) ? in_args : out_args;
 
     for (auto it : args) {
-      auto rparam =
-          registrationJson.find(it.first);  // Find a parameter with this name.
+      auto rparam = registrationJson.find(it.first);  // Find a parameter with this name.
       if (rparam != registrationJson.end()) {
         parameterMap.insert(std::make_pair(
-            it.first,
-            VnVParameter(it.second.second, rparam.value().get<std::string>(),
-                         it.second.first, inputs)));
+            it.first, VnVParameter(it.second.second, rparam.value().get<std::string>(), it.second.first, inputs)));
       } else {
         VnV_Warn(VNVPACKAGENAME,
                  "Injection Point is not configured Correctly. Unrecognized "
                  "parameter "
                  "%s",
                  it.first.c_str());
-        parameterMap.insert(std::make_pair(
-            it.first,
-            VnVParameter(it.second.second, "void*", it.second.first, inputs)));
+        parameterMap.insert(std::make_pair(it.first, VnVParameter(it.second.second, "void*", it.second.first, inputs)));
       }
     }
   }
@@ -69,27 +62,16 @@ void InjectionPointBase::addTest(TestConfig& config) {
     m_tests.push_back(test);
     return;
   }
-  VnV_Error(VNVPACKAGENAME, "Error Loading Test Config with Name %s",
-            config.getName().c_str());
+  VnV_Error(VNVPACKAGENAME, "Error Loading Test Config with Name %s", config.getName().c_str());
 }
 
-void InjectionPointBase::setInjectionPointType(InjectionPointType type_,
-                                               std::string stageId_) {
+void InjectionPointBase::setInjectionPointType(InjectionPointType type_, std::string stageId_) {
   type = type_;
   stageId = stageId_;
 }
 
-void InjectionPointBase::setCallBack(injectionDataCallback* callback) {
-  if (runInternal && cCallback != nullptr) {
-    cCallback = callback;
-    callbackType = 1;
-  }
-}
-void InjectionPointBase::setCallBack(const DataCallback& callback) {
-  if (runInternal && callback != nullptr) {
-    cppCallback = callback;
-    callbackType = 2;
-  }
+template <typename T> void InjectionPointBase::setCallBack(T callback) {
+  this->callback.reset(new VnVCallback(callback));
 }
 
 void InjectionPointBase::setComm(ICommunicator_ptr comm) { this->comm = comm; }
@@ -98,17 +80,14 @@ void InjectionPointBase::runTestsInternal(OutputEngineManager* wrapper) {
   if (callbackType > 0) {
     wrapper->testStartedCallBack(package, "__internal__", true, -1);
     if (callbackType == 1) {
-      IOutputEngineWrapper engineWraper = {
-          static_cast<void*>(wrapper->getOutputEngine())};
+      IOutputEngineWrapper engineWraper = {static_cast<void*>(wrapper->getOutputEngine())};
       ParameterSetWrapper paramWrapper = {static_cast<void*>(&parameterMap)};
       int t = InjectionPointTypeUtils::toC(type);
-      (*cCallback)(comm->asComm(), &paramWrapper, &engineWraper, t,
-                   stageId.c_str());
+      (*cCallback)(comm->asComm(), &paramWrapper, &engineWraper, t, stageId.c_str());
     } else {
       cppCallback(comm->asComm(), parameterMap, wrapper, type, stageId);
     }
-    wrapper->testFinishedCallBack(
-        true);  // TODO callback should return bool "__internal__");
+    wrapper->testFinishedCallBack(true);  // TODO callback should return bool "__internal__");
   }
   for (auto it : m_tests) {
     it->_runTest(comm, wrapper, type, stageId);
@@ -128,17 +107,14 @@ void InjectionPoint::run(std::string function, int line) {
     // The injection point only runs IF the sampler lets it. This lets us
     // completly skip injection points or iterations. The sampler can say to
     // skip iters, Begin, and single.
-    auto sampler =
-        SamplerStore::instance().getSamplerForInjectionPoint(package, name);
+    auto sampler = SamplerStore::instance().getSamplerForInjectionPoint(package, name);
     runIt = sampler == nullptr ? true : sampler->sample(type, stageId);
   }
 
   if (runIt) {
-    OutputEngineManager* wrapper =
-        OutputEngineStore::instance().getEngineManager();
+    OutputEngineManager* wrapper = OutputEngineStore::instance().getEngineManager();
 
-    wrapper->injectionPointStartedCallBack(comm, package, getScope(), type,
-                                           stageId, function, line);
+    wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId, function, line);
 
     runTestsInternal(wrapper);
 

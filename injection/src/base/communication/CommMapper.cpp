@@ -18,8 +18,7 @@ namespace {
 // Forward declare add
 void add(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode);
 
-void swap(long proc, CommWrap_ptr node, CommMap& willAdd,
-          CommWrap_ptr newNode) {
+void swap(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode) {
   std::cout << "Swapping " << node->id << std::endl;
   if (node->parents.size() == 1) {
     std::cout << "Node has one parent " << std::endl;
@@ -77,8 +76,7 @@ void add(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode) {
         newNode->parents.erase(parent.second->id);
       }
 
-    } else if (willAdd.size() > 0 &&
-               willAdd.find(parent.second->id) != willAdd.end()) {
+    } else if (willAdd.size() > 0 && willAdd.find(parent.second->id) != willAdd.end()) {
       for (auto it : willAdd) {
       }
 
@@ -109,9 +107,8 @@ void add(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode) {
     for (auto parent : toDelete) {
       // Parent is not adding this node, so I am no longer a child of this
       // parent.
-      node->parents.erase(parent->id);  // parent is no longer my parent.
-      parent->children.erase(
-          node->id);  // i am no longer a child of this parent.
+      node->parents.erase(parent->id);   // parent is no longer my parent.
+      parent->children.erase(node->id);  // i am no longer a child of this parent.
 
       // Parents parents are now my parents (and still parents parents).
       for (auto it : parent->parents) {
@@ -137,8 +134,7 @@ void add(long proc, CommMap& oldNodes, CommWrap_ptr newNode) {
   }
 }
 
-void appendToCommMap(CommMap& m, std::vector<long>& comms,
-                     std::vector<int>& counts) {
+void appendToCommMap(CommMap& m, std::vector<long>& comms, std::vector<int>& counts) {
   int c = 0;
   for (int proc = 0; proc < counts.size(); proc++) {
     CommWrap_ptr firstNewNode = nullptr;
@@ -175,8 +171,7 @@ void appendToCommMap(CommMap& m, std::vector<long>& comms,
   }
 }
 
-std::set<CommWrap_ptr> getCommMap(std::vector<long>& comms,
-                                  std::vector<int>& counts) {
+std::set<CommWrap_ptr> getCommMap(std::vector<long>& comms, std::vector<int>& counts) {
   CommMap m;
   appendToCommMap(m, comms, counts);
 
@@ -185,8 +180,7 @@ std::set<CommWrap_ptr> getCommMap(std::vector<long>& comms,
     CommWrap_ptr me = it->second;
 
     if (me->parents.size() == 0 && me->contents.size() > 0) {
-      rootComms.insert(
-          it->second);  // I have no parents so I must be a root communicator.
+      rootComms.insert(it->second);  // I have no parents so I must be a root communicator.
     }
   }
   return rootComms;
@@ -205,9 +199,7 @@ long CommMapper::getNextId(ICommunicator_ptr comm, long myVal) {
   return recv;
 }
 
-bool CommMapper::isNew(ICommunicator_ptr comm) {
-  return comms.find(comm->uniqueId()) == comms.end();
-}
+bool CommMapper::isNew(ICommunicator_ptr comm) { return comms.find(comm->uniqueId()) == comms.end(); }
 
 void CommMapper::logComm(ICommunicator_ptr comm) {
   long id = comm->uniqueId();
@@ -218,8 +210,7 @@ void CommMapper::logComm(ICommunicator_ptr comm) {
 }
 
 template <typename T>
-std::pair<std::vector<T>, std::vector<int>> gatherSet(
-    std::set<T>& data, ICommunicator_ptr worldComm, bool root) {
+std::pair<std::vector<T>, std::vector<int>> gatherSet(std::set<T>& data, ICommunicator_ptr worldComm, bool root) {
   // First do a Gather to determine the number of comms on each process.
   int send = data.size();
   std::vector<int> recv(worldComm->Rank() == root ? worldComm->Size() : 1);
@@ -239,13 +230,11 @@ std::pair<std::vector<T>, std::vector<int>> gatherSet(
   }
   std::vector<long> recv2(recv2Coun);
   std::vector<long> commVec(data.begin(), data.end());
-  worldComm->GatherV(commVec.data(), commVec.size(), recv2.data(), recv.data(),
-                     displs.data(), sizeof(long), 0);
+  worldComm->GatherV(commVec.data(), commVec.size(), recv2.data(), recv.data(), displs.data(), sizeof(long), 0);
   return std::make_pair(recv2, recv);
 }
 
-std::set<CommWrap_ptr> CommMapper::gatherCommInformation(
-    ICommunicator_ptr worldComm) {
+std::set<CommWrap_ptr> CommMapper::gatherCommInformation(ICommunicator_ptr worldComm) {
   auto a = gatherSet<long>(comms, worldComm, root);
   if (worldComm->Rank() == root) {
     return getCommMap(a.first, a.second);
@@ -290,8 +279,7 @@ CommWrap_ptr DynamicCommMap::getRootCommunicator() {
   return nullptr;
 }
 
-bool DynamicCommMap::searchNodeInMainNodeCommChain(long mainNode,
-                                                   long searchNode) {
+bool DynamicCommMap::searchNodeInMainNodeCommChain(long mainNode, long searchNode) {
   // Need to find out if search node and main node have any intersection.
   auto it = map.find(mainNode);
   if (it != map.end()) {
@@ -350,9 +338,7 @@ INJECTION_UNITTEST(VNVPACKAGENAME, CommMapTester, 1) {
    * ensures that logging a comm adds it to the list of registered comms.
    *
    */
-  TEST_ASSERT_EQUALS(
-      "AddComm", true,
-      p->comms.size() == 1 && *(p->comms.begin()) == comm->uniqueId());
+  TEST_ASSERT_EQUALS("AddComm", true, p->comms.size() == 1 && *(p->comms.begin()) == comm->uniqueId());
 
   // Call log comm again.
   p->logComm(comm);
@@ -384,10 +370,7 @@ INJECTION_UNITTEST(VNVPACKAGENAME, CommMapTester, 1) {
    *    {"0":{"c":[0],"ch":[],"p":[10]},"1":{"c":[1],"ch":[],"p":[10]},"10":{"c":[0,1],"ch":[0,1],"p":[]}}
    *
    */
-  TEST_ASSERT_EQUALS(
-      "Gold Test One", true,
-      pp1.size() == 1 &&
-          json::diff(exact, (*pp1.begin())->toJson()).size() == 0)
+  TEST_ASSERT_EQUALS("Gold Test One", true, pp1.size() == 1 && json::diff(exact, (*pp1.begin())->toJson()).size() == 0)
 
   std::vector<long> comms{100, 10, 20, 0, 100, 10, 30, 1, 100, 20, 30, 2};
   std::vector<int> counts = {4, 4, 4};
@@ -410,9 +393,7 @@ INJECTION_UNITTEST(VNVPACKAGENAME, CommMapTester, 1) {
    *   {"0":{"c":[0],"ch":[],"p":[10,20]},"1":{"c":[1],"ch":[],"p":[10,30]},"10":{"c":[0,1],"ch":[0,1],"p":[100]},"100":{"c":[0,1,2],"ch":[10,20,30],"p":[]},"2":{"c":[2],"ch":[],"p":[20,30]},"20":{"c":[0,2],"ch":[0,2],"p":[100]},"30":{"c":[1,2],"ch":[1,2],"p":[100]}}
    *
    */
-  TEST_ASSERT_EQUALS(
-      "God Test Two", true,
-      pp.size() == 1 && json::diff(exactR, (*pp.begin())->toJson()).size() == 0)
+  TEST_ASSERT_EQUALS("God Test Two", true, pp.size() == 1 && json::diff(exactR, (*pp.begin())->toJson()).size() == 0)
 
   comms = {0};
   counts = {1};
@@ -430,10 +411,8 @@ INJECTION_UNITTEST(VNVPACKAGENAME, CommMapTester, 1) {
    *   {"0":{"c":[0], "ch":[],"p":[]}}
    *
    */
-  TEST_ASSERT_EQUALS(
-      "Gold Test Three", true,
-      pp.size() == 1 &&
-          json::diff(exactSingle, (*pp.begin())->toJson()).size() == 0)
+  TEST_ASSERT_EQUALS("Gold Test Three", true,
+                     pp.size() == 1 && json::diff(exactSingle, (*pp.begin())->toJson()).size() == 0)
 
   comms = {100, 0, 100, 1, 100, 2, 100, 3, 100, 4, 100, 5};
   counts = {2, 2, 2, 2, 2, 2};
@@ -455,10 +434,8 @@ INJECTION_UNITTEST(VNVPACKAGENAME, CommMapTester, 1) {
    * "ch":[],"p":[100]},"5":{"c":[5], "ch":[],"p":[100]}}
    *
    */
-  TEST_ASSERT_EQUALS(
-      "Gold Test Four", true,
-      pp.size() == 1 &&
-          json::diff(exactSingle, (*pp.begin())->toJson()).size() == 0)
+  TEST_ASSERT_EQUALS("Gold Test Four", true,
+                     pp.size() == 1 && json::diff(exactSingle, (*pp.begin())->toJson()).size() == 0)
 }
 
 INJECTION_UNITTEST(VNVPACKAGENAME, CommTestTwoProc, 2) {
@@ -471,8 +448,5 @@ INJECTION_UNITTEST(VNVPACKAGENAME, CommTestTwoProc, 2) {
       R"({"0":{"c":[0],"ch":[],"p":[2]},"1":{"c":[1],"ch":[],"p":[2]},"2":{"c":[0,1],"ch":[0,1],"p":[]}})"_json;
 
   if (pp.size() > 0)
-    TEST_ASSERT_EQUALS(
-        "Full Map Test", true,
-        pp.size() == 1 &&
-            json::diff(exactR, (*pp.begin())->toJson()).size() == 0)
+    TEST_ASSERT_EQUALS("Full Map Test", true, pp.size() == 1 && json::diff(exactR, (*pp.begin())->toJson()).size() == 0)
 }

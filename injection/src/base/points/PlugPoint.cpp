@@ -34,14 +34,12 @@ bool PlugPoint::plug(std::string filename, int line) {
     return false;
   }
 
-  OutputEngineManager* wrapper =
-      OutputEngineStore::instance().getEngineManager();
+  OutputEngineManager* wrapper = OutputEngineStore::instance().getEngineManager();
   InjectionPointBase::setInjectionPointType(InjectionPointType::Begin, "Begin");
 
   started = true;
 
-  wrapper->injectionPointStartedCallBack(comm, package, getScope(), type,
-                                         stageId, filename, line);
+  wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId, filename, line);
 
   // Run the tests before setting the values.
   InjectionPointBase::runTestsInternal(wrapper);

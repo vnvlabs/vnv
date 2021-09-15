@@ -28,29 +28,24 @@ void IterationPoint::addIterator(IteratorConfig& config) {
     return;
   }
 
-  VnV_Error(VNVPACKAGENAME, "Error Loading Iterator with Name %s",
-            config.getName().c_str());
+  VnV_Error(VNVPACKAGENAME, "Error Loading Iterator with Name %s", config.getName().c_str());
 }
 
 bool IterationPoint::iterate(std::string filename, int line) {
-  OutputEngineManager* wrapper =
-      OutputEngineStore::instance().getEngineManager();
+  OutputEngineManager* wrapper = OutputEngineStore::instance().getEngineManager();
 
   // On the first iteration, call INjectionPointBegin and run all the tests.
   if (started == 0) {
-    InjectionPointBase::setInjectionPointType(InjectionPointType::Begin,
-                                              "Begin");
+    InjectionPointBase::setInjectionPointType(InjectionPointType::Begin, "Begin");
     InjectionPoint::run(filename, line);
     started++;
     return true;
   } else {
-    InjectionPointBase::setInjectionPointType(InjectionPointType::Iter,
-                                              std::to_string(started));
+    InjectionPointBase::setInjectionPointType(InjectionPointType::Iter, std::to_string(started));
   }
 
   // Set the first values();
-  wrapper->injectionPointStartedCallBack(comm, package, getScope(), type,
-                                         stageId, filename, line);
+  wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId, filename, line);
 
   InjectionPointBase::runTestsInternal(wrapper);
 

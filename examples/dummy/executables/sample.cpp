@@ -215,42 +215,6 @@ void newtonRaphson(double x, double eps, int rank) {
   }
   INJECTION_LOOP_END(VNV_STR(SPNAME), "NewtonRaphson");
 
-  /** TODO With a small modification to the iterators support, we can implement
-  Plugable functions.Pluggable
-   * functions will allow users to plug in functions at a certain point. If
-  nothing is specified in the input
-   * file, the default code will run.
-   *
-   * This would let testers switch out code through the command line without
-  recompiling the source code. I.e.,
-   * you could throw in a near linearSolve method or something.
-   *
-   * Ie.
-   *
-   *
-
-  //RETURN version.
-  INJECTION_FUNCTION_RETURN(VNV, FISH, a, x, y, z ) {
-    a = linearSolve(x,y,z,w);
-  }
-
-  // Expands to:
-
-  if (!VnV_Runtime_Plug_R(VNV,FISH, (void*) &a, (void*) &x, *void*) &y, (void*)
-  &z) ) { a = linearSolve(x,y,z);
-  }
-
-
-  // No return version.
-  INJECTION_FUNCTION(VNV, FISH, x, y, z) {
-    linearSolve(x,y,z,w);
-  }
-
-  if (!VnV_Runtime_Plug(VNV,FISH, (void*) &x, *void*) &y, (void*) &z) ) {
-    linearSolve(x,y,z,w);
-  }
-
-  **/
 }
 
 int function1(int x) {
@@ -360,10 +324,10 @@ int main(int argc, char** argv) {
    *  In this loop, we iterate across a range [ :vnv:`Data.Data.min`,
    *  :vnv:`Data.Data.max`] with a step of :vnv:`Data.Data.count`. At each step,
    *  the INJECTION_LOOP_ITER call is made, representing an internal stage of
-   *the injection point. This is turn calls the injection point call back, which
-   *  logs the value of the injection point parameter "aa" (aa is a double set
-   *  randomly in each step of the for loop). We plot aa against the step value
-   *  using the chart directive.
+   *  the injection point. This is turn calls the injection point call back, 
+   *  which logs the value of the injection point parameter "aa"
+   *  (aa is a double set randomly in each step of the for loop). We plot aa
+   *  against the step value using the chart directive.
    *
    *  .. vnv-chart::
    *     :labels: Data.Data[?Name == 'x'].to_string(Value)

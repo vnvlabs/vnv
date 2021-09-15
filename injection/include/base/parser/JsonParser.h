@@ -1,13 +1,12 @@
 ﻿/**
   @file JsonParser.h
+
+  Structures and Classes required to parse the VnV Json Input file.
+
 **/
 
 #ifndef VV_PARSER_HEADER
 #define VV_PARSER_HEADER
-
-/**
-  \file vv-parser.h Header file for the Parser.
-  */
 
 #include <fstream>
 #include <map>
@@ -22,10 +21,57 @@ using nlohmann::json;
  */
 namespace VnV {
 
+/**
+ * @brief Logging information
+ *
+ * Store user provided logging configuration
+ *
+ */
+
+enum class LogWriteType {
+  STDOUT,  //< All logging statements are written to stdout
+  FILE,    //< All logging statements are written to file
+  ENGINE   //< All logging statements are forwarded to output engine.
+};
 struct LoggerInfo {
+  /**
+   * @brief If true, logging is enabled.
+   *
+   * When false, all VnV logging is disabled. All calls to VnV_Log
+   * become noops.
+   *
+   */
   bool on;
-  std::string filename;
+
+  /**
+   * @brief Where should we write logging statements.
+   */
+  LogWriteType type = LogWriteType::STDOUT;
+
+  /**
+   * @brief Log filename
+   *
+   * The filename used to write log files when logging is enabled in filename
+   * @note Only used when VnV::LoggerInfo::type == VnV::LogWriteType::FILE
+   */
+  std::string filename; /**< The filename to write log files to (if applicable) */
+
+  /**
+   * @brief Package specific log configuration
+   *
+   * A map linking log level to logging status.
+   * If logs[LOG LEVEL] is false, all logging statements emitted with that
+   * log level will be ignored.
+   *
+   */
   std::map<std::string, bool> logs;
+
+  /**
+   * @brief Logging Package black list
+   *
+   * Logging statments emitted by packages in the blacklist will be ignored.
+   * This allows users to turn logging off logging for certain packages.
+   */
   std::set<std::string> blackList;
 };
 
@@ -39,78 +85,120 @@ struct EngineInfo {
   json engineConfig;      /**< additional parameters provided by the user */
 };
 
+/**
+ * @brief Structure containing configuration for a VnV Sampler.
+ *
+ * Configuration options are a VnV::ISampler.
+ * \sa VnV::ISampler
+ *
+ */
 struct SamplerInfo {
-  std::string name = "";
-  std::string package = "";
-  nlohmann::json config = json::object();
-};
-
-enum class InjectionType { POINT, ITER, PLUG };
-
-struct InjectionPointInfo {
-  InjectionType type = InjectionType::POINT;
-  std::string name;
-  std::string package;
-  std::vector<json> tests;
-  std::vector<json> iterators;
-  json plug = json::object();
-
-  SamplerInfo sampler;
-
-  bool runInternal;
-};
-
-struct UnitTestInfo {
-  bool runUnitTests;
-  json unitTestConfig;
-  bool exitAfterTests;
-};
-
-struct ActionConfig {
-  json config;
-  std::string name;
-  std::string package;
-  std::string run = "";
-};
-
-struct ActionInfo {
-  bool run;
-  std::vector<ActionConfig> actions;
+  std::string name = "";                  /**< The name of the sampler*/
+  std::string package = "";               /**< the package that defined the sampler */
+  nlohmann::json config = json::object(); /** sampler specific configuration options*/
 };
 
 /**
- * @brief The EngineInfo struct
+ * @brief The type of injection point defined.
  *
- * Utility struct for storing parsed information about the RunTime Env
+ */
+enum class InjectionType {
+  POINT, /**< A Simple Injection Point (see VnV::InjectionPoint)*/
+  ITER,  /**< A VnV Iteration Point (see VnV::IterationPoint)*/
+  PLUG   /**< A VnV Plug point (see VnV::PlugPoint) */
+};
+
+/**
+ * @brief Injection Point configuration
+ *
+ * The configuration information for a injection point
+ *
+ */
+struct InjectionPointInfo {
+  InjectionType type = InjectionType::POINT; /**< injection point type */
+  std::string name;                          /**< The name of the injection point */
+  std::string package;                       /**< The package that declared the injection point */
+  std::vector<json> tests;                   /**< Test configuration json defined at the injection point */
+  std::vector<json> iterators;               /**< Iteration configuration json defined at the injection point */
+  json plug = json::object();                /**< Plug configuration json defined at the injection point */
+
+  SamplerInfo sampler; /**< Sampler configuration for this injection point */
+
+  bool runInternal; /** Should we run the internal callback for this injection point */
+};
+
+/**
+ * @brief Unit Testing Configuration
+ *
+ * The configuration for any unit testing that needs to be completed
+ * during this execution of the code base.
+ *
+ */
+struct UnitTestInfo {
+  bool runUnitTests;   /**< if true, unit tests will be executed */
+  json unitTestConfig; /**< the configuration object for the unit tests */
+  bool exitAfterTests; /**< if true, std::exit will be called at end of tests */
+};
+
+/**
+ * @brief A configuration object for an action
+ *
+ * Actions are plugin provided functions that can be executed at various
+ * points inside the code base. Actions are almost identical to test. In fact,
+ * one usage of an action might be to perform a global test across all injection
+ * points.
+ *
+ */
+struct ActionConfig {
+  json config;          /**< the action specific configuration object */
+  std::string name;     /**< the name of the action to run */
+  std::string package;  /**< the package that declared the action */
+  std::string run = ""; /**< when should the action be executed (todo --> enum )*/
+};
+
+/**
+ * @brief Global Action Configuration
+ *
+ */
+struct ActionInfo {
+  bool run;                          /**< if true, actions will be executaed*/
+  std::vector<ActionConfig> actions; /**< the list of action configuration to execute */
+};
+
+/**
+ * @brief Runtime configuration options
+ *
+ * Utility struct for storing parsed information about the RunTime Environment
  */
 struct RunInfo {
   bool runTests; /**< Should any tests be run */
 
-  std::string communicator =
-      "mpi";  //**< should we use mpi. If yes, vnv will use mpi communicator. if
-              // false, we will use serial.
+  std::string communicator = "mpi";                          /**< what communicator should be used*/
+  std::map<std::string, std::string> additionalPlugins;      /**< List of file paths to included plugin libraries */
+  std::map<std::string, InjectionPointInfo> injectionPoints; /**< all injection points with tests */
 
-  std::map<std::string, std::string>
-      additionalPlugins; /*< List of file paths to included plugin libraries */
-  std::map<std::string, InjectionPointInfo>
-      injectionPoints; /**< all injection points with tests */
+  json pluginConfig; /**< Json object mapping packageName to shared library path */
+  json cmdline;      /**< Command Line options parsed into a configuration json --vnv.packageName.[sdfsdf] = "sdf"*/
 
-  json pluginConfig;
-  json cmdline;
+  UnitTestInfo unitTestInfo; /**< Unit testing configuration */
+  LoggerInfo logInfo;        /**< loging configuration */
+  EngineInfo engineInfo;     /**< Information about the IO engine */
 
-  UnitTestInfo unitTestInfo;
-  LoggerInfo logInfo;
-  EngineInfo engineInfo; /**< Information about the IO engine */
+  ActionInfo actionInfo; /**< action configuration */
 
-  ActionInfo actionInfo;
-
+  /**
+   * @brief User provided template overrides
+   *
+   * We merge the template overrides into the template json extracted from the application.
+   * This allows the user to change the templates that are used for a test, injection point, etc.
+   *
+   */
   json template_overrides = json::object();
 
-  bool hotpatch = false;
+  bool hotpatch = false; /**< Should hotpatching be enabled */
 
-  bool error; /**< Was there an error when parsing */
-  std::string
-      errorMessage; /**< What was the error message (if there was one) */
+  bool error;               /**< Was there an error when parsing */
+  std::string errorMessage; /**< What was the error message (if there was one) */
 };
 
 /**
@@ -167,87 +255,136 @@ class JsonParser {
    */
   EngineInfo getEngineInfo(const json& engineJson);
 
+  /**
+   * @brief Parse the Action section of the input file.
+   * @param actionJson The Json extracted from main["actions"]
+   * @param type The type of action being parsed (todo)
+   * @return The actionJson input parsed into the ActionInfo object.
+   *
+   * Load the information about the engine.
+   */
+
   ActionInfo getActionInfo(const json& actionJson, std::string type);
 
+  /**
+   * @brief Get the Sampler Info object
+   *
+   *
+   *
+   * @param samplerJson User provided sampler configuration
+   * @return SamplerInfo
+   */
   SamplerInfo getSamplerInfo(const json& samplerJson);
 
   /**
-   * @brief getUnitTestInfo
-   * @param unitTestJson The json found in main["unit-testing"]
-   * @return
+   * @brief Get the Unit Test Info object
+   *
+   * @param unitTestJson User provided json object for unit test configuration
+   * @return UnitTestInfo
    */
   UnitTestInfo getUnitTestInfo(const json& unitTestJson);
 
   /**
-   * @brief addTest
-   * @param testJson[in] The json extracted from the tests section of the
-   * injection point spec.
-   * @param testConfig[out]
-   * @param runScopes[in] A list of runscopes specified for execution in this
-   * run
+   * @brief add a test to an injection point
    *
    * Here, we parse the configuation for a single test and add it to the
    * testConfig vector. Note: If the runScopes vector is not empty, the test
    * will only be added if it has been tagged with a runScope in that set. If
    * runScopes is empty, the test is added regardless.
+   *
+   * @param[in] testJson  The json extracted from the tests section of the injection point spec.
+   * @param[in] testConfig The list of current tests to add the test too.
+   * @param[in] runScopes A list of runscopes specified for execution in this run
+   *
    */
-  void addTest(const json& testJson, std::vector<json>& testConfig,
-               std::set<std::string>& runScopes);
+  void addTest(const json& testJson, std::vector<json>& testConfig, std::set<std::string>& runScopes);
 
+  /**
+   * @brief Determine if a test should be added based on the user supplied runscopes
+   *
+   * @param testJson The test configuration
+   * @param runScopes The list of active runscopes
+   * @return true The test should be added
+   * @return false The test should not be added
+   */
   bool add(const json& testJson, std::set<std::string>& runScopes);
 
   /**
-   * @brief addInjectionPoint
-   * @param injectionPointJson[in] The json extracted for this injection point
-   * spec.
-   * @param runScopes[in] The active runScopes.
-   * @param ips[in/out] A map that the injection point should be added to.
+   * @brief Add an injection point to the list of active injection points.
    *
-   * Here we add the injection point to the injection point list. If no tests
-   * are defined for the injection point, then the injection point is not added.
-   * At runtime, the VnV library will simply move on when an unconfigured
-   * injection point is found.
+   * @param[in] injectionPointJson The json extracted for this injection point spec.
+   * @param[in] runScopes The active runScopes.
+   * @param ips[in/out] The map that the injection point should be added to.
+   *
+   * Here we add the injection point to the injection point list.
    */
-  void addInjectionPoint(const json& injectionPointJson,
-                         std::set<std::string>& runScopes,
-                         std::map<std::string, InjectionPointInfo>& ips,
-                         InjectionType type);
+  void addInjectionPoint(const json& injectionPointJson, std::set<std::string>& runScopes,
+                         std::map<std::string, InjectionPointInfo>& ips, InjectionType type);
 
   /**
-   * @brief addTestLibrary
-   * @param testLibsJson the json extracted from the input file.
-   * @param libs The vector of libraries to add the new test library to
+   * @brief add a plugin
+   * @param[in] testLibsJson the json extracted from the input file plugins section
+   * @param[inout] libs The map of library name to shared library file.
    *
    * Here, add the newest filepath to the testLibraries set.
+   *
+   * @todo Change the name of this function to add Plugin.
    */
-  void addTestLibrary(const json& testLibsJson,
-                      std::map<std::string, std::string>& libs);
+  void addTestLibrary(const json& testLibsJson, std::map<std::string, std::string>& libs);
 
   /**
-   * @brief parse
-   * @param input The json provided by the user
-   * @return The RunInfo Struct
+   * @brief Parse the users input file.
+   * @param[in] input The json provided by the user
+   * @param[in] argc The number of command line arguments
+   * @param[in] argv The command line arguments
+   * @return The RunInfo Struct representing the users input file.
    *
    * Parse the user specificed json file. As part of parsing, the json is
-   * validated against the vv-schema json-schema to ensure it is accurate. Note
-   * that in some cases, the functions in this class assume a variable is
-   * present in the json. In most cases, those assumptions are based on the fact
-   * that the parameter is marked required in the schema.
+   * validated against the vv-schema json-schema to ensure it is accurate.
+   *
+   * @todo argc should be an int, not an int*
    */
   RunInfo _parse(const json& input, int* argc, char** argv);
 
  public:
   /**
-   * @brief parse
-   * @param fstram . The file containing the json or a json string.
-   * @return The RunInfo struct containing all parsed information.
+   * @brief Parse the command line
    *
-   * Note, This function supports both files and json strings as input.
-   * @todo Change parameter name to indicate support for json strings and files.
+   * Search through the command line for parameters of the form
+   * --vnv.package.*=<value> and parse them into a Json object of the form
+   * {"package"-> {key:value}}
+   *
+   * The command line json, along with any package options provided to the
+   * user are sent through to the packages options callback.
+   *
+   * @param argc the number of arguments in argv
+   * @param argv the command line arguments
+   * @return json representation of the command line arguments
+   *
+   * @todo Remove this functionality -- Users can now pass override arguments
+   * on the command line that are automatically merged into the input file. No
+   * need to additionally support command line parameters with that functionality.
    */
-
   json commandLineParser(int* argc, char** argv);
+
+  /**
+   * @brief Parse a users input file given an input file stream
+   *
+   * @param fstream The valid input file stream
+   * @param argc  The number of command line arguements
+   * @param argv  The command line arguments
+   * @return RunInfo
+   */
   RunInfo parse(std::ifstream& fstream, int* argc, char** argv);
+
+  /**
+   * @brief Parse a users input file using a json object.
+   *
+   * @param fstream The valid input file stream
+   * @param argc  The number of command line arguements
+   * @param argv  The command line arguments
+   * @return RunInfo
+   */
   RunInfo parse(const json& _json, int* argc, char** argv);
 };
 

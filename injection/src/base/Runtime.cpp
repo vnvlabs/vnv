@@ -4,10 +4,6 @@
  **/
 
 #include <unistd.h>
-
-//#include <unistd.h>
-#include <Python.h>
-
 #include <iostream>
 
 #include "base/DistUtils.h"

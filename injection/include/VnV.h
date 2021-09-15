@@ -1,7 +1,7 @@
 ﻿
 
-#ifndef VV_VNV_H
-#define VV_VNV_H
+#ifndef VNV_H
+#define VNV_H
 
 // VnV.h represents the include required to use the library at runtime. This
 // includes all the functions required to initialize and register the library.

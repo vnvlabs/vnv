@@ -2,7 +2,7 @@
 
 #include "base/Utilities.h"
 
-#include <time.h>
+#include <ctime>
 
 #include <algorithm>
 #include <fstream>
@@ -13,8 +13,6 @@
 #include <type_traits>
 //#include "base/InjectionPoint.h"
 #include <sys/stat.h>
-#include <time.h>
-
 #include <list>
 #include <queue>
 #include <set>
@@ -33,9 +31,6 @@ std::string VnV::ProvenanceUtils::timeToString(std::string format) {
 }
 
 std::string VnV::ProvenanceUtils::cmdLineToString(int argc, char** argv) {
-  std::cout << argc << std::endl;
-  std::cout << argv[0] << std::endl;
-
   std::ostringstream commandline;
   commandline << argv[0];
   for (int i = 1; i < argc; i++) {

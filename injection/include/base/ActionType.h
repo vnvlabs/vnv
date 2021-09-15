@@ -6,7 +6,7 @@ namespace VnV {
 
 class ActionType {
   std::string s;
-  ActionType(std::string s);
+  explicit ActionType(std::string s);
 
  public:
   bool equals(std::string s);
