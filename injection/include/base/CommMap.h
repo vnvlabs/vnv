@@ -11,10 +11,7 @@ using nlohmann::json;
 
 namespace VnV {
 
-
-
 class CommMap : public ICommMap {
-  
   class Comm;
   typedef std::shared_ptr<Comm> Comm_ptr;
 
@@ -189,8 +186,5 @@ class CommMap : public ICommMap {
     }
     return j;
   }
-
-
-
 };
-}
+}  // namespace VnV

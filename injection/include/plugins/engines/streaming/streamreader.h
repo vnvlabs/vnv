@@ -21,7 +21,6 @@ class JsonElement {
 
 // A static file iterator.
 class JsonSingleStreamIterator : public Iterator<json> {
-
   long sId;
   std::queue<JsonElement> content;
 
@@ -44,21 +43,19 @@ class JsonSingleStreamIterator : public Iterator<json> {
   long streamId() const override { return sId; }
 
   void add(long i, const json& d) {
-    JsonElement j(i,d);
+    JsonElement j(i, d);
     content.emplace(j);
   }
 
   ~JsonSingleStreamIterator() {}
-
-
 };
 
-class JsonStreamIterator : public MultiStreamIterator<JsonSingleStreamIterator, json> {
-  public: 
-    virtual bool start_stream_reader() = 0;
-    virtual void stop_stream_reader() = 0;
+class JsonStreamIterator
+    : public MultiStreamIterator<JsonSingleStreamIterator, json> {
+ public:
+  virtual bool start_stream_reader() = 0;
+  virtual void stop_stream_reader() = 0;
 };
-
 
 // Wrap the root node with a parser and thread so we dont
 // loose these until the node is deleted.
@@ -73,9 +70,11 @@ class RootNodeWithThread : public RootNode {
     worker = std::thread(&ParserVisitor<json>::process, visitor.get());
   }
 
-  static std::shared_ptr<IRootNode> parse(long& id, std::shared_ptr<JsonStreamIterator> stream) {
-      std::shared_ptr<RootNodeWithThread> root = std::make_shared<RootNodeWithThread>();
-    
+  static std::shared_ptr<IRootNode> parse(
+      long& id, std::shared_ptr<JsonStreamIterator> stream) {
+    std::shared_ptr<RootNodeWithThread> root =
+        std::make_shared<RootNodeWithThread>();
+
     root->stream = stream;
     root->id = id++;
     root->name = "ROOT";

@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-
 namespace VnV {
 
 class IDataType;
@@ -37,25 +36,25 @@ void registerReduction(std::string packageName, std::string name,
 
 }  // namespace VnV
 
-#define INJECTION_REDUCER(PNAME, name, COMM)                              \
-  namespace VnV {                                                         \
-  namespace PNAME {                                                       \
-  namespace Reducers {                                                    \
-  class name : public IReduction {                                        \
-    virtual bool communitive() { return COMM; }                           \
-    virtual IDataType_ptr reduce(VnV::IDataType_ptr& a, VnV::IDataType_ptr& b);     \
-  };                                                                      \
-                                                                          \
-  VnV::IReduction* declare_##name() { return new name(); } \
-  void register_##name() {                                                \
-    VnV::registerReduction(VNV_STR(PNAME), #name,          \
-                                          &declare_##name);                \
-  }                                                                       \
-  }                                                                       \
-  }                                                                       \
-  }                                                                       \
-  VnV::IDataType_ptr VnV::PNAME::Reducers::name::reduce(VnV::IDataType_ptr& in,     \
-                                                   VnV::IDataType_ptr& out)
+#define INJECTION_REDUCER(PNAME, name, COMM)                        \
+  namespace VnV {                                                   \
+  namespace PNAME {                                                 \
+  namespace Reducers {                                              \
+  class name : public IReduction {                                  \
+    virtual bool communitive() { return COMM; }                     \
+    virtual IDataType_ptr reduce(VnV::IDataType_ptr& a,             \
+                                 VnV::IDataType_ptr& b);            \
+  };                                                                \
+                                                                    \
+  VnV::IReduction* declare_##name() { return new name(); }          \
+  void register_##name() {                                          \
+    VnV::registerReduction(VNV_STR(PNAME), #name, &declare_##name); \
+  }                                                                 \
+  }                                                                 \
+  }                                                                 \
+  }                                                                 \
+  VnV::IDataType_ptr VnV::PNAME::Reducers::name::reduce(            \
+      VnV::IDataType_ptr& in, VnV::IDataType_ptr& out)
 
 #define DECLAREREDUCER(PNAME, name) \
   namespace VnV {                   \

@@ -32,7 +32,6 @@ class ReaderWrapper {
   long getUpperId() { return upperId; }
 };
 
-
 bool VnVInit(std::vector<std::string> args, std::string configFilename);
 bool VnVInit_Str(std::vector<std::string> args, std::string configStr);
 bool VnVIsInitialized();

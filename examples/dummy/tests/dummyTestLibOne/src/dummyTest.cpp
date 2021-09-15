@@ -7,8 +7,8 @@
 #define DLT DummyTestLibOne
 
 INJECTION_TEST(DLT, dummyTest, double slope, double intersection) {
-  engine->Put( "slope", get<double>("slope"));
-  engine->Put( "intersection", get<double>("intersection"));
+  engine->Put("slope", get<double>("slope"));
+  engine->Put("intersection", get<double>("intersection"));
   return SUCCESS;
 }
 

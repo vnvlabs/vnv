@@ -5,10 +5,12 @@ import os
 from app import create_app
 from app.sockets import create_socket_app
 
+
 class Config:
     DEBUG = True
     LOCAL = False
     basedir = os.path.abspath(os.path.dirname(__file__))
+
 
 app_config = Config()
 app = create_app(app_config)

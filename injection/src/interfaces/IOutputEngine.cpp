@@ -6,9 +6,9 @@
 
 #include <stdarg.h>
 
+#include "base/exceptions.h"
 #include "base/points/InjectionPoint.h"
 #include "base/stores/OutputEngineStore.h"
-#include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
 #include "json-schema.hpp"
 
@@ -78,11 +78,10 @@ std::string VariableEnumFactory::toString(VariableEnum e) {
       "VariableEnumFactory::toString: Unhandled Variable Enum Type");
 }
 
-
-void OutputEngineManager::set(ICommunicator_ptr world, json& inputjson, std::string key, bool readMode) {
-  
+void OutputEngineManager::set(ICommunicator_ptr world, json& inputjson,
+                              std::string key, bool readMode) {
   this->key = key;
-  
+
   json schema = getConfigurationSchema(readMode);
 
   if (!schema.empty()) {
@@ -91,7 +90,7 @@ void OutputEngineManager::set(ICommunicator_ptr world, json& inputjson, std::str
     validator.validate(inputjson);
   }
 
-  setFromJson(world, inputjson,readMode);
+  setFromJson(world, inputjson, readMode);
 }
 
 IOutputEngine* OutputEngineManager::getOutputEngine() {

@@ -98,11 +98,10 @@ void ParallelEngine::packageOptionsStartedCallBack(ICommunicator_ptr world,
 
 void ParallelEngine::packageOptionsEndedCallBack(std::string packageName) {}
 
-void ParallelEngine::injectionPointStartedCallBack(ICommunicator_ptr comm,
-                                                   std::string packageName,
-                                                   std::string id,
-                                                   InjectionPointType type,
-                                                   std::string stageVal, std::string filename , int line) {
+void ParallelEngine::injectionPointStartedCallBack(
+    ICommunicator_ptr comm, std::string packageName, std::string id,
+    InjectionPointType type, std::string stageVal, std::string filename,
+    int line) {
   currComm = comm;
   printf("PARALLEL ENGINE Start Injection Point %s : %s \n", id.c_str(),
          InjectionPointTypeUtils::getType(type, stageVal).c_str());

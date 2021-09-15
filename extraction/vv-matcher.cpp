@@ -39,10 +39,9 @@ using namespace llvm;
 void writeFile(json& cacheInfo, std::string outputFileName,
                std::string cacheFile, std::string packageName, bool force);
 
-std::set<std::string> checkCache( json& cacheInfo, std::set<std::string>& file);
+std::set<std::string> checkCache(json& cacheInfo, std::set<std::string>& file);
 
-json runPreprocessor(CompilationDatabase& comps,
-                     std::set<std::string>& files);
+json runPreprocessor(CompilationDatabase& comps, std::set<std::string>& files);
 
 json runFinder(CompilationDatabase& db, std::vector<std::string>& files);
 
@@ -67,15 +66,14 @@ static llvm::cl::opt<std::string> packageName("package",
                                               llvm::cl::cat(VnVParserCatagory));
 
 static llvm::cl::opt<bool> resetCache("reset", llvm::cl::desc("resetCache"),
-                                    llvm::cl::value_desc("bool"),
-                                    llvm::cl::init(false),
-                                    llvm::cl::cat(VnVParserCatagory));
+                                      llvm::cl::value_desc("bool"),
+                                      llvm::cl::init(false),
+                                      llvm::cl::cat(VnVParserCatagory));
 
 static llvm::cl::opt<bool> force("force", llvm::cl::desc("force"),
-                                    llvm::cl::value_desc("bool"),
-                                    llvm::cl::init(false),
-                                    llvm::cl::cat(VnVParserCatagory));
-
+                                 llvm::cl::value_desc("bool"),
+                                 llvm::cl::init(false),
+                                 llvm::cl::cat(VnVParserCatagory));
 
 /**
  * Main Executable for VnV Processor.
@@ -91,7 +89,6 @@ int main(int argc, const char** argv) {
   std::string packageName_ = packageName.getValue();
   std::hash<std::string> hasher;
 
-
   // If the output file exists, load the cache from the comments. The cache
   // can then be used to check if any of the files have changed. We can then
   // update the registriation for only the files that change. That will speed
@@ -101,18 +98,17 @@ int main(int argc, const char** argv) {
   json cacheInfo = json ::object();
 
   if (!resetCache.getValue() && !cacheFile_.empty()) {
-     
-     std::ifstream cache(cacheFile_.c_str());  
-     if (cache.good()) {
-         try {
-           cacheInfo = json::parse(cache);
-         } catch (...) {
-           std::cerr << "Invalid Cache file" << std::endl;
-           cacheInfo = json::object(); 
-         }
+    std::ifstream cache(cacheFile_.c_str());
+    if (cache.good()) {
+      try {
+        cacheInfo = json::parse(cache);
+      } catch (...) {
+        std::cerr << "Invalid Cache file" << std::endl;
+        cacheInfo = json::object();
       }
+    }
   }
-  
+
   json& cacheMap = VnV::JsonUtilities::getOrCreate(cacheInfo, "map");
   json& cacheFiles = VnV::JsonUtilities::getOrCreate(cacheInfo, "files");
   json& cacheData = VnV::JsonUtilities::getOrCreate(cacheInfo, "data");
@@ -127,32 +123,31 @@ int main(int argc, const char** argv) {
   for (auto it : OptionsParser.getCompilations().getAllCompileCommands()) {
     auto s = std::find(it.CommandLine.begin(), it.CommandLine.end(), search);
     if (s == it.CommandLine.end()) {
-        if (it.Filename[0] != '/') {
-           theFiles.insert(it.Directory + "/" + it.Filename);
-        } else {
-           theFiles.insert(it.Filename);
-        }
+      if (it.Filename[0] != '/') {
+        theFiles.insert(it.Directory + "/" + it.Filename);
+      } else {
+        theFiles.insert(it.Filename);
+      }
     }
   }
 
-  // TODO This checks if any of the cpp files have changed and if any of the headers included 
-  // in that cpp file ON THE LAST RUN have changed. To get everything, we need to go ahead 
-  // and generate a full list of all headers. Otherwise we wont catch changes in new header files.
+  // TODO This checks if any of the cpp files have changed and if any of the
+  // headers included in that cpp file ON THE LAST RUN have changed. To get
+  // everything, we need to go ahead and generate a full list of all headers.
+  // Otherwise we wont catch changes in new header files.
   std::set<std::string> modFiles = checkCache(cacheInfo, theFiles);
 
-  if (modFiles.size() == 0 ) {
-     std::cout << "No changes detected" << std::endl;
+  if (modFiles.size() == 0) {
+    std::cout << "No changes detected" << std::endl;
   } else {
-
     std::cout << "VnV Detected Changes in the following files:\n";
     for (auto it : modFiles) {
-       std::cout << "\t" << it << std::endl;
+      std::cout << "\t" << it << std::endl;
     }
     std::cout << "\n\n";
     // Update the Cache
-    json vnvDeclares1 = runPreprocessor(OptionsParser.getCompilations(),
-                                        modFiles);
-
+    json vnvDeclares1 =
+        runPreprocessor(OptionsParser.getCompilations(), modFiles);
 
     std::vector<std::string> injectionFiles;
     for (auto it : vnvDeclares1.items()) {
@@ -171,47 +166,42 @@ int main(int argc, const char** argv) {
       json& data = it.value()["data"];
       if (data.contains("InjectionPoints") &&
           data["InjectionPoints"].size() > 0) {
-            injectionFiles.push_back(it.key());
+        injectionFiles.push_back(it.key());
       }
       cacheData[it.key()] = data;
-
     }
 
     json found = runFinder(OptionsParser.getCompilations(), injectionFiles);
-        
+
     // Add the injection point data to the cacheData object.
     for (auto cachedFile : injectionFiles) {
-      
       json& cfileJson = cacheData[cachedFile];
-      
+
       auto ips = cfileJson.find("InjectionPoints");
-      
 
       if (ips != cfileJson.end()) {
-         
-         for (auto injectionPoint : ips.value().items()) {
-            
-             
-            auto info = found.find(injectionPoint.key());
-              
-            if (info != found.end()) {
-              injectionPoint.value()["parameters"] = (info.value().contains("parameters")
-                       ? info.value()["parameters"]
-                       : json::array());
+        for (auto injectionPoint : ips.value().items()) {
+          auto info = found.find(injectionPoint.key());
 
-              //injectionPoint.value()["iterator"] = info.value().value("/iterator"_json_pointer,false);
-              json& stages = injectionPoint.value()["stages"];
-              for (auto& stage : info.value()["stages"].items()) {
-                stages[stage.key()]["info"] = stage.value();
-              }
+          if (info != found.end()) {
+            injectionPoint.value()["parameters"] =
+                (info.value().contains("parameters")
+                     ? info.value()["parameters"]
+                     : json::array());
+
+            // injectionPoint.value()["iterator"] =
+            // info.value().value("/iterator"_json_pointer,false);
+            json& stages = injectionPoint.value()["stages"];
+            for (auto& stage : info.value()["stages"].items()) {
+              stages[stage.key()]["info"] = stage.value();
             }
           }
-
+        }
       }
     }
   }
 
-
-  writeFile(cacheInfo, outputFileName, cacheFile_, packageName_, force.getValue());
+  writeFile(cacheInfo, outputFileName, cacheFile_, packageName_,
+            force.getValue());
   return 0;
 }

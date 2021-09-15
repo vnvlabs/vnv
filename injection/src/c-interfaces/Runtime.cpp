@@ -14,9 +14,9 @@
 extern "C" {
 
 int VnV_init(const char* packageName, int* argc, char*** argv,
-              const char* filename, registrationCallBack callback) {
-  return VnV::RunTime::instance().InitFromFile(packageName, argc, argv, filename,
-                                        &callback);
+             const char* filename, registrationCallBack callback) {
+  return VnV::RunTime::instance().InitFromFile(packageName, argc, argv,
+                                               filename, &callback);
 }
 
 void VnV_Register_Subpackage(const char* packageName,
@@ -30,7 +30,7 @@ void VnV_declarePackageJson(const char* packageName,
   VnV::RunTime::instance().declarePackageJson(packageName, callback);
 }
 
-void VnV_finalize() { 
+void VnV_finalize() {
   VnV::RunTime::instance().Finalize();
   VnV::RunTime::reset();
 }
@@ -47,10 +47,10 @@ void VnV_readFile(const char* reader, const char* filename) {
   VnV::RunTime::instance().readFile(reader, filename);
 }
 
-void VnV_readFileAndWalk(const char* reader, const char* filename, const char* package, const char* walker, const char* config) {
-  VnV::RunTime::instance().readFileAndWalk(reader, filename, package, walker, json::parse(config));
+void VnV_readFileAndWalk(const char* reader, const char* filename,
+                         const char* package, const char* walker,
+                         const char* config) {
+  VnV::RunTime::instance().readFileAndWalk(reader, filename, package, walker,
+                                           json::parse(config));
 }
-
-
-
 }

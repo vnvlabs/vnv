@@ -1,22 +1,18 @@
- 
- #include "base/ActionType.h"
 
- using namespace VnV;
+#include "base/ActionType.h"
 
- ActionType::ActionType(std::string s) {
-    this->s = s;
-  }
+using namespace VnV;
 
-  bool ActionType::equals(std::string s) {
-    return s.compare(this->s) == 0;
-  }
+ActionType::ActionType(std::string s) { this->s = s; }
 
-  ActionType& ActionType::configure() { 
-    static ActionType configAction("configure");
-    return configAction;
-  }
-  
-  ActionType& ActionType::finalize() {
-    static ActionType finalizeAction("finalize");
-    return finalizeAction;  
-  }
+bool ActionType::equals(std::string s) { return s.compare(this->s) == 0; }
+
+ActionType& ActionType::configure() {
+  static ActionType configAction("configure");
+  return configAction;
+}
+
+ActionType& ActionType::finalize() {
+  static ActionType finalizeAction("finalize");
+  return finalizeAction;
+}

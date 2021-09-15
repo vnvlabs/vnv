@@ -15,8 +15,8 @@
 #include <string>
 #include <vector>
 
-#include "interfaces/ITransform.h"
 #include "base/stores/BaseStore.h"
+#include "interfaces/ITransform.h"
 
 namespace VnV {
 
@@ -35,8 +35,7 @@ class Transformer {
 /**
  * @brief The TestStore class
  */
-class TransformStore : public BaseStore  {
-
+class TransformStore : public BaseStore {
  private:
   /**
    * @brief trans_factory
@@ -44,9 +43,7 @@ class TransformStore : public BaseStore  {
   std::map<std::string, trans_ptr, std::less<std::string>> trans_factory;
   std::map<std::string, std::map<std::string, std::string>> trans_map;
 
-
  public:
-
   /**
    * @brief TestStore
    */
@@ -75,7 +72,6 @@ class TransformStore : public BaseStore  {
   static TransformStore& instance();
 
   nlohmann::json schema();
-
 };
 
 }  // namespace VnV

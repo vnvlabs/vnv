@@ -8,22 +8,19 @@
 #include <map>
 #include <string>
 
+#include "base/parser/JsonParser.h"
+#include "base/stores/BaseStore.h"
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/PackageName.h"
 #include "interfaces/IReduction.h"
-#include "base/parser/JsonParser.h"
-#include "base/stores/BaseStore.h"
 
 namespace VnV {
 
-
-class ReductionStore : public BaseStore{
-
+class ReductionStore : public BaseStore {
   std::map<long long, reduction_ptr> reduction_factory;
 
  public:
-  ReductionStore(){}
-
+  ReductionStore() {}
 
   IReduction_ptr getReducer(long long key);
 
@@ -36,7 +33,6 @@ class ReductionStore : public BaseStore{
   void print();
 
   static ReductionStore& instance();
-
 };
 
 }  // namespace VnV

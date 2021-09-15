@@ -11,8 +11,10 @@ void _VnV_registerLogLevel(const char* packageName, const char* name,
   VnV::RunTime::instance().registerLogLevel(packageName, name, color);
 }
 
-void _VnV_registerFile(VnV_Comm comm, const char*packageName, const char* name, int input, const char*filename, const char* reader) {
-  VnV::RunTime::instance().registerFile(comm, packageName, name, input, filename, reader);
+void _VnV_registerFile(VnV_Comm comm, const char* packageName, const char* name,
+                       int input, const char* filename, const char* reader) {
+  VnV::RunTime::instance().registerFile(comm, packageName, name, input,
+                                        filename, reader);
 }
 
 void _VnV_Log(VnV_Comm comm, const char* p, const char* l, const char* format,
@@ -22,4 +24,3 @@ void _VnV_Log(VnV_Comm comm, const char* p, const char* l, const char* format,
   VnV::RunTime::instance().log(comm, p, l, format, args);
   va_end(args);
 }
-

@@ -10,9 +10,7 @@
 
 #include "VnV.h"
 
-
 #define SPNAME SerialExample
-
 
 static const char* schemaCallback = "{\"type\": \"object\", \"required\":[]}";
 /**
@@ -26,7 +24,6 @@ INJECTION_OPTIONS(SPNAME, schemaCallback) {}
 INJECTION_EXECUTABLE(SPNAME)
 
 int main(int argc, char** argv) {
-
   /**
    * Sample Executable
    * =================
@@ -36,7 +33,8 @@ int main(int argc, char** argv) {
    * comment above the initialize call represents the introduction in the final
    * report.
    */
-  INJECTION_INITIALIZE(SPNAME, &argc, &argv,(argc == 2) ? argv[1] : "./vv-input.json");
+  INJECTION_INITIALIZE(SPNAME, &argc, &argv,
+                       (argc == 2) ? argv[1] : "./vv-input.json");
 
   /**
      Conclusion.

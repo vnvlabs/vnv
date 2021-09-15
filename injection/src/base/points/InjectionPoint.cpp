@@ -116,37 +116,37 @@ void InjectionPointBase::runTestsInternal(OutputEngineManager* wrapper) {
 }
 
 void InjectionPoint::run(std::string function, int line) {
-  
   if (skipped) {
-    return; // We are marked as skipped, so don't do anything. 
-  } 
-  
-  //We always run Injection point end -- you cant skip that if begin was called, 
-  bool runIt = ( type == InjectionPointType::End );
+    return;  // We are marked as skipped, so don't do anything.
+  }
 
-  
-  if ( !runIt ) {
-      // The injection point only runs IF the sampler lets it. This lets us completly skip
-      // injection points or iterations. The sampler can say to skip iters, Begin, and single. 
-      auto sampler = SamplerStore::instance().getSamplerForInjectionPoint(package,name);
-      runIt = sampler==nullptr ? true : sampler->sample(type,stageId);
-  } 
+  // We always run Injection point end -- you cant skip that if begin was
+  // called,
+  bool runIt = (type == InjectionPointType::End);
+
+  if (!runIt) {
+    // The injection point only runs IF the sampler lets it. This lets us
+    // completly skip injection points or iterations. The sampler can say to
+    // skip iters, Begin, and single.
+    auto sampler =
+        SamplerStore::instance().getSamplerForInjectionPoint(package, name);
+    runIt = sampler == nullptr ? true : sampler->sample(type, stageId);
+  }
 
   if (runIt) {
+    OutputEngineManager* wrapper =
+        OutputEngineStore::instance().getEngineManager();
 
-    OutputEngineManager* wrapper = OutputEngineStore::instance().getEngineManager();
-
-    wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId, function, line);
+    wrapper->injectionPointStartedCallBack(comm, package, getScope(), type,
+                                           stageId, function, line);
 
     runTestsInternal(wrapper);
 
     wrapper->injectionPointEndedCallBack(getScope(), type, stageId);
-  
-  } else if (type == InjectionPointType::Begin ) {
-      
-      // If we didn;t run and this is a BEGIN, then we set our skipped property 
-      // because we don't want to run any injection point iters and the end call. 
-      skipped = true;
 
+  } else if (type == InjectionPointType::Begin) {
+    // If we didn;t run and this is a BEGIN, then we set our skipped property
+    // because we don't want to run any injection point iters and the end call.
+    skipped = true;
   }
 }

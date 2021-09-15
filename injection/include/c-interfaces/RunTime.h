@@ -9,7 +9,6 @@
 // All packages can register a function that returns a char* with the package
 // json.
 
-
 #  define REGISTER_FULL_JSON(PNAME, callback) \
     VnV_declarePackageJson(VNV_STR(PNAME), callback);
 
@@ -50,7 +49,7 @@ VNVEXTERNC void VnV_declarePackageJson(const char* packageName,
  * point testing will take place.
  */
 VNVEXTERNC int VnV_init(const char* packageName, int* argc, char*** argv,
-                         const char* filename, registrationCallBack callback);
+                        const char* filename, registrationCallBack callback);
 /**
  * @brief VnV_finalize
  * @return todo
@@ -71,7 +70,9 @@ VNVEXTERNC void VnV_runUnitTests(VnV_Comm comm);
 VNVEXTERNC void VnV_Registration_Info(const char* filename, int quit);
 
 VNVEXTERNC void VnV_readFile(const char* reader, const char* filename);
-VNVEXTERNC void VnV_readFileAndWalk(const char* reader, const char* filename, const char* package, const char* walker, const char* config);
+VNVEXTERNC void VnV_readFileAndWalk(const char* reader, const char* filename,
+                                    const char* package, const char* walker,
+                                    const char* config);
 
 #else  // WITHOUT_VNV
 #  define VnV_init(...)

@@ -13,11 +13,19 @@ blueprint = Blueprint(
     template_folder='templates'
 )
 
-blueprint.register_blueprint(blueprints.plugins.blueprint, url_prefix="/plugins")
+blueprint.register_blueprint(
+    blueprints.plugins.blueprint,
+    url_prefix="/plugins")
 blueprint.register_blueprint(blueprints.files.blueprint, url_prefix="/files")
-blueprint.register_blueprint(blueprints.inputfiles.blueprint, url_prefix="/inputfiles")
-blueprint.register_blueprint(blueprints.steering.blueprint, url_prefix="/steering")
-blueprint.register_blueprint(blueprints.notifications.blueprint, url_prefix="/notifications")
+blueprint.register_blueprint(
+    blueprints.inputfiles.blueprint,
+    url_prefix="/inputfiles")
+blueprint.register_blueprint(
+    blueprints.steering.blueprint,
+    url_prefix="/steering")
+blueprint.register_blueprint(
+    blueprints.notifications.blueprint,
+    url_prefix="/notifications")
 
 
 @blueprint.route('/')
@@ -31,12 +39,13 @@ def home():
 
 
 @blueprint.route('/autocomplete')
-def autocomplete() :
-    pref = request.args.get('prefix','')
+def autocomplete():
+    pref = request.args.get('prefix', '')
     #p = os.path.join(Path.home(), pref)
-    #print(p)
+    # print(p)
 
-    return make_response(jsonify(glob.glob(pref + "*")),200)
+    return make_response(jsonify(glob.glob(pref + "*")), 200)
+
 
 def template_globals(d):
     blueprints.files.template_globals(d)
@@ -47,5 +56,4 @@ def template_globals(d):
 
 
 def faker():
-   pass
-
+    pass

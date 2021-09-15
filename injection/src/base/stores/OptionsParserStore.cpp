@@ -6,11 +6,12 @@
 #include "base/stores/OptionsParserStore.h"
 
 #include <iostream>
+
+#include "base/Runtime.h"
 #include "base/Utilities.h"
 #include "base/exceptions.h"
-#include "c-interfaces/Logging.h"
-#include "base/Runtime.h"
 #include "base/stores/OutputEngineStore.h"
+#include "c-interfaces/Logging.h"
 
 using namespace VnV;
 
@@ -30,7 +31,7 @@ void OptionsParserStore::add(std::string name, json& schema,
 
 nlohmann::json OptionsParserStore::schema() {
   json p = json::object();
-  for (auto &it : factory) {
+  for (auto& it : factory) {
     p[it.first] = it.second.first;
   }
   json j = json::object();
@@ -40,7 +41,8 @@ nlohmann::json OptionsParserStore::schema() {
   return j;
 }
 
-void OptionsParserStore::callBack(std::string name, json info, ICommunicator_ptr world) {
+void OptionsParserStore::callBack(std::string name, json info,
+                                  ICommunicator_ptr world) {
   auto it = factory.find(name);
   if (it != factory.end()) {
     nlohmann::json_schema::json_validator validator;
@@ -48,29 +50,28 @@ void OptionsParserStore::callBack(std::string name, json info, ICommunicator_ptr
     validator.validate(info);
 
     // Pass it back to the callback -- Pick the C or C++ interface depending.
-    OutputEngineManager* engine = OutputEngineStore::instance().getEngineManager();
-    
-    engine->packageOptionsStartedCallBack(world,name);
+    OutputEngineManager* engine =
+        OutputEngineStore::instance().getEngineManager();
+
+    engine->packageOptionsStartedCallBack(world, name);
 
     if (it->second.second.first != nullptr) {
       c_json j = {&info};
       (*it->second.second.first)(j);
     } else if (it->second.second.second != nullptr) {
-      (*it->second.second.second)(info,engine->getOutputEngine(), world);
+      (*it->second.second.second)(info, engine->getOutputEngine(), world);
     }
-   
+
     engine->packageOptionsEndedCallBack(name);
-   
+
   } else {
     VnV_Warn(VNVPACKAGENAME, "Unknown Options Configuration Name %s",
              name.c_str());
   }
 }
 
-void OptionsParserStore::parse(json info, json& cmdline, ICommunicator_ptr world) {
-  
-  
-  
+void OptionsParserStore::parse(json info, json& cmdline,
+                               ICommunicator_ptr world) {
   for (auto& it : factory) {
     json& found = JsonUtilities::getOrCreate(info, it.first,
                                              JsonUtilities::CreateType::Object);
@@ -84,7 +85,7 @@ void OptionsParserStore::parse(json info, json& cmdline, ICommunicator_ptr world
 nlohmann::json& OptionsParserStore::getSchema(std::string package) {
   auto it = factory.find(package);
   if (it != factory.end()) {
-      return it->second.first;
+    return it->second.first;
   }
   throw VnV::VnVExceptionBase("no such package");
 }

@@ -1,34 +1,26 @@
-﻿#include <iostream>
+﻿#include "base/stores/DataTypeStore.h"
 
+#include <iostream>
+
+#include "base/Runtime.h"
 #include "base/Utilities.h"
 #include "base/exceptions.h"
-#include "base/stores/DataTypeStore.h"
-#include "base/Runtime.h"
-
 
 namespace VnV {
 
 BaseStoreInstance(DataTypeStore)
 
-namespace {
+    namespace {
+  long long getKey(std::string packageName, std::string name) {
+    return VnV::StringUtils::simpleHash(packageName + ":" + name);
+  }
 
-
-long long getKey(std::string packageName, std::string name) {
-  return VnV::StringUtils::simpleHash(packageName + ":" + name);
-}
-
-
-long long getKey(IDataType_ptr ptr) {
-  return ptr->getKey();
-}
-
+  long long getKey(IDataType_ptr ptr) { return ptr->getKey(); }
 }
 
 void DataTypeStore::addDataType(std::string packageName, std::string name,
-                                     dataType_ptr m) {
-
-  dataType_factory.insert(std::make_pair( getKey("",name), m));
-
+                                dataType_ptr m) {
+  dataType_factory.insert(std::make_pair(getKey("", name), m));
 }
 
 IDataType_ptr DataTypeStore::getDataType(long long key) {
@@ -42,10 +34,7 @@ IDataType_ptr DataTypeStore::getDataType(long long key) {
 }
 
 IDataType_ptr DataTypeStore::getDataType(std::string name) {
-   return getDataType(getKey("",name));
+  return getDataType(getKey("", name));
 }
-
-
-
 
 }  // namespace VnV

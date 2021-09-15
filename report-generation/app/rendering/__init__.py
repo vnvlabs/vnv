@@ -20,7 +20,7 @@ html_theme = "faketheme"
 html_theme_path = ["{path}"]
 exclude_patterns = ['_build']
 html_static_path = ['_static']
-'''.format(path=os.path.abspath(os.path.join('app','rendering')))
+'''.format(path=os.path.abspath(os.path.join('app', 'rendering')))
 
 
 def setup_build_directory(src_dir):
@@ -35,27 +35,54 @@ def setup_build_directory(src_dir):
     # Override the template with a simple template that just shows the body.
 
 # files dict ( type -> package -> name -> template
+
+
 class TemplateBuild:
     def __init__(self, src_dir):
         self.src_dir = src_dir
 
     def get_html_file_name(self, type, package, name):
-        return os.path.join("renders",self.src_dir,"_build", "html", f"{type}_{package}_{name}.html")
+        return os.path.join(
+            "renders",
+            self.src_dir,
+            "_build",
+            "html",
+            f"{type}_{package}_{name}.html")
 
     def get_package(self, package):
-        return os.path.join("renders", self.src_dir, "_build", "html", f"Options_{package}.html")
+        return os.path.join(
+            "renders",
+            self.src_dir,
+            "_build",
+            "html",
+            f"Options_{package}.html")
 
     def get_assets_directory(self):
-        return os.path.join("renders",self.src_dir,"_build", "html", "static")
+        return os.path.join(
+            "renders",
+            self.src_dir,
+            "_build",
+            "html",
+            "static")
 
     def get_introduction(self):
-        return os.path.join("renders",self.src_dir,"_build", "html", "Introduction.html")
+        return os.path.join(
+            "renders",
+            self.src_dir,
+            "_build",
+            "html",
+            "Introduction.html")
 
     def get_conclusion(self):
-        return os.path.join("renders",self.src_dir,"_build", "html", "Conclusion.html")
+        return os.path.join(
+            "renders",
+            self.src_dir,
+            "_build",
+            "html",
+            "Conclusion.html")
 
-    def get_file_description(self,package,name):
-        return self.get_html_file_name("Files",package,name)
+    def get_file_description(self, package, name):
+        return self.get_html_file_name("Files", package, name)
 
 
 def build(src_dir, templates):
@@ -76,7 +103,8 @@ def build(src_dir, templates):
         elif type_ not in ["Conclusion"]:
             for package, point in packages.items():
                 name_package = package.split(":")
-                fnames.append(f"{type_}_{name_package[0]}_{name_package[1]}.rst")
+                fnames.append(
+                    f"{type_}_{name_package[0]}_{name_package[1]}.rst")
 
                 with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
                     if len(point["docs"]) == 0:
@@ -88,7 +116,8 @@ def build(src_dir, templates):
             with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
                 w.write(f'\n\n{textwrap.dedent(packages["docs"])}\n\n')
 
-    index = '''.. toctree::\n\t:maxdepth: 22\n\t:caption: Contents:\n\n\t{files}\n\n'''.format(files="\n\t".join(fnames))
+    index = '''.. toctree::\n\t:maxdepth: 22\n\t:caption: Contents:\n\n\t{files}\n\n'''.format(
+        files="\n\t".join(fnames))
     with open(os.path.join(src_dir, "index.rst"), 'w') as w:
         w.write(index)
 

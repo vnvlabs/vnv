@@ -33,7 +33,8 @@ namespace StringUtils {
 
 std::string escapeQuotes(std::string str, bool escapeFullString);
 
-std::string metaDataToJsonString(const std::map<std::string,std::string> &metadata);
+std::string metaDataToJsonString(
+    const std::map<std::string, std::string>& metadata);
 
 void ltrim(std::string& s);
 
@@ -66,7 +67,6 @@ std::map<std::string, std::string> variadicProcess(const char* mess);
 std::string getIndent(int level, std::string space = "\t");
 
 long long simpleHash(const std::string& str);
-
 
 bool balancedParenthesis(std::string expr);
 
@@ -136,7 +136,7 @@ const Value& maxValue(std::map<Key, Value> const& input) {
 namespace VariadicUtils {
 NTV UnwrapVariadicArgs(va_list argp);
 NTV UnwrapVariadicArgs(va_list argp, int count);
-}
+}  // namespace VariadicUtils
 /**
  * @brief getFileExtension
  * @param fileName

@@ -6,9 +6,9 @@
 
 #include <sstream>  //stringstream
 
+#include "base/Runtime.h"                   // RunTime.
 #include "base/stores/OutputEngineStore.h"  // OutputEngineStore
-#include "base/Runtime.h"            // RunTime.
-#include "c-interfaces/Logging.h"    // Logging macros
+#include "c-interfaces/Logging.h"           // Logging macros
 using namespace VnV;
 
 namespace {
@@ -79,8 +79,8 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level,
         auto& t = savedLogs.front();
         VnV_Comm cc = std::get<4>(t);
         auto c = CommunicationStore::instance().getCommunicator(cc);
-        eng->Log(c, std::get<0>(t).c_str(), std::get<1>(t),
-                 std::get<2>(t), std::get<3>(t));
+        eng->Log(c, std::get<0>(t).c_str(), std::get<1>(t), std::get<2>(t),
+                 std::get<3>(t));
         savedLogs.pop();
       }
 

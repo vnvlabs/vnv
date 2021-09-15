@@ -16,6 +16,7 @@ blueprint = Blueprint(
     template_folder='templates'
 )
 
+
 @blueprint.route('/new', methods=["POST"])
 def new():
     try:
@@ -25,7 +26,10 @@ def new():
         else:
             defVal = {}
 
-        file = VnVInputFile.add(request.form["name"], request.form["filename"], defVal)
+        file = VnVInputFile.add(
+            request.form["name"],
+            request.form["filename"],
+            defVal)
         return redirect(url_for("base.inputfiles.view", id_=file.id_))
     except Exception as e:
         return render_error(501, "Error Loading File")
@@ -46,8 +50,6 @@ def view(id_):
         print(e)
         return render_error(501, "Error Loading File")
 
+
 def template_globals(globs):
     globs["inputfiles"] = VnVInputFile.FILES
-
-
-

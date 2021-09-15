@@ -151,7 +151,6 @@ class AdiosFileIterator : public Iterator<json> {
   ~AdiosFileIterator() { ifs.close(); }
 };
 
-
 class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
  public:
   std::unique_ptr<adios2::ADIOS> adios;

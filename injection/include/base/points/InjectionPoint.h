@@ -14,10 +14,10 @@
 #include <vector>
 
 #include "c-interfaces/Wrappers.h"
-#include "json-schema.hpp"
-#include "interfaces/ITest.h"
-#include "interfaces/ISampler.h"
 #include "interfaces/ICommunicator.h"
+#include "interfaces/ISampler.h"
+#include "interfaces/ITest.h"
+#include "json-schema.hpp"
 
 using nlohmann::json;
 /**
@@ -42,9 +42,7 @@ class OutputEngineManager;
 
 enum class InjectionPointType;
 
-
 typedef std::map<std::string, std::pair<std::string, void*>> NTV;
-
 
 enum class InjectionPointType;
 
@@ -82,8 +80,9 @@ class InjectionPointBase {
 
   std::shared_ptr<ISampler> sampler = nullptr;
 
-  std::vector<std::shared_ptr<ITest>> m_tests; /**< Vector of tests given to this injection point */
-  std::shared_ptr<IPlug> m_plug = nullptr; 
+  std::vector<std::shared_ptr<ITest>>
+      m_tests; /**< Vector of tests given to this injection point */
+  std::shared_ptr<IPlug> m_plug = nullptr;
 
   InjectionPointType type;
   std::string stageId;
@@ -94,11 +93,11 @@ class InjectionPointBase {
   DataCallback cppCallback = nullptr;
   injectionDataCallback* cCallback = nullptr;
 
-  //We set this true when the sampler says we should skip. We cant just
-  //throw away the data structure for heirarchy reasons, 
+  // We set this true when the sampler says we should skip. We cant just
+  // throw away the data structure for heirarchy reasons,
   bool skipped = false;
 
-  virtual void runTestsInternal(OutputEngineManager* wrapper);  
+  virtual void runTestsInternal(OutputEngineManager* wrapper);
 
   /**
    * @brief InjectionPoint
@@ -114,7 +113,9 @@ class InjectionPointBase {
    *support names of the form "a::b::c"
    *
    **/
-  InjectionPointBase(std::string packageName, std::string name, json registrationJson, const NTV& in_args, const NTV& out_args);
+  InjectionPointBase(std::string packageName, std::string name,
+                     json registrationJson, const NTV& in_args,
+                     const NTV& out_args);
 
   void setInjectionPointType(InjectionPointType type, std::string stageId);
   void setCallBack(injectionDataCallback* callback);
@@ -122,7 +123,7 @@ class InjectionPointBase {
   void setComm(ICommunicator_ptr comm);
 
  public:
-   bool runInternal = false;
+  bool runInternal = false;
 
   /**
    * @brief getScope
@@ -138,8 +139,7 @@ class InjectionPointBase {
    * function only called by the InjectionPointStore (friend class).
    * @param c
    */
-  void addTest(TestConfig &c);
-
+  void addTest(TestConfig& c);
 
   /**
    * @brief getParameterRTTI Get the RTTI for a parameter if we have it (C++
@@ -155,24 +155,25 @@ class InjectionPointBase {
    */
   virtual void run(std::string function, int line) = 0;
 
-  virtual ~InjectionPointBase() {};
+  virtual ~InjectionPointBase(){};
 
 };  // end InjectionPoint.
 
-
 class InjectionPoint : public InjectionPointBase {
-protected:
-  // This one is just for the subclasses. 
-  InjectionPoint(std::string packageName, std::string name, json registrationJson, const NTV& in_args, const NTV& out_args) 
-    : InjectionPointBase(packageName, name, registrationJson, in_args, out_args) {};
+ protected:
+  // This one is just for the subclasses.
+  InjectionPoint(std::string packageName, std::string name,
+                 json registrationJson, const NTV& in_args, const NTV& out_args)
+      : InjectionPointBase(packageName, name, registrationJson, in_args,
+                           out_args){};
 
-public: 
-  InjectionPoint(std::string packageName, std::string name, json registrationJson, NTV& in_args)
-  : InjectionPointBase(packageName, name, registrationJson, in_args, {}) {};
+ public:
+  InjectionPoint(std::string packageName, std::string name,
+                 json registrationJson, NTV& in_args)
+      : InjectionPointBase(packageName, name, registrationJson, in_args, {}){};
 
   virtual void run(std::string function, int line) override;
 };
-
 
 }  // namespace VnV
 

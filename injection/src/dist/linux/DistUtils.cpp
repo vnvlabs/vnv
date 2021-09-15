@@ -5,12 +5,13 @@
 
 #include "base/DistUtils.h"
 
+#include <dirent.h>
 #include <link.h>
+#include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <dirent.h>
+
 #include <iostream>
-#include <stdio.h>
 
 #include "base/Utilities.h"
 #include "base/exceptions.h"
@@ -21,9 +22,8 @@ namespace VnV {
 namespace DistUtils {
 
 libInfo getLibInfo(std::string filepath, unsigned long add) {
-  
   libInfo info;
-  
+
   struct stat result;
   stat(filepath.c_str(), &result);
   json libJson;
@@ -32,8 +32,6 @@ libInfo getLibInfo(std::string filepath, unsigned long add) {
   info.timestamp = result.st_mtim.tv_sec;
   return info;
 }
-
-
 
 char* getCurrentDirectory() { return get_current_dir_name(); }
 
@@ -47,40 +45,39 @@ std::string getAbsolutePath(std::string filename) {
   return filename;
 }
 
-bool makedir(std::string filename, mode_t mode ) {
+bool makedir(std::string filename, mode_t mode) {
   return mkdir(filename.c_str(), mode) == 0;
 }
 
 bool mv(std::string oldFileName, std::string newFileName) {
-   return 0 == std::rename(oldFileName.c_str(),newFileName.c_str());
+  return 0 == std::rename(oldFileName.c_str(), newFileName.c_str());
 }
 
 std::string join(std::vector<std::string> vec, mode_t i, bool makeDir) {
-  if (vec.size() > 0 ) {
-     std::string s = "";
-     for (auto it = vec.begin(); it!=vec.end(); ++it) {
-        
-        s = s + *it + ( ( (it + 1) == vec.end() ) ? "" : "/" ) ;
-        
-        if (makeDir) {
-          struct stat sb;
-          if (stat(s.c_str(), &sb) == 0) {
-            if (S_ISDIR(sb.st_mode)) {
-              continue;
-            } else {
-              throw VnVExceptionBase(
-                  "Cannot create directory as file with that name exists (%s)", s.c_str());
-            }
-          } else if (!makedir(s, i)) {
-            throw VnV::VnVExceptionBase("Cannot make directory %s", s.c_str());
+  if (vec.size() > 0) {
+    std::string s = "";
+    for (auto it = vec.begin(); it != vec.end(); ++it) {
+      s = s + *it + (((it + 1) == vec.end()) ? "" : "/");
+
+      if (makeDir) {
+        struct stat sb;
+        if (stat(s.c_str(), &sb) == 0) {
+          if (S_ISDIR(sb.st_mode)) {
+            continue;
+          } else {
+            throw VnVExceptionBase(
+                "Cannot create directory as file with that name exists (%s)",
+                s.c_str());
           }
+        } else if (!makedir(s, i)) {
+          throw VnV::VnVExceptionBase("Cannot make directory %s", s.c_str());
         }
-     }
-     return s;
+      }
+    }
+    return s;
   }
   throw VnV::VnVExceptionBase("Empty directory list");
 }
-
 
 static int info_callback(struct dl_phdr_info* info, size_t /*size*/,
                          void* data) {
@@ -152,31 +149,28 @@ void callAllLibraryRegistrationFunctions(
 }
 
 std::string getEnvironmentVariable(std::string name) {
-    std::string s = std::getenv(name.c_str());
-    return s;
+  std::string s = std::getenv(name.c_str());
+  return s;
 }
 
 // Really trying to not need boost -- can get rid of this in C++17 (14
 // is we use std::experimental and replace with std::filesystem. )
 std::vector<std::string> listFilesInDirectory(std::string directory) {
-  
   std::vector<std::string> res;
-  
-  DIR *dir;
-  struct dirent *ent;
-  VnV_Debug(VNVPACKAGENAME,"Openning directory %ld", directory.size());
-  if ((dir = opendir (directory.c_str())) != NULL) {
-  while ((ent = readdir (dir)) != NULL) {
-    res.push_back(ent->d_name);
+
+  DIR* dir;
+  struct dirent* ent;
+  VnV_Debug(VNVPACKAGENAME, "Openning directory %ld", directory.size());
+  if ((dir = opendir(directory.c_str())) != NULL) {
+    while ((ent = readdir(dir)) != NULL) {
+      res.push_back(ent->d_name);
+    }
+    closedir(dir);
+    return res;
+  } else {
+    throw VnVExceptionBase("Could not open directory");
   }
-  closedir (dir);
-  return res;
-} else {
-  throw VnVExceptionBase("Could not open directory");
 }
-
-}
-
 
 }  // namespace DistUtils
 }  // namespace VnV

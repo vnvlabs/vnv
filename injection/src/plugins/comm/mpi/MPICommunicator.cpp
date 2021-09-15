@@ -8,9 +8,9 @@
 #include <iostream>
 #include <map>
 
+#include "base/Runtime.h"
 #include "base/Utilities.h"
 #include "base/exceptions.h"
-#include "base/Runtime.h"
 #include "interfaces/ICommunicator.h"
 
 // CommType conflicts with CommType in openmpi.
@@ -56,19 +56,20 @@ class MPICommunicator : public ICommunicator {
     int flag;
     MPI_Initialized(&flag);
     if (!flag) {
-
-        VnV_Warn(VNVPACKAGENAME,"We are Initializing MPI for you. If this is not the intended behaviour, please "
-          "call MPI_Init before called INJECTION_INITIALIZE. ");
-        MPI_Init(NULL,NULL);
-        finalizeMPI = true;
+      VnV_Warn(VNVPACKAGENAME,
+               "We are Initializing MPI for you. If this is not the intended "
+               "behaviour, please "
+               "call MPI_Init before called INJECTION_INITIALIZE. ");
+      MPI_Init(NULL, NULL);
+      finalizeMPI = true;
     }
   }
 
   void Finalize() override {
     int flag;
     MPI_Finalized(&flag);
-    if (  finalizeMPI && !flag  ) {
-       MPI_Finalize();
+    if (finalizeMPI && !flag) {
+      MPI_Finalize();
     }
   }
 
@@ -204,10 +205,7 @@ class MPICommunicator : public ICommunicator {
     return s;
   }
 
-  double time() override {
-     return MPI_Wtime(); 
-     
-  }
+  double time() override { return MPI_Wtime(); }
 
   double tick() override { return MPI_Wtick(); }
 
@@ -242,56 +240,52 @@ class MPICommunicator : public ICommunicator {
     return ICommunicator_ptr(p);
   }
 
-
   virtual int VersionMajor() {
-     int major,minor;
-     MPI_Get_version(&major, &minor);
-     return major;
+    int major, minor;
+    MPI_Get_version(&major, &minor);
+    return major;
   }
 
   virtual int VersionMinor() {
-      int major,minor;
-     MPI_Get_version(&major, &minor);
-     return minor;
+    int major, minor;
+    MPI_Get_version(&major, &minor);
+    return minor;
   }
   virtual std::string VersionLibrary() {
-      int resultlen;
-      char version[MPI_MAX_LIBRARY_VERSION_STRING];
-      MPI_Get_library_version(version, &resultlen);
-      return std::string(version, resultlen);
+    int resultlen;
+    char version[MPI_MAX_LIBRARY_VERSION_STRING];
+    MPI_Get_library_version(version, &resultlen);
+    return std::string(version, resultlen);
   }
-
 
   ICommunicator_ptr world() {
     return ICommunicator_ptr(new MPICommunicator(VnVCommType::World));
   }
 
   ICommunicator_ptr get() {
-    
     return ICommunicator_ptr(new MPICommunicator(VnVCommType::World));
   }
 
-  virtual ICommunicator_ptr handleOtherCommunicators(std::string name, void* data) {
-     if (name.compare("serial") == 0) {
-       return self();
-     } else {
-       throw VnVExceptionBase("MPI Executable cannot handle communicator with name %s",name);
-     }
+  virtual ICommunicator_ptr handleOtherCommunicators(std::string name,
+                                                     void* data) {
+    if (name.compare("serial") == 0) {
+      return self();
+    } else {
+      throw VnVExceptionBase(
+          "MPI Executable cannot handle communicator with name %s", name);
+    }
   }
 
-  
   ICommunicator_ptr custom(void* data, bool raw) {
-     
-     MPICommunicator* p = new MPICommunicator(VnVCommType::Default);
-     if (raw) {
-       MPI_Comm* c = (MPI_Comm*) data;
-       p->setComm(*c);
-     } else {  
-       p->setData(data);
-     }
-     return ICommunicator_ptr(p);
+    MPICommunicator* p = new MPICommunicator(VnVCommType::Default);
+    if (raw) {
+      MPI_Comm* c = (MPI_Comm*)data;
+      p->setComm(*c);
+    } else {
+      p->setData(data);
+    }
+    return ICommunicator_ptr(p);
   }
-
 
   ICommunicator_ptr self() {
     return ICommunicator_ptr(new MPICommunicator(VnVCommType::Self));
@@ -299,7 +293,6 @@ class MPICommunicator : public ICommunicator {
 
   // Want procs in range [start,end). Make sure to put end-1.
   ICommunicator_ptr create(int start, int end, int stride, int tag) override {
-
     MPICommunicator* p = new MPICommunicator(VnVCommType::Default);
 
     MPI_Group group, newGroup;
@@ -312,14 +305,11 @@ class MPICommunicator : public ICommunicator {
     range[0][2] = stride;
     MPI_Group_range_incl(group, 1, range, &newGroup);
 
-
     MPI_Comm newComm;
     MPI_Comm_create_group(comm, newGroup, tagMap(tag), &newComm);
     p->setComm(newComm);
 
-
     return ICommunicator_ptr(p);
-
   }
 
   CommCompareType compare(ICommunicator_ptr ptr) override {
@@ -557,18 +547,14 @@ MPI_Comm castToMPIComm(ICommunicator_ptr ptr) {
   MPI_Comm mpicomm;
 
   if (ptr->getName() == "VNV:serial") {
-
-     mpicomm = MPI_COMM_SELF;
+    mpicomm = MPI_COMM_SELF;
 
   } else if (ptr->getName() == "VNV:mpi") {
-
     CommKeeper* k = (CommKeeper*)ptr->getData();
     mpicomm = k->comm;
 
   } else {
-
     throw VnV::VnVExceptionBase("Cannot convert communicator to MPI");
-
   }
   return mpicomm;
 }
@@ -577,7 +563,6 @@ MPI_Comm castToMPIComm(ICommunicator_ptr ptr) {
 }  // namespace Communication
 }  // namespace VnV
 
-
-INJECTION_COMM(VNVPACKAGENAME,mpi) {
+INJECTION_COMM(VNVPACKAGENAME, mpi) {
   return new VnV::Communication::MPI::MPICommunicator(type);
 }

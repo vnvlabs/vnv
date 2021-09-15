@@ -15,10 +15,8 @@ import pygments
 from pygments.lexers.data import JsonLexer
 from pygments.formatters.html import HtmlFormatter
 
-### Fake jmes
+# Fake jmes
 import app.rendering.fakejmes as jmespath
-
-
 
 
 def get_target_node(directive):
@@ -31,22 +29,23 @@ def get_target_node(directive):
 def render_vnv_template(template, data):
     return render_template(template, data=DataClass(data))
 
+
 class DataClass:
     statsMethods = ["min", "max", "avg"]
 
     def __init__(self, data):
-        self.data = data;
+        self.data = data
 
     def _compile(self, expr):
         try:
             return jmespath.compile(expr)
-        except  Exception as e:
+        except Exception as e:
             raise ExtensionError("Invalid Jmes Path")
 
     def query(self, text) -> str:
         """Return the jmes query result"""
         if (text == "Data.TotalTime"):
-            a =  self._compile('TotalTime').search(self.data)
+            a = self._compile('TotalTime').search(self.data)
             print(a)
             return str(a[0])
 
@@ -60,11 +59,11 @@ class DataClass:
         """Return the jmes query as a string"""
         return json.dumps(self.query(text))
 
-
     def codeblock(self, text):
         """Return highlighted json html for the resulting jmes query"""
         j = self.query_str(text)
-        return pygments.highlight(j, JsonLexer(), HtmlFormatter(), outfile=None)
+        return pygments.highlight(
+            j, JsonLexer(), HtmlFormatter(), outfile=None)
 
     def tree(self, text, options):
         """Return a table containing the json data provided"""
@@ -89,6 +88,7 @@ def jmes_jinja_query_str(text):
         return "{{ data.query_str('" + text + "')}}"
     else:
         raise ExtensionError("Invalid jmes path query")
+
 
 def jmes_jinja_query_json(text):
     if jmespath.compile(text):
@@ -117,6 +117,3 @@ def jmes_jinga_stat(text, meth):
         return f"{{{{ data.stat('{text}','{meth}') }}}}"
     else:
         raise ExtensionError("Invalid jmes path query")
-
-
-

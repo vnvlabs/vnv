@@ -1,13 +1,12 @@
 #ifndef ENGINE_CONSTANTS_HEADER
 #define ENGINE_CONSTANTS_HEADER
 
+#include <atomic>
 #include <chrono>
+#include <functional>
 #include <list>
 #include <stack>
 #include <string>
-#include <atomic>
-#include <functional>
-
 
 #include "base/DistUtils.h"
 #include "base/Runtime.h"
@@ -26,37 +25,36 @@ namespace JSD {
 
 constexpr auto outputFile = "outputFile";
 
-#define NTYPES                                                           \
-  X(id)                                                                  \
-  X(name)                                                                \
-  X(package)                                                             \
-  X(value)                                                               \
-  X(shape)                                                               \
-  X(node)                                                                \
-  X(meta)                                                                \
-  X(comm)                                                                \
-  X(children)                                                            \
-  X(prov)                                                                \
-  X(duration)                                                            \
-  X(key)                                                                 \
-  X(stage)                                                               \
-  X(message)                                                             \
-  X(internal)                                                            \
-  X(description)                                                         \
-  X(result)                                                              \
-  X(stageId)                                                             \
-  X(mpiversion)                                                          \
-  X(input)                                                               \
-  X(reader)                                                              \
-  X(level)                                                               \
-  X(dtype)                                                               \
-  X(endid)                                                               \
-  X(line)                                                                \
-  X(filename)                                                            \
-  X(results)                                                             \
-  X(time)                                                                \
-  X(spec) X(commList) X(testuid) X(sdt) X(title) X(nodeMap) X(worldSize) \
-      X(date)
+#define NTYPES   \
+  X(id)          \
+  X(name)        \
+  X(package)     \
+  X(value)       \
+  X(shape)       \
+  X(node)        \
+  X(meta)        \
+  X(comm)        \
+  X(children)    \
+  X(prov)        \
+  X(duration)    \
+  X(key)         \
+  X(stage)       \
+  X(message)     \
+  X(internal)    \
+  X(description) \
+  X(result)      \
+  X(stageId)     \
+  X(mpiversion)  \
+  X(input)       \
+  X(reader)      \
+  X(level)       \
+  X(dtype)       \
+  X(endid)       \
+  X(line)        \
+  X(filename)    \
+  X(results)     \
+  X(time)        \
+  X(spec) X(commList) X(testuid) X(sdt) X(title) X(nodeMap) X(worldSize) X(date)
 #define X(a) constexpr auto a = #a;
 NTYPES
 #undef X
@@ -65,19 +63,21 @@ NTYPES
 }  // namespace JSD
 
 namespace JSN {
-#define NTYPES                                                           \
-  X(log)                                                                 \
-  X(shape)                                                               \
-  X(dataTypeStarted)                                                     \
-  X(dataTypeEnded)                                                       \
-  X(injectionPointStarted)                                               \
-  X(injectionPointEnded)                                                 \
-  X(injectionPointIterStarted)                                           \
-  X(injectionPointIterEnded)                                             \
-  X(packageOptionsStarted)                                               \
-  X(packageOptionsFinished) X(testStarted) X(file) X(done) X(duration)   \
-      X(testFinished) X(unitTestStarted) X(unitTestFinished) X(commInfo) \
-          X(info)
+#define NTYPES                                                               \
+  X(log)                                                                     \
+  X(shape)                                                                   \
+  X(dataTypeStarted)                                                         \
+  X(dataTypeEnded)                                                           \
+  X(injectionPointStarted)                                                   \
+  X(injectionPointEnded)                                                     \
+  X(injectionPointIterStarted)                                               \
+  X(injectionPointIterEnded)                                                 \
+  X(packageOptionsStarted)                                                   \
+  X(packageOptionsFinished)                                                  \
+  X(testStarted)                                                             \
+  X(file)                                                                    \
+  X(done) X(duration) X(testFinished) X(unitTestStarted) X(unitTestFinished) \
+      X(commInfo) X(info)
 
 #define X(a) constexpr auto a = #a;
 NTYPES
@@ -113,7 +113,6 @@ class ArrayNode : public IArrayNode {
 
   std::string getValue() override { return templ; }
 };
-
 
 class MapNode : public IMapNode {
  public:
@@ -158,7 +157,6 @@ class MapNode : public IMapNode {
 
   virtual ~MapNode(){};
 };
-
 
 #define X(x, y)                                                           \
   class x##Node : public I##x##Node {                                     \
@@ -671,9 +669,9 @@ class UnitTestNode : public IUnitTestNode {
 };
 
 class VisitorLock {
-  public:
-  VisitorLock(){}
-  virtual ~VisitorLock(){}
+ public:
+  VisitorLock() {}
+  virtual ~VisitorLock() {}
   virtual void lock() = 0;
   virtual void release() = 0;
 };
@@ -930,12 +928,12 @@ template <typename T> class StreamWriter {
   virtual void finalize(ICommunicator_ptr worldComm, long duration) = 0;
   virtual void newComm(long id, const T& obj, ICommunicator_ptr comm) = 0;
   virtual void write(long id, const T& obj, long jid) = 0;
-  
-  virtual bool fetch(long id, const json& obj, long timeoutInSeconds, json& response) {
+
+  virtual bool fetch(long id, const json& obj, long timeoutInSeconds,
+                     json& response) {
     return false;
   }
 
-  
   virtual nlohmann::json getConfigurationSchema(bool readMode) = 0;
 
   StreamWriter(){};
@@ -1018,34 +1016,31 @@ template <typename T> class StreamManager : public OutputEngineManager {
 
   virtual ~StreamManager() {}
 
+  bool Fetch(const json& schema, long timeoutInSeconds,
+             json& response) override {
+    std::string line;
+    std::size_t size;
 
-  bool Fetch(const json& schema, long timeoutInSeconds, json& response) override {
-     
-     std::string line;
-     std::size_t size;
+    if (comm->Rank() == getRoot()) {
+      response = json::object();
+      bool worked =
+          stream->fetch(comm->uniqueId(), schema, timeoutInSeconds, response);
 
-     if (comm->Rank() == getRoot()) {                                        
-       
-       response = json::object();
-       bool worked = stream->fetch(comm->uniqueId(), schema, timeoutInSeconds, response);                      
-       
-       line = response.dump();
-       size = (worked) ? line.size() : -1 ;
-       
-     }
+      line = response.dump();
+      size = (worked) ? line.size() : -1;
+    }
 
-     comm->BroadCast(&size,1,sizeof(std::size_t),getRoot());
-     if (size < 0) {
-       return false;
-     }
-     
-     line.resize(size);
-     comm->BroadCast(const_cast<char*>(line.data()), size, sizeof(char),getRoot());
-     response = json::parse(line);
-     return true;
+    comm->BroadCast(&size, 1, sizeof(std::size_t), getRoot());
+    if (size < 0) {
+      return false;
+    }
 
- }
-
+    line.resize(size);
+    comm->BroadCast(const_cast<char*>(line.data()), size, sizeof(char),
+                    getRoot());
+    response = json::parse(line);
+    return true;
+  }
 
 #define LTypes      \
   X(double, Double) \
@@ -1586,7 +1581,7 @@ template <class T> class ParserVisitor : public VisitorLock {
     n->templ = rootInternal->spec->injectionPoint(n->package, n->name);
     n->commId = j[JSD::comm].template get<long>();
     n->startIndex = elementId;
-    addSource(j,n);
+    addSource(j, n);
 
     return n;
   }
@@ -1602,7 +1597,7 @@ template <class T> class ParserVisitor : public VisitorLock {
   visitInjectionPointIterStartedNode(const T& j, std::shared_ptr<DataBase> node,
                                      long elementId) {
     auto n = std::dynamic_pointer_cast<InjectionPointNode>(node);
-    addSource(j,n);
+    addSource(j, n);
     return n;
   };
 
@@ -1612,29 +1607,22 @@ template <class T> class ParserVisitor : public VisitorLock {
     return n;
   }
 
-  
-
   ParserVisitor(std::shared_ptr<Iterator<T>> jstream_, long& idStart,
                 std::shared_ptr<RootNode> rootNode)
       : jstream(jstream_), idCounter(idStart), rootInternal(rootNode) {
-
-      rootInternal->visitorLocking = this;
-
+    rootInternal->visitorLocking = this;
   }
 
-  virtual ~ParserVisitor() {
-    rootInternal->visitorLocking = nullptr;
-  }
-  
-  
+  virtual ~ParserVisitor() { rootInternal->visitorLocking = nullptr; }
+
   std::atomic_bool read_lock = ATOMIC_VAR_INIT(false);
   std::atomic_bool write_lock = ATOMIC_VAR_INIT(false);
-  
+
   void process() {
-   
     while (!jstream->isDone()) {
       if (jstream->hasNext()) {
-        while(read_lock.load(std::memory_order_relaxed)){}  
+        while (read_lock.load(std::memory_order_relaxed)) {
+        }
         write_lock.store(true, std::memory_order_relaxed);
         auto p = jstream->next();
         visit(p.first, p.second);
@@ -1644,20 +1632,18 @@ template <class T> class ParserVisitor : public VisitorLock {
   }
 
   void lock() override {
-     
-     // Set the read lock, asking the other thread to stop writing.
-     read_lock.store(true,std::memory_order_relaxed);
+    // Set the read lock, asking the other thread to stop writing.
+    read_lock.store(true, std::memory_order_relaxed);
 
-     // Wait for the other thread to release its write lock. 
-     while(write_lock.load(std::memory_order_relaxed)){}
-
+    // Wait for the other thread to release its write lock.
+    while (write_lock.load(std::memory_order_relaxed)) {
+    }
   }
 
   void release() override {
-     //Release the read lock. 
-     read_lock.store(false, std::memory_order_relaxed);
+    // Release the read lock.
+    read_lock.store(false, std::memory_order_relaxed);
   }
-
 
   void childNodeDispatcher(std::shared_ptr<DataBase> child, long elementId,
                            long duration) {
@@ -1915,7 +1901,6 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
     return getFileName_(filestub, {std::to_string(id) + extension}, true);
   }
 
-
   std::string getFileName_(std::string root, std::vector<std::string> fname,
                            bool mkdir) {
     fname.insert(fname.begin(), root);
@@ -1949,7 +1934,6 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
 
   virtual void write(long id, const V& obj, long jid) = 0;
 
-
   static std::shared_ptr<IRootNode> parse(std::string file, long& id) {
     std::string filestub = file;
 
@@ -1976,9 +1960,9 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
     std::shared_ptr<RootNode> root = std::make_shared<RootNode>();
     root->id = id++;
     root->name = "ROOT";
-    
+
     ParserVisitor<V> visitor(stream, id, root);
-    
+
     visitor.process();
     return root;
   }

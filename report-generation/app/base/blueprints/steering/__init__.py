@@ -20,7 +20,9 @@ blueprint = Blueprint(
 @blueprint.route('/new', methods=["POST"])
 def new():
     try:
-        file = VnVSteering.add(request.form["name"], request.form["application"])
+        file = VnVSteering.add(
+            request.form["name"],
+            request.form["application"])
         return redirect(url_for("base.steering.view", id_=file.id_))
     except Exception as e:
         return render_error(501, "Error Loading File")

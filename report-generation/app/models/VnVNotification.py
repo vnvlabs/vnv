@@ -24,7 +24,11 @@ class VnVNotification:
         return VnVNotification.COUNTER
 
     @staticmethod
-    def add(title, message, icon="/static/assets/images/user/avatar-1.jpg", link=None):
+    def add(
+            title,
+            message,
+            icon="/static/assets/images/user/avatar-1.jpg",
+            link=None):
         f = VnVNotification(title, message, icon=icon, link=link)
         VnVNotification.NOTIFICATIONS.append(f)
 
@@ -55,6 +59,7 @@ def clear(id_):
     n = VnVNotification.find(id_)
     if n is not None:
         VnVNotification.NOTIFICATIONS.remove(n)
+
 
 def clear_all():
     VnVNotification.NOTIFICATIONS = []

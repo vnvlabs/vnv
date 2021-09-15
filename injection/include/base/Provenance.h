@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+
 #include "base/DistUtils.h"
 #include "json-schema.hpp"
 using nlohmann::json;
@@ -31,13 +32,10 @@ class ProvFile {
 };
 
 class VnVProv {
-
   json toArray(std::vector<ProvFile>& array);
   void fromArray(std::vector<ProvFile>& array, const json& a);
 
  public:
-
-
   std::string currentWorkingDirectory;
   long time_in_seconds_since_epoch;
   std::string commandLine;
@@ -46,8 +44,6 @@ class VnVProv {
   std::vector<ProvFile> inputFiles;
   std::vector<ProvFile> outputFiles;
   std::vector<ProvFile> libraries;
-
-
 
   VnVProv(int argc, char** argv, std::string inputfileName, json& config);
 
@@ -59,8 +55,6 @@ class VnVProv {
   void addInputFile(ProvFile pv);
 
   void addOutputFile(ProvFile pv);
-
-  
 };
 
 }  // namespace VnV

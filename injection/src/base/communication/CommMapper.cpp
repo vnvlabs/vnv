@@ -256,7 +256,6 @@ std::set<CommWrap_ptr> CommMapper::gatherCommInformation(
 DynamicCommMap::DynamicCommMap(int worldSize) { worldsize = worldSize; }
 
 void DynamicCommMap::append(long commId, std::vector<int> procs) {
-  
   // We have a list of procs involved in a communicator. We want to append them
   // to the comm map.
 
@@ -291,13 +290,14 @@ CommWrap_ptr DynamicCommMap::getRootCommunicator() {
   return nullptr;
 }
 
-bool DynamicCommMap::searchNodeInMainNodeCommChain(long mainNode, long searchNode) {
-    // Need to find out if search node and main node have any intersection.
-    auto it =  map.find(mainNode);
-    if (it != map.end()) {
-        return it->second->inCommChain(searchNode);
-    }
-    throw VnVExceptionBase("unregistered communicator.");
+bool DynamicCommMap::searchNodeInMainNodeCommChain(long mainNode,
+                                                   long searchNode) {
+  // Need to find out if search node and main node have any intersection.
+  auto it = map.find(mainNode);
+  if (it != map.end()) {
+    return it->second->inCommChain(searchNode);
+  }
+  throw VnVExceptionBase("unregistered communicator.");
 }
 
 std::vector<long> CommMapper::listAllComms(ICommunicator_ptr worldComm) {

@@ -19,11 +19,11 @@ class ApexLineChartDirective(ApexChartDirective):
     file_argument_whitespace = True
     has_content = False
     options_spec = {
-        'data' : jmes_jinja_query_json,
-        'catagories' : jmes_jinja_query_json,
-        'title' : str,
-        'zoom' : bool,
-        'series' : str
+        'data': jmes_jinja_query_json,
+        'catagories': jmes_jinja_query_json,
+        'title': str,
+        'zoom': bool,
+        'series': str
     }
 
     def getContent(self):
@@ -62,5 +62,6 @@ class ApexLineChartDirective(ApexChartDirective):
             }}
         }}
         '''
+
 
 vnv_directives["vnv-apex-line"] = ApexLineChartDirective

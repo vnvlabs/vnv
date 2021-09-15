@@ -1,12 +1,12 @@
 #include "base/Provenance.h"
+
 #include "base/Utilities.h"
 
 using namespace VnV;
 
 ProvFile::ProvFile() {}
 
-ProvFile::ProvFile(std::string filename, std::string reader,
-                   std::string text ) {
+ProvFile::ProvFile(std::string filename, std::string reader, std::string text) {
   this->filename = filename;
   this->reader = reader;
   this->text = text;
@@ -32,7 +32,6 @@ ProvFile::ProvFile(const json& j) {
   this->comm = j["comm"].get<long>();
   this->package = j["package"].get<std::string>();
   this->name = j["name"].get<std::string>();
-
 }
 
 json ProvFile::toJson() {
@@ -69,7 +68,6 @@ void VnVProv::fromArray(std::vector<ProvFile>& array, const json& a) {
     array.push_back(ProvFile(it));
   }
 }
-
 
 VnVProv::VnVProv(int argc, char** argv, std::string inputfileName, json& config)
 

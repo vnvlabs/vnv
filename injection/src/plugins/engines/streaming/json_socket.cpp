@@ -1,9 +1,10 @@
 #include <arpa/inet.h>
+#include <netdb.h>  //hostent
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <netdb.h> //hostent
+
 #include <thread>
 
 #include "base/DistUtils.h"
@@ -14,13 +15,13 @@
 
 using namespace VnV::VNVPACKAGENAME::Engines::Streaming;
 using nlohmann::json;
-using namespace VnV::StreamReader; 
+using namespace VnV::StreamReader;
 
 #define VNV_SPEC -100
 
 class TcpClient {
  private:
-  int sock = -1 ;
+  int sock = -1;
   struct sockaddr_in server;
 
   bool conn(std::string address, int port) {
@@ -30,11 +31,10 @@ class TcpClient {
       if (sock == -1) {
         throw VnV::VnVExceptionBase("Could not create socket");
       }
-    } 
+    }
 
     // setup address structure
     if (inet_addr(address.c_str()) == -1) {
-      
       struct hostent* he;
       struct in_addr** addr_list;
 
@@ -65,26 +65,22 @@ class TcpClient {
   }
 
  public:
-  TcpClient(std::string address, int port) {
-    conn(address,port);
-  };
-  
+  TcpClient(std::string address, int port) { conn(address, port); };
+
   bool send_data(const std::string& data) {
     {
       std::ostringstream oss;
       oss << data.size() << ":" << data << ",";
-      std::string s = oss.str();  
+      std::string s = oss.str();
 
       // Send some data
-      if ( send(sock, s.c_str(), strlen(s.c_str()), 0) < 0 ) {
-         throw VnV::VnVExceptionBase("Send Failed");
+      if (send(sock, s.c_str(), strlen(s.c_str()), 0) < 0) {
+        throw VnV::VnVExceptionBase("Send Failed");
       }
       return true;
     }
   }
 };
-
-
 
 class JsonSocketStreamIterator : public VnV::StreamReader::JsonStreamIterator {
   int port = 0;
@@ -95,23 +91,18 @@ class JsonSocketStreamIterator : public VnV::StreamReader::JsonStreamIterator {
 
   bool start_stream_reader() override {
     if (daemon != NULL) {
-       throw VnV::VnVExceptionBase("Socket Reader not implemented yet");
+      throw VnV::VnVExceptionBase("Socket Reader not implemented yet");
     }
     return daemon != NULL;
   }
 
   void stop_stream_reader() override {
     if (daemon != NULL) {
-   
     }
   }
 
-  ~JsonSocketStreamIterator() {
-     stop_stream_reader();
-  }
+  ~JsonSocketStreamIterator() { stop_stream_reader(); }
 };
-
-
 
 class JsonSocketStream : public StreamWriter<json> {
   std::unique_ptr<TcpClient> client;
@@ -120,25 +111,26 @@ class JsonSocketStream : public StreamWriter<json> {
  public:
   virtual void initialize(json& config, bool readMode) override {
     if (readMode) {
-       client = std::make_unique<TcpClient>(
-         config["address"].get<std::string>(), 
-         config["port"].get<int>()
-      );
+      client = std::make_unique<TcpClient>(config["address"].get<std::string>(),
+                                           config["port"].get<int>());
     } else {
       VnV::VnVExceptionBase("No read mode support for json_socket");
     }
   }
 
-  virtual nlohmann::json getConfigurationSchema(bool readMode) override { return json::object(); };
+  virtual nlohmann::json getConfigurationSchema(bool readMode) override {
+    return json::object();
+  };
 
   virtual void finalize(ICommunicator_ptr worldComm, long duration) override {
     // Close all the streams
     json j = json::object();
     j["DONE"] = "DONE";
-    write(-1, j, -1);  
+    write(-1, j, -1);
   }
 
-  virtual void newComm(long id, const json& obj, ICommunicator_ptr comm) override {
+  virtual void newComm(long id, const json& obj,
+                       ICommunicator_ptr comm) override {
     write(id, obj, -1);
   };
 
@@ -149,7 +141,6 @@ class JsonSocketStream : public StreamWriter<json> {
     j["data"] = obj;
     client->send_data(j.dump());
   };
-
 };
 
 INJECTION_ENGINE(VNVPACKAGENAME, json_socket) {

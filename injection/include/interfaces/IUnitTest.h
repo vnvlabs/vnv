@@ -82,37 +82,37 @@ template <typename Runner> class UnitTester_T : public IUnitTest {
     }                                                              \
   }
 
-#define INJECTION_UNITTEST_R(PNAME, name, Runner, cores)              \
-  namespace VnV {                                                     \
-  namespace PNAME {                                                   \
-  namespace UnitTests {                                               \
-  class name : public VnV::UnitTester_T<VnV_Arg_Type(Runner)> {       \
-   public:                                                            \
-    name() : VnV::UnitTester_T<VnV_Arg_Type(Runner)>() {}             \
-    virtual void run() override;                                      \
-  };                                                                  \
-  IUnitTest* declare_##name() { return new name(); }                  \
-  void register_##name() {                                            \
+#define INJECTION_UNITTEST_R(PNAME, name, Runner, cores)               \
+  namespace VnV {                                                      \
+  namespace PNAME {                                                    \
+  namespace UnitTests {                                                \
+  class name : public VnV::UnitTester_T<VnV_Arg_Type(Runner)> {        \
+   public:                                                             \
+    name() : VnV::UnitTester_T<VnV_Arg_Type(Runner)>() {}              \
+    virtual void run() override;                                       \
+  };                                                                   \
+  IUnitTest* declare_##name() { return new name(); }                   \
+  void register_##name() {                                             \
     registerUnitTester(VNV_STR(PNAME), #name, &declare_##name, cores); \
-  }                                                                   \
-  }                                                                   \
-  }                                                                   \
-  }                                                                   \
+  }                                                                    \
+  }                                                                    \
+  }                                                                    \
+  }                                                                    \
   void VnV::PNAME::UnitTests::name::run()
 
 #define INJECTION_UNITTEST(PNAME, name, cores) \
   INJECTION_UNITTEST_R(PNAME, name, int, cores)
 
-#define INJECTION_UNITTEST_RAW(PNAME, name, cls, cores)       \
-  namespace VnV {                                             \
-  namespace PNAME {                                           \
-  namespace UnitTests {                                       \
-  IUnitTest* declare_##name() { return new cls(); }           \
-  void register_##name() {                                    \
+#define INJECTION_UNITTEST_RAW(PNAME, name, cls, cores)        \
+  namespace VnV {                                              \
+  namespace PNAME {                                            \
+  namespace UnitTests {                                        \
+  IUnitTest* declare_##name() { return new cls(); }            \
+  void register_##name() {                                     \
     registerUnitTester(#PNAME, #name, &declare_##name, cores); \
-  }                                                           \
-  }                                                           \
-  }                                                           \
+  }                                                            \
+  }                                                            \
+  }                                                            \
   }
 
 #define DECLAREUNITTEST(PNAME, name) \

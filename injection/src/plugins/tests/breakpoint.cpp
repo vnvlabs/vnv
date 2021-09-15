@@ -1,5 +1,6 @@
-﻿#include "VnV.h"
-#include <signal.h>
+﻿#include <signal.h>
+
+#include "VnV.h"
 
 namespace {
 
@@ -13,8 +14,10 @@ namespace {
   X(SIGPIPE)                                                                   \
   X(SIGALRM)                                                                   \
   X(SIGTERM)                                                                   \
-  X(SIGUSR1) X(SIGUSR2) X(SIGCHLD) X(SIGCONT) X(SIGSTOP) X(SIGTSTP) X(SIGTTIN) \
-      X(SIGTTOU) X(SIGPROF) X(SIGSYS)
+  X(SIGUSR1)                                                                   \
+  X(SIGUSR2)                                                                   \
+  X(SIGCHLD) X(SIGCONT) X(SIGSTOP) X(SIGTSTP) X(SIGTTIN) X(SIGTTOU) X(SIGPROF) \
+      X(SIGSYS)
 
 #define X(name) \
   , { #name, name }

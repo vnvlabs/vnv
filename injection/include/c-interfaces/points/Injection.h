@@ -12,19 +12,25 @@
 
 // Injection Points
 
-#  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...)          \
-    _VnV_injectionPoint(COMM, PNAME, NAME, __FILE__, __LINE__, callback, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
+#  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...)            \
+    _VnV_injectionPoint(COMM, PNAME, NAME, __FILE__, __LINE__, callback, \
+                        EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
-#  define INJECTION_POINT(PNAME, COMM, NAME, ...) INJECTION_POINT_C(COMM, PNAME, NAME, NULL, __VA_ARGS__)
+#  define INJECTION_POINT(PNAME, COMM, NAME, ...) \
+    INJECTION_POINT_C(COMM, PNAME, NAME, NULL, __VA_ARGS__)
 
-#  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...)           \
-    _VnV_injectionPoint_begin(COMM, PNAME, NAME, __FILE__, __LINE__, callback, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
+#  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...)             \
+    _VnV_injectionPoint_begin(COMM, PNAME, NAME, __FILE__, __LINE__, callback, \
+                              EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
-#  define INJECTION_LOOP_BEGIN(PNAME, COMM, NAME, ...) INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, NULL, __VA_ARGS__)
+#  define INJECTION_LOOP_BEGIN(PNAME, COMM, NAME, ...) \
+    INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, NULL, __VA_ARGS__)
 
-#  define INJECTION_LOOP_END(PNAME, NAME) _VnV_injectionPoint_end(PNAME, NAME, __FILE__, __LINE__);
+#  define INJECTION_LOOP_END(PNAME, NAME) \
+    _VnV_injectionPoint_end(PNAME, NAME, __FILE__, __LINE__);
 
-#  define INJECTION_LOOP_ITER(PNAME, NAME, STAGE) _VnV_injectionPoint_loop(PNAME, NAME, STAGE, __FILE__, __LINE__);
+#  define INJECTION_LOOP_ITER(PNAME, NAME, STAGE) \
+    _VnV_injectionPoint_loop(PNAME, NAME, STAGE, __FILE__, __LINE__);
 
 #  define INJECTION_FUNCTION_WRAPPER_C(PNAME, COMM, NAME, function, callback, \
                                        ...)                                   \
@@ -33,10 +39,12 @@
     INJECTION_LOOP_END(PNAME, NAME)
 
 #  define INJECTION_FUNCTION_WRAPPER(PNAME, COMM, NAME, function, ...) \
-    INJECTION_FUNCTION_WRAPPER_C(PNAME, COMM, NAME, function, NULL, __VA_ARGS__);
+    INJECTION_FUNCTION_WRAPPER_C(PNAME, COMM, NAME, function, NULL,    \
+                                 __VA_ARGS__);
 
 // REGISTER AN INJECTION POINT
-#  define Register_Injection_Point(PNAME, NAME, PARAMETERS) _VnV_registerInjectionPoint(PNAME, NAME, PARAMETERS);
+#  define Register_Injection_Point(PNAME, NAME, PARAMETERS) \
+    _VnV_registerInjectionPoint(PNAME, NAME, PARAMETERS);
 
 VNVEXTERNC void _VnV_injectionPoint(VnV_Comm comm, const char* packageName,
                                     const char* id, const char* fname, int line,
@@ -44,23 +52,20 @@ VNVEXTERNC void _VnV_injectionPoint(VnV_Comm comm, const char* packageName,
 
 VNVEXTERNC void _VnV_injectionPoint_begin(VnV_Comm comm,
                                           const char* packageName,
-                                          const char* id, const char* fname, int line,
+                                          const char* id, const char* fname,
+                                          int line,
                                           injectionDataCallback* callback, ...);
 
-
 VNVEXTERNC void _VnV_injectionPoint_loop(const char* packageName,
-                                         const char* id, const char* stageId, const char* fname, int line);
+                                         const char* id, const char* stageId,
+                                         const char* fname, int line);
 
-
-VNVEXTERNC int _VnV_injectionPoint_end(const char* packageName, const char* id,const char* fname, int line);
-
+VNVEXTERNC int _VnV_injectionPoint_end(const char* packageName, const char* id,
+                                       const char* fname, int line);
 
 VNVEXTERNC void _VnV_registerInjectionPoint(const char* packageName,
                                             const char* id,
                                             const char* parameters_str);
-
-
-
 
 #else
 
@@ -73,7 +78,6 @@ VNVEXTERNC void _VnV_registerInjectionPoint(const char* packageName,
 #  define INJECTION_FUNCTION_WRAPPER_C(...)
 #  define INJECTION_FUNCTION_WRAPPER(...)
 #  define Register_Injection_Point(...)
-
 
 #endif
 

@@ -13,6 +13,7 @@ import app.rendering as r
 from app.rendering.readers import has_reader
 from app.rendering.vnvdatavis.directives.jmes import render_vnv_template
 
+
 class ProvFileWrapper:
 
     def __init__(self, pfile, description):
@@ -60,7 +61,9 @@ class ProvWrapper:
         self.templates = templates
 
     def getD(self, provfile):
-        return render_template(self.templates.get_file_description(provfile.package, provfile.name))
+        return render_template(
+            self.templates.get_file_description(
+                provfile.package, provfile.name))
 
     def get_executable(self):
         return ProvFileWrapper(self.prov.executable, "")
@@ -72,7 +75,8 @@ class ProvWrapper:
         return [ProvFileWrapper(a, "") for a in self.prov.libraries]
 
     def get_outputs(self):
-        return [ProvFileWrapper(a, self.getD(a)) for a in self.prov.outputFiles]
+        return [ProvFileWrapper(a, self.getD(a))
+                for a in self.prov.outputFiles]
 
     def get_inputs(self):
         return [ProvFileWrapper(a, self.getD(a)) for a in self.prov.inputFiles]
@@ -86,8 +90,9 @@ class ProvWrapper:
 
     def render_input_file(self):
         lex = pygments.lexers.get_lexer_by_name("json")
-        form = pygments.formatters.html.HtmlFormatter(linenos=True, style="colorful", noclasses=True)
-        return pygments.highlight(self.get_input().text(), lex, form);
+        form = pygments.formatters.html.HtmlFormatter(
+            linenos=True, style="colorful", noclasses=True)
+        return pygments.highlight(self.get_input().text(), lex, form)
 
 
 class CommObj:
@@ -98,7 +103,7 @@ class CommObj:
         self.world_size = world_size
 
     def keys(self):
-        return self.comm_map.keys();
+        return self.comm_map.keys()
 
 
 class CommRender:
@@ -114,15 +119,11 @@ class CommRender:
             for proc in procs:
                 x, y = self.getIndex(proc, m)
                 if y in res:
-                    res[y]["data"].append(
-                        {"x": x, "y": int(node) * (1 if self.inComm(proc) else -1), "r": proc, "o": self.inComm(proc)})
+                    res[y]["data"].append({"x": x, "y": int(
+                        node) * (1 if self.inComm(proc) else -1), "r": proc, "o": self.inComm(proc)})
                 else:
-                    res[y] = {
-                        "name": f"Row {y}",
-                        "row": y,
-                        "data": [{"x": x, "y": int(node) * (1 if self.inComm(proc) else -1), "r": proc,
-                                  "o": self.inComm(proc)}]
-                    }
+                    res[y] = {"name": f"Row {y}", "row": y, "data": [{"x": x, "y": int(
+                        node) * (1 if self.inComm(proc) else -1), "r": proc, "o": self.inComm(proc)}]}
         print(res)
         return json.dumps(sorted(res.values(), key=lambda x: x["row"]))
 
@@ -133,7 +134,7 @@ class CommRender:
         return int(rank / matSize), rank % matSize
 
     def getMatSize(self):
-        i = 1;
+        i = 1
         while self.commObj.world_size > i * i:
             i += 1
         return i
@@ -166,7 +167,8 @@ class UnitTestRender:
         self.templates = templates
 
     def getHtml(self):
-        t = self.templates.get_html_file_name("UnitTests", self.data.getPackage(), self.data.getName())
+        t = self.templates.get_html_file_name(
+            "UnitTests", self.data.getPackage(), self.data.getName())
         return render_vnv_template(t, data=self.data.getData())
 
 
@@ -180,10 +182,13 @@ class TestRender:
 
     def getHtml(self):
         if self.template_override is None:
-            t = self.templates.get_html_file_name("Tests", self.data.getPackage(), self.data.getName())
+            t = self.templates.get_html_file_name(
+                "Tests", self.data.getPackage(), self.data.getName())
             return render_vnv_template(t, data=self.data.getData())
 
-        return render_vnv_template(self.template_override, data=self.data.getData())
+        return render_vnv_template(
+            self.template_override,
+            data=self.data.getData())
 
     def getName(self):
         return self.data.getName()
@@ -195,7 +200,8 @@ class TestRender:
         return self.data.getPackage()
 
     def getLogs(self):
-        return [LogRender(a, self.commObj, self.templates) for a in self.data.getLogs()]
+        return [LogRender(a, self.commObj, self.templates)
+                for a in self.data.getLogs()]
 
 
 class PackageRender:
@@ -213,7 +219,8 @@ class PackageRender:
             return "<h4> No Package Information Available </h>"
 
     def getLogs(self):
-        return [LogRender(a, self.commObj, self.templates) for a in self.data.getLogs()]
+        return [LogRender(a, self.commObj, self.templates)
+                for a in self.data.getLogs()]
 
 
 class SourceFile:
@@ -238,9 +245,9 @@ class SourceFile:
             with open(self.file, 'r') as f:
                 d = f.read()
                 lex = guess_lexer_for_filename(self.file, d, stripnl=False)
-                form = pygments.formatters.html.HtmlFormatter(linenos=True, hl_lines=self.getLineList(),
-                                                              style="colorful", cssclass="vnvhigh")
-                result = pygments.highlight(d, lex, form);
+                form = pygments.formatters.html.HtmlFormatter(
+                    linenos=True, hl_lines=self.getLineList(), style="colorful", cssclass="vnvhigh")
+                result = pygments.highlight(d, lex, form)
         except Exception as e:
             result = "Could not load file with name " + self.file
 
@@ -264,18 +271,22 @@ class InjectionPointRender:
         return self.ip.getPackage()
 
     def getInternalTest(self):
-        tempoverride = self.templates.get_html_file_name("InjectionPoints", self.ip.getPackage(), self.ip.getName())
+        tempoverride = self.templates.get_html_file_name(
+            "InjectionPoints", self.ip.getPackage(), self.ip.getName())
         return TestRender(self.ip.getData(), self.commObj, self.templates,
                           template_override=tempoverride)
 
     def getAdditionalTests(self):
-        return [TestRender(a.cast(), self.commObj, self.templates) for a in self.ip.getTests()]
+        return [TestRender(a.cast(), self.commObj, self.templates)
+                for a in self.ip.getTests()]
 
     def getLogs(self):
-        return [LogRender(a.cast(), self.commObj, self.templates) for a in self.ip.getLogs()]
+        return [LogRender(a.cast(), self.commObj, self.templates)
+                for a in self.ip.getLogs()]
 
     def getSourceMap(self):
-        source = json.loads(self.ip.getSourceMap())  # map stageId -> [ filename, line]
+        # map stageId -> [ filename, line]
+        source = json.loads(self.ip.getSourceMap())
         return {a: SourceFile(b[0], b[1]) for a, b in source.items()}
 
 
@@ -285,7 +296,7 @@ class VnVFile:
     FILES = {}
 
     def __init__(self, name, filename, reader, template_dir, icon="icon-box"):
-        self.name = name;
+        self.name = name
         self.filename = filename
         self.reader = reader
         self.icon = icon
@@ -327,7 +338,10 @@ class VnVFile:
         if "nodes" in j and len(j["nodes"]) > 0 and "id" in j["nodes"][0]:
             i = j["nodes"][0]["id"]
             try:
-                a = render_template("files/comm.html", commrender=self.getCommRender(str(i)))
+                a = render_template(
+                    "files/comm.html",
+                    commrender=self.getCommRender(
+                        str(i)))
                 return a
             except Exception as e:
                 print(e)
@@ -340,10 +354,14 @@ class VnVFile:
 
             nmap = json.loads(commInfoNode.getNodeMap())
             self.nodes = len(nmap)
-            self.min_rpn = len(nmap[min(nmap.keys(), key=lambda x: len(nmap[x]))])
-            self.max_rpn = len(nmap[max(nmap.keys(), key=lambda x: len(nmap[x]))])
+            self.min_rpn = len(
+                nmap[min(nmap.keys(), key=lambda x: len(nmap[x]))])
+            self.max_rpn = len(
+                nmap[max(nmap.keys(), key=lambda x: len(nmap[x]))])
             self.version = commInfoNode.getVersion()
-            self.unique_comms = len(json.loads(commInfoNode.getCommMap().getComms()))
+            self.unique_comms = len(
+                json.loads(
+                    commInfoNode.getCommMap().getComms()))
 
         def shortversion(self, length):
             return self.version[0: min(len(self.version), length)] + "..."
@@ -358,26 +376,33 @@ class VnVFile:
             return j["nodes"][0]["id"]
 
     def list_unit_test_packages(self):
-        return [{"name": a.getPackage + ":" + a.getName()} for a in self.root.getUnitTests()]
+        return [{"name": a.getPackage + ":" + a.getName()}
+                for a in self.root.getUnitTests()]
 
     def hasUnitTests(self):
         return len(self.root.getUnitTests())
 
     def render_unit_test(self, id=None):
         if (id is None and self.hasUnitTests()):
-            return render_template("viewers/unittest.html",
-                                   unitrender=UnitTestRender(self.root.getUnitTests()[0], self.getCommObj(),
-                                                             self.templates))
+            return render_template(
+                "viewers/unittest.html",
+                unitrender=UnitTestRender(
+                    self.root.getUnitTests()[0],
+                    self.getCommObj(),
+                    self.templates))
         for i in self.root.getUnitTests():
             if i.getId() == id:
-                return render_template("viewers/unittest.html",
-                                       unitrender=UnitTestRender(i, self.getCommObj(),
-                                                                 self.templates))
+                return render_template(
+                    "viewers/unittest.html",
+                    unitrender=UnitTestRender(
+                        i,
+                        self.getCommObj(),
+                        self.templates))
 
         return ""
 
     def get_comm_map(self):
-        x = self.root.getCommInfoNode().getCommMap();
+        x = self.root.getCommInfoNode().getCommMap()
         s = x.getComms()
         return json.loads(s)
 
@@ -390,7 +415,10 @@ class VnVFile:
 
     def getCommObj(self):
         if not hasattr(self, "commObj"):
-            self.commObj = CommObj(self.get_comm_map(), self.get_node_map(), self.get_world_size())
+            self.commObj = CommObj(
+                self.get_comm_map(),
+                self.get_node_map(),
+                self.get_world_size())
         return self.commObj
 
     def list_communicators(self):
@@ -419,21 +447,34 @@ class VnVFile:
 
     def render_package(self, package):
         packageTestObject = self.root.getPackage(package)
-        return PackageRender(package, packageTestObject, self.templates).getHtml()
+        return PackageRender(
+            package,
+            packageTestObject,
+            self.templates).getHtml()
 
     def reset_proc_iter(self):
         self.proc_iter = None
 
     def set_proc_iter(self, proc=0, only=None):
-        self.proc_iter_config = {"id": int(proc), "only": True if only else False, "comm": False}
-        self.proc_iter = self.root.getWalker("VNV", "proc", json.dumps(self.proc_iter_config))
+        self.proc_iter_config = {
+            "id": int(proc),
+            "only": True if only else False,
+            "comm": False}
+        self.proc_iter = self.root.getWalker(
+            "VNV", "proc", json.dumps(
+                self.proc_iter_config))
         self.currX = -1
         self.currY = -1
         return True
 
     def set_comm_iter(self, comm, only=None):
-        self.proc_iter_config = {"id": int(comm), "only": True if only else False, "comm": True}
-        self.proc_iter = self.root.getWalker("VNV", "proc", json.dumps(self.proc_iter_config))
+        self.proc_iter_config = {
+            "id": int(comm),
+            "only": True if only else False,
+            "comm": True}
+        self.proc_iter = self.root.getWalker(
+            "VNV", "proc", json.dumps(
+                self.proc_iter_config))
         self.currX = -1
         self.currY = -1
         return True
@@ -455,7 +496,8 @@ class VnVFile:
             return []
         res = []
         if self.currX == -1:
-            res.append({"x": 0, "y": 0, "id": VnVFile.INJECTION_INTRO, "time": 0})
+            res.append(
+                {"x": 0, "y": 0, "id": VnVFile.INJECTION_INTRO, "time": 0})
             self.currX = 0
             self.currY = 0
 
@@ -472,11 +514,15 @@ class VnVFile:
                 self.currY += VnVFile.node_type_map[n.type][0]
 
                 if n.type == node_type_DONE:
-                    res.append(
-                        {"x": self.currX, "y": self.currY, "id": VnVFile.INJECTION_CONC, "done": True, "time": n.time})
+                    res.append({"x": self.currX,
+                                "y": self.currY,
+                                "id": VnVFile.INJECTION_CONC,
+                                "done": True,
+                                "time": n.time})
                     break
                 else:
-                    res.append({"x": self.currX, "y": self.currY, "id": n.item.getId(), "time": n.time})
+                    res.append({"x": self.currX, "y": self.currY,
+                               "id": n.item.getId(), "time": n.time})
 
                 self.currY += VnVFile.node_type_map[n.type][1]
                 i += 1
@@ -486,7 +532,8 @@ class VnVFile:
         return res
 
     def lock(self):
-        self.root.lock();
+        self.root.lock()
+
     def release(self):
         self.root.release()
 

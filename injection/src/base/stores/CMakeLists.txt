@@ -1,6 +1,6 @@
-﻿target_sources(
-  injection PRIVATE
-          ${CMAKE_CURRENT_LIST_DIR}/InjectionPointStore.cpp
+target_sources(
+  injection
+  PRIVATE ${CMAKE_CURRENT_LIST_DIR}/InjectionPointStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/OutputEngineStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/TestStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/TransformStore.cpp
@@ -13,8 +13,4 @@
           ${CMAKE_CURRENT_LIST_DIR}/DataTypeStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/ReductionStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/SamplerStore.cpp
-          ${CMAKE_CURRENT_LIST_DIR}/WalkerStore.cpp
-          
-          
-                             
-)
+          ${CMAKE_CURRENT_LIST_DIR}/WalkerStore.cpp)

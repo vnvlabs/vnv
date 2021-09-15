@@ -1,13 +1,14 @@
-﻿
-set(INCLUDE_COMPILER_STRING "-I ${CMAKE_CURRENT_LIST_DIR}/../include -I ${CMAKE_CURRENT_LIST_DIR}/../third-party/json-schema-validator/include")
+set(INCLUDE_COMPILER_STRING
+    "-I ${CMAKE_CURRENT_LIST_DIR}/../include -I ${CMAKE_CURRENT_LIST_DIR}/../third-party/json-schema-validator/include"
+)
 
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/macros.info
   COMMAND
-  ${CMAKE_CXX_COMPILER} -E -dM -I${CMAKE_CURRENT_LIST_DIR}/../include -I${CMAKE_CURRENT_LIST_DIR}/../third-party/json-schema-validator/include
+    ${CMAKE_CXX_COMPILER} -E -dM -I${CMAKE_CURRENT_LIST_DIR}/../include
+    -I${CMAKE_CURRENT_LIST_DIR}/../third-party/json-schema-validator/include
     ${CMAKE_CURRENT_LIST_DIR}/../include/VnV.h >
-    ${CMAKE_CURRENT_BINARY_DIR}/macros.info
-)
+    ${CMAKE_CURRENT_BINARY_DIR}/macros.info)
 
 add_custom_target(macro_tracker ALL
                   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/macros.info)

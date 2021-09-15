@@ -9,8 +9,6 @@ int class1::function1(int x) {
   double intersection = 3;
   double value = 0;
 
-
-
   INJECTION_LOOP_BEGIN(VNV_STR(DLPNAME), VSELF, "Hello_temp_sub", slope,
                        intersection, x, value);
 

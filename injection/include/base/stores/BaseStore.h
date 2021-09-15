@@ -4,13 +4,14 @@
 namespace VnV {
 
 class BaseStore {
-public:
-    BaseStore(){}
-    virtual ~BaseStore(){}
+ public:
+  BaseStore() {}
+  virtual ~BaseStore() {}
 };
 
-}
+}  // namespace VnV
 
-#define BaseStoreInstance(CL) CL& CL::instance() { return RunTime::instance().store<CL>();}
+#define BaseStoreInstance(CL) \
+  CL& CL::instance() { return RunTime::instance().store<CL>(); }
 
 #endif

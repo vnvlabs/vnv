@@ -1,8 +1,7 @@
 add_subdirectory(points)
 target_sources(
   injection
-  PRIVATE 
-          ${CMAKE_CURRENT_LIST_DIR}/IOutputEngine.cpp
+  PRIVATE ${CMAKE_CURRENT_LIST_DIR}/IOutputEngine.cpp
           ${CMAKE_CURRENT_LIST_DIR}/ITest.cpp
           ${CMAKE_CURRENT_LIST_DIR}/IPlug.cpp
           ${CMAKE_CURRENT_LIST_DIR}/IIterator.cpp
@@ -11,6 +10,4 @@ target_sources(
           ${CMAKE_CURRENT_LIST_DIR}/IReduction.cpp
           ${CMAKE_CURRENT_LIST_DIR}/IDataType.cpp
           ${CMAKE_CURRENT_LIST_DIR}/ISampler.cpp
-          ${CMAKE_CURRENT_LIST_DIR}/Nodes.cpp
-
-          )
+          ${CMAKE_CURRENT_LIST_DIR}/Nodes.cpp)

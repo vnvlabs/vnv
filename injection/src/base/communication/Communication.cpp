@@ -1,10 +1,10 @@
 ﻿#include "base/Communication.h"
-#include "base/stores/CommunicationStore.h"
-#include "base/stores/DataTypeStore.h"
-#include "base/exceptions.h"
-
 
 #include <algorithm>
+
+#include "base/exceptions.h"
+#include "base/stores/CommunicationStore.h"
+#include "base/stores/DataTypeStore.h"
 
 using namespace VnV;
 
@@ -152,7 +152,8 @@ std::pair<IDataType_vec, IStatus_ptr> DataTypeCommunication::Recv(int source,
   return std::make_pair(results, status);
 }
 
-IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data, long long dtype, int count,
+IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data,
+                                               long long dtype, int count,
                                                int root, bool allToAll) {
   int rank = comm->Rank();
   int size = comm->Size();
@@ -200,61 +201,67 @@ IDataType_vec DataTypeCommunication::BroadCast(IDataType_vec& data, long long dt
   return results;
 }
 
-IDataType_vec DataTypeCommunication::GatherV(IDataType_vec &data, long long dtype, int root, std::vector<int> &gsizes, std::vector<int> &sizes, std::vector<int> &offsets, bool allGather) {
-   int dim = offsets.size();
-   int csize = 1 + 2*dim;
+IDataType_vec DataTypeCommunication::GatherV(
+    IDataType_vec& data, long long dtype, int root, std::vector<int>& gsizes,
+    std::vector<int>& sizes, std::vector<int>& offsets, bool allGather) {
+  int dim = offsets.size();
+  int csize = 1 + 2 * dim;
 
-   std::vector<int> sendBuffer;
-   sendBuffer.reserve(csize);
-   sendBuffer.push_back(data.size());
-   for (int i = 0; i < dim; i++ ){
-     sendBuffer.push_back(sizes[i]);
-     sendBuffer.push_back(offsets[i]);
-   }
+  std::vector<int> sendBuffer;
+  sendBuffer.reserve(csize);
+  sendBuffer.push_back(data.size());
+  for (int i = 0; i < dim; i++) {
+    sendBuffer.push_back(sizes[i]);
+    sendBuffer.push_back(offsets[i]);
+  }
 
+  int total = 0;
+  std::vector<int> result(
+      (comm->Rank() == root || allGather) ? comm->Size() * csize : 0);
+  std::vector<int> counts((comm->Rank() == root || allGather) ? comm->Size()
+                                                              : 0);
+  std::vector<int> displs((comm->Rank() == root || allGather) ? comm->Size()
+                                                              : 0);
 
-   int total = 0;
-   std::vector<int> result((comm->Rank()==root || allGather ) ? comm->Size() * csize  : 0 );
-   std::vector<int> counts((comm->Rank() ==root || allGather) ? comm->Size() : 0 );
-   std::vector<int> displs((comm->Rank() ==root || allGather) ? comm->Size() : 0 );
+  if (!allGather) {
+    comm->Gather(&(sendBuffer[0]), csize, &(result[0]), sizeof(int), root);
+  } else {
+    comm->AllGather(&(sendBuffer[0]), csize, &(result[0]), sizeof(int));
+  }
 
-   if (!allGather) {
-      comm->Gather(&(sendBuffer[0]), csize, &(result[0]), sizeof(int), root);
-   } else {
-      comm->AllGather(&(sendBuffer[0]), csize, &(result[0]), sizeof(int));
-   }
+  // displs is the displacement where we put the vector data in. Count is
+  // the number from each process.
 
-   // displs is the displacement where we put the vector data in. Count is
-   // the number from each process.
+  // results = [[ count , xdim, xoff, ydim, yoff, zdim, zoff, ...] ,[...]]
+  for (int i = 0; i < counts.size(); i++) {
+    displs[i] = total;
+    total += result[i * csize];
+    counts[i] = result[i * csize];
+  }
 
-   // results = [[ count , xdim, xoff, ydim, yoff, zdim, zoff, ...] ,[...]]
-   for (int i =0; i < counts.size(); i++ )  {
-     displs[i] = total;
-     total += result[i*csize];
-     counts[i] = result[i*csize];
-   }
+  // Pop the send buffer -- Everyone has one already,
+  char* sendbuffer = nullptr;
+  auto it = DataTypeStore::instance().getDataType(dtype);
 
-   // Pop the send buffer -- Everyone has one already,
-   char* sendbuffer = nullptr;
-   auto it = DataTypeStore::instance().getDataType(dtype);
-
-   long long dataSize = it->maxSize();
-   sendbuffer = (char*)malloc(dataSize * data.size());
-   for (std::size_t i = 0; i < data.size(); i++) {
-     data[i]->pack(&(sendbuffer[i * dataSize]));
+  long long dataSize = it->maxSize();
+  sendbuffer = (char*)malloc(dataSize * data.size());
+  for (std::size_t i = 0; i < data.size(); i++) {
+    data[i]->pack(&(sendbuffer[i * dataSize]));
   }
 
   // Alloc the recv buffer on any rank that needs it.
   char* recvBuffer;
   if (comm->Rank() == root || allGather) {
-    recvBuffer = (char*)malloc(dataSize * total );
+    recvBuffer = (char*)malloc(dataSize * total);
   }
 
   // Call the Gather
   if (allGather) {
-    comm->AllGatherV(sendbuffer, data.size(), recvBuffer, &counts[0], &(displs[0]), dataSize);
+    comm->AllGatherV(sendbuffer, data.size(), recvBuffer, &counts[0],
+                     &(displs[0]), dataSize);
   } else {
-    comm->GatherV(sendbuffer, data.size(), recvBuffer, &(counts[0]), &(displs[0]), dataSize, root);
+    comm->GatherV(sendbuffer, data.size(), recvBuffer, &(counts[0]),
+                  &(displs[0]), dataSize, root);
   }
   free(sendbuffer);
 
@@ -265,50 +272,47 @@ IDataType_vec DataTypeCommunication::GatherV(IDataType_vec &data, long long dtyp
   IDataType_vec results(total);
 
   if (comm->Rank() == root || allGather) {
-     //Get the multipliers for the flatter operation.
-     int cc = 0;
-     std::vector<int> multipliers(dim);
-     for (int i = dim; i > 0 ; i--) {
-        multipliers[i-1] = (i==dim) ? 1 : multipliers[i]*gsizes[cc++];
-     }
+    // Get the multipliers for the flatter operation.
+    int cc = 0;
+    std::vector<int> multipliers(dim);
+    for (int i = dim; i > 0; i--) {
+      multipliers[i - 1] = (i == dim) ? 1 : multipliers[i] * gsizes[cc++];
+    }
 
     // Iterate over all communicators.
-    int cindex = 0; // current index in the recv buffer.
-    for ( int i =0; i < comm->Size(); i++) {
-
-      //Get the sizes and offsets for this vector.
+    int cindex = 0;  // current index in the recv buffer.
+    for (int i = 0; i < comm->Size(); i++) {
+      // Get the sizes and offsets for this vector.
       std::vector<int> sizes(dim);
       std::vector<int> offs(dim);
       for (int k = 0; k < dim; k++) {
-        sizes[k] = ( result[i*csize + 1 + 2*k]);
-        offs[k] = ( result[i*csize + 2 + 2*k]);
+        sizes[k] = (result[i * csize + 1 + 2 * k]);
+        offs[k] = (result[i * csize + 2 + 2 * k]);
       }
 
-      std::vector<int> iters(dim,0);
-      //Loop over all the vectors from this comm.
-      for( int j = 0; j < counts[i]; j++ ) {
-
-          // J IS THE A_{ijk} -> V[j]. Now need to map l-> {ijk...}
-          int findex = 0;
-          bool up = false;
-          for (int jj = dim-1; jj >= 0 ; jj-- ) {
-              findex += (offs[jj]+iters[jj])*multipliers[jj];
-              if (!up) {
-                 iters[jj] = (iters[jj] + 1) % sizes[jj];
-                 up = (iters[jj] > 0 ) ; // if iters[jj] == 0 then next one should increase
-              }
+      std::vector<int> iters(dim, 0);
+      // Loop over all the vectors from this comm.
+      for (int j = 0; j < counts[i]; j++) {
+        // J IS THE A_{ijk} -> V[j]. Now need to map l-> {ijk...}
+        int findex = 0;
+        bool up = false;
+        for (int jj = dim - 1; jj >= 0; jj--) {
+          findex += (offs[jj] + iters[jj]) * multipliers[jj];
+          if (!up) {
+            iters[jj] = (iters[jj] + 1) % sizes[jj];
+            up = (iters[jj] >
+                  0);  // if iters[jj] == 0 then next one should increase
           }
+        }
 
-          //Finally unpack the sucker.
-          IDataType_ptr dptr = DataTypeStore::instance().getDataType(dtype);
-          dptr->unpack(&(recvBuffer[cindex * dataSize]));
-          results[findex] = dptr;
+        // Finally unpack the sucker.
+        IDataType_ptr dptr = DataTypeStore::instance().getDataType(dtype);
+        dptr->unpack(&(recvBuffer[cindex * dataSize]));
+        results[findex] = dptr;
 
-          cindex++; // Move to the next value in the main unpacking vector.
+        cindex++;  // Move to the next value in the main unpacking vector.
       }
-
     }
-
   }
   if (comm->Rank() == root || allGather) {
     free(recvBuffer);
@@ -316,7 +320,8 @@ IDataType_vec DataTypeCommunication::GatherV(IDataType_vec &data, long long dtyp
   return results;
 }
 
-IDataType_vec DataTypeCommunication::Gather(IDataType_vec& data, long long dtype, int root,
+IDataType_vec DataTypeCommunication::Gather(IDataType_vec& data,
+                                            long long dtype, int root,
                                             bool allGather) {
   int rank = comm->Rank();
   int size = comm->Size();
@@ -358,7 +363,8 @@ IDataType_vec DataTypeCommunication::Gather(IDataType_vec& data, long long dtype
   return results;
 }
 
-IDataType_vec DataTypeCommunication::Scatter(IDataType_vec& data, long long dtype, int root,
+IDataType_vec DataTypeCommunication::Scatter(IDataType_vec& data,
+                                             long long dtype, int root,
                                              int count) {
   int rank = comm->Rank();
   int size = comm->Size();
@@ -394,33 +400,40 @@ IDataType_vec DataTypeCommunication::Scatter(IDataType_vec& data, long long dtyp
   return results;
 }
 
-IDataType_vec DataTypeCommunication::ReduceMultiple(IDataType_vec &data, long long dtype, std::string packageColonName, int root) {
-  return ReduceMultiple(data, dtype, ReductionStore::instance().getReducer(packageColonName),root);
+IDataType_vec DataTypeCommunication::ReduceMultiple(
+    IDataType_vec& data, long long dtype, std::string packageColonName,
+    int root) {
+  return ReduceMultiple(data, dtype,
+                        ReductionStore::instance().getReducer(packageColonName),
+                        root);
 }
 
-IDataType_ptr DataTypeCommunication::ReduceLocalVec(IDataType_vec &data, IReduction_ptr reducer) {
-   if (data.size() == 0 ) return nullptr;
+IDataType_ptr DataTypeCommunication::ReduceLocalVec(IDataType_vec& data,
+                                                    IReduction_ptr reducer) {
+  if (data.size() == 0) return nullptr;
 
-   IDataType_ptr result = data[0];
-   for (int i = 1; i < data.size(); i++) {
-      result = reducer->reduce(data[i],result);
-   }
-   return result;
+  IDataType_ptr result = data[0];
+  for (int i = 1; i < data.size(); i++) {
+    result = reducer->reduce(data[i], result);
+  }
+  return result;
 }
 
-IDataType_vec DataTypeCommunication::ReduceMultiple(IDataType_vec& data, long long dtype,
-                                            IReduction_ptr reduction,
-                                            int root) {
+IDataType_vec DataTypeCommunication::ReduceMultiple(IDataType_vec& data,
+                                                    long long dtype,
+                                                    IReduction_ptr reduction,
+                                                    int root) {
   int rank = comm->Rank();
 
   // Pop the send buffer
   long long reducerKey = reduction->getKey();
-  long dataSize = DataTypeStore::instance().getDataType(dtype)->maxSize() + 2 * sizeof(long long);
+  long dataSize = DataTypeStore::instance().getDataType(dtype)->maxSize() +
+                  2 * sizeof(long long);
   char* buffer = (char*)malloc(data.size() * dataSize);
   for (int i = 0; i < data.size(); i++) {
-    long long* lptr = (long long*) &(buffer[i * dataSize]);
+    long long* lptr = (long long*)&(buffer[i * dataSize]);
     lptr[0] = reducerKey;       // reducer
-    lptr[1] = dtype;          // key
+    lptr[1] = dtype;            // key
     data[i]->pack(&(lptr[2]));  // data
   }
 
@@ -428,8 +441,8 @@ IDataType_vec DataTypeCommunication::ReduceMultiple(IDataType_vec& data, long lo
   OpType op = (reduction->communitive()) ? OpType::ENCODED_COMMUTE
                                          : OpType::ENCODED_NONCOMMUTE;
   char* recvBuffer = (root < 0 || rank == root)
-                              ? (char*) malloc(data.size() * dataSize)
-                              : nullptr;
+                         ? (char*)malloc(data.size() * dataSize)
+                         : nullptr;
   if (root == -1) {
     comm->AllReduce(buffer, data.size(), recvBuffer, dataSize, op);
   } else if (root == -2) {
@@ -443,9 +456,8 @@ IDataType_vec DataTypeCommunication::ReduceMultiple(IDataType_vec& data, long lo
   results.reserve(data.size());
   if (root < 0 || rank == root) {
     for (int i = 0; i < data.size(); i++) {
-      long long* lptr = (long long*) &(recvBuffer[i * dataSize]);
-      IDataType_ptr result =
-          DataTypeStore::instance().getDataType(dtype);
+      long long* lptr = (long long*)&(recvBuffer[i * dataSize]);
+      IDataType_ptr result = DataTypeStore::instance().getDataType(dtype);
       result->unpack(&(lptr[2]));
       results.push_back(result);
     }

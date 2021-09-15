@@ -42,7 +42,6 @@ def template_globals(globs):
     globs["notifications"] = VnVNotification.NOTIFICATIONS
 
 
-
 def faker():
     VnVNotification.add("test", "This is a message")
     VnVNotification.add("test1", "This is a message")

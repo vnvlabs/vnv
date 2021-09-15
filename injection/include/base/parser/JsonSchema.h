@@ -35,7 +35,6 @@ json getTestDelcarationJsonSchema();
 json getTestValidationSchema(std::map<std::string, std::string>& params,
                              json& schema);
 
-
 json getTransformDeclarationSchema();
 
 json getInjectionPointDeclarationSchema();
@@ -44,7 +43,8 @@ json& getBaseOptionsSchema();
 
 json& getDefaultOptionsSchema();
 
-bool validateSchema(const json& config, const json& schema, bool throwIfInvalid);
+bool validateSchema(const json& config, const json& schema,
+                    bool throwIfInvalid);
 
 // json getTestMappingSchema(json injectionPointDeclaration);
 

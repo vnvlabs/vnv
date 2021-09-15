@@ -2,7 +2,6 @@
 
 #include "VnV.h"
 
-
 /**
  * Test Writing a Vector to File
  * =============================
@@ -26,7 +25,7 @@
  *       }
  *    }
  *
-**/
+ **/
 INJECTION_TEST(VNVPACKAGENAME, vectorDump) {
   double val = comm->Rank();
 

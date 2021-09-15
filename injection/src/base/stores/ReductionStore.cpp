@@ -1,31 +1,25 @@
-﻿#include <iostream>
+﻿#include "base/stores/ReductionStore.h"
 
-#include "base/stores/ReductionStore.h"
-#include "base/Utilities.h"
-#include "base/exceptions.h"
+#include <iostream>
 
 #include "base/Runtime.h"
-
+#include "base/Utilities.h"
+#include "base/exceptions.h"
 
 namespace VnV {
 
 BaseStoreInstance(ReductionStore)
 
-namespace { 
-  
-long long getKey(std::string packageName,
-                                     std::string name) {
-  return VnV::StringUtils::simpleHash(packageName + ":" + name);
-}
+    namespace {
+  long long getKey(std::string packageName, std::string name) {
+    return VnV::StringUtils::simpleHash(packageName + ":" + name);
+  }
 
-long long getKey(std::string name) {
-  return getKey("", name);
-}
-
+  long long getKey(std::string name) { return getKey("", name); }
 }
 
 void ReductionStore::addReduction(std::string packageName, std::string name,
-                                      reduction_ptr m) {
+                                  reduction_ptr m) {
   reduction_factory.insert(std::make_pair(getKey(packageName, name), m));
 }
 
@@ -40,15 +34,12 @@ IReduction_ptr ReductionStore::getReducer(long long key) {
 }
 
 IReduction_ptr ReductionStore::getReducer(std::string packageName,
-                                              std::string name) {
+                                          std::string name) {
   return getReducer(getKey(packageName, name));
 }
 
 IReduction_ptr ReductionStore::getReducer(std::string packageColonName) {
   return getReducer(VnV::StringUtils::simpleHash(packageColonName));
 }
-
-
-
 
 }  // namespace VnV

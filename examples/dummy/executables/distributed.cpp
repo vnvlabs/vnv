@@ -7,7 +7,6 @@
 #include "VnV.h"
 #define SPNAME Distributed
 
-
 INJECTION_EXECUTABLE(SPNAME)
 
 /*
@@ -155,11 +154,10 @@ void cust(void* in, void* inout, int* len, MPI_Datatype* data) {
 }
 
 typedef struct _options_struct {
-   int lsize = 10;
-   int gsize = 3 ;
-} options_struct; 
+  int lsize = 10;
+  int gsize = 3;
+} options_struct;
 options_struct options;
-
 
 INJECTION_OPTIONS(SPNAME, R"(
   {
@@ -170,15 +168,13 @@ INJECTION_OPTIONS(SPNAME, R"(
      }
   }
 )") {
-   if ( config.contains("lsize")) {
-     options.lsize = config["lsize"].get<int>();
-   } 
-   if ( config.contains("vsize")) {
-     options.gsize = config["vsize"].get<int>();
-   } 
-   
+  if (config.contains("lsize")) {
+    options.lsize = config["lsize"].get<int>();
+  }
+  if (config.contains("vsize")) {
+    options.gsize = config["vsize"].get<int>();
+  }
 }
-
 
 int main(int argc, char** argv) {
   MPI_Init(&argc, &argv);
@@ -216,8 +212,6 @@ int main(int argc, char** argv) {
    * supports restructured text markup.
    */
   INJECTION_INITIALIZE(SPNAME, &argc, &argv, "./vv-dist-data.json");
-
-
 
   // Assign the global vector. This is a vector of "doubles" where
   // the values is g[i] = i. The vector is distributed across the processes

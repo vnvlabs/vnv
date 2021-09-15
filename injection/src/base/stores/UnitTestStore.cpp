@@ -7,22 +7,20 @@
 
 #include <iostream>
 
+#include "base/Runtime.h"
+#include "base/Utilities.h"
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/OutputEngineStore.h"
-#include "base/Utilities.h"
 #include "c-interfaces/Logging.h"
-
-#include "base/Runtime.h"
 
 using namespace VnV;
 
 BaseStoreInstance(UnitTestStore)
 
-UnitTestStore::UnitTestStore() {}
+    UnitTestStore::UnitTestStore() {}
 
 IUnitTest::IUnitTest() {}
 IUnitTest::~IUnitTest() {}
-
 
 ICommunicator_ptr UnitTestStore::dispatch(VnV_Comm comm, int cores) {
   auto c = CommunicationStore::instance().getCommunicator(comm);
@@ -39,27 +37,23 @@ ICommunicator_ptr UnitTestStore::dispatch(VnV_Comm comm, int cores) {
 }
 
 nlohmann::json UnitTestStore::schema() {
-    
-    nlohmann::json m = R"({"type":"object"})"_json;
-    nlohmann::json props = json::object();  
-    for (auto &it :  tester_factory) {
-      
-      nlohmann::json m1 = R"({"type":"object"})"_json;
-      nlohmann::json props1 = json::object();
-      
-      for (auto &itt : it.second) {
-         props1[itt.first] = R"({"type" : "boolean"})"_json;
-         props1[itt.first]["vnvprocs"] =  tester_cores[it.first + ":" + itt.first];    
-      }
-      m1["properties"] = props1;
-      props[it.first] = m1;
+  nlohmann::json m = R"({"type":"object"})"_json;
+  nlohmann::json props = json::object();
+  for (auto& it : tester_factory) {
+    nlohmann::json m1 = R"({"type":"object"})"_json;
+    nlohmann::json props1 = json::object();
 
+    for (auto& itt : it.second) {
+      props1[itt.first] = R"({"type" : "boolean"})"_json;
+      props1[itt.first]["vnvprocs"] = tester_cores[it.first + ":" + itt.first];
     }
-    m["properties"] = props;
-    m["additionalProperties"] = false;
-    return m;
+    m1["properties"] = props1;
+    props[it.first] = m1;
+  }
+  m["properties"] = props;
+  m["additionalProperties"] = false;
+  return m;
 }
-
 
 void UnitTestStore::addUnitTester(std::string packageName, std::string name,
                                   tester_ptr m, int cores) {
@@ -82,9 +76,8 @@ IUnitTest* UnitTestStore::getUnitTester(std::string packageName,
   return nullptr;
 }
 
-void UnitTestStore::runTest(ICommunicator_ptr comm,
-                            std::string packageName, std::string name,
-                            IUnitTest* tester) {
+void UnitTestStore::runTest(ICommunicator_ptr comm, std::string packageName,
+                            std::string name, IUnitTest* tester) {
   tester->setComm(comm);
   OutputEngineManager* engineManager =
       OutputEngineStore::instance().getEngineManager();
@@ -93,8 +86,8 @@ void UnitTestStore::runTest(ICommunicator_ptr comm,
   engineManager->unitTestFinishedCallBack(tester);
 }
 
-void UnitTestStore::runTest(ICommunicator_ptr comm,
-                            std::string packageName, std::string name) {
+void UnitTestStore::runTest(ICommunicator_ptr comm, std::string packageName,
+                            std::string name) {
   auto it = tester_factory.find(packageName);
   if (it != tester_factory.end()) {
     auto itt = it->second.find(name);
@@ -124,19 +117,21 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
   std::vector<std::tuple<int, std::string, std::string, tester_ptr>> tests;
   for (auto it : tester_factory) {
     std::set<std::string> blist;
-    if (info.unitTestConfig.contains(it.first) ) {
-        json& pconfig = info.unitTestConfig[it.first];
-        if (pconfig.contains("runUnitTests") && !pconfig["runUnitTests"].get<bool>()) {
-          // run unit tests was false --> so we continue without adding any from this pacakge. 
-          continue;
+    if (info.unitTestConfig.contains(it.first)) {
+      json& pconfig = info.unitTestConfig[it.first];
+      if (pconfig.contains("runUnitTests") &&
+          !pconfig["runUnitTests"].get<bool>()) {
+        // run unit tests was false --> so we continue without adding any from
+        // this pacakge.
+        continue;
+      }
+      if (pconfig.contains("unitTests")) {
+        for (auto& n : pconfig["unitTests"].items()) {
+          if (!n.value().get<bool>()) {
+            blist.insert(n.key());
+          }
         }
-        if (pconfig.contains("unitTests")) {
-           for (auto &n : pconfig["unitTests"].items()) {
-             if (!n.value().get<bool>()) {
-                blist.insert(n.key());
-             }
-           }
-        }
+      }
     }
 
     for (const auto& itt : it.second) {
@@ -145,8 +140,7 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
         int cores = tester_cores[key];
 
         tests.push_back(
-            std::make_tuple(cores, it.first, itt.first, itt.second)
-        );
+            std::make_tuple(cores, it.first, itt.first, itt.second));
       }
     }
   }

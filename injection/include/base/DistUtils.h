@@ -8,8 +8,8 @@
 #define _VV_DYNAMIC_H
 #include <set>
 
-#include "json-schema.hpp"
 #include "base/LibraryInfo.h"
+#include "json-schema.hpp"
 
 using nlohmann::json;
 
@@ -17,10 +17,6 @@ typedef void (*registrationCallback)();
 
 namespace VnV {
 namespace DistUtils {
-
-
-
-
 
 void* loadLibrary(std::string libraryPath);
 registrationCallback searchLibrary(void* dllib, std::string packageName);
@@ -58,12 +54,11 @@ void callAllLibraryRegistrationFunctions(
  * @param mode
  * @return
  */
-bool makedir(std::string filename, mode_t mode );
+bool makedir(std::string filename, mode_t mode);
 
 bool mv(std::string oldFileName, std::string newFilename);
 
 std::string getEnvironmentVariable(std::string val);
-
 
 /**
  * Make the nested directories with the given mode.
@@ -77,7 +72,6 @@ std::string join(std::vector<std::string> vector, mode_t i, bool makeDirs);
  * List Files in Directory
  */
 std::vector<std::string> listFilesInDirectory(std::string directory);
-
 
 }  // namespace DistUtils
 }  // namespace VnV

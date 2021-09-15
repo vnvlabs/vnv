@@ -57,7 +57,6 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection,
                                 const char* version, const char* upload_data,
                                 std::size_t* upload_data_size, void** con_cls);
 
-
 class JsonHttpStreamIterator : public VnV::StreamReader::JsonStreamIterator {
   int port = 0;
   struct MHD_Daemon* daemon;
@@ -139,8 +138,7 @@ class JsonHttpStream : public StreamWriter<json> {
     curl_easy_perform(curl);
   };
 
-  static std::shared_ptr<IRootNode> parse(std::string file,
-                                           long& id) {
+  static std::shared_ptr<IRootNode> parse(std::string file, long& id) {
     auto stream =
         std::make_shared<JsonHttpStreamIterator>(std::atoi(file.c_str()));
 
@@ -180,8 +178,8 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection,
                                 const char* version, const char* upload_data,
                                 std::size_t* upload_data_size, void** con_cls) {
   const char* page = "OK";
-  
-  JsonHttpStreamIterator* iter = (JsonHttpStreamIterator*) (cls);
+
+  JsonHttpStreamIterator* iter = (JsonHttpStreamIterator*)(cls);
   Request* request = (Request*)(*con_cls);
 
   if (request == NULL) {
@@ -206,17 +204,18 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection,
     }
 
     bool found = false;
-    for (auto &itt : iter->getInputStreams()) {
+    for (auto& itt : iter->getInputStreams()) {
       if (itt->streamId() == request->getStreamId()) {
-        found = true;         
+        found = true;
         itt->add(request->getId(), request->getData());
         break;
       }
     }
     if (!found) {
-       auto s = std::make_shared<VnV::StreamReader::JsonSingleStreamIterator>(request->getStreamId());
-       s->add(request->getId(), request->getData());
-       iter->add(s);
+      auto s = std::make_shared<VnV::StreamReader::JsonSingleStreamIterator>(
+          request->getStreamId());
+      s->add(request->getId(), request->getData());
+      iter->add(s);
     }
     delete request;
 
@@ -244,5 +243,5 @@ INJECTION_ENGINE(VNVPACKAGENAME, json_http) {
 }
 
 INJECTION_ENGINE_READER(VNVPACKAGENAME, json_http) {
-   return JsonHttpStream::parse(filename,id);
+  return JsonHttpStream::parse(filename, id);
 }

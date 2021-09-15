@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "base/DistUtils.h"
+#include "base/Provenance.h"
 #include "base/Runtime.h"
 #include "base/Utilities.h"
 #include "base/parser/JsonSchema.h"
@@ -23,15 +24,13 @@
 #include "base/stores/OutputEngineStore.h"
 #include "base/stores/PlugStore.h"
 #include "base/stores/PlugsStore.h"
-#include "base/stores/TestStore.h"
 #include "base/stores/SamplerStore.h"
+#include "base/stores/TestStore.h"
 #include "base/stores/UnitTestStore.h"
 #include "base/stores/WalkerStore.h"
 #include "c-interfaces/Logging.h"
 #include "interfaces/IAction.h"
 #include "interfaces/points/Injection.h"
-
-#include "base/Provenance.h"
 
 using namespace VnV;
 
@@ -39,17 +38,10 @@ INJECTION_OPTIONS(VNVPACKAGENAME, getBaseOptionsSchema().dump().c_str()) {
   RunTime::instance().getRunTimeOptions()->fromJson(config);
 }
 
-
-
-
-void RunTime::resetStore() {
-    stores.clear();
-}
-
-
+void RunTime::resetStore() { stores.clear(); }
 
 namespace {
-  
+
 ICommunicator_ptr getComm(VnV_Comm comm) {
   return CommunicationStore::instance().getCommunicator(comm);
 }
@@ -88,8 +80,6 @@ void RunTime::makeLibraryRegistrationCallbacks(
   }
 }
 
-
-
 bool RunTime::useAsciiColors() { return terminalSupportsAsciiColors; }
 
 void RunTime::logUnhandled(std::string name, std::string id, NTV& args) {
@@ -107,12 +97,11 @@ void RunTime::writeSpecification(std::string filename, bool quit) {
     ofs << getFullJsonSchema().dump(4);
   }
   if (quit) {
-       std::exit(0);
+    std::exit(0);
   }
 }
 
 nlohmann::json RunTime::getFullJsonSchema() {
-  
   json main = json::parse(getVVSchema().dump());
   main["options"] = OptionsParserStore::instance().schema();
   json& defs = main["definitions"];
@@ -130,7 +119,6 @@ nlohmann::json RunTime::getFullJsonSchema() {
   defs["transform"] = TransformStore::instance().schema();
   return main;
 }
-
 
 nlohmann::json RunTime::getFullJson() {
   json main = json::object();
@@ -164,7 +152,6 @@ nlohmann::json RunTime::getFullJson() {
   return main;
 }
 
-
 RunTimeOptions* RunTime::getRunTimeOptions() { return &runTimeOptions; }
 
 /*********************** ITERATIONS ************************************/
@@ -186,9 +173,9 @@ class VnV_Iterator_Info {
 
 }  // namespace
 
-std::shared_ptr<IterationPoint> RunTime::getNewInjectionIteration(VnV_Comm comm, 
-    std::string pname, std::string id, InjectionPointType type, int once,
-    NTV& in_args, NTV& out_args) {
+std::shared_ptr<IterationPoint> RunTime::getNewInjectionIteration(
+    VnV_Comm comm, std::string pname, std::string id, InjectionPointType type,
+    int once, NTV& in_args, NTV& out_args) {
   if (runTests) {
     // Load any hot patches
     loadHotPatch(comm);
@@ -207,32 +194,35 @@ std::shared_ptr<IterationPoint> RunTime::getNewInjectionIteration(VnV_Comm comm,
 }
 
 VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname,
-                                         std::string id, std::string fname, int line,
-                                         const DataCallback& callback,
+                                         std::string id, std::string fname,
+                                         int line, const DataCallback& callback,
                                          NTV& inputs, NTV& outputs, int once) {
-  auto it = getNewInjectionIteration(comm, pname, id, InjectionPointType::Begin, once,
-                                     inputs, outputs);
+  auto it = getNewInjectionIteration(comm, pname, id, InjectionPointType::Begin,
+                                     once, inputs, outputs);
   if (it != nullptr) {
     it->setComm(getComm(comm));
     it->setCallBack(callback);
-    it->iterate(fname,line);
+    it->iterate(fname, line);
   }
-  VnV_Iterator_Info* info = new VnV_Iterator_Info(id, pname, once, fname, line, it);
+  VnV_Iterator_Info* info =
+      new VnV_Iterator_Info(id, pname, once, fname, line, it);
   return {(void*)info};
 }
 
 VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname,
-                                         std::string id, std::string fname, int line,
+                                         std::string id, std::string fname,
+                                         int line,
                                          injectionDataCallback* callback,
                                          NTV& inputs, NTV& outputs, int once) {
-  auto it = getNewInjectionIteration(comm, pname, id, InjectionPointType::Begin, once,
-                                     inputs, outputs);
+  auto it = getNewInjectionIteration(comm, pname, id, InjectionPointType::Begin,
+                                     once, inputs, outputs);
   if (it != nullptr) {
     it->setComm(getComm(comm));
     it->setCallBack(callback);
-    it->iterate(fname,line);
+    it->iterate(fname, line);
   }
-  VnV_Iterator_Info* info = new VnV_Iterator_Info(id, pname, once, fname, line,it);
+  VnV_Iterator_Info* info =
+      new VnV_Iterator_Info(id, pname, once, fname, line, it);
   return {(void*)info};
 }
 
@@ -260,14 +250,15 @@ class VnV_Plug_Info {
   std::string function;
   int line;
   std::shared_ptr<PlugPoint> iter;
-  VnV_Plug_Info(std::string n, std::string p, std::string f, int l, std::shared_ptr<PlugPoint>& it)
+  VnV_Plug_Info(std::string n, std::string p, std::string f, int l,
+                std::shared_ptr<PlugPoint>& it)
       : name(n), pname(p), function(f), line(l), iter(it) {}
 };
 }  // namespace
 
 std::shared_ptr<PlugPoint> RunTime::getNewInjectionPlug(VnV_Comm comm,
                                                         std::string pname,
-                                                        std::string id, 
+                                                        std::string id,
                                                         NTV& in_args,
                                                         NTV& out_args) {
   if (runTests) {
@@ -286,7 +277,7 @@ std::shared_ptr<PlugPoint> RunTime::getNewInjectionPlug(VnV_Comm comm,
 }
 
 VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname,
-                                    std::string id, std::string fname, int line, 
+                                    std::string id, std::string fname, int line,
                                     const DataCallback& callback, NTV& inputs,
                                     NTV& outputs) {
   auto it = getNewInjectionPlug(comm, pname, id, inputs, outputs);
@@ -299,7 +290,7 @@ VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname,
 }
 
 VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname,
-                                    std::string id, std::string fname, int line, 
+                                    std::string id, std::string fname, int line,
                                     injectionDataCallback* callback,
                                     NTV& inputs, NTV& outputs) {
   auto it = getNewInjectionPlug(comm, pname, id, inputs, outputs);
@@ -307,12 +298,11 @@ VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname,
     it->setComm(getComm(comm));
     it->setCallBack(callback);
   }
-  VnV_Plug_Info* info = new VnV_Plug_Info(id, pname, fname, line,  it);
+  VnV_Plug_Info* info = new VnV_Plug_Info(id, pname, fname, line, it);
   return {(void*)info};
 }
 
 int RunTime::injectionPlugRun(VnV_Iterator* iterator) {
-
   VnV_Plug_Info* info = (VnV_Plug_Info*)iterator->data;
 
   if (info->iter != nullptr) {
@@ -326,15 +316,16 @@ int RunTime::injectionPlugRun(VnV_Iterator* iterator) {
 /************************** INJECTION POINTS
  * ****************************************/
 
-std::shared_ptr<InjectionPoint> RunTime::getNewInjectionPoint(VnV_Comm comm, 
-    std::string pname, std::string id, InjectionPointType type, NTV& in_args) {
+std::shared_ptr<InjectionPoint> RunTime::getNewInjectionPoint(
+    VnV_Comm comm, std::string pname, std::string id, InjectionPointType type,
+    NTV& in_args) {
   if (runTests) {
     // look for hotpatches;
     loadHotPatch(comm);
 
     std::shared_ptr<InjectionPoint> ipd =
-        InjectionPointStore::instance().getNewInjectionPoint(
-            pname, id, type, in_args);
+        InjectionPointStore::instance().getNewInjectionPoint(pname, id, type,
+                                                             in_args);
     if (ipd != nullptr) {
       ipd->setInjectionPointType(type, "Begin");
       return ipd;
@@ -350,23 +341,23 @@ std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(
     std::string stageId) {
   if (runTests) {
     std::shared_ptr<InjectionPoint> ipd =
-        InjectionPointStore::instance().getExistingInjectionPoint(
-            pname, id, type);
-    
+        InjectionPointStore::instance().getExistingInjectionPoint(pname, id,
+                                                                  type);
+
     if (ipd != nullptr) {
       ipd->setInjectionPointType(type, stageId);
       return ipd;
     }
-
   }
-  
+
   return nullptr;
 }
 
 void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
-                                   std::string id, std::string fname, int line, const DataCallback& callback,
-                                   NTV& args) {
-  auto it = getNewInjectionPoint(comm, pname, id, InjectionPointType::Begin, args);
+                                   std::string id, std::string fname, int line,
+                                   const DataCallback& callback, NTV& args) {
+  auto it =
+      getNewInjectionPoint(comm, pname, id, InjectionPointType::Begin, args);
   if (it != nullptr) {
     it->setCallBack(callback);
     it->setComm(getComm(comm));
@@ -377,18 +368,8 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
 void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname,
                                    std::string id, std::string fname, int line,
                                    injectionDataCallback* callback, NTV& args) {
-  auto it = getNewInjectionPoint(comm, pname, id, InjectionPointType::Begin, args);
-  if (it != nullptr) {
-    it->setCallBack(callback);
-    it->setComm(getComm(comm));
-    it->run(fname,line);
-  }
-}
-
-// Cpp interface.
-void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id, std::string fname, int line,
-                             const DataCallback& callback, NTV& args) {
-  auto it = getNewInjectionPoint(comm, pname, id, InjectionPointType::Single, args);
+  auto it =
+      getNewInjectionPoint(comm, pname, id, InjectionPointType::Begin, args);
   if (it != nullptr) {
     it->setCallBack(callback);
     it->setComm(getComm(comm));
@@ -396,34 +377,49 @@ void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id, s
   }
 }
 
-void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id, std::string fname, int line,
-                             injectionDataCallback* callback, NTV& args) {
-  
-  auto it = getNewInjectionPoint(comm, pname, id, InjectionPointType::Single, args);
+// Cpp interface.
+void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
+                             std::string fname, int line,
+                             const DataCallback& callback, NTV& args) {
+  auto it =
+      getNewInjectionPoint(comm, pname, id, InjectionPointType::Single, args);
   if (it != nullptr) {
     it->setCallBack(callback);
     it->setComm(getComm(comm));
-    it->run(fname,line);
+    it->run(fname, line);
+  }
+}
+
+void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
+                             std::string fname, int line,
+                             injectionDataCallback* callback, NTV& args) {
+  auto it =
+      getNewInjectionPoint(comm, pname, id, InjectionPointType::Single, args);
+  if (it != nullptr) {
+    it->setCallBack(callback);
+    it->setComm(getComm(comm));
+    it->run(fname, line);
   }
 }
 
 void RunTime::injectionPoint_iter(std::string pname, std::string id,
-                                  std::string stageId, std::string fname, int line) {
+                                  std::string stageId, std::string fname,
+                                  int line) {
   auto it =
       getExistingInjectionPoint(pname, id, InjectionPointType::Iter, stageId);
   if (it != nullptr) {
-    it->run(fname,line);
+    it->run(fname, line);
   }
 }
 
-void RunTime::injectionPoint_end(std::string pname, std::string id, std::string fname, int line) {
+void RunTime::injectionPoint_end(std::string pname, std::string id,
+                                 std::string fname, int line) {
   auto it =
       getExistingInjectionPoint(pname, id, InjectionPointType::End, "End");
   if (it != nullptr) {
-    it->run(fname,line);
+    it->run(fname, line);
   }
 }
-
 
 void RunTime::declarePackageJson(std::string pname,
                                  vnvFullJsonStrCallback callback) {
@@ -437,30 +433,23 @@ RunTime& RunTime::instance(bool reset) {
   }
   return store;
 }
-RunTime& RunTime::instance() {
-  return instance(false);
-}
-RunTime& RunTime::reset() {
-  return instance(true);
-}
+RunTime& RunTime::instance() { return instance(false); }
+RunTime& RunTime::reset() { return instance(true); }
 
-RunTime::RunTime() {
-    start = std::chrono::steady_clock::now();
-}
+RunTime::RunTime() { start = std::chrono::steady_clock::now(); }
 
 void RunTime::registerLogLevel(std::string packageName, std::string name,
                                std::string color) {
   logger.registerLogLevel(packageName, name, color);
 }
 
-void RunTime::registerFile(VnV_Comm comm, std::string packageName, std::string name, int input, std::string filename,
-                               std::string reader) {
-  
+void RunTime::registerFile(VnV_Comm comm, std::string packageName,
+                           std::string name, int input, std::string filename,
+                           std::string reader) {
   std::string fname = DistUtils::getAbsolutePath(filename);
-  OutputEngineStore::instance().getEngineManager()->file( getComm(comm), packageName, name, input, fname, reader);
-
+  OutputEngineStore::instance().getEngineManager()->file(
+      getComm(comm), packageName, name, input, fname, reader);
 }
-
 
 void RunTimeOptions::callback(json& j) {
   RunTime::instance().runTimeOptions.fromJson(j);
@@ -470,12 +459,9 @@ void RunTimeOptions::fromJson(json& j) {
   if (j.contains("logUnhandled")) {
     logUnhandled = j["logUnhandled"].get<bool>();
   }
-
 }
 
 void RunTime::getFullSchema(std::string filename) {}
-
-
 
 void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
   initializedCount++;
@@ -497,7 +483,7 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
     // that should be merged into the final specificiation.
     template_patch = info.template_overrides;
 
-    //Register VnV. 
+    // Register VnV.
     runTimePackageRegistration(VNV_STR(VNVPACKAGENAME),
                                INJECTION_REGISTRATION_PTR(VNVPACKAGENAME));
 
@@ -506,34 +492,29 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
       runTimePackageRegistration(mainPackageName, *callback);
     }
 
-    // Now we register VnVs communicator. The VnV communicator is set to be the same as the communicator
-    // for the executable.
-    //CommunicationStore::instance().copySettings(mainPackageName,VNVPACKAGENAME_S);
-
+    // Now we register VnVs communicator. The VnV communicator is set to be the
+    // same as the communicator for the executable.
+    // CommunicationStore::instance().copySettings(mainPackageName,VNVPACKAGENAME_S);
   }
 
   // Register the plugins specified in the input file.
   makeLibraryRegistrationCallbacks(info.additionalPlugins);
 
-  // Set up the engine 
+  // Set up the engine
   ICommunicator_ptr world = CommunicationStore::instance().worldComm();
 
   if (initializedCount == 1) {
-
-     if (!OutputEngineStore::instance().isInitialized()) {
+    if (!OutputEngineStore::instance().isInitialized()) {
       VnV_Debug(VNVPACKAGENAME, "Configuring The Output Engine");
       OutputEngineStore::instance().setEngineManager(
           world, info.engineInfo.engineType, info.engineInfo.engineConfig);
       VnV_Debug(VNVPACKAGENAME, "Output Engine Configuration Successful");
     }
-    
   }
 
   // Process the configs (wait until now because it allows loaded test libraries
   // to register options objects.
   processToolConfig(info.pluginConfig, info.cmdline, world);
-
-
 
   hotpatch = info.hotpatch;
 
@@ -543,11 +524,11 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
       "objects");
 
   for (auto it : info.injectionPoints) {
-
     auto x = TestStore::instance().validateTests(it.second.tests);
 
     if (it.second.type == InjectionType::ITER) {
-      auto iterations = IteratorsStore::instance().validateTests(it.second.iterators);
+      auto iterations =
+          IteratorsStore::instance().validateTests(it.second.iterators);
       IteratorStore::instance().addIterator(it.second.package, it.second.name,
                                             it.second.runInternal, x,
                                             iterations);
@@ -556,10 +537,10 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack* callback) {
       auto plug = std::make_shared<PlugConfig>(
           std::move(PlugsStore::instance().validateTest(it.second.plug)));
       PlugStore::instance().addPlug(it.second.package, it.second.name,
-                                        it.second.runInternal, x, plug);
+                                    it.second.runInternal, x, plug);
     }
 
-    SamplerConfig sconfig(it.second); 
+    SamplerConfig sconfig(it.second);
     InjectionPointStore::instance().addInjectionPoint(
         it.second.package, it.second.name, it.second.runInternal, x, sconfig);
   }
@@ -579,21 +560,15 @@ void RunTime::loadInjectionPoints(json _json) {
   }
 }
 
-
-
 namespace {
 
-// This is the last thing that needs to be implemented to get hotpatching running. 
-// We need to implement something that ensures all processors (not just those in comm)
-// have the same configuration in all cases.   
-bool getHotPatchFileName(VnV_Comm comm, std::string& filename) { 
-
+// This is the last thing that needs to be implemented to get hotpatching
+// running. We need to implement something that ensures all processors (not just
+// those in comm) have the same configuration in all cases.
+bool getHotPatchFileName(VnV_Comm comm, std::string& filename) {
   VnV_Warn(VNVPACKAGENAME, "Hot Patching is not supported yet!");
   return false;
-  
 }
-
-
 
 }  // namespace
 
@@ -605,7 +580,7 @@ void RunTime::loadHotPatch(VnV_Comm comm) {
     // only requirement is that all procs get the same hot patch information.
 
     std::string hotpatchfilename;
-    if (getHotPatchFileName(comm,hotpatchfilename)) {
+    if (getHotPatchFileName(comm, hotpatchfilename)) {
       json j = JsonUtilities::load(hotpatchfilename);
       JsonParser parser;
       char** argv = nullptr;
@@ -625,20 +600,15 @@ void RunTime::loadHotPatch(VnV_Comm comm) {
   }
 }
 
-VnVProv RunTime::getProv() {
-    return *prov;
-}
+VnVProv RunTime::getProv() { return *prov; }
 
 // Cant overload the name because "json" can be a "string".
 bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
                            json& config, registrationCallBack* callback) {
-  
   mainPackageName = packageName;
-  
-  // Set the provenance information . 
-  prov.reset( new VnV::VnVProv(*argc, *argv, configFile, config));
- 
- 
+
+  // Set the provenance information .
+  prov.reset(new VnV::VnVProv(*argc, *argv, configFile, config));
 
   JsonParser parser;
   try {
@@ -649,32 +619,28 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
     std::abort();
   }
 
-  
-
   bool exitStatus = configure(packageName, info, callback);
   if (exitStatus != 0) {
     return true;
   }
 
-  // Search the Cmd line for the input override call. This call sets the configuration 
-  // file using the command line. It overrides the value passed in through the initialize
-  // call. 
+  // Search the Cmd line for the input override call. This call sets the
+  // configuration file using the command line. It overrides the value passed in
+  // through the initialize call.
   for (int i = 0; i < *argc; i++) {
-     std::string s((*argv)[i]);
-     if (s.compare("--vnv-dump") == 0) {
-       std::string dumpfile = (*argv)[i+1];
-       writeSpecification(dumpfile,false);
-       break;
-     } else if (s.compare("--vnv-qdump")==0) {
-       std::string dumpfile = (*argv)[i+1];
-       writeSpecification(dumpfile,true);
-       std::exit(0);
-     }
+    std::string s((*argv)[i]);
+    if (s.compare("--vnv-dump") == 0) {
+      std::string dumpfile = (*argv)[i + 1];
+      writeSpecification(dumpfile, false);
+      break;
+    } else if (s.compare("--vnv-qdump") == 0) {
+      std::string dumpfile = (*argv)[i + 1];
+      writeSpecification(dumpfile, true);
+      std::exit(0);
+    }
   }
 
-
-  
-  prov.reset( new VnV::VnVProv(*argc, *argv, configFile, config));
+  prov.reset(new VnV::VnVProv(*argc, *argv, configFile, config));
 
   /**
    * Injection point documentation.
@@ -694,33 +660,29 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv,
   INJECTION_LOOP_BEGIN(VNV_STR(VNVPACKAGENAME), comm, "initialization",
                        runTests);
 
-
   return false;
 }
 
 bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv,
                            std::string configFile,
                            registrationCallBack* callback) {
-  
-  
-  // Search the Cmd line for the input override call. This call sets the configuration 
-  // file using the command line. It overrides the value passed in through the initialize
-  // call. 
+  // Search the Cmd line for the input override call. This call sets the
+  // configuration file using the command line. It overrides the value passed in
+  // through the initialize call.
   for (int i = 0; i < *argc; i++) {
-     std::string s((*argv)[i]);
-     if (s.compare("--vnv-input-file") == 0) {
-       configFile = (*argv)[i+1];
-       break;
-     }
+    std::string s((*argv)[i]);
+    if (s.compare("--vnv-input-file") == 0) {
+      configFile = (*argv)[i + 1];
+      break;
+    }
   }
-  
-  
+
   this->configFile = configFile;
   if (configFile == VNV_DEFAULT_INPUT_FILE) {
     json j = json::object();
     return InitFromJson(packageName, argc, argv, j, callback);
   }
-  
+
   std::ifstream fstream(configFile);
   json mainJson = JsonUtilities::load(configFile);
   return InitFromJson(packageName, argc, argv, mainJson, callback);
@@ -728,13 +690,9 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv,
 
 bool RunTime::configure(std::string packageName, RunInfo info,
                         registrationCallBack* callback) {
-  
   runTests = info.runTests;
-  
-  
-  
+
   if (runTests) {
-  
     CommunicationStore::instance().set(info.communicator);
 
     loadRunInfo(info, callback);
@@ -747,19 +705,17 @@ bool RunTime::configure(std::string packageName, RunInfo info,
       }
     }
 
-    runActions(VnV_Comm_World(), info.actionInfo,
-               ActionType::configure());
+    runActions(VnV_Comm_World(), info.actionInfo, ActionType::configure());
 
   } else if (info.error) {
     return 2;  // Exit because there was an error.
   }
 
-
-
   return 0;
 }
 
-void RunTime::processToolConfig(json config, json& cmdline, ICommunicator_ptr world) {
+void RunTime::processToolConfig(json config, json& cmdline,
+                                ICommunicator_ptr world) {
   OptionsParserStore::instance().parse(config, cmdline, world);
 }
 
@@ -775,8 +731,9 @@ void RunTime::runTimePackageRegistration(std::string packageName,
 }
 
 long RunTime::duration() {
-    auto end = std::chrono::steady_clock::now();
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+  auto end = std::chrono::steady_clock::now();
+  return std::chrono::duration_cast<std::chrono::nanoseconds>(end - start)
+      .count();
 }
 
 bool RunTime::Finalize() {
@@ -785,7 +742,8 @@ bool RunTime::Finalize() {
 
     INJECTION_LOOP_END(VNV_STR(VNVPACKAGENAME), "initialization");
 
-    OutputEngineStore::instance().getEngineManager()->finalize( comm, duration() );
+    OutputEngineStore::instance().getEngineManager()->finalize(comm,
+                                                               duration());
 
     // Call any cleanup actions that were registered.
     for (auto& it : cleanupActions) {
@@ -794,9 +752,9 @@ bool RunTime::Finalize() {
 
     runActions(VWORLD, info.actionInfo, ActionType::finalize());
   }
-  
+
   resetStore();
-  
+
   return true;
 }
 
@@ -818,19 +776,24 @@ void RunTime::runActions(VnV_Comm comm, ActionInfo info, ActionType t) {
   ActionStore::instance().runAll(comm, info, t);
 }
 
-std::shared_ptr<Nodes::IRootNode> RunTime::readFile(std::string reader, std::string filename) {
-   json j = json::object();
-   return OutputEngineStore::instance().readFile(filename, reader, j);
+std::shared_ptr<Nodes::IRootNode> RunTime::readFile(std::string reader,
+                                                    std::string filename) {
+  json j = json::object();
+  return OutputEngineStore::instance().readFile(filename, reader, j);
 }
 
-void RunTime::readFileAndWalk(std::string reader, std::string filename, std::string pack, std::string walk, nlohmann::json con) {
-   auto rootNode  = readFile(reader, filename); 
-   std::cout << rootNode->getPackages()->get("SampleExecutable")->getName() << std::endl;
-   std::shared_ptr<IWalker> walker = WalkerStore::instance().getWalker(pack,walk,rootNode.get(),con);
-   VnV::Nodes::WalkerNode node;
-   while (walker->next(node)) {
-     std::cout << node.item->getName() << std::endl;
-   }
+void RunTime::readFileAndWalk(std::string reader, std::string filename,
+                              std::string pack, std::string walk,
+                              nlohmann::json con) {
+  auto rootNode = readFile(reader, filename);
+  std::cout << rootNode->getPackages()->get("SampleExecutable")->getName()
+            << std::endl;
+  std::shared_ptr<IWalker> walker =
+      WalkerStore::instance().getWalker(pack, walk, rootNode.get(), con);
+  VnV::Nodes::WalkerNode node;
+  while (walker->next(node)) {
+    std::cout << node.item->getName() << std::endl;
+  }
 }
 
 void RunTime::printRunTimeInformation() {

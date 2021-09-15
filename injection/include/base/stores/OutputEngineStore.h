@@ -9,8 +9,8 @@
 #include <map>
 #include <string>
 
-#include "interfaces/IOutputEngine.h"
 #include "base/stores/BaseStore.h"
+#include "interfaces/IOutputEngine.h"
 
 /**
   \file Headers for the Engine Store.
@@ -46,14 +46,15 @@ namespace VnV {
  * registered with the VnV Engine store through the input file.
  *
  */
-class OutputEngineStore :public  BaseStore {
-
+class OutputEngineStore : public BaseStore {
  private:
-  std::map<std::string, engine_register_ptr> registeredEngines; /**< List of all registered engines */
-  std::map<std::string, engine_reader_ptr> registeredReaders; /**< List of all registered engine readers */
-  
-  
-  std::shared_ptr<OutputEngineManager> manager; /**< The current Engine Manager being used in VnV for all IO */
+  std::map<std::string, engine_register_ptr>
+      registeredEngines; /**< List of all registered engines */
+  std::map<std::string, engine_reader_ptr>
+      registeredReaders; /**< List of all registered engine readers */
+
+  std::shared_ptr<OutputEngineManager>
+      manager; /**< The current Engine Manager being used in VnV for all IO */
   std::string engineName;
 
   bool initialized = false; /**< Set when the Engine has been initialized */
@@ -61,8 +62,7 @@ class OutputEngineStore :public  BaseStore {
   long idCounter = 0;
 
  public:
-
-   /**
+  /**
    * @brief EngineStore
    * Private constructor called through public static function getEngineStore()
    */
@@ -100,8 +100,8 @@ class OutputEngineStore :public  BaseStore {
    * @param config config options for the engine.
    * @return
    */
-  std::shared_ptr<Nodes::IRootNode> readFile(std::string filename, std::string engine,
-                             json& config);
+  std::shared_ptr<Nodes::IRootNode> readFile(std::string filename,
+                                             std::string engine, json& config);
 
   /**
    * @brief setEngineManager
@@ -119,7 +119,6 @@ class OutputEngineStore :public  BaseStore {
    */
   void setEngineManager(ICommunicator_ptr world, std::string key, json& config);
 
-  
   /**
    * @brief printAvailableEngines
    *
@@ -136,7 +135,7 @@ class OutputEngineStore :public  BaseStore {
    */
   void print();
 
-  static OutputEngineStore& instance(); 
+  static OutputEngineStore& instance();
 };
 
 }  // namespace VnV

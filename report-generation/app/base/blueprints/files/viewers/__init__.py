@@ -58,7 +58,9 @@ def ip(id_):
             if isinstance(iprender, str):
                 return iprender
 
-            resp = render_template("viewers/injectionPoint.html", iprender=iprender)
+            resp = render_template(
+                "viewers/injectionPoint.html",
+                iprender=iprender)
             file.release()
             return resp
 
@@ -74,5 +76,5 @@ def next():
         with VnVFile.VnVFile.find(id_) as file:
             data = file.proc_iter_next(count)
             return jsonify(data), 200
-    except:
+    except BaseException:
         return render_error(501, "Error Loading File")

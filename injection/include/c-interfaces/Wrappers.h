@@ -4,11 +4,10 @@
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/PackageName.h"
 
-//Define the inters for the VnV Iterator 
+// Define the inters for the VnV Iterator
 typedef struct VnV_Iterator_ {
-   void* data;
+  void* data;
 } VnV_Iterator;
-
 
 // Define an interface for the OutputEngineWrapper
 struct IOutputEngineWrapper {
@@ -17,8 +16,7 @@ struct IOutputEngineWrapper {
 
 #define OUTPUTENGINESUPPORTEDTYPES X(double) X(int) X(long)
 #define X(type)                                                               \
-  VNVEXTERNC void VnV_Output_Put_##type(                        \
-                                        struct IOutputEngineWrapper* wrapper, \
+  VNVEXTERNC void VnV_Output_Put_##type(struct IOutputEngineWrapper* wrapper, \
                                         const char* name, type* value);
 OUTPUTENGINESUPPORTEDTYPES
 #undef X

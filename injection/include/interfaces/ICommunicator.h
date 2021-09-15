@@ -104,9 +104,10 @@ class ICommunicator {
   virtual ICommunicator_ptr create(int start, int end, int stride, int tag) = 0;
   virtual ICommunicator_ptr world() = 0;
   virtual ICommunicator_ptr self() = 0;
-  virtual ICommunicator_ptr custom(void * data, bool raw ) = 0;
-  
-  virtual ICommunicator_ptr handleOtherCommunicators(std::string name, void* data) = 0;
+  virtual ICommunicator_ptr custom(void* data, bool raw) = 0;
+
+  virtual ICommunicator_ptr handleOtherCommunicators(std::string name,
+                                                     void* data) = 0;
 
   virtual CommCompareType compare(ICommunicator_ptr ptr) = 0;
   virtual bool contains(ICommunicator_ptr) = 0;
@@ -164,10 +165,9 @@ class ICommunicator {
   virtual void Initialize();
   virtual void Finalize();
 
-  virtual int  VersionMajor() = 0;
+  virtual int VersionMajor() = 0;
   virtual int VersionMinor() = 0;
   virtual std::string VersionLibrary() = 0;
-
 
   template <typename T> T* getRaw() { return (T*)raw(); }
 };
@@ -176,21 +176,17 @@ enum class CommType { World, Self, Default };
 
 typedef ICommunicator* (*comm_register_ptr)(CommType);
 
-
 }  // namespace VnV
 
-
-#define INJECTION_COMM(PNAME, name)                                   \
-  namespace VnV {                                                     \
-  namespace PNAME {                                                   \
-  namespace Communication {                                           \
-  VnV::ICommunicator* declare_##name(VnV::CommType type);             \
-  }                                                                   \
-  }                                                                   \
-  }                                                                   \
-  VnV::ICommunicator* VnV::PNAME::Communication::declare_##name(      \
+#define INJECTION_COMM(PNAME, name)                              \
+  namespace VnV {                                                \
+  namespace PNAME {                                              \
+  namespace Communication {                                      \
+  VnV::ICommunicator* declare_##name(VnV::CommType type);        \
+  }                                                              \
+  }                                                              \
+  }                                                              \
+  VnV::ICommunicator* VnV::PNAME::Communication::declare_##name( \
       VnV::CommType type)
-
-
 
 #endif  // ICOMMUNICATOR_H

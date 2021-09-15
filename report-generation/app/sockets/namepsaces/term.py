@@ -14,8 +14,6 @@ from app.sockets.namepsaces.general import read_and_forward_pty_output, set_wins
 
 def configure_terminal(socketio, app):
 
-
-
     def read_and_forward():
         read_and_forward_pty_output(socketio, app, "pty", "fd")
 

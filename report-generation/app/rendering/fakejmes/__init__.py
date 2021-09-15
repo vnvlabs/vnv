@@ -1,3 +1,4 @@
+from jmespath.visitor import Options, TreeInterpreter
 from jmespath import parser
 from jmespath.functions import TYPES_MAP, REVERSE_TYPES_MAP, Functions
 
@@ -25,13 +26,12 @@ VnVMap = ['IBoolNode',
 
 VnVArray = ["IArrayNode"]
 
-TYPES_MAP.update({ f'VnVReader.{a}': "object" for a in VnVMap})
-TYPES_MAP.update({ f'VnVReader.{a}': "array" for a in VnVArray})
+TYPES_MAP.update({f'VnVReader.{a}': "object" for a in VnVMap})
+TYPES_MAP.update({f'VnVReader.{a}': "array" for a in VnVArray})
 
 REVERSE_TYPES_MAP["object"] = tuple(VnVMap + ['dict', 'OrderedDict'])
 REVERSE_TYPES_MAP["array"] = tuple(VnVArray + ['list', "_Projection"])
 
-from jmespath.visitor import Options, TreeInterpreter
 
 def _equals(x, y):
     if _is_special_integer_case(x, y):
@@ -39,31 +39,37 @@ def _equals(x, y):
     else:
         return x == y
 
+
 def _is_special_integer_case(x, y):
     if isinstance(x, int) and (x == 0 or x == 1):
         return y is True or y is False
     elif isinstance(y, int) and (y == 0 or y == 1):
         return x is True or x is False
 
+
 TreeInterpreter.COMPARATOR_FUNC.update({
-        'eq': _equals,
-        'ne': lambda x, y: not _equals(x, y),
+    'eq': _equals,
+    'ne': lambda x, y: not _equals(x, y),
 })
 
 
 class RootInterpreter(TreeInterpreter):
 
-
     def isDefactoList(self, element):
         return isinstance(
             element,
             list) or (
-                       hasattr(
-                           element,
-                           "__getType__") and element.__getType__() == "list")
+            hasattr(
+                element,
+                "__getType__") and element.__getType__() == "list")
 
     def __init__(self, dict_class=None):
-        super(RootInterpreter, self).__init__(Options(dict_class=dict_class, custom_functions=Functions()))
+        super(
+            RootInterpreter,
+            self).__init__(
+            Options(
+                dict_class=dict_class,
+                custom_functions=Functions()))
 
     def visit_field(self, node, value):
         try:
@@ -146,6 +152,7 @@ class RootInterpreter(TreeInterpreter):
 
 def compile(expression):
     return parser.Parser().parse(expression)
+
 
 def search(expression, value, options=None):
     interpreter = RootInterpreter(options)

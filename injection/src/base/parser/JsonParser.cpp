@@ -3,7 +3,6 @@
     base/JsonParser.h
 **/
 
-
 #include "base/parser/JsonParser.h"  // Prototype
 
 #include <fstream>
@@ -243,7 +242,6 @@ nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile,
 }  // namespace
 
 RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
-  
   json main = updateFileWithCommandLineOverrides(mainFile, argc, argv);
 
   RunInfo info;

@@ -1,12 +1,11 @@
 ﻿
 #include <stdio.h>
-
-#include <cstring>
-#include <list>
-#include <chrono>
-
-#include <iostream>
 #include <unistd.h>
+
+#include <chrono>
+#include <cstring>
+#include <iostream>
+#include <list>
 
 #include "base/exceptions.h"
 #include "interfaces/ICommunicator.h"
@@ -52,8 +51,8 @@ class SerialRequest : public VnV::IRequest {
 long long SerialRequest::idCounter = 0;
 
 static long getTime() {
-   auto d = std::chrono::system_clock::now().time_since_epoch();
-   return std::chrono::duration_cast<std::chrono::microseconds>(d).count();
+  auto d = std::chrono::system_clock::now().time_since_epoch();
+  return std::chrono::duration_cast<std::chrono::microseconds>(d).count();
 }
 
 long getStartTime() {
@@ -139,15 +138,15 @@ class SerialCommunicator : public VnV::ICommunicator {
 
   void setData(void* data) { commId = *((int*)data); }
   void* getData() { return &commId; }
-  void* raw() override {
-      return getData();
-  }
-  long uniqueId() { return getpid(); } //All serial communicators are the same from a uid perspective. }
+  void* raw() override { return getData(); }
+  long uniqueId() {
+    return getpid();
+  }  // All serial communicators are the same from a uid perspective. }
   int Size() { return 1; }
   int Rank() { return 0; }
   void Barrier() {}
   std::string ProcessorName() { return std::to_string(commId); }
-  
+
   double time() { return getTime() - getStartTime(); }
 
   double tick() { return time(); }
@@ -155,28 +154,21 @@ class SerialCommunicator : public VnV::ICommunicator {
   VnV::ICommunicator_ptr duplicate() {
     return std::make_shared<SerialCommunicator>();
   }
-  VnV::ICommunicator_ptr split(int color, int key) {
-    return duplicate();
-  }
-  VnV::ICommunicator_ptr create(std::vector<int>& ranks,
-                                               int stride) {
+  VnV::ICommunicator_ptr split(int color, int key) { return duplicate(); }
+  VnV::ICommunicator_ptr create(std::vector<int>& ranks, int stride) {
     return duplicate();
   }
 
-  VnV::ICommunicator_ptr create(int start, int end, int stride,
-                                               int tag) {
+  VnV::ICommunicator_ptr create(int start, int end, int stride, int tag) {
     return duplicate();
   }
 
-  VnV::ICommunicator_ptr world() {
-    return duplicate();
-  }
+  VnV::ICommunicator_ptr world() { return duplicate(); }
 
-  ICommunicator_ptr self() {
-    return duplicate();
-  }
+  ICommunicator_ptr self() { return duplicate(); }
 
-  virtual ICommunicator_ptr handleOtherCommunicators(std::string name, void* data) {
+  virtual ICommunicator_ptr handleOtherCommunicators(std::string name,
+                                                     void* data) {
     return duplicate();
   }
 
@@ -204,8 +196,8 @@ class SerialCommunicator : public VnV::ICommunicator {
     q.push_back(mess);
   }
 
-  VnV::IRequest_ptr ISend(void* buffer, int count, int dest,
-                                         int tag, int dataTypeSize) {
+  VnV::IRequest_ptr ISend(void* buffer, int count, int dest, int tag,
+                          int dataTypeSize) {
     // ISend means we dont need to copy the buffer we just add the message.
 
     auto q = getSendQueue();
@@ -214,8 +206,8 @@ class SerialCommunicator : public VnV::ICommunicator {
     return mess;
   }
 
-  VnV::IStatus_ptr Recv(void* buffer, int count, int dest,
-                                       int tag, int dataTypeSize) {
+  VnV::IStatus_ptr Recv(void* buffer, int count, int dest, int tag,
+                        int dataTypeSize) {
     auto s = getSR(buffer, count * dataTypeSize, tag, false);
     getRecvQueue().push_back(s);
     Process();
@@ -224,8 +216,8 @@ class SerialCommunicator : public VnV::ICommunicator {
     }
     return getSP(s->m_tag, s->m_size);
   }
-  VnV::IRequest_ptr IRecv(void* buffer, int count, int dest,
-                                         int tag, int dataTypeSize) {
+  VnV::IRequest_ptr IRecv(void* buffer, int count, int dest, int tag,
+                          int dataTypeSize) {
     auto s = getSR(buffer, count * dataTypeSize, tag, false);
     getRecvQueue().push_back(s);
     return s;
@@ -242,21 +234,14 @@ class SerialCommunicator : public VnV::ICommunicator {
     return getSP(s->m_tag, s->m_size);
   }
 
+  virtual int VersionMajor() { return 0; }
 
-  virtual int VersionMajor() {
-     return 0;
-  }
-
-  virtual int VersionMinor() {
-     return 0;
-  }
+  virtual int VersionMinor() { return 0; }
   virtual std::string VersionLibrary() {
-      return "Serial Communicator Version 0.0";
+    return "Serial Communicator Version 0.0";
   }
 
-
-  VnV::IStatus_vec WaitAll(
-      VnV::IRequest_vec& vec) {
+  VnV::IStatus_vec WaitAll(VnV::IRequest_vec& vec) {
     std::vector<SerialRequest*> r(vec.size());
     std::vector<IStatus_ptr> res(vec.size());
     bool needsProcess = false;
@@ -278,8 +263,7 @@ class SerialCommunicator : public VnV::ICommunicator {
     return res;
   }
 
-  std::pair<VnV::IStatus_ptr, int> WaitAny(
-      VnV::IRequest_vec& vec) {
+  std::pair<VnV::IStatus_ptr, int> WaitAny(VnV::IRequest_vec& vec) {
     std::vector<SerialRequest*> r(vec.size());
     std::vector<IStatus_ptr> res(vec.size());
     int count = 0;
@@ -332,16 +316,14 @@ class SerialCommunicator : public VnV::ICommunicator {
     return std::make_pair<VnV::IStatus_ptr, int>(nullptr, 0);
   }
 
-  std::pair<VnV::IStatus_ptr, int> Test(
-      VnV::IRequest_ptr ptr) {
+  std::pair<VnV::IStatus_ptr, int> Test(VnV::IRequest_ptr ptr) {
     SerialRequest* r = (SerialRequest*)ptr.get();
     if (r->sent_or_recvd)
       return std::make_pair(getSP(r->m_tag, r->m_size), true);
     Process();
     return std::make_pair(getSP(r->m_tag, r->m_size), r->sent_or_recvd);
   }
-  std::pair<VnV::IStatus_vec, int> TestAll(
-      VnV::IRequest_vec& vec) {
+  std::pair<VnV::IStatus_vec, int> TestAll(VnV::IRequest_vec& vec) {
     Process();
     IStatus_vec res;
     int f = 1;
@@ -353,8 +335,7 @@ class SerialCommunicator : public VnV::ICommunicator {
     return std::make_pair(res, f);
   }
 
-  std::tuple<VnV::IStatus_ptr, int, int> TestAny(
-      VnV::IRequest_vec& vec) {
+  std::tuple<VnV::IStatus_ptr, int, int> TestAny(VnV::IRequest_vec& vec) {
     Process();
     int f = 0;
     for (auto it : vec) {
@@ -378,14 +359,15 @@ class SerialCommunicator : public VnV::ICommunicator {
     Gather(buffer, count, recvBuffer, dataTypeSize, 0);
   }
 
-  void GatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize, int root) {
-    Gather(buffer,count,recvBuffer,dataTypeSize,root);
+  void GatherV(void* buffer, int count, void* recvBuffer, int* recvCount,
+               int* recvDispl, int dataTypeSize, int root) {
+    Gather(buffer, count, recvBuffer, dataTypeSize, root);
   }
 
-  void AllGatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize) {
-    AllGather(buffer,count,recvBuffer,dataTypeSize);
+  void AllGatherV(void* buffer, int count, void* recvBuffer, int* recvCount,
+                  int* recvDispl, int dataTypeSize) {
+    AllGather(buffer, count, recvBuffer, dataTypeSize);
   }
-
 
   void BroadCast(void* buffer, int count, int dataTypeSize, int root) {
     // Gather(buffer,count, recvBuffer,dataTypeSize,0);

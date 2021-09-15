@@ -9,7 +9,7 @@ class SequentialGraphIter : public VnV::Walkers::Iter {
  protected:
   long rootComm;
   std::list<IDN>::iterator indexIter;
-  
+
   // Include a .
   bool includeProc(long streamId) {
     return streamId == rootComm || commMap->commIsChild(rootComm, streamId);
@@ -73,9 +73,8 @@ class SequentialGraphIter : public VnV::Walkers::Iter {
   // Get the next node id->vector of parents
 
  public:
-  SequentialGraphIter(
-      ICommMap* comm, long commId,
-      std::map<long, std::list<IDN>>& n)
+  SequentialGraphIter(ICommMap* comm, long commId,
+                      std::map<long, std::list<IDN>>& n)
       : Iter(comm, n), rootComm(commId) {
     indexIter = niter->second.begin();
   }
@@ -84,7 +83,7 @@ class SequentialGraphIter : public VnV::Walkers::Iter {
       while (indexIter != niter->second.end()) {
         if (includeProc(indexIter->streamId)) {
           std::get<0>(res) = indexIter->id;
-          std::get<1>(res) = indexIter->type; 
+          std::get<1>(res) = indexIter->type;
           std::get<2>(res) = indexIter->duration;
           std::get<3>(res).clear();
           getEdges(indexIter->streamId, indexIter->id, std::get<3>(res));
@@ -98,25 +97,21 @@ class SequentialGraphIter : public VnV::Walkers::Iter {
 
     return false;
   }
-
-
 };
 
 class RootNodeGraphWalk : public VnV::IWalker {
-
   IRootNode* rootNode;
   std::shared_ptr<SequentialGraphIter> procIter;
   std::tuple<long, node_type, long, std::set<long>> curr;
 
-
-  virtual bool _next(VnV::Nodes::WalkerNode& node) override { 
+  virtual bool _next(VnV::Nodes::WalkerNode& node) override {
     if (procIter->next(curr)) {
-        node.item = rootNode->findById(std::get<0>(curr));
-        node.type = std::get<1>(curr);
-        node.time = std::get<2>(curr);
-        node.edges = std::get<3>(curr);
-        return true;
-    } 
+      node.item = rootNode->findById(std::get<0>(curr));
+      node.type = std::get<1>(curr);
+      node.time = std::get<2>(curr);
+      node.edges = std::get<3>(curr);
+      return true;
+    }
 
     node.item = NULL;
     node.type = node_type::DONE;
@@ -128,10 +123,8 @@ class RootNodeGraphWalk : public VnV::IWalker {
   RootNodeGraphWalk(IRootNode* root, long commId) : IWalker(root) {
     rootNode = root;
     procIter = std::make_shared<SequentialGraphIter>(
-         root->getCommInfoNode()->getCommMap(),commId, root->getNodes());
-    }
-
-
+        root->getCommInfoNode()->getCommMap(), commId, root->getNodes());
+  }
 };
 
 const char* getSchema() {
@@ -145,11 +138,9 @@ const char* getSchema() {
   })";
 }
 
+}  // namespace
+
+INJECTION_WALKER_S(VNVPACKAGENAME, graph, getSchema()) {
+  long id = config["id"].get<long>();
+  return new RootNodeGraphWalk(rootNode, id);
 }
-
-INJECTION_WALKER_S(VNVPACKAGENAME,graph, getSchema()) {
-    long id = config["id"].get<long>();
-    return new RootNodeGraphWalk(rootNode,id);
-}
-
-

@@ -9,7 +9,7 @@
 #define VnV_E_STR(x) #x
 #define VNV_STR(x) VnV_E_STR(x)
 #define VNV_EX(x) x
-#define VNV_JOIN(x,y,z) x##y##z
+#define VNV_JOIN(x, y, z) x##y##z
 
 #define VNVREGNAME __vnv_registration_callback__
 
@@ -72,11 +72,13 @@
 #define VNV_GET_REGISTRATION "__vnv_registration_callback__"
 
 #ifdef __cplusplus
-#  define INJECTION_REGISTRATION(PNAME) \
-    extern "C" void __attribute__((visibility("default"))) VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
+#  define INJECTION_REGISTRATION(PNAME)                    \
+    extern "C" void __attribute__((visibility("default"))) \
+    VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
 #else
-#  define INJECTION_REGISTRATION(PNAME) \
-    void __attribute__((visibility("default"))) VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
+#  define INJECTION_REGISTRATION(PNAME)         \
+    void __attribute__((visibility("default"))) \
+    VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
 #endif
 
 #define INJECTION_REGISTRATION_CALL(PNAME) VNV_REGISTRATION_CALLBACK_NAME(PNAME)
@@ -86,11 +88,10 @@
 // be picked up by the clang parser.
 #define INJECTION_PACKAGEDOCS(PNAME)
 
-// Allows the user to define a comment for any vnv injection object at some other place.
-// Comments will be inserted based on the IMPORTANCE rating. The comment specified above
-// a VNV Object has an importance rating of 0  
+// Allows the user to define a comment for any vnv injection object at some
+// other place. Comments will be inserted based on the IMPORTANCE rating. The
+// comment specified above a VNV Object has an importance rating of 0
 #define INJECTION_COMMENT(PNAME, NAME, TYPE, IMPORTANT)
-
 
 // Forward declare the VNV Registration Function.
 INJECTION_REGISTRATION(VNVPACKAGENAME);

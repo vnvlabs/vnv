@@ -4,9 +4,9 @@
 #include <map>
 #include <string>
 
-#include "base/stores/TransformStore.h"
 #include "base/Utilities.h"
 #include "base/exceptions.h"
+#include "base/stores/TransformStore.h"
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/Logging.h"
 #include "interfaces/IOutputEngine.h"
@@ -22,8 +22,6 @@ using nlohmann::json_schema::json_validator;
 namespace VnV {
 
 enum TestStatus { SUCCESS, FAILURE, NOTRUN };
-
-
 
 class VnVParameter {
   void* ptr;
@@ -63,7 +61,7 @@ class VnVParameter {
 
   void setRtti(std::string rtti) { this->rtti = rtti; }
 
-  void setInput(bool input) {this->input = input;}
+  void setInput(bool input) { this->input = input; }
 
   void* getRawPtr() const { return ptr; }
 
@@ -71,7 +69,7 @@ class VnVParameter {
 
   std::string getRtti() const { return rtti; }
 
-  bool isInput() const {return input;};
+  bool isInput() const { return input; };
 
   template <typename T> T& getByRtti() {
     if (hasRtti) {
@@ -84,13 +82,12 @@ class VnVParameter {
     throw VnVExceptionBase("Invalid Parameter conversion in test");
   }
 
-
   template <typename T> T& get_rtti_or_nothing() {
     if (hasRtti) {
       return getByRtti<T>();
     } else {
-        T* tempPtr = static_cast<T*>(getRawPtr());
-        return *tempPtr;
+      T* tempPtr = static_cast<T*>(getRawPtr());
+      return *tempPtr;
     }
   }
   template <typename T> T* getByRtti_Ptr() {
@@ -104,7 +101,6 @@ class VnVParameter {
     throw VnVExceptionBase("Invalid Parameter conversion in test");
   }
 
-
   template <typename T> T* getByType_Ptr(std::string type) {
     StringUtils::squash(type);
     if (!type.empty() && getType().compare(type) != 0) {
@@ -113,8 +109,7 @@ class VnVParameter {
     return static_cast<T*>(getRawPtr());
   }
 
-
-  template <typename T>  T& getByType(std::string type) {
+  template <typename T> T& getByType(std::string type) {
     StringUtils::squash(type);
     if (!type.empty() && getType().compare(type) != 0) {
       throw VnVExceptionBase("type information incorrect");
@@ -122,7 +117,7 @@ class VnVParameter {
     return *(static_cast<T*>(getRawPtr()));
   }
 
-  template <typename T> T& getByRttiOrType(std::string type)  {
+  template <typename T> T& getByRttiOrType(std::string type) {
     try {
       return getByRtti<T>();
     } catch (...) {
@@ -137,10 +132,8 @@ class VnVParameter {
       return getByType_Ptr<T>(type);
     }
   }
-
 };
 typedef std::map<std::string, VnVParameter> VnVParameterSet;
-
 
 class TestConfig {
  protected:
@@ -171,8 +164,7 @@ class TestConfig {
    */
   void setName(std::string name);
 
-  VnVParameterSet& getParameterMap() ;
-
+  VnVParameterSet& getParameterMap();
 
   void setParameterMap(std::map<std::string, VnVParameter>& args);
 
@@ -190,9 +182,10 @@ class TestConfig {
   void setUnknownInjectionPoint();
 };
 
-typedef std::function<void(
-    VnV_Comm comm, std::map<std::string, VnV::VnVParameter>& ntv,
-    VnV::OutputEngineManager* engine, VnV::InjectionPointType type, std::string stageId)>
+typedef std::function<void(VnV_Comm comm,
+                           std::map<std::string, VnV::VnVParameter>& ntv,
+                           VnV::OutputEngineManager* engine,
+                           VnV::InjectionPointType type, std::string stageId)>
     DataCallback;
 
 void defaultCallBack(VnV_Comm comm, std::map<std::string, VnVParameter>& ntv,
@@ -204,10 +197,9 @@ void defaultCallBack(VnV_Comm comm, std::map<std::string, VnVParameter>& ntv,
  */
 class ITest {
  public:
-  
   static long uid;
-  long uuid; 
-  
+  long uuid;
+
   /**
    * @brief ITest
    */
@@ -239,17 +231,13 @@ class ITest {
   virtual TestStatus runTest(ICommunicator_ptr comm, IOutputEngine* engine,
                              InjectionPointType type, std::string stageId) = 0;
 
-
-
-
   /**
    * @brief getConfigurationJson
    * @return
    */
   const json& getConfigurationJson() const;
 
-  template <typename T>
-  T& getReference(std::string name, std::string type) {
+  template <typename T> T& getReference(std::string name, std::string type) {
     StringUtils::squash(type);
     auto it = m_config.getParameterMap().find(name);
     if (it != m_config.getParameterMap().end()) {
@@ -258,8 +246,7 @@ class ITest {
     throw VnVExceptionBase("Parameter Mapping Error.");
   }
 
-  template <typename T>
-  T& getReference(std::string name) {
+  template <typename T> T& getReference(std::string name) {
     auto it = m_config.getParameterMap().find(name);
     if (it != m_config.getParameterMap().end()) {
       return it->second.get_rtti_or_nothing<T>();
@@ -267,34 +254,32 @@ class ITest {
     throw VnVExceptionBase("Parameter Mapping Error.");
   }
 
-
   template <typename T>
-  T* getInputParameter(std::string name, std::string type)  {
-       return getPtr<T>(name, type, true);
+  T* getInputParameter(std::string name, std::string type) {
+    return getPtr<T>(name, type, true);
   }
 
   template <typename T>
   T* getOutputParameter(std::string name, std::string type) {
-      return getPtr<T>(name, type, false);
+    return getPtr<T>(name, type, false);
   }
 
-
  protected:
-
   TestConfig m_config;
 
-
   template <typename T>
-  T* getPtr(std::string name, std::string type, bool input)  {
+  T* getPtr(std::string name, std::string type, bool input) {
     StringUtils::squash(type);
     VnVParameterSet& map = m_config.getParameterMap();
     auto it = map.find(name);
     if (it != map.end()) {
       if (it->second.isInput() != input) {
-          if (input) {
-             throw VnVExceptionBase("Requested an input parameter but got an output parameter");
-          }
-          throw VnVExceptionBase("Requested an output parameter but got an input parameter");
+        if (input) {
+          throw VnVExceptionBase(
+              "Requested an input parameter but got an output parameter");
+        }
+        throw VnVExceptionBase(
+            "Requested an output parameter but got an input parameter");
       }
       return it->second.getByRttiOrType_Ptr<T>(type);
     }
@@ -312,12 +297,9 @@ class ITest {
 };
 
 typedef ITest* (*maker_ptr)(TestConfig config);
-void registerTest(std::string package, std::string name,std::string schema, VnV::maker_ptr m,
+void registerTest(std::string package, std::string name, std::string schema,
+                  VnV::maker_ptr m,
                   std::map<std::string, std::string> parameters);
-
-
-
-
 
 // Search in s for a VnVParameter named "name". Convert the raw ptr to class T
 // with checking.
@@ -325,7 +307,6 @@ void registerTest(std::string package, std::string name,std::string schema, VnV:
 
 template <typename Runner, typename Type> class Test_T : public Type {
  public:
-
   std::map<std::string, std::string> parameters;
   std::shared_ptr<Runner> runner;
 
@@ -337,42 +318,50 @@ template <typename Runner, typename Type> class Test_T : public Type {
   template <typename T> const T& get(std::string param) {
     auto it = parameters.find(param);
     if (it != parameters.end()) {
-      return this-> template getReference<T>(param, it->second);
+      return this->template getReference<T>(param, it->second);
     }
     throw VnV::VnVExceptionBase("Parameter does not exist");
   }
-
 };
 
 }  // namespace VnV
 
-#define VNVDECLAREMACRO(Type, PNAME, name) namespace VnV { namespace PNAME { namespace Type { void register_##name(); }}}
-  #define VNVREGISTERMACRO(Type, PNAME, name) VnV::PNAME::Type::register_##name();
+#define VNVDECLAREMACRO(Type, PNAME, name) \
+  namespace VnV {                          \
+  namespace PNAME {                        \
+  namespace Type {                         \
+  void register_##name();                  \
+  }                                        \
+  }                                        \
+  }
+#define VNVREGISTERMACRO(Type, PNAME, name) VnV::PNAME::Type::register_##name();
 
+#define INJECTION_TEST_RS(PNAME, name, Runner, schema, ...)             \
+  namespace VnV {                                                       \
+  namespace PNAME {                                                     \
+  namespace Tests {                                                     \
+  class name : public Test_T<VnV_Arg_Type(Runner), ITest> {             \
+   public:                                                              \
+    name(TestConfig& config)                                            \
+        : Test_T<VnV_Arg_Type(Runner), ITest>(config, #__VA_ARGS__) {}  \
+    TestStatus runTest(ICommunicator_ptr comm, IOutputEngine* engine,   \
+                       InjectionPointType type, std::string stageId);   \
+  };                                                                    \
+  ITest* declare_##name(TestConfig config) { return new name(config); } \
+  void register_##name() {                                              \
+    VnV::registerTest(VNV_STR(PNAME), #name, schema, &declare_##name,   \
+                      VnV::StringUtils::variadicProcess(#__VA_ARGS__)); \
+  }                                                                     \
+  }                                                                     \
+  }                                                                     \
+  }                                                                     \
+  VnV::TestStatus VnV::PNAME::Tests::name::runTest(                     \
+      ICommunicator_ptr comm, VnV::IOutputEngine* engine,               \
+      VnV::InjectionPointType type, std::string stageId)
 
+#define DECLARETEST(PNAME, name) VNVDECLAREMACRO(Tests, PNAME, name)
 
-#define INJECTION_TEST_RS(PNAME, name, Runner, schema, ...)                    \
-  namespace VnV {                                                              \
-  namespace PNAME {                                                            \
-  namespace Tests {                                                            \
-  class name : public Test_T<VnV_Arg_Type(Runner), ITest> {                           \
-   public:                                                                     \
-    name(TestConfig& config) : Test_T<VnV_Arg_Type(Runner), ITest>(config, #__VA_ARGS__) {}         \
-    TestStatus runTest(ICommunicator_ptr comm, IOutputEngine* engine,  InjectionPointType type, std::string stageId); \
-  };                                                                               \
-  ITest* declare_##name(TestConfig config) { return new name(config); }        \
-  void register_##name() {                                                     \
-      VnV::registerTest(VNV_STR(PNAME), #name, schema, &declare_##name, VnV::StringUtils::variadicProcess(#__VA_ARGS__)); \
-  }                                                                           \
-  }                                                                            \
-  }                                                                            \
-  }                                                                            \
-  VnV::TestStatus VnV::PNAME::Tests::name::runTest(ICommunicator_ptr comm, VnV::IOutputEngine* engine, VnV::InjectionPointType type, std::string stageId)
-
-#define DECLARETEST(PNAME, name) VNVDECLAREMACRO(Tests, PNAME, name)  
-
-#define REGISTERTEST(PNAME, name) VNVREGISTERMACRO(Tests, PNAME, name) 
-
+#define REGISTERTEST(PNAME, name) VNVREGISTERMACRO(Tests, PNAME, name)
 
 #define INJECTION_TEST_R(PNAME, name, runner, ...) \
   INJECTION_TEST_RS(PNAME, name, runner, R"({"type":"object"})", __VA_ARGS__)

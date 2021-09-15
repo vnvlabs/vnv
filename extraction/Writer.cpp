@@ -118,7 +118,7 @@ class RegistrationWriter {
     registerHelper(j, "Samplers", "SAMPLER", packageName);
     registerHelper(j, "Walkers", "WALKER", packageName);
     registerHelper(j, "DataTypes", "DATATYPE", packageName);
-    
+
     if (j.contains("LogLevels")) {
       for (auto it : j["LogLevels"].items()) {
         std::string pname = it.value()["packageName"].get<std::string>();
@@ -134,16 +134,15 @@ class RegistrationWriter {
         }
       }
     }
-    
+
     if (j.contains("Files")) {
       for (auto it : j["Files"].items()) {
-        
         std::string pname = it.value()["packageName"].get<std::string>();
         if (packageName.empty() || pname == packageName) {
           std::string n = it.value()["name"].get<std::string>();
-          
+
           createPackageOss(pname);
-          
+
           VnV::JsonUtilities::getOrCreate(pjson[pname], "Files")[n] =
               it.value();
         }
@@ -243,15 +242,17 @@ void writeFile(json& cacheInfo, std::string outputFileName,
     }
     efile.close();
   }
-  
+
   // Pull everything into types, not files.
   json finalJson = json::object();
   for (auto it : cacheInfo["data"].items()) {
     for (std::string type :
-         {"InjectionPoints", "SubPackages", "LogLevels", "Files", "Tests", "Iterators",
-          "Plugs", "Engines", "EngineReaders", "Comms", "Reducers", "Samplers", "Walkers", "DataTypes", "Serializers",
-          "Transforms", "UnitTests", "Actions", "Options", "Introduction",
-          "Conclusion", "Package", "Communicator"}) {
+         {"InjectionPoints", "SubPackages", "LogLevels",   "Files",
+          "Tests",           "Iterators",   "Plugs",       "Engines",
+          "EngineReaders",   "Comms",       "Reducers",    "Samplers",
+          "Walkers",         "DataTypes",   "Serializers", "Transforms",
+          "UnitTests",       "Actions",     "Options",     "Introduction",
+          "Conclusion",      "Package",     "Communicator"}) {
       json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);
       for (auto it :
            VnV::JsonUtilities::getOrCreate(it.value(), type).items()) {

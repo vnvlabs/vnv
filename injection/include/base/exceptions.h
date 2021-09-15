@@ -1,11 +1,12 @@
 ﻿#ifndef EXCEPTIONS_H
 #define EXCEPTIONS_H
 
+#include <stdio.h>
+
+#include <cstdarg>
 #include <exception>
 #include <sstream>
 #include <string>
-#include <stdio.h>
-#include <cstdarg>
 
 namespace VnV {
 
@@ -19,8 +20,6 @@ struct VnVExceptionBase : public std::exception {
 };
 
 namespace Exceptions {
-
-
 
 VnVExceptionBase parseError(std::ifstream& fstream, long unsigned int byte,
                             std::string message);

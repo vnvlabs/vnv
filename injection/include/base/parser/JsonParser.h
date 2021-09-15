@@ -45,8 +45,7 @@ struct SamplerInfo {
   nlohmann::json config = json::object();
 };
 
-
-enum class InjectionType { POINT, ITER, PLUG};
+enum class InjectionType { POINT, ITER, PLUG };
 
 struct InjectionPointInfo {
   InjectionType type = InjectionType::POINT;
@@ -55,18 +54,16 @@ struct InjectionPointInfo {
   std::vector<json> tests;
   std::vector<json> iterators;
   json plug = json::object();
-  
+
   SamplerInfo sampler;
 
   bool runInternal;
 };
 
-
 struct UnitTestInfo {
   bool runUnitTests;
   json unitTestConfig;
   bool exitAfterTests;
-
 };
 
 struct ActionConfig {
@@ -88,13 +85,16 @@ struct ActionInfo {
  */
 struct RunInfo {
   bool runTests; /**< Should any tests be run */
-  
-  std::string communicator="mpi"; //**< should we use mpi. If yes, vnv will use mpi communicator. if false, we will use serial. 
-  
+
+  std::string communicator =
+      "mpi";  //**< should we use mpi. If yes, vnv will use mpi communicator. if
+              // false, we will use serial.
+
   std::map<std::string, std::string>
       additionalPlugins; /*< List of file paths to included plugin libraries */
-  std::map<std::string, InjectionPointInfo> injectionPoints; /**< all injection points with tests */
-  
+  std::map<std::string, InjectionPointInfo>
+      injectionPoints; /**< all injection points with tests */
+
   json pluginConfig;
   json cmdline;
 
@@ -167,7 +167,6 @@ class JsonParser {
    */
   EngineInfo getEngineInfo(const json& engineJson);
 
-
   ActionInfo getActionInfo(const json& actionJson, std::string type);
 
   SamplerInfo getSamplerInfo(const json& samplerJson);
@@ -195,7 +194,6 @@ class JsonParser {
   void addTest(const json& testJson, std::vector<json>& testConfig,
                std::set<std::string>& runScopes);
 
-
   bool add(const json& testJson, std::set<std::string>& runScopes);
 
   /**
@@ -212,7 +210,8 @@ class JsonParser {
    */
   void addInjectionPoint(const json& injectionPointJson,
                          std::set<std::string>& runScopes,
-                         std::map<std::string, InjectionPointInfo>& ips, InjectionType type);
+                         std::map<std::string, InjectionPointInfo>& ips,
+                         InjectionType type);
 
   /**
    * @brief addTestLibrary
@@ -250,7 +249,6 @@ class JsonParser {
   json commandLineParser(int* argc, char** argv);
   RunInfo parse(std::ifstream& fstream, int* argc, char** argv);
   RunInfo parse(const json& _json, int* argc, char** argv);
-
 };
 
 }  // namespace VnV

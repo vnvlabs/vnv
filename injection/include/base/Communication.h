@@ -1,17 +1,17 @@
 ﻿#ifndef COMMUNICATION_RUNTIME_H
 #define COMMUNICATION_RUNTIME_H
-#include "interfaces/ICommunicator.h"
-#include "interfaces/IReduction.h"
-#include "interfaces/IDataType.h"
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/ReductionStore.h"
+#include "interfaces/ICommunicator.h"
+#include "interfaces/IDataType.h"
+#include "interfaces/IReduction.h"
 
 namespace VnV {
 
 class DataTypeCommunication {
   ICommunicator_ptr comm;
 
-public:
+ public:
   DataTypeCommunication(ICommunicator_ptr ptr) : comm(ptr) {}
 
   IStatus_ptr Probe(int source, int tag);
@@ -35,38 +35,47 @@ public:
   // Recv an arbitary data type without knowing what it is.
   std::pair<IDataType_vec, IStatus_ptr> Recv(int dest, int tag);
 
-  IDataType_vec BroadCast(IDataType_vec& data, long long dtype, int count, int root,
-                          bool allToAll);
+  IDataType_vec BroadCast(IDataType_vec& data, long long dtype, int count,
+                          int root, bool allToAll);
 
-  IDataType_vec Gather(IDataType_vec& data, long long dtype, int root, bool allGather);
+  IDataType_vec Gather(IDataType_vec& data, long long dtype, int root,
+                       bool allGather);
 
-  IDataType_vec GatherV(IDataType_vec &data, long long dtype, int root, std::vector<int> &gsizes, std::vector<int> &sizes, std::vector<int> &offsets, bool allGather) ;
+  IDataType_vec GatherV(IDataType_vec& data, long long dtype, int root,
+                        std::vector<int>& gsizes, std::vector<int>& sizes,
+                        std::vector<int>& offsets, bool allGather);
 
-  IDataType_vec Scatter(IDataType_vec& data, long long dtype, int root, int count);
+  IDataType_vec Scatter(IDataType_vec& data, long long dtype, int root,
+                        int count);
 
   // TODO Assumes Datatype vec are all the same type.
 
   // NOTE: Each data element is considered a new reduction variable. I.e, this
-  // assumes every process puts in the same number of data points. To reduce a "vector"
-  // where each process has multiple entities, make sure to set "vector=true"!
-  IDataType_vec ReduceMultiple(IDataType_vec& data, long long dtype, IReduction_ptr reduction, int root);
-  IDataType_vec ReduceMultiple(IDataType_vec& data, long long dtype, std::string reducer, int root);
+  // assumes every process puts in the same number of data points. To reduce a
+  // "vector" where each process has multiple entities, make sure to set
+  // "vector=true"!
+  IDataType_vec ReduceMultiple(IDataType_vec& data, long long dtype,
+                               IReduction_ptr reduction, int root);
+  IDataType_vec ReduceMultiple(IDataType_vec& data, long long dtype,
+                               std::string reducer, int root);
 
-
-  IDataType_ptr ReduceVector(IDataType_vec &data, long long dtype, std::string reducer, int root) {
-    return ReduceVector(data, dtype, ReductionStore::instance().getReducer(reducer),root);
+  IDataType_ptr ReduceVector(IDataType_vec& data, long long dtype,
+                             std::string reducer, int root) {
+    return ReduceVector(data, dtype,
+                        ReductionStore::instance().getReducer(reducer), root);
   }
 
-  IDataType_ptr ReduceVector(IDataType_vec &data, long long dtype, IReduction_ptr reducer, int root) {
-    IDataType_vec v = {ReduceLocalVec(data,reducer)};
-     auto r = ReduceMultiple(v, dtype, reducer, root);
-     return ( r.size() == 1 )  ? r[0] : nullptr;
+  IDataType_ptr ReduceVector(IDataType_vec& data, long long dtype,
+                             IReduction_ptr reducer, int root) {
+    IDataType_vec v = {ReduceLocalVec(data, reducer)};
+    auto r = ReduceMultiple(v, dtype, reducer, root);
+    return (r.size() == 1) ? r[0] : nullptr;
   }
 
-  IDataType_ptr ReduceLocalVec(IDataType_vec &data, IReduction_ptr reducer);
+  IDataType_ptr ReduceLocalVec(IDataType_vec& data, IReduction_ptr reducer);
 
-  IDataType_ptr ReduceLocalVec(IDataType_vec &data, std::string reducer) {
-       return ReduceLocalVec(data, ReductionStore::instance().getReducer(reducer));
+  IDataType_ptr ReduceLocalVec(IDataType_vec& data, std::string reducer) {
+    return ReduceLocalVec(data, ReductionStore::instance().getReducer(reducer));
   }
 };
 

@@ -7,8 +7,8 @@
 #define INJECTIONITERATORSTORE_H
 
 #include "base/points/IteratorPoint.h"
-#include "base/stores/InjectionPointStore.h"
 #include "base/stores/BaseStore.h"
+#include "base/stores/InjectionPointStore.h"
 
 using nlohmann::json;
 
@@ -25,20 +25,16 @@ class InjectionIteratorConfig : public InjectionPointConfig {
 };
 
 class IteratorStore : public BaseStore {
- 
- 
  private:
   std::map<std::string, InjectionIteratorConfig>
       iterators; /**< The stored configurations */
   std::map<std::string, InjectionPointSpec> registeredIterators;
-
 
   std::shared_ptr<IterationPoint> newIterator(std::string packageName,
                                               std::string name, int once_,
                                               NTV& in_args, NTV& out_args);
 
  public:
-
   IteratorStore();
 
   void registerIterator(std::string packageName, std::string id,

@@ -10,8 +10,9 @@ from .models.VnV import DumpReaders
 from .rendering.vnvdatavis import list_assets
 
 global_template_variables = {
-    "list_vnv_readers" : DumpReaders
+    "list_vnv_readers": DumpReaders
 }
+
 
 def register_blueprints(app):
     app.register_blueprint(base.blueprint)

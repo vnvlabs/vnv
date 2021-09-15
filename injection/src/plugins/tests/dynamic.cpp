@@ -58,11 +58,10 @@ void talk(std::string& filename, std::string& symbol) {
  *
  */
 INJECTION_TEST(VNVPACKAGENAME, dynamicTestLoader, int* argv) {
-  
   TestStatus s = FAILURE;
-  
-  // Keep asking the user to load a library until there kernal 
-  // returns success. 
+
+  // Keep asking the user to load a library until there kernal
+  // returns success.
   while (s != SUCCESS) {
     // Get the filename a nd symbol to load
     std::string filename;
@@ -98,18 +97,21 @@ INJECTION_TEST(VNVPACKAGENAME, dynamicTestLoader, int* argv) {
 // Notes:
 
 /**
- * This is a proof of concept for computational steering using the vnv framework. 
- * 
- * The idea is that if we can ask the user to provide a shared library and load it
- * during a test, then we can "steer" the application by allowing the user to modify
- * the parameters inside that shared library. 
- * 
- * In this example I used the existing ITest infrastructure. That gives the shared librray
- * access to the variables -- so they definetly can steer using this. 
- * 
- * One thing that we do need to figure out is what comment to use for the test template. 
- * 
- * Using the ITest interface is somewhat unintuitive, might be benefiical to subclass it and add a 
- * new IKernal/Steering/Debug class. 
- * 
+ * This is a proof of concept for computational steering using the vnv
+ * framework.
+ *
+ * The idea is that if we can ask the user to provide a shared library and load
+ * it during a test, then we can "steer" the application by allowing the user to
+ * modify the parameters inside that shared library.
+ *
+ * In this example I used the existing ITest infrastructure. That gives the
+ * shared librray access to the variables -- so they definetly can steer using
+ * this.
+ *
+ * One thing that we do need to figure out is what comment to use for the test
+ * template.
+ *
+ * Using the ITest interface is somewhat unintuitive, might be benefiical to
+ * subclass it and add a new IKernal/Steering/Debug class.
+ *
  */

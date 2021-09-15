@@ -68,27 +68,27 @@ template <typename Runner> class Sampler_T : public ISampler {
 
 }  // namespace VnV
 
-#define INJECTION_SAMPLER_RS(PNAME, name, Runner, schema)                \
-  namespace VnV {                                                        \
-  namespace PNAME {                                                      \
-  namespace Samplers {                                                   \
-  class name : public Sampler_T<Runner> {                                \
-    public : name(nlohmann::json& config)                                \
-        : Sampler_T(config){};                                           \
-    virtual bool sample(VnV::InjectionPointType type,                    \
-                        std::string stageId) override;                   \
-  };                                                                     \
-                                                                         \
-  VnV::ISampler* declare_##name(nlohmann::json& config) {                \
-    return new name(config);                                             \
-  }                                                                      \
-  void register_##name() {                                               \
+#define INJECTION_SAMPLER_RS(PNAME, name, Runner, schema)                 \
+  namespace VnV {                                                         \
+  namespace PNAME {                                                       \
+  namespace Samplers {                                                    \
+  class name : public Sampler_T<Runner> {                                 \
+   public:                                                                \
+    name(nlohmann::json& config) : Sampler_T(config){};                   \
+    virtual bool sample(VnV::InjectionPointType type,                     \
+                        std::string stageId) override;                    \
+  };                                                                      \
+                                                                          \
+  VnV::ISampler* declare_##name(nlohmann::json& config) {                 \
+    return new name(config);                                              \
+  }                                                                       \
+  void register_##name() {                                                \
     VnV::registerSampler(VNV_STR(PNAME), #name, schema, &declare_##name); \
-  }                                                                      \
-  }                                                                      \
-  }                                                                      \
-  }                                                                      \
-  bool VnV::PNAME::Samplers::name::sample(VnV::InjectionPointType type,  \
+  }                                                                       \
+  }                                                                       \
+  }                                                                       \
+  }                                                                       \
+  bool VnV::PNAME::Samplers::name::sample(VnV::InjectionPointType type,   \
                                           std::string stageId)
 
 #define INJECTION_SAMPLER_S(PNAME, name, schema) \

@@ -5,7 +5,6 @@ using namespace VnV::Nodes;
 
 namespace {
 
-
 class ProcIter : public VnV::Walkers::Iter {
  protected:
   long searchProc;
@@ -16,8 +15,7 @@ class ProcIter : public VnV::Walkers::Iter {
   }
 
  public:
-  ProcIter(ICommMap* comm, long proc,
-           std::map<long, std::list<IDN>>& n)
+  ProcIter(ICommMap* comm, long proc, std::map<long, std::list<IDN>>& n)
       : Iter(comm, n), searchProc(proc){};
 
   virtual bool next(IDN& res) {
@@ -38,8 +36,6 @@ class ProcIter : public VnV::Walkers::Iter {
   }
 };
 
-
-
 class CommIter : public ProcIter {
  protected:
   // Include any comms that contain me in entirty
@@ -48,11 +44,9 @@ class CommIter : public ProcIter {
   }
 
  public:
-  CommIter(ICommMap* comm, long commId,
-           std::map<long, std::list<IDN>>& n)
+  CommIter(ICommMap* comm, long commId, std::map<long, std::list<IDN>>& n)
       : ProcIter(comm, commId, n) {}
 };
-
 
 class OnlyCommIter : public ProcIter {
  protected:
@@ -62,11 +56,9 @@ class OnlyCommIter : public ProcIter {
   }
 
  public:
-  OnlyCommIter(ICommMap* comm, long commId,
-               std::map<long, std::list<IDN>>& n)
+  OnlyCommIter(ICommMap* comm, long commId, std::map<long, std::list<IDN>>& n)
       : ProcIter(comm, commId, n) {}
 };
-
 
 class OnlyProcIter : public ProcIter {
  protected:
@@ -76,58 +68,51 @@ class OnlyProcIter : public ProcIter {
   }
 
  public:
-  OnlyProcIter(ICommMap* comm, long commId,
-               std::map<long, std::list<IDN>>& n)
+  OnlyProcIter(ICommMap* comm, long commId, std::map<long, std::list<IDN>>& n)
       : ProcIter(comm, commId, n) {}
 };
 
-
 class RootNodeProcWalk : public VnV::IWalker {
-
   IRootNode* rootNode;
   std::shared_ptr<ProcIter> procIter;
   IDN curr;
 
- virtual bool _next(VnV::Nodes::WalkerNode& node) override { 
-    
+  virtual bool _next(VnV::Nodes::WalkerNode& node) override {
     if (procIter->next(curr)) {
-        node.item = rootNode->findById(curr.id);
-        node.type = curr.type;
-        node.time = curr.duration;
-        node.edges.clear();
-        return true;
-    } 
+      node.item = rootNode->findById(curr.id);
+      node.type = curr.type;
+      node.time = curr.duration;
+      node.edges.clear();
+      return true;
+    }
 
     node.item = NULL;
     node.type = node_type::DONE;
     return false;
-
   }
 
  public:
-  RootNodeProcWalk(IRootNode* root, long processor, bool only, bool comm) : IWalker(root) {
+  RootNodeProcWalk(IRootNode* root, long processor, bool only, bool comm)
+      : IWalker(root) {
     rootNode = root;
     if (!comm) {
       if (only) {
         procIter = std::make_shared<OnlyProcIter>(
             root->getCommInfoNode()->getCommMap(), processor, root->getNodes());
       } else {
-        procIter = std::make_shared<ProcIter>(root->getCommInfoNode()->getCommMap(),
-                                              processor, root->getNodes());
+        procIter = std::make_shared<ProcIter>(
+            root->getCommInfoNode()->getCommMap(), processor, root->getNodes());
       }
     } else {
       if (only) {
         procIter = std::make_shared<OnlyCommIter>(
             root->getCommInfoNode()->getCommMap(), processor, root->getNodes());
       } else {
-        procIter = std::make_shared<CommIter>(root->getCommInfoNode()->getCommMap(),
-                                              processor, root->getNodes());
+        procIter = std::make_shared<CommIter>(
+            root->getCommInfoNode()->getCommMap(), processor, root->getNodes());
       }
     }
   }
-
- 
-
 };
 
 const char* getSchema() {
@@ -143,21 +128,12 @@ const char* getSchema() {
   })";
 }
 
+}  // namespace
+
+INJECTION_WALKER_S(VNVPACKAGENAME, proc, getSchema()) {
+  std::cout << "SDFSDFS" << std::endl;
+  long proc = config["id"].get<long>();
+  bool only = config["only"].get<bool>();
+  bool comm = config["comm"].get<bool>();
+  return new RootNodeProcWalk(rootNode, proc, only, comm);
 }
-
-INJECTION_WALKER_S(VNVPACKAGENAME,proc, getSchema()) {
-    std::cout << "SDFSDFS" << std::endl;
-    long proc = config["id"].get<long>();
-    bool only = config["only"].get<bool>();
-    bool comm = config["comm"].get<bool>();
-    return new RootNodeProcWalk(rootNode,proc, only, comm);
-}
-
-
-
-
-
-
-
-
-

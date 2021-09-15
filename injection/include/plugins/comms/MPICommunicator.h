@@ -6,12 +6,12 @@
 #define VNV_MPICOMMUNICATOR_H
 
 #include <mpi.h>
+
 #include "interfaces/ICommunicator.h"
 
 namespace VnV {
 namespace Communication {
 namespace MPI {
-
 
 class CommKeeper {
  public:
@@ -40,11 +40,10 @@ class MPIRequest : public IRequest {
 
 MPI_Comm castToMPIComm(ICommunicator_ptr ptr);
 
-}
+}  // namespace MPI
 
-}
+}  // namespace Communication
 
-}
-
+}  // namespace VnV
 
 #endif  // VNV_MPICOMMUNICATOR_H

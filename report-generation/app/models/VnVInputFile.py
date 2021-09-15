@@ -2,27 +2,25 @@ import json
 import os
 from app.models import VnV
 
+
 class VnVInputFile:
     COUNTER = 0
 
     FILES = {}
 
     def __init__(self, name, filename, defVal, icon="icon-box"):
-        self.name = name;
+        self.name = name
         self.filename = filename
         self.icon = icon
         self.id_ = VnVInputFile.get_id()
         self.notifications = []
 
-
         self.spec = VnV.LoadSpec(self.filename)
         if defVal is not None and os.path.exists(defVal):
-            with open(defVal,'r') as f:
+            with open(defVal, 'r') as f:
                 self.value = json.load(f)
         else:
             self.value = VnV.getVnVConfigFile()
-
-
 
     def val(self):
         return json.dumps(self.value)

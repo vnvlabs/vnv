@@ -89,8 +89,7 @@ int Router::forward() {
     for (const int child : children) {
       //#ifdef WITH_MPI
       // Check for a message from the child
-      std::pair<VnV::IStatus_ptr, int> s =
-          m_comm->IProbe(child, -1);
+      std::pair<VnV::IStatus_ptr, int> s = m_comm->IProbe(child, -1);
       if (s.second) {
         if (s.first->tag() == 1) {
           // Recieve end message

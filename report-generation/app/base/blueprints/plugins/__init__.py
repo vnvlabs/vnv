@@ -31,7 +31,7 @@ def new_plugin():
         plug = VnVPlugin.add(request.form["name"], request.form["filename"])
         return redirect(url_for('base.plugins.view_plugin', id_=plug.id_))
     except Exception as e:
-        print (e)
+        print(e)
         return make_response("error", 404)
 
 

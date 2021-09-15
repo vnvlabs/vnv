@@ -19,6 +19,7 @@ from app.rendering.vnvdatavis.directives import vnv_roles, vnv_directives, vnv_n
 from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query_str, jmes_jinga_stat, DataClass, \
     jmes_jinja_codeblock, jmes_jinja_query, get_target_node
 
+
 class VnVChartNode(docutils.nodes.General, docutils.nodes.Element):
 
     @staticmethod
@@ -30,8 +31,9 @@ class VnVChartNode(docutils.nodes.General, docutils.nodes.Element):
     def depart_node(visitor, node):
         pass
 
+
 VnVChartNode.NODE_VISITORS = {
-        'html': (VnVChartNode.visit_node, VnVChartNode.depart_node)
+    'html': (VnVChartNode.visit_node, VnVChartNode.depart_node)
 }
 
 
@@ -47,7 +49,7 @@ def jmes_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
 vnv_roles["vnv"] = jmes_role
 
 
-################ ADD A BUNCH OF ROLES TO TAKE STATISTICS OF JMES RESTULT ##########################
+################ ADD A BUNCH OF ROLES TO TAKE STATISTICS OF JMES RESTULT #
 
 def get_stats_role(stats_function):
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
@@ -90,8 +92,7 @@ class JsonCodeBlockDirective(SphinxDirective):
 vnv_directives["vnv-code"] = JsonCodeBlockDirective
 
 
-########################## CHARTS/TABLES/TREES ################################################
-
+########################## CHARTS/TABLES/TREES ###########################
 
 
 class JsonChartDirective(SphinxDirective):
@@ -107,8 +108,12 @@ class JsonChartDirective(SphinxDirective):
     def getScript(self): return self.script_template
 
     def getContent(self):
-        return re.sub('{{(.*?)}}', lambda x: jmes_jinja_query(x.group(1)), "\n".join(self.content))
-
+        return re.sub(
+            '{{(.*?)}}',
+            lambda x: jmes_jinja_query(
+                x.group(1)),
+            "\n".join(
+                self.content))
 
     def getHtml(self, id_):
         return self.getScript().format(

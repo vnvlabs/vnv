@@ -15,10 +15,8 @@
 #include <string>
 #include <vector>
 
-
-#include "interfaces/ITest.h"
 #include "base/stores/BaseStore.h"
-
+#include "interfaces/ITest.h"
 
 namespace VnV {
 
@@ -29,7 +27,7 @@ template <typename V> class TestInfoTemplate {
   json schema;
 
   TestInfoTemplate(std::map<std::string, std::string>& p, V ptr,
-                  nlohmann::json s) {
+                   nlohmann::json s) {
     maker = ptr;
     parameterMap = p;
     schema = s;
@@ -41,21 +39,20 @@ template <typename V> class TestInfoTemplate {
  */
 template <typename Inter, typename Maker, typename Config>
 class TestStoreTemplate {
- 
  public:
-   TestStoreTemplate() {}
- 
+  TestStoreTemplate() {}
+
   std::map<std::string, json> registeredTests;
 
-  std::map<std::string, TestInfoTemplate<Maker>, std::less<std::string>> test_factory;
-
+  std::map<std::string, TestInfoTemplate<Maker>, std::less<std::string>>
+      test_factory;
 
   void addTest(std::string package, std::string name, std::string s, Maker m,
                std::map<std::string, std::string> v) {
-    
-    VnV_Warn(VNVPACKAGENAME, "Adding a new Test %s:%s", package.c_str(), name.c_str());
+    VnV_Warn(VNVPACKAGENAME, "Adding a new Test %s:%s", package.c_str(),
+             name.c_str());
     json j = json::parse(s);
-    TestInfoTemplate<Maker> k(v,m,j);
+    TestInfoTemplate<Maker> k(v, m, j);
     test_factory.insert({package + ":" + name, k});
   }
 
@@ -142,7 +139,7 @@ class TestStoreTemplate {
       if (testJson.contains("parameters")) {
         testConfigJson["parameters"] = testJson["parameters"];
       } else {
-        testConfigJson["parameters"] = json::object();  
+        testConfigJson["parameters"] = json::object();
       }
 
       validator.validate(testConfigJson);
@@ -164,26 +161,24 @@ class TestStoreTemplate {
   }
 
   nlohmann::json schema() {
-    
     nlohmann::json oneof = json::array();
-    for (auto &it :  test_factory) {
+    for (auto& it : test_factory) {
       std::vector<std::string> ss;
-      StringUtils::StringSplit(it.first,":",ss);
+      StringUtils::StringSplit(it.first, ":", ss);
 
       nlohmann::json properties = json::object();
       nlohmann::json req = json::array();
 
       nlohmann::json package = json::object();
       package["const"] = ss[0];
-      
 
       json name = json::object();
       name["const"] = ss[1];
-      
+
       properties["package"] = package;
       properties["name"] = name;
       properties["config"] = it.second.schema;
-      
+
       json parms = json::object();
       properties["parameterMap"] = parms;
 
@@ -194,30 +189,29 @@ class TestStoreTemplate {
       parms["required"] = preq;
       parms["additionalProperties"] = false;
 
-      for (auto & itt : it.second.parameterMap) {
-          json l = json::object();
-          l["type"] = "string";
-          l["vnvtype"] = itt.second;
-          pprops[itt.first] = l;
-          preq.push_back(itt.first);
+      for (auto& itt : it.second.parameterMap) {
+        json l = json::object();
+        l["type"] = "string";
+        l["vnvtype"] = itt.second;
+        pprops[itt.first] = l;
+        preq.push_back(itt.first);
       }
-      
+
       json p = json::object();
       p["type"] = "object";
       p["properties"] = properties;
       p["required"] = R"(["name","package"])"_json;
-      oneof.push_back(p);  
+      oneof.push_back(p);
     }
-    
-   if (oneof.size() > 0 ) {
+
+    if (oneof.size() > 0) {
       nlohmann::json ret = json::object();
       ret["oneOf"] = oneof;
       return ret;
     } else {
       return R"({"const" : false})"_json;
     }
-}
-
+  }
 
   /**
    * @brief print out test store configuration information.
@@ -228,14 +222,13 @@ class TestStoreTemplate {
   }
 };
 
-
-class TestStore : public  TestStoreTemplate<ITest, maker_ptr, TestConfig>, public BaseStore {
-
-public:
-   TestStore() : TestStoreTemplate<ITest, maker_ptr, TestConfig>() {}
-   static TestStore& instance();
+class TestStore : public TestStoreTemplate<ITest, maker_ptr, TestConfig>,
+                  public BaseStore {
+ public:
+  TestStore() : TestStoreTemplate<ITest, maker_ptr, TestConfig>() {}
+  static TestStore& instance();
 };
 
-} // namespace VnV
+}  // namespace VnV
 
 #endif

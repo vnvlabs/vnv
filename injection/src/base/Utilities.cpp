@@ -35,7 +35,7 @@ std::string VnV::ProvenanceUtils::timeToString(std::string format) {
 std::string VnV::ProvenanceUtils::cmdLineToString(int argc, char** argv) {
   std::cout << argc << std::endl;
   std::cout << argv[0] << std::endl;
-  
+
   std::ostringstream commandline;
   commandline << argv[0];
   for (int i = 1; i < argc; i++) {
@@ -44,20 +44,21 @@ std::string VnV::ProvenanceUtils::cmdLineToString(int argc, char** argv) {
   return commandline.str();
 }
 
-std::string VnV::StringUtils::metaDataToJsonString(const std::map<std::string,std::string> &metadata) {
-    std::ostringstream oss;
-    oss << "{";
-    
-    int count = 0;
-    for (auto &it : metadata) {
-      if (count > 0 ) {
-        oss << ",";
-      }
-      oss << "\"" << it.first << "\" : \"" << it.second << "\"";
-      count++;
+std::string VnV::StringUtils::metaDataToJsonString(
+    const std::map<std::string, std::string>& metadata) {
+  std::ostringstream oss;
+  oss << "{";
+
+  int count = 0;
+  for (auto& it : metadata) {
+    if (count > 0) {
+      oss << ",";
     }
-    oss << "}";
-    return oss.str();
+    oss << "\"" << it.first << "\" : \"" << it.second << "\"";
+    count++;
+  }
+  oss << "}";
+  return oss.str();
 }
 
 std::string VnV::StringUtils::escapeQuotes(std::string str,
@@ -216,19 +217,18 @@ nlohmann::json& VnV::JsonUtilities::getOrCreate(json& parent, std::string key,
 
 bool VnV::JsonUtilities::validate(nlohmann::json& obj, nlohmann::json& schema) {
   try {
-     nlohmann::json_schema::json_validator validator;
-     std::cout << "sdfsdf" << std::endl;
-     validator.set_root_schema(schema);
-     std::cout << "sdsss" << obj.dump() << " " << schema.dump() << std::endl;
-     validator.validate(obj);
-     std::cout << "ssss" << std::endl;
-     return true;
+    nlohmann::json_schema::json_validator validator;
+    std::cout << "sdfsdf" << std::endl;
+    validator.set_root_schema(schema);
+    std::cout << "sdsss" << obj.dump() << " " << schema.dump() << std::endl;
+    validator.validate(obj);
+    std::cout << "ssss" << std::endl;
+    return true;
   } catch (std::exception e) {
     std::cout << e.what() << std::endl;
     return false;
   }
 }
-
 
 std::string VnV::getFileExtension(const std::string& fileName) {
   if (fileName.find_last_of(".") != std::string::npos)
@@ -236,7 +236,7 @@ std::string VnV::getFileExtension(const std::string& fileName) {
   return "";
 }
 
-VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp, int count ) {
+VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp, int count) {
   VnV::NTV parameterSet;
   int counter = 0;
   while (1) {
@@ -256,7 +256,7 @@ VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp, int count ) {
 }
 
 VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp) {
-	return VnV::VariadicUtils::UnwrapVariadicArgs(argp, -1);
+  return VnV::VariadicUtils::UnwrapVariadicArgs(argp, -1);
 }
 
 std::vector<std::pair<std::string, std::string>> VnV::bfs(
@@ -431,7 +431,7 @@ std::string VnV::TimeUtils::timeForFile(std::string filename) {
 
 std::size_t VnV::HashUtils::vectorHash(std::vector<int> const& vec) {
   std::size_t seed = vec.size();
-  for(auto& i : vec) {
+  for (auto& i : vec) {
     seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
   }
   return seed;
@@ -451,4 +451,3 @@ json VnV::JsonUtilities::load(std::string configFile) {
   }
   return mainJson;
 }
-

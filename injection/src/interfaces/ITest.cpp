@@ -5,16 +5,16 @@
 #include "interfaces/ITest.h"
 
 #include "base/stores/OutputEngineStore.h"
+#include "base/stores/TestStore.h"
 #include "base/stores/TransformStore.h"
 #include "c-interfaces/Logging.h"
-#include "base/stores/TestStore.h"
-
 
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
 const json& TestConfig::getAdditionalParameters() const {
-  return testConfigJson["configuration"];  // JsonUtilities::getOrCreate(testConfigJson,"configuration",JsonUtilities::CreateType::Object);
+  return testConfigJson
+      ["configuration"];  // JsonUtilities::getOrCreate(testConfigJson,"configuration",JsonUtilities::CreateType::Object);
 }
 const json& ITest::getConfigurationJson() const {
   return m_config.getAdditionalParameters();
@@ -26,14 +26,14 @@ std::string TestConfig::getName() const { return testName; }
 std::string TestConfig::getPackage() const { return package; }
 
 void TestConfig::print() {
-   VnV_Info(VNVPACKAGENAME, "Configuration Options: %s",
+  VnV_Info(VNVPACKAGENAME, "Configuration Options: %s",
            getAdditionalParameters().dump().c_str());
   for (auto it : parameters) {
     VnV_Info(VNVPACKAGENAME, "(Name, type, rtti) = (%s, %s, %s) ",
              it.first.c_str(), it.second.getType().c_str(),
              it.second.getRtti().c_str());
   }
-  }
+}
 
 TestConfig::TestConfig(std::string package, std::string name,
                        json& testConfigJson,
@@ -64,9 +64,10 @@ void TestConfig::setParameterMap(VnVParameterSet& args) {
       auto it = transformers.find(testParameter);
       if (it != transformers.end()) {
         parameters.insert(std::make_pair(
-            testParameter, VnVParameter(it->second->Transform(
-                                            injection->second.getRawPtr(), s),
-                                        testParamType, s, injection->second.isInput())));
+            testParameter,
+            VnVParameter(
+                it->second->Transform(injection->second.getRawPtr(), s),
+                testParamType, s, injection->second.isInput())));
       } else {
         // In a test where "isMappingValidFor..." is called, this shoud never
         // happen.
@@ -74,9 +75,10 @@ void TestConfig::setParameterMap(VnVParameterSet& args) {
             TransformStore::instance().getTransformer(
                 injection->second.getType(), testParamType);
         parameters.insert(std::make_pair(
-            testParameter, VnVParameter(it->second->Transform(
-                                            injection->second.getRawPtr(), s),
-                                        testParamType, s, injection->second.isInput())));
+            testParameter,
+            VnVParameter(
+                it->second->Transform(injection->second.getRawPtr(), s),
+                testParamType, s, injection->second.isInput())));
         transformers.insert(std::make_pair(testParameter, std::move(p)));
         VnV_Error(VNVPACKAGENAME,
                   "Transform for a test parameter was not pregenerated %s:%s",
@@ -86,10 +88,7 @@ void TestConfig::setParameterMap(VnVParameterSet& args) {
   }
 }
 
-VnVParameterSet& TestConfig::getParameterMap() {
-  return parameters;
-}
-
+VnVParameterSet& TestConfig::getParameterMap() { return parameters; }
 
 bool TestConfig::isRequired(std::string testParameter) const {
   // TODO Tests could have optional parameters. We should define a way to
@@ -99,16 +98,15 @@ bool TestConfig::isRequired(std::string testParameter) const {
   return true;
 }
 
-ITest::ITest(TestConfig& config) : m_config(config) {
-   uuid = uid++;
-}
-
+ITest::ITest(TestConfig& config) : m_config(config) { uuid = uid++; }
 
 // parameters is a map of injectionpoint name to injection point type.
-bool TestConfig::preLoadParameterSet(std::map<std::string, std::string>& parameters) {
+bool TestConfig::preLoadParameterSet(
+    std::map<std::string, std::string>& parameters) {
   // Need to check if we can properly map the test, as declared, to this
   // injection point.
-  json j = testConfigJson["parameters"];  // maps testParam to injection point param.
+  json j =
+      testConfigJson["parameters"];  // maps testParam to injection point param.
   for (auto& param : j.items()) {
     // Get the information about the test parameter
     std::string testParameter = param.key();  // The parameter in the test.
@@ -156,14 +154,13 @@ bool TestConfig::preLoadParameterSet(std::map<std::string, std::string>& paramet
 // point that this test is being run inside.
 TestStatus ITest::_runTest(ICommunicator_ptr comm, OutputEngineManager* engine,
                            InjectionPointType type, std::string stageId) {
-  
   VnV_Debug_MPI(VNVPACKAGENAME, comm->asComm(), "Runnnig Test %s ",
                 m_config.getName().c_str());
 
-  engine->testStartedCallBack( m_config.getPackage(), m_config.getName(),
-                              false, uuid);
+  engine->testStartedCallBack(m_config.getPackage(), m_config.getName(), false,
+                              uuid);
   TestStatus s = runTest(comm, engine->getOutputEngine(), type, stageId);
-  engine->testFinishedCallBack( (s == SUCCESS) ? true : false);
+  engine->testFinishedCallBack((s == SUCCESS) ? true : false);
   return s;
 }
 
@@ -171,7 +168,8 @@ ITest::~ITest() {}
 
 long ITest::uid = 0;
 
-void VnV::registerTest(std::string package, std::string name, std::string schema, maker_ptr m,
+void VnV::registerTest(std::string package, std::string name,
+                       std::string schema, maker_ptr m,
                        std::map<std::string, std::string> map) {
   TestStore::instance().addTest(package, name, schema, m, map);
 }

@@ -19,10 +19,11 @@ if(WITH_MPI)
   find_package(MPI REQUIRED)
 endif()
 
-## Python is required to build the reports. 
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-
-
+# Python is required to build the reports.
+find_package(
+  Python3
+  COMPONENTS Interpreter Development
+  REQUIRED)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type selected, default to RelWithDebInfo")
@@ -30,9 +31,6 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
       RelWithDebInfo
       CACHE STRING "Build type (default RelWitDebInfo)")
 endif()
-
-
-
 
 option(BUILD_EXAMPLES "Build the examples" ON)
 
@@ -43,7 +41,8 @@ endif()
 
 add_subdirectory(extraction)
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake @ONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in
+               ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake @ONLY)
 include("${CMAKE_SOURCE_DIR}/cmake/Registration.cmake")
 
 add_subdirectory(injection)
@@ -91,7 +90,6 @@ configure_package_config_file(
   ${CMAKE_CURRENT_LIST_DIR}/cmake/InjectionConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/InjectionConfig.cmake
   INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
-
 
 # Install the config, configversion and custom find modules
 install(

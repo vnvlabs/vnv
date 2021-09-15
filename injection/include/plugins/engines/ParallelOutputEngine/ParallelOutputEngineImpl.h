@@ -26,7 +26,6 @@ class ParallelEngine : public OutputEngineManager {
   std::map<int, std::shared_ptr<Router>> routerMap;
   ICommunicator_ptr currComm;
 
-
  public:
   /**
    * @brief ParallelgEngine
@@ -37,59 +36,56 @@ class ParallelEngine : public OutputEngineManager {
    * @brief Log
    * @param log
    */
-  void Log(ICommunicator_ptr comm, const char* package, int stage, std::string level,
-           std::string message) override;
+  void Log(ICommunicator_ptr comm, const char* package, int stage,
+           std::string level, std::string message) override;
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName,
-           const double& value,const MetaData& m) override;
+  void Put(std::string variableName, const double& value,
+           const MetaData& m) override;
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, const long long& value,const MetaData& m) override;
+  void Put(std::string variableName, const long long& value,
+           const MetaData& m) override;
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put( std::string variableName, const bool& value,const MetaData& m) override;
+  void Put(std::string variableName, const bool& value,
+           const MetaData& m) override;
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put(std::string variableName, const json& value,const MetaData& m) override;
+  void Put(std::string variableName, const json& value,
+           const MetaData& m) override;
 
   /**
    * @brief Put
    * @param variableName
    * @param value
    */
-  void Put( std::string variableName,
-           const std::string& value,const MetaData& m) override;
+  void Put(std::string variableName, const std::string& value,
+           const MetaData& m) override;
 
-  void Put(std::string variableName,
-           IDataType_ptr data,
-           const MetaData& m ) override;
+  void Put(std::string variableName, IDataType_ptr data,
+           const MetaData& m) override;
 
-  void PutGlobalArray(
-                              long long dtype,
-                              std::string variableName,
-                              IDataType_vec data,
-                              std::vector<int> gsizes,
-                              std::vector<int> sizes,
-                              std::vector<int> offset,
-                                 const MetaData& m) override
-  {}
+  void PutGlobalArray(long long dtype, std::string variableName,
+                      IDataType_vec data, std::vector<int> gsizes,
+                      std::vector<int> sizes, std::vector<int> offset,
+                      const MetaData& m) override {}
 
   std::string getIndent(int stage);
 
@@ -107,15 +103,16 @@ class ParallelEngine : public OutputEngineManager {
    * @brief set
    * @param config
    */
-  void setFromJson(ICommunicator_ptr worldComm,json& config, bool readMode) override;
-
+  void setFromJson(ICommunicator_ptr worldComm, json& config,
+                   bool readMode) override;
 
   /**
    * @brief endInjectionPoint
    * @param id
    * @param stageVal
    */
-  void packageOptionsStartedCallBack(ICommunicator_ptr world, std::string packageName) override;
+  void packageOptionsStartedCallBack(ICommunicator_ptr world,
+                                     std::string packageName) override;
 
   /**
    * @brief startInjectionPoint
@@ -124,18 +121,15 @@ class ParallelEngine : public OutputEngineManager {
    */
   void packageOptionsEndedCallBack(std::string packageName) override;
 
-  void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile, std::string filename,
-  std::string reader) {
-
-  }
+  void file(ICommunicator_ptr comm, std::string packageName, std::string name,
+            bool inputFile, std::string filename, std::string reader) {}
 
   /**
    * @brief endInjectionPoint
    * @param id
    * @param stageVal
    */
-  void injectionPointEndedCallBack(std::string id,
-                                   InjectionPointType type,
+  void injectionPointEndedCallBack(std::string id, InjectionPointType type,
                                    std::string stageVal) override;
 
   /**
@@ -143,17 +137,19 @@ class ParallelEngine : public OutputEngineManager {
    * @param id
    * @param stageVal
    */
-  void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName,
-                                     std::string id, InjectionPointType type,
-                                     std::string stageVal, std::string filename, int line) override;
+  void injectionPointStartedCallBack(ICommunicator_ptr comm,
+                                     std::string packageName, std::string id,
+                                     InjectionPointType type,
+                                     std::string stageVal, std::string filename,
+                                     int line) override;
 
   /**
    * @brief startTest
    * @param testName
    * @param testStageVal
    */
-  void testStartedCallBack(std::string packageName,
-                           std::string testName, bool internal, long uid) override;
+  void testStartedCallBack(std::string packageName, std::string testName,
+                           bool internal, long uid) override;
 
   /**
    * @brief stopTest
@@ -164,16 +160,14 @@ class ParallelEngine : public OutputEngineManager {
   void unitTestStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                                std::string unitTestName) override;
 
-  void unitTestFinishedCallBack( IUnitTest* tester) override;
-
+  void unitTestFinishedCallBack(IUnitTest* tester) override;
 
   std::string print() override {
     throw VnV::VnVExceptionBase(
         "Print not implemented for Parallel Output Engine");
   }
 
-  std::shared_ptr<Router> getRouter(
-                                    RouterAction action = RouterAction::IGNORE);
+  std::shared_ptr<Router> getRouter(RouterAction action = RouterAction::IGNORE);
 };
 
 }  // namespace Engines

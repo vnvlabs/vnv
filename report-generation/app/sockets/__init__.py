@@ -10,13 +10,12 @@ def create_socket_app(app):
     from .namepsaces.term import configure_terminal
     from .namepsaces.ipython import configure_terminal as pyconf
 
-    configure_terminal(socketio,app)
-    pyconf(socketio,app)
+    configure_terminal(socketio, app)
+    pyconf(socketio, app)
 
     @app.route('/terminal')
     def terminal():
-        pt = request.args.get("term","")
+        pt = request.args.get("term", "")
         return render_template("includes/term.html", pty=pt + "pty")
 
     return socketio
-

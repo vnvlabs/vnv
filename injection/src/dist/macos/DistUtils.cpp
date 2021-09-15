@@ -1,11 +1,13 @@
 ﻿#include "base/DistUtils.h"
+
+#include <dirent.h>
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "c-interfaces/Logging.h"
@@ -96,23 +98,22 @@ bool searchLibrary(std::string name, std::set<std::string>& packageNames) {
   return false;
 }
 
-// Not sure if works on mac -- please fix and commit if not compile. 
+// Not sure if works on mac -- please fix and commit if not compile.
 std::string getEnvironmentVariable(std::string name) {
-    std::string s = std::getenv(name.c_str());
-    return s;
+  std::string s = std::getenv(name.c_str());
+  return s;
 }
 
-bool makedir(std::string filename, mode_t mode ) {
+bool makedir(std::string filename, mode_t mode) {
   return mkdir(filename.c_str(), mode) == 0;
 }
 
 bool mv(std::string oldFileName, std::string newFileName) {
-   return 0 == std::rename(oldFileName.c_str(),newFileName.c_str());
+  return 0 == std::rename(oldFileName.c_str(), newFileName.c_str());
 }
 
-
 std::string join(std::vector<std::string> vector, mode_t i, bool makeDir) {
-  if (vector.size() > 0 ) {
+  if (vector.size() > 0) {
     std::string s = "";
     for (auto it : vector) {
       s = s + it + "/";
@@ -135,26 +136,23 @@ std::string join(std::vector<std::string> vector, mode_t i, bool makeDir) {
   throw VnV::VnVExceptionBase("Empty directory list");
 }
 
-
 // Really trying to not need boost -- can get rid of this in C++17 (14
 // is we use std::experimental and replace with std::filesystem. )
-// Untested in macos; 
+// Untested in macos;
 std::vector<std::string> listFilesInDirectory(std::string directory) {
-  
   std::vector<std::string> res;
-  
-  DIR *dir;
-  struct dirent *ent;
-  if ((dir = opendir (directory.c_str())) != NULL) {
-  while ((ent = readdir (dir)) != NULL) {
-    res.push_back(ent->d_name);
-  }
-  closedir (dir);
-} else {
-  throw VnVExceptionBase("Could not open directory");
-}
-}
 
+  DIR* dir;
+  struct dirent* ent;
+  if ((dir = opendir(directory.c_str())) != NULL) {
+    while ((ent = readdir(dir)) != NULL) {
+      res.push_back(ent->d_name);
+    }
+    closedir(dir);
+  } else {
+    throw VnVExceptionBase("Could not open directory");
+  }
+}
 
 void callAllLibraryRegistrationFunctions(
     std::map<std::string, std::string> packageNames) {

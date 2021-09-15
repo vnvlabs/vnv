@@ -29,7 +29,12 @@ def environment_ready(app):
 
 
 def list_assets():
-    return [os.path.join(os.path.dirname(__file__), a) for a in (directives.vnv_css_assets + directives.vnv_js_assets)]
+    return [
+        os.path.join(
+            os.path.dirname(__file__),
+            a) for a in (
+            directives.vnv_css_assets +
+            directives.vnv_js_assets)]
 
 
 def setup(app):

@@ -169,18 +169,20 @@ void newtonRaphson(double x, double eps, int rank) {
    *        },
    *        "options" : {
    *           "responsive" : true,
-   *           "title" : { "display" : true, "text" : "Convergence of the Newton Raphson Method" }, 
-   *           "scales": { "yAxes": [
-   *                   { "scaleLabel": { 
-   *                        "display": true, 
-   *                        "labelString": "Current Guess"
-   *                     }
-   *                   }],
-   *                   "xAxes": [{
-   *                      "scaleLabel": {
-   *                         "display":true,
-   *                         "labelString": "Iteration Number"
-   *                      }
+   *           "title" : { "display" : true,
+   *              "text" : "Convergence of the Newton Raphson Method" },
+   *              "scales": {
+   *                 "yAxes": [
+   *                   { "scaleLabel": {
+   *                     "display": true,
+   *                     "labelString": "Current Guess"
+   *                   }
+   *                 }],
+   *                 "xAxes": [{
+   *                   "scaleLabel": {
+   *                     "display":true,
+   *                     "labelString": "Iteration Number"
+   *                   }
    *                  }]
    *             }
    *        }
@@ -213,41 +215,42 @@ void newtonRaphson(double x, double eps, int rank) {
   }
   INJECTION_LOOP_END(VNV_STR(SPNAME), "NewtonRaphson");
 
-  /** TODO With a small modification to the iterators support, we can implement Plugable functions.Pluggable
-   * functions will allow users to plug in functions at a certain point. If nothing is specified in the input 
-   * file, the default code will run. 
-   * 
-   * This would let testers switch out code through the command line without recompiling the source code. I.e., 
-   * you could throw in a near linearSolve method or something. 
-   * 
-   * Ie. 
-   * 
-   *   
-  
-  //RETURN version.  
+  /** TODO With a small modification to the iterators support, we can implement
+  Plugable functions.Pluggable
+   * functions will allow users to plug in functions at a certain point. If
+  nothing is specified in the input
+   * file, the default code will run.
+   *
+   * This would let testers switch out code through the command line without
+  recompiling the source code. I.e.,
+   * you could throw in a near linearSolve method or something.
+   *
+   * Ie.
+   *
+   *
+
+  //RETURN version.
   INJECTION_FUNCTION_RETURN(VNV, FISH, a, x, y, z ) {
     a = linearSolve(x,y,z,w);
   }
-  
+
   // Expands to:
 
-  if (!VnV_Runtime_Plug_R(VNV,FISH, (void*) &a, (void*) &x, *void*) &y, (void*) &z) ) {
-    a = linearSolve(x,y,z);
+  if (!VnV_Runtime_Plug_R(VNV,FISH, (void*) &a, (void*) &x, *void*) &y, (void*)
+  &z) ) { a = linearSolve(x,y,z);
   }
- 
 
-  // No return version. 
+
+  // No return version.
   INJECTION_FUNCTION(VNV, FISH, x, y, z) {
     linearSolve(x,y,z,w);
   }
-  
+
   if (!VnV_Runtime_Plug(VNV,FISH, (void*) &x, *void*) &y, (void*) &z) ) {
     linearSolve(x,y,z,w);
   }
-  
+
   **/
-
-
 }
 
 int function1(int x) {
@@ -356,8 +359,8 @@ int main(int argc, char** argv) {
    *
    *  In this loop, we iterate across a range [ :vnv:`Data.Data.min`,
    *  :vnv:`Data.Data.max`] with a step of :vnv:`Data.Data.count`. At each step,
-   *  the INJECTION_LOOP_ITER call is made, representing an internal stage of the
-   *  injection point. This is turn calls the injection point call back, which
+   *  the INJECTION_LOOP_ITER call is made, representing an internal stage of
+   *the injection point. This is turn calls the injection point call back, which
    *  logs the value of the injection point parameter "aa" (aa is a double set
    *  randomly in each step of the for loop). We plot aa against the step value
    *  using the chart directive.
@@ -381,12 +384,12 @@ int main(int argc, char** argv) {
    *        },
    *        "options" : {
    *           "responsive" : true,
-   *           "title" : { "display" : true, 
+   *           "title" : { "display" : true,
    *                       "text" : "A sample Graph using the Chart directive"
-   *           }, 
-   *           "yaxis" : { "display" : true, 
-   *                       "scaleLabel" : { 
-   *                          "display" : true, 
+   *           },
+   *           "yaxis" : { "display" : true,
+   *                       "scaleLabel" : {
+   *                          "display" : true,
    *                          "labelString": "Value"
    *                       }
    *           }
@@ -481,19 +484,23 @@ int main(int argc, char** argv) {
   /** sdfsdfsdfsdf**/
   INJECTION_LOOP_END(VNV_STR(SPNAME), "loopTest");
 
-
-  INJECTION_INPUT_FILE_(SPNAME,"IMAGE",VWORLD,"/home/ben/Downloads/mpi.jpeg", "image" );
-  INJECTION_INPUT_FILE_(SPNAME,"CSV",VWORLD,"/home/ben/te/test.csv", "csv" );
-  INJECTION_INPUT_FILE_(SPNAME,"GLVIS",VWORLD,"/home/ben/Downloads/laghos.saved", "glvis" );
-  INJECTION_INPUT_FILE_(SPNAME,"GLVIS",VWORLD,"/home/ben/Downloads/head-ascii.vti", "vti" );
-  INJECTION_INPUT_FILE_(SPNAME,"HTML",VWORLD,"/home/ben/Downloads/index.html", "html" );
-  INJECTION_INPUT_FILE_(SPNAME,"RST",VWORLD,"/home/ben/Downloads/sample.rst", "rst" );
-  INJECTION_INPUT_FILE_(SPNAME,"MARK",VWORLD,"/home/ben/Downloads/sample.md", "markdown" );
-  INJECTION_INPUT_FILE_(SPNAME,"CODE",VWORLD,"/home/ben/Downloads/sample.cpp", "code" );
-  INJECTION_INPUT_FILE_(SPNAME,"CODE",VWORLD,"/home/ben/Downloads/act_gpu.pdf", "pdf" );
-  
-
-  
+  INJECTION_INPUT_FILE_(SPNAME, "IMAGE", VWORLD, "/home/ben/Downloads/mpi.jpeg",
+                        "image");
+  INJECTION_INPUT_FILE_(SPNAME, "CSV", VWORLD, "/home/ben/te/test.csv", "csv");
+  INJECTION_INPUT_FILE_(SPNAME, "GLVIS", VWORLD,
+                        "/home/ben/Downloads/laghos.saved", "glvis");
+  INJECTION_INPUT_FILE_(SPNAME, "GLVIS", VWORLD,
+                        "/home/ben/Downloads/head-ascii.vti", "vti");
+  INJECTION_INPUT_FILE_(SPNAME, "HTML", VWORLD,
+                        "/home/ben/Downloads/index.html", "html");
+  INJECTION_INPUT_FILE_(SPNAME, "RST", VWORLD, "/home/ben/Downloads/sample.rst",
+                        "rst");
+  INJECTION_INPUT_FILE_(SPNAME, "MARK", VWORLD, "/home/ben/Downloads/sample.md",
+                        "markdown");
+  INJECTION_INPUT_FILE_(SPNAME, "CODE", VWORLD,
+                        "/home/ben/Downloads/sample.cpp", "code");
+  INJECTION_INPUT_FILE_(SPNAME, "CODE", VWORLD,
+                        "/home/ben/Downloads/act_gpu.pdf", "pdf");
 
   sample_class_1.function1(10);
   sample_class_2.function1(10);

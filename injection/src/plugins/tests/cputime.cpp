@@ -95,12 +95,9 @@ cpuRunner::~cpuRunner() {}
  *       },
  *       "options" : {
  *           "responsive" : true,
- *           "title" : { "display" : true, "text" : "CPU Time at the begining of each injection point." },
- *           "scales": {
- *               "yAxes": [{
- *                   "scaleLabel": {
- *                       "display": true,
- *                       "labelString": "CPU Time (nanoseconds)"
+ *           "title" : { "display" : true, "text" : "CPU Time at the begining of
+ * each injection point." }, "scales": { "yAxes": [{ "scaleLabel": { "display":
+ * true, "labelString": "CPU Time (nanoseconds)"
  *                   }
  *               }],
  *               "xAxes": [{
@@ -120,9 +117,9 @@ INJECTION_TEST_RS(VNVPACKAGENAME, cputime, cpuRunner, cpuRunner::provSchema()) {
              "Attempt to time a non looped injection point. Returning zero for "
              "cputime");
     double c = 0;
-    engine->Put( "Start", c, {{"tag","value"}});
-    engine->Put( "TotalTime", c, {{"tag","value"}});
-    
+    engine->Put("Start", c, {{"tag", "value"}});
+    engine->Put("TotalTime", c, {{"tag", "value"}});
+
   } else if (type == InjectionPointType::Begin) {
     double cc = 0;
     const json& c = getConfigurationJson();
@@ -130,13 +127,13 @@ INJECTION_TEST_RS(VNVPACKAGENAME, cputime, cpuRunner, cpuRunner::provSchema()) {
     if (it != c.end()) {
       runner->setUnit(it->get<std::string>());
     }
-    engine->Put( "units", runner->unit);
-    engine->Put( "Start", cc,{{"tag","value"}});
+    engine->Put("units", runner->unit);
+    engine->Put("Start", cc, {{"tag", "value"}});
     runner->start();
   } else if (type == InjectionPointType::End) {
-    engine->Put( "TotalTime", runner->split(),{{"tag","value"}});
+    engine->Put("TotalTime", runner->split(), {{"tag", "value"}});
   } else {
-    engine->Put( stageId, runner->split(),{{"tag","value"}});
+    engine->Put(stageId, runner->split(), {{"tag", "value"}});
   }
   return SUCCESS;
 }

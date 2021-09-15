@@ -16,19 +16,19 @@ const char* VnV::VnVExceptionBase::what() const throw() {
 }
 
 VnV::VnVExceptionBase::VnVExceptionBase(const char* format, ...) {
-   va_list args;
-   va_start( args, format );
-   char buffer[250];
-   int r = vsnprintf(buffer,sizeof buffer,format,args);
+  va_list args;
+  va_start(args, format);
+  char buffer[250];
+  int r = vsnprintf(buffer, sizeof buffer, format, args);
 
-   const size_t len = r;
-   if (len < sizeof buffer) {
-      message = { buffer, len };
-   } else {
-      message = "There was an error writing the error";
-   }
+  const size_t len = r;
+  if (len < sizeof buffer) {
+    message = {buffer, len};
+  } else {
+    message = "There was an error writing the error";
+  }
 
-   va_end( args );
+  va_end(args);
 }
 
 VnV::VnVExceptionBase VnV::Exceptions::parseError(std::ifstream& fstream,

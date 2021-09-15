@@ -28,10 +28,12 @@ blueprint = Blueprint(
 blueprint.register_blueprint(viewers.blueprint, url_prefix="/viewers")
 
 
-
 def get_file_template_dir(name):
     c = 0
-    sdir = os.path.join(os.path.abspath(os.path.dirname(__file__)), blueprint.template_folder)
+    sdir = os.path.join(
+        os.path.abspath(
+            os.path.dirname(__file__)),
+        blueprint.template_folder)
     while pathlib.Path(os.path.join(sdir, "renders", f'{name}_{c}')).exists():
         c = c + 1
     return os.path.abspath(os.path.join(sdir, "renders", f'{name}_{c}'))
@@ -40,8 +42,12 @@ def get_file_template_dir(name):
 @blueprint.route('/new', methods=["POST"])
 def new():
     try:
-        file = VnVFile.add(request.form["name"], request.form["filename"], request.form["reader"],
-                           get_file_template_dir(request.form["name"]))
+        file = VnVFile.add(
+            request.form["name"],
+            request.form["filename"],
+            request.form["reader"],
+            get_file_template_dir(
+                request.form["name"]))
         return redirect(url_for("base.files.view", id_=file.id_))
     except Exception as e:
         print(e)
@@ -53,15 +59,17 @@ def delete(id_):
     VnVFile.removeById(id_)
     return "success", 200
 
+
 @blueprint.route("/reader")
 def reader():
     reader = request.args.get("reader", "auto")
-    filename = request.args.get("filename");
+    filename = request.args.get("filename")
 
     if os.path.exists(filename):
         return render_reader(filename, reader)
     else:
         return render_error(501, "Filename does not exist")
+
 
 @blueprint.route('/comm/<int:id_>')
 def comm(id_):
@@ -80,9 +88,6 @@ def view(id_):
         return render_error(501, "Error Loading File")
 
 
-
-
-
 def template_globals(globs):
     viewers.template_globals(globs)
     globs["files"] = VnVFile.FILES
@@ -90,7 +95,10 @@ def template_globals(globs):
 
 def faker():
     pass
-    VnVFile.add("test", "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output", "json_file",
-                get_file_template_dir("test"))
+    VnVFile.add(
+        "test",
+        "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output",
+        "json_file",
+        get_file_template_dir("test"))
     # VnVFile.add("sample2", "/files/ben/sample1.json", "json_file", "./sdfsd")
     # VnVFile.add("sample3", "/files/ben/sample1.json", "json_file", "./sdfsd")
