@@ -154,9 +154,6 @@ function show_file_reader(filename, reader ) {
        url += "&filename=" + filename
 
        $.get(url, function(data) {
-            $('#file_viewer_modal').modal('hide')
-
-            $('#file_viewer_modal').modal('hide')
             $('#file_viewer_modal_body').html(data)
             $('#file_viewer_modal').modal('show')
 

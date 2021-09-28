@@ -1,0 +1,27 @@
+{% with actionFiles = file.getActions() %}
+
+<div class="fchild" style="display:flex;">
+    {% if actionFiles | length > 0 %}
+    <div class="card fchild col-sm-2" style="padding-top:10px; ">
+
+
+        {% for action in actionFiles %}
+        <div class="card {%if loop.index0 == 0 %} action-selected {%endif%}" id={{action.name}}
+             onclick="switch_action({{file.id_}},'{{action.name}}','#package-content')"
+             style="display:flex; align-items:center; margin-bottom:10px; justify-content:center;padding:10px;">
+            <h6 style="margin:0">{{action.name}}</h6>
+        </div>
+        {% endfor %}
+
+
+    </div>
+
+    <div class="col-sm-10 card" id="package-content" style=" flex:1; margin-left:10px; padding:20px">
+        {{ file.getFirstAction() | safe }}
+    </div>
+    {%else%}
+        <h4>No Global Profiling was completed during this executable.  </h4>
+    {%endif%}
+</div>
+
+{%endwith%}

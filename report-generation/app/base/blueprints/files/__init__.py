@@ -15,7 +15,7 @@ from pygments.lexers import guess_lexer_for_filename
 
 from urllib.request import pathname2url
 
-from app.rendering.readers import render_reader
+from app.rendering.readers import render_reader, LocalFile
 from . import viewers
 from app.models.VnVFile import VnVFile
 from ...utils.utils import render_error
@@ -35,6 +35,7 @@ def get_file_template_root():
         blueprint.template_folder)
     return os.path.abspath(os.path.join(sdir, "renders"))
 
+
 @blueprint.route('/new', methods=["POST"])
 def new():
     try:
@@ -52,7 +53,7 @@ def new():
 @blueprint.route('/delete/<int:id_>', methods=["POST"])
 def delete(id_):
     refresh = bool(request.args.get("refresh"))
-    VnVFile.removeById(id_, refresh is not None )
+    VnVFile.removeById(id_, refresh is not None)
     if (refresh):
         return make_response(url_for('base.files.view', id_=id_))
     return "success", 200
@@ -61,10 +62,13 @@ def delete(id_):
 @blueprint.route("/reader")
 def reader():
     reader = request.args.get("reader", "auto")
-    filename = request.args.get("filename")
+    filename = request.args.get("filename", "")
+    if len(filename) == 0:
+        return render_template("files/browser.html", file=LocalFile(os.path.abspath(os.sep), reader="directory"))
 
     if os.path.exists(filename):
-        return render_reader(filename, reader)
+        return render_template("files/browser.html", file=LocalFile(filename, reader=reader))
+        # return render_reader(filename, reader)
     else:
         return render_error(501, "Filename does not exist")
 
@@ -85,16 +89,17 @@ def view(id_):
     except Exception as e:
         return render_error(501, "Error Loading File")
 
+
 @blueprint.route('/processing/<int:id_>')
 def processing(id_):
     try:
         with VnVFile.find(id_) as file:
             if file.isProcessing():
-                return make_response("",200)
+                return make_response("", 200)
             else:
-                return make_response("",201)
+                return make_response("", 201)
     except Exception as e:
-        return make_response("",501)
+        return make_response("", 501)
 
 
 def template_globals(globs):

@@ -1,0 +1,11 @@
+<div style="width:100%">
+<ul class="breadcrumb">
+    <li class="breadcrumb-item"><a onclick='show_file_reader("","directory")'><i class="feather icon-home"></i></a></li>
+    {% for i in file.crumb() %}
+         <li class="breadcrumb-item"><span onclick="show_file_reader('{{i.url()}}','{{i.reader}}')">{{i.name}}</span></li>
+    {% endfor %}
+</ul>
+
+{{file.render() | safe }}
+
+</div>

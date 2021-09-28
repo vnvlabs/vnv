@@ -33,7 +33,7 @@
     {% block stylesheets %}{% endblock stylesheets %}
 
 </head>
-<body class="">
+<body class="" >
 
 <!-- [ Pre-loader ] start -->
 <div class="loader-bg">
@@ -47,9 +47,12 @@
 
 {% include 'includes/navigation.html' %}
 
-<div class="pcoded-main-container fcolumn" >
+<div class="pcoded-main-container fcolumn"  >
     <div class="pcoded-content fcolumn fchild" >
-        <div class="page-block fcolumn fchild">
+        <div class="form-group" style="margin-top:-20px;">
+              <input type="range" class="form-control-range" id="formControlRange" min="0" max="100" value="100">
+        </div>
+        <div id="formControlElm" class="page-block fcolumn fchild">
 
             {% block content %}{% endblock content %}
 
@@ -62,6 +65,11 @@
 
 {% block javascripts %}{% endblock javascripts %}
 
+<script>
+$("#formControlRange").on("input change",(e)=>{
+   $('#formControlElm').css('max-width', e.target.value + "%")
+})
+</script>
 
 </body>
 </html>

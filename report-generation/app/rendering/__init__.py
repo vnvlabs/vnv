@@ -4,6 +4,7 @@ import textwrap
 
 import sphinx.cmd.build
 
+
 conf_template = '''
 import sys
 sys.path.append("{path}")
@@ -16,21 +17,25 @@ extensions = [
     "sphinx.ext.mathjax",
     "vnvdatavis"
 ]
+vnv_file={fileId}
 html_theme = "faketheme"
 html_theme_path = ["{path}"]
 exclude_patterns = ['_build']
 html_static_path = ['_static']
-'''.format(path=os.path.abspath(os.path.join('app', 'rendering')))
+
+'''
+def get_conf_template(fileId):
+    return conf_template.format(fileId=fileId, path=os.path.abspath(os.path.join('app', 'rendering')))
 
 
-def setup_build_directory(src_dir):
+def setup_build_directory(src_dir, fileId):
     os.makedirs(os.path.join(src_dir, "_build"))
     os.makedirs(os.path.join(src_dir, "_static"))
     os.makedirs(os.path.join(src_dir, "_templates"))
 
     # Write a configuration file in the source directory.
     with open(os.path.join(src_dir, "conf.py"), 'w') as w:
-        w.write(conf_template)
+        w.write(get_conf_template(fileId))
 
     # Override the template with a simple template that just shows the body.
 
@@ -87,7 +92,7 @@ class TemplateBuild:
 
 
 def build(src_dir, templates, id_):
-    setup_build_directory(src_dir)
+    setup_build_directory(src_dir, id_)
 
     fnames = []
     for type_, packages in templates.items():

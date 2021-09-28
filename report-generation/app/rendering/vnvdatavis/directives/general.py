@@ -17,10 +17,12 @@ import pygments
 from pygments.lexers.data import JsonLexer
 from pygments.formatters.html import HtmlFormatter
 
-from app.base.blueprints import directives as dddd
+from app.base.blueprints import files as dddd
+
 vnv_directives = {}
 vnv_roles = {}
 vnv_nodes = []
+the_app = None
 
 from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query_str, jmes_jinga_stat, DataClass, \
     jmes_jinja_codeblock, jmes_jinja_query, get_target_node, jmes_jinja_query_json
@@ -42,9 +44,11 @@ VnVChartNode.NODE_VISITORS = {
     'html': (VnVChartNode.visit_node, VnVChartNode.depart_node)
 }
 
+
 def jmes_text_node(text, meth):
     result = meth(text)
     return [VnVChartNode(html=result)]
+
 
 ################ ADD A BUNCH OF ROLES TO TAKE STATISTICS OF JMES RESTULT #
 def process_query(text, stats_function, tag="span"):
@@ -64,12 +68,15 @@ def process_query(text, stats_function, tag="span"):
 
 def get_stats_role(stats_function):
     def role(name, rawtext, text, lineno, inliner, options={}, content=[]):
-        return process_query(text,stats_function)
+        return process_query(text, stats_function)
+
     return role
+
 
 vnv_roles["vnv"] = get_stats_role("str")
 for f in DataClass.statsMethods:
     vnv_roles[f"vnv-{f}"] = get_stats_role(f)
+
 
 class JmesStringDirective(SphinxDirective):
     required_arguments = 1
@@ -77,10 +84,13 @@ class JmesStringDirective(SphinxDirective):
     final_argument_whitespace = True
     option_spec = {}
     has_content = False
+
     def run(self):
-       return process_query(" ".join(self.arguments), "str")
+        return process_query(" ".join(self.arguments), "str")
+
 
 vnv_directives["vnv-print"] = JmesStringDirective
+
 
 class JsonCodeBlockDirective(SphinxDirective):
     has_content = False
@@ -92,10 +102,18 @@ class JsonCodeBlockDirective(SphinxDirective):
     def run(self):
         return process_query(" ".join(self.arguments), "codeblock", tag="div")
 
+
 vnv_directives["vnv-code"] = JsonCodeBlockDirective
 
+
 class JsonChartDirective(SphinxDirective):
-    update_dir = os.path.join(os.path.dirname(dddd.__file__),"templates/directives")
+
+    def get_update_dir(self):
+        dir = os.path.join(os.path.dirname(dddd.__file__), "templates", "renders", str(the_app.config.vnv_file), "updates")
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        return dir
+
     registration = {}
     required_arguments = 0
     optional_arguments = 0
@@ -131,9 +149,8 @@ class JsonChartDirective(SphinxDirective):
     def updateRegistration(self):
         r = self.register()
         if r is not None:
-
             uid = str(uuid.uuid4().hex)
-            with open(os.path.join(JsonChartDirective.update_dir, uid+".html"),'w') as f:
+            with open(os.path.join(self.get_update_dir(), uid + ".html"), 'w') as f:
                 f.write(r)
 
             return uid
@@ -166,6 +183,7 @@ class PlotlyChartDirective(JsonChartDirective):
 
     def register(self):
         return self.getContent()
+
 
 class ApexChartDirective(JsonChartDirective):
     script_template = '''
@@ -218,6 +236,7 @@ class GChartChartDirective(JsonChartDirective):
     def register(self):
         return self.getContent()
 
+
 class ChartJsChartDirective(JsonChartDirective):
     script_template = '''
            <div id="{id_}_container" width="{width}" height="{height}">
@@ -260,6 +279,7 @@ class TableChartDirective(JsonChartDirective):
 
     def register(self):
         return self.getContent()
+
 
 class TreeChartDirective(JsonChartDirective):
     script_template = '''
@@ -348,7 +368,6 @@ class JsonImageDirective(SphinxDirective):
 vnv_directives["vnv-image"] = JsonImageDirective
 
 
-
 def setup(sapp):
     for node in vnv_nodes:
         sapp.add_node(node, **node.NODE_VISITORS)
@@ -360,3 +379,6 @@ def setup(sapp):
         sapp.add_js_file(file)
     for file in vnv_css_assets:
         sapp.add_css_file(file)
+
+    global the_app
+    the_app = sapp
