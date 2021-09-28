@@ -1,0 +1,13 @@
+{%with requestRender = iprender.getRequest() %}
+<div id="ip-request-{{iprender.getId()}}">
+    {% if requestRender %}
+       {% include 'viewers/requestRender.html' %}
+    {% elif iprender.open() %}
+        <script>
+            setTimeout(function() {
+                update_request({{iprender.getFile()}},{{iprender.getId()}},"ip-request-{{iprender.getId()}}")
+            }, 3000);
+        </script>
+    {%endif %}
+</div>
+{%endwith%}

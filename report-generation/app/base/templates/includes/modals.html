@@ -13,7 +13,13 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn  btn-secondary" data-dismiss="modal" id="confirm-no">Close</button>
-                <button type="button" class="btn  btn-primary" id="confirm-yes">Save changes</button>
+
+                <button id="confirm-yes" class="btn btn-primary event-btn m-2" type="button">
+                    <span class="spinner-grow spinner-grow-sm" role="status" style="display: none;"></span>
+					<span class="load-text" style="display: none;">Loading...</span>
+					<span id="confirm-yes-text" class="btn-text" style="">Submit</span>
+                </button>
+
             </div>
         </div>
     </div>
@@ -55,10 +61,11 @@ function confirm_modal(title, body, yes, no, onclick) {
        $('#confirm-modal-label').text(title)
        $('#confirm-modal-body').html('<p>' + body + '</p>')
        $('#confirm-no').text(no)
-       $('#confirm-yes').text(yes)
-       $('#confirm-no').click(e=>{onclick(false)});
-       $('#confirm-yes').click(e=>{onclick(true); m.modal('hide');});
+       $('#confirm-yes-text').text(yes)
+       $('#confirm-no').click(e=>{onclick(false, m)});
+       $('#confirm-yes').click(e=>{onclick(true, m); });
        m.modal()
+
  }
 
 

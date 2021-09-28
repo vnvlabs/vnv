@@ -1,0 +1,47 @@
+<div class="card" style="position:relative">
+    <div class="card-body">
+        <div style="display:flex; align-items:center;">
+            <h2 class="fchild"> Application Steering Request </h2>
+            <a href="#!" class="badge badge-info" style="margin-left:10px";><span data-countdown="on">{{requestRender.getExpiryInSeconds()}}</span> seconds remaining</a>
+        </div>
+        <div>
+            {{requestRender.getMessage() | safe }}
+            <div> </div>
+        </div>
+        <form id="steering_response_form" action="files/viewers/respond" method="post">
+            <div> </div>
+
+            <input type="number" hidden class="form-control" name="id" id="r-id" value="{{requestRender.getId()}}">
+            <input type="number" hidden class="form-control" name="jid" id="r-jid" value="{{requestRender.getJID()}}">
+            <input type="number" hidden class="form-control" name="fileid" id="r-fileid" value="{{iprender.getFile()}}">
+            <input type="number" hidden class="form-control" name="ipid" id="r-ipid" value="{{iprender.getId()}}">
+
+            <div class="form-group" style="position:relative">
+                <label for="steering_response" class="col-form-label">Response Json</label>
+                <div style="position:relative;">
+                    <textarea class="form-control" id="steering_response" name='response' rows="10" data-placement='bottom' data-toggle="tooltip" data-html="true" title="" data-original-title="{{requestRender.presentSchema()}}"></textarea>
+                    <a id="steering_valid_badge" href="#!" class="badge badge-warning" style="top:4px; right:4px; position:absolute";>Invalid</a>
+                </div>
+            </div>
+            <script></script>
+            <button type="button"
+                    style="width:100%"
+                    onclick="submit_response_form('ip-request-{{iprender.getId()}}', {{iprender.getFile()}}, {{iprender.getId()}})"
+                    class="btn btn-primary mb-2">Send Response
+            </button>
+            <script>
+                $('#steering_response').tooltip()
+                configure_response_validation('steering_response', {{iprender.getFile()}}, {{iprender.getId()}}, function(valid, resp) {
+                    $('#steering_valid_badge').text(resp)
+                    if (valid) {
+                        $('#steering_valid_badge').removeClass('badge-warning')
+                        $('#steering_valid_badge').addClass('badge-success')
+                    } else {
+                        $('#steering_valid_badge').removeClass('badge-success')
+                        $('#steering_valid_badge').addClass('badge-warning')
+                    }
+                });
+            </script>
+        </form>
+    </div>
+</div>

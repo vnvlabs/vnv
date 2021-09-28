@@ -11,6 +11,7 @@
 #include "base/stores/IteratorsStore.h"
 #include "base/stores/OutputEngineStore.h"
 #include "base/stores/TestStore.h"
+#include "base/stores/ActionStore.h"
 #include "c-interfaces/Logging.h"
 #include "interfaces/IIterator.h"
 #include "json-schema.hpp"

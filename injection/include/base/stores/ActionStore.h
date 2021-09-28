@@ -10,33 +10,98 @@
 
 #include "base/parser/JsonParser.h"
 #include "base/stores/BaseStore.h"
+#include "base/stores/OutputEngineStore.h"
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/PackageName.h"
 #include "interfaces/IAction.h"
+#include "interfaces/IOutputEngine.h"
+
 namespace VnV {
 
+
+
 class ActionStore : public BaseStore {
-  std::map<std::string,
-           std::map<std::string, action_ptr, std::less<std::string>>>
-      action_factory;
+  std::map<std::string, std::pair<json, action_ptr>> action_factory;
+
+  std::vector<std::shared_ptr<IAction>> actions;
 
  public:
   ActionStore();
 
-  void runAction(ICommunicator_ptr comm, std::string packageName,
-                 std::string Name, const json& config, IAction* tester,
-                 ActionType& type);
+  OutputEngineManager* getEngine() { return OutputEngineStore::instance().getEngineManager(); }
 
-  void addAction(std::string packageName, std::string name, action_ptr m);
+  virtual void initialize(const ActionInfo& info ) {
+     if (info.run) {
+       for (auto it : info.actions) {
+         if (it.run) {
+              addAction(it.package, it.name, it.config);
+         }
+       }
+     }
+  }
 
-  IAction* getAction(std::string packageName, std::string name);
+  virtual void initialize(ICommunicator_ptr world) {
+    for (auto action : actions) {
+      getEngine()->actionStartedCallBack(world, action->getPackage(), action->getName(), ActionStage::init);
+      action->setComm(world);
+      action->initialize();
+      action->popComm();
+      getEngine()->actionEndedCallBack(ActionStage::init);
+    }
+  }
 
-  void runAction(ICommunicator_ptr comm, std::string packageName,
-                 std::string testName, const json& config, ActionType& type);
+  virtual void injectionPointStart(ICommunicator_ptr comm, std::string packageName, std::string id) {
+    for (auto action : actions) {
+      getEngine()->actionStartedCallBack(comm, action->getPackage(), action->getName(), ActionStage::start);
+      action->setComm(comm);
+      action->injectionPointStart( packageName, id);
+      getEngine()->actionEndedCallBack(ActionStage::start);
+    }
+  };
 
-  void runAll(VnV_Comm comm, VnV::ActionInfo info, ActionType& type);
+  virtual void injectionPointIter(std::string id) {
+    for (auto action : actions) {
+      getEngine()->actionStartedCallBack(action->getComm(), action->getPackage(), action->getName(), ActionStage::iter);
+      action->injectionPointIteration(id);
+      getEngine()->actionEndedCallBack(ActionStage::iter);
+    }
+  };
 
-  void print();
+  virtual void injectionPointEnd() {
+    for (auto action : actions) {
+      getEngine()->actionStartedCallBack(action->getComm(), action->getPackage(), action->getName(), ActionStage::end);
+      action->injectionPointEnd();
+      action->popComm();
+      getEngine()->actionEndedCallBack(ActionStage::end);
+    }
+  }
+
+  virtual void finalize(ICommunicator_ptr world) {
+    for (auto action : actions) {
+      getEngine()->actionStartedCallBack(world, action->getPackage(), action->getName(), ActionStage::final);
+      action->setComm(world);
+      action->finalize();
+      action->popComm();
+      getEngine()->actionEndedCallBack(ActionStage::final);
+    }
+  }
+
+  void registerAction(std::string packageName, std::string name, const json& schema, action_ptr m) {
+    action_factory[packageName + ":" + name] = {schema, m};
+  }
+
+  void addAction(std::string packageName, std::string name, const json& config) {
+    auto it = action_factory.find(packageName + ":" + name);
+    if (it != action_factory.end()) {
+      VnV::validateSchema(config, it->second.first, true);
+      std::shared_ptr<VnV::IAction> act;
+      act.reset((*(it->second.second))(config));
+      act->setNameAndPackageAndEngine(packageName, name, getEngine());
+      actions.push_back(act);
+    }
+    throw VnV::VnVExceptionBase("No action with that name and package exists (%s:%s)", packageName.c_str(),
+                                name.c_str());
+  }
 
   nlohmann::json schema();
 

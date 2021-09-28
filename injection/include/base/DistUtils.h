@@ -31,6 +31,37 @@ libInfo getLibInfo(std::string filepath, unsigned long add);
  */
 char* getCurrentDirectory();
 
+class LockFile;
+void initialize_lock(LockFile* lockfile);
+void lock_file(LockFile* lockfile);
+void unlock_file(LockFile* lockfile);
+void close_file(LockFile* lockfile);
+
+bool fileExists(std::string filename);
+
+
+class LockFile { 
+public:
+  
+  int fd;
+  std::string fname;
+  LockFile(std::string filename) : fname(filename) {
+     initialize_lock(this);
+  }
+
+  void lock() {
+    lock_file(this);
+  }
+  void unlock() {
+    unlock_file(this);
+  }
+  void close() {
+    close_file(this);
+  }
+
+};  
+
+
 /**
  * Convert a relative filename to an absolute.
  */

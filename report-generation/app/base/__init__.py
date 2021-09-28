@@ -20,13 +20,14 @@ blueprint.register_blueprint(blueprints.files.blueprint, url_prefix="/files")
 blueprint.register_blueprint(
     blueprints.inputfiles.blueprint,
     url_prefix="/inputfiles")
-blueprint.register_blueprint(
-    blueprints.steering.blueprint,
-    url_prefix="/steering")
+
 blueprint.register_blueprint(
     blueprints.notifications.blueprint,
     url_prefix="/notifications")
 
+blueprint.register_blueprint(
+    blueprints.directives.blueprint,
+    url_prefix="/directives")
 
 @blueprint.route('/')
 def default_route():
@@ -52,8 +53,8 @@ def template_globals(d):
     blueprints.plugins.template_globals(d)
     blueprints.notifications.template_globals(d)
     blueprints.inputfiles.template_globals(d)
-    blueprints.steering.template_globals(d)
+    blueprints.directives.template_globals(d)
 
 
 def faker():
-    pass
+    blueprints.files.faker()

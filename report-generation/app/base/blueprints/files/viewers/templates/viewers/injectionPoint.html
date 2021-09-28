@@ -7,14 +7,23 @@
     </button>
     {%endif%}
 
+    <a id='ipprocessing-{{iprender.getId()}}' href="#!" onclick="" class="badge badge-success" style="margin-left:10px" ;>{{iprender.getStatus()}}</a>
     <a href="#!" onclick="$('#comm-modal').modal('toggle')" class="badge badge-success" style="margin-left:10px" ;>Communication Map </a>
     <a href="#!" onclick="$('#source-modal').modal('toggle')" class="badge badge-info" style="margin-left:10px" ;>Source Code </a>
-
+    <script>
+        setTimeout(function() {
+              update_ip_processing("ipprocessing-{{iprender.getId()}}", {{iprender.getFile()}},{{iprender.getId()}})
+        }, 3000 )
+    </script>
 </div>
+
+{%include "viewers/request.html"%}
+
 
 {% with testrender = iprender.getInternalTest() %}
 {%include 'viewers/test.html' %}
 {% endwith %}
+
 
 {% if iprender.getAdditionalTests() | length > 0 %}
 

@@ -12,15 +12,12 @@ namespace VnV {
 namespace Nodes {
 
 long DataBase::getId() {
-  std::cout << "Getting Id " << id << std::endl;
   return id;
 }
 
 bool DataBase::check(DataType type) { return type == dataType; }
 
-std::string DataBase::getName() {
-  return (name.empty()) ? std::to_string(id) : name;
-}
+std::string DataBase::getName() { return (name.empty()) ? std::to_string(id) : name; }
 
 DataBase::DataType DataBase::getType() { return dataType; }
 
@@ -74,8 +71,7 @@ void IArrayNode::iter(std::function<void(DataBase*)>& lambda) {
   }
 }
 
-void IRootNode::addIDN(long id, long streamId, node_type type, long index,
-                       long duration, std::string stage) {
+void IRootNode::addIDN(long id, long streamId, node_type type, long index, long duration, std::string stage) {
   auto it = nodes.find(index);
   if (it == nodes.end()) {
     nodes[index] = std::list<IDN>();
@@ -91,8 +87,7 @@ void IRootNode::addIDN(long id, long streamId, node_type type, long index,
   }
 }
 
-WalkerWrapper::WalkerWrapper(std::shared_ptr<IWalker> walker, IRootNode* root)
-    : ptr(walker), rootNode(root) {
+WalkerWrapper::WalkerWrapper(std::shared_ptr<IWalker> walker, IRootNode* root) : ptr(walker), rootNode(root) {
   node.reset(new WalkerNode());
 }
 
@@ -100,15 +95,22 @@ WalkerNode* WalkerWrapper::next() {
   if (ptr->next(*node)) {
     return node.get();
   }
+
   node->item = rootNode;
-  node->type = node_type::DONE;
   node->edges.clear();
-  node->time = rootNode->getTotalDuration();
+  if (! rootNode->processing() ) {
+    node->type = node_type::DONE;
+    node->time = rootNode->getTotalDuration();
+  } else {
+    node->item = rootNode;
+    node->type = node_type::WAITING;
+    node->edges.clear();
+    node->time = -1;
+  }
   return node.get();
 }
 
-WalkerWrapper IRootNode::getWalker(std::string package, std::string name,
-                                   std::string config) {
+WalkerWrapper IRootNode::getWalker(std::string package, std::string name, std::string config) {
   nlohmann::json j = nlohmann::json::parse(config);
   auto a = WalkerStore::instance().getWalker(package, name, this, j);
   if (a == nullptr) {
@@ -116,6 +118,32 @@ WalkerWrapper IRootNode::getWalker(std::string package, std::string name,
   }
 
   return WalkerWrapper(a, this);
+}
+
+void IDataNode::open(bool value) {
+  DataBase::open(value);
+  getData()->open(value);
+  getLogs()->open(value);
+}
+void ITestNode::open(bool value) {
+  
+  DataBase::open(value);
+  getData()->open(value);
+  getLogs()->open(value);
+}
+
+void IInjectionPointNode::open(bool value)
+
+{
+  DataBase::open(value);
+  getTests()->open(value);
+  getLogs()->open(value);
+}
+
+void IUnitTestNode::open(bool value) {
+  DataBase::open(value);
+  getData()->open(value);
+  getLogs()->open(value);
 }
 
 }  // namespace Nodes

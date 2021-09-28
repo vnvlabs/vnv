@@ -11,8 +11,11 @@
         <li id="file-{{file.id_ | safe}}"><a href="{{url_for('base.files.view',id_=file.id_)}}">
             <div style="display:flex;">
                 <span style="flex:1;">{{file.name}}</span>
-
-                <span onclick='remove_file({{file.id_ | safe }}, event)' class="pcoded-micon"
+                <span onclick='remove_file({{file.id_ | safe }}, event, true)' class="pcoded-micon"
+                      style="padding-right:10px;">
+									<i class="feather icon-refresh-ccw"></i>
+					</span>
+                <span onclick='remove_file({{file.id_ | safe }}, event, false)' class="pcoded-micon"
                       style="padding-right:10px;">
 									<i class="feather icon-delete"></i>
 								</span>

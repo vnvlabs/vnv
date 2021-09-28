@@ -418,6 +418,15 @@ std::string VnV::TimeUtils::timeToISOString(time_t* t) {
   return buf;
 }
 
+std::string VnV::TimeUtils::timestamp() {
+    
+    time_t    caltime;
+    time(&caltime);
+    return timeToISOString(&caltime);    
+}
+
+
+
 std::string VnV::TimeUtils::timeForFile(std::string filename) {
   struct stat result;
   stat(filename.c_str(), &result);

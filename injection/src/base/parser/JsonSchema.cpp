@@ -28,10 +28,7 @@ const json& getVVSchema() {
     "unit-testing" : {
        "$ref" : "#/definitions/unit-testing"
     },
-    "configure-actions" : {
-       "$ref" : "#/definitions/actions"
-    },
-    "finalize-actions" : {
+    "actions" : {
        "$ref" : "#/definitions/actions"
     },
     "additionalPlugins": {

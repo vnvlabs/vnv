@@ -306,7 +306,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj["tests"] = json::object();
       lastTestJson = &jj;
 
-    } else if (nae == "INJECTION_ACTION_R" || nae == "INJECTION_ACTION_RAW") {
+    } else if (nae == "INJECTION_ACTION") {
       json& jj =
           getDef("Actions", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);

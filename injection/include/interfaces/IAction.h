@@ -5,94 +5,84 @@
 #include <memory>
 #include <stdexcept>
 #include <vector>
+#include <stack>
 
 #include "base/ActionType.h"
 #include "base/parser/JsonSchema.h"
 #include "interfaces/ICommunicator.h"
 #include "interfaces/argType.h"
+#include "interfaces/IOutputEngine.h"
 namespace VnV {
 
+class ActionStore;
+
 class IAction {
- protected:
-  ICommunicator_ptr comm;
-  json config = nlohmann::json::object();
-  json schema = getDefaultOptionsSchema();
 
- public:
-  /**
-   * @brief IActioner
-   */
-  IAction(){};
-
-  /**
-   * @brief ~IActioner
-   */
-  virtual ~IAction(){};
-
-  /**
-   * @brief run the action
-   */
-  virtual void run(ActionType type) = 0;
-
-  bool setConfig(const json& conf) {
-    bool r = VnV::validateSchema(conf, schema, false);
-    config = conf;
-    return r;
+  friend class ActionStore;
+  std::string name,package;
+  IOutputEngine *engine;
+  void setNameAndPackageAndEngine(std::string package, std::string name, IOutputEngine* engine){ 
+    this->name = name;
+    this->package = package;
+    this->engine = engine;
   }
-  void setSchema(std::string schemaStr) { schema = json::parse(schemaStr); }
 
-  void setComm(ICommunicator_ptr ptr) { comm = ptr; }
-  ICommunicator_ptr getComm() { return comm; }
+  std::string getName() { return name;}
+  
+  std::string getPackage() { return package;} 
+
+  std::stack<ICommunicator_ptr> commStack;
+  
+  void setComm(ICommunicator_ptr ptr) {
+    commStack.push(ptr);
+  }
+  void popComm() {
+    commStack.pop();
+  }
+
+public:  
+
+  virtual ICommunicator_ptr getComm() {
+    return commStack.top();
+  }
+  
+  virtual IOutputEngine* getEngine() {
+    return engine;
+  }
+
+  virtual void initialize() {};
+
+  virtual void injectionPointStart(std::string packageName, std::string id) {};
+
+  virtual void injectionPointIteration(std::string stageId) {};
+
+  virtual void injectionPointEnd() {};
+
+  virtual void finalize() {}
+
+
+  virtual ~IAction() = default;
+  IAction() = default;
+
+
 };
 
-typedef IAction* (*action_ptr)();
-void registerAction(std::string packageName, std::string name,
-                    VnV::action_ptr ptr);
+typedef IAction* (*action_ptr)(const nlohmann::json&);
 
-template <typename Runner> class Actioner_T : public IAction {
- public:
-  std::shared_ptr<Runner> runner;
-  Actioner_T(std::string schema) {
-    runner.reset(new Runner());
-    setSchema(schema);
-  }
-};
+void registerAction(std::string packageName, std::string name, std::string schema, VnV::action_ptr ptr);
 
 }  // namespace VnV
 
-#define INJECTION_ACTION_R(PNAME, name, Runner, Schema)       \
-  namespace VnV {                                             \
-  namespace PNAME {                                           \
-  namespace Actions {                                         \
-  class name : public VnV::Actioner_T<VnV_Arg_Type(Runner)> { \
-   public:                                                    \
-    name() : VnV::Actioner_T<VnV_Arg_Type(Runner)>(Schema) {} \
-    virtual void run(ActionType type) override;               \
-  };                                                          \
-  IAction* declare_##name() { return new name(); }            \
-  void register_##name() {                                    \
-    registerAction(VNV_STR(PNAME), #name, &declare_##name);   \
-  }                                                           \
-  }                                                           \
-  }                                                           \
-  }                                                           \
-  void VnV::PNAME::Actions::name::run(ActionType type)
-
-#define INJECTION_ACTION(PNAME, name) \
-  INJECTION_ACTION_R(PNAME, name, int, "{\"type\": \"object\"}")
-
-#define INJECTION_ACTION_S(PNAME, name, Schema) \
-  INJECTION_ACTION_R(PNAME, name, int, Schema)
-
-#define INJECTION_ACTION_RAW(PNAME, name, cls)                              \
+#define INJECTION_ACTION(PNAME, name, schema)                          \
   namespace VnV {                                                           \
   namespace PNAME {                                                         \
   namespace Actions {                                                       \
-  IAction* declare_##name() { return new cls(); }                           \
-  void register_##name() { registerAction(#PNAME, #name, declare_##name); } \
+  IAction* declare_##name(const json& config);                            \
+  void register_##name() { registerAction(#PNAME, #name, schema,  declare_##name); } \
   }                                                                         \
-  }                                                                         \
-  }
+ }                                                                          \
+}\
+VnV::IAction* VnV::PNAME::Actions::declare_##name(const nlohmann::json& config) 
 
 #define DECLAREACTION(PNAME, name) \
   namespace VnV {                  \

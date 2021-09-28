@@ -83,7 +83,7 @@ class DataBase {
 
             Root
   };
-  bool open = false;
+  bool _open = false;
   long id;
   long streamId;
 
@@ -102,7 +102,7 @@ class DataBase {
   STYPES
   RTYPES
 #undef X
-
+  
   virtual long getId();
   virtual std::string getName();
   virtual std::string getTypeStr();
@@ -110,7 +110,12 @@ class DataBase {
   virtual bool check(DataType type);
   virtual DataType getType();
 
+  virtual bool open() { return _open; }
+  virtual void open(bool value) {_open = value;}
+
   virtual long getStreamId() { return streamId; }
+
+  virtual void registerChildren(long& idCounter, IRootNode* rootNode){}
 
   virtual std::string toString() {
     std::ostringstream oss;
@@ -147,6 +152,9 @@ class IDataNode : public DataBase {
   virtual std::string getValue() = 0;
   virtual bool getLocal() = 0;
   virtual ~IDataNode();
+ 
+  virtual void open(bool value) override;
+  
 };
 
 // ArrayNode is an array of DataNodes.
@@ -231,16 +239,58 @@ class ICommInfoNode : public DataBase {
   virtual ~ICommInfoNode();
 };
 
+class FetchRequest {
+public:
+   std::string schema;
+   long id;
+   long jid;
+   long expiry;
+   std::string message;
+
+   FetchRequest(std::string s, long id_, long jid_, long e, std::string m) : schema(s),id(id_), jid(jid_),expiry(e), message(m) {}
+   std::string getSchema() { return schema;}
+   long getExpiry() { return expiry; }
+   long getId() { return id; }
+   long getJID() { return jid; }
+   std::string getMessage() { return message; } 
+
+};
+
 class ITestNode : public DataBase {
+ 
+ std::shared_ptr<FetchRequest> fetch = nullptr;
+ 
  public:
   ITestNode();
+  
+  virtual FetchRequest* getFetchRequest() {
+    
+     if (fetch != nullptr) {
+       return fetch.get();
+     }
+     return nullptr;
+  
+  }
+  virtual void resetFetchRequest(){
+    fetch.reset();
+  }
+  virtual void setFetchRequest(std::string schema, long id, long jid, long expiry, std::string message) {
+    fetch.reset(new FetchRequest(schema, id, jid, expiry, message));
+  }
+  
   virtual std::string getPackage() = 0;
   virtual IMapNode* getData() = 0;
   virtual std::string getValue() = 0;
   virtual IArrayNode* getLogs() = 0;
   virtual bool isInternal() = 0;
   virtual ~ITestNode();
+
+
+  virtual void open(bool value) override;
+
 };
+
+
 
 class IInjectionPointNode : public DataBase {
  public:
@@ -255,6 +305,10 @@ class IInjectionPointNode : public DataBase {
   virtual ITestNode* getData() = 0;
   virtual std::string getSourceMap() = 0;
   virtual ~IInjectionPointNode();
+
+
+  virtual void open(bool value) override;
+
 };
 
 class ILogNode : public DataBase {
@@ -297,6 +351,10 @@ class IUnitTestNode : public DataBase {
   virtual std::string getValue() = 0;
   virtual std::string getTestTemplate(std::string name) = 0;
   virtual ~IUnitTestNode();
+
+
+  virtual void open(bool value) override; 
+
 };
 
 class VnVSpec {
@@ -340,6 +398,11 @@ class VnVSpec {
     return getter("Files", package + ":" + name);
   }
 
+  std::string action(std::string package, std::string name) const {
+    return getter("Actions", package + ":" + name);
+  }
+
+
   std::string package(std::string package) const {
     return getter("Options", package);
   }
@@ -349,7 +412,7 @@ class VnVSpec {
   }
 };
 
-enum class node_type { ROOT, POINT, START, ITER, END, LOG, DONE };
+enum class node_type { ROOT, POINT, START, ITER, END, LOG, WAITING, DONE };
 
 class WalkerNode {
  public:
@@ -390,6 +453,8 @@ class IRootNode : public DataBase {
 
   std::set<IWalker*> walkers;
 
+  
+
  public:
   IRootNode();
 
@@ -402,7 +467,7 @@ class IRootNode : public DataBase {
     if (it != idMap.end()) {
       return it->second.get();
     }
-    throw VnV::VnVExceptionBase("Invalid Id");
+    throw VnV::VnVExceptionBase("Invalid Id %s", id );
   }
 
   void registerWalkerCallback(IWalker* walker) { walkers.insert(walker); }
@@ -417,20 +482,33 @@ class IRootNode : public DataBase {
   virtual IArrayNode* getUnitTests() = 0;
   virtual IInfoNode* getInfoNode() = 0;
   virtual ICommInfoNode* getCommInfoNode() = 0;
-  virtual long getTotalDuration() = 0;
-
   virtual IMapNode* getPackages() = 0;
 
+
+  virtual long getTotalDuration() = 0;
+  
   virtual ITestNode* getPackage(std::string package) {
     return getPackages()->get(package, 0)->getAsTestNode();
   }
 
+  virtual ITestNode* getAction(std::string package) {
+    return getActions()->get(package, 0)->getAsTestNode();
+  }
+  
+
   virtual void lock() = 0;
+ 
+  virtual IMapNode* getActions() = 0;
+ 
   virtual void release() = 0;
 
   virtual bool hasId(long id) { return findById(id) != NULL; }
 
   virtual const VnVSpec& getVnVSpec() = 0;
+
+  virtual bool processing() const = 0;
+
+  virtual void respond(long id, long jid, const std::string& response) = 0;
 
   virtual std::map<long, std::list<IDN>>& getNodes() { return nodes; }
 

@@ -343,6 +343,10 @@ PY_GETATTR(VnV::Nodes::ICommInfoNode)
 
       def __str__(self):
          return str([ self.__getitem__(i) for i in range(0,self.size())])
+   
+      def __json__(self):
+         return [ self.__getitem__(i).__json__() for i in range(0,self.size())]
+
    %}
 }
 %enddef
@@ -389,6 +393,11 @@ PY_GETATTRLIST(VnV::Nodes::IArrayNode)
 
         def __str__(self):
             return str({ a : str(self.__getitem__(a)) for a in self.fetchkeys() })
+
+    
+        def __json__(self):
+         return { a : self.__getitem__(a).__json__() for a in self.fetchkeys()}
+        
    %}
 }
 %enddef
@@ -486,6 +495,12 @@ PY_GETATTRMAP(VnV::Nodes::IMapNode)
 
       def __str__(self):
           return str(self.valueIsJson(self.getValue()))
+
+      
+      def __json__(self):
+         return self.valueIsJson(self.getValue())
+        
+
    %}
 }
 %enddef

@@ -8,6 +8,7 @@ namespace {
 class ProcIter : public VnV::Walkers::Iter {
  protected:
   long searchProc;
+  bool started  = false;
 
   // Include any comms that contain this processor.
   virtual bool procContainedIn(long streamId) {
@@ -19,20 +20,30 @@ class ProcIter : public VnV::Walkers::Iter {
       : Iter(comm, n), searchProc(proc){};
 
   virtual bool next(IDN& res) {
-    while (niter != nodes.end()) {
-      for (auto& it : niter->second) {
+    
+    auto s = niter ; // set s to be the element after the last time we found one.
+    if (started) {
+      s++;
+    }
+    std::cout << niter->first << " sdfsdfsdf " << std::endl;
+    while (s != nodes.end()) {
+      
+      for (auto& it : s->second) {
+        
         if (procContainedIn(it.streamId)) {
           res.duration = it.duration;
           res.id = it.id;
           res.streamId = it.streamId;
           res.type = it.type;
-          ++niter;
+          niter = s; // We found one, so niter should start here next time
+          std::cout << s->first << " " << niter->first << " 22sdfsdfsdf " << std::endl;
+          started = true;        
           return true;
         }
-        ++niter;
       }
+      ++s;
     }
-    return false;
+    return false; // We didnt find one this time....
   }
 };
 
@@ -85,9 +96,6 @@ class RootNodeProcWalk : public VnV::IWalker {
       node.edges.clear();
       return true;
     }
-
-    node.item = NULL;
-    node.type = node_type::DONE;
     return false;
   }
 

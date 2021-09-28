@@ -18,6 +18,7 @@ class JsonFileIterator : public Iterator<json> {
   long sId;
   std::ifstream ifs;
   std::streamoff p = 0;
+  VnV::DistUtils::LockFile lockfile;
 
   json nextCurr;
   long nextValue = -1;
@@ -25,8 +26,11 @@ class JsonFileIterator : public Iterator<json> {
   std::string currJson;
 
   void getLine_() {
+    lockfile.lock();
+
     std::string currline;
     ifs.seekg(p);
+
     if (std::getline(ifs, currline)) {
       json t = json::parse(currline);
       nextCurr = t["object"];
@@ -43,6 +47,8 @@ class JsonFileIterator : public Iterator<json> {
       nextCurr = json::object();
       ifs.clear();  // Clear the stream so we can try and read again.
     }
+
+    lockfile.unlock();
   }
 
   void getLine(json& current, long& currentValue) override {
@@ -53,25 +59,32 @@ class JsonFileIterator : public Iterator<json> {
   }
 
  public:
-  JsonFileIterator(long streamId_, std::string filename_)
-      : sId(streamId_), ifs(filename_) {
+  JsonFileIterator(long streamId_, std::string filename_) : sId(streamId_), ifs(filename_), lockfile(filename_) {
     if (!ifs.good()) {
       throw VnV::VnVExceptionBase("Could not open file %s", filename_.c_str());
     }
     getLine_();
   }
 
-  bool hasNext() const override {
+  bool hasNext() override {
+    if (nextValue == STREAM_READER_NO_MORE_VALUES) {
+      getLine_();
+    }
     return nextValue != STREAM_READER_NO_MORE_VALUES;
   }
 
   long streamId() const override { return sId; }
 
-  ~JsonFileIterator() { ifs.close(); }
+  ~JsonFileIterator() {
+    ifs.close();
+    lockfile.close();
+  }
 };
 
 class JsonFileStream : public FileStream<JsonFileIterator, json> {
   std::map<long, std::ofstream> streams;
+  std::map<long, VnV::DistUtils::LockFile> lockfiles;
+
   static std::size_t INIDCOUNT;
   std::string response_stub = "";
 
@@ -82,96 +95,66 @@ class JsonFileStream : public FileStream<JsonFileIterator, json> {
         json j = json::object();
         j[JSD::node] = JSN::done;
         j[JSD::duration] = VnV::RunTime::instance().duration();
-        it.second << "{ \"id\": " << -1204 << ", \"object\" : " << j.dump()
-                  << "}" << std::endl;
+        it.second << "{ \"id\": " << -1204 << ", \"object\" : " << j.dump() << "}" << std::endl;
       }
     }
   }
 
-  std::string createResponseDirectory() {
-    if (response_stub.length() == 0) {
-      response_stub =
-          VnV::DistUtils::join({filestub, "__response__"}, 0777, true);
-    }  // generate a filename filestup/__response__/<id>_<comm>
-    return response_stub;
-  }
-
-  virtual void newComm(long id, const json& obj,
-                       ICommunicator_ptr comm) override {
+  
+  virtual void newComm(long id, const json& obj, ICommunicator_ptr comm) override {
     if (streams.find(id) == streams.end()) {
       std::ofstream off(getFileName(id));
+      VnV::DistUtils::LockFile lock(getFileName(id));
       streams.insert(std::make_pair(id, std::move(off)));
+      lockfiles.insert(std::make_pair(id, std::move(lock)));
       write(id, obj, -1);
     }
   };
 
-  virtual bool fetch(long id, const json& schema, long timeoutInSeconds,
-                     json& response) {
-    // Get a unique id for this request.
-    std::string c = std::to_string(++INIDCOUNT);
-    std::string fname = VnV::DistUtils::join(
-        {createResponseDirectory(), c + "_" + std::to_string(id)}, 0777, false);
+  virtual bool supportsFetch() override { return true; }
 
-    // Open a file called <fname>.writing.
-    std::ofstream f(fname + ".writing");
 
-    // Write the schema provided and the expiry time to the file.
-    long expiry = std::chrono::duration_cast<std::chrono::seconds>(
-                      std::chrono::system_clock::now().time_since_epoch())
-                      .count() +
-                  timeoutInSeconds;
-    json j = json::object();
-    j["schema"] = schema;
-    j["expires"] = expiry;
-    f << j.dump(4);
-    f.close();
+  static std::string getResponseFileName(std::string stub, long id, long jid) {
+    return VnV::DistUtils::join({stub, "__response__", std::to_string(jid) + "_" + std::to_string(id)}, 0777, true);    
+  }
 
-    // Rename the file the <fname>.pending. This makes sure the reader does not
-    // see the file until we are done writing to it.
-    VnV::DistUtils::mv(fname + ".writing", fname + ".pending");
 
-    // Loop until timeout
-    while (std::chrono::duration_cast<std::chrono::seconds>(
-               std::chrono::system_clock::now().time_since_epoch())
-               .count() < expiry) {
-      // Look for a file called fname.complete.
-      std::ifstream ifs(fname + ".complete");
-      if (ifs.good()) {
-        // If we found it then parse the contents into result.
-        response = json::parse(ifs);
+  virtual bool fetch(long id, long jid, json& response) override {
+    std::string s = getResponseFileName(filestub, id, jid );
+    std::ifstream ifs(s + ".complete");
+    if (ifs.good()) {
+        response = json::parse(ifs); 
         return true;
-      }
-
-      // Go to sleep for a second to avoid spamming the filesystem
-      sleep(1);
     }
-
-    // We timed out so continue.
     return false;
   }
 
   virtual void write(long id, const json& obj, long jid) override {
     auto it = streams.find(id);
+    auto lo = lockfiles.find(id);
 
     if (it != streams.end()) {
       if (it->second.good()) {
         // Writing to a closed stream does NOT throw an exception (by default).
         // So, we check for "good" first/
-        it->second << "{ \"id\": " << jid << ", \"object\" : " << obj.dump()
-                   << "}" << std::endl;
+        lo->second.lock();
+        it->second << "{ \"id\": " << jid << ", \"object\" : " << obj.dump() << "}" << std::endl;
         it->second.flush();
+        lo->second.unlock();
         return;
 
       } else {
         throw VnV::VnVExceptionBase("Invalid Output file stream");
       }
     }
-    throw VnV::VnVExceptionBase(
-        "Tried to write to a non-existent stream with id %ld", id);
+    throw VnV::VnVExceptionBase("Tried to write to a non-existent stream with id %ld", id);
   };
 
   virtual ~JsonFileStream() {
     for (auto& it : streams) {
+      it.second.close();
+    }
+    for (auto& it : lockfiles) {
       it.second.close();
     }
   }
@@ -179,10 +162,59 @@ class JsonFileStream : public FileStream<JsonFileIterator, json> {
 
 std::size_t JsonFileStream::INIDCOUNT = 0;
 
-INJECTION_ENGINE(VNVPACKAGENAME, json_file) {
-  return new StreamManager<json>(std::make_shared<JsonFileStream>());
-}
+class MultiFileStreamIterator : public MultiStreamIterator<JsonFileIterator, json> {
+  
+  std::set<std::string> loadedFiles;
+  std::string filestub;
+  std::string response_stub = "";
+
+ public:
+  MultiFileStreamIterator(std::string fstub) : MultiStreamIterator<JsonFileIterator, json>(), filestub(fstub) {
+    bool changed = false;
+    while (VnV::DistUtils::fileExists(filestub)) {
+      filestub = fstub + VnV::TimeUtils::timestamp();
+      changed = true;
+    }
+
+    if (changed) {
+      VnV_Warn(VNVPACKAGENAME, "Output will be written to %s because %s already exists", filestub.c_str(),
+               fstub.c_str());
+    }
+  }
+
+  virtual void respond(long id, long jid, const json& response) override { 
+      //Respond to a file request in a format that will be understood by rhe Json Stream that is
+      //waiting for it. 
+         std::string s = JsonFileStream::getResponseFileName(filestub, id, jid );
+         std::ofstream ofs(s + ".responding");
+         ofs << response.dump();
+         ofs.close();
+         VnV::DistUtils::mv(s+".responding", s+".complete");
+  }
+
+
+  void updateStreams() override {
+    std::vector<std::string> files = VnV::DistUtils::listFilesInDirectory(filestub);
+    for (auto& it : files) {
+      if (loadedFiles.find(it) == loadedFiles.end()) {
+        loadedFiles.insert(it);
+        std::size_t dot = it.find_first_of(".");
+        try {
+          if (it.substr(dot).compare(extension) == 0) {
+            long id = std::atol(it.substr(0, dot).c_str());
+            std::string fname = VnV::DistUtils::join({filestub, it}, 0777, false);
+            add(std::make_shared<JsonFileIterator>(id, fname));
+          }
+        } catch (...) {
+        }
+      }
+    }
+  }
+};
+
+INJECTION_ENGINE(VNVPACKAGENAME, json_file) { return new StreamManager<json>(std::make_shared<JsonFileStream>()); }
 
 INJECTION_ENGINE_READER(VNVPACKAGENAME, json_file) {
-  return JsonFileStream::parse(filename, id);
+  auto stream = std::make_shared<MultiFileStreamIterator>(filename);
+  return RootNodeWithThread<MultiFileStreamIterator, json>::parse(id, stream);
 }

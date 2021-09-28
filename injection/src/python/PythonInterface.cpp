@@ -27,6 +27,7 @@ ReaderWrapper::ReaderWrapper(std::string filename, std::string reader,
   json conf = json::parse(config);
   rootNode =
       VnV::OutputEngineStore::instance().readFile(filename, reader, conf);
+
 }
 
 Nodes::IRootNode* ReaderWrapper::get() { return rootNode.get(); }

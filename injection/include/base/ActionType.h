@@ -1,19 +1,19 @@
 #ifndef VNV_ACTION_TYPE_HEADER
 #define VNV_ACTION_TYPE_HEADER
 
-#include <string>
 namespace VnV {
 
-class ActionType {
-  std::string s;
-  explicit ActionType(std::string s);
+namespace ActionStage {
 
- public:
-  bool equals(std::string s);
-  static ActionType& configure();
-  static ActionType& finalize();
-};
+ typedef std::string type;
+ constexpr auto init = "i";
+ constexpr auto start = "s";
+ constexpr auto iter = "it";
+ constexpr auto end = "e";
+ constexpr auto final = "f";
+ 
+}; 
 
-}  // namespace VnV
+}
 
 #endif

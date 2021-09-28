@@ -9,6 +9,7 @@
 #include <link.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <sys/file.h>
 #include <unistd.h>
 
 #include <iostream>
@@ -34,6 +35,24 @@ libInfo getLibInfo(std::string filepath, unsigned long add) {
 }
 
 char* getCurrentDirectory() { return get_current_dir_name(); }
+
+void initialize_lock(LockFile* lockfile) {
+  lockfile->fd = open(lockfile->fname.c_str(), O_WRONLY | O_CREAT);
+}
+
+void lock_file(LockFile* lockfile) {
+  flock(lockfile->fd, LOCK_EX);
+}
+
+void unlock_file(LockFile* lockfile) {
+  flock(lockfile->fd, LOCK_UN);
+}
+
+void close_file(LockFile* lockfile) {
+  unlock_file(lockfile);
+  close(lockfile->fd);
+}
+
 
 std::string getAbsolutePath(std::string filename) {
   char* x = realpath(filename.c_str(), nullptr);
@@ -138,6 +157,12 @@ int load_callback(struct dl_phdr_info* info, size_t /*size*/, void* data) {
   }
   return 0;
 }
+
+bool fileExists(std::string filename) {
+  struct stat info;
+  return stat( filename.c_str(), &info ) != 0 ;
+}
+
 // packageName -> filename.
 void callAllLibraryRegistrationFunctions(
     std::map<std::string, std::string> packageNames) {
@@ -160,7 +185,6 @@ std::vector<std::string> listFilesInDirectory(std::string directory) {
 
   DIR* dir;
   struct dirent* ent;
-  VnV_Debug(VNVPACKAGENAME, "Openning directory %ld", directory.size());
   if ((dir = opendir(directory.c_str())) != NULL) {
     while ((ent = readdir(dir)) != NULL) {
       res.push_back(ent->d_name);

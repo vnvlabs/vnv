@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+﻿cmake_minimum_required(VERSION 3.6)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -28,6 +28,8 @@ if(WITH_MPI)
   addexecutable(read.a SampleReader "read.cpp")
   addexecutable(simple.a SimpleExecutable "simple.cpp")
   addexecutable(distributed.a Distributed "distributed.cpp")
+  addexecutable(live.a Live "live.cpp")
+  
 
 endif()
 
@@ -41,6 +43,9 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/sample-read.json
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/distributed.json
                ${CMAKE_CURRENT_BINARY_DIR}/vv-dist-data.json COPYONLY)
+
+configure_file(${CMAKE_CURRENT_LIST_DIR}/sample-live.json
+               ${CMAKE_CURRENT_BINARY_DIR}/vv-input-live.json COPYONLY)
 
 install(
   FILES ${CMAKE_CURRENT_LIST_DIR}/sample.json

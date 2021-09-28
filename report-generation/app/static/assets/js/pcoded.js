@@ -873,13 +873,21 @@ function autocomplete(inp) {
   inp.addEventListener("keydown", function(e) {
       var x = document.getElementById(this.id + "autocomplete-list");
       if (x) x = x.getElementsByTagName("div");
-      if (e.keyCode == 40) {
+      if (e.keyCode == 9) {
+        e.preventDefault();
+        if (currentFocus > -1) {
+          if (x) x[currentFocus].click();
+        } else if ( x.length > 0 ) {
+            x[0].click();
+        }
+      }
+      if (e.keyCode == 40 ) {
         currentFocus++;
         addActive(x);
       } else if (e.keyCode == 38) { //up
         currentFocus--;
         addActive(x);
-      } else if (e.keyCode == 13) {
+      } else if (e.keyCode == 13 ) {
         e.preventDefault();
         if (currentFocus > -1) {
           if (x) x[currentFocus].click();

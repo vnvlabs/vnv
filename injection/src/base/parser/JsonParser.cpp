@@ -177,8 +177,7 @@ UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json& unitTestJson) {
   return info;
 }
 
-ActionInfo JsonParser::getActionInfo(const nlohmann::json& actionJson,
-                                     std::string type) {
+ActionInfo JsonParser::getActionInfo(const nlohmann::json& actionJson) {
   ActionInfo info;
   info.run = true;
   for (auto it : actionJson.items()) {
@@ -187,7 +186,7 @@ ActionInfo JsonParser::getActionInfo(const nlohmann::json& actionJson,
     config.package = it.key().substr(0, colon_pos);
     config.name = it.key().substr(colon_pos + 1);
     config.config = it.value();
-    config.run = type;
+    config.run = true;
     info.actions.push_back(std::move(config));
   }
   return info;
@@ -289,21 +288,11 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
         getUnitTestInfo(R"({"runTests" : false , "config" : {} })"_json);
   }
 
-  info.actionInfo = {false, {}};
-  if (main.contains("configure-actions")) {
+  if (main.contains("actions")) {
+    info.actionInfo = getActionInfo(main["actions"]);
     info.actionInfo.run = true;
-    ActionInfo f = getActionInfo(main["configure-actions"], "configure");
-    for (auto it : f.actions) {
-      info.actionInfo.actions.push_back(it);
-    }
   }
-  if (main.contains("finalize-actions")) {
-    info.actionInfo.run = true;
-    ActionInfo f = getActionInfo(main["finalize-actions"], "finalize");
-    for (auto it : f.actions) {
-      info.actionInfo.actions.push_back(it);
-    }
-  }
+
   if (main.contains("communicator")) {
     info.communicator = main["communicator"].get<std::string>();
   } else {

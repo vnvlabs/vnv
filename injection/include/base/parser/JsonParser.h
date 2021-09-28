@@ -153,7 +153,7 @@ struct ActionConfig {
   json config;          /**< the action specific configuration object */
   std::string name;     /**< the name of the action to run */
   std::string package;  /**< the package that declared the action */
-  std::string run = ""; /**< when should the action be executed (todo --> enum )*/
+  bool run = false; /**< when should the action be executed (todo --> enum )*/
 };
 
 /**
@@ -264,7 +264,7 @@ class JsonParser {
    * Load the information about the engine.
    */
 
-  ActionInfo getActionInfo(const json& actionJson, std::string type);
+  ActionInfo getActionInfo(const json& actionJson);
 
   /**
    * @brief Get the Sampler Info object

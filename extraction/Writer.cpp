@@ -39,7 +39,11 @@ class RegistrationWriter {
     if (it != oss_register.end()) {
       it->second << "\tREGISTER_FULL_JSON(" << packageName
                  << ", getFullRegistrationJson_" << it->first << ");\n";
+      
       it->second << "};\n\n";
+      
+ 
+
       oss_declare[packageName]
           << "const char* getFullRegistrationJson_" << it->first << "(){"
           << "\n"
@@ -63,7 +67,9 @@ class RegistrationWriter {
     if (!packageName.empty()) {
       auto it = oss_declare.find(packageName);
       if (it != oss_declare.end()) {
-        return it->second.str();
+        
+        std::string s = it->second.str();
+        return s; 
       } else {
         // This means the package includes VnV.h, but does not have any VnV
         // INJECTION CALLS. So, we should return a empty configuration.
@@ -105,6 +111,7 @@ class RegistrationWriter {
   }
 
   RegistrationWriter(json& j, std::string packageName = "") {
+    
     registerHelper(j, "Tests", "TEST", packageName);
     registerHelper(j, "Iterators", "ITERATOR", packageName);
     registerHelper(j, "Plugs", "PLUG", packageName);
@@ -195,18 +202,23 @@ class RegistrationWriter {
     // Catch the injection points
 
     if (j.contains("InjectionPoints")) {
+      
+      
       for (auto it : j["InjectionPoints"].items()) {
         std::string pname = it.value()["packageName"];
         if (packageName.empty() || pname == packageName) {
+        
+       
           std::string name = it.value()["name"].get<std::string>();
 
           json& params =
-              it.value()["parameters"]
-                        [0];  // TODO TEMPLATE ARGUEMENTS NOT SUPPORTED ?
+              it.value()["parameters"][0];  // TODO TEMPLATE ARGUEMENTS NOT SUPPORTED ?
 
-          pjson[pname]["InjectionPoints"][name] = it.value();
+
           createPackageOss(pname);
-
+          VnV::JsonUtilities::getOrCreate(pjson[pname], "InjectionPoints")[name] = it.value();
+          
+        
           bool iterator = it.value().value("/iterator"_json_pointer, false);
           bool plug = it.value().value("/plug"_json_pointer, false);
           std::string escaped =
@@ -224,9 +236,10 @@ class RegistrationWriter {
 
 void writeFile(json& cacheInfo, std::string outputFileName,
                std::string cacheFile, std::string packageName, bool force) {
-  std::size_t h = std::hash<std::string>()(cacheInfo.dump());
+  
+  std::size_t h = std::hash<std::string>()(cacheInfo["data"].dump());
   std::string hashStr = "///" + packageName + ":" + std::to_string(h);
-
+  
   // First we load the existing file in that directory.
   if (!force) {
     std::ifstream efile(outputFileName);
@@ -238,6 +251,7 @@ void writeFile(json& cacheInfo, std::string outputFileName,
         // The cache hasnt changed, so this file definetly hasn't changed.
         efile.close();
         return;
+      } else {
       }
     }
     efile.close();
@@ -260,6 +274,7 @@ void writeFile(json& cacheInfo, std::string outputFileName,
       }
     }
   }
+
 
   // Generate the registration code using the given json.
   RegistrationWriter r(finalJson, packageName);

@@ -323,12 +323,6 @@ class RunTime {
    */
   void runUnitTests(VnV_Comm comm, UnitTestInfo info);
 
-  /**
-   * @brief runActions
-   *
-   * Run all user requested actions.
-   */
-  void runActions(VnV_Comm comm, ActionInfo info, ActionType t);
 
   std::shared_ptr<Nodes::IRootNode> readFile(std::string reader,
                                              std::string filename);

@@ -142,7 +142,7 @@ class JsonHttpStream : public StreamWriter<json> {
     auto stream =
         std::make_shared<JsonHttpStreamIterator>(std::atoi(file.c_str()));
 
-    return VnV::StreamReader::RootNodeWithThread::parse(id, stream);
+    return RootNodeWithThread<JsonHttpStreamIterator,json>::parse(id, stream);
   }
 };
 

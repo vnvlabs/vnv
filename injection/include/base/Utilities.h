@@ -164,6 +164,9 @@ std::string timeToISOString(time_t* t);
  */
 std::string timeForFile(std::string filename);
 
+std::string timestamp();
+
+
 }  // namespace TimeUtils
 
 namespace HashUtils {

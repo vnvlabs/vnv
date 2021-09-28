@@ -76,65 +76,62 @@ cpuRunner::~cpuRunner() {}
  * Injection Point Timing Results
  * ==============================
  *
- * The overall time was :vnv:`Data.TotalTime` :vnv:`Data.units`
+ * The overall time was :vnv:`TotalTime[0]` :vnv:`units[0]`
  *
  * .. vnv-chart::
- *    :labels: Data[?TypeStr == 'Double'].Name
- *    :ydata: Data[?MetaData.tag == 'value'].Value
  *
  *    {
  *       "type" : "line",
  *       "data" : {
- *          "labels" : $$labels$$,
+ *          "labels" : {{as_json(Labels)}},
  *          "datasets" : [{
  *             "label": "Recorded CPU Times",
  *             "backgroundColor": "rgb(255, 99, 132)",
  *             "borderColor": "rgb(255, 99, 132)",
- *             "data": $$ydata$$
+ *             "data": {{as_json(Data)}}
  *           }]
  *       },
  *       "options" : {
+ *           "animation" : false,
  *           "responsive" : true,
- *           "title" : { "display" : true, "text" : "CPU Time at the begining of
- * each injection point." }, "scales": { "yAxes": [{ "scaleLabel": { "display":
- * true, "labelString": "CPU Time (nanoseconds)"
- *                   }
- *               }],
- *               "xAxes": [{
- *                   "scaleLabel": {
- *                       "display":true,
- *                       "labelString": "Injection Point Stage"
- *                   }
- *               }]
- *            }
- *        }
+ *           "title" : { "display" : true, 
+ *                       "text" : "CPU Time at the begining of each injection point."
+ *                     }, 
+ *          "scales": { 
+ *             "yAxes": [{ 
+ *               "scaleLabel": { 
+ *                 "display": true, 
+ *                 "labelString": "CPU Time ({{units[0]}})"
+ *               }
+ *            }],
+ *            "xAxes": [{
+ *              "scaleLabel": {
+ *                 "display":true,
+ *                 "labelString": "Injection Point Stage"
+ *               }
+ *            }]
+ *          }
+ *       }
  *    }
  *
+ * 
  */
 INJECTION_TEST_RS(VNVPACKAGENAME, cputime, cpuRunner, cpuRunner::provSchema()) {
-  if (type == InjectionPointType::Single) {
-    VnV_Warn(VNVPACKAGENAME,
-             "Attempt to time a non looped injection point. Returning zero for "
-             "cputime");
-    double c = 0;
-    engine->Put("Start", c, {{"tag", "value"}});
-    engine->Put("TotalTime", c, {{"tag", "value"}});
-
-  } else if (type == InjectionPointType::Begin) {
-    double cc = 0;
-    const json& c = getConfigurationJson();
-    auto it = c.find("units");
-    if (it != c.end()) {
-      runner->setUnit(it->get<std::string>());
-    }
-    engine->Put("units", runner->unit);
-    engine->Put("Start", cc, {{"tag", "value"}});
-    runner->start();
+  
+  if (type == InjectionPointType::Begin || type== InjectionPointType::Single ) {
+      const json& c = getConfigurationJson();
+      auto it = c.find("units");
+      if (it != c.end()) {
+        runner->setUnit(it->get<std::string>());
+      }
+      engine->Put("units", runner->unit);
+      runner->start();
   } else if (type == InjectionPointType::End) {
     engine->Put("TotalTime", runner->split(), {{"tag", "value"}});
-  } else {
-    engine->Put(stageId, runner->split(), {{"tag", "value"}});
-  }
+  } 
+  
+  engine->Put("Labels", stageId);
+  engine->Put("Data", runner->split());
   return SUCCESS;
 }
 

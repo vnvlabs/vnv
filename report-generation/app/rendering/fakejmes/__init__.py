@@ -1,5 +1,7 @@
+import json
+
 from jmespath.visitor import Options, TreeInterpreter
-from jmespath import parser
+from jmespath import parser, functions
 from jmespath.functions import TYPES_MAP, REVERSE_TYPES_MAP, Functions
 
 VnVMap = ['IBoolNode',
@@ -59,17 +61,14 @@ class RootInterpreter(TreeInterpreter):
         return isinstance(
             element,
             list) or (
-            hasattr(
-                element,
-                "__getType__") and element.__getType__() == "list")
+                       hasattr(
+                           element,
+                           "__getType__") and element.__getType__() == "array")
 
-    def __init__(self, dict_class=None):
+    def __init__(self, dict_class=None, custom_functions=None):
         super(
-            RootInterpreter,
-            self).__init__(
-            Options(
-                dict_class=dict_class,
-                custom_functions=Functions()))
+            RootInterpreter,self).__init__(
+            Options(dict_cls=dict_class, custom_functions=custom_functions))
 
     def visit_field(self, node, value):
         try:
@@ -150,11 +149,30 @@ class RootInterpreter(TreeInterpreter):
                 value is False)
 
 
+class VnVJsonEncoder(json.JSONEncoder):
+    def default(self, o):
+        if hasattr(o, "__json__"):
+            return o.__json__();
+        return json.JSONEncoder.default(self, o)
+
+class CustomVnVFunctions(functions.Functions):
+
+    @functions.signature({"types": []})
+    def _func_as_json(self, s):
+        # Given a object return it as json encoded string
+        return json.dumps(s, cls=VnVJsonEncoder)
+
+class VnVExpression:
+    def __init__(self, parse):
+        self.parse = parse
+
+    def search(self, value):
+        interpreter = RootInterpreter(custom_functions=CustomVnVFunctions())
+        return interpreter.visit(self.parse.parsed, value)
+
+
+
+
 def compile(expression):
-    return parser.Parser().parse(expression)
+    return VnVExpression(parser.Parser().parse(expression))
 
-
-def search(expression, value, options=None):
-    interpreter = RootInterpreter(options)
-    result = interpreter.visit(expression.parsed, value)
-    return result

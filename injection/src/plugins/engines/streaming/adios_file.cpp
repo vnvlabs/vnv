@@ -142,9 +142,9 @@ class AdiosFileIterator : public Iterator<json> {
     fstream.open(filename_, adios2::fstream::openmode::in);
   }
 
-  bool hasNext() const override { return more; }
+  bool hasNext() override { return more; }
 
-  bool isDone() const override { return more; }
+  bool isDone() override { return more; }
 
   long streamId() const override { return sId; }
 

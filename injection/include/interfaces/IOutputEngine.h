@@ -9,11 +9,11 @@
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/DataTypeStore.h"
 #include "base/stores/ReductionStore.h"
+#include "base/ActionType.h"
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/Logging.h"
 #include "c-interfaces/PackageName.h"
 #include "c-interfaces/Wrappers.h"
-#include "interfaces/IEventListener.h"
 #include "interfaces/IUnitTest.h"
 #include "json-schema.hpp"
 
@@ -26,13 +26,14 @@ using nlohmann::json;
 
 namespace VnV {
 
+enum class InjectionPointType { Single, Begin, End, Iter };
+
 class IOutputEngine;
 
 namespace Nodes {
 class IRootNode;
 }
 
-enum class InjectionPointType { Single, Begin, End, Iter };
 namespace InjectionPointTypeUtils {
 
 std::string getType(InjectionPointType type, std::string stageId);
@@ -73,7 +74,7 @@ class IOutputEngine {
   virtual void Log(ICommunicator_ptr comm, const char* packageName, int stage, std::string level,
                    std::string message) = 0;
 
-  virtual bool Fetch(const json& schema, long timeoutInSeconds, json& response) { return false; }
+  virtual bool Fetch(std::string message, const json& schema, long timeoutInSeconds, json& response) { return false; }
 
   virtual void Put(std::string variableName, const bool& value, const MetaData& m = MetaData()) = 0;
 
@@ -635,14 +636,35 @@ void IOutputEngine::Put_ReduceVectorRankOnly(std::string variableName, std::stri
   Put_ReduceVectorRankOnly(variableName, reducer, data.size(), data.data(), root, m);
 }
 
-class IInternalOutputEngine : public IOutputEngine, IEventListener {
+class IInternalOutputEngine : public IOutputEngine{
  public:
   virtual void setFromJson(ICommunicator_ptr worldComm, json& configuration, bool readMode) = 0;
 
   virtual json getConfigurationSchema(bool readMode) = 0;
 
+  virtual void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string id,
+                                             InjectionPointType type, std::string stageId, std::string filename,
+                                             int line) = 0;
+
+  virtual void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageId) = 0 ;
+
+  virtual void actionStartedCallBack(ICommunicator_ptr comm, std::string package, std::string name, ActionStage::type stage) {} ;
+  virtual void actionEndedCallBack(ActionStage::type stage) {};
+
+  virtual void testStartedCallBack(std::string packageName, std::string testName, bool internal, long uuid) = 0;
+
+  virtual void testFinishedCallBack(bool result_) = 0;
+
+  virtual void unitTestStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string unitTestName) = 0;
+
+  virtual void unitTestFinishedCallBack(IUnitTest* tester) = 0;
+
+  virtual void packageOptionsStartedCallBack(ICommunicator_ptr comm, std::string packageName) = 0 ;
+  virtual void packageOptionsEndedCallBack(std::string packageName) = 0 ;
+
   virtual void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile,
                     std::string filename, std::string reader) = 0;
+
 
   virtual std::string print() = 0;
 

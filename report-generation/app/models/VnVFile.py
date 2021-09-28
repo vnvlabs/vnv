@@ -1,17 +1,22 @@
 import json
 import os
+import shutil
+import time
 from datetime import datetime
 from urllib.request import pathname2url
+
+import jsonschema
 import pygments.formatters.html
 from pygments.lexers import guess_lexer, guess_lexer_for_filename
-from python_api.VnVReader import node_type_START, node_type_POINT, node_type_DONE, node_type_ITER, node_type_ROOT, node_type_LOG, \
-    node_type_END
-from flask import render_template
+from python_api.VnVReader import node_type_START, node_type_POINT, node_type_DONE, node_type_ITER, node_type_ROOT, \
+    node_type_LOG, \
+    node_type_END, node_type_WAITING
+from flask import render_template, make_response
 
 from app.models import VnV
 import app.rendering as r
 from app.rendering.readers import has_reader
-from app.rendering.vnvdatavis.directives.jmes import render_vnv_template
+from app.rendering.vnvdatavis.directives.jmes import render_vnv_template, DataClass
 
 
 class ProvFileWrapper:
@@ -169,7 +174,37 @@ class UnitTestRender:
     def getHtml(self):
         t = self.templates.get_html_file_name(
             "UnitTests", self.data.getPackage(), self.data.getName())
-        return render_vnv_template(t, data=self.data.getData())
+        return render_vnv_template(t, data=self.data.getData(), file=self.templates.file)
+
+
+class RequestRender:
+
+    def __init__(self, request, commObj, templates):
+        self.request = request
+        self.commObj = commObj
+        self.templates = templates
+
+    def getSchema(self):
+        return json.loads(self.request.getSchema())
+
+    def presentSchema(self):
+        return json.dumps(self.getSchema(),indent=4)
+
+    def getExpiry(self):
+        return self.request.getExpiry()
+
+    def getExpiryInSeconds(self):
+        return self.getExpiry() - int(time.time())
+
+    def getId(self):
+        return self.request.getId()
+
+    def getJID(self):
+        return self.request.getJID()
+
+    def getMessage(self):
+        mess = self.request.getMessage()
+        return mess
 
 
 class TestRender:
@@ -184,17 +219,20 @@ class TestRender:
         if self.template_override is None:
             t = self.templates.get_html_file_name(
                 "Tests", self.data.getPackage(), self.data.getName())
-            return render_vnv_template(t, data=self.data.getData())
+            return render_vnv_template(t, data=self.data.getData(), file=self.templates.file)
 
         return render_vnv_template(
             self.template_override,
-            data=self.data.getData())
+            data=self.data.getData(), file=self.templates.file)
 
     def getName(self):
         return self.data.getName()
 
     def getId(self):
         return self.data.getId()
+
+    def getFile(self):
+        return self.templates.file
 
     def getPackage(self):
         return self.data.getPackage()
@@ -212,7 +250,26 @@ class PackageRender:
 
     def getHtml(self):
         t = self.templates.get_package(self.package)
-        a = render_vnv_template(t, data=self.data.getData())
+        a = render_vnv_template(t, data=self.data.getData(), file=self.templates.file)
+        if len(a) > 0:
+            return a
+        else:
+            return "<h4> No Package Information Available </h>"
+
+    def getLogs(self):
+        return [LogRender(a, self.commObj, self.templates)
+                for a in self.data.getLogs()]
+
+
+class ActionRender:
+    def __init__(self, package, data, templates):
+        self.data = data
+        self.package = package
+        self.templates = templates
+
+    def getHtml(self):
+        t = self.templates.get_action(self.package)
+        a = render_vnv_template(t, data=self.data.getData(), file=self.templates.file)
         if len(a) > 0:
             return a
         else:
@@ -261,6 +318,12 @@ class InjectionPointRender:
         self.templates = templates
         self.commObj = commObj
 
+    def getId(self):
+        return self.ip.getId()
+
+    def getFile(self):
+        return self.templates.file
+
     def getCommRender(self):
         return CommRender(self.ip.getComm(), self.commObj)
 
@@ -270,11 +333,33 @@ class InjectionPointRender:
     def getPackage(self):
         return self.ip.getPackage()
 
+    def getStatus(self):
+        if self.getRequest() is not None:
+            return "Waiting"
+        elif self.ip._open:
+            return "Processing"
+        else:
+            return "Complete"
+
+    def open(self):
+        return self.ip._open
+
     def getInternalTest(self):
         tempoverride = self.templates.get_html_file_name(
             "InjectionPoints", self.ip.getPackage(), self.ip.getName())
         return TestRender(self.ip.getData(), self.commObj, self.templates,
                           template_override=tempoverride)
+
+    def getRequest(self):
+        r = self.ip.getData().getFetchRequest()
+        if r is not None and r.getExpiry() - int(time.time()) > 5:
+            return RequestRender(r, self.commObj, self.templates)
+
+        for rr in self.ip.getTests():
+            r = rr.getFetchRequest()
+            if r is not None and r.getExpiry() - int(time.time()) > 5:
+                return RequestRender(r, self.commObj, self.templates)
+        return None
 
     def getAdditionalTests(self):
         return [TestRender(a.cast(), self.commObj, self.templates)
@@ -295,30 +380,62 @@ class VnVFile:
 
     FILES = {}
 
-    def __init__(self, name, filename, reader, template_dir, icon="icon-box"):
+    def __init__(self, name, filename, reader, template_root, icon="icon-box", _cid=None):
         self.name = name
         self.filename = filename
         self.reader = reader
         self.icon = icon
-        self.id_ = VnVFile.get_id()
+        self.template_root = template_root
+        self.id_ = VnVFile.get_id() if _cid is None else _cid
         self.notifications = []
 
         self.wrapper = VnV.Read(filename, reader)
         self.root = self.wrapper.get()
-        vnvspec = json.loads(self.root.getVnVSpec().get())
-        self.template_dir = template_dir
-        self.templates = r.build(template_dir, vnvspec)
+        self.template_dir = os.path.join(template_root, str(self.id_))
+        shutil.rmtree(self.template_dir, ignore_errors=True)
 
-    def __del__(self):
-        os.removedirs(self.template_dir)
+        vnvspec = json.loads(self.root.getVnVSpec().get())
+        while vnvspec is None:
+            time.sleep(1)
+            vnvspec = json.loads(self.root.getVnVSpec().get())
+
+        self.templates = r.build(self.template_dir, vnvspec, self.id_)
+
+    def clone(self):
+        return VnVFile(self.name, self.filename, self.reader, self.template_root, self.icon, _cid=self.id_)
 
     def getCommRender(self, id):
         return CommRender(id, self.getCommObj())
 
+    def isProcessing(self):
+        return self.root.processing();
+
+    def getById(self, dataid):
+        return self.root.findById(dataid)
+
+    def query(self, dataid, query):
+        data = self.root.findById(dataid)
+        if data is not None:
+            return DataClass(data, dataid, self.id_).query(query)
+
+    def respond(self, ipid, id_, jid, response):
+        try:
+
+            iprender = self.render_ip(ipid)
+            r = iprender.getRequest()
+            if r is not None:
+                resp = json.loads(response)
+                schema = r.getSchema()
+                jsonschema.validate(resp, schema)
+                self.root.respond(id_, jid, response)
+                return make_response("Success", 200)
+        except Exception as e:
+            pass
+
+        return make_response("Failed", 202)
+
     def get_world_size(self):
-        if not hasattr(self, 'world_size'):
-            self.world_size = self.root.getCommInfoNode().getWorldSize()
-        return self.world_size
+        return self.root.getCommInfoNode().getWorldSize()
 
     def getPackages(self):
         return [{"name": a} for a in self.root.getPackages().fetchkeys()]
@@ -327,6 +444,15 @@ class VnVFile:
         a = self.getPackages()
         if len(a) > 0:
             return self.render_package(a[0]["name"])
+        return ""
+
+    def getActions(self):
+        return [{"name": a} for a in self.root.getActions().fetchkeys()]
+
+    def getFirstAction(self):
+        a = self.getActions()
+        if len(a) > 0:
+            return self.render_action(a[0]["name"])
         return ""
 
     def getGlobalCommMap(self):
@@ -432,7 +558,10 @@ class VnVFile:
         return self.root.single_proc_heirarchy(proc)
 
     def get_introduction(self):
-        return render_template(self.templates.get_introduction())
+        try:
+            return render_template(self.templates.get_introduction())
+        except:
+            return "<div> No Introduction Available </div>"
 
     def get_conclusion(self):
         return render_template(self.templates.get_conclusion())
@@ -448,6 +577,13 @@ class VnVFile:
     def render_package(self, package):
         packageTestObject = self.root.getPackage(package)
         return PackageRender(
+            package,
+            packageTestObject,
+            self.templates).getHtml()
+
+    def render_action(self, package):
+        packageTestObject = self.root.getAction(package)
+        return ActionRender(
             package,
             packageTestObject,
             self.templates).getHtml()
@@ -480,24 +616,29 @@ class VnVFile:
         return True
 
     node_type_map = {
-        node_type_POINT: [1, -1],
-        node_type_START: [1, 0],
-        node_type_DONE: [0, 0],
-        node_type_ITER: [1, -1],
-        node_type_ROOT: [1, 0],
-        node_type_LOG: [0, 0],
-        node_type_END: [0, -1]
+        node_type_POINT: [1, -1, 1],
+        node_type_START: [1, 0,0],
+        node_type_DONE: [0, 0,0],
+        node_type_ITER: [1, -1,0],
+        node_type_ROOT: [1, 0,0],
+        node_type_LOG: [0, 0,0],
+        node_type_END: [0, -1,1]
     }
     INJECTION_INTRO = -100
     INJECTION_CONC = -101
 
+    def waiting(self,id_):
+        r = self.render_ip(id_)
+        if r is not None:
+            return r.getRequest() is not None
+        return False
     def proc_iter_next(self, count=10):
         if (self.currX > 50):
             return []
         res = []
         if self.currX == -1:
             res.append(
-                {"x": 0, "y": 0, "id": VnVFile.INJECTION_INTRO, "time": 0})
+                {"x": 0, "y": 0, "id": VnVFile.INJECTION_INTRO, "time": 0, "wait" : False, "title" : "Application" })
             self.currX = 0
             self.currY = 0
 
@@ -508,7 +649,11 @@ class VnVFile:
             if n is not None:
 
                 if n.type == node_type_ITER:
+                    i += 1
                     continue
+
+                elif n.type == node_type_WAITING:
+                    break
 
                 self.currX += 1
                 self.currY += VnVFile.node_type_map[n.type][0]
@@ -518,13 +663,22 @@ class VnVFile:
                                 "y": self.currY,
                                 "id": VnVFile.INJECTION_CONC,
                                 "done": True,
+                                "wait" : False,
+                                "title": "",
                                 "time": n.time})
                     break
                 else:
-                    res.append({"x": self.currX, "y": self.currY,
-                               "id": n.item.getId(), "time": n.time})
+                    ip = self.get_injection_point(n.item.getId()).cast()
+                    res.append({"x": self.currX,
+                                "y": self.currY,
+                                "id": n.item.getId(),
+                                "time": n.time,
+                                "title" : ip.getPackage() + ":" + ip.getName(),
+                                "wait" : self.waiting(n.item.getId())
+                               })
 
                 self.currY += VnVFile.node_type_map[n.type][1]
+                self.currX += VnVFile.node_type_map[n.type][2]
                 i += 1
             else:
                 break
@@ -543,14 +697,17 @@ class VnVFile:
         return VnVFile.COUNTER
 
     @staticmethod
-    def add(name, filename, reader, template_dir):
-        f = VnVFile(name, filename, reader, template_dir)
+    def add(name, filename, reader, template_root):
+        f = VnVFile(name, filename, reader, template_root)
+
         VnVFile.FILES[f.id_] = f
         return f
 
     @staticmethod
-    def removeById(fileId):
-        VnVFile.FILES.pop(fileId)
+    def removeById(fileId, refresh):
+        p = VnVFile.FILES.pop(fileId)
+        if refresh:
+            VnVFile.FILES[p.id_] = p.clone()
 
     class FileLockWrapper:
         def __init__(self, file):

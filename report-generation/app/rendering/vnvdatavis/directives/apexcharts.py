@@ -4,7 +4,6 @@ import re
 from sphinx.directives import optional_int
 from sphinx.util.docutils import SphinxDirective
 
-from app.rendering.vnvdatavis.directives import vnv_directives
 from app.rendering.vnvdatavis.directives.general import JsonChartDirective, VnVChartNode, ApexChartDirective
 from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query, get_target_node, jmes_jinja_query_json
 
@@ -63,5 +62,5 @@ class ApexLineChartDirective(ApexChartDirective):
         }}
         '''
 
-
-vnv_directives["vnv-apex-line"] = ApexLineChartDirective
+def setup(sapp):
+    sapp.add_directive("vnv-apex-line", ApexLineChartDirective)

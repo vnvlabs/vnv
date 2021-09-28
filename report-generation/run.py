@@ -18,4 +18,4 @@ app = create_app(app_config)
 socketio = create_socket_app(app)
 
 if __name__ == "__main__":
-    socketio.run(app)
+    socketio.run(app,use_reloader=False)

@@ -11,7 +11,7 @@
 namespace VnV {
 
 class PlugPoint : public InjectionPoint {
-  std::shared_ptr<IPlug> m_plugs;
+  std::shared_ptr<IPlug> m_plug;
   bool started = false;
 
  public:

@@ -8,9 +8,11 @@
 
 {%with
 tablist = {
-    "home": ["Home","viewers/view.html"],
+    "home": ["Injection","viewers/view.html"],
     "comm": ["Communication","files/comms.html"],
+    "packages": ["Packages" , "files/packages.html"],
     "prov": ["Provenance","files/provenance.html"],
+    "actions" : ["Profiling", "files/actions.html"],
     "unit": ["Unit Tests","files/unit_testing.html"]
 }
 %}
@@ -23,7 +25,15 @@ tablist = {
 
         <div class="page-header-title">
             <div style="display:flex; align-items:center;">
-                <h1 class="fchild">{{file.name}}</h1>
+                <h1 class="fchild" >{{file.name}}</h1>
+                {%if file.isProcessing() %}
+                <div id="processing_{{file.id_}}" class="badge badge-warning">Processing</div>
+                <script>
+                    $(window).on('load', function() {
+                       update_processing({{file.id_}}, "#processing_{{file.id_}}")
+                    });
+                </script>
+                {%endif%}
             </div>
         </div>
 

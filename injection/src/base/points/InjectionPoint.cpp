@@ -70,23 +70,12 @@ void InjectionPointBase::setInjectionPointType(InjectionPointType type_, std::st
   stageId = stageId_;
 }
 
-template <typename T> void InjectionPointBase::setCallBack(T callback) {
-  this->callback.reset(new VnVCallback(callback));
-}
-
 void InjectionPointBase::setComm(ICommunicator_ptr comm) { this->comm = comm; }
 
 void InjectionPointBase::runTestsInternal(OutputEngineManager* wrapper) {
-  if (callbackType > 0) {
+  if (callback != nullptr) {
     wrapper->testStartedCallBack(package, "__internal__", true, -1);
-    if (callbackType == 1) {
-      IOutputEngineWrapper engineWraper = {static_cast<void*>(wrapper->getOutputEngine())};
-      ParameterSetWrapper paramWrapper = {static_cast<void*>(&parameterMap)};
-      int t = InjectionPointTypeUtils::toC(type);
-      (*cCallback)(comm->asComm(), &paramWrapper, &engineWraper, t, stageId.c_str());
-    } else {
-      cppCallback(comm->asComm(), parameterMap, wrapper, type, stageId);
-    }
+    callback->call(comm,wrapper,parameterMap,type,stageId);
     wrapper->testFinishedCallBack(true);  // TODO callback should return bool "__internal__");
   }
   for (auto it : m_tests) {
