@@ -108,15 +108,19 @@ def template_globals(globs):
 
 
 def faker():
-    VnVFile.add(
-        "test",
-        "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output",
-        "json_file",
-        get_file_template_root())
-    VnVFile.add(
-        "test1",
-        "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live",
-        "json_file",
-        get_file_template_root())
-    # VnVFile.add("sample2", "/files/ben/sample1.json", "json_file", "./sdfsd")
-    # VnVFile.add("sample3", "/files/ben/sample1.json", "json_file", "./sdfsd")
+    # Development stuff -- this loads some files by default on my computer. Feel free to add your
+    # own
+    if os.path.exists("/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output"):
+        VnVFile.add(
+            "test",
+            "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output",
+            "json_file",
+            get_file_template_root())
+
+    if os.path.exists("/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live"):
+        VnVFile.add(
+            "test1",
+            "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live",
+            "json_file",
+            get_file_template_root())
+
