@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
   x = 0;
   while (x < std::atoi(argv[1])) {
     INJECTION_LOOP_ITER("Live","Sample Live Loop1", "iter");
-    std::this_thread::sleep_for (std::chrono::seconds(1));
+    s/td::this_thread::sleep_for (std::chrono::seconds(1));
     x++;
     std::cout << "Countdown1: " << std::atoi(argv[1]) - x << std::endl;
   } 
