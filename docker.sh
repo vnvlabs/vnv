@@ -1,5 +1,6 @@
 
-docker images -f dangling=true -q
+docker image prune -a -f 
+df -i 
 
 
 #docker build -f docker/Dockerfile.env -t vnv_env .
