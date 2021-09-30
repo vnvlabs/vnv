@@ -92,7 +92,7 @@ class IOutputEngine {
 
   virtual void Put(std::string variableName, const char* value, const MetaData& m = MetaData()) {
     std::string s(value);
-    Put(variableName, value, m);
+    Put(variableName, s, m);
   }
 
   // Get all the integral types and feed them to long long.

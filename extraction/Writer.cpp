@@ -40,7 +40,7 @@ class RegistrationWriter {
       it->second << "\tREGISTER_FULL_JSON(" << packageName
                  << ", getFullRegistrationJson_" << it->first << ");\n";
       
-      it->second << "}\n\n";
+      it->second << "};\n\n";
       
  
 
