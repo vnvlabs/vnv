@@ -17,7 +17,9 @@ from pygments.formatters.html import HtmlFormatter
 
 # Fake jmes
 import app.rendering.fakejmes as jmespath
+from app.base.blueprints import files as dddd
 
+the_app = None
 
 def get_target_node(directive):
     serial_no = directive.env.new_serialno("ccb")
@@ -25,6 +27,11 @@ def get_target_node(directive):
     targetnode = docutils.nodes.target('', '', ids=[target_id])
     return targetnode, target_id
 
+def get_update_dir():
+    dir = os.path.join(os.path.dirname(dddd.__file__), "templates", "renders", str(the_app.config.vnv_file), "updates")
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    return dir
 
 def render_vnv_template(template, data, file):
     return render_template(template, data=DataClass(data, data.getId(), file))
@@ -72,6 +79,14 @@ class DataClass:
         """Return the jmes query as a string"""
         return str(self.query(text))
 
+    def query_percent(self, curr, min, max):
+        acurr = self.query(curr)
+        amin = self.query(min)
+        amax = self.query(max)
+        return 100 * ( acurr / (amax - amin ) )
+
+
+
     def query_json(self, text):
         """Return the jmes query as a string"""
         return json.dumps(self.query(text), cls=jmespath.VnVJsonEncoder)
@@ -108,6 +123,12 @@ def jmes_jinja_query_json(text):
     else:
         raise ExtensionError("Invalid jmes path query")
 
+def jmes_jinja_percentage(curr,min,max):
+    if jmespath.compile(curr) and jmespath.compile(min) and jmespath.compile(max):
+        return f"{{ data.query_percent({curr},{min},{max}) | safe }}"
+    else:
+        raise ExtensionError("Invalid jmes path query")
+
 
 def jmes_jinja_codeblock(text):
     if jmespath.compile(text):
@@ -121,3 +142,8 @@ def jmes_jinga_stat(text, meth):
         return f"{{{{ data.mquery('{meth}','{text}') | safe}}}}"
     else:
         raise ExtensionError("Invalid jmes path query")
+
+def setup(sapp):
+    global the_app
+    the_app = sapp
+
