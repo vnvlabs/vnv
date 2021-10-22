@@ -171,6 +171,18 @@ class UnitTestRender:
         self.data = unitTest
         self.templates = templates
 
+    def getTests(self):
+        return [a for a in self.data.getResults().fetchkeys()]
+
+    def getResult(self, name):
+        try:
+            return self.data.getResults().get(name).getResult()
+        except:
+            return False
+
+    def getRST(self, name):
+        t = self.templates.get_unit_test_test_content(self.data.getPackage(), self.data.getName(), name);
+        return render_vnv_template(t, self.data.getData(), file=self.templates.file)
     def getHtml(self):
         t = self.templates.get_html_file_name(
             "UnitTests", self.data.getPackage(), self.data.getName())
@@ -188,7 +200,7 @@ class RequestRender:
         return json.loads(self.request.getSchema())
 
     def presentSchema(self):
-        return json.dumps(self.getSchema(),indent=4)
+        return json.dumps(self.getSchema(), indent=4)
 
     def getExpiry(self):
         return self.request.getExpiry()
@@ -268,7 +280,7 @@ class ActionRender:
         self.templates = templates
 
     def getHtml(self):
-        t = self.templates.get_action(self.package)
+        t = self.templates.get_action(self.data.getPackage(), self.data.getName())
         a = render_vnv_template(t, data=self.data.getData(), file=self.templates.file)
         if len(a) > 0:
             return a
@@ -447,7 +459,7 @@ class VnVFile:
         return ""
 
     def getActions(self):
-        return [{"name": a} for a in self.root.getActions().fetchkeys()]
+        return [{"name": a, "id_": n} for n, a in enumerate(self.root.getActions().fetchkeys())]
 
     def getFirstAction(self):
         a = self.getActions()
@@ -502,30 +514,69 @@ class VnVFile:
             return j["nodes"][0]["id"]
 
     def list_unit_test_packages(self):
-        return [{"name": a.getPackage + ":" + a.getName()}
+        return [{"name": a.getPackage() + ":" + a.getName()}
                 for a in self.root.getUnitTests()]
 
     def hasUnitTests(self):
         return len(self.root.getUnitTests())
 
-    def render_unit_test(self, id=None):
-        if (id is None and self.hasUnitTests()):
-            return render_template(
-                "viewers/unittest.html",
-                unitrender=UnitTestRender(
-                    self.root.getUnitTests()[0],
-                    self.getCommObj(),
-                    self.templates))
-        for i in self.root.getUnitTests():
-            if i.getId() == id:
-                return render_template(
-                    "viewers/unittest.html",
-                    unitrender=UnitTestRender(
-                        i,
-                        self.getCommObj(),
-                        self.templates))
+    def unit_test_table(self):
+        data = {}
+        if (self.hasUnitTests()):
+            for i in self.root.getUnitTests():
+                dd = {"name": i.getName(), "description": "", "id": i.getId()}
 
-        return ""
+                result = True;
+                child = []
+                for nn, iik in enumerate(i.getResults().fetchkeys()):
+                    ii = i.getResults().get(iik)
+                    if not ii.getResult():
+                        result = False;
+                    child.append({"name": ii.getName(), "description": ii.getDescription(), "result": ii.getResult(),
+                                  "id": i.getId(), "sid": nn})
+                dd["_children"] = child;
+                dd["result"] = result
+
+                if i.getPackage() not in data:
+                    data[i.getPackage()] = {"name": i.getPackage(), "result": True, "description": "",
+                                            "id": i.getPackage(), "_children": []}
+                data[i.getPackage()]["_children"].append(dd)
+                if not dd["result"]:
+                    data[i.getPackage()]["result"] = False
+        root = [
+            {"name": "Unit Testing", "description": "", result: True, "_children": list(data.values()), "id": "root"}]
+        for i in root[0]["_children"]:
+            if not i["result"]:
+                root[0]["result"] = False
+                break
+
+        return json.dumps(root)
+
+    def render_unit_test(self, id=None, utest=None):
+
+        try:
+            for i in self.root.getUnitTests():
+                if utest == i.getPackage():
+                    r = []
+                    for a in self.root.getUnitTests():
+                        if utest == a.getPackage():
+                            r.append( UnitTestRender(a, self.getCommObj(), self.templates))
+
+                    return render_template("viewers/unittestpackage.html",
+                                           unitrenders=r, package=utest)
+
+                if i.getId() == id:
+                    if utest == i.getName() :
+                        return render_template("viewers/unittest.html",
+                                           unitrender=UnitTestRender(i, self.getCommObj(), self.templates))
+                    else:
+                        return render_template("viewers/unittest.html",
+                                               unitrender=UnitTestRender(i, self.getCommObj(), self.templates),
+                                               utest=utest)
+
+        except Exception as e:
+            pass
+        return "<div> no information available </div>"
 
     def get_comm_map(self):
         x = self.root.getCommInfoNode().getCommMap()
@@ -617,28 +668,29 @@ class VnVFile:
 
     node_type_map = {
         node_type_POINT: [1, -1, 1],
-        node_type_START: [1, 0,0],
-        node_type_DONE: [0, 0,0],
-        node_type_ITER: [1, -1,0],
-        node_type_ROOT: [1, 0,0],
-        node_type_LOG: [0, 0,0],
-        node_type_END: [0, -1,1]
+        node_type_START: [1, 0, 0],
+        node_type_DONE: [0, 0, 0],
+        node_type_ITER: [1, -1, 0],
+        node_type_ROOT: [1, 0, 0],
+        node_type_LOG: [0, 0, 0],
+        node_type_END: [0, -1, 1]
     }
     INJECTION_INTRO = -100
     INJECTION_CONC = -101
 
-    def waiting(self,id_):
+    def waiting(self, id_):
         r = self.render_ip(id_)
         if r is not None:
             return r.getRequest() is not None
         return False
+
     def proc_iter_next(self, count=10):
         if (self.currX > 50):
             return []
         res = []
         if self.currX == -1:
             res.append(
-                {"x": 0, "y": 0, "id": VnVFile.INJECTION_INTRO, "time": 0, "wait" : False, "title" : "Application" })
+                {"x": 0, "y": 0, "id": VnVFile.INJECTION_INTRO, "time": 0, "wait": False, "title": "Application"})
             self.currX = 0
             self.currY = 0
 
@@ -663,7 +715,7 @@ class VnVFile:
                                 "y": self.currY,
                                 "id": VnVFile.INJECTION_CONC,
                                 "done": True,
-                                "wait" : False,
+                                "wait": False,
                                 "title": "",
                                 "time": n.time})
                     break
@@ -673,9 +725,9 @@ class VnVFile:
                                 "y": self.currY,
                                 "id": n.item.getId(),
                                 "time": n.time,
-                                "title" : ip.getPackage() + ":" + ip.getName(),
-                                "wait" : self.waiting(n.item.getId())
-                               })
+                                "title": ip.getPackage() + ":" + ip.getName(),
+                                "wait": self.waiting(n.item.getId())
+                                })
 
                 self.currY += VnVFile.node_type_map[n.type][1]
                 self.currX += VnVFile.node_type_map[n.type][2]

@@ -172,7 +172,7 @@ class PlotlyChartDirective(JsonChartDirective):
               Plotly.newPlot('{id_}',obj['data'],obj['layout']);
               
               url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-              update_soon(url, "{id_}_container", 1000, function(config) {{
+              update_soon(url, "{id_}", 1000, function(config) {{
                 var xx = JSON.parse(config)
                 Plotly.update('{id_}',xx['data'],xx['layout']);
               }})
@@ -195,7 +195,7 @@ class ApexChartDirective(JsonChartDirective):
             chart.render();
             
             url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-            update_soon(url, "{id_}_container", 1000, function(config) {{
+            update_soon(url, "{id_}", 1000, function(config) {{
                 chart.updateOptions(JSON.parse(config)) 
             }})
             
@@ -224,7 +224,7 @@ class GChartChartDirective(JsonChartDirective):
                wrapper.draw();
               
                url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-               update_soon(url, "{id_}_container", 1000, function(config) {{
+               update_soon(url, "{id_}", 1000, function(config) {{
                  var xx = JSON.parse(config)
                  wrapper.setOptions(xx);
                  wrapper.draw()
@@ -270,7 +270,7 @@ class TableChartDirective(JsonChartDirective):
              var table = new Tabulator("#{id_}", obj);
          
             url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-            update_soon(url, "{id_}_container", 3000, function(config) {{
+            update_soon(url, "{id_}", 3000, function(config) {{
 .               var table = new Tabulator("#{id_}", JSON.parse(config));
             }})
          }}
@@ -291,7 +291,7 @@ class TreeChartDirective(JsonChartDirective):
            document.getElementById('{id_}').appendChild(tree.render());
            
            url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-           update_soon(url, "{id_}_container", 3000, function(config) {{
+           update_now(url, "{id_}", 3000, function(config) {{
                 var data = JSON.parse(config);
                 var tree = new JSONFormatter(data['data'], true ,data['config']);
                 document.getElementById('{id_}').innerHTML=''
@@ -305,6 +305,51 @@ class TreeChartDirective(JsonChartDirective):
         return self.getContent()
 
 
+class TerminalDirective(JsonChartDirective):
+    script_template = '''
+            <div id="{id_}" class='card vnv_terminalviewer' style="height:800px;">
+            </div>
+            <script>
+            {{
+                $(document).ready(function() {{
+                    url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
+                    update_now(url, "{id_}", 3000, function(config) {{
+                          $(document.getElementById("{id_}")).html("<pre class='term'>" + config + "</pre>")
+                    }});    
+               }});
+            }}
+            </script> '''
+
+    script_template1 = '''
+        <div id="{id_}" class='vnv_terminalviewer' style="height:800px;"></div>
+        <script>
+        {{
+            $(document).ready(function() {{
+               const term = new Terminal({{
+                    cursorBlink: false,
+                    macOptionIsMeta: true,
+                    scrollback: 9999999,
+                }});
+                const fit = new FitAddon.FitAddon();
+                term.loadAddon(fit);
+                term.open(document.getElementById("{id_}"));
+                term.resize(180,40)
+                fit.fit();
+                url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
+                update_now(url, "{id_}", 3000, function(config) {{
+                      term.clear()
+                      config = config.replace(/\\n/g,"\\r\\n")
+                      term.write(config) ;
+                }});    
+           }});
+        }}
+
+        </script> '''
+
+    def register(self):
+        return self.getContent()
+
+
 vnv_nodes.append(VnVChartNode)
 vnv_directives["vnv-apex"] = ApexChartDirective
 vnv_directives["vnv-plotly"] = PlotlyChartDirective
@@ -312,6 +357,8 @@ vnv_directives["vnv-gchart"] = GChartChartDirective
 vnv_directives["vnv-chart"] = ChartJsChartDirective
 vnv_directives["vnv-table"] = TableChartDirective
 vnv_directives["vnv-tree"] = TreeChartDirective
+vnv_directives["vnv-terminal"] = TerminalDirective
+
 
 root = os.path.join("app", "static", "assets")
 js_root = os.path.join(root, "js", "plugins")

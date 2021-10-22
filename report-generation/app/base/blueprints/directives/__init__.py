@@ -26,7 +26,7 @@ def chartupdates(updateId, fileid, dataid):
     try:
         with VnVFile.find(fileid) as file:
             data = file.getById(dataid).cast()
-            config = render_template(os.path.join('renders', "updates", str(fileid), updateId + ".html"),
+            config = render_template(os.path.join('renders',  str(fileid), "updates", updateId + ".html"),
                                      data=DataClass(data, dataid, fileid))
             d = {"more": data.open(), "config": config}
             return make_response(json.dumps(d), 200)

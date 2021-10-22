@@ -51,12 +51,19 @@ def action(id_):
 def unit(id_):
     try:
 
-        pack = request.args.get("uid", type=int)
+        utest = request.args.get("uid", type=int)
+        test = request.args.get("uuid", type=str)
         with VnVFile.VnVFile.find(id_) as file:
-            return file.render_unit_test(pack)
+            return file.render_unit_test(utest, test)
 
     except Exception as e:
         return render_error(501, "Error Loading File")
+
+@blueprint.route('/unit_table/<int:id_>')
+def unit_table(id_):
+    with VnVFile.VnVFile.find(id_) as file:
+        return make_response(file.unit_test_table(),200)
+
 
 @blueprint.route('/respond', methods=["POST"])
 def respond():

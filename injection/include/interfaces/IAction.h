@@ -78,7 +78,7 @@ void registerAction(std::string packageName, std::string name, std::string schem
   namespace PNAME {                                                         \
   namespace Actions {                                                       \
   IAction* declare_##name(const json& config);                            \
-  void register_##name() { registerAction(#PNAME, #name, schema,  declare_##name); } \
+  void register_##name() { registerAction(VNV_STR(PNAME), #name, schema,  declare_##name); } \
   }                                                                         \
  }                                                                          \
 }\

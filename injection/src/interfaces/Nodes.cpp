@@ -47,7 +47,7 @@ std::string DataBase::getTypeStr() {
   I##x##Node::~I##x##Node() {}                                      \
   I##x##Node* DataBase::getAs##x##Node() {                          \
     if (check(DataType::x)) return dynamic_cast<I##x##Node*>(this); \
-    throw VnVExceptionBase("Invalid Cast to DataType::%s", #x);     \
+    throw VnVExceptionBase("Invalid Cast to DataType::%s from %s ", #x, dataType);     \
   }
 DTYPES
 #undef X

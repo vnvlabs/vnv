@@ -471,6 +471,10 @@ int main(int argc, char** argv) {
   sample_class_3.function1(10);
   sample_class_4.function1(10);
 
+  for (int i = 0; i < 100; i++) {
+    std::cout << i << std::endl;
+  }
+
   /**
      Conclusion.
      ===========

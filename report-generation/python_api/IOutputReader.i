@@ -302,9 +302,14 @@ PY_GETATTR(VnV::Nodes::ICommInfoNode)
 %define PY_GETATTRLIST(Typename)
 %extend Typename {
   %pythoncode %{
+      
       def __getitem__(self,key):
         if key == "metaData" or key == "MetaData":
             return json.loads(self.getMetaData().asJson())
+
+        if isinstance(key,str) and key[0] == "_":
+            return str(self.getMetaData().get(key[1:]))
+
          
         if isinstance(key,int) and abs(key) < self.size() :
           if (key < 0 ) :
@@ -361,6 +366,9 @@ PY_GETATTRLIST(VnV::Nodes::IArrayNode)
             if key == "metaData" or key == "MetaData":
               return json.loads(self.getMetaData().asJson())
          
+            if isinstance(key,str) and key[0] == "_":
+               return str(self.getMetaData().get(key[1:]))
+
             
             if isinstance(key,str) and self.contains(key):
                 return castDataBase(self.get(key))
@@ -447,6 +455,10 @@ PY_GETATTRMAP(VnV::Nodes::IMapNode)
         if key.lower() == "metadata":
             return json.loads(self.getMetaData().asJson()) 
         
+        if isinstance(key,str) and key[0] == "_":
+            return str(self.getMetaData().get(key[1:]))
+
+
         #Value gets the entire array as a scalar or as a np array. 
         if key.lower() == "value":
             return self.getValue()

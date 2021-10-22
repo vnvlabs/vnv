@@ -643,7 +643,7 @@ class UnitTestResultsNode : public IUnitTestResultsNode {
 
   virtual IUnitTestResultNode* get(std::string key) {
     if (m->contains(key)) {
-      return m->get(key)->getAsUnitTestResultNode();
+      return m->get(key)->getAsArrayNode()->get(0)->getAsUnitTestResultNode();
     }
     throw VnVExceptionBase("Key error");
   };
@@ -1354,7 +1354,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
                              ActionStage::type stage) override {
     setComm(comm, true);
 
-    if (comm->Rank() != getRoot()) {
+    if (comm->Rank() == getRoot()) {
       T j = T::object();
       j[JSD::node] = JSN::actionStarted;
       j[JSD::name] = name;
@@ -1376,7 +1376,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   void unitTestStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string unitTestName) override {
     setComm(comm, true);
 
-    if (comm->Rank() != getRoot()) {
+    if (comm->Rank() == getRoot()) {
       T j = T::object();
       j[JSD::node] = JSN::unitTestStarted;
       j[JSD::name] = unitTestName;
@@ -1454,7 +1454,15 @@ template <class T> class ParserVisitor : public VisitorLock {
   }
 
   template <typename A> std::shared_ptr<A> mks(const T& j) {
-    return mks_str<A>(j[JSD::name].template get<std::string>());
+    auto a = mks_str<A>(j[JSD::name].template get<std::string>());
+            std::cout << "GGGGG" << std::endl;
+    if (j.contains(JSD::meta) ) {
+        for (auto it : j[JSD::meta].items()) {
+          a->getMetaData().add(it.key(),it.value().template get<std::string>());
+        }
+        std::cout << "111GGGGG" << std::endl;
+    }
+    return a;
   }
 
   template <typename A, typename V> std::shared_ptr<A> visitShapeNode(const T& j) {
@@ -1578,8 +1586,10 @@ template <class T> class ParserVisitor : public VisitorLock {
     std::string name = j[JSD::name].template get<std::string>();
     std::string package = j[JSD::package].template get<std::string>();
     std::string pn = package + ":" + name;
+    
     if (!rootInternal->actions->contains(pn)) {
       auto n = mks<TestNode>(j);
+      n->package = package;
       n->open(true);
       n->templ = rootInternal->spec->action(n->package, n->name);
       rootInternal->actions->add(pn, n);

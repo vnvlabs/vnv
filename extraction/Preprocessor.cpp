@@ -310,7 +310,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       json& jj =
           getDef("Actions", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
-      jj["actions"] = json::object();
     } else if (nae == "INJECTION_ENGINE") {
       json& jj =
           getDef("Engines", getPackageName(Args, 0), getPackageName(Args, 1));

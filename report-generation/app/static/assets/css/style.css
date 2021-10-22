@@ -5005,7 +5005,7 @@ input[type="button"].btn-block {
     color: #fff;
 }
 
-.card {
+.card,.admonition {
     position: relative;
     display: -webkit-box;
     display: flex;
@@ -5020,17 +5020,17 @@ input[type="button"].btn-block {
     border-radius: 5px;
 }
 
-.card > hr {
+.card,.admonition > hr {
     margin-right: 0;
     margin-left: 0;
 }
 
-.card > .list-group:first-child .list-group-item:first-child {
+.card,.admonition > .list-group:first-child .list-group-item:first-child {
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
 }
 
-.card > .list-group:last-child .list-group-item:last-child {
+.card.admonition > .list-group:last-child .list-group-item:last-child {
     border-bottom-right-radius: 5px;
     border-bottom-left-radius: 5px;
 }
@@ -5041,7 +5041,7 @@ input[type="button"].btn-block {
     padding: 25px;
 }
 
-.card-title {
+.card-title, admonition-title {
     margin-bottom: 25px;
 }
 
@@ -17754,6 +17754,18 @@ a.text-dark:hover, a.text-dark:focus {
     }
 }
 
+.vnv_terminalviewer {
+    height: 800px;
+    overflow: scroll;
+    padding: 15px;
+    background: black;
+}
+.term {
+   overflow:scroll;
+   font-family: monospace;
+   color: white;
+}
+
 .anim-close-card {
     -webkit-animation: anim-close-card 1.4s linear;
     animation: anim-close-card 1.4s linear;
@@ -17775,18 +17787,18 @@ a.text-dark:hover, a.text-dark:focus {
     }
 }
 
-.card {
+.card,.admonition {
     box-shadow: 0 1px 2.94px 0.06px rgba(4, 26, 55, 0.16);
     margin-bottom: 30px;
     -webkit-transition: all 0.3s ease-in-out;
     transition: all 0.3s ease-in-out;
 }
 
-.card:hover {
+.card:hover, .admonition:hover {
     box-shadow: 0 0 25px -5px #9e9c9e;
 }
 
-.card .card-header {
+.card .card-header, {
     border-bottom: 0px solid #e2e5e8;
     position: relative;
 }
@@ -17863,6 +17875,17 @@ a.text-dark:hover, a.text-dark:focus {
     height: 20px;
     right: 8px;
     top: 8px;
+}
+
+.admonition {
+  margin-top:20px;
+  padding:20px;
+}
+.admonition-title {
+  font-weight:900;
+}
+.admonition.note {
+  background : lightblue;
 }
 
 .card .card-header .card-header-right .btn.dropdown-toggle.mobile-menu span {

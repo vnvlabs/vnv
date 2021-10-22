@@ -162,6 +162,15 @@ class CustomVnVFunctions(functions.Functions):
         # Given a object return it as json encoded string
         return json.dumps(s, cls=VnVJsonEncoder)
 
+    @functions.signature({"types": []}, {"types": []})
+    def _func_vnv_join(self, sep, obj):
+        if hasattr(obj, "__getType__") and obj.__getType__()== "array":
+            ss = ""
+            for i in obj:
+               ss += str(i)
+            return ss
+        return sep.join(obj)
+
 class VnVExpression:
     def __init__(self, parse):
         self.parse = parse

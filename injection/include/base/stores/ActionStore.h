@@ -98,9 +98,10 @@ class ActionStore : public BaseStore {
       act.reset((*(it->second.second))(config));
       act->setNameAndPackageAndEngine(packageName, name, getEngine());
       actions.push_back(act);
+    }else {
+       throw VnV::VnVExceptionBase("No action with that name and package exists (%s:%s)", packageName.c_str(),
+                              name.c_str());
     }
-    throw VnV::VnVExceptionBase("No action with that name and package exists (%s:%s)", packageName.c_str(),
-                                name.c_str());
   }
 
   nlohmann::json schema();

@@ -35,6 +35,7 @@ class MetaDataWrapper {
     throw VnV::VnVExceptionBase("Bad MetaData Key");
   }
   bool has(std::string key) { return (m.find(key) != m.end()); }
+  
   MetaDataWrapper& add(std::string key, std::string value) {
     m.insert(std::make_pair(key, value));
     return *this;
@@ -361,7 +362,11 @@ class VnVSpec {
   nlohmann::json spec;
 
   std::string getter(std::string r, std::string key) const {
-    return spec[r][key]["docs"].get<std::string>();
+    try {
+      return spec[r][key]["docs"].get<std::string>();
+    } catch (...) {
+      throw VnV::VnVExceptionBase("%s:%s:docs does not exist or is not a string ", r.c_str(), key.c_str());
+    }  
   }
 
  public:
@@ -376,11 +381,19 @@ class VnVSpec {
   std::string get() { return spec.dump(); }
 
   std::string intro() {
-    return spec["Introduction"]["docs"].get<std::string>();
+    try {
+      return spec["Introduction"]["docs"].get<std::string>();
+    } catch (...) {
+      throw VnV::VnVExceptionBase("No introduction available");
+    }
   }
 
   std::string conclusion() {
-    return spec["Conclusion"]["docs"].get<std::string>();
+    try {
+      return spec["Conclusion"]["docs"].get<std::string>();
+    } catch (...) {
+      throw VnV::VnVExceptionBase("No conclusion available");
+    }
   }
 
   std::string injectionPoint(std::string package, std::string name) const {
@@ -399,6 +412,7 @@ class VnVSpec {
   }
 
   std::string action(std::string package, std::string name) const {
+    std::cout << package << ":" << name << std::endl;
     return getter("Actions", package + ":" + name);
   }
 
