@@ -3,11 +3,6 @@
     <script src="/static/assets/js/pcoded.js"></script>
 
     <script src="/static/assets/js/plugins/jquery.timeago.js"></script>
-    <script>
-        $(document).ready(function() {
-            $("time.timeago").timeago();
-        });
-    </script>
 
     <script src="/static/assets/js/plugins/apexcharts.min.js"></script>
     <script src="/static/assets/js/plugins/Chart.min.js"></script>
@@ -15,7 +10,7 @@
     <script src="/static/assets/js/plugins/json-formatter.umd.js"></script>
     <script src="/static/assets/js/plugins/plotly.min.js"></script>
     <script src="/static/assets/js/plugins/tabulator.min.js"></script>
-
+    <script src="/static/assets/js/plugins/jquery.dsmorse-gridster.min.js"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
@@ -24,6 +19,12 @@
     {% include 'files/scripts.html'%}
     {% include 'inputfiles/scripts.html'%}
 
+    <script>
+        $(document).ready(function() {
+            $("time.timeago").timeago();
+
+        });
+    </script>
 
 
 
