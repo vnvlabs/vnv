@@ -72,6 +72,14 @@ class DataClass:
         """Return the jmes query as a string"""
         return str(self.query(text))
 
+    def query_percent(self, curr, min, max):
+        acurr = self.query(curr)
+        amin = self.query(min)
+        amax = self.query(max)
+        return 100 * ( acurr / (amax - amin ) )
+
+
+
     def query_json(self, text):
         """Return the jmes query as a string"""
         return json.dumps(self.query(text), cls=jmespath.VnVJsonEncoder)
@@ -105,6 +113,12 @@ def jmes_jinja_query_str(text):
 def jmes_jinja_query_json(text):
     if jmespath.compile(text):
         return "{{ data.query_json('" + text + "') | safe}}"
+    else:
+        raise ExtensionError("Invalid jmes path query")
+
+def jmes_jinja_percentage(curr,min,max):
+    if jmespath.compile(curr) and jmespath.compile(min) and jmespath.compile(max):
+        return f"{{ data.query_percent({curr},{min},{max}) | safe }}"
     else:
         raise ExtensionError("Invalid jmes path query")
 
