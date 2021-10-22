@@ -11,7 +11,7 @@ from flask import Blueprint, render_template, make_response, request, jsonify
 from jinja2 import FileSystemLoader
 
 from app.models.VnVFile import VnVFile
-from app.rendering.vnvdatavis.directives.jmes import DataClass
+from app.rendering.vnvdatavis.directives.dataclass import DataClass
 from ...utils.utils import render_error
 
 blueprint = Blueprint(

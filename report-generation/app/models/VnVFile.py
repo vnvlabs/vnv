@@ -16,7 +16,7 @@ from flask import render_template, make_response
 from app.models import VnV
 import app.rendering as r
 from app.rendering.readers import has_reader
-from app.rendering.vnvdatavis.directives.jmes import render_vnv_template, DataClass
+from app.rendering.vnvdatavis.directives.dataclass import render_vnv_template, DataClass
 
 
 class ProvFileWrapper:

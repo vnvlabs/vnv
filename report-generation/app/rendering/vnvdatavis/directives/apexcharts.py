@@ -1,8 +1,3 @@
-import json
-import re
-
-from sphinx.directives import optional_int
-from sphinx.util.docutils import SphinxDirective
 
 from app.rendering.vnvdatavis.directives.charts import JsonChartDirective, VnVChartNode, ApexChartDirective
 from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query, get_target_node, jmes_jinja_query_json

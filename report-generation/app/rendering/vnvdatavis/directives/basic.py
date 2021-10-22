@@ -12,7 +12,8 @@ from sphinx.directives import optional_int
 from sphinx.util.docutils import SphinxDirective
 
 from app.rendering.vnvdatavis.directives.charts import VnVChartNode
-from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query_str, jmes_jinga_stat, DataClass, \
+from app.rendering.vnvdatavis.directives.dataclass import DataClass
+from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query_str, jmes_jinga_stat,\
     jmes_jinja_codeblock, jmes_jinja_query, get_target_node, jmes_jinja_query_json
 
 vnv_directives = {}
@@ -97,6 +98,7 @@ class JsonImageDirective(SphinxDirective):
 vnv_directives["vnv-image"] = JsonImageDirective
 vnv_directives["vnv-code"] = JsonCodeBlockDirective
 vnv_directives["vnv-print"] = JmesStringDirective
+
 vnv_roles["vnv"] = get_stats_role("str")
 for f in DataClass.statsMethods:
     vnv_roles[f"vnv-{f}"] = get_stats_role(f)

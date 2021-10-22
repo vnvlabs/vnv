@@ -21,8 +21,8 @@ class VnVDashBoardNode(docutils.nodes.General, docutils.nodes.Element):
     def depart_node(visitor, node):
         visitor.body.append(node["end"])
 
-    NODE_VISITORS = {
-        'html': (visit_node, depart_node)
+VnVDashBoardNode.NODE_VISITORS = {
+        'html': (VnVDashBoardNode.visit_node, VnVDashBoardNode.depart_node)
     }
 
 

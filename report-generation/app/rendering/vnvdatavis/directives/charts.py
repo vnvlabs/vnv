@@ -6,8 +6,10 @@ import docutils
 from docutils.nodes import SkipNode
 from sphinx.directives import optional_int
 from sphinx.util.docutils import SphinxDirective
+from app.base.blueprints import files as dddd
 
-from app.rendering.vnvdatavis.directives.jmes import get_target_node, get_update_dir, jmes_jinja_query
+
+from app.rendering.vnvdatavis.directives.jmes import get_target_node,jmes_jinja_query
 
 vnv_directives = {}
 
@@ -62,11 +64,18 @@ class JsonChartDirective(SphinxDirective):
             uid=uid
         )
 
+    def get_update_dir(self):
+        dir = os.path.join(os.path.dirname(dddd.__file__), "templates", "renders", str(the_app.config.vnv_file),
+                           "updates")
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        return dir
+
     def updateRegistration(self):
         r = self.register()
         if r is not None:
             uid = str(uuid.uuid4().hex)
-            with open(os.path.join(get_update_dir(), uid + ".html"), 'w') as f:
+            with open(os.path.join(self.get_update_dir(), uid + ".html"), 'w') as f:
                 f.write(r)
 
             return uid
@@ -220,6 +229,24 @@ class TreeChartDirective(JsonChartDirective):
     def register(self):
         return self.getContent()
 
+class TerminalDirective(JsonChartDirective):
+    script_template = '''
+            <div id="{id_}" class='card vnv_terminalviewer' style="height:800px;">
+            </div>
+            <script>
+            {{
+                $(document).ready(function() {{
+                    url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
+                    update_now(url, "{id_}", 3000, function(config) {{
+                          $(document.getElementById("{id_}")).html("<pre class='term'>" + config + "</pre>")
+                    }});    
+               }});
+            }}
+            </script> '''
+
+    def register(self):
+        return self.getContent()
+
 
 vnv_directives["vnv-apex"] = ApexChartDirective
 vnv_directives["vnv-plotly"] = PlotlyChartDirective
@@ -227,9 +254,16 @@ vnv_directives["vnv-gchart"] = GChartChartDirective
 vnv_directives["vnv-chart"] = ChartJsChartDirective
 vnv_directives["vnv-table"] = TableChartDirective
 vnv_directives["vnv-tree"] = TreeChartDirective
+vnv_directives["vnv-terminal"] = TerminalDirective
 
+the_app = None
 def setup(sapp):
-    sapp.add_node(VnVChartNode, VnVChartNode.NODE_VISITORS)
+
+    global the_app
+    the_app = sapp
+
+    sapp.add_node(VnVChartNode, **VnVChartNode.NODE_VISITORS)
+
     for key, value in vnv_directives.items():
         sapp.add_directive(key, value)
 

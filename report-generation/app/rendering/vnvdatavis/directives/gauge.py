@@ -41,4 +41,4 @@ class ApexGaugeDirective(ApexChartDirective):
         '''
 
 def setup(sapp):
-    sapp.add_directive("vnv-apex-line", ApexGaugeDirective)
+    sapp.add_directive("vnv-gauge", ApexGaugeDirective)
