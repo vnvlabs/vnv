@@ -9,27 +9,14 @@ from docutils.nodes import SkipNode
 from docutils.parsers.rst import directives
 from flask import render_template
 from sphinx.directives import optional_int
-from sphinx.directives.code import CodeBlock
-from sphinx.errors import ExtensionError
-from sphinx.util import nodes
 from sphinx.util.docutils import SphinxDirective
-import pygments
-from pygments.lexers.data import JsonLexer
-from pygments.formatters.html import HtmlFormatter
 
-from app.base.blueprints import files as dddd
-from app.rendering.vnvdatavis.directives.utils import VnVChartNode, JsonChartDirective
-
+from app.rendering.vnvdatavis.directives.charts import VnVChartNode
 from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query_str, jmes_jinga_stat, DataClass, \
     jmes_jinja_codeblock, jmes_jinja_query, get_target_node, jmes_jinja_query_json
 
 vnv_directives = {}
 vnv_roles = {}
-
-def jmes_text_node(text, meth):
-    result = meth(text)
-    return [VnVChartNode(html=result)]
-
 
 ################ ADD A BUNCH OF ROLES TO TAKE STATISTICS OF JMES RESTULT #
 def process_query(text, stats_function, tag="span"):

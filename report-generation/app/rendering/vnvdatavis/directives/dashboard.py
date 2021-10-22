@@ -5,7 +5,6 @@ import re
 import uuid
 
 import docutils.nodes
-from docutils.parsers.rst import directives
 from sphinx.directives import optional_int
 from sphinx.util import nodes, nested_parse_with_titles
 from sphinx.util.docutils import SphinxDirective

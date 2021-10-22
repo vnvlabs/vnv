@@ -1,11 +1,6 @@
 
-from app.rendering.vnvdatavis.directives.general import ApexChartDirective
-from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query, get_target_node, jmes_jinja_query_json
-
-
-def jmes_expression(x):
-    return x
-
+from app.rendering.vnvdatavis.directives.charts import ApexChartDirective
+from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_percentage
 
 class ApexGaugeDirective(ApexChartDirective):
     required_arguments = 0
@@ -25,7 +20,7 @@ class ApexGaugeDirective(ApexChartDirective):
         mi = self.options.get("min", "`0`")
         cu = self.options.get("curr", "`50`")
         ma = self.options.get("max", "`100`");
-        return jmes_jinga_percentage(cu,mi,ma)
+        return jmes_jinja_percentage(cu,mi,ma)
     def getContent(self):
         return f'''
          {{
