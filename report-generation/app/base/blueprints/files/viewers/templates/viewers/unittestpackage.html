@@ -1,0 +1,18 @@
+
+<div style="position:relative; margin:10px;" >
+
+    <h1>Unit Tests for the {{package}} Package:</h1>
+
+    {%for unitrender in unitrenders %}
+    <div class="card", style="position:relative; background: {%if not unitrender.getResult(utest) %}  red {%else %} green {%endif%};" >
+
+        <div style="margin-left:20px; padding:10px; background:white;">
+            {{ unitrender.getHtml() |safe }}
+        </div>
+    </div>
+    {%endfor%}
+
+
+
+
+</div>
