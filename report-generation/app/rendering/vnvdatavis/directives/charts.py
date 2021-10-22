@@ -87,7 +87,11 @@ class PlotlyChartDirective(JsonChartDirective):
               Plotly.newPlot('{id_}',obj['data'],obj['layout']);
               
               url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
+<<<<<<< HEAD
               update_soon(url, "{id_}", 1000, function(config) {{
+=======
+              update_soon(url, "{id_}_container", 1000, function(config) {{
+>>>>>>> origin/add_dashboard
                 var xx = JSON.parse(config)
                 Plotly.update('{id_}',xx['data'],xx['layout']);
               }})
@@ -110,7 +114,11 @@ class ApexChartDirective(JsonChartDirective):
             chart.render();
             
             url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
+<<<<<<< HEAD
             update_soon(url, "{id_}", 1000, function(config) {{
+=======
+            update_soon(url, "{id_}_container", 1000, function(config) {{
+>>>>>>> origin/add_dashboard
                 chart.updateOptions(JSON.parse(config)) 
             }})
             
@@ -139,7 +147,11 @@ class GChartChartDirective(JsonChartDirective):
                wrapper.draw();
               
                url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
+<<<<<<< HEAD
                update_soon(url, "{id_}", 1000, function(config) {{
+=======
+               update_soon(url, "{id_}_container", 1000, function(config) {{
+>>>>>>> origin/add_dashboard
                  var xx = JSON.parse(config)
                  wrapper.setOptions(xx);
                  wrapper.draw()
@@ -185,7 +197,11 @@ class TableChartDirective(JsonChartDirective):
              var table = new Tabulator("#{id_}", obj);
          
             url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
+<<<<<<< HEAD
             update_soon(url, "{id_}", 3000, function(config) {{
+=======
+            update_soon(url, "{id_}_container", 3000, function(config) {{
+>>>>>>> origin/add_dashboard
 .               var table = new Tabulator("#{id_}", JSON.parse(config));
             }})
          }}
@@ -206,7 +222,11 @@ class TreeChartDirective(JsonChartDirective):
            document.getElementById('{id_}').appendChild(tree.render());
            
            url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
+<<<<<<< HEAD
            update_now(url, "{id_}", 3000, function(config) {{
+=======
+           update_soon(url, "{id_}_container", 3000, function(config) {{
+>>>>>>> origin/add_dashboard
                 var data = JSON.parse(config);
                 var tree = new JSONFormatter(data['data'], true ,data['config']);
                 document.getElementById('{id_}').innerHTML=''
@@ -220,6 +240,7 @@ class TreeChartDirective(JsonChartDirective):
         return self.getContent()
 
 
+<<<<<<< HEAD
 <<<<<<< HEAD:report-generation/app/rendering/vnvdatavis/directives/general.py
 class TerminalDirective(JsonChartDirective):
     script_template = '''
@@ -269,14 +290,19 @@ class TerminalDirective(JsonChartDirective):
 vnv_nodes.append(VnVChartNode)
 =======
 >>>>>>> origin/add_dashboard:report-generation/app/rendering/vnvdatavis/directives/charts.py
+=======
+>>>>>>> origin/add_dashboard
 vnv_directives["vnv-apex"] = ApexChartDirective
 vnv_directives["vnv-plotly"] = PlotlyChartDirective
 vnv_directives["vnv-gchart"] = GChartChartDirective
 vnv_directives["vnv-chart"] = ChartJsChartDirective
 vnv_directives["vnv-table"] = TableChartDirective
 vnv_directives["vnv-tree"] = TreeChartDirective
+<<<<<<< HEAD
 vnv_directives["vnv-terminal"] = TerminalDirective
 
+=======
+>>>>>>> origin/add_dashboard
 
 def setup(sapp):
     sapp.add_node(VnVChartNode, VnVChartNode.NODE_VISITORS)
