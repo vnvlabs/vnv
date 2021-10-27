@@ -22,11 +22,12 @@ endif()
 option(WITH_ADIOS_ENGINE "Use the Adios Engine" ON)
 if(WITH_ADIOS_ENGINE AND WITH_MPI)
 
-  find_package(ADIOS2 REQUIRED)
-
-  target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/adios_file.cpp)
-
-  target_link_libraries(injection PRIVATE adios2::adios2)
-  target_compile_definitions(injection PRIVATE WITH_ADIOS=1)
-
+  find_package(ADIOS2)
+  if (ADIOS2_FOUND) 
+  	target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/adios_file.cpp)
+	target_link_libraries(injection PRIVATE adios2::adios2)
+  	target_compile_definitions(injection PRIVATE WITH_ADIOS=1)
+  else()
+     message(WARNING "Adios Engine Requested but ADIOS2 not found") 
+  endif()	  
 endif()

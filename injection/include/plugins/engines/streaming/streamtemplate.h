@@ -1,6 +1,7 @@
 #ifndef ENGINE_CONSTANTS_HEADER
 #define ENGINE_CONSTANTS_HEADER
 #include <unistd.h>
+
 #include <atomic>
 #include <chrono>
 #include <functional>
@@ -65,23 +66,23 @@ NTYPES
 }  // namespace JSD
 
 namespace JSN {
-#define NTYPES                                                                                                   \
-  X(log)                                                                                                         \
-  X(shape)                                                                                                       \
-  X(dataTypeStarted)                                                                                             \
-  X(dataTypeEnded)                                                                                               \
-  X(injectionPointStarted)                                                                                       \
-  X(injectionPointEnded)                                                                                         \
-  X(injectionPointIterStarted)                                                                                   \
-  X(injectionPointIterEnded)                                                                                     \
-  X(packageOptionsStarted)                                                                                       \
-  X(packageOptionsFinished)                                                                                      \
-  X(actionStarted)                                                                                               \
-  X(actionFinished)                                                                                              \
-  X(fetch)                                                                                                       \
-  X(fetchSuccess)                                                                                                \
-  X(fetchFail) X(testStarted) X(file) X(done) X(duration) X(testFinished) X(unitTestStarted) X(unitTestFinished) \
-      X(commInfo) X(info)
+#define NTYPES                 \
+  X(log)                       \
+  X(shape)                     \
+  X(dataTypeStarted)           \
+  X(dataTypeEnded)             \
+  X(injectionPointStarted)     \
+  X(injectionPointEnded)       \
+  X(injectionPointIterStarted) \
+  X(injectionPointIterEnded)   \
+  X(packageOptionsStarted)     \
+  X(packageOptionsFinished)    \
+  X(actionStarted)             \
+  X(actionFinished)            \
+  X(fetch)                     \
+  X(fetchSuccess)              \
+  X(fetchFail)                 \
+  X(testStarted) X(file) X(done) X(duration) X(testFinished) X(unitTestStarted) X(unitTestFinished) X(commInfo) X(info)
 
 #define X(a) constexpr auto a = #a;
 NTYPES
@@ -807,10 +808,7 @@ template <typename V> class Iterator {
     return current.second;
   };
 
-  virtual void respond(long id, long jid, const json& response) {
-   throw VnVExceptionBase("Not implemented Error");
-  }
-
+  virtual void respond(long id, long jid, const json& response) { throw VnVExceptionBase("Not implemented Error"); }
 
   virtual ~Iterator(){};
 
@@ -981,7 +979,7 @@ template <typename T> class StreamWriter {
   virtual void newComm(long id, const T& obj, ICommunicator_ptr comm) = 0;
   virtual void write(long id, const T& obj, long jid) = 0;
 
-  virtual bool supportsFetch() {return false; }
+  virtual bool supportsFetch() { return false; }
   virtual bool fetch(long id, long jid, json& obj) { return false; }
 
   virtual nlohmann::json getConfigurationSchema(bool readMode) = 0;
@@ -1064,10 +1062,10 @@ template <typename T> class StreamManager : public OutputEngineManager {
 
   virtual ~StreamManager() {}
 
-  virtual bool fetch(long id, const std::string& message, const json& schema, long timeoutInSeconds, json& response, long jid) {
+  virtual bool fetch(long id, const std::string& message, const json& schema, long timeoutInSeconds, json& response,
+                     long jid) {
     // Write the schema provided and the expiry time to the file.
-    
-    
+
     long expiry =
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() +
         timeoutInSeconds;
@@ -1083,17 +1081,18 @@ template <typename T> class StreamManager : public OutputEngineManager {
 
     if (stream->supportsFetch()) {
       // Loop until timeout
-      while (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() < expiry) {
-          if ( stream->fetch(id, jid, response) ) {
-            auto js = T::object();
-            js[JSD::node] = JSN::fetchSuccess;
-            write(js);
-            return true;
-          }
-
-          // Go to sleep for a second to avoid spamming the filesystem
-          sleep(1);
+      while (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
+                 .count() < expiry) {
+        if (stream->fetch(id, jid, response)) {
+          auto js = T::object();
+          js[JSD::node] = JSN::fetchSuccess;
+          write(js);
+          return true;
         }
+
+        // Go to sleep for a second to avoid spamming the filesystem
+        sleep(1);
+      }
     }
 
     // We timed out so continue.
@@ -1105,7 +1104,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   }
 
   bool Fetch(std::string message, const json& schema, long timeoutInSeconds, json& response) override {
-    std::string line =  response.dump();
+    std::string line = response.dump();
     long size = -1;
 
     if (comm->Rank() == getRoot()) {
@@ -1117,8 +1116,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
       }
     }
     comm->BroadCast(&size, 1, sizeof(std::size_t), getRoot());
-    
-    
+
     if (size < 0) {
       return false;
     }
@@ -1353,8 +1351,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   void actionStartedCallBack(ICommunicator_ptr comm, std::string package, std::string name,
                              ActionStage::type stage) override {
     setComm(comm, true);
-
-    if (comm->Rank() != getRoot()) {
+    if (comm->Rank() == getRoot()) {
       T j = T::object();
       j[JSD::node] = JSN::actionStarted;
       j[JSD::name] = name;
@@ -1702,17 +1699,17 @@ template <class T> class ParserVisitor : public VisitorLock {
     std::string schema = j["schema"].dump();
     long expiry = j["expires"].template get<long>();
     long id = j["id"].template get<long>();
-    long jid = j["jid"].template get<long>();    
+    long jid = j["jid"].template get<long>();
     std::string message = j["message"].template get<std::string>();
-    node->setFetchRequest(schema,id, jid, expiry, message);
+    node->setFetchRequest(schema, id, jid, expiry, message);
     return node;
   }
 
-  virtual std::shared_ptr<TestNode> visitFetchFailedNode(const T&j, std::shared_ptr<TestNode> node, long elementId) {
+  virtual std::shared_ptr<TestNode> visitFetchFailedNode(const T& j, std::shared_ptr<TestNode> node, long elementId) {
     node->resetFetchRequest();
     return node;
   }
-  virtual std::shared_ptr<TestNode> visitFetchSuccessNode(const T&j, std::shared_ptr<TestNode> node, long elementId) {
+  virtual std::shared_ptr<TestNode> visitFetchSuccessNode(const T& j, std::shared_ptr<TestNode> node, long elementId) {
     node->resetFetchRequest();
     return node;
   }
@@ -2076,9 +2073,8 @@ template <typename T, typename V> class RootNodeWithThread : public RootNode {
 
   void run() { worker = std::thread(&ParserVisitor<json>::process, visitor.get()); }
 
-
-  virtual void respond(long id, long jid, const std::string& response) override { 
-     stream->respond(id, jid, json::parse(response));
+  virtual void respond(long id, long jid, const std::string& response) override {
+    stream->respond(id, jid, json::parse(response));
   }
 
   static std::shared_ptr<IRootNode> parse(long& id, std::shared_ptr<T> stream) {
