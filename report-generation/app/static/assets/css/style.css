@@ -141,6 +141,14 @@ File: style.css
     opacity: 0.6;
 }
 
+.gridster ul {
+  list-style: none;
+}
+
+.gs-w {
+  border: 1px solid blue;
+}
+
 .ps .ps__rail-x:hover,
 .ps .ps__rail-y:hover,
 .ps .ps__rail-x:focus,

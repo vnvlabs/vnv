@@ -38,8 +38,9 @@ class JsonChartDirective(SphinxDirective):
     file_argument_whitespace = True
     has_content = True
     options_spec = {
-        "height": optional_int,
-        "width": optional_int
+        "height": str,
+        "width": str,
+        "class" : str
     }
 
     def register(self):
@@ -56,13 +57,15 @@ class JsonChartDirective(SphinxDirective):
                 self.content))
 
     def getHtml(self, id_, uid):
-        return self.getScript().format(
+        return f'''
+          <div class="{self.options.get("class","")}" style="width:{self.options.get("width","100%")}; height:{self.options.get("height" , "100%")};">{self.getScript().format(
             id_=id_,
-            height=self.options.get("height", 400),
-            width=self.options.get("width", 400),
+
             config=self.getContent(),
             uid=uid
-        )
+        )}</div>
+        '''
+
 
     def get_update_dir(self):
         dir = os.path.join(os.path.dirname(dddd.__file__), "templates", "renders", str(the_app.config.vnv_file),
@@ -90,9 +93,9 @@ class JsonChartDirective(SphinxDirective):
 
 class PlotlyChartDirective(JsonChartDirective):
     script_template = '''
-            <div id="{id_}" style="width:"{width}"; height:"{height}"></div>
+            <div id="{id_}" style="width:"100%"; height:"100%"></div>
             <script>
-            {{
+            $(document).ready(function() {{
               const obj = JSON.parse('{config}')
               Plotly.newPlot('{id_}',obj['data'],obj['layout']);
               
@@ -102,7 +105,7 @@ class PlotlyChartDirective(JsonChartDirective):
                 Plotly.update('{id_}',xx['data'],xx['layout']);
               }})
                             
-            }}
+            }})
             </script>
             '''
 
@@ -112,9 +115,9 @@ class PlotlyChartDirective(JsonChartDirective):
 
 class ApexChartDirective(JsonChartDirective):
     script_template = '''
-          <div id="{id_}" class='vnv-table' width="{width}" height="{height}"></div>
+          <div id="{id_}" class='vnv-table'></div>
           <script>
-          {{
+          $(document).ready(function() {{
             const obj = JSON.parse(`{config}`)
             var chart = new ApexCharts(document.querySelector("#{id_}"), obj);
             chart.render();
@@ -124,7 +127,7 @@ class ApexChartDirective(JsonChartDirective):
                 chart.updateOptions(JSON.parse(config)) 
             }})
             
-          }}
+          }})
           </script>
         '''
 
@@ -134,9 +137,9 @@ class ApexChartDirective(JsonChartDirective):
 
 class GChartChartDirective(JsonChartDirective):
     script_template = '''
-            <div id="{id_}" style="width:"{width}"; height:"{height}"></div>
+            <div id="{id_}" style="width:"100%"; height:"100%"></div>
             <script>
-            {{
+              $(document).ready(function() {{
               const json = `{config}`
               const obj = JSON.parse(`{config}`)
               obj['containerId'] = '{id_}'
@@ -154,7 +157,7 @@ class GChartChartDirective(JsonChartDirective):
                  wrapper.setOptions(xx);
                  wrapper.draw()
                }})
-            }}
+            }})
             </script>
         '''
 
@@ -164,11 +167,11 @@ class GChartChartDirective(JsonChartDirective):
 
 class ChartJsChartDirective(JsonChartDirective):
     script_template = '''
-           <div id="{id_}_container" width="{width}" height="{height}">
+           <div id="{id_}_container" width="100%" height="100%">
               <canvas id="{id_}"></canvas>
            </div>
            <script>
-           {{
+             $(document).ready(function() {{
              const obj = JSON.parse(`{config}`)
              var ctx = document.getElementById('{id_}');
              var myChart = new Chart(ctx, obj);
@@ -178,7 +181,7 @@ class ChartJsChartDirective(JsonChartDirective):
                 myChart.config = JSON.parse(config)
                 myChart.update()  
              }})
-           }}
+           }})
            </script>
            '''
 
@@ -188,17 +191,18 @@ class ChartJsChartDirective(JsonChartDirective):
 
 class TableChartDirective(JsonChartDirective):
     script_template = '''
-         <div id="{id_}" class='vnv-table' width="{width}" height="{height}"></div>
+         <div id="{id_}" class='vnv-table' width="100%" height="100%"></div>
          <script>
+         $(document).ready(function() 
          {{
              const obj = JSON.parse(`{config}`)
              var table = new Tabulator("#{id_}", obj);
          
             url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
             update_soon(url, "{id_}_container", 3000, function(config) {{
-.               var table = new Tabulator("#{id_}", JSON.parse(config));
+               var table = new Tabulator("#{id_}", JSON.parse(config));
             }})
-         }}
+         }});
          </script>
          '''
 
@@ -208,9 +212,9 @@ class TableChartDirective(JsonChartDirective):
 
 class TreeChartDirective(JsonChartDirective):
     script_template = '''
-        <div id="{id_}" class='vnv_jsonviewer' width="{width}" height="{height}"></div>
+        <div id="{id_}" class='vnv_jsonviewer' width="100%" height="100%"></div>
         <script>
-        {{
+          $(document).ready(function() {{
            var data = JSON.parse(`{config}`);
            var tree = new JSONFormatter(data['data'], true ,data['config']);
            document.getElementById('{id_}').appendChild(tree.render());
@@ -222,7 +226,7 @@ class TreeChartDirective(JsonChartDirective):
                 document.getElementById('{id_}').innerHTML=''
                 document.getElementById('{id_}').appendChild(tree.render());
            }});    
-        }}
+        }})
            
         </script> '''
 
@@ -231,7 +235,7 @@ class TreeChartDirective(JsonChartDirective):
 
 class TerminalDirective(JsonChartDirective):
     script_template = '''
-            <div id="{id_}" class='card vnv_terminalviewer' style="height:800px;">
+            <div id="{id_}" class='card vnv_terminalviewer' style="height:100%;">
             </div>
             <script>
             {{
@@ -256,7 +260,12 @@ vnv_directives["vnv-table"] = TableChartDirective
 vnv_directives["vnv-tree"] = TreeChartDirective
 vnv_directives["vnv-terminal"] = TerminalDirective
 
-the_app = None
+try:
+    the_app
+except NameError:
+    the_app = None
+
+
 def setup(sapp):
 
     global the_app

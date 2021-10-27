@@ -46,9 +46,20 @@ def jmes_jinja_query_json(text):
     else:
         raise ExtensionError("Invalid jmes path query")
 
+def jmes_check(text):
+    return jmespath.compile(text)
+
+
+def jmes_jinja_zip(param):
+    for i in param:
+        if not jmespath.compile(param[i]):
+            raise ExtensionError("Invalid jmes path query")
+    return f"{{{{ data.query_zip('{json.dumps(param)}') | safe }}}}"
+
+
 def jmes_jinja_percentage(curr,min,max):
     if jmespath.compile(curr) and jmespath.compile(min) and jmespath.compile(max):
-        return f"{{ data.query_percent({curr},{min},{max}) | safe }}"
+        return f"{{{{ data.query_percent('{curr}','{min}','{max}') | safe }}}}"
     else:
         raise ExtensionError("Invalid jmes path query")
 

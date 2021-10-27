@@ -10,10 +10,12 @@
     <script src="/static/assets/js/plugins/json-formatter.umd.js"></script>
     <script src="/static/assets/js/plugins/plotly.min.js"></script>
     <script src="/static/assets/js/plugins/tabulator.min.js"></script>
+
     <script src="/static/assets/js/plugins/xterm.js"></script>
     <script src="https://unpkg.com/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
 
-    <script src="/static/assets/js/plugins/jquery.dsmorse-gridster.min.js"></script>
+    <script src="/static/assets/js/plugins/gridstack-h5.js"></script>
+
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
@@ -21,6 +23,13 @@
     {% include 'plugins/scripts.html'%}
     {% include 'files/scripts.html'%}
     {% include 'inputfiles/scripts.html'%}
+
+    <script>
+        $(document).ready(function(){
+            let grid = GridStack.init({
+            });
+        });
+        </script>
 
     <script>
         $(document).ready(function() {

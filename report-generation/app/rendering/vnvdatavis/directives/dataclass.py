@@ -72,7 +72,19 @@ class DataClass:
         amax = self.query(max)
         return 100 * ( acurr / (amax - amin ) )
 
+    def query_zip(self, text):
+        vals = {}
+        a = json.loads(text)
+        if len(a) > 0:
 
+            for i in a:
+                a[i] = self.query(a[i])
+            res = [dict(zip(a, t)) for t in zip(*a.values())]
+            return json.dumps(res)
+        else:
+            return []
+
+        return json.dumps(ret)
 
     def query_json(self, text):
         """Return the jmes query as a string"""
