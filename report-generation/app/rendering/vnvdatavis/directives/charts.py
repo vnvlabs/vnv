@@ -37,7 +37,7 @@ class JsonChartDirective(SphinxDirective):
     optional_arguments = 0
     file_argument_whitespace = True
     has_content = True
-    options_spec = {
+    option_spec = {
         "height": str,
         "width": str,
         "class" : str

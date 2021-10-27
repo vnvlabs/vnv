@@ -2,12 +2,12 @@
 #include "VnV.h"
 
 class PSIPAction : public VnV::IAction {
-  std::string code;
+  std::string uri;
 
  public:
-  PSIPAction(json config) : { uri = config["uri"].get<std::string>(); }
+  PSIPAction(json config) { uri = config["uri"].get<std::string>(); }
 
-  virtual void initialize() override { engine->Put('uri', uri) }
+  virtual void initialize() override { getEngine()->Put("uri", uri); }
 };
 
 const char* schema = R"(
@@ -18,11 +18,12 @@ const char* schema = R"(
                 "type" : "string",
                 "description": "URI To A PSIP Tracking file"
             }
-        }       
+        }, 
+        "required" : ["uri"]       
     }
 )";
 
 /**
- * .. vnv-psip:: uri
+ * .. vnv-psip:: uri[0]
  */
-INJECTION_ACTION(VNVPACKAGENAME, stdout, schema) { return new PSIPAction(config); }
+INJECTION_ACTION(PSIP, psip, schema) { return new PSIPAction(config); }
