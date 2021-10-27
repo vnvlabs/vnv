@@ -39,9 +39,7 @@ INJECTION_LOGLEVEL(VNV_STR(SPNAME), custom, )
  */
 INJECTION_SUBPACKAGE(SPNAME, DummyLibOne)
 
-INJECTION_TRANSFORM(SPNAME, sampleTransform, std::vector<double>, double) {
-  return NULL;
-}
+INJECTION_TRANSFORM(SPNAME, sampleTransform, std::vector<double>, double) { return NULL; }
 
 /**
  * Sample Test As Part of an executable
@@ -84,8 +82,7 @@ class test1 {
 
         A simple looped injection point wrapping a for loop.
     */
-    INJECTION_LOOP_BEGIN(VNV_STR(SPNAME), VWORLD, "Function1Class1",
-                         samplePoints, samplePoints1, samplePoints3);
+    INJECTION_LOOP_BEGIN(VNV_STR(SPNAME), VWORLD, "Function1Class1", samplePoints, samplePoints1, samplePoints3);
     for (int i = 0; i < 10; i++) {
       samplePoints.push_back(i);
 
@@ -191,8 +188,7 @@ void newtonRaphson(double x, double eps, int rank) {
    **/
   INJECTION_LOOP_BEGIN_C(
       VNV_STR(SPNAME), VSELF, "NewtonRaphson",
-      [](VnV_Comm comm, VnV::VnVParameterSet& p,
-         VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
+      [](VnV_Comm comm, VnV::VnVParameterSet& p, VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         const double& x = p["x"].getByRtti<double>();
         const double& iter = p["iter"].getByRtti<double>();
@@ -214,7 +210,6 @@ void newtonRaphson(double x, double eps, int rank) {
     INJECTION_LOOP_ITER(VNV_STR(SPNAME), "NewtonRaphson", "iteration");
   }
   INJECTION_LOOP_END(VNV_STR(SPNAME), "NewtonRaphson");
-
 }
 
 int function1(int x) {
@@ -266,8 +261,7 @@ int main(int argc, char** argv) {
    * comment above the initialize call represents the introduction in the final
    * report.
    */
-  INJECTION_INITIALIZE(SPNAME, &argc, &argv,
-                       (argc == 2) ? argv[1] : "./vv-input.json");
+  INJECTION_INITIALIZE(SPNAME, &argc, &argv, (argc == 2) ? argv[1] : "./vv-input.json");
 
   function1(10);
 
@@ -309,6 +303,8 @@ int main(int argc, char** argv) {
 
   INJECTION_POINT(VNV_STR(SPNAME), VWORLD, "functionTest", function1);
 
+  std::cout << "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT" << std::endl;
+
   MPI_Comm comm, comm1;
   MPI_Comm_split(MPI_COMM_WORLD, rank % 2, rank, &comm);
   MPI_Comm_split(MPI_COMM_WORLD, rank / 2, rank, &comm1);
@@ -324,7 +320,7 @@ int main(int argc, char** argv) {
    *  In this loop, we iterate across a range [ :vnv:`Data.Data.min`,
    *  :vnv:`Data.Data.max`] with a step of :vnv:`Data.Data.count`. At each step,
    *  the INJECTION_LOOP_ITER call is made, representing an internal stage of
-   *  the injection point. This is turn calls the injection point call back, 
+   *  the injection point. This is turn calls the injection point call back,
    *  which logs the value of the injection point parameter "aa"
    *  (aa is a double set randomly in each step of the for loop). We plot aa
    *  against the step value using the chart directive.
@@ -363,8 +359,7 @@ int main(int argc, char** argv) {
    **/
   INJECTION_LOOP_BEGIN_C(
       VNV_STR(SPNAME), VMPI(comm), "loopTest1",
-      [](VnV_Comm comm, VnV::VnVParameterSet& p,
-         VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
+      [](VnV_Comm comm, VnV::VnVParameterSet& p, VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         if (type == VnV::InjectionPointType::Iter) {
           const double& ab = p["aa"].getByRtti<double>();
@@ -392,8 +387,7 @@ int main(int argc, char** argv) {
 
   INJECTION_LOOP_BEGIN_C(
       VNV_STR(SPNAME), VMPI(comm1), "loopTest2",
-      [](VnV_Comm comm, VnV::VnVParameterSet& p,
-         VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
+      [](VnV_Comm comm, VnV::VnVParameterSet& p, VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         if (type == VnV::InjectionPointType::Iter) {
           const double& ab = p["aa"].getByRtti<double>();
@@ -421,8 +415,7 @@ int main(int argc, char** argv) {
 
   INJECTION_LOOP_BEGIN_C(
       VNV_STR(SPNAME), VSELF, "loopTest",
-      [](VnV_Comm comm, VnV::VnVParameterSet& p,
-         VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
+      [](VnV_Comm comm, VnV::VnVParameterSet& p, VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         if (type == VnV::InjectionPointType::Iter) {
           const double& ab = p["aa"].getByRtti<double>();
@@ -448,23 +441,15 @@ int main(int argc, char** argv) {
   /** sdfsdfsdfsdf**/
   INJECTION_LOOP_END(VNV_STR(SPNAME), "loopTest");
 
-  INJECTION_INPUT_FILE_(SPNAME, "IMAGE", VWORLD, "/home/ben/Downloads/mpi.jpeg",
-                        "image");
+  INJECTION_INPUT_FILE_(SPNAME, "IMAGE", VWORLD, "/home/ben/Downloads/mpi.jpeg", "image");
   INJECTION_INPUT_FILE_(SPNAME, "CSV", VWORLD, "/home/ben/te/test.csv", "csv");
-  INJECTION_INPUT_FILE_(SPNAME, "GLVIS", VWORLD,
-                        "/home/ben/Downloads/laghos.saved", "glvis");
-  INJECTION_INPUT_FILE_(SPNAME, "GLVIS", VWORLD,
-                        "/home/ben/Downloads/head-ascii.vti", "vti");
-  INJECTION_INPUT_FILE_(SPNAME, "HTML", VWORLD,
-                        "/home/ben/Downloads/index.html", "html");
-  INJECTION_INPUT_FILE_(SPNAME, "RST", VWORLD, "/home/ben/Downloads/sample.rst",
-                        "rst");
-  INJECTION_INPUT_FILE_(SPNAME, "MARK", VWORLD, "/home/ben/Downloads/sample.md",
-                        "markdown");
-  INJECTION_INPUT_FILE_(SPNAME, "CODE", VWORLD,
-                        "/home/ben/Downloads/sample.cpp", "code");
-  INJECTION_INPUT_FILE_(SPNAME, "CODE", VWORLD,
-                        "/home/ben/Downloads/act_gpu.pdf", "pdf");
+  INJECTION_INPUT_FILE_(SPNAME, "GLVIS", VWORLD, "/home/ben/Downloads/laghos.saved", "glvis");
+  INJECTION_INPUT_FILE_(SPNAME, "GLVIS", VWORLD, "/home/ben/Downloads/head-ascii.vti", "vti");
+  INJECTION_INPUT_FILE_(SPNAME, "HTML", VWORLD, "/home/ben/Downloads/index.html", "html");
+  INJECTION_INPUT_FILE_(SPNAME, "RST", VWORLD, "/home/ben/Downloads/sample.rst", "rst");
+  INJECTION_INPUT_FILE_(SPNAME, "MARK", VWORLD, "/home/ben/Downloads/sample.md", "markdown");
+  INJECTION_INPUT_FILE_(SPNAME, "CODE", VWORLD, "/home/ben/Downloads/sample.cpp", "code");
+  INJECTION_INPUT_FILE_(SPNAME, "CODE", VWORLD, "/home/ben/Downloads/act_gpu.pdf", "pdf");
 
   sample_class_1.function1(10);
   sample_class_2.function1(10);

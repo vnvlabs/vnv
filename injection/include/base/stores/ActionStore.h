@@ -18,8 +18,6 @@
 
 namespace VnV {
 
-
-
 class ActionStore : public BaseStore {
   std::map<std::string, std::pair<json, action_ptr>> action_factory;
 
@@ -30,14 +28,14 @@ class ActionStore : public BaseStore {
 
   OutputEngineManager* getEngine() { return OutputEngineStore::instance().getEngineManager(); }
 
-  virtual void initialize(const ActionInfo& info ) {
-     if (info.run) {
-       for (auto it : info.actions) {
-         if (it.run) {
-              addAction(it.package, it.name, it.config);
-         }
-       }
-     }
+  virtual void initialize(const ActionInfo& info) {
+    if (info.run) {
+      for (auto it : info.actions) {
+        if (it.run) {
+          addAction(it.package, it.name, it.config);
+        }
+      }
+    }
   }
 
   virtual void initialize(ICommunicator_ptr world) {
@@ -54,7 +52,7 @@ class ActionStore : public BaseStore {
     for (auto action : actions) {
       getEngine()->actionStartedCallBack(comm, action->getPackage(), action->getName(), ActionStage::start);
       action->setComm(comm);
-      action->injectionPointStart( packageName, id);
+      action->injectionPointStart(packageName, id);
       getEngine()->actionEndedCallBack(ActionStage::start);
     }
   };

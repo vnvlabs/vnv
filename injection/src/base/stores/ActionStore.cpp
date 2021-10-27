@@ -17,7 +17,6 @@ using namespace VnV;
 
 ActionStore::ActionStore() {}
 
-
 nlohmann::json ActionStore::schema() {
   nlohmann::json m = R"({"type":"object"})"_json;
   nlohmann::json props = json::object();
@@ -29,13 +28,10 @@ nlohmann::json ActionStore::schema() {
   return m;
 }
 
+ActionStore& ActionStore::instance() { return RunTime::instance().store<ActionStore>(); }
 
-ActionStore& ActionStore::instance() {
-  return RunTime::instance().store<ActionStore>();
-}
-
-void VnV::registerAction(std::string packageName, std::string name, std::string schema,
-                         action_ptr m) {
+void VnV::registerAction(std::string packageName, std::string name, std::string schema, action_ptr m) {
   json j = json::parse(schema);
   ActionStore::instance().registerAction(packageName, name, j, m);
+  std::cout << "Registered ACtion " << name << " " << packageName << std::endl;
 }
