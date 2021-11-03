@@ -45,6 +45,7 @@ namespace std {
 
 import json
 import numpy as np
+import app.rendering.fakejmes as jmespath
 
 class classIterator :
          def __init__(self, obj):
@@ -352,6 +353,7 @@ PY_GETATTR(VnV::Nodes::ICommInfoNode)
       def __json__(self):
          return [ self.__getitem__(i).__json__() for i in range(0,self.size())]
 
+
    %}
 }
 %enddef
@@ -405,7 +407,7 @@ PY_GETATTRLIST(VnV::Nodes::IArrayNode)
     
         def __json__(self):
          return { a : self.__getitem__(a).__json__() for a in self.fetchkeys()}
-        
+          
    %}
 }
 %enddef
@@ -510,8 +512,7 @@ PY_GETATTRMAP(VnV::Nodes::IMapNode)
 
       
       def __json__(self):
-         return self.valueIsJson(self.getValue())
-        
+         return self.getValue()
 
    %}
 }

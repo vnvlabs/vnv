@@ -1,4 +1,4 @@
-from app.rendering.vnvdatavis.directives import basic, line,charts,jmes,dashboard,gauge,table, psip
+from app.rendering.vnvdatavis.directives import basic, line,charts,jmes,dashboard,gauge,table, psip, issues
 
 
 def setup(sapp):
@@ -10,3 +10,4 @@ def setup(sapp):
     gauge.setup(sapp)
     table.setup(sapp)
     psip.setup(sapp)
+    issues.setup(sapp)

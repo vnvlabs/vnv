@@ -97,6 +97,9 @@ class TemplateBuild:
         return self.get_html_file_name("Files", package, name)
 
 
+
+
+
 def build(src_dir, templates, id_):
     setup_build_directory(src_dir, id_)
 
@@ -148,3 +151,6 @@ def build(src_dir, templates, id_):
     sphinx.cmd.build.make_main(params)
 
     return TemplateBuild(os.path.basename(src_dir), id_)
+
+
+

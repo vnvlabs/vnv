@@ -5,7 +5,7 @@
 var options = {
         series: JSON.parse('{{commrender.getData()|safe}}'),
         chart: {
-          height: 250,
+          height: "100%",
           type: 'heatmap',
         },
         heatmap: {
@@ -24,11 +24,7 @@ var options = {
           textAnchor: 'middle',
         },
 
-        colors: ["#11345d"],
-
-        title: {
-          text: 'Comm Map Chart'
-        }
+        colors: ["#11345d"]
     };
 
     var chart = new ApexCharts(document.querySelector("#commmap-chart-{{commrender.comm}}"), options);

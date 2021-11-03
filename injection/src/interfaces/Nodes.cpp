@@ -52,6 +52,25 @@ std::string DataBase::getTypeStr() {
 DTYPES
 #undef X
 
+std::string IStringNode::valueToString(std::string ind) {
+  return ind;
+}
+
+std::string IJsonNode::valueToString(std::string ind) {
+  return ind;
+}
+std::string IShapeNode::valueToString(std::shared_ptr<DataBase> ind) {
+  return ind->toString();
+}
+
+
+#define SDTYPES X(Bool, bool) X(Integer, int) X(Float, float) X(Double, double) X(Long, long)
+#define X(x,y) std::string I##x##Node::valueToString(y ind) { return std::to_string(ind);}
+SDTYPES
+#undef X 
+#undef SDTYPES
+
+
 #define X(x)                                                        \
   I##x##Node::I##x##Node() : DataBase(DataBase::DataType::x) {}     \
   I##x##Node::~I##x##Node() {}                                      \
@@ -72,6 +91,7 @@ void IArrayNode::iter(std::function<void(DataBase*)>& lambda) {
 }
 
 void IRootNode::addIDN(long id, long streamId, node_type type, long index, long duration, std::string stage) {
+  
   auto it = nodes.find(index);
   if (it == nodes.end()) {
     nodes[index] = std::list<IDN>();

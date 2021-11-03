@@ -25,11 +25,9 @@ class PSIPDirective(SphinxDirective):
     def getHtml(self):
 
         return f'''
-          <div class="{self.options.get("class","card")}" style="width:{self.options.get("width","100%")}; height:{self.options.get("height" , "100%")};">
-               {{%with schema="{PSIPDirective.PSIP_SCHEMA_URI}" %}}
-               {{%with impl= data.query_str('{" ".join(self.arguments)}') %}}
+          <div class="{self.options.get("class","")}" style="width:{self.options.get("width","100%")}; height:{self.options.get("height" , "100%")};">
+               {{%with initial_data= data.query_json('{" ".join(self.arguments)}') %}}
                {{%include 'psip/index.html' %}}
-               {{%endwith%}}
                {{%endwith%}} 
          </div>
         '''

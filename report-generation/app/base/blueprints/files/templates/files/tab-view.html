@@ -12,7 +12,8 @@ tablist = {
     "comm": ["Communication","files/comms.html"],
     "packages": ["Packages" , "files/packages.html"],
     "prov": ["Provenance","files/provenance.html"],
-    "unit": ["Unit Tests","files/unit_testing.html"]
+    "unit": ["Unit Tests","files/unit_testing.html"],
+    "data": ["Data Explorer" , "files/data.html"]
 }
 %}
 
@@ -20,8 +21,7 @@ tablist = {
 {% with actionFiles = file.getActions() %}
 
 
-<div class="card fcolumn fchild">
-    <div class="card-body fcolumn fchild">
+<div class=" fcolumn fchild">
 
         <div class="page-header-title">
             <div style="display:flex; align-items:center;">
@@ -49,7 +49,7 @@ tablist = {
             {% for action in actionFiles %}
             <li class="nav-item">
                 <a class="nav-link {% if active_tab == 'action-{{action.id_}}' %} active {%endif %}"  id="pills-action-{{action.id_}}-tab" data-toggle="pill" href="#pills-action-{{action.id_}}" role="tab"
-                   aria-controls="pills-action-{{action.id_}}" aria-selected="true">{{action.name}}</a>
+                   aria-controls="pills-action-{{action.id_}}" aria-selected="true">{{action.display_name}}</a>
             </li>
            {% endfor %}
            {%endif%}
@@ -72,8 +72,9 @@ tablist = {
            {%endif%}
 
         </div>
-    </div>
+
 </div>
+
 
 {%endwith%}
 {%endwith%}

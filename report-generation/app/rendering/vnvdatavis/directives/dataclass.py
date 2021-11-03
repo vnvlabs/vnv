@@ -1,24 +1,13 @@
 import json
-import os
-import re
-
-import docutils.nodes
-from docutils.nodes import SkipNode
-from docutils.parsers.rst import directives
 from flask import render_template
-from sphinx.directives import optional_int
-from sphinx.directives.code import CodeBlock
 from sphinx.errors import ExtensionError
-from sphinx.util import nodes
-from sphinx.util.docutils import SphinxDirective
+
 import pygments
 from pygments.lexers.data import JsonLexer
 from pygments.formatters.html import HtmlFormatter
 
 # Fake jmes
 import app.rendering.fakejmes as jmespath
-from app.base.blueprints import files as dddd
-
 
 def render_vnv_template(template, data, file):
     return render_template(template, data=DataClass(data, data.getId(), file))
@@ -88,8 +77,10 @@ class DataClass:
 
     def query_json(self, text):
         """Return the jmes query as a string"""
-        return json.dumps(self.query(text), cls=jmespath.VnVJsonEncoder)
 
+        a = self.query(text)
+        r =  json.dumps(a, cls=jmespath.VnVJsonEncoder)
+        return r
     def codeblock(self, text):
         """Return highlighted json html for the resulting jmes query"""
         j = self.query_str(text)

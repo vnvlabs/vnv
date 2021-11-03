@@ -58,7 +58,8 @@ void RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
       }
     }
   } catch (...) {
-    VnV_Warn(VNVPACKAGENAME, "Library not found: %s", libraryPath.c_str());
+    
+    throw VnVExceptionBase("Library not found: %s", libraryPath.c_str());
   }
 }
 

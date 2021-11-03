@@ -1,8 +1,15 @@
 
-<div>
+{%with
+tablist = {
+    "sa": ["Self Assessment","psip/selfaccess.html"],
+    "ptc": ["Progress Tracking Cards","psip/ptc.html"],
+},
+active_tab = request.args.get("atab", "sa")
 
-Schema : {{ schema }}
-Impl : {{ impl }}
+%}
 
+<div class="fcolumn fchild">
+        {% include "psip/selfaccess.html"%}
 </div>
 
+{%endwith%}

@@ -2,20 +2,12 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
-import hashlib
 import os
-import pathlib
-import uuid
-
-import flask
-import pygments
-from flask import Blueprint, make_response
+from flask import Blueprint, make_response, jsonify
 from flask import render_template, redirect, url_for, request
-from pygments.lexers import guess_lexer_for_filename
 
-from urllib.request import pathname2url
 
-from app.rendering.readers import render_reader, LocalFile
+from app.rendering.readers import LocalFile
 from . import viewers
 from app.models.VnVFile import VnVFile
 from ...utils.utils import render_error
@@ -36,8 +28,10 @@ def get_file_template_root():
     return os.path.abspath(os.path.join(sdir, "renders"))
 
 
+
 @blueprint.route('/new', methods=["POST"])
 def new():
+
     try:
         file = VnVFile.add(
             request.form["name"],
@@ -80,6 +74,26 @@ def comm(id_):
         commrender = file.getCommRender(commId)
         return render_template("files/comm.html", commrender=commrender)
 
+@blueprint.route('/data', methods=["GET"])
+def data():
+    fileId = request.args.get('fileId',type=int)
+    nodeId = request.args.get('nodeId')
+    with VnVFile.find(fileId) as file:
+        return make_response(jsonify(file.getDataChildren(nodeId)),200)
+
+@blueprint.route('/data_root/<int:id_>', methods=["GET"])
+def data_root(id_):
+
+    # One layer of children -- all others just issue children = ""
+    node = request.args.get("id", "#")
+
+    if node == "#":
+        with VnVFile.find(id_) as file:
+            return make_response(jsonify(file.getDataRoot()), 200)
+    else:
+        return make_response(jsonify([]),200)
+
+
 
 @blueprint.route('/view/<int:id_>')
 def view(id_):
@@ -101,11 +115,16 @@ def processing(id_):
     except Exception as e:
         return make_response("", 501)
 
+def unique_files():
+    return [
+        a for a in VnVFile.FILES.values() if not a.pipeline
+    ]
+
 
 def template_globals(globs):
     viewers.template_globals(globs)
     globs["files"] = VnVFile.FILES
-
+    globs["uniquefiles"] = unique_files
 
 def faker():
     # Development stuff -- this loads some files by default on my computer. Feel free to add your

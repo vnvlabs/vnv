@@ -31,6 +31,7 @@ def getVnVConfigFile():
 
 initialized = False
 
+FILES = {}
 
 def Intialize():
     global initialized
@@ -54,8 +55,9 @@ def LoadPlugin(name, filename):
 
 def DumpReaders():
     Intialize()
-    return json.loads(VnVReader.VnVDumpReaders())
-
+    a = json.loads(VnVReader.VnVDumpReaders())
+    a.append("Pipeline")
+    return a
 
 def LoadSpec(application):
     t = None

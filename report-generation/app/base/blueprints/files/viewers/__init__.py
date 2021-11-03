@@ -130,26 +130,42 @@ def processing(id_, ipid):
 def ip(id_):
     try:
         with VnVFile.VnVFile.find(id_) as file:
-
             injection = request.args.get('ipid', type=int)
             iprender = file.render_ip(injection)
 
             if isinstance(iprender, str):
                 return iprender
-
             resp = render_template(
                 "viewers/injectionPoint.html",
                 iprender=iprender)
-            file.release()
+
             return resp
 
     except Exception as e:
         return render_error(501, "Error Loading File")
 
+@blueprint.route('/data_root/<int:id_>', methods=["GET"])
+def data_root(id_):
+
+    node = request.args.get("ipid", type=int)
+    with VnVFile.VnVFile.find(id_) as file:
+        node = file.getById(node).cast()
+        return make_response(jsonify([{
+                "text": node.getName(),
+                "children": True,
+                "li_attr": {
+                    "fileId": file.id_,
+                    "nodeId": node.getId(),
+                }
+        }]),200)
+
+    return make_response(jsonify([]),200)
+
+
 
 
 @blueprint.route('/query/', methods=["POST"])
-def query(id, dataid):
+def query():
     id_ = request.form.get('id_')
     dataid = request.form.get('data')
     quer = request.form.get('query',"")

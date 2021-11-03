@@ -2,28 +2,82 @@
 #include "VnV.h"
 
 class PSIPAction : public VnV::IAction {
-  std::string uri;
+  json conf;
 
  public:
-  PSIPAction(json config) { uri = config["uri"].get<std::string>(); }
+  PSIPAction(const json &config) { conf = config; }
 
-  virtual void initialize() override { getEngine()->Put("uri", uri); }
+  json getDefault() {
+
+        return R"(
+{
+   "sa" : [
+      [0,0,0,0,0],
+      [0,0,0,0,0,0],
+      [0,0,0],
+      [0,0],
+      [0,0]
+   ],
+   "ptc" : [
+    {
+      "process" : "Start PSIP Journey",
+      "target" : "This PSIP Card focusing on integrating PSIP into your workflow.",
+      "score" : 0,
+      "scores" : [ "No PSIP Integration", "Some PSIP Integration" , "A lot of PSIP Integration", "Woah -- All the PSIP integration" ]
+    }
+   ]
+}
+)"_json;
+
+}
+
+  virtual void initialize() override { 
+      if (conf.size()==0) {
+         conf = getDefault();
+
+      }
+      getEngine()->Put("psip", conf );
+  }
 };
 
 const char* schema = R"(
-    {
+{
+ "OneOf" : 
+ [ {
         "type" : "object",
         "properties" : {
-            "uri" : {
-                "type" : "string",
-                "description": "URI To A PSIP Tracking file"
+            "sa" : {
+                "type" : "array",
+                "items" : {"type" : "array" , "items":{"type" : "integer", "min":0, "max":3 } },
+                "length" : 5
+            },
+            "ptc" : {
+                "type" : "array",
+                "items" : {
+                    "type" : "object",
+                    "properties" : {
+                        "process" : {"type" : "string"},
+                        "target" : {"type" : "string" },
+                        "score" : {"type" : "integer", "min" : 0 },
+                        "scores" : {"type" : "array" , "items" : {"type" :"string"} }
+                    },
+                    "required" : ["process","target","score","scores"]
+                },
+                "minLength" : 1
             }
         }, 
-        "required" : ["uri"]       
-    }
+        "required" : ["sa","ptc"]       
+},{
+	"type" : "object",
+    "properties" : {},
+  	"additionalProperties" : false
+}
+]
+  
+}
 )";
 
 /**
- * .. vnv-psip:: uri[0]
+ * .. vnv-psip:: psip[0]
  */
 INJECTION_ACTION(PSIP, psip, schema) { return new PSIPAction(config); }

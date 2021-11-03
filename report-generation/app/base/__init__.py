@@ -22,6 +22,11 @@ blueprint.register_blueprint(
     url_prefix="/inputfiles")
 
 blueprint.register_blueprint(
+    blueprints.pipelines.blueprint,
+    url_prefix="/pipelines")
+
+
+blueprint.register_blueprint(
     blueprints.notifications.blueprint,
     url_prefix="/notifications")
 
@@ -54,7 +59,9 @@ def template_globals(d):
     blueprints.notifications.template_globals(d)
     blueprints.inputfiles.template_globals(d)
     blueprints.directives.template_globals(d)
+    blueprints.pipelines.template_globals(d)
 
 
 def faker():
     blueprints.files.faker()
+    blueprints.pipelines.faker()

@@ -390,7 +390,7 @@ class InjectionPointRender:
 class VnVFile:
     COUNTER = 0
 
-    FILES = {}
+    FILES = VnV.FILES
 
     def __init__(self, name, filename, reader, template_root, icon="icon-box", _cid=None):
         self.name = name
@@ -400,7 +400,7 @@ class VnVFile:
         self.template_root = template_root
         self.id_ = VnVFile.get_id() if _cid is None else _cid
         self.notifications = []
-
+        self.pipeline = False
         self.wrapper = VnV.Read(filename, reader)
         self.root = self.wrapper.get()
         self.template_dir = os.path.join(template_root, str(self.id_))
@@ -415,6 +415,30 @@ class VnVFile:
 
     def clone(self):
         return VnVFile(self.name, self.filename, self.reader, self.template_root, self.icon, _cid=self.id_)
+
+    def getDataRoot(self):
+        return self.getDataChildren("#")
+
+    def getDataChildren(self, nodeId):
+        if nodeId == "#":
+            return [
+                f"Filename: {self.filename}",
+                f"Reader: {self.reader}",
+                {
+                     "text" : self.root.getName(),
+                     "li_attr" : {
+                        "fileId" : self.id_,
+                        "nodeId" : self.root.getId()
+                     },
+                     "children" : True
+               }
+            ]
+        else:
+            node = self.getById(int(nodeId)).cast()
+            a =  json.loads(node.getDataChildren(self.id_,2))
+            return a
+
+
 
     def getCommRender(self, id):
         return CommRender(id, self.getCommObj())
@@ -458,8 +482,11 @@ class VnVFile:
             return self.render_package(a[0]["name"])
         return ""
 
+    def displayName(self,a):
+        return " ".join([i.capitalize() for i in a.replace("_", " ").split(":")[-1].split(" ")])
+
     def getActions(self):
-        return [{"name": a, "id_": n} for n, a in enumerate(self.root.getActions().fetchkeys())]
+        return [{"name": a, "id_": n, "display_name" : self.displayName(a)} for n, a in enumerate(self.root.getActions().fetchkeys())]
 
     def getFirstAction(self):
         a = self.getActions()

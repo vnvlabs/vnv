@@ -149,6 +149,53 @@ File: style.css
   border: 1px solid blue;
 }
 
+.process  {
+   border-radius:4px;
+   padding:5px;
+   border: 1px solid #80808038;
+   cursor: pointer;
+}
+
+.process_button {
+  display: flex;
+  align-items:center;
+  justify-content: center;
+  color:white;
+  font-weight: 600;
+  padding-left: 10px;
+  padding-right:10px;
+  cursor:pointer;
+  height:40px;
+  margin:20px;
+  font-size:30px;
+  width:40px;
+  border-radius:50%;
+
+}
+.process_button.none {
+   background: black;
+}
+.process_button.basic {
+   background: #dc267f;
+}
+.process_button.inter {
+   background: #ffb000;
+}
+.process_button.adv {
+   background: #066999;
+}
+
+.process.selected {
+  border: 3px solid black;
+}
+
+.process_desc {
+  display:flex;
+  align-items:center;
+  justify-content: left;
+
+}
+
 .ps .ps__rail-x:hover,
 .ps .ps__rail-y:hover,
 .ps .ps__rail-x:focus,
@@ -11159,6 +11206,38 @@ a.text-dark:hover, a.text-dark:focus {
   /* iOS 4.1- */
 }
 
+li.tick, li.cross {
+ font-size:18px;
+ margin-bottom: 20px;
+}
+
+li.tick::marker {
+ content: "\e83e  ";
+     font-family: 'feather' !important;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+  /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+li.cross::marker {
+ content: "\e83c  ";
+     font-family: 'feather' !important;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+  /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 .feather {
   /* use !important to prevent issues with browser extensions that change fonts */
     font-family: 'feather' !important;
@@ -17748,6 +17827,68 @@ a.text-dark:hover, a.text-dark:focus {
     animation: anim-rotate 1s linear infinite;
 }
 
+.issue_container {
+    display: flex;
+    flex-direction:row;
+    padding: 15px 10px;
+    align-items:start;
+    position:relative;
+}
+
+.issue_body {
+    padding: 15px 10px;
+   display:none;
+}
+
+
+.issue_avatar {
+    overflow: clip;
+    width:50px;
+    height:50px;
+    border-radius:100%;
+    box-shadow: 0 0 25px -5px #9e9c9e !important;
+    margin-right:30px;
+}
+
+.issue_img {
+      width:50px;
+    height:50px;
+}
+
+.expand {
+    border-radius:100%;
+    position: absolute;
+    bottom: 5px;
+    right: 20px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.expand:hover {
+    box-shadow: 0 0 25px -5px #9e9c9e !important;
+}
+
+.issue_title {
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+}
+.issue_subtitle {
+  color: gray;
+}
+.issue_info {
+    flex:1;
+}
+.issue_badge.open, .issue_badge.opened {
+    background-color: green;
+    color: white;
+}
+.issue_badge.closed {
+    background-color: red;
+    color:white;
+}
+
+
 @-webkit-keyframes anim-rotate {
     100% {
         -webkit-transform: rotate(360deg);
@@ -17766,7 +17907,7 @@ a.text-dark:hover, a.text-dark:focus {
     height: 800px;
     overflow: scroll;
     padding: 15px;
-    background: black;
+    background: #3c465b;
 }
 .term {
    overflow:scroll;
@@ -17804,6 +17945,10 @@ a.text-dark:hover, a.text-dark:focus {
 
 .card:hover, .admonition:hover {
     box-shadow: 0 0 25px -5px #9e9c9e;
+}
+
+.card_hover {
+    box-shadow: 0 0 25px -5px #9e9c9e !important;
 }
 
 .card .card-header, {
@@ -21409,6 +21554,10 @@ pre[class*=language-]:before {
     transition: 0.15s ease-in-out;
 }
 
+.speci {
+    padding-top:6px !important;
+}
+
 .pcoded-navbar .pcoded-inner-navbar li.pcoded-hasmenu.pcoded-trigger > a:after {
     -webkit-transform: rotate(90deg);
     transform: rotate(90deg);
@@ -21419,8 +21568,11 @@ pre[class*=language-]:before {
 }
 
 .pcoded-navbar .pcoded-inner-navbar li.pcoded-hasmenu .pcoded-submenu a:after {
-    top: 7px;
+    top: 11px;
 }
+
+
+
 
 .pcoded-navbar .pcoded-inner-navbar li.pcoded-hasmenu.pcoded-trigger.active > .pcoded-submenu {
     display: block;

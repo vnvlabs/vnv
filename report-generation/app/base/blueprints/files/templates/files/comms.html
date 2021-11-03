@@ -1,25 +1,36 @@
 <script src="//unpkg.com/force-graph"></script>
 <script src="//unpkg.com/element-resize-detector/dist/element-resize-detector.min.js"></script>
 
-<div class="card">
+<div class="">
     <div class="card-body">
+        <h4 style="text-align:center"> Communication Library Information:</h4>
 
         <div class=" card">
             <div class="card-body">
                 {% with rankInfo = file.getRankInfo() %}
-                <h6> Number of MPI Processors: {{ rankInfo.size }} </h6>
-                <h6> Number of Nodes: {{ rankInfo.nodes }} </h6>
-                <h6> Max Ranks per Node: {{ rankInfo.max_rpn }} </h6>
-                <h6> Min Ranks per Node: {{ rankInfo.min_rpn }} </h6>
-                <h6> Unique Communicators: {{ rankInfo.unique_comms }} </h6>
-                <h6 title="{{rankInfo.version}}"> Version: {{ rankInfo.shortversion(130) }} </h6>
+                <h5> Number of MPI Processors: {{ rankInfo.size }} </h5>
+                <h5> Number of Nodes: {{ rankInfo.nodes }} </h5>
+                <h5> Max Ranks per Node: {{ rankInfo.max_rpn }} </h5>
+                <h5> Min Ranks per Node: {{ rankInfo.min_rpn }} </h5>
+                <h5> Unique Communicators: {{ rankInfo.unique_comms }} </h5>
+                <h5 title="{{rankInfo.version}}"> Version: {{ rankInfo.shortversion(130) }} </h5>
                 {% endwith %}
             </div>
         </div>
-        <h4 style="text-align:center"> Communication Map</h4>
-        <div id="commMapGraph"></div>
-        <div id="commMapContent">
-            {{ file.renderDefaultComm()|safe}}
+        <div class="" style="width:100%; max-width:100%">
+            <div class="" style="display:flex; justify-content:space-between">
+                <div class="card" style="width:48%">
+                    <h4 style="text-align:center;">Communication Graph</h4>
+                    <div  id="commMapGraph" style="flex:1"></div>
+                </div>
+
+                <div class="card" style="width:48%">
+                    <h4 style="text-align:center;">Communicator Composition</h4>
+                    <div  id="commMapContent" style="flex:1">
+                        {{ file.renderDefaultComm()|safe}}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
