@@ -11,7 +11,7 @@ from flask import Blueprint, render_template, make_response, request, jsonify
 from jinja2 import FileSystemLoader
 
 from app.models.VnVFile import VnVFile
-from app.rendering.vnvdatavis.directives.jmes import DataClass
+from app.rendering.vnvdatavis.directives.dataclass import DataClass
 from ...utils.utils import render_error
 
 blueprint = Blueprint(
@@ -26,7 +26,7 @@ def chartupdates(updateId, fileid, dataid):
     try:
         with VnVFile.find(fileid) as file:
             data = file.getById(dataid).cast()
-            config = render_template(os.path.join('renders', "updates", str(fileid), updateId + ".html"),
+            config = render_template(os.path.join('renders',  str(fileid), "updates", updateId + ".html"),
                                      data=DataClass(data, dataid, fileid))
             d = {"more": data.open(), "config": config}
             return make_response(json.dumps(d), 200)

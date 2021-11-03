@@ -117,7 +117,7 @@ function switch_package(fileId, name, element) {
 
 function switch_action(fileId, name, element) {
   $(".action-selected").removeClass("action-selected");
-  $('#'+name).addClass("action-selected")
+  $(document.getElementById(name)).addClass("action-selected")
 
   $.get("/files/viewers/action/"+fileId + "?p=" + name, function(data) {
     $(element).html(data)
@@ -183,6 +183,19 @@ function update_soon(url,  containerId, timeout, chartupdate) {
         }, timeout)
     }
 }
+function update_now(url,  containerId, timeout, chartupdate) {
+    if ($('#' + containerId).length) {
+        $.get(url, function(response) {
+               var x = JSON.parse(response)
+               chartupdate(x.config)
+               if (x.more) {
+                 update_soon(url,  containerId, timeout,chartupdate)
+               }
+            })
+    }
+}
+
+
 function update_request(fileId, ipid, elmid) {
 
    if ( $('#' + elmid ).length ) {

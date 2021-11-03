@@ -1,0 +1,72 @@
+
+<div id="main_issue_container">
+
+</div>
+
+
+<script type="module">
+
+import { Octokit } from "https://cdn.skypack.dev/@octokit/rest";
+
+
+{% include "issues/build.html" %}
+
+const octokit = new Octokit({
+            userAgent: "my-app/v1.2.3",
+});
+
+function renderIssueBody(number) {
+
+    var elm =  $('#issue-' + number + '-body')
+
+    if (elm.hasClass('load')){
+
+        elm.removeClass('load');
+
+        octokit.request('POST /markdown', {
+           text: elm.html()
+        })
+        .then(md => {
+            elm.html(md.data)
+        })
+    }
+}
+
+function octopop(owner, repo, labels) {
+
+    octokit.paginate(octokit.rest.issues.listForRepo, {
+            owner: owner,
+            repo: repo,
+            labels: labels,
+            per_page:100
+    })
+    .then(issues => {
+            let fragment = document.createDocumentFragment();
+            for (let i = 0; i < issues.length; i++) {
+                fragment.appendChild(
+                    buildIssue({
+                        title: issues[i].title,
+                        body: issues[i].body,
+                        date: issues[i].created_at,
+                        url : issues[i].html_url,
+                        user: issues[i].user.login,
+                        number: issues[i].number,
+                        user_img: issues[i].user.avatar_url,
+                        state : issues[i].state
+                    })
+                );
+            }
+            document.getElementById('main_issue_container').appendChild(fragment)
+        })
+}
+
+
+$(document).ready(function() {
+
+        const vnv_data = JSON.parse('{{vnv_data | safe }}')
+        var labs = vnv_data.labels || []
+        octopop(vnv_data.owner, vnv_data.repo, labs.join())
+});
+
+
+</script>

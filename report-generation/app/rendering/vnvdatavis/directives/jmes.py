@@ -17,9 +17,7 @@ from pygments.formatters.html import HtmlFormatter
 
 # Fake jmes
 import app.rendering.fakejmes as jmespath
-from app.base.blueprints import files as dddd
 
-the_app = None
 
 def get_target_node(directive):
     serial_no = directive.env.new_serialno("ccb")
@@ -27,81 +25,6 @@ def get_target_node(directive):
     targetnode = docutils.nodes.target('', '', ids=[target_id])
     return targetnode, target_id
 
-def get_update_dir():
-    dir = os.path.join(os.path.dirname(dddd.__file__), "templates", "renders", str(the_app.config.vnv_file), "updates")
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    return dir
-
-def render_vnv_template(template, data, file):
-    return render_template(template, data=DataClass(data, data.getId(), file))
-
-
-class DataClass:
-    statsMethods = ["min", "max", "avg","str"]
-
-    def __init__(self, data, id_, file):
-        self.data = data
-        self.id_ = id_
-        self.file = file
-
-    def _compile(self, expr):
-        try:
-            return jmespath.compile(expr)
-        except Exception as e:
-            raise ExtensionError("Invalid Jmes Path")
-
-    def mquery(self,meth, query):
-        if meth == "str":
-            return self.query_str(query)
-        elif meth == "codeblock":
-            return self.codeblock(query)
-        elif meth == "json":
-            return self.query_json(query)
-        elif meth == "":
-            return self.query(query)
-        else:
-            return f"todo:{meth}({query})"
-
-    def query(self, text) -> str:
-        """Return the jmes query result"""
-        if (text == "Data.TotalTime"):
-            a = self._compile('TotalTime').search(self.data)
-            print(a)
-            return str(a[0])
-        try:
-            return self._compile(text).search(self.data)
-        except Exception as e:
-            print(e)
-            return ""
-
-    def query_str(self, text):
-        """Return the jmes query as a string"""
-        return str(self.query(text))
-
-    def query_percent(self, curr, min, max):
-        acurr = self.query(curr)
-        amin = self.query(min)
-        amax = self.query(max)
-        return 100 * ( acurr / (amax - amin ) )
-
-
-
-    def query_json(self, text):
-        """Return the jmes query as a string"""
-        return json.dumps(self.query(text), cls=jmespath.VnVJsonEncoder)
-
-    def codeblock(self, text):
-        """Return highlighted json html for the resulting jmes query"""
-        j = self.query_str(text)
-        return pygments.highlight(
-            j, JsonLexer(), HtmlFormatter(), outfile=None)
-
-    def getFile(self):
-        return self.file
-
-    def getAAId(self):
-        return self.data.getId()
 
 def jmes_jinja_query(text):
     if jmespath.compile(text):
@@ -123,9 +46,20 @@ def jmes_jinja_query_json(text):
     else:
         raise ExtensionError("Invalid jmes path query")
 
+def jmes_check(text):
+    return jmespath.compile(text)
+
+
+def jmes_jinja_zip(param):
+    for i in param:
+        if not jmespath.compile(param[i]):
+            raise ExtensionError("Invalid jmes path query")
+    return f"{{{{ data.query_zip('{json.dumps(param)}') | safe }}}}"
+
+
 def jmes_jinja_percentage(curr,min,max):
     if jmespath.compile(curr) and jmespath.compile(min) and jmespath.compile(max):
-        return f"{{ data.query_percent({curr},{min},{max}) | safe }}"
+        return f"{{{{ data.query_percent('{curr}','{min}','{max}') | safe }}}}"
     else:
         raise ExtensionError("Invalid jmes path query")
 

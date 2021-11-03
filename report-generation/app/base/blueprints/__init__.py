@@ -1,1 +1,1 @@
-from . import plugins, notifications, files, inputfiles,directives
+from . import plugins, notifications, files, inputfiles, directives, pipelines

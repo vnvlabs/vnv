@@ -1,0 +1,46 @@
+
+const month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct", "Nov", "Dec"];
+const days = ["th","st","nd","rd","th"]
+
+function dateFormat(date) {
+    var d = new Date(date)
+    return `${month[d.getMonth()]} ${d.getDay()}${days[Math.min((d.getDay()%10),4)]}`
+}
+
+function toggleIssueBody(number) {
+   renderIssueBody(number);
+   $('#issue-' + number + '-body').toggle(250)
+   $('#issue-' + number + '-toggle').toggleClass(["icon-chevrons-down","icon-chevrons-up"])
+
+}
+
+function buildIssue(data) {
+
+ var html = `<div class="issue_main card">
+                 <div class=" issue_container ">
+                    <div class="issue_avatar">
+                        <img class="issue_img" src="${data.user_img}">
+                    </div>
+                    <div class="issue_info">
+                        <div> <a href="${data.url}"   target="_blank" class="issue_title">${data.title}</a></div>
+                        <div class="issue_subtitle">#${data.number} opened on ${dateFormat(data.date)} by ${data.user}</div>
+                    </div>
+
+                    <span class="badge badge-pill issue_badge ${data.state}" style="position:absolute; top:10px; right:10px">${data.state}</span>
+                    <span  class="expand" style="">
+                        <i id="issue-${data.number}-toggle" class="feather icon-chevrons-down"></i>
+                    </span>
+                 </div>
+                 <div id="issue-${data.number}-body" class="issue_body hidden load" >${data.body}</div>
+            </div>
+            `
+
+    var d = document.createElement("div")
+    d.innerHTML= html
+
+    $('#main_issue_container').on('click','#issue-' + data.number + '-toggle' , function(){
+        toggleIssueBody(data.number)
+    })
+
+    return d
+}

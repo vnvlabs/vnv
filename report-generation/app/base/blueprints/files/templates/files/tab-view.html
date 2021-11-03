@@ -12,16 +12,16 @@ tablist = {
     "comm": ["Communication","files/comms.html"],
     "packages": ["Packages" , "files/packages.html"],
     "prov": ["Provenance","files/provenance.html"],
-    "actions" : ["Profiling", "files/actions.html"],
-    "unit": ["Unit Tests","files/unit_testing.html"]
+    "unit": ["Unit Tests","files/unit_testing.html"],
+    "data": ["Data Explorer" , "files/data.html"]
 }
 %}
 
 {%with active_tab = request.args.get("atab", "home") %}
+{% with actionFiles = file.getActions() %}
 
 
-<div class="card fcolumn fchild">
-    <div class="card-body fcolumn fchild">
+<div class=" fcolumn fchild">
 
         <div class="page-header-title">
             <div style="display:flex; align-items:center;">
@@ -45,6 +45,14 @@ tablist = {
                    aria-controls="pills-{{tab}}" aria-selected="true">{{tablist[tab][0]}}</a>
             </li>
             {%endfor%}
+            {% if actionFiles | length > 0 %}
+            {% for action in actionFiles %}
+            <li class="nav-item">
+                <a class="nav-link {% if active_tab == 'action-{{action.id_}}' %} active {%endif %}"  id="pills-action-{{action.id_}}-tab" data-toggle="pill" href="#pills-action-{{action.id_}}" role="tab"
+                   aria-controls="pills-action-{{action.id_}}" aria-selected="true">{{action.display_name}}</a>
+            </li>
+           {% endfor %}
+           {%endif%}
         </ul>
 
         <div class="tab-content fcolumn fchild " id="pills-tabContent">
@@ -54,13 +62,23 @@ tablist = {
                     {% include tablist[tab][1] %}
             </div>
             {%endfor%}
+            {% if actionFiles | length > 0 %}
+            {% for action in actionFiles %}
+            <div class="tab-pane fade {% if active_tab == 'action-{{action.id_}}' %} show active {%endif%} finlinecolumn fchild" id="pills-action-{{action.id_}}" role="tabpanel"
+                 aria-labelledby="pills-action-{{action.id_}}-tab">
+                     {{ file.render_action(action.name) | safe }}
+            </div>
+           {% endfor %}
+           {%endif%}
+
         </div>
-    </div>
+
 </div>
 
-{%endwith%}
-{%endwith%}
 
+{%endwith%}
+{%endwith%}
+{%endwith%}
 
 {% endblock content %}
 

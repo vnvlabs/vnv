@@ -1,12 +1,15 @@
 import os
+import re
 import uuid
 
 import docutils
 from docutils.nodes import SkipNode
 from sphinx.directives import optional_int
 from sphinx.util.docutils import SphinxDirective
+from app.base.blueprints import files as dddd
 
-from app.rendering.vnvdatavis.directives.jmes import get_target_node, get_update_dir, jmes_jinja_query
+
+from app.rendering.vnvdatavis.directives.jmes import get_target_node,jmes_jinja_query
 
 vnv_directives = {}
 
@@ -34,9 +37,10 @@ class JsonChartDirective(SphinxDirective):
     optional_arguments = 0
     file_argument_whitespace = True
     has_content = True
-    options_spec = {
-        "height": optional_int,
-        "width": optional_int
+    option_spec = {
+        "height": str,
+        "width": str,
+        "class" : str
     }
 
     def register(self):
@@ -53,19 +57,28 @@ class JsonChartDirective(SphinxDirective):
                 self.content))
 
     def getHtml(self, id_, uid):
-        return self.getScript().format(
+        return f'''
+          <div class="{self.options.get("class","")}" style="width:{self.options.get("width","100%")}; height:{self.options.get("height" , "100%")};">{self.getScript().format(
             id_=id_,
-            height=self.options.get("height", 400),
-            width=self.options.get("width", 400),
+
             config=self.getContent(),
             uid=uid
-        )
+        )}</div>
+        '''
+
+
+    def get_update_dir(self):
+        dir = os.path.join(os.path.dirname(dddd.__file__), "templates", "renders", str(the_app.config.vnv_file),
+                           "updates")
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        return dir
 
     def updateRegistration(self):
         r = self.register()
         if r is not None:
             uid = str(uuid.uuid4().hex)
-            with open(os.path.join(get_update_dir(), uid + ".html"), 'w') as f:
+            with open(os.path.join(self.get_update_dir(), uid + ".html"), 'w') as f:
                 f.write(r)
 
             return uid
@@ -80,23 +93,19 @@ class JsonChartDirective(SphinxDirective):
 
 class PlotlyChartDirective(JsonChartDirective):
     script_template = '''
-            <div id="{id_}" style="width:"{width}"; height:"{height}"></div>
+            <div id="{id_}" style="width:"100%"; height:"100%"></div>
             <script>
-            {{
+            $(document).ready(function() {{
               const obj = JSON.parse('{config}')
               Plotly.newPlot('{id_}',obj['data'],obj['layout']);
               
               url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-<<<<<<< HEAD
               update_soon(url, "{id_}", 1000, function(config) {{
-=======
-              update_soon(url, "{id_}_container", 1000, function(config) {{
->>>>>>> origin/add_dashboard
                 var xx = JSON.parse(config)
                 Plotly.update('{id_}',xx['data'],xx['layout']);
               }})
                             
-            }}
+            }})
             </script>
             '''
 
@@ -106,23 +115,19 @@ class PlotlyChartDirective(JsonChartDirective):
 
 class ApexChartDirective(JsonChartDirective):
     script_template = '''
-          <div id="{id_}" class='vnv-table' width="{width}" height="{height}"></div>
+          <div id="{id_}" class='vnv-table'></div>
           <script>
-          {{
+          $(document).ready(function() {{
             const obj = JSON.parse(`{config}`)
             var chart = new ApexCharts(document.querySelector("#{id_}"), obj);
             chart.render();
             
             url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-<<<<<<< HEAD
-            update_soon(url, "{id_}", 1000, function(config) {{
-=======
             update_soon(url, "{id_}_container", 1000, function(config) {{
->>>>>>> origin/add_dashboard
                 chart.updateOptions(JSON.parse(config)) 
             }})
             
-          }}
+          }})
           </script>
         '''
 
@@ -132,9 +137,9 @@ class ApexChartDirective(JsonChartDirective):
 
 class GChartChartDirective(JsonChartDirective):
     script_template = '''
-            <div id="{id_}" style="width:"{width}"; height:"{height}"></div>
+            <div id="{id_}" style="width:"100%"; height:"100%"></div>
             <script>
-            {{
+              $(document).ready(function() {{
               const json = `{config}`
               const obj = JSON.parse(`{config}`)
               obj['containerId'] = '{id_}'
@@ -147,16 +152,12 @@ class GChartChartDirective(JsonChartDirective):
                wrapper.draw();
               
                url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-<<<<<<< HEAD
                update_soon(url, "{id_}", 1000, function(config) {{
-=======
-               update_soon(url, "{id_}_container", 1000, function(config) {{
->>>>>>> origin/add_dashboard
                  var xx = JSON.parse(config)
                  wrapper.setOptions(xx);
                  wrapper.draw()
                }})
-            }}
+            }})
             </script>
         '''
 
@@ -166,11 +167,11 @@ class GChartChartDirective(JsonChartDirective):
 
 class ChartJsChartDirective(JsonChartDirective):
     script_template = '''
-           <div id="{id_}_container" width="{width}" height="{height}">
+           <div id="{id_}_container" width="100%" height="100%">
               <canvas id="{id_}"></canvas>
            </div>
            <script>
-           {{
+             $(document).ready(function() {{
              const obj = JSON.parse(`{config}`)
              var ctx = document.getElementById('{id_}');
              var myChart = new Chart(ctx, obj);
@@ -180,7 +181,7 @@ class ChartJsChartDirective(JsonChartDirective):
                 myChart.config = JSON.parse(config)
                 myChart.update()  
              }})
-           }}
+           }})
            </script>
            '''
 
@@ -190,21 +191,18 @@ class ChartJsChartDirective(JsonChartDirective):
 
 class TableChartDirective(JsonChartDirective):
     script_template = '''
-         <div id="{id_}" class='vnv-table' width="{width}" height="{height}"></div>
+         <div id="{id_}" class='vnv-table' width="100%" height="100%"></div>
          <script>
+         $(document).ready(function() 
          {{
              const obj = JSON.parse(`{config}`)
              var table = new Tabulator("#{id_}", obj);
          
             url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-<<<<<<< HEAD
             update_soon(url, "{id_}", 3000, function(config) {{
-=======
-            update_soon(url, "{id_}_container", 3000, function(config) {{
->>>>>>> origin/add_dashboard
 .               var table = new Tabulator("#{id_}", JSON.parse(config));
             }})
-         }}
+         }});
          </script>
          '''
 
@@ -214,34 +212,46 @@ class TableChartDirective(JsonChartDirective):
 
 class TreeChartDirective(JsonChartDirective):
     script_template = '''
-        <div id="{id_}" class='vnv_jsonviewer' width="{width}" height="{height}"></div>
+        <div id="{id_}" class='vnv_jsonviewer' width="100%" height="100%"></div>
         <script>
-        {{
+          $(document).ready(function() {{
            var data = JSON.parse(`{config}`);
            var tree = new JSONFormatter(data['data'], true ,data['config']);
            document.getElementById('{id_}').appendChild(tree.render());
            
            url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-<<<<<<< HEAD
            update_now(url, "{id_}", 3000, function(config) {{
-=======
-           update_soon(url, "{id_}_container", 3000, function(config) {{
->>>>>>> origin/add_dashboard
                 var data = JSON.parse(config);
                 var tree = new JSONFormatter(data['data'], true ,data['config']);
                 document.getElementById('{id_}').innerHTML=''
                 document.getElementById('{id_}').appendChild(tree.render());
            }});    
-        }}
+        }})
            
         </script> '''
 
     def register(self):
         return self.getContent()
 
+class TerminalDirective(JsonChartDirective):
+    script_template = '''
+            <div id="{id_}" class='card vnv_terminalviewer' style="height:100%;">
+            </div>
+            <script>
+            {{
+                $(document).ready(function() {{
+                    url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
+                    update_now(url, "{id_}", 3000, function(config) {{
+                          $(document.getElementById("{id_}")).html("<pre class='term'>" + config + "</pre>")
+                    }});    
+               }});
+            }}
+            </script> '''
 
-<<<<<<< HEAD
-<<<<<<< HEAD:report-generation/app/rendering/vnvdatavis/directives/general.py
+    def register(self):
+        return self.getContent()
+
+
 class TerminalDirective(JsonChartDirective):
     script_template = '''
             <div id="{id_}" class='card vnv_terminalviewer' style="height:800px;">
@@ -287,25 +297,27 @@ class TerminalDirective(JsonChartDirective):
         return self.getContent()
 
 
-vnv_nodes.append(VnVChartNode)
-=======
->>>>>>> origin/add_dashboard:report-generation/app/rendering/vnvdatavis/directives/charts.py
-=======
->>>>>>> origin/add_dashboard
 vnv_directives["vnv-apex"] = ApexChartDirective
 vnv_directives["vnv-plotly"] = PlotlyChartDirective
 vnv_directives["vnv-gchart"] = GChartChartDirective
 vnv_directives["vnv-chart"] = ChartJsChartDirective
 vnv_directives["vnv-table"] = TableChartDirective
 vnv_directives["vnv-tree"] = TreeChartDirective
-<<<<<<< HEAD
 vnv_directives["vnv-terminal"] = TerminalDirective
 
-=======
->>>>>>> origin/add_dashboard
+try:
+    the_app
+except NameError:
+    the_app = None
+
 
 def setup(sapp):
-    sapp.add_node(VnVChartNode, VnVChartNode.NODE_VISITORS)
+
+    global the_app
+    the_app = sapp
+
+    sapp.add_node(VnVChartNode, **VnVChartNode.NODE_VISITORS)
+
     for key, value in vnv_directives.items():
         sapp.add_directive(key, value)
 

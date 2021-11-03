@@ -112,8 +112,7 @@ const json& getVVSchema() {
        }
     },
     "actions" : {
-      "type" : "object",
-      "additionalProperties" : {"type" : "object"  }
+      "type" : "object"
     },
     "logger": {
         "description" : "VnV Logging Configuration",

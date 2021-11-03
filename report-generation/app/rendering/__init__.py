@@ -55,6 +55,12 @@ class TemplateBuild:
             "html",
             f"{type}_{package}_{name}.html")
 
+    def get_action(self, package, name):
+        return self.get_html_file_name("Actions", package, name)
+
+    def get_unit_test_test_content(self, package, name, test):
+        return os.path.join("renders",self.src_dir, "_build", "html", f"UnitTest_Test_{package}_{name}_{test}.html")
+
     def get_package(self, package):
         return os.path.join(
             "renders",
@@ -91,6 +97,9 @@ class TemplateBuild:
         return self.get_html_file_name("Files", package, name)
 
 
+
+
+
 def build(src_dir, templates, id_):
     setup_build_directory(src_dir, id_)
 
@@ -117,6 +126,17 @@ def build(src_dir, templates, id_):
                         w.write(f"\n\n<No information available>\n\n")
                     else:
                         w.write(f"\n{textwrap.dedent(point['docs'])}\n\n")
+
+                if type_ == "UnitTests":
+                    tests = point["tests"]
+                    for test in tests.keys() :
+                        fnames.append(f"UnitTest_Test_{name_package[0]}_{name_package[1]}_{test}.rst")
+                        with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
+                            if len(point["docs"]) == 0:
+                                w.write(f"\n\n<No information available>\n\n")
+                            else:
+                                w.write(f"\n{textwrap.dedent(tests[test])}\n\n")
+
         else:
             fnames.append(f"{type_}.rst")
             with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
@@ -131,3 +151,6 @@ def build(src_dir, templates, id_):
     sphinx.cmd.build.make_main(params)
 
     return TemplateBuild(os.path.basename(src_dir), id_)
+
+
+

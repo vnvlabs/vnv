@@ -1,0 +1,35 @@
+
+<div class="card" style="padding:10px; overflow:scroll;">
+    <div id="data_tree_div_ip" style="">
+    </div>
+</div>
+<script>
+
+$(document).ready( function () { $('#data_tree_div_ip').jstree(
+{
+  "core" : {
+    "animation" : 0,
+    "check_callback" : true,
+    "themes" : { "stripes" : true },
+    'data' : {
+      url : function (node) {
+        if (node.id === "#")
+            return  '/files/viewers/data_root/{{iprender.getFile()}}';
+        return  '/files/data';
+      },
+      data : function (node) {
+        if (node.id === "#")
+            return  { "ipid" : {{iprender.getId()}} };
+        return { 'fileId':node.li_attr.fileId , nodeId : node.li_attr.nodeId  };
+      },
+      dataType : "json"
+    }
+  },
+  "plugins" : [
+    "contextmenu", "dnd", "search",
+    "state", "types", "wholerow"
+  ]
+}
+);
+});
+</script>

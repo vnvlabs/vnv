@@ -1,6 +1,7 @@
 #ifndef ENGINE_CONSTANTS_HEADER
 #define ENGINE_CONSTANTS_HEADER
 #include <unistd.h>
+
 #include <atomic>
 #include <chrono>
 #include <functional>
@@ -65,23 +66,23 @@ NTYPES
 }  // namespace JSD
 
 namespace JSN {
-#define NTYPES                                                                                                   \
-  X(log)                                                                                                         \
-  X(shape)                                                                                                       \
-  X(dataTypeStarted)                                                                                             \
-  X(dataTypeEnded)                                                                                               \
-  X(injectionPointStarted)                                                                                       \
-  X(injectionPointEnded)                                                                                         \
-  X(injectionPointIterStarted)                                                                                   \
-  X(injectionPointIterEnded)                                                                                     \
-  X(packageOptionsStarted)                                                                                       \
-  X(packageOptionsFinished)                                                                                      \
-  X(actionStarted)                                                                                               \
-  X(actionFinished)                                                                                              \
-  X(fetch)                                                                                                       \
-  X(fetchSuccess)                                                                                                \
-  X(fetchFail) X(testStarted) X(file) X(done) X(duration) X(testFinished) X(unitTestStarted) X(unitTestFinished) \
-      X(commInfo) X(info)
+#define NTYPES                 \
+  X(log)                       \
+  X(shape)                     \
+  X(dataTypeStarted)           \
+  X(dataTypeEnded)             \
+  X(injectionPointStarted)     \
+  X(injectionPointEnded)       \
+  X(injectionPointIterStarted) \
+  X(injectionPointIterEnded)   \
+  X(packageOptionsStarted)     \
+  X(packageOptionsFinished)    \
+  X(actionStarted)             \
+  X(actionFinished)            \
+  X(fetch)                     \
+  X(fetchSuccess)              \
+  X(fetchFail)                 \
+  X(testStarted) X(file) X(done) X(duration) X(testFinished) X(unitTestStarted) X(unitTestFinished) X(commInfo) X(info)
 
 #define X(a) constexpr auto a = #a;
 NTYPES
@@ -102,7 +103,9 @@ class ArrayNode : public IArrayNode {
   std::string templ;
   std::vector<std::shared_ptr<DataBase>> value;
 
-  ArrayNode() : IArrayNode() {}
+  ArrayNode(std::string name) : IArrayNode() {
+    this->name = name;
+  }
 
   virtual std::shared_ptr<DataBase> getShared(std::size_t idx) override {
     return (idx < value.size()) ? (value[idx]) : nullptr;
@@ -123,25 +126,16 @@ class MapNode : public IMapNode {
   std::string templ;
   std::map<std::string, std::shared_ptr<ArrayNode>> value;
 
-  MapNode() : IMapNode() {}
+  MapNode(std::string name) : IMapNode() {
+    this->name = name;
+  }
 
   virtual IArrayNode* get(std::string key) override {
     auto it = value.find(key);
     return (it == value.end()) ? nullptr : (it->second).get();
   }
 
-  virtual IMapNode* add(std::string key, std::shared_ptr<DataBase> v) override {
-    auto it = value.find(key);
-    if (it == value.end()) {
-      auto a = std::make_shared<ArrayNode>();
-      a->add(v);
-      value.insert(std::make_pair(key, a));
-    } else {
-      it->second->add(v);
-    }
-
-    return this;
-  }
+  
 
   virtual bool contains(std::string key) override { return value.find(key) != value.end(); }
 
@@ -166,7 +160,7 @@ class MapNode : public IMapNode {
     std::vector<std::size_t> shape;                                                    \
     std::vector<y> value;                                                              \
                                                                                        \
-    x##Node() : I##x##Node() {}                                                        \
+    x##Node(std::string name) : I##x##Node() {this->name = name;}                 \
                                                                                        \
     const std::vector<std::size_t>& getShape() override { return shape; }              \
                                                                                        \
@@ -204,7 +198,7 @@ class InfoNode : public IInfoNode {
   std::string title, templ;
   std::shared_ptr<VnVProv> prov;
 
-  InfoNode() : IInfoNode() {}
+  InfoNode(std::string name) : IInfoNode() { this->name = name; }
   virtual std::string getTitle() override { return title; }
   virtual long getDate() override { return date; }
   virtual std::string getValue() override { return templ; }
@@ -394,7 +388,7 @@ class CommMap : public ICommMap {
   }
 
  public:
-  CommMap() : ICommMap() {}
+  CommMap(std::string name) : ICommMap() {}
 
   void add(long id, std::set<long>& comms) {
     Comm_ptr p = std::make_shared<Comm>(comms, id);
@@ -495,7 +489,7 @@ class CommInfoNode : public ICommInfoNode {
   json nodeMap;
   std::string version;
 
-  CommInfoNode() : ICommInfoNode(), commMap(new CommMap()) {}
+  CommInfoNode(std::string name) : ICommInfoNode(), commMap(new CommMap("Communication Map")) {this->name = name;}
 
   virtual int getWorldSize() override { return worldSize; }
   virtual ICommMap* getCommMap() override { return commMap.get(); }
@@ -515,7 +509,9 @@ class TestNode : public ITestNode {
   bool result;
   bool internal;
 
-  TestNode() : ITestNode(), data(new MapNode()), logs(new ArrayNode()) {}
+  TestNode(std::string name) : ITestNode(), data(new MapNode("Data")), logs(new ArrayNode("Logs")) {
+    this->name = name;
+  }
   virtual std::string getPackage() override { return package; }
   virtual IMapNode* getData() override { return data.get(); }
   virtual IArrayNode* getLogs() override { return logs.get(); }
@@ -556,8 +552,10 @@ class InjectionPointNode : public IInjectionPointNode {
   bool isIter = false;    // internal property to help with parsing.
   bool __isOpen = false;  // internal property to help with paresing
 
-  InjectionPointNode()
-      : IInjectionPointNode(), tests(new ArrayNode()), children(new ArrayNode), logs(new ArrayNode()) {}
+  InjectionPointNode(std::string name)
+      : IInjectionPointNode(), tests(new ArrayNode("Tests")), children(new ArrayNode("Children")), logs(new ArrayNode("Logs")) {
+        this->name = name;
+      }
   virtual std::string getPackage() override { return package; }
   virtual IArrayNode* getTests() override { return tests.get(); }
   virtual ITestNode* getData() override { return internal.get(); }
@@ -586,7 +584,7 @@ class LogNode : public ILogNode {
   std::string package, level, stage, message, templ, comm;
   int identity;
 
-  LogNode() : ILogNode() {}
+  LogNode(std::string name) : ILogNode() {this->name = name;}
   virtual std::string getPackage() override { return package; }
   virtual std::string getLevel() override { return level; }
   virtual std::string getMessage() override { return message; }
@@ -605,7 +603,9 @@ class DataNode : public IDataNode {
   std::string package, templ;
   std::shared_ptr<MapNode> children;
 
-  DataNode() : children(new MapNode()), logs(new ArrayNode()) {}
+  DataNode(std::string name) : children(new MapNode("Data")), logs(new ArrayNode("Logs")) {
+    this->name = name;
+  }
 
   virtual ArrayNode* getLogs() override { return logs.get(); };
   virtual bool getLocal() override { return local; }
@@ -628,7 +628,9 @@ class UnitTestResultNode : public IUnitTestResultNode {
   std::string templ;
   bool result;
 
-  UnitTestResultNode() : IUnitTestResultNode() {}
+  UnitTestResultNode(std::string name) : IUnitTestResultNode() {
+    this->name = name;
+  }
   virtual std::string getDescription() override { return desc; }
   virtual bool getResult() override { return result; }
   virtual std::string getTemplate() override { return templ; }
@@ -639,11 +641,13 @@ class UnitTestResultsNode : public IUnitTestResultsNode {
  public:
   std::shared_ptr<MapNode> m;
 
-  UnitTestResultsNode() : IUnitTestResultsNode(), m(new MapNode()) {}
+  UnitTestResultsNode(std::string name) : IUnitTestResultsNode(), m(new MapNode("Results")) {
+    this->name = name; 
+  }
 
   virtual IUnitTestResultNode* get(std::string key) {
     if (m->contains(key)) {
-      return m->get(key)->getAsUnitTestResultNode();
+      return m->get(key)->getAsArrayNode()->get(0)->getAsUnitTestResultNode();
     }
     throw VnVExceptionBase("Key error");
   };
@@ -668,8 +672,10 @@ class UnitTestNode : public IUnitTestNode {
   std::shared_ptr<UnitTestResultsNode> resultsMap;
   std::map<std::string, std::string> testTemplate;
 
-  UnitTestNode()
-      : IUnitTestNode(), resultsMap(new UnitTestResultsNode()), children(new MapNode()), logs(new ArrayNode()) {}
+  UnitTestNode(std::string name)
+      : IUnitTestNode(), resultsMap(new UnitTestResultsNode("Results Node")), children(new MapNode("Data")), logs(new ArrayNode("Logs")) {
+        this->name = name;
+  }
 
   virtual std::string getPackage() override { return package; }
   virtual IMapNode* getData() override { return children.get(); }
@@ -719,12 +725,12 @@ class RootNode : public IRootNode {
 
   RootNode()
       : spec(new VnVSpec()),
-        children(new ArrayNode()),
-        unitTests(new ArrayNode()),
-        packages(new MapNode()),
-        actions(new MapNode()),
-        infoNode(new InfoNode()),
-        commInfo(new CommInfoNode()) {}
+        children(new ArrayNode("Children")),
+        unitTests(new ArrayNode("Unit Tests")),
+        packages(new MapNode("Packages")),
+        actions(new MapNode("Actions")),
+        infoNode(new InfoNode("Info")),
+        commInfo(new CommInfoNode("Communication Info")) {}
 
   virtual IMapNode* getPackages() override { return packages.get(); }
   virtual IMapNode* getActions() override { return actions.get(); }
@@ -807,10 +813,7 @@ template <typename V> class Iterator {
     return current.second;
   };
 
-  virtual void respond(long id, long jid, const json& response) {
-   throw VnVExceptionBase("Not implemented Error");
-  }
-
+  virtual void respond(long id, long jid, const json& response) { throw VnVExceptionBase("Not implemented Error"); }
 
   virtual ~Iterator(){};
 
@@ -981,7 +984,7 @@ template <typename T> class StreamWriter {
   virtual void newComm(long id, const T& obj, ICommunicator_ptr comm) = 0;
   virtual void write(long id, const T& obj, long jid) = 0;
 
-  virtual bool supportsFetch() {return false; }
+  virtual bool supportsFetch() { return false; }
   virtual bool fetch(long id, long jid, json& obj) { return false; }
 
   virtual nlohmann::json getConfigurationSchema(bool readMode) = 0;
@@ -1064,10 +1067,10 @@ template <typename T> class StreamManager : public OutputEngineManager {
 
   virtual ~StreamManager() {}
 
-  virtual bool fetch(long id, const std::string& message, const json& schema, long timeoutInSeconds, json& response, long jid) {
+  virtual bool fetch(long id, const std::string& message, const json& schema, long timeoutInSeconds, json& response,
+                     long jid) {
     // Write the schema provided and the expiry time to the file.
-    
-    
+
     long expiry =
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() +
         timeoutInSeconds;
@@ -1083,17 +1086,18 @@ template <typename T> class StreamManager : public OutputEngineManager {
 
     if (stream->supportsFetch()) {
       // Loop until timeout
-      while (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count() < expiry) {
-          if ( stream->fetch(id, jid, response) ) {
-            auto js = T::object();
-            js[JSD::node] = JSN::fetchSuccess;
-            write(js);
-            return true;
-          }
-
-          // Go to sleep for a second to avoid spamming the filesystem
-          sleep(1);
+      while (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
+                 .count() < expiry) {
+        if (stream->fetch(id, jid, response)) {
+          auto js = T::object();
+          js[JSD::node] = JSN::fetchSuccess;
+          write(js);
+          return true;
         }
+
+        // Go to sleep for a second to avoid spamming the filesystem
+        sleep(1);
+      }
     }
 
     // We timed out so continue.
@@ -1105,7 +1109,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   }
 
   bool Fetch(std::string message, const json& schema, long timeoutInSeconds, json& response) override {
-    std::string line =  response.dump();
+    std::string line = response.dump();
     long size = -1;
 
     if (comm->Rank() == getRoot()) {
@@ -1117,8 +1121,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
       }
     }
     comm->BroadCast(&size, 1, sizeof(std::size_t), getRoot());
-    
-    
+
     if (size < 0) {
       return false;
     }
@@ -1353,8 +1356,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   void actionStartedCallBack(ICommunicator_ptr comm, std::string package, std::string name,
                              ActionStage::type stage) override {
     setComm(comm, true);
-
-    if (comm->Rank() != getRoot()) {
+    if (comm->Rank() == getRoot()) {
       T j = T::object();
       j[JSD::node] = JSN::actionStarted;
       j[JSD::name] = name;
@@ -1376,7 +1378,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   void unitTestStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string unitTestName) override {
     setComm(comm, true);
 
-    if (comm->Rank() != getRoot()) {
+    if (comm->Rank() == getRoot()) {
       T j = T::object();
       j[JSD::node] = JSN::unitTestStarted;
       j[JSD::name] = unitTestName;
@@ -1429,7 +1431,7 @@ template <class T> class ParserVisitor : public VisitorLock {
  public:
   std::shared_ptr<Iterator<T>> jstream;
   std::shared_ptr<RootNode> rootInternal;
-  long& idCounter;
+  long idCounter = 1;
 
   virtual std::pair<long, std::set<long>> visitCommNode(const T& j) {
     std::pair<long, std::set<long>> res;
@@ -1444,9 +1446,11 @@ template <class T> class ParserVisitor : public VisitorLock {
   }
 
   template <typename A> std::shared_ptr<A> mks_str(std::string noName = "") {
-    std::shared_ptr<A> base_ptr(new A());
+    std::shared_ptr<A> base_ptr(new A(noName));
     base_ptr->name = noName;
     base_ptr->id = idCounter++;
+    std::cout << "ID " << base_ptr->getId() <<  std::endl;
+
     base_ptr->registerChildren(idCounter, rootInternal.get());
     base_ptr->streamId = jstream->streamId();
     rootInternal->add(base_ptr);
@@ -1454,9 +1458,33 @@ template <class T> class ParserVisitor : public VisitorLock {
   }
 
   template <typename A> std::shared_ptr<A> mks(const T& j) {
-    return mks_str<A>(j[JSD::name].template get<std::string>());
+    auto a = mks_str<A>(j[JSD::name].template get<std::string>());
+    if (j.contains(JSD::meta) ) {
+        for (auto it : j[JSD::meta].items()) {
+          a->getMetaData().add(it.key(),it.value().template get<std::string>());
+        }
+    }
+    return a;
   }
 
+  void add_to_map_node(IMapNode* map_, std::shared_ptr<DataBase> value, std::string key) {
+    MapNode* map = dynamic_cast<MapNode*>(map_);
+    if (map->contains(key)) {
+      map->value[key]->add(value);
+    } else {
+      auto a = mks_str<ArrayNode>(key);
+      a->add(value);
+      map->value[key] = a;
+    }  
+    
+  }
+
+
+  void add_to_map_node(std::shared_ptr<MapNode> map, std::shared_ptr<DataBase> value, std::string key) {
+      add_to_map_node(map.get(),value,key);
+  }
+
+  
   template <typename A, typename V> std::shared_ptr<A> visitShapeNode(const T& j) {
     std::shared_ptr<A> n = mks<A>(j);
     std::size_t shapeSize = j[JSD::shape].size();
@@ -1578,11 +1606,13 @@ template <class T> class ParserVisitor : public VisitorLock {
     std::string name = j[JSD::name].template get<std::string>();
     std::string package = j[JSD::package].template get<std::string>();
     std::string pn = package + ":" + name;
+    
     if (!rootInternal->actions->contains(pn)) {
       auto n = mks<TestNode>(j);
+      n->package = package;
       n->open(true);
       n->templ = rootInternal->spec->action(n->package, n->name);
-      rootInternal->actions->add(pn, n);
+      add_to_map_node(rootInternal->actions, n, pn);
       return n;
     }
     return std::dynamic_pointer_cast<TestNode>(rootInternal->actions->get(pn)->getShared(0));
@@ -1635,7 +1665,8 @@ template <class T> class ParserVisitor : public VisitorLock {
       auto r = mks<UnitTestResultNode>(it.value());
       r->desc = it.value()[JSD::description].template get<std::string>();
       r->result = it.value()[JSD::result].template get<bool>();
-      n->resultsMap->m->add(r->name, r);
+      
+      add_to_map_node(n->resultsMap->m, r, r->name);
     }
     n->open(false);
     return n;
@@ -1702,17 +1733,17 @@ template <class T> class ParserVisitor : public VisitorLock {
     std::string schema = j["schema"].dump();
     long expiry = j["expires"].template get<long>();
     long id = j["id"].template get<long>();
-    long jid = j["jid"].template get<long>();    
+    long jid = j["jid"].template get<long>();
     std::string message = j["message"].template get<std::string>();
-    node->setFetchRequest(schema,id, jid, expiry, message);
+    node->setFetchRequest(schema, id, jid, expiry, message);
     return node;
   }
 
-  virtual std::shared_ptr<TestNode> visitFetchFailedNode(const T&j, std::shared_ptr<TestNode> node, long elementId) {
+  virtual std::shared_ptr<TestNode> visitFetchFailedNode(const T& j, std::shared_ptr<TestNode> node, long elementId) {
     node->resetFetchRequest();
     return node;
   }
-  virtual std::shared_ptr<TestNode> visitFetchSuccessNode(const T&j, std::shared_ptr<TestNode> node, long elementId) {
+  virtual std::shared_ptr<TestNode> visitFetchSuccessNode(const T& j, std::shared_ptr<TestNode> node, long elementId) {
     node->resetFetchRequest();
     return node;
   }
@@ -1740,7 +1771,7 @@ template <class T> class ParserVisitor : public VisitorLock {
     return n;
   }
 
-  ParserVisitor(std::shared_ptr<Iterator<T>> jstream_, long& idStart, std::shared_ptr<RootNode> rootNode)
+  ParserVisitor(std::shared_ptr<Iterator<T>> jstream_, long idStart, std::shared_ptr<RootNode> rootNode)
       : jstream(jstream_), idCounter(idStart), rootInternal(rootNode) {
     rootInternal->visitorLocking = this;
   }
@@ -1779,6 +1810,7 @@ template <class T> class ParserVisitor : public VisitorLock {
   }
 
   void childNodeDispatcher(std::shared_ptr<DataBase> child, long elementId, long duration) {
+    
     std::shared_ptr<DataBase> parent = jstream->top();
     if (parent == nullptr) {
       parent = rootInternal;
@@ -1796,7 +1828,7 @@ template <class T> class ParserVisitor : public VisitorLock {
       if (ctype == DataBase::DataType::Log) {
         p1->getLogs()->add(child);
       } else {
-        p1->getData()->add(child->getName(), child);
+        add_to_map_node(p1->getData(), child, child->getName());
       }
 
     } else if (ptype == DataBase::DataType::UnitTest) {
@@ -1804,7 +1836,7 @@ template <class T> class ParserVisitor : public VisitorLock {
       if (ctype == DataBase::DataType::Log) {
         p->getLogs()->add(child);
       } else {
-        p->getData()->add(child->getName(), child);
+        add_to_map_node(p->getData(), child, child->getName());
       }
 
     } else if (ptype == DataBase::DataType::Data) {
@@ -1812,11 +1844,12 @@ template <class T> class ParserVisitor : public VisitorLock {
       if (ctype == DataBase::DataType::Log) {
         p->getLogs()->add(child);
       } else {
-        p->getData()->add(child->getName(), child);
+        add_to_map_node(p->getData(), child, child->getName());
       }
 
     } else if (ptype == DataBase::DataType::InjectionPoint &&
                std::dynamic_pointer_cast<InjectionPointNode>(parent)->__isOpen) {
+      
       auto p = std::dynamic_pointer_cast<InjectionPointNode>(parent);
 
       if (ctype == DataBase::DataType::Test) {
@@ -1834,6 +1867,7 @@ template <class T> class ParserVisitor : public VisitorLock {
       }
 
     } else if (ctype == DataBase::DataType::InjectionPoint) {
+
     } else if (ctype == DataBase::DataType::Log) {
       rootInternal->addIDN(child->getId(), child->getStreamId(), node_type::LOG, elementId, duration, "Log");
     } else {
@@ -1987,7 +2021,8 @@ template <class T> class ParserVisitor : public VisitorLock {
       auto u = visitActionNodeEnded(j, jstream->pop());
     } else if (node == JSN::packageOptionsStarted) {
       auto po = visitPackageNodeStarted(j);
-      rootInternal->packages->add(po->package, po);
+      add_to_map_node(rootInternal->packages, po, po->package);
+     
       jstream->push(po);
     } else if (node == JSN::packageOptionsFinished) {
       auto u = visitPackageNodeEnded(j, jstream->pop());
@@ -2076,16 +2111,18 @@ template <typename T, typename V> class RootNodeWithThread : public RootNode {
 
   void run() { worker = std::thread(&ParserVisitor<json>::process, visitor.get()); }
 
-
-  virtual void respond(long id, long jid, const std::string& response) override { 
-     stream->respond(id, jid, json::parse(response));
+  virtual void respond(long id, long jid, const std::string& response) override {
+    stream->respond(id, jid, json::parse(response));
   }
 
-  static std::shared_ptr<IRootNode> parse(long& id, std::shared_ptr<T> stream) {
+  static std::shared_ptr<IRootNode> parse(long& startId_Depreciated, std::shared_ptr<T> stream) {
+    
+    long id = 0;
     std::shared_ptr<RootNodeWithThread> root = std::make_shared<RootNodeWithThread>();
     root->stream = stream;
-    root->id = id++;
-    root->name = "ROOT";
+    root->id = id;
+    root->name = "Root Node";
+    root->registerChildren(id,root.get());
     root->visitor = std::make_shared<ParserVisitor<V>>(stream, id, root);
     root->open(true);
     root->run();

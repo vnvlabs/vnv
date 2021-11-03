@@ -1,0 +1,756 @@
+<div style="padding:15px;">
+    <div style="display:flex; align-items:center;">
+        <h1 style="flex:1">PSIP Application Dashboard</h1>
+        <button type="button" class="btn  btn-secondary" style="margin-right:10px;" onclick="reset_state()">Reset
+        </button>
+        <button type="button" class="btn btn-primary" onclick="save_state();">Save</button>
+    </div>
+
+    <div>
+        <p>Software engineering is a systematic approach to the design, development, and maintenance of a software
+            system. Teams seldom have the time to stop development and focus solely on improving productivity or
+            sustainability. However, teams can incorporate improvements on the way to developing new science
+            capabilities.</p>
+        <p>The tools on this site will help you:</p>
+        <ul>
+            <li>Assess your current practices</li>
+            <li>Create progress tracking cards</li>
+            <li>Integrate tracking cards with your workflow</li>
+        </ul>
+
+    </div>
+
+    <div class="" style="border:1px solid #80808038; padding:14px;">
+
+        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active " id="psip-sa-tab" data-toggle="pill" href="#psip-sa" role="tab"
+                   aria-controls="psip-sa" aria-selected="true">Self Assessment </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link " id="psip-ptc-tab" data-toggle="pill" href="#psip-ptc" role="tab"
+                   aria-controls="psip-ptc" aria-selected="true">Progress Tracking Cards</a>
+            </li>
+        </ul>
+
+        <div class="tab-content fcolumn fchild " id="psip-tabContent" >
+
+            <div class="tab-pane fade show active finlinecolumn fchild" id="psip-sa" role="tabpanel"
+                 aria-labelledby="pills-sa-tab">
+                <h2>Self Assessment</h2>
+                <p>The self-assessment introduces software engineering practices that increase in maturity. Check the
+                    practices that your project already uses to rate your project.</p>
+
+                <div style="display:flex; justify-content: padding:20px;">
+
+                    <div class="card"
+                         style="display:flex; flex-direction: column; margin:10px; padding:20px;width:100%;">
+                        <h2>Overall Performance:</h2>
+                        <p id="psip_description">
+                            The assessment section is used to estimate the degree to which software engineering
+                            practices are currently being used by your project.
+                            The diagram below shows how your project is progressing in all practice areas.
+                        </p>
+                        <div class="alert alert-info mb-0" role="alert">
+                            <p class="mb-0"><i class="feather icon-alert-circle"></i> We do not save your data in any
+                                way. If you refresh or close your browser, your assessment will be lost.
+                                We suggest you regularly use the save button to download your current assessment
+                                configuration</p>
+                        </div>
+                        <div style="flex:1; display:flex; align-items:center;">
+                            <div id="radar-overall"></div>
+                        </div>
+                    </div>
+                    <div class="card"
+                         style="display:flex; flex-direction: column; margin:10px; padding:20px;width:100%;">
+                        <div style="display:flex">
+                            <i class="feather icon-chevron-left" style="padding:10px; cursor:pointer;"
+                               onclick="decrease_state()"></i>
+                            <h2 style="flex:1; text-align:center;" id="selection_title"></h2>
+                            <i class="feather icon-chevron-right" style="padding:10px; cursor:pointer;"
+                               onclick="increase_state()"></i>
+                        </div>
+                        <p id="selection_description"></p>
+                        <div style="flex:1; display:flex; align-items:center;">
+                            <div id="radar-selected" style="flex:1;"></div>
+                        </div>
+                    </div>
+                    <div class="card" id="selected-selected" style="padding:20px; margin:10px; width:100%;">
+                        <div style="display:flex">
+                            <i class="feather icon-chevron-left" style="padding:10px; cursor:pointer;"
+                               onclick="decrease_process_state()"></i>
+                            <h2 style="flex:1; text-align:center;" id="process_title"></h2>
+                            <i class="feather icon-chevron-right" style="padding:10px; cursor:pointer;"
+                               onclick="increase_process_state()"></i>
+                        </div>
+                        <p id="process_description"></p>
+
+                        <div class="container" style="padding:15px">
+                            <div class="process" id="process_none" style="display:flex; margin:10px;"
+                                 onclick="change_state(0)">
+                                <div class="process_button none">
+                                    1
+                                </div>
+                                <div class="process_desc" id="none_desc" style="flex:1"></div>
+                            </div>
+                            <div class="process row" id="process_basic" style="display:flex; margin:10px;"
+                                 onclick="change_state(1)">
+                                <div class="process_button basic">
+                                    2
+                                </div>
+                                <div class="col-8 process_desc" id="basic_desc" style="flex:1"></div>
+                            </div>
+                            <div class="process row " id="process_inter" style="display:flex; margin:10px;"
+                                 onclick="change_state(2)">
+                                <div class="process_button inter">
+                                    3
+                                </div>
+                                <div class="process_desc" id="inter_desc" style="flex:1"></div>
+                            </div>
+                            <div class="process" id="process_adv" class="card_hover" style="display:flex; margin:10px;"
+                                 onclick="change_state(3)">
+                                <div class="process_button adv ">
+                                    4
+                                </div>
+                                <div class="process_desc" id="adv_desc" style="flex:1"></div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade finlinecolumn fchild" id="psip-ptc" role="tabpanel"
+                 aria-labelledby="pills-sa-tab">
+                <div style="display:flex; ">
+                    <h2 style="flex:1">Progress Tracking Cards</h2>
+
+                </div>
+
+                <p>Project Tracking Cards let your team track their process improvement journey</p>
+                <p>Click on the bars to view the details about each tracking card. </p>
+
+                <div class="container" style="display:flex; width:100%; max-width:100%">
+                    <div class="row" style="width:100%; justify-content:space-around; display:flex;">
+                        <div class="card col-6" style="" id="gchart"></div>
+                        <div class="col-1" style=""></div>
+                        <div class="col-5" style="display:flex; justify-content:center;" id="gcard">
+
+                            <div class="card card_hover" style="width:600px;">
+                                <div class="card-body" style="height:100%">
+                                    <div style="display:flex; "><h5 class="gcard-title" style="flex:1"></h5>
+                                        <i class="feather icon-plus" style="padding:10px; cursor:pointer;"
+                                           onclick="new_selected()"></i>
+                                        <i class="feather icon-edit" style="padding:10px; cursor:pointer;"
+                                           onclick="edit_selected()"></i>
+                                        <i class="feather icon-x" style="padding:10px; cursor:pointer;"
+                                           onclick="delete_selected()"></i>
+
+                                    </div>
+                                    <h6 class="gcard-subtitle mb-2 text-muted">Card subtitle</h6>
+                                    <div id="gcard-scores" style="margin-top:20px; margin-left:10px; ">
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+<div id="edit-ptc-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-label"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Progress Tracking Card</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="ptc-modal-body">
+                <form>
+                    <div class="form-group">
+                        <label>Process</label>
+                        <input id="ptc-process" type="text" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="ptc-target">Example textarea</label>
+                        <textarea class="form-control" id="ptc-target" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="ptc-goal-0">Goal 0</label>
+                        <input id="ptc-goal-0" type="text" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="ptc-goal-1">Goal 1</label>
+                        <input id="ptc-goal-1" type="text" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="ptc-goal-2">Goal 2</label>
+                        <input id="ptc-goal-2" type="text" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="ptc-goal-3">Goal 3</label>
+                        <input id="ptc-goal-3" type="text" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="ptc-goal-4">Goal 4</label>
+                        <input id="ptc-goal-4" type="text" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="ptc-goal-5">Goal 5</label>
+                        <input id="ptc-goal-5" type="text" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="save-ptc" class="btn btn-primary event-btn m-2" type="button" onclick="ptc_modal_save()">
+                    <span class="btn-text" style="">Submit</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+function ptc_modal_show() {
+    data = main_data["ptc"][ptc_ind]
+    $('#ptc-process').val(data["process"] || "The process" )
+    $('#ptc-target').val(data["target"] || "A new target")
+    $('#ptc-goal-0').val(data["scores"][0] || "Goal number 0 -- your current state")
+    $('#ptc-goal-1').val(data["scores"][1] || "")
+    $('#ptc-goal-2').val(data["scores"][2] || "")
+    $('#ptc-goal-3').val(data["scores"][3] || "")
+    $('#ptc-goal-4').val(data["scores"][4] || "")
+    $('#ptc-goal-5').val(data["scores"][5] || "")
+    $('#edit-ptc-modal').modal('show');
+}
+
+function ptc_modal_save() {
+    data = main_data["ptc"][ptc_ind]
+    data["process"] = $('#ptc-process').val();
+    data["target"] = $('#ptc-target').val();
+
+    goals = []
+
+    for (var i = 0; i < 6; i++) {
+       var g0 = $('#ptc-goal-' + i).val();
+       if ( g0.length > 0 ) {
+          goals.push(g0)
+       } else {
+          break;
+       }
+    }
+    data["scores"] = goals;
+    if (data["score"] > goals.length - 1)
+        data["score"] = goals.length - 1
+
+    gchart.updateOptions(goals_options())
+    change_tracking_card(ptc_ind)
+    $('#edit-ptc-modal').modal('hide');
+
+}
+
+var initial_data = JSON.parse('{{initial_data |safe }}')
+
+
+
+
+var schema_cats = [
+  ["Development", "Improving scientific software development—a process of writing, maintaining, and extending code—in order to increase software productivity, quality, and sustainability, as key aspects of advancing overall scientific productivity."],
+  ["Planning", "Improving strategies for planning in order to increase software productivity, quality, and sustainability, while underscoring the unique characteristics of scientific software, including that requirements often change during discovery."],
+  ["Performance","Improving strategies for writing scientific software that is efficient, scalable, and portable—from laptops to emerging extreme-scale architectures—while preserving other code quality metrics such as correctness and usability."],
+  ["Reliability","Improving methods of testing and verification to ensure that software is robust and produces reliable results, thereby helping to ensure the integrity of research and enable collaboration across teams."],
+  ["Collaboration","Improving ways to facilitate work across teams and to promote partnerships and community contributions via software. We consider projects of all sizes, from small teams through multi-institutional aggregate teams."]
+]
+
+var schema_data_selected_cats = [
+ [
+    ["Revision Control" , "Approaches for managing changes to files (source code, documentation, data) as well as maintaining their history and attribution, especially across multiple contributors and branches of development (also known as version control)."],
+    ["Code Reviews", "The act of consciously and systematically convening with one's fellow programmers to check each other's code for mistakes, and has been repeatedly shown to accelerate and streamline the process of software development like few other practices can."],
+    ["Issue Tracking" ,"The process of capturing, reporting, tracking, and managing information about issues related to software. Issues include bugs, feature requests, missing documentation, and other problems and/or requirements."],
+    ["Deployment", "Approaches for versioning, packaging, releasing, and deploying software, documentation, or data for users to then obtain, install, and use."],
+    ["Documentation","Creating, maintaining, and hosting quality documentation (written text or illustration) about the use, operation, or design of software."]
+ ],
+ [
+   [ "Development Process", "The software development life cycle is the process of dividing software development work into distinct phases to improve design, product management, and project management."],
+   [ "Contribution Management", "Tracking and managing contributions to software."],
+   [ "Requirements Analysis", "Statements about what functions a software product should perform, including any constraints under which it should operate but avoiding as much as possible implementation details."],
+   [ "Software Design", "Major considerations in designing software to meet its scientific objectives and sustainability goals. Software design usually follows from requirements specification, and involves problem solving and planning a software solution."],
+  [  "Onboarding", "The process of integrating a new employee into an organization or a new team member into a team."],
+   [ "Offboarding", "The process of transferring employee knowledge to the broader team or organization."]
+ ],
+ [
+  [  "Testing","Determining the speed, scalability, reliability, and stability of an application under a variety of workloads."],
+   [ "Regression Testing","Undertaking testing that exercises performance capabilities combined with plans for how to make practical use of that performance data"],
+    ["Portability" ,"Software exhibiting similar performance across multiple platforms, with the time to solution reflecting efficient utilization of computational resources on each platform."]
+ ],
+ [
+    ["Testing","Software exhibiting similar performance across multiple platforms, with the time to solution reflecting efficient utilization of computational resources on each platform."],
+   [ "Reproducability","Any effort whose goal is to increase trustworthiness and reuse of computational capabilities and results and to ensure correctness."]
+ ],
+ [
+   [ "Virtual Tools","The process of documenting and sharing team products and artifacts with virtual tools (e.g. Jira, Google Docs) to communicate goals, objectives."],
+   ["Telecommuting","The use of video and audio conferencing technology for co-located, hybrid (co-located + remote), or distributed teams."]
+ ]
+]
+
+var SCORES = [
+[
+  ["Not Currently Being Used", "Code is checked in to a revision control system, such as Git","Developers make use of pull requests and multiple branches, etc.","Has a documented workflow for merging code for quality assurance and releases"],
+  ["Not Currently Being Used","Ad-hoc code reviews","Regular code reviews (e.g., weekly meetings)","Documented process for code reviews to be automated in workflow (e.g., via pull requests)"],
+  ["Not Currently Being Used","Ad-hoc issue tracking","Dedicated issue tracking system consistently being used","Documented process for how issue tracking is done (e.g. Kanban board, assigned responsibilities)"],
+  ["Not Currently Being Used","Manual deployment (e.g., using a script or checklist)","Deployment as part of development workflow with manual intervention","Continuous deployment (or deployment combined with continuous integration)"],
+  ["Not Currently Being Used","Informally maintained or ad-hoc text files","Code and documentation are cross-referenced and updated when committed to repository","Integrated with the software release workflow"]
+],
+[
+  ["Not Currently Being Used", "Has development process but it is based on ad-hoc rules","Employs a basic iterative development process","Follows a responsive, flexible development methodology (e.g. Agile)"],
+  ["Not Currently Being Used","Guidelines for accepting contributions","Clearly defined standards for coding and documentation, including community standards","Provenance and license checking for contributions"],
+  ["Not Currently Being Used","Development guidelines include requirements gathering","Formal requirements gathering is undertaken as part of the project","Formally tracked and documented through a requirements management system"],
+  ["Not Currently Being Used","Development guidelines include design in the process","A modeling language is employed for key aspects of the project","Visual modeling using a graphical representation to capture design"],
+  ["Not Currently Being Used","Consistent onboarding process is followed","Minimally documented onboarding process","Fully documented onboarding process is used for all personnel changes"],
+  ["Not Currently Being Used","Consistent offboarding process is followed","Minimally documented offboarding process","Fully documented offboarding process is used for all personnel changes"]
+],
+[
+  ["Not Currently Being Used", "Conducts performance tests","Automated performance tests are run regularly","Uses performance profiling tools to guide performance-related improvements"],
+  ["Not Currently Being Used","A testable primary use case and set of measurements are established","The performance history of the tests are tracked over time","Performance tracking is run and reviewed at regular intervals on relevant platforms"],
+  ["Not Currently Being Used","Utilize a standard parallel programming model (e.g. MPI)","Utilize a programming model designed for portability (e.g. OpenACC, OpenMP)","Re-writing the application to utilize an advanced portability library (e.g. Kokkos)"],
+],
+[
+  ["Not Currently Being Used", "Comparison used to create system-level no-change tests","Unit testing for refactored and new code","Continuous integration"],
+  ["Not Currently Being Used","Publication of code","Inclusion of data when code is published","The entire provenance of the application and its execution environment is published"],
+],
+[
+  ["Not Currently Being Used", "Used occasionally","Used on a regualar basis in order to improve processes","Used strategically to facilitate asynchronous and synchronous communication in order to build trust through transparency"],
+  ["Not Currently Being Used","Audio conferencing and/or video conferencing tools for audio only or occasional video use","Use of video conferencing with defined inclusivity guidelines","Team awareness of inclusive practices in the use of video conferencing combined with utlizing advanced communication features (e.g. voting, sketch pads)"],
+]
+]
+var process_state = ["", "None", "Basic" , "Intermediate", "Advanced"]
+
+
+var schema_data_selection = 0
+var schema_process_selection = 0
+var chart_selected;
+var chart_overall;
+var gchart;
+var main_data
+
+function schema_categories(){
+    res = []
+    for (var i = 0; i <  schema_cats.length; i++ ) {
+        res.push(schema_cats[i][0])
+    }
+    return res;
+}
+
+
+function selected_categories(){
+    res = []
+    r = schema_data_selected_cats[schema_data_selection]
+    for (var i = 0; i <  r.length; i++ ) {
+        res.push(r[i][0])
+    }
+    return res;
+}
+
+function delete_selected() {
+    if ( main_data["ptc"].length > 1 ) {
+        main_data["ptc"].splice(ptc_ind, 1);
+        gchart.updateOptions(goals_options())
+        change_tracking_card(0)
+    } else {
+        alert("You need at least one PTC for now");
+    }
+}
+
+function selected_data(){
+    ret = []
+    r = main_data["sa"][schema_data_selection]
+    for (var i = 0; i <  r.length; i++ ) {
+        ret.push(r[i] + 1 )
+    }
+    return ret;
+}
+
+
+// Make a copy
+function reset_data() {
+    main_data = JSON.parse(JSON.stringify(initial_data))
+}
+reset_data();
+
+
+function schema_data() {
+  var res = []
+  sadata = main_data["sa"]
+  for(var i =0; i < sadata.length; i++) {
+     count = sadata[i].reduce((a,b) => a+b, 0) + sadata[i].length
+     tot = 4*sadata[i].length
+     res.push( 100 * count  / parseFloat(tot) )
+  }
+  return res
+}
+
+function render_all() {
+  chart_overall.updateOptions(options2())
+  chart_selected.updateOptions(options1())
+  change_process_selection(schema_process_selection)
+
+}
+
+function edit_selected() {
+    ptc_modal_show();
+}
+
+function new_selected() {
+    main_data["ptc"].push({
+        "process" : "New Process",
+        "target" : "Describe the goal of this tracking card",
+        "score" : 0,
+        "scores" : [
+               "Stage 0 Goal is your current state",
+               "Stage 1 Goal is your next state",
+               "Stage 2 Goal is your next next state",
+               "Stage 3 Goal is your acheivment state"
+        ]
+    });
+    gchart.updateOptions(goals_options())
+    change_tracking_card(main_data["ptc"].length - 1)
+    edit_selected();
+}
+
+
+function reset_state() {
+   reset_data()
+   render_all();
+   gchart.updateOptions(goals_options())
+   change_tracking_card(0)
+}
+
+function save_state() {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(main_data)));
+  element.setAttribute('download', "psip.json");
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
+function change_state(val) {
+        main_data["sa"][schema_data_selection][schema_process_selection] = val;
+        render_all();
+}
+
+
+function change_selection(newselection, first) {
+    schema_data_selection = newselection
+    if (!first) {
+      chart_selected.updateOptions(options1());
+    } else {
+      chart_selected.render();
+    }
+    $('#selection_title').text(schema_cats[schema_data_selection][0]);
+    $('#selection_description').text(schema_cats[schema_data_selection][1]);
+    change_process_selection(0)
+}
+
+function increase_state() {
+    var val;
+    if ( schema_data_selection === schema_cats.length - 1 ) {
+        val = 0;
+    } else {
+        val = schema_data_selection + 1;
+    }
+    change_selection(val, false);
+}
+
+
+function decrease_state() {
+    var val;
+    if ( schema_data_selection === 0 ) {
+        val = schema_cats.length - 1;
+    } else {
+        val = schema_data_selection - 1;
+    }
+    change_selection(val, false);
+}
+
+
+
+function increase_process_state() {
+    var val;
+    if ( schema_process_selection ===  schema_data_selected_cats[schema_data_selection].length - 1 ) {
+        val = 0;
+    } else {
+        val = schema_process_selection + 1;
+    }
+    change_process_selection(val);
+}
+
+
+function decrease_process_state() {
+    var val;
+    if ( schema_process_selection === 0 ) {
+        val = schema_data_selected_cats[schema_data_selection].length - 1;
+    } else {
+        val = schema_process_selection - 1;
+    }
+    change_process_selection(val);
+}
+
+
+function change_process_selection(sel) {
+       schema_process_selection = sel
+
+       $('.process').removeClass('selected')
+
+       $('#process_title').text(schema_data_selected_cats[schema_data_selection][schema_process_selection][0])
+       $('#process_description').text(schema_data_selected_cats[schema_data_selection][schema_process_selection][1])
+       $('#none_desc').text(SCORES[schema_data_selection][schema_process_selection][0])
+       $('#basic_desc').text(SCORES[schema_data_selection][schema_process_selection][1])
+       $('#inter_desc').text(SCORES[schema_data_selection][schema_process_selection][2])
+       $('#adv_desc').text(SCORES[schema_data_selection][schema_process_selection][3])
+
+       select = main_data["sa"][schema_data_selection][schema_process_selection]
+       if (select == 0) $('#process_none').addClass('selected')
+       else if (select == 1) $('#process_basic').addClass('selected')
+       else if (select == 2) $('#process_inter').addClass('selected')
+       else if (select == 3) $('#process_adv').addClass('selected')
+}
+
+
+function change_ptc(val) {
+    ptc_data["score"] = val;
+    gchart.updateOptions(goals_options())
+    change_tracking_card(ptc_ind)
+}
+
+var ptc_data;
+var ptc_ind
+
+function change_tracking_card(ind) {
+    ptc_ind = ind
+    ptc_data = main_data["ptc"][ind]
+    $('.gcard-title').text(ptc_data["process"])
+    $('.gcard-subtitle').text(ptc_data["target"])
+
+    var list = $('#gcard-scores')
+    list.empty();
+
+    for (var i = 0; i < ptc_data["scores"].length; i++) {
+        // Create the list item:
+        var item = document.createElement('li');
+
+
+        if ( i <= ptc_data["score"] ) {
+          item.classList.add("tick");
+
+        } else {
+          item.classList.add("cross");
+        }
+        var x = i;
+        item.setAttribute("onclick","change_ptc(" + String(i) + ");");
+        item.setAttribute("style","cursor:pointer;" );
+
+        item.appendChild(document.createTextNode(ptc_data["scores"][i]))
+        list.append(item);
+    }
+
+}
+
+function process_data(data) {
+  var ddata = []
+  for (var i = 0; i < data.length; i++) {
+    ddata.push({
+        x : data[i]["process"],
+        y : data[i]["score"] + 1,
+        goals : [
+        {
+            Name : "Goal",
+            value : data[i]["scores"].length ,
+            strokeWidth: 5,
+            strokeColor: '#775DD0'
+        }
+        ]
+    })
+  }
+  return ddata
+}
+
+ function options1() {
+    return {
+          series: [{
+          name: 'Overall Performance',
+          data:  selected_data()
+        }],
+          chart: {
+          height: "100%",
+          toolbar : { show : false },
+          type: 'radar',
+          events: {
+             markerClick: function(event, chartContext, { seriesIndex, dataPointIndex, config}) {
+                console.log("CCC")
+                change_process_selection(dataPointIndex);
+             }
+          }
+        },
+        xaxis: {
+          categories: selected_categories(),
+          min: 0,
+          max: 1
+        },
+         plotOptions: {
+          radar: {
+            size: 140,
+            polygons: {
+              strokeColors: '#676774',
+              fill: {
+                colors: ['#f8f8f8', '#fff']
+              }
+            }
+          }
+        },
+        yaxis : {
+          min: 0,
+          max: 4,
+          tickAmount : 4,
+          labels: {
+            formatter: function(val, i) {
+              return process_state[val]
+            }
+          }
+        },
+        "markers" : {
+           size : 10,
+        },
+    };
+ }
+
+function options2() {
+  return {
+          series: [{
+          name: 'Overall Performance',
+          data:  schema_data()
+        }],
+          chart: {
+          height: "100%",
+          toolbar : { show : false },
+          type: 'radar',
+          events: {
+             markerClick: function(event, chartContext, { seriesIndex, dataPointIndex, config}) {
+                change_selection(dataPointIndex, false);
+             }
+          }
+        },
+        yaxis: {
+            min : 0,
+            max : 100,
+            tickAmount: 5
+        },
+        xaxis: {
+          categories: schema_categories(),
+          min: 0,
+          max: 100
+        },
+        "markers" : {
+           size : 10        },
+         plotOptions: {
+          radar: {
+            size: 140,
+            polygons: {
+              strokeColors: '#676774',
+              fill: {
+                colors: ['#f8f8f8', '#fff']
+              }
+            }
+          }
+        },
+        tooltip: {
+             shared: false,
+             intersect: true
+        }
+    };
+}
+
+
+function goals_options() {
+  return {
+       series: [{
+            name: 'Current',
+            data: process_data(main_data["ptc"])
+       }],
+       chart: {
+          height: 350,
+          type: 'bar',
+          toolbar : { show : false },
+          events: {
+             dataPointSelection: function(event, chartContext, { seriesIndex, dataPointIndex, config}) {
+                change_tracking_card(dataPointIndex);
+             }
+          }
+       },
+       plotOptions: {
+          bar: {
+            horizontal: true,
+          }
+       },
+       colors: ['#61aae1'],
+       dataLabels: {
+          formatter: function(val, opt) {
+            const goals =
+              opt.w.config.series[opt.seriesIndex].data[opt.dataPointIndex]
+                .goals
+
+            if (goals && goals.length) {
+              return `${val} / ${goals[0].value }`
+            }
+            return val
+          }
+       },
+       legend: {
+          show: true,
+          showForSingleSeries: true,
+          customLegendItems: ['Current', 'Goal'],
+          markers: {
+            fillColors: ['#61aae1', '#775DD0']
+          }
+       }
+ };
+}
+
+$(document).ready(function(){
+
+
+    chart_overall = new ApexCharts(document.getElementById("radar-overall"), options2());
+    chart_selected = new ApexCharts(document.getElementById("radar-selected"), options1());
+    gchart = new ApexCharts(document.querySelector("#gchart"), goals_options());
+
+    chart_overall.render()
+    change_selection(0, true);
+
+
+
+
+ gchart.render();
+ change_tracking_card(0)
+});
+
+
+
+
+
+</script>
+

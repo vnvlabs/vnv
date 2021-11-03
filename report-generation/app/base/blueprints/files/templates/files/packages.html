@@ -1,19 +1,20 @@
-<div class="fchild" style="display:flex;">
-    <div class="card fchild col-sm-2" style="padding-top:10px; ">
+<div class="fchild "  style="padding:15px;    border: 1px solid #80808038; ">
 
+    <ul class="nav nav-pills mb-3" id="pills-packages-tab" role="tablist">
         {% for package in file.getPackages() %}
-        <div class="card {%if loop.index0 == 0 %} prov-selected {%endif%}" id={{package.name}}
-             onclick="switch_package({{file.id_}},'{{package.name}}','#package-content')"
-             style="display:flex; align-items:center; margin-bottom:10px; justify-content:center;padding:10px;">
-            <h6 style="margin:0">{{package.name}}</h6>
+            <li class="nav-item">
+                <a class="nav-link {% if loop.index == 1 %} active {%endif%} "  id="pills-package{{package.name}}-tab" data-toggle="pill" href="#pills-package-{{package.name}}" role="tab"
+                   aria-controls="pills-package-{{package.name}}" aria-selected="true">{{package.name}}</a>
+            </li>
+        {%endfor%}
+    </ul>
+
+    <div class="tab-content fcolumn fchild " id="pills-package-tabContent">
+        {%for package in file.getPackages() %}
+        <div class="tab-pane fade {% if loop.index == 1 %} show active {%endif%} finlinecolumn fchild" id="pills-package-{{package.name}}" role="tabpanel" aria-labelledby="pills-package-{{package.name}}-tab">
+             {{ file.render_package(package.name) | safe}}
         </div>
-
-        {% endfor %}
-
-    </div>
-
-    <div class="col-sm-10 card" id="package-content" style=" flex:1; margin-left:10px; padding:20px">
-        {{ file.getFirstPackage() | safe }}
+        {%endfor%}
     </div>
 
 </div>

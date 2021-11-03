@@ -21,8 +21,8 @@ class VnVDashBoardNode(docutils.nodes.General, docutils.nodes.Element):
     def depart_node(visitor, node):
         visitor.body.append(node["end"])
 
-    NODE_VISITORS = {
-        'html': (visit_node, depart_node)
+VnVDashBoardNode.NODE_VISITORS = {
+        'html': (VnVDashBoardNode.visit_node, VnVDashBoardNode.depart_node)
     }
 
 
@@ -33,11 +33,11 @@ class VnVDashBoardDirective(SphinxDirective):
     file_argument_whitespace = True
     has_content = True
 
-    options_spec = {
+    option_spec = {
         "height": optional_int,
         "width": optional_int,
-        "base-width" : optional_int,
-        "base-height" : optional_int,
+        "base-width" : int,
+        "base-height" : int,
         "margin-h" : optional_int,
         "margin-v" : optional_int
     }
@@ -47,28 +47,16 @@ class VnVDashBoardDirective(SphinxDirective):
 
     def initialize(self, id):
         return f'''
-        <script>
-            $(document).ready(function() {{
-                
-                $("#{id} ul").gridster({{
-                     widget_margins: [{self.o("margin-h",10)}, {self.o("margin-v",10)}],
-                     widget_base_dimensions: [{self.o("base-width",140)},{self.o("base-height",140)}]
-                 }});
-            }});
-        </script>
+    
         '''
 
     def start(self, id_):
         return f'''
-            <div id="{id_}" 
-                 class="gridster", 
-                 style="width:{self.o("width","unset")}; height:{self.o("height","unset")};"
-            > <ul>
+            <div id="{id_}" class="grid-stack" style="width:100%"> 
         '''
 
     def end(self, id_):
         return f'''
-            </ul>
             </div>
             {self.initialize(id_)}
         '''
@@ -87,7 +75,7 @@ class VnVDashBoardWidgetDirective(SphinxDirective):
     file_argument_whitespace = True
     has_content = True
 
-    options_spec = {
+    option_spec = {
         "row": optional_int,
         "col": optional_int,
         "size-x": optional_int,
@@ -99,15 +87,18 @@ class VnVDashBoardWidgetDirective(SphinxDirective):
 
     def start(self, id_):
         return f'''
-           <li data-row="{self.o("row",1)}" 
-               data-col="{self.o("col",1)}" 
-               data-sizex="{self.o("size-x",1)}"
-               data-sizey="{self.o("size-y",1)}"
+           <div 
+                class="grid-stack-item"
+                gs-w="{self.o("size-x",1)}"
+                gs-x="{self.o("col",1)}"
+                gs-y="{self.o("row",1)}"
+                gs-h="{self.o("size-y",1)}"
            >
+           <div class="grid-stack-item-content card" style="padding:15px">
         '''
 
     def end(self, id_):
-        return f'''</li>'''
+        return f'''</div></div>'''
 
     def run(self):
         uid = str(uuid.uuid4().hex)

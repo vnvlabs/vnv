@@ -1,17 +1,16 @@
 {% with loopList = [["inputfiles","Input Files"],["outputs","Outputs"],["libraries","Libraries"],["input","VnV Configuration"]] %}
 {% with active_tab = request.args.get("btab",loopList[0][0]) %}
-<div class="fcolumn fchild">
+<div class="fcolumn fchild"  style="padding:15px;    border: 1px solid #80808038; ">
 
-    <div class=" card">
-        <div class="card-body">
+    <div class="">
             {%with prefix="Executable:", file=file.get_prov().get_executable() %}
             {% include 'files/prov/file.html' %}
             {% endwith %}
             <h6>Command Line: {{ file.get_prov().get_command_line() }}</h6>
             <h6>Date: {{ file.get_prov().get_timestamp() }} </h6>
-        </div>
     </div>
 
+    <div style="height:25px;"></div>
 
     <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
         {% for i in loopList %}

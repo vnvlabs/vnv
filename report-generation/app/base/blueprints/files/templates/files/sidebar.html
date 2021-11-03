@@ -1,13 +1,13 @@
 <li class="nav-item pcoded-hasmenu">
 
     <a href="#!" class="nav-link "><span class="pcoded-micon"><i class="feather icon-file"></i></span><span
-            class="pcoded-mtext">Output Files</span>
+            class="pcoded-mtext">VnV Reports</span>
         <span onclick='add_file(event)' class="pcoded-micon pcoded-mtext" style="float:right; padding-right:10px;">
 							    <i class="feather icon-file-plus"></i>
 							 </span>
     </a>
     <ul class="pcoded-submenu" id="files_list">
-        {% for file in files.values() %}
+        {% for file in uniquefiles() %}
         <li id="file-{{file.id_ | safe}}"><a href="{{url_for('base.files.view',id_=file.id_)}}">
             <div style="display:flex;">
                 <span style="flex:1;">{{file.name}}</span>

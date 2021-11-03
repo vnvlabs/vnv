@@ -9,10 +9,12 @@ from docutils.nodes import SkipNode
 from docutils.parsers.rst import directives
 from flask import render_template
 from sphinx.directives import optional_int
+from sphinx.util import nested_parse_with_titles
 from sphinx.util.docutils import SphinxDirective
 
 from app.rendering.vnvdatavis.directives.charts import VnVChartNode
-from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query_str, jmes_jinga_stat, DataClass, \
+from app.rendering.vnvdatavis.directives.dataclass import DataClass
+from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query_str, jmes_jinga_stat,\
     jmes_jinja_codeblock, jmes_jinja_query, get_target_node, jmes_jinja_query_json
 
 vnv_directives = {}
@@ -40,6 +42,34 @@ def get_stats_role(stats_function):
 
     return role
 
+
+class VnVProcessNode(docutils.nodes.General, docutils.nodes.Element):
+
+    @staticmethod
+    def visit_node(visitor, node):
+        pass
+
+    @staticmethod
+    def depart_node(visitor, node):
+        pass
+
+VnVProcessNode.NODE_VISITORS = {
+    'html': (VnVProcessNode.visit_node, VnVProcessNode.depart_node)
+}
+
+
+class VnVProcessDirective(SphinxDirective):
+    required_arguments = 0
+    optional_arguments = 0
+    final_argument_whitespace = True
+    option_spec = {}
+    has_content = True
+
+    def run(self):
+        target, target_id = get_target_node(self)
+        block = VnVProcessNode();
+        nested_parse_with_titles(self.state, self.content, block)
+        return [target, block]
 
 
 class JmesStringDirective(SphinxDirective):
@@ -97,12 +127,14 @@ class JsonImageDirective(SphinxDirective):
 vnv_directives["vnv-image"] = JsonImageDirective
 vnv_directives["vnv-code"] = JsonCodeBlockDirective
 vnv_directives["vnv-print"] = JmesStringDirective
+vnv_directives["vnv-process"] = VnVProcessDirective
+
 vnv_roles["vnv"] = get_stats_role("str")
 for f in DataClass.statsMethods:
     vnv_roles[f"vnv-{f}"] = get_stats_role(f)
 
 def setup(sapp):
-
+    sapp.add_node(VnVProcessNode, **VnVProcessNode.NODE_VISITORS)
     for key, value in vnv_roles.items():
         sapp.add_role(key, value)
     for key, value in vnv_directives.items():
