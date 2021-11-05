@@ -242,8 +242,7 @@ VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp, int count) {
     void* variablePtr = va_arg(argp, void*);
     counter++;
     // add it to the list. In C, we do not have typeId, so we cannot get the
-    // rtti info.
-    // Just set it to void*.
+    // rtti info. Just set it to void*.
     parameterSet.insert(
         std::make_pair(variableName, std::make_pair("void*", variablePtr)));
   }

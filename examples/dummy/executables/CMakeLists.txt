@@ -17,6 +17,7 @@ function(addExecutable name packageName file)
   install(TARGETS ${name} DESTINATION examples/dummy/executables)
 endfunction()
 
+
 if(WITH_MPI)
 
   addexecutable(sample.a SampleExecutable "sample.cpp")
@@ -30,10 +31,13 @@ if(WITH_MPI)
   addexecutable(distributed.a Distributed "distributed.cpp")
   addexecutable(live.a Live "live.cpp")
   
+  
 
 endif()
 
 addexecutable(serial.a SerialExample "serial.cpp")
+addexecutable(template.a Template "template.cpp")
+  
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json
                ${CMAKE_CURRENT_BINARY_DIR}/vv-input.json COPYONLY)

@@ -18,37 +18,59 @@ BaseStoreInstance(PlugStore) BaseStoreInstance(PlugsStore)
 
     PlugStore::PlugStore() {}
 
-std::shared_ptr<PlugPoint> PlugStore::newPlug(std::string packageName,
-                                              std::string name, NTV& in_args,
+std::shared_ptr<PlugPoint> PlugStore::newPlug(std::string packageName, std::string name,
+                                              const VnV::TemplateCallback& templateCallback, NTV& in_args,
                                               NTV& out_args) {
   std::string key = packageName + ":" + name;
   auto it = plugs.find(key);
   auto reg = registeredPlugs.find(key);
 
+
   if (it != plugs.end() && reg != registeredPlugs.end()) {
-    // Construct and reset because plug ctor is only accessible in
-    // PlugStore.
-    std::shared_ptr<PlugPoint> plug;
-    plug.reset(new PlugPoint(packageName, name, reg->second.specJson, in_args,
-                             out_args));
+    
+     auto templateName = templateCallback.m; 
+     if (it->second.runTemplate(templateName)) {
 
-    for (auto& test : it->second.tests) {
-      plug->addTest(test);
-    }
+        std::map<std::string,std::string> spec_map;
+        bool foundOne;
+        for (auto &it : reg->second.specJson.items()) {
+          json& template_spec = it.value()["templates"];
+          if (templateCallback.match(template_spec)) {
+              for (auto itt : it.value()["parameters"].items()) {
+                spec_map[itt.key()] = itt.value().get<std::string>();
+              }
+              foundOne = true;
+              break;
+          }
+        }
+        if (!foundOne) {
+          throw VnVExceptionBase("No template specification matched -- Bugs... run");
+        }
+      
+        // Construct and reset because InjectionPoint ctor is only accessible in
+        // InjectionPointStore.
+        std::shared_ptr<PlugPoint> injectionPoint;
+        injectionPoint.reset(new PlugPoint(packageName, name, spec_map, in_args, out_args));
+        for (auto& test : it->second.tests) {
+          if (test.runTemplate(templateName)) {  
+              injectionPoint->addTest(test);
+          }
+        }
 
-    if (it->second.plug != nullptr) {
-      plug->setPlug(*it->second.plug);
-    }
-    plug->runInternal = it->second.runInternal;
-    return plug;
+        if (it->second.plug != nullptr && it->second.plug->runTemplate(templateName) ) {
+          injectionPoint->setPlug(*it->second.plug);
+        }
+
+        injectionPoint->runInternal = it->second.runInternal;
+
+        return injectionPoint;
+     }
   }
   return nullptr;
 }
 
-void PlugStore::registerPlug(std::string packageName, std::string id,
-                             json& jsonObject) {
-  registeredPlugs.insert(std::make_pair(packageName + ":" + id,
-                                        PlugSpec(packageName, id, jsonObject)));
+void PlugStore::registerPlug(std::string packageName, std::string id, json& jsonObject) {
+  registeredPlugs.insert(std::make_pair(packageName + ":" + id, PlugSpec(packageName, id, jsonObject)));
 }
 
 json PlugStore::schema() {
@@ -107,72 +129,32 @@ json PlugStore::schema() {
 void PlugStore::registerPlug(std::string packageName, std::string id,
 
                              std::string parameters_str) {
-  VnV_Debug(VNVPACKAGENAME, "Registering %s:%s ", packageName.c_str(),
-            id.c_str());
+  VnV_Debug(VNVPACKAGENAME, "Registering %s:%s ", packageName.c_str(), id.c_str());
   // Parse the json. We support a single injection point and an array of
   // injection points.
   try {
     json x = json::parse(parameters_str);
     registerPlug(packageName, id, x);
   } catch (...) {
-    VnV_Warn(VNVPACKAGENAME,
-             "Could not register Injection Point. Invalid Json. %s",
-             parameters_str.c_str());
+    VnV_Warn(VNVPACKAGENAME, "Could not register Injection Point. Invalid Json. %s", parameters_str.c_str());
   }
 }
 
-std::shared_ptr<PlugPoint> PlugStore::getNewPlug(std::string package,
-                                                 std::string name, NTV& in_args,
-                                                 NTV& out_args) {
+std::shared_ptr<PlugPoint> PlugStore::getNewPlug(std::string package, std::string name,
+                                                 const VnV::TemplateCallback& templateCallback,
+
+                                                 NTV& in_args, NTV& out_args) {
   std::string key = package + ":" + name;
   if (plugs.find(key) == plugs.end()) {
     return nullptr;  // Not configured
   }
-  return newPlug(package, name, in_args, out_args);
+  return newPlug(package, name, templateCallback, in_args, out_args);
 }
 
-void PlugStore::addPlug(std::string package, std::string name, bool runInternal,
-                        std::vector<TestConfig>& tests,
+void PlugStore::addPlug(std::string package, std::string name, bool runInternal, json& templateName, std::vector<TestConfig>& tests,
                         std::shared_ptr<PlugConfig>& nPlugs) {
+  
   std::string key = package + ":" + name;
+  plugs.insert(std::make_pair(key, InjectionPlugConfig(package, name, runInternal, templateName, tests, nPlugs)));
 
-  auto reg = registeredPlugs.find(key);
-  json parameters =
-      (reg == registeredPlugs.end()) ? json::object() : (reg->second.specJson);
-
-  // Build an empty parameter map for the plug.
-  std::map<std::string, std::string>
-      parameterMap;  // maps injection point parameter to parameter type.
-  for (auto it : parameters.items()) {
-    parameterMap[StringUtils::squash_copy(it.key())] =
-        StringUtils::squash_copy(it.value().get<std::string>());
-  }
-
-  tests.erase(
-      std::remove_if(tests.begin(), tests.end(),
-                     [&](TestConfig& t) {
-                       if (t.preLoadParameterSet(parameterMap)) {
-                         VnV_Debug(VNVPACKAGENAME, "Test Added Successfully %s",
-                                   t.getName().c_str());
-                         return false;
-                       }
-                       VnV_Warn(VNVPACKAGENAME, "Test Config is Invalid %s",
-                                t.getName().c_str());
-                       return true;
-                     }),
-      tests.end());
-
-  if (nPlugs != nullptr) {
-    if (nPlugs->preLoadParameterSet(parameterMap)) {
-      VnV_Debug(VNVPACKAGENAME, "Plug Added Successfully %s",
-                nPlugs->getName().c_str());
-    } else {
-      VnV_Debug(VNVPACKAGENAME, "Plug Load failed %s",
-                nPlugs->getName().c_str());
-      nPlugs = nullptr;
-    }
-  }
-
-  plugs.insert(std::make_pair(
-      key, InjectionPlugConfig(package, name, runInternal, tests, nPlugs)));
 }

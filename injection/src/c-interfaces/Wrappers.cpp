@@ -45,10 +45,9 @@ ParameterDTO VnV_Parameter_Get(ParameterSetWrapper* wrapper, const char* name) {
   VnV::VnVParameterSet* s = VnV::ParameterWrapperCast(wrapper);
   auto it = s->find(name);
   if (it != s->end()) {
-    return {it->second.getType().c_str(), it->second.getRtti().c_str(),
-            it->second.getRawPtr()};
+    return {it->second.getType().c_str(), it->second.getRawPtr()};
   } else {
-    return {nullptr, nullptr, nullptr};
+    return {nullptr, nullptr};
   }
 }
 }

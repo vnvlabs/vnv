@@ -57,7 +57,7 @@ void talk(std::string& filename, std::string& symbol) {
  * a filename and a symbol name for a function that creates a new test.
  *
  */
-INJECTION_TEST(VNVPACKAGENAME, dynamicTestLoader, int* argv) {
+INJECTION_TEST(VNVPACKAGENAME, dynamicTestLoader) {
   TestStatus s = FAILURE;
 
   // Keep asking the user to load a library until there kernal

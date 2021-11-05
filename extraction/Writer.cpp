@@ -211,14 +211,13 @@ class RegistrationWriter {
        
           std::string name = it.value()["name"].get<std::string>();
 
-          json& params =
-              it.value()["parameters"][0];  // TODO TEMPLATE ARGUEMENTS NOT SUPPORTED ?
+          // TODO Extract Template Parameter information. 
+          json& params = it.value()["parameters"]; 
 
 
           createPackageOss(pname);
           VnV::JsonUtilities::getOrCreate(pjson[pname], "InjectionPoints")[name] = it.value();
           
-        
           bool iterator = it.value().value("/iterator"_json_pointer, false);
           bool plug = it.value().value("/plug"_json_pointer, false);
           std::string escaped =

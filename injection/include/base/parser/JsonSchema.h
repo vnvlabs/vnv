@@ -39,7 +39,7 @@ const json& getVVSchema();
  * @param [in] schema The schema for the tests configuration options.
  * @return A custom json schema for the test.
  */
-json getTestValidationSchema(std::map<std::string, std::string>& params, json& schema);
+json getTestValidationSchema(json& schema);
 
 /**
  * @brief get The schema for the VnV Package configuration options. This

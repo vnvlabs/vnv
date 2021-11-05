@@ -18,9 +18,9 @@ class InjectionIteratorConfig : public InjectionPointConfig {
  public:
   std::vector<IteratorConfig> iterators;
   InjectionIteratorConfig(std::string package, std::string id,
-                          bool runInternal_, std::vector<TestConfig>& tests_,
+                          bool runInternal_, json& templateName, std::vector<TestConfig>& tests_,
                           std::vector<IteratorConfig>& iterators_)
-      : InjectionPointConfig(package, id, runInternal_, tests_),
+      : InjectionPointConfig(package, id, runInternal_, templateName, tests_),
         iterators(iterators_) {}
 };
 
@@ -31,7 +31,9 @@ class IteratorStore : public BaseStore {
   std::map<std::string, InjectionPointSpec> registeredIterators;
 
   std::shared_ptr<IterationPoint> newIterator(std::string packageName,
-                                              std::string name, int once_,
+                                              std::string name,
+                                              const VnV::TemplateCallback& templateCallback, 
+                                              int once_,
                                               NTV& in_args, NTV& out_args);
 
  public:
@@ -41,10 +43,12 @@ class IteratorStore : public BaseStore {
                         json& jsonObject);
 
   std::shared_ptr<IterationPoint> getNewIterator(std::string package,
-                                                 std::string name, int once,
+                                                 std::string name,
+                                                 const VnV::TemplateCallback& templateCallback, 
+                                                 int once,
                                                  NTV& in_args, NTV& out_args);
 
-  void addIterator(std::string package, std::string name, bool runInternal,
+  void addIterator(std::string package, std::string name, bool runInternal, json& templateName,
                    std::vector<TestConfig>& tests,
                    std::vector<IteratorConfig>& iterators);
 

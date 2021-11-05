@@ -46,6 +46,9 @@ unsigned int getInfo(const CallExpr* call, const FunctionDecl* func,
   info["Calling Function Line"] = funclocation.getSpellingLineNumber();
   info["Calling Function Column"] = funclocation.getSpellingColumnNumber();
 
+ 
+  
+
   json parameters;
   unsigned int count = (begin);
   std::string package = VnV::StringUtils::trim_copy(
@@ -57,33 +60,49 @@ unsigned int getInfo(const CallExpr* call, const FunctionDecl* func,
   return count;
 }
 
-bool extractParameters(const CallExpr* E, unsigned int count,
-                       json& parameters) {
-  bool ret = false;
+std::string typeToName(QualType type) {
+  auto ap =  type->getAsRecordDecl();
+    if (ap != nullptr) {
+      std::cout << ap->getName().str() << " " << type.getAsString() << std::endl;
+      type->dump();
+      return ap->getName().str();
+    } else {
+      return type.getAsString();
+    }
+}
+
+json extractParameters(const CallExpr* E, ASTContext *context, unsigned int count) {
+  json parameters = json::object();
+  json templates = json::object();
+  
   while (count < E->getNumArgs() - 1) {
     const clang::Expr* a = E->getArg(count++)->IgnoreParenCasts();
     std::string xs = getValueFromStringLiteral(a);
     const clang::Expr* aa = E->getArg(count++)->IgnoreParenCasts();
+    
+    parameters[xs] = typeToName(aa->getType()) ;
+    
+    auto p = aa->getType()->getAs<SubstTemplateTypeParmType>();
+    if (p!=nullptr) {
+        std::string tname = p->getReplacedParameter()->getDecl()->getName().str();
+        templates[tname] = typeToName(p->getReplacementType());
+    } 
 
-    if (aa->getType()->isDependentType()) ret = true;
+  }   
 
-    std::string ax = VnV::StringUtils::squash_copy(aa->getType().getAsString());
-    parameters[xs] = ax;
-  }
-  return ret;
+
+  json r = json::object();
+  r["parameters"] = parameters;
+  r["templates"] = templates;
+  std::cout <<  r.dump() << std::endl;
+  return r;
+
 }
 
-void addParameters(const CallExpr* E, json& idJson, unsigned int count) {
-  json params;
-  if (extractParameters(E, count, params)) {
-    idJson["templateParameters"] = params;
-  } else {
-    json& possibleParams = VnV::JsonUtilities::getOrCreate(
-        idJson, "parameters", VnV::JsonUtilities::CreateType::Array);
-    possibleParams.push_back(params);
-  }
-}
-
+void addParameters(const CallExpr* E, const FunctionDecl* F, ASTContext *context, json& idJson, unsigned int count) {
+  std::cout << F->getNameAsString() << std::endl;
+  json a = extractParameters(E,context, count);
+  VnV::JsonUtilities::getOrCreate(idJson, "parameters", VnV::JsonUtilities::CreateType::Array).push_back(a);
 }  // namespace
 
 class VnVPrinter : public MatchFinder::MatchCallback {
@@ -112,7 +131,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
-      addParameters(E, idJson, count);
+      addParameters(E,FF,Result.Context, idJson, count);
 
     } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("callsite_begin")) {
@@ -124,11 +143,12 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
-      addParameters(E, idJson, count);
+      addParameters(E,FF,Result.Context, idJson, count);
 
     } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite")) {
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+      count++;  // Skip the template Callback
       count++;  // Skip the filename
       count++;  // Skip the line
       count++;  // Skip the callback
@@ -136,11 +156,12 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
-      addParameters(E, idJson, count);
+      addParameters(E,FF, Result.Context,idJson, count);
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>(
                    "cpp_callsite_iteration")) {
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+      count++;  // Skip the template Callback
       count++;  // skip the filename
       count++;  // skip the line number
       count++;  // skip the callback
@@ -150,11 +171,12 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
-      addParameters(E, idJson, count);
+      addParameters(E,FF, Result.Context,idJson, count);
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>(
                    "cpp_callsite_plug")) {
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+      count++;  // Skip the template Callback
       count++;  // Skip the filename
       count++;  // Skip the line
       count++;  // Skip the callback
@@ -163,7 +185,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
-      addParameters(E, idJson, count);
+      addParameters(E,FF, Result.Context,idJson, count);
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>(
                    "callsite_iteration")) {
@@ -177,11 +199,12 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
-      addParameters(E, idJson, count);
+      addParameters(E,FF,Result.Context, idJson, count);
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>(
                    "cpp_callsite_begin")) {
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
+      count++;  // Skip the template Callback
       count++;  // Skip the filename
       count++;  // Skip the line
       count++;  // Skip the callback
@@ -190,7 +213,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
 
-      addParameters(E, idJson, count);
+      addParameters(E,FF, Result.Context,idJson, count);
     } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iter")) {
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 0);
@@ -280,6 +303,8 @@ class VnVFinder : public MatchFinder {
   }
   json& get() { return Printer.get(); }
 };
+
+}
 
 json runFinder(clang::tooling::CompilationDatabase& db,
                std::vector<std::string>& files) {

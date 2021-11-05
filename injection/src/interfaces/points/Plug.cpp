@@ -9,10 +9,11 @@ void VnV::CppPlug::Register(const char* package, const char* id,
 }
 
 VnV_Iterator VnV::CppPlug::BeginPlug(VnV_Comm comm, const char* package,
-                                     const char* id, const char* fname,
+                                     const char* id, const VnV::TemplateCallback& templateCallback,
+                                     const char* fname,
                                      int line, DataCallback callback,
                                      NTV& inputs, NTV& outputs) {
-  return VnV::RunTime::instance().injectionPlug(comm, package, id, fname, line,
+  return VnV::RunTime::instance().injectionPlug(comm, package, id,templateCallback,  fname, line,
                                                 callback, inputs, outputs);
 }
 

@@ -17,19 +17,17 @@
 
 #include "base/stores/BaseStore.h"
 #include "interfaces/ITest.h"
+#include "base/parser/JsonSchema.h"
 
 namespace VnV {
 
 template <typename V> class TestInfoTemplate {
  public:
   V maker;
-  std::map<std::string, std::string> parameterMap;
   json schema;
 
-  TestInfoTemplate(std::map<std::string, std::string>& p, V ptr,
-                   nlohmann::json s) {
+  TestInfoTemplate(V ptr, nlohmann::json s) {
     maker = ptr;
-    parameterMap = p;
     schema = s;
   }
 };
@@ -47,12 +45,12 @@ class TestStoreTemplate {
   std::map<std::string, TestInfoTemplate<Maker>, std::less<std::string>>
       test_factory;
 
-  void addTest(std::string package, std::string name, std::string s, Maker m,
-               std::map<std::string, std::string> v) {
-    VnV_Warn(VNVPACKAGENAME, "Adding a new Test %s:%s", package.c_str(),
-             name.c_str());
+  void addTest(std::string package, std::string name, std::string s, Maker m) {
+    
+    VnV_Warn(VNVPACKAGENAME, "Adding a new Test %s:%s", package.c_str(),name.c_str());
+    
     json j = json::parse(s);
-    TestInfoTemplate<Maker> k(v, m, j);
+    TestInfoTemplate<Maker> k(m, j);
     test_factory.insert({package + ":" + name, k});
   }
 
@@ -74,6 +72,7 @@ class TestStoreTemplate {
   }
 
   std::shared_ptr<Inter> getTest(Config& config) {
+
     std::string key = config.getPackage() + ":" + config.getName();
 
     auto it = test_factory.find(key);
@@ -95,28 +94,33 @@ class TestStoreTemplate {
     std::vector<Config> conf;
     for (auto& it : configs) {
       conf.push_back(validateTest(it));
+    
     }
     return conf;
   }
 
   Config validateTest(json& testJson) {
+    
     if (testJson.find("name") == testJson.end()) {
       // This should be impossible. Input Validation should detect test blocks
       // incorretly specified.
       throw VnVExceptionBase("Test Declaration does not contain Test Name");
     }
+    
     std::string name = testJson["name"].get<std::string>();
     std::string package = testJson["package"].get<std::string>();
     std::string key = package + ":" + name;
+    
     auto it = test_factory.find(key);
     if (it != test_factory.end()) {
+      
       json test_schema;
       auto itt = registeredTests.find(key);
       if (itt == registeredTests.end()) {
         // THe test is not yet registered.
 
         json& sch = getSchema(package, name);
-        test_schema = getTestValidationSchema(it->second.parameterMap, sch);
+        test_schema = getTestValidationSchema(sch);
         registeredTests.insert(std::make_pair(key, test_schema));
       } else {
         test_schema = itt->second;
@@ -136,16 +140,16 @@ class TestStoreTemplate {
       } else {
         testConfigJson["configuration"] = json::object();
       }
-      if (testJson.contains("parameters")) {
-        testConfigJson["parameters"] = testJson["parameters"];
-      } else {
-        testConfigJson["parameters"] = json::object();
-      }
-
+     
       validator.validate(testConfigJson);
 
       // Finally, if a config spec was added for the test
-      Config f(package, name, testConfigJson, it->second.parameterMap);
+      Config f(package, name, testConfigJson);
+      
+      if (testJson.contains("template")) {
+        f.runTemplateName = testJson["template"];
+      }
+
       return f;
     }
     throw VnVExceptionBase("test not found");
@@ -180,22 +184,12 @@ class TestStoreTemplate {
       properties["config"] = it.second.schema;
 
       json parms = json::object();
-      properties["parameterMap"] = parms;
-
       json pprops = json::object();
       json preq = json::array();
       parms["type"] = "object";
       parms["properties"] = pprops;
       parms["required"] = preq;
       parms["additionalProperties"] = false;
-
-      for (auto& itt : it.second.parameterMap) {
-        json l = json::object();
-        l["type"] = "string";
-        l["vnvtype"] = itt.second;
-        pprops[itt.first] = l;
-        preq.push_back(itt.first);
-      }
 
       json p = json::object();
       p["type"] = "object";

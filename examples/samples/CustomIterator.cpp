@@ -36,10 +36,12 @@ class run {
  * (thats this comment). You can write data using the engine.
  *
  */
-INJECTION_ITERATOR_R(Samples, sampleIterator, run, double x, double y) {
-  const double& y = get<double>("y");  // The output parameter;
+INJECTION_ITERATOR_R(Samples, sampleIterator, run) {
+  
+  auto y = getOutputRef<double>("y","double");
+  
   if (y < 10) {
-    double& x = getReference<double>("x");
+    double& x = getInputRef<double>("x", "double");
     x += 1;
     return 1;
   }

@@ -38,11 +38,9 @@ Transformer::~Transformer() {
   }
 }
 
-void* Transformer::Transform(void* ptr, std::string& rtti) {
-  std::string f = from;
+void* Transformer::Transform(void* ptr) {
   for (auto it = transPath.begin(); it != transPath.end(); it++) {
-    ptr = it->second->Transform(f, it->first, ptr, rtti);
-    f = it->first;
+    ptr = it->second->Transform(ptr);
   }
   return ptr;
 }
