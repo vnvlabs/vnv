@@ -165,14 +165,14 @@ class VnV_Iterator_Info {
 }  // namespace
 
 std::shared_ptr<IterationPoint> RunTime::getNewInjectionIteration(VnV_Comm comm, std::string pname, std::string id,
-                                                                  const VnV::TemplateCallback& templateCallback,
+                                                                  const char* pretty,
                                                                   InjectionPointType type, int once, NTV& in_args,
                                                                   NTV& out_args) {
   if (runTests) {
     // Load any hot patches
     loadHotPatch(comm);
 
-    std::shared_ptr<IterationPoint> ipd = IteratorStore::instance().getNewIterator(pname, id, templateCallback, once, in_args, out_args);
+    std::shared_ptr<IterationPoint> ipd = IteratorStore::instance().getNewIterator(pname, id, pretty, once, in_args, out_args);
     if (ipd != nullptr) {
       ipd->setInjectionPointType(type, "Begin");
       return ipd;
@@ -184,14 +184,14 @@ std::shared_ptr<IterationPoint> RunTime::getNewInjectionIteration(VnV_Comm comm,
 }
 
 VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::string id,
-                                         const VnV::TemplateCallback& templateCallback, std::string fname, int line,
+                                         const char* pretty, std::string fname, int line,
                                          const DataCallback& callback, NTV& inputs, NTV& outputs, int once) {
   auto engine = OutputEngineStore::instance().getEngineManager();
 
   ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
   auto it =
-      getNewInjectionIteration(comm, pname, id, templateCallback, InjectionPointType::Begin, once, inputs, outputs);
+      getNewInjectionIteration(comm, pname, id, pretty, InjectionPointType::Begin, once, inputs, outputs);
   if (it != nullptr) {
     it->setComm(getComm(comm));
     it->setCallBack(callback);
@@ -208,7 +208,7 @@ VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::
                                          NTV& outputs, int once) {
   ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
-  auto it = getNewInjectionIteration(comm, pname, id, VnV::TemplateCallback(), InjectionPointType::Begin, once,
+  auto it = getNewInjectionIteration(comm, pname, id, "", InjectionPointType::Begin, once,
                                      inputs, outputs);
   if (it != nullptr) {
     it->setComm(getComm(comm));
@@ -259,13 +259,13 @@ class VnV_Plug_Info {
 }  // namespace
 
 std::shared_ptr<PlugPoint> RunTime::getNewInjectionPlug(VnV_Comm comm, std::string pname, std::string id,
-                                                        const VnV::TemplateCallback& templateCallback, NTV& in_args,
+                                                        const char* pretty, NTV& in_args,
                                                         NTV& out_args) {
   if (runTests) {
     // load hotpatches
     loadHotPatch(comm);
 
-    std::shared_ptr<PlugPoint> ipd = PlugStore::instance().getNewPlug(pname, id, templateCallback, in_args, out_args);
+    std::shared_ptr<PlugPoint> ipd = PlugStore::instance().getNewPlug(pname, id, pretty, in_args, out_args);
     if (ipd != nullptr) {
       return ipd;
     } else if (runTimeOptions.logUnhandled) {
@@ -276,11 +276,11 @@ std::shared_ptr<PlugPoint> RunTime::getNewInjectionPlug(VnV_Comm comm, std::stri
 }
 
 VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname, std::string id,
-                                    const VnV::TemplateCallback& templateCallback, std::string fname, int line,
+                                    const char* pretty, std::string fname, int line,
                                     const DataCallback& callback, NTV& inputs, NTV& outputs) {
   ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
-  auto it = getNewInjectionPlug(comm, pname, id, templateCallback, inputs, outputs);
+  auto it = getNewInjectionPlug(comm, pname, id, pretty, inputs, outputs);
   if (it != nullptr) {
     it->setComm(getComm(comm));
     it->setCallBack(callback);
@@ -293,7 +293,7 @@ VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname, std::strin
                                     injectionDataCallback* callback, NTV& inputs, NTV& outputs) {
   ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
-  auto it = getNewInjectionPlug(comm, pname, id, VnV::TemplateCallback(), inputs, outputs);
+  auto it = getNewInjectionPlug(comm, pname, id, "", inputs, outputs);
   if (it != nullptr) {
     it->setComm(getComm(comm));
     it->setCallBack(callback);
@@ -319,14 +319,14 @@ int RunTime::injectionPlugRun(VnV_Iterator* iterator) {
  * ****************************************/
 
 std::shared_ptr<InjectionPoint> RunTime::getNewInjectionPoint(VnV_Comm comm, std::string pname, std::string id,
-                                                              const VnV::TemplateCallback& templateCallback,
+                                                              const char* pretty,
                                                               InjectionPointType type, NTV& in_args) {
   if (runTests) {
     // look for hotpatches;
     loadHotPatch(comm);
 
     std::shared_ptr<InjectionPoint> ipd =
-        InjectionPointStore::instance().getNewInjectionPoint(pname, id, templateCallback, type, in_args);
+        InjectionPointStore::instance().getNewInjectionPoint(pname, id, pretty, type, in_args);
     if (ipd != nullptr) {
       ipd->setInjectionPointType(type, "Begin");
       return ipd;
@@ -352,11 +352,11 @@ std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(std::string p
 }
 
 void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id,
-                                   const VnV::TemplateCallback& templateCallback, std::string fname, int line,
+                                   const char* pretty, std::string fname, int line,
                                    const DataCallback& callback, NTV& args) {
   ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
-  auto it = getNewInjectionPoint(comm, pname, id, templateCallback, InjectionPointType::Begin, args);
+  auto it = getNewInjectionPoint(comm, pname, id, pretty, InjectionPointType::Begin, args);
   if (it != nullptr) {
     it->setCallBack(callback);
     it->setComm(getComm(comm));
@@ -368,7 +368,7 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname, std::string
                                    injectionDataCallback* callback, NTV& args) {
   ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
-  auto it = getNewInjectionPoint(comm, pname, id, VnV::TemplateCallback() ,InjectionPointType::Begin, args);
+  auto it = getNewInjectionPoint(comm, pname, id, "" ,InjectionPointType::Begin, args);
   if (it != nullptr) {
     it->setCallBack(callback);
     it->setComm(getComm(comm));
@@ -378,11 +378,11 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname, std::string
 
 // Cpp interface.
 void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
-                             const VnV::TemplateCallback& templateCallback, std::string fname, int line,
+                             const char* pretty, std::string fname, int line,
                              const DataCallback& callback, NTV& args) {
   ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
-  auto it = getNewInjectionPoint(comm, pname, id, templateCallback, InjectionPointType::Single, args);
+  auto it = getNewInjectionPoint(comm, pname, id, pretty, InjectionPointType::Single, args);
   if (it != nullptr) {
     it->setCallBack(callback);
     it->setComm(getComm(comm));
@@ -396,7 +396,7 @@ void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id,
                              std::string fname, int line, injectionDataCallback* callback, NTV& args) {
   ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
-  auto it = getNewInjectionPoint(comm, pname, id, VnV::TemplateCallback(), InjectionPointType::Single, args);
+  auto it = getNewInjectionPoint(comm, pname, id, "", InjectionPointType::Single, args);
 
   if (it != nullptr) {
     it->setCallBack(callback);

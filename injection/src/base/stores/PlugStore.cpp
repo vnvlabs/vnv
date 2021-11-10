@@ -19,7 +19,7 @@ BaseStoreInstance(PlugStore) BaseStoreInstance(PlugsStore)
     PlugStore::PlugStore() {}
 
 std::shared_ptr<PlugPoint> PlugStore::newPlug(std::string packageName, std::string name,
-                                              const VnV::TemplateCallback& templateCallback, NTV& in_args,
+                                              const char* pretty, NTV& in_args,
                                               NTV& out_args) {
   std::string key = packageName + ":" + name;
   auto it = plugs.find(key);
@@ -27,9 +27,9 @@ std::shared_ptr<PlugPoint> PlugStore::newPlug(std::string packageName, std::stri
 
 
   if (it != plugs.end() && reg != registeredPlugs.end()) {
-    
-     auto templateName = templateCallback.m; 
-     if (it->second.runTemplate(templateName)) {
+     TemplateCallback templateCallback(pretty);
+
+     if (templateCallback.match(it->second.runTemplateName)) {
 
         std::map<std::string,std::string> spec_map;
         bool foundOne;
@@ -52,12 +52,12 @@ std::shared_ptr<PlugPoint> PlugStore::newPlug(std::string packageName, std::stri
         std::shared_ptr<PlugPoint> injectionPoint;
         injectionPoint.reset(new PlugPoint(packageName, name, spec_map, in_args, out_args));
         for (auto& test : it->second.tests) {
-          if (test.runTemplate(templateName)) {  
-              injectionPoint->addTest(test);
+          if (templateCallback.match(test.runTemplateName)) {
+                injectionPoint->addTest(test);
           }
         }
 
-        if (it->second.plug != nullptr && it->second.plug->runTemplate(templateName) ) {
+        if (it->second.plug != nullptr && templateCallback.match(it->second.plug->runTemplateName)) {
           injectionPoint->setPlug(*it->second.plug);
         }
 
@@ -141,14 +141,14 @@ void PlugStore::registerPlug(std::string packageName, std::string id,
 }
 
 std::shared_ptr<PlugPoint> PlugStore::getNewPlug(std::string package, std::string name,
-                                                 const VnV::TemplateCallback& templateCallback,
+                                                 const char* pretty,
 
                                                  NTV& in_args, NTV& out_args) {
   std::string key = package + ":" + name;
   if (plugs.find(key) == plugs.end()) {
     return nullptr;  // Not configured
   }
-  return newPlug(package, name, templateCallback, in_args, out_args);
+  return newPlug(package, name, pretty, in_args, out_args);
 }
 
 void PlugStore::addPlug(std::string package, std::string name, bool runInternal, json& templateName, std::vector<TestConfig>& tests,

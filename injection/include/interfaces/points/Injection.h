@@ -35,11 +35,11 @@ void UnwrapParameterPack(NTV& m, V& name, T& first, Args&&... args) {
   UnwrapParameterPack(m, std::forward<Args>(args)...);
 }
 
-void BeginPoint(VnV_Comm comm, const char* package, const char* id,  const VnV::TemplateCallback &templateCallback,
-                const char* fname, int line, const DataCallback& callback, NTV& map);
+void BeginPoint(VnV_Comm comm, const char* package, const char* id, const char* pretty, const char* fname, int line,
+                const DataCallback& callback, NTV& map);
 
-void BeginLoop(VnV_Comm comm, const char* package, const char* id,  const VnV::TemplateCallback &templateCallback,
-               const char* fname, int line, const DataCallback& callback, NTV& map);
+void BeginLoop(VnV_Comm comm, const char* package, const char* id, const char* pretty, const char* fname, int line,
+               const DataCallback& callback, NTV& map);
 
 void IterLoop(const char* package, const char* id, const char* iterId, const char* fname, int line);
 
@@ -48,52 +48,33 @@ bool EndLoop(const char* package, const char* id, const char* fname, int line);
 void RegisterInjectionPoint(const char* package, const char* id, std::string json);
 
 template <typename A, typename... Args>
-void BeginLoopPack(A comm, const char* package, const char* id, const VnV::TemplateCallback &templateCallback, const char* fname, int line,
+void BeginLoopPack(A comm, const char* package, const char* id, const char* pretty, const char* fname, int line,
                    const DataCallback& callback, Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> m;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
-  BeginLoop(comm, package, id, templateCallback, fname, line, callback, m);
+  BeginLoop(comm, package, id, pretty, fname, line, callback, m);
 }
 
 template <typename A, typename... Args>
-void BeginPack(A comm, const char* package, const char* id, const VnV::TemplateCallback &templateCallback, const char* fname, int line, const DataCallback& callback,
-               Args&&... args) {
+void BeginPack(A comm, const char* package, const char* id, const char* pretty, const char* fname, int line,
+               const DataCallback& callback, Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> m;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
-  BeginPoint(comm, package, id, templateCallback, fname, line, callback, m);
+  BeginPoint(comm, package, id, pretty, fname, line, callback, m);
 }
 
 }  // namespace CppInjection
 }  // namespace VnV
 
-  #define ITM(...) \
-    VnV::TemplateCallback::create<__VA_ARGS__>(#__VA_ARGS__)
-    
-
-// BEGIN A SINGLE INJECTION POINT THAT HAS TEMPLATE PARAMETERS AND A CALLBACK. 
-#  define INJECTION_POINT_TC(PNAME, COMM, NAME, templateCallback, callback, ...)          \
-    VnV::CppInjection::BeginPack(COMM, PNAME, NAME, (templateCallback), __FILE__, __LINE__, \
+// BEGIN A SINGLE INJECTION POINT THAT HAS TEMPLATE PARAMETERS AND A CALLBACK.
+#  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...)                                \
+    VnV::CppInjection::BeginPack(COMM, PNAME, NAME, __PRETTY_FUNCTION__, __FILE__, __LINE__, \
                                  callback EVERYONE(__VA_ARGS__));
 
 // BEGIN A LOOPED INJECTION POINT WITH TEMPLATES AND A CALLBACK
-#  define INJECTION_LOOP_BEGIN_TC(PNAME, COMM, NAME, templateCallback, callback, ...)         \
-    VnV::CppInjection::BeginLoopPack(COMM, PNAME, NAME, (templateCallback), __FILE__, __LINE__, \
+#  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...)                               \
+    VnV::CppInjection::BeginLoopPack(COMM, PNAME, NAME, __PRETTY_FUNCTION__, __FILE__, __LINE__, \
                                      callback EVERYONE(__VA_ARGS__))
-
-// SINGULAR INJECTION POINT NO CALLBACK BUT TEMPLATES
-#  define INJECTION_POINT_T(PNAME, COMM, NAME, templateCallback, ...) \
-    INJECTION_POINT_TC(PNAME, COMM, NAME, (templateCallback), &VnV::defaultCallBack, __VA_ARGS__)
-
-#  define INJECTION_LOOP_BEGIN_T(PNAME, COMM, NAME, templateCallback, ...) \
-    INJECTION_LOOP_BEGIN_TC(PNAME, COMM, NAME, (templateCallback), &VnV::defaultCallBack, __VA_ARGS__)
-
-// INJECTION POINT WITH A CALLBACK BUT NO TEMPLATES
-#  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...) \
-    INJECTION_POINT_TC(PNAME, COMM, NAME, VnV::TemplateCallback(), callback, __VA_ARGS__)
-
-// BEGIN A LOOPED INJECTION POINT WITH A CALLBACK AND NO TEMPLATES
-#  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...) \
-    INJECTION_LOOP_BEGIN_TC(PNAME, COMM, NAME, VnV::TemplateCallback(), callback, __VA_ARGS__)
 
 // SINGULAR INJECTION POINT NO TEMPLATES AND NO CALLBACK.
 #  define INJECTION_POINT(PNAME, COMM, NAME, ...) \

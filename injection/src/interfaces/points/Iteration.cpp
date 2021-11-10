@@ -12,12 +12,12 @@ void VnV::CppIteration::UnwrapParameterPack(int inputs, NTV& mm, NTV& m) {}
 
 VnV_Iterator VnV::CppIteration::BeginIteration(
     VnV_Comm comm, const char* package, const char* id, 
-    const VnV::TemplateCallback& templateCallback,
+    const char* pretty,
     const char* fname,
     int line, const DataCallback& callback, int once, NTV& inputs,
     NTV& ouputs) {
   return VnV::RunTime::instance().injectionIteration(
-      comm, package, id,  templateCallback,  fname, line, callback, inputs, ouputs, once);
+      comm, package, id, pretty,  fname, line, callback, inputs, ouputs, once);
 }
 
 int VnV::CppIteration::Iterate(VnV_Iterator* iterator) {

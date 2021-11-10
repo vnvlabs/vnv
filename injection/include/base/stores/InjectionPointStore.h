@@ -76,7 +76,7 @@ class InjectionPointStore : public BaseStore {
    */
 
   std::shared_ptr<InjectionPoint> newInjectionPoint(std::string packageName, std::string name,
-                                                    const VnV::TemplateCallback& templateCallback, NTV& in_args);
+                                                    const char* pretty, NTV& in_args);
 
   std::shared_ptr<InjectionPoint> fetchFromQueue(std::string packageName, std::string name, InjectionPointType stage);
 
@@ -117,7 +117,7 @@ class InjectionPointStore : public BaseStore {
    *
    */
   std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string package, std::string name,
-                                                       const VnV::TemplateCallback& templateCallback,
+                                                       const char* pretty,
                                                        InjectionPointType type, NTV& in_args);
 
   std::shared_ptr<InjectionPoint> getExistingInjectionPoint(std::string package, std::string name,

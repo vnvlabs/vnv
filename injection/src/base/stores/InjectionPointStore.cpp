@@ -17,17 +17,16 @@ using namespace VnV;
 InjectionPointStore::InjectionPointStore() {}
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(std::string packageName, std::string name,
-                                                                       const VnV::TemplateCallback& templateCallback,  
+                                                                       const char* pretty ,  
                                                                        NTV& in_args) {
   
   std::string key = packageName + ":" + name;
   auto it = injectionPoints.find(key);
   auto reg = registeredInjectionPoints.find(key);
-
+  std::cout << "INJECTION POINT PRETTY " << pretty << std::endl;
   if (it != injectionPoints.end() && reg != registeredInjectionPoints.end()) {
-    
-     auto templateName = templateCallback.m; 
-     if (it->second.runTemplate(templateName)) {
+     TemplateCallback templateCallback(pretty); 
+     if (templateCallback.match(it->second.runTemplateName)) {
 
         std::map<std::string,std::string> spec_map;
         bool foundOne;
@@ -50,7 +49,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(std::stri
         std::shared_ptr<InjectionPoint> injectionPoint;
         injectionPoint.reset(new InjectionPoint(packageName, name, spec_map, in_args));
         for (auto& test : it->second.tests) {
-          if (test.runTemplate(templateName)) {  
+          if (templateCallback.match(test.runTemplateName)) {  
               injectionPoint->addTest(test);
           }
         }
@@ -129,17 +128,17 @@ void InjectionPointStore::registerInjectionPoint(std::string packageName, std::s
 }
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::string package, std::string name,
-                                                                         const VnV::TemplateCallback& templateCallback, 
+                                                                         const char* pretty, 
                                                                           InjectionPointType type, NTV& in_args) {
   std::string key = package + ":" + name;
   std::shared_ptr<InjectionPoint> ptr;
   if (injectionPoints.find(key) == injectionPoints.end()) {
     return nullptr;  // Not configured
   } else if (type == InjectionPointType::Single) {
-    ptr = newInjectionPoint(package, name, templateCallback, in_args);
+    ptr = newInjectionPoint(package, name, pretty, in_args);
   } else if (type == InjectionPointType::Begin) {    /* New staged injection point.
                                                      -- Add it to the stack */
-    ptr = newInjectionPoint(package, name, templateCallback, in_args); /*Not nullptr because we checked above*/
+    ptr = newInjectionPoint(package, name, pretty, in_args); /*Not nullptr because we checked above*/
     registerLoopedInjectionPoint(package, name, ptr);
   } else {
     // Should never happen.

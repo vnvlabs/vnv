@@ -109,14 +109,47 @@ class IOutputEngine {
     this->Put(variableName, b, m);
   }
 
+  template <typename T, typename = void>
+  struct vnv_has_datatype : std::false_type{};
+
+  template <typename T>
+  struct vnv_has_datatype<T, decltype( (void) T::vnv_datatype, void())> : std::true_type {};
+
   // Get all the  class types that might have a datatype wrapper.
-  template <typename T, typename std::enable_if<std::is_class<T>::value, T>::type* = nullptr>
+  template <typename T, typename std::enable_if<vnv_has_datatype<T>{}, T>::type* = nullptr>
   void Put(std::string variableName, const T& value, const MetaData& m = MetaData()) {
-    auto it = DataTypeStore::instance().getDataType(typeid(T).name());
+    auto it = DataTypeStore::instance().getDataType(T::vnv_datatype);
     if (it != nullptr) {
       it->setData(&value);
     }
-    VnV_Warn(VNVPACKAGENAME, "Could not write variable. Unsupported Datatype");
+  }
+
+  template <typename T>
+  void Write(std::string variableName, long long key, T* data, const BaseAction& action, const MetaData& m = MetaData()) {
+       int total = action.count(comm, getRoot());
+
+    IDataType_vec vec(total);
+
+    auto& c = DataTypeStore::instance();
+    
+    for (int i = 0; i < total; i++) {
+    vec[i] = c.getDataType(key);
+      (vec[i])->setData((void*)&(data[i]));
+    }
+    action.write(comm, key, variableName, vec, this, m);
+  }
+
+  
+  template <typename T, typename std::enable_if<vnv_has_datatype<T>{}, T>::type* = nullptr>
+  void Write(std::string variableName, T* data, const BaseAction& action, const MetaData& m = MetaData()) {
+      auto did = DataTypeStore::instance().getDataType(T::vnv_datatype)->getKey();
+      Write(variableName,did,data,action,m);
+  }
+
+  template <typename T, typename std::enable_if<!(vnv_has_datatype<T>{}), T>::type* = nullptr>
+  void Write(std::string variableName, T* data, const BaseAction& action, const MetaData& m = MetaData()) {
+      auto did = DataTypeStore::instance().getDataType(typeid(T).name())->getKey();
+      Write(variableName,did,data,action,m);
   }
 
   /**
@@ -240,25 +273,7 @@ class IOutputEngine {
   void Put_ReduceVectorRankOnly(std::string variableName, std::string reducer, int size, T* data, int root = -1,
                                 const MetaData& m = MetaData());
 
-  template <typename T>
-  void Write(std::string variableName, T* data, const BaseAction& action, const MetaData& m = MetaData()) {
-    int total = action.count(comm, getRoot());
-
-    IDataType_vec vec(total);
-
-    auto& c = DataTypeStore::instance();
-    auto it = c.getDataType(typeid(T).name());
-    if (it != nullptr) {
-      long long key = it->getKey();
-      for (int i = 0; i < total; i++) {
-        vec[i] = c.getDataType(key);
-        (vec[i])->setData((void*)&(data[i]));
-      }
-    } else {
-      throw VnVExceptionBase("DataType unknown");
-    }
-    action.write(comm, it->getKey(), variableName, vec, this, m);
-  }
+ 
 
   virtual ~IOutputEngine() = default;
 };

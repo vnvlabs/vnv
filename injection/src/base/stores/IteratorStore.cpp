@@ -18,7 +18,7 @@ using namespace VnV;
 IteratorStore::IteratorStore() {}
 
 std::shared_ptr<IterationPoint> IteratorStore::newIterator(std::string packageName, std::string name,
-                                                           const VnV::TemplateCallback& templateCallback, 
+                                                           const char* pretty, 
                                                            int once_,
                                                            NTV& in_args, NTV& out_args) {
   std::string key = packageName + ":" + name;
@@ -27,8 +27,9 @@ std::shared_ptr<IterationPoint> IteratorStore::newIterator(std::string packageNa
 
   if (it != iterators.end() && reg != registeredIterators.end()) {
     
-     auto templateName = templateCallback.m; 
-     if (it->second.runTemplate(templateName)) {
+     TemplateCallback templateCallback(pretty); 
+
+     if (templateCallback.match(it->second.runTemplateName)) {
 
         std::map<std::string,std::string> spec_map;
         bool foundOne;
@@ -51,13 +52,13 @@ std::shared_ptr<IterationPoint> IteratorStore::newIterator(std::string packageNa
         std::shared_ptr<IterationPoint> injectionPoint;
         injectionPoint.reset(new IterationPoint(packageName, name, spec_map, once_, in_args, out_args));
         for (auto& test : it->second.tests) {
-          if (test.runTemplate(templateName)) {  
+          if (templateCallback.match(test.runTemplateName)) {  
               injectionPoint->addTest(test);
           }
         }
 
         for (auto& test : it->second.iterators) {
-          if (test.runTemplate(templateName)) {
+          if (templateCallback.match(test.runTemplateName)) {
             injectionPoint->addIterator(test);
           }
         }
@@ -145,14 +146,14 @@ json IteratorStore::schema() {
 }
 
 std::shared_ptr<IterationPoint> IteratorStore::getNewIterator(std::string package, std::string name,
-                                                              const VnV::TemplateCallback& templateCallback, int once,
+                                                              const char*, int once,
                                                               NTV& in_args, NTV& out_args) {
   std::string key = package + ":" + name;
   if (iterators.find(key) == iterators.end()) {
     return nullptr;  // Not configured
   }
 
-  return newIterator(package, name, templateCallback, once, in_args, out_args);
+  return newIterator(package, name, "", once, in_args, out_args);
 }
 
 void IteratorStore::addIterator(std::string package, std::string name, bool runInternal, json &templateName, std::vector<TestConfig>& tests,

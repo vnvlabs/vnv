@@ -13,19 +13,19 @@ void VnV::defaultCallBack(VnV_Comm /*comm*/,
 
 
 void VnV::CppInjection::BeginLoop(VnV_Comm comm, const char* package,
-                                  const char* id, const VnV::TemplateCallback& templateCallback, 
+                                  const char* id, const char* pretty,
                                   const char* fname, int line,
                                   const DataCallback& callback, NTV& map) {
   
-  VnV::RunTime::instance().injectionPoint_begin(comm, package, id, templateCallback, fname, line,
+  VnV::RunTime::instance().injectionPoint_begin(comm, package, id, pretty, fname, line,
                                                 callback, map);
 }
 
 void VnV::CppInjection::BeginPoint(VnV_Comm comm, const char* package,
-                                   const char* id, const VnV::TemplateCallback& templateCallback,
+                                   const char* id, const char* pretty,
                                    const char* fname, int line,
                                    const DataCallback& callback, NTV& map) {
-  VnV::RunTime::instance().injectionPoint(comm, package, id, templateCallback, fname, line,
+  VnV::RunTime::instance().injectionPoint(comm, package, id, pretty, fname, line,
                                           callback, map);
 }
 

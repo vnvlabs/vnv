@@ -6,12 +6,12 @@
   const char* __vnv__verison_info_##PNAME() {                              \
     return "{"                                                             \
        "\"git_retrieved_state\" : true," \
-       "\"git_head_sha1\"       : \"dac84a60591f0fb7280f07ef913502e746fc7be3\"," \
+       "\"git_head_sha1\"       : \"4908de6105fc8052100d5d02975f9986a80c81e6\"," \
        "\"git_dirty\"           : \"true," \
        "\"git_author\"          : \"ben\"," \
        "\"git_author_email\"    : \"boneill@rnet-tech.com\"," \
-       "\"git_commit_date\"     : \"2021-11-03 07:25:10 -0400\"," \
-       "\"git_describe\"        : \"dac84a6\"," \
+       "\"git_commit_date\"     : \"2021-11-05 15:29:14 -0400\"," \
+       "\"git_describe\"        : \"4908de6\"," \
        "\"c_compiler\"          : \"/bin/x86_64-linux-gnu-gcc-10\"," \
        "\"c_compiler_version\"  : \"10.3.0\"," \
        "\"cxx_compiler\"        : \"/bin/x86_64-linux-gnu-g++-10\"," \

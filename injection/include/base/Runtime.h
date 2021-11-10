@@ -160,7 +160,7 @@ class RunTime {
  private:
   std::shared_ptr<IterationPoint> getNewInjectionIteration(
       VnV_Comm comm, std::string pname, std::string id, 
-      const VnV::TemplateCallback& templateCallback, 
+      const char* pretty, 
       InjectionPointType type,
       int once, NTV& in_args, NTV& out_args);
 
@@ -168,7 +168,7 @@ class RunTime {
   int injectionIterationRun(VnV_Iterator* iterator);
 
   VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id,
-                                  const VnV::TemplateCallback& templateCallback, 
+                                  const char* pretty, 
                                   std::string fname, int line,
                                   const DataCallback& callback, NTV& inputs,
                                   NTV& outputs, int once);
@@ -183,14 +183,14 @@ class RunTime {
   std::shared_ptr<PlugPoint> getNewInjectionPlug(VnV_Comm comm,
                                                  std::string pname,
                                                  std::string id, 
-                                                 const VnV::TemplateCallback& templateCallback, 
+                                                 const char* pretty, 
                                                  NTV& in_args,
                                                  NTV& out_args);
 
  public:
   // Cpp Interface for an Injection Plug
   VnV_Iterator injectionPlug(VnV_Comm, std::string pname, std::string id,
-                             const VnV::TemplateCallback& templateCallback, 
+                             const char* pretty, 
                              std::string fname, int line,
                              const DataCallback& callback, NTV& inputs,
                              NTV& outputs);
@@ -208,7 +208,7 @@ class RunTime {
   std::shared_ptr<InjectionPoint> getNewInjectionPoint(VnV_Comm comm,
                                                        std::string pname,
                                                        std::string id,
-                                                       const VnV::TemplateCallback& templateCallback, 
+                                                       const char* pretty, 
                                                        InjectionPointType type,
                                                        NTV& args);
 
@@ -220,12 +220,12 @@ class RunTime {
 
  public:
   void injectionPoint(VnV_Comm comm, std::string pname, std::string id,
-                      const VnV::TemplateCallback& templateCallback, 
+                      const char* pretty, 
                       std::string fname, int line, const DataCallback& callback,
                       NTV& args);
 
   void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id, 
-                            const VnV::TemplateCallback& templateCallback, 
+                            const char* pretty, 
                             std::string fname, int line,
                             const DataCallback& callback, NTV& args);
 

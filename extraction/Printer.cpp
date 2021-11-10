@@ -31,6 +31,7 @@ std::string getValueFromStringLiteral(const Expr* a) {
 unsigned int getInfo(const CallExpr* call, const FunctionDecl* func,
                      const MatchFinder::MatchResult& Result, json& info,
                      std::string& id, std::string& filename, int begin) {
+
   FullSourceLoc callLocation = Result.Context->getFullLoc(call->getBeginLoc());
   FullSourceLoc funclocation = Result.Context->getFullLoc(func->getBeginLoc());
 
@@ -45,9 +46,8 @@ unsigned int getInfo(const CallExpr* call, const FunctionDecl* func,
   info["Calling Function"] = func->getNameInfo().getAsString();
   info["Calling Function Line"] = funclocation.getSpellingLineNumber();
   info["Calling Function Column"] = funclocation.getSpellingColumnNumber();
+  info["Calling Function Qual"] = func->getQualifiedNameAsString();
 
- 
-  
 
   json parameters;
   unsigned int count = (begin);
@@ -55,20 +55,19 @@ unsigned int getInfo(const CallExpr* call, const FunctionDecl* func,
       getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts()));
   id = VnV::StringUtils::trim_copy(
       getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts()));
+  
+  std::cout << info.dump() << std::endl;
+  //std::string pretty = VnV::StringUtils::trim_copy(
+  //    getValueFromStringLiteral(call->getArg(count)->IgnoreParenCasts()));
+  //std::cout << "PRETTY: " << pretty << " " << info.dump() << std::endl;
+  
   std::string key = package + ":" + id;
   id = key;
   return count;
 }
 
-std::string typeToName(QualType type) {
-  auto ap =  type->getAsRecordDecl();
-    if (ap != nullptr) {
-      std::cout << ap->getName().str() << " " << type.getAsString() << std::endl;
-      type->dump();
-      return ap->getName().str();
-    } else {
-      return type.getAsString();
-    }
+std::string typeToName(QualType type, SourceManager& srcMgr) {
+    return type.getAsString();
 }
 
 json extractParameters(const CallExpr* E, ASTContext *context, unsigned int count) {
@@ -76,16 +75,18 @@ json extractParameters(const CallExpr* E, ASTContext *context, unsigned int coun
   json templates = json::object();
   
   while (count < E->getNumArgs() - 1) {
+    
     const clang::Expr* a = E->getArg(count++)->IgnoreParenCasts();
     std::string xs = getValueFromStringLiteral(a);
+
     const clang::Expr* aa = E->getArg(count++)->IgnoreParenCasts();
     
-    parameters[xs] = typeToName(aa->getType()) ;
+    parameters[xs] = typeToName(aa->getType(), context->getSourceManager()) ;
     
     auto p = aa->getType()->getAs<SubstTemplateTypeParmType>();
     if (p!=nullptr) {
         std::string tname = p->getReplacedParameter()->getDecl()->getName().str();
-        templates[tname] = typeToName(p->getReplacementType());
+        templates[tname] = typeToName(p->getReplacementType(), context->getSourceManager());
     } 
 
   }   
@@ -100,7 +101,6 @@ json extractParameters(const CallExpr* E, ASTContext *context, unsigned int coun
 }
 
 void addParameters(const CallExpr* E, const FunctionDecl* F, ASTContext *context, json& idJson, unsigned int count) {
-  std::cout << F->getNameAsString() << std::endl;
   json a = extractParameters(E,context, count);
   VnV::JsonUtilities::getOrCreate(idJson, "parameters", VnV::JsonUtilities::CreateType::Array).push_back(a);
 }  // namespace
@@ -135,6 +135,9 @@ class VnVPrinter : public MatchFinder::MatchCallback {
 
     } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("callsite_begin")) {
+      
+      std::cout << "C Callsite Begin" << std::endl;
+
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
       count++;  // Skip the filename
       count++;  // Skip the line
@@ -144,6 +147,8 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
       addParameters(E,FF,Result.Context, idJson, count);
+      std::cout << "C Callsite END" << std::endl;
+      
 
     } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite")) {
@@ -203,6 +208,8 @@ class VnVPrinter : public MatchFinder::MatchCallback {
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>(
                    "cpp_callsite_begin")) {
+      
+      std::cout << "Callsite Begin" << std::endl;
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1);
       count++;  // Skip the template Callback
       count++;  // Skip the filename
@@ -213,6 +220,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["Begin"] = info;
 
+      std::cout << "Callsite END" << std::endl;
       addParameters(E,FF, Result.Context,idJson, count);
     } else if (const CallExpr* E =
                    Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iter")) {
