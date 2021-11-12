@@ -23,8 +23,6 @@ class RegistrationWriter {
       std::ostringstream os_declare;
       os_declare << "//PACKAGENAME: " << packageName << "\n\n";
       os_declare << "#include \"VnV.h\" \n";
-      os_declare << "#include \"version/version.h\"\n";
-      os_declare << "\n\nVNVVERSIONINFOCALLBACK(" << packageName << ")\n\n";
       oss_declare[packageName] = std::move(os_declare);
 
       std::ostringstream os_register;
@@ -163,7 +161,7 @@ class RegistrationWriter {
           std::string n = it.value()["name"].get<std::string>();
           createPackageOss(pname);
           oss_declare[pname] << "DECLARESUBPACKAGE(" << n << ")\n";
-          oss_register[pname] << "\tREGISTERSUBPACKAGE(" << pname << "," << n
+          oss_register[pname] << "\tREGISTERSUBPACKAGE(" << n
                               << ");\n";
           VnV::JsonUtilities::getOrCreate(pjson[pname], "SubPackages")[n] =
               it.value();
@@ -248,10 +246,10 @@ void writeFile(json& cacheInfo, std::string outputFileName,
       std::getline(efile, sLine);
       if (sLine.compare(hashStr) == 0) {
         // The cache hasnt changed, so this file definetly hasn't changed.
+        std::cout << "---->Cache has not changed since this file was written;" << std::endl;
         efile.close();
         return;
-      } else {
-      }
+      } 
     }
     efile.close();
   }
@@ -290,26 +288,26 @@ void writeFile(json& cacheInfo, std::string outputFileName,
 
   oss << r.printPackage(packageName);
 
-  // If the file exists, load it and compare it to the new string. This is
-  // TODO -- This is a stop-gap measure to avoid recompilation when the file
-  // doesn't actually change.
-
   // Write the file.
+  std::cout << "----> Writing " << outputFileName << std::endl;
   std::ofstream ofile(outputFileName);
   ofile << hashStr << "\n";
   ofile << oss.str();
   ofile.close();
 
-  if (cacheFile.empty()) {
-    return;
+  if (cacheInfo.contains("CACHEHASH") && cacheInfo["CACHEHASH"].get<std::size_t>() == h) {
+      std::cout << "---->Cache has not changed -- Not writing cache" << std::endl;
+      return;  // Cache is the same, no need to rewrite it.
   }
-  if (cacheInfo.contains("CACHEHASH") &&
-      cacheInfo["CACHEHASH"].get<std::size_t>() == h) {
-    return;  // Cache is the same, no need to rewrite it.
+
+  if (cacheFile.empty()) {
+    std::cout << "---->Could not write cache due to bad cache file name" << cacheFile << std::endl;
+    return;
   }
 
   std::ofstream cacheStream(cacheFile);
   if (!cacheStream.good()) {
+    std::cout << "---->Could not write cache due to bad cache file name" << cacheFile << std::endl;
     return;
   }
 
@@ -322,12 +320,6 @@ void writeFile(json& cacheInfo, std::string outputFileName,
       ++it;
     }
   }
-
-  json a = json::array();
-  for (auto& it : r.oss_declare) {
-    a.push_back(it.first);
-  }
-  cacheInfo["Packages"] = a;
 
   // get a list of all includes used in the different files.
   std::hash<std::string> hasher;
@@ -350,33 +342,47 @@ void writeFile(json& cacheInfo, std::string outputFileName,
   }
 
   // Write the cache.
+  std::cout << "----> Writing the cache file" << std::endl;
+  
   time_t now;
   time(&now);
   cacheInfo[LAST_RUN_TIME] = VnV::TimeUtils::timeToISOString(&now);
   cacheInfo["CACHEHASH"] = h;
   cacheStream << cacheInfo.dump();
   cacheStream.close();
+
 }
 
 // Returns a list of files that have changed since the cache last ran.
 std::set<std::string> checkCache(json& cacheInfo,
                                  std::set<std::string>& files) {
+  
   json& cacheMap = VnV::JsonUtilities::getOrCreate(cacheInfo, "map");
   json& cacheFiles = VnV::JsonUtilities::getOrCreate(cacheInfo, "files");
 
   bool hasCache = (cacheInfo.contains(LAST_RUN_TIME));
 
   std::set<std::string> modFiles;
+  
   if (hasCache) {
     std::string lastRunTime = cacheInfo[LAST_RUN_TIME].get<std::string>();
 
     std::map<std::string, bool> fModMap;
 
+    bool write = false;
+    std::ostringstream oss;
+    oss << "----> The following files have changed since we last ran:" << std::endl;
+    
     for (auto it : cacheMap.items()) {
-      fModMap[it.key()] = (VnV::TimeUtils::timeForFile(
-                               it.value().get<std::string>()) > lastRunTime);
+      auto r = (VnV::TimeUtils::timeForFile( it.value().get<std::string>()) > lastRunTime);
+      fModMap[it.key()] = r;
+      if (r) { write=true; oss << "--------> " << it.value().get<std::string>() << std::endl; }
+    }
+    if (write) {
+        std::cout << oss.str() << std::endl;;
     }
 
+    
     for (auto& it : files) {  // all files to be compiled. (strings)
       if (cacheFiles.contains(it)) {
         for (auto f : cacheFiles[it].items()) {
@@ -391,6 +397,18 @@ std::set<std::string> checkCache(json& cacheInfo,
         modFiles.insert(it);  // New File not prev in cache.
       }
     }
+
+    if (modFiles.size() > 0 ) {
+      std::ostringstream os; 
+      os << "----> The following files will be reparsed:" << std::endl;
+    
+      for (auto it : modFiles) {
+          os << "--------> " << it << std::endl;
+      }
+      std::cout << os.str() << std::endl;;
+    }
+
+
     return modFiles;
   } else {
     return files;

@@ -35,13 +35,13 @@ void UnwrapParameterPack(int inputs, NTV& minputs, NTV& moutputs, V& name, T& fi
 void Register(const char* package, const char* id, std::string json);
 
 VnV_Iterator BeginIteration(VnV_Comm comm, const char* package, const char* id,
-                            const char* pretty, const char* fname, int line,
+                            struct VnV_Function_Sig pretty, const char* fname, int line,
                             const DataCallback& callback, int once, NTV& inputs, NTV& ouputs);
 
 int Iterate(VnV_Iterator* iterator);
 
 template <typename A, typename... Args>
-VnV_Iterator IterationPack(A comm, const char* package, const char* id, const char* pretty,
+VnV_Iterator IterationPack(A comm, const char* package, const char* id, struct VnV_Function_Sig pretty,
                            const char* fname, int line, const DataCallback& callback, int once, int inputs,
                            Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> minputs;
@@ -56,7 +56,7 @@ VnV_Iterator IterationPack(A comm, const char* package, const char* id, const ch
 }  // namespace VnV
 
 #  define INJECTION_ITERATION_C(VAR, PNAME, COMM, NAME, ONCE, INPUTS, callback, ...)          \
-    VnV_Iterator VAR = VnV::CppIteration::IterationPack(COMM, PNAME, NAME, __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+    VnV_Iterator VAR = VnV::CppIteration::IterationPack(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, \
                                                         callback, ONCE, INPUTS EVERYONE(__VA_ARGS__));           \
     while (VnV::CppIteration::Iterate(&VAR))
 

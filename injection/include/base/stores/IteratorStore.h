@@ -32,7 +32,7 @@ class IteratorStore : public BaseStore {
 
   std::shared_ptr<IterationPoint> newIterator(std::string packageName,
                                               std::string name,
-                                              const char* pretty, 
+                                              struct VnV_Function_Sig pretty, 
                                               int once_,
                                               NTV& in_args, NTV& out_args);
 
@@ -44,7 +44,7 @@ class IteratorStore : public BaseStore {
 
   std::shared_ptr<IterationPoint> getNewIterator(std::string package,
                                                  std::string name,
-                                                 const char* pretty, 
+                                                 struct VnV_Function_Sig pretty, 
                                                  int once,
                                                  NTV& in_args, NTV& out_args);
 

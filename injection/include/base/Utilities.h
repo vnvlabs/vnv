@@ -174,5 +174,14 @@ namespace HashUtils {
 std::size_t vectorHash(std::vector<int> const& vec);
 }
 
+namespace Log {
+    void up();
+    void down();
+    std::ostream& log();
+}
+
 }  // namespace VnV
+
+
+
 #endif

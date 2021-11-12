@@ -24,13 +24,13 @@ namespace CppPlug {
 void Register(const char* package, const char* id, std::string json);
 
 VnV_Iterator BeginPlug(VnV_Comm comm, const char* package, const char* id,
-                       const  char* pretty, const char* fname, int line,
+                       struct VnV_Function_Sig pretty, const char* fname, int line,
                        DataCallback callback, NTV& inputs, NTV& outputs);
 
 int Iterate(VnV_Iterator* iterator);
 
 template <typename A, typename... Args>
-VnV_Iterator PlugPack(A comm, const char* package, const char* id, const char* pretty,
+VnV_Iterator PlugPack(A comm, const char* package, const char* id, struct VnV_Function_Sig pretty,
                       const char* fname, int line, const DataCallback& callback, int inputs, Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> minputs;
   std::map<std::string, std::pair<std::string, void*>> moutputs;
@@ -44,7 +44,7 @@ VnV_Iterator PlugPack(A comm, const char* package, const char* id, const char* p
 
 // Macro for an iterative vnv injection point.
 #  define INJECTION_FUNCTION_PLUG_C(VAR, PNAME, COMM, NAME, INPUTS, callback, ...)            \
-    VnV_Iterator VAR = VnV::CppPlug::PlugPack(COMM, PNAME, NAME, __PRETTY_FUNCTION__, __FILE__, __LINE__, callback, \
+    VnV_Iterator VAR = VnV::CppPlug::PlugPack(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, \
                                               INPUTS EVERYONE(__VA_ARGS__));                                     \
     while (VnV::CppPlug::Iterate(&VAR))
 

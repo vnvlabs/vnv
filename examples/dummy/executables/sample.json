@@ -22,8 +22,7 @@
         "tests" : [
             {
                 "name" : "cputime",
-                "package" : "VNV",
-                "parameters": {}
+                "package" : "VNV"
             }
         ]
       }

@@ -5,4 +5,5 @@ target_sources(
           ${CMAKE_CURRENT_LIST_DIR}/CJson.cpp
           ${CMAKE_CURRENT_LIST_DIR}/Logging.cpp
           ${CMAKE_CURRENT_LIST_DIR}/Communication.cpp
+          ${CMAKE_CURRENT_LIST_DIR}/prettyfunction.cpp
           ${CMAKE_CURRENT_LIST_DIR}/Wrappers.cpp)

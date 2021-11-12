@@ -22,4 +22,5 @@ VNVEXTERNC VnV_Comm VnV_Comm_Custom(const char* name, void* data);
 
 #define INJECTION_EXECUTABLE(package) INJECTION_REGISTRATION(package);
 
+
 #endif  // COMMUNICATION_H

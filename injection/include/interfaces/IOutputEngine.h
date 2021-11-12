@@ -16,7 +16,7 @@
 #include "c-interfaces/Wrappers.h"
 #include "interfaces/IUnitTest.h"
 #include "json-schema.hpp"
-
+#include "base/InjectionPointConfig.h"
 #define FetchTypes X(std::string) X(int) X(double) X(long)
 
 /**
@@ -25,8 +25,6 @@
 using nlohmann::json;
 
 namespace VnV {
-
-enum class InjectionPointType { Single, Begin, End, Iter };
 
 class IOutputEngine;
 
@@ -40,13 +38,7 @@ std::string getType(InjectionPointType type, std::string stageId);
 int toC(InjectionPointType type);
 }  // namespace InjectionPointTypeUtils
 
-enum class VariableEnum { Double, String, Int, Float, Long };
-namespace VariableEnumFactory {
-VariableEnum fromString(std::string s);
-std::string toString(VariableEnum e);
-}  // namespace VariableEnumFactory
 
-typedef std::map<std::string, std::string> MetaData;
 
 class BaseAction {
  public:

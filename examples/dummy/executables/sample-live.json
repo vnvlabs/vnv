@@ -27,13 +27,11 @@
         "tests" : [
             {
                 "name" : "cputime",
-                "package" : "VNV",
-                "parameters": {}
+                "package" : "VNV"
             },
             {
                 "name" : "interupt",
-                "package" : "Live",
-                "parameters": {"x" : "x" }
+                "package" : "Live"  
             }
         ]
       }

@@ -13,7 +13,7 @@ void VnV::defaultCallBack(VnV_Comm /*comm*/,
 
 
 void VnV::CppInjection::BeginLoop(VnV_Comm comm, const char* package,
-                                  const char* id, const char* pretty,
+                                  const char* id, struct VnV_Function_Sig pretty,
                                   const char* fname, int line,
                                   const DataCallback& callback, NTV& map) {
   
@@ -22,7 +22,7 @@ void VnV::CppInjection::BeginLoop(VnV_Comm comm, const char* package,
 }
 
 void VnV::CppInjection::BeginPoint(VnV_Comm comm, const char* package,
-                                   const char* id, const char* pretty,
+                                   const char* id, struct VnV_Function_Sig pretty,
                                    const char* fname, int line,
                                    const DataCallback& callback, NTV& map) {
   VnV::RunTime::instance().injectionPoint(comm, package, id, pretty, fname, line,

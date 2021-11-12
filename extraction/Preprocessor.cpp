@@ -340,7 +340,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Package");
       std::string pname = pp.getSpelling(*Args->getUnexpArgument(0));
       jj[pname] = getDocs(Range);
-    } else if (nae == "INJECTION_POINT_TC" || nae == "INJECTION_LOOP_BEGIN_TC") {
+    } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true),
                         getPackageName(Args, 2, true));
 
@@ -349,7 +349,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj["docs"] = getDocs(Range);
       thisStage["docs"] = "";
 
-    } else if (nae == "INJECTION_ITERATION_TC") {
+    } else if (nae == "INJECTION_ITERATION_C") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 1, true),
                         getPackageName(Args, 3, true));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
@@ -358,7 +358,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj["iterator"] = true;
       thisStage["docs"] = "";
 
-    } else if (nae == "INJECTION_FUNCTION_PLUG_TC") {
+    } else if (nae == "INJECTION_FUNCTION_PLUG_C") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 1, true),
                         getPackageName(Args, 3, true));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");

@@ -454,3 +454,24 @@ json VnV::JsonUtilities::load(std::string configFile) {
   }
   return mainJson;
 }
+
+namespace VnV{ namespace Log {
+int level = 0;
+std::ostream& o = std::cout;
+std::string tab() {
+      std::string s = "----";
+      for (int i = 0; i < level; i++) {
+         s += "----";
+      }
+      return s + ">";
+}
+
+
+void up() { ++level;};
+void down() { --level; }
+std::ostream& log() {
+    o << tab();
+    return o;
+}
+}
+}

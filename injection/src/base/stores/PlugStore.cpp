@@ -18,53 +18,49 @@ BaseStoreInstance(PlugStore) BaseStoreInstance(PlugsStore)
 
     PlugStore::PlugStore() {}
 
-std::shared_ptr<PlugPoint> PlugStore::newPlug(std::string packageName, std::string name,
-                                              const char* pretty, NTV& in_args,
-                                              NTV& out_args) {
+std::shared_ptr<PlugPoint> PlugStore::newPlug(std::string packageName, std::string name, struct VnV_Function_Sig pretty,
+                                              NTV& in_args, NTV& out_args) {
   std::string key = packageName + ":" + name;
   auto it = plugs.find(key);
   auto reg = registeredPlugs.find(key);
 
-
   if (it != plugs.end() && reg != registeredPlugs.end()) {
-     TemplateCallback templateCallback(pretty);
+    FunctionSigniture sig(pretty);
 
-     if (templateCallback.match(it->second.runTemplateName)) {
-
-        std::map<std::string,std::string> spec_map;
-        bool foundOne;
-        for (auto &it : reg->second.specJson.items()) {
-          json& template_spec = it.value()["templates"];
-          if (templateCallback.match(template_spec)) {
-              for (auto itt : it.value()["parameters"].items()) {
-                spec_map[itt.key()] = itt.value().get<std::string>();
-              }
-              foundOne = true;
-              break;
+    if (sig.run(it->second.runConfig)) {
+      std::map<std::string, std::string> spec_map;
+      bool foundOne;
+      for (auto& it : reg->second.specJson.items()) {
+        if (sig.match(it.key())) {
+          for (auto itt : it.value().items()) {
+            spec_map[itt.key()] = itt.value().get<std::string>();
           }
+          foundOne = true;
+          break;
         }
-        if (!foundOne) {
-          throw VnVExceptionBase("No template specification matched -- Bugs... run");
-        }
-      
-        // Construct and reset because InjectionPoint ctor is only accessible in
-        // InjectionPointStore.
-        std::shared_ptr<PlugPoint> injectionPoint;
-        injectionPoint.reset(new PlugPoint(packageName, name, spec_map, in_args, out_args));
-        for (auto& test : it->second.tests) {
-          if (templateCallback.match(test.runTemplateName)) {
-                injectionPoint->addTest(test);
-          }
-        }
+      }
+      if (!foundOne) {
+        throw VnVExceptionBase("No template specification matched -- Bugs... run");
+      }
 
-        if (it->second.plug != nullptr && templateCallback.match(it->second.plug->runTemplateName)) {
-          injectionPoint->setPlug(*it->second.plug);
+      // Construct and reset because InjectionPoint ctor is only accessible in
+      // InjectionPointStore.
+      std::shared_ptr<PlugPoint> injectionPoint;
+      injectionPoint.reset(new PlugPoint(packageName, name, spec_map, in_args, out_args));
+      for (auto& test : it->second.tests) {
+        if (sig.match(test.getRunConfig())) {
+          injectionPoint->addTest(test);
         }
+      }
 
-        injectionPoint->runInternal = it->second.runInternal;
+      if (it->second.plug != nullptr && sig.run(it->second.plug->getRunConfig())) {
+        injectionPoint->setPlug(*it->second.plug);
+      }
 
-        return injectionPoint;
-     }
+      injectionPoint->runInternal = it->second.runInternal;
+
+      return injectionPoint;
+    }
   }
   return nullptr;
 }
@@ -140,8 +136,7 @@ void PlugStore::registerPlug(std::string packageName, std::string id,
   }
 }
 
-std::shared_ptr<PlugPoint> PlugStore::getNewPlug(std::string package, std::string name,
-                                                 const char* pretty,
+std::shared_ptr<PlugPoint> PlugStore::getNewPlug(std::string package, std::string name, struct VnV_Function_Sig pretty,
 
                                                  NTV& in_args, NTV& out_args) {
   std::string key = package + ":" + name;
@@ -151,10 +146,8 @@ std::shared_ptr<PlugPoint> PlugStore::getNewPlug(std::string package, std::strin
   return newPlug(package, name, pretty, in_args, out_args);
 }
 
-void PlugStore::addPlug(std::string package, std::string name, bool runInternal, json& templateName, std::vector<TestConfig>& tests,
-                        std::shared_ptr<PlugConfig>& nPlugs) {
-  
+void PlugStore::addPlug(std::string package, std::string name, bool runInternal, json& templateName,
+                        std::vector<TestConfig>& tests, std::shared_ptr<PlugConfig>& nPlugs) {
   std::string key = package + ":" + name;
   plugs.insert(std::make_pair(key, InjectionPlugConfig(package, name, runInternal, templateName, tests, nPlugs)));
-
 }

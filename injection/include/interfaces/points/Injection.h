@@ -35,10 +35,10 @@ void UnwrapParameterPack(NTV& m, V& name, T& first, Args&&... args) {
   UnwrapParameterPack(m, std::forward<Args>(args)...);
 }
 
-void BeginPoint(VnV_Comm comm, const char* package, const char* id, const char* pretty, const char* fname, int line,
+void BeginPoint(VnV_Comm comm, const char* package, const char* id, struct VnV_Function_Sig pretty, const char* fname, int line,
                 const DataCallback& callback, NTV& map);
 
-void BeginLoop(VnV_Comm comm, const char* package, const char* id, const char* pretty, const char* fname, int line,
+void BeginLoop(VnV_Comm comm, const char* package, const char* id, struct VnV_Function_Sig pretty, const char* fname, int line,
                const DataCallback& callback, NTV& map);
 
 void IterLoop(const char* package, const char* id, const char* iterId, const char* fname, int line);
@@ -48,7 +48,7 @@ bool EndLoop(const char* package, const char* id, const char* fname, int line);
 void RegisterInjectionPoint(const char* package, const char* id, std::string json);
 
 template <typename A, typename... Args>
-void BeginLoopPack(A comm, const char* package, const char* id, const char* pretty, const char* fname, int line,
+void BeginLoopPack(A comm, const char* package, const char* id, struct VnV_Function_Sig pretty, const char* fname, int line,
                    const DataCallback& callback, Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> m;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
@@ -56,7 +56,7 @@ void BeginLoopPack(A comm, const char* package, const char* id, const char* pret
 }
 
 template <typename A, typename... Args>
-void BeginPack(A comm, const char* package, const char* id, const char* pretty, const char* fname, int line,
+void BeginPack(A comm, const char* package, const char* id, struct VnV_Function_Sig pretty, const char* fname, int line,
                const DataCallback& callback, Args&&... args) {
   std::map<std::string, std::pair<std::string, void*>> m;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
@@ -68,12 +68,12 @@ void BeginPack(A comm, const char* package, const char* id, const char* pretty, 
 
 // BEGIN A SINGLE INJECTION POINT THAT HAS TEMPLATE PARAMETERS AND A CALLBACK.
 #  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...)                                \
-    VnV::CppInjection::BeginPack(COMM, PNAME, NAME, __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+    VnV::CppInjection::BeginPack(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, \
                                  callback EVERYONE(__VA_ARGS__));
 
 // BEGIN A LOOPED INJECTION POINT WITH TEMPLATES AND A CALLBACK
 #  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...)                               \
-    VnV::CppInjection::BeginLoopPack(COMM, PNAME, NAME, __PRETTY_FUNCTION__, __FILE__, __LINE__, \
+    VnV::CppInjection::BeginLoopPack(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, \
                                      callback EVERYONE(__VA_ARGS__))
 
 // SINGULAR INJECTION POINT NO TEMPLATES AND NO CALLBACK.

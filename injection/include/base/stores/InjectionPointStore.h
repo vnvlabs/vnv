@@ -15,7 +15,7 @@
 #include "base/stores/BaseStore.h"
 #include "json-schema.hpp"
 #include "interfaces/ITest.h"
-#include "base/TemplateCallback.h"
+#include "base/FunctionSigniture.h"
 #include "base/InjectionPointConfig.h"
 
 using nlohmann::json;
@@ -27,42 +27,10 @@ typedef std::map<std::string, std::pair<std::string, void*>> NTV;
 class InjectionPoint;
 class TestConfig;
 class SamplerConfig;
-enum class InjectionPointType;
-
-/**
- * \class InjectionPointStore
- * @brief The InjectionPointStore class
- *
- * The InjectionPointStore manages the creation of all InjectionPoints. An new
- * InjectionPoint is created each time a INJECTION_POINT macro is found. The
- * InjectionPoints are initialized using a <name> and <TestConfig> extracted
- * from the users input file. For that reason, the InjectionPointStore keeps a
- * map of all configurations available.
- *
- * The class follows a singleton static initialization pattern. That is, a
- * static instance of the class is created on the first call to
- * getInjectionPointStore(). After that, the same instance is returned each
- * time.
- *
- * @todo We should provide an interface for hot-patching a running application.
- * The idea would be to check some user defined log file for changes prior to
- * creating an InjectionPoint. This would allow the user to turn on/off testing
- * while the program is running...
- */
-class InjectionPointSpec {
- public:
-  std::string package;
-  std::string name;
-  json specJson;
-  InjectionPointSpec(std::string package, std::string name, json& spec) {
-    this->package = package;
-    this->name = name;
-    this->specJson = spec;
-  }
-};
 
 
 class InjectionPointStore : public BaseStore {
+
   std::map<std::string, std::stack<std::shared_ptr<InjectionPoint>>> active; /**< Active injection point stack*/
   std::map<std::string, InjectionPointConfig> injectionPoints;               /**< The stored configurations */
   std::map<std::string, InjectionPointSpec> registeredInjectionPoints;
@@ -76,7 +44,7 @@ class InjectionPointStore : public BaseStore {
    */
 
   std::shared_ptr<InjectionPoint> newInjectionPoint(std::string packageName, std::string name,
-                                                    const char* pretty, NTV& in_args);
+                                                    struct VnV_Function_Sig pretty, NTV& in_args);
 
   std::shared_ptr<InjectionPoint> fetchFromQueue(std::string packageName, std::string name, InjectionPointType stage);
 
@@ -117,7 +85,7 @@ class InjectionPointStore : public BaseStore {
    *
    */
   std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string package, std::string name,
-                                                       const char* pretty,
+                                                       struct VnV_Function_Sig pretty,
                                                        InjectionPointType type, NTV& in_args);
 
   std::shared_ptr<InjectionPoint> getExistingInjectionPoint(std::string package, std::string name,

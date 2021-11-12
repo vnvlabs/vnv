@@ -17,5 +17,3 @@ set_target_properties(injection PROPERTIES INSTALL_RPATH
 # Message pack is used by the parallel output engine to pack buffers. This is
 # listed as public to get the unit tests working.
 target_link_libraries(injection PRIVATE msgpack)
-
-add_subdirectory(version)

@@ -38,7 +38,7 @@ class PlugStore : public BaseStore {
   std::map<std::string, PlugSpec> registeredPlugs;
 
   std::shared_ptr<PlugPoint> newPlug(std::string packageName, std::string name,
-                                     const char* pretty, 
+                                     struct VnV_Function_Sig pretty, 
                                      NTV& in_args, NTV& out_args);
 
  public:
@@ -47,7 +47,7 @@ class PlugStore : public BaseStore {
   void registerPlug(std::string packageName, std::string id, json& jsonObject);
 
   std::shared_ptr<PlugPoint> getNewPlug(std::string package, std::string name,
-                                        const char* pretty, 
+                                        struct VnV_Function_Sig pretty, 
                                         NTV& in_args, NTV& out_args);
 
   nlohmann::json schema();

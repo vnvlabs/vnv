@@ -18,6 +18,8 @@ function(addExecutable name packageName file)
 endfunction()
 
 
+
+
 if(WITH_MPI)
 
   addexecutable(sample.a SampleExecutable "sample.cpp")
@@ -37,7 +39,15 @@ endif()
 
 addexecutable(serial.a SerialExample "serial.cpp")
 addexecutable(template.a Template "template.cpp")
-  
+
+
+add_executable(Noclang "noclang.cpp")
+target_link_libraries(Noclang PRIVATE Injection::Injection)
+
+add_executable(App "app.cpp")
+target_link_libraries(App PRIVATE dummyLibOne)
+
+
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json
                ${CMAKE_CURRENT_BINARY_DIR}/vv-input.json COPYONLY)

@@ -21,11 +21,7 @@
       "tests": [
         {
           "name": "cputime",
-          "package": "VNV",
-          "runScope": [
-            "all"
-          ],
-          "parameters": {}
+          "package": "VNV"
         }
       ]
     }

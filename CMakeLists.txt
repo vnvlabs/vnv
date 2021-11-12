@@ -41,9 +41,8 @@ endif()
 
 add_subdirectory(extraction)
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in
-               ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake @ONLY)
-include("${CMAKE_SOURCE_DIR}/cmake/Registration.cmake")
+configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake @ONLY)
+include("${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake")
 
 add_subdirectory(injection)
 add_subdirectory(report-generation)

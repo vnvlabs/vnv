@@ -9,7 +9,7 @@ void VnV::CppPlug::Register(const char* package, const char* id,
 }
 
 VnV_Iterator VnV::CppPlug::BeginPlug(VnV_Comm comm, const char* package,
-                                     const char* id, const char* pretty,
+                                     const char* id, struct VnV_Function_Sig pretty,
                                      const char* fname,
                                      int line, DataCallback callback,
                                      NTV& inputs, NTV& outputs) {

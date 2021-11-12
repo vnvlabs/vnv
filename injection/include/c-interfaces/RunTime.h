@@ -20,9 +20,20 @@
 
 #  define DECLARESUBPACKAGE(NAME) INJECTION_REGISTRATION(NAME);
 
-#  define REGISTERSUBPACKAGE(PNAME, NAME)          \
-    VnV_Register_Subpackage(VNV_STR(PNAME), #NAME, \
-                            INJECTION_REGISTRATION_PTR(NAME));
+#  define REGISTERSUBPACKAGE(NAME)          \
+    VnV_Register_Subpackage(#NAME, INJECTION_REGISTRATION_PTR(NAME));
+
+#define RES(x) V
+#define REGSUB(x) RES(x)
+#define ESPI(...) FOR_EACH(DECLARESUBPACKAGE,__VA_ARGS__)
+#define ESPR(...) FOR_EACH(REGISTERSUBPACKAGE,__VA_ARGS__)
+
+#define INJECTION_EXECUTABLE_NOCLANG(package,...)\
+    ESPI(__VA_ARGS__) \
+    INJECTION_REGISTRATION(package) { \
+       ESPR(__VA_ARGS__)              \
+    }                                 \
+
 
 // This doesn't expand to anything, just tells the VNV Registration generator to
 // include a subpackage.
@@ -30,8 +41,8 @@
 
 typedef void (*registrationCallBack)();
 
-VNVEXTERNC void VnV_Register_Subpackage(const char* packageName,
-                                        const char* Name,
+
+VNVEXTERNC void VnV_Register_Subpackage(const char* Name,
                                         registrationCallBack callback);
 
 typedef const char* (*vnvFullJsonStrCallback)();

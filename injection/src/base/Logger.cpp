@@ -24,23 +24,30 @@ constexpr const char* reset = "\033[0m";
 
 std::string VnV::Logger::logLevelToColor(std::string level,
                                          std::string message) {
+  
   if (!RunTime::instance().useAsciiColors()) return message;
 
+  
   auto it = logLevelsToColor.find(level);
   if (it != logLevelsToColor.end()) {
     std::ostringstream oss;
     oss << it->second << message << reset;
     return oss.str();
   }
-  return message;
+   return message;
 };
 
+void Logger::up() {
+  stage++;
+}
+void Logger::down() {
+  stage--;
+}
+
 Logger::Logger() {
-  registerLogLevel(VNVPACKAGENAME_S, "STAGE_START", yellow);
-  registerLogLevel(VNVPACKAGENAME_S, "STAGE_END", yellow);
   registerLogLevel(VNVPACKAGENAME_S, "INFO", green);
-  registerLogLevel(VNVPACKAGENAME_S, "DEBUG", cyan);
-  registerLogLevel(VNVPACKAGENAME_S, "WARN", magenta);
+  registerLogLevel(VNVPACKAGENAME_S, "DEBUG", green);
+  registerLogLevel(VNVPACKAGENAME_S, "WARN", blue);
   registerLogLevel(VNVPACKAGENAME_S, "ERROR", red);
 };
 
@@ -49,9 +56,9 @@ void Logger::registerLogLevel(std::string packageName, std::string name,
   logLevelsToColor[packageName + ":" + name] = color;
 }
 
-std::string Logger::getIndent(int stage) {
+std::string Logger::getIndent(int stages) {
   std::string s = "";
-  for (int i = 0; i < std::max(0, stage); i++) s += "\t";
+  for (int i = 0; i < std::max(0, stages); i++) s += "----";
   return s;
 }
 
@@ -85,7 +92,7 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level,
       }
 
       auto c = CommunicationStore::instance().getCommunicator(comm);
-      eng->Log(c, pname.c_str(), stage.size(), level, format);
+      eng->Log(c, pname.c_str(), stage, level, format);
     } catch (...) {
       // Logging statements that occur prior to the engine being configured at
       // written to std::out.
@@ -95,22 +102,23 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level,
                   << std::endl;
         auto& t = savedLogs.front();
         std::ostringstream oss;
-        oss << "[" << std::get<0>(t) << ":" << std::get<2>(t) << "] ";
-        std::cout << getIndent(std::get<1>(t))
-                  << logLevelToColor(std::get<2>(t), oss.str())
-                  << std::get<3>(t) << std::endl;
+        std::string pkey = std::get<0>(t) + ":" + std::get<2>(t);
+        oss << getIndent(std::get<1>(t)) << "[" << pkey << "](Rank: " << rank << ") " << std::get<3>(t);
+
+        std::cout << logLevelToColor(pkey, oss.str()) << std::endl;
         savedLogs.pop();
       }
-      savedLogs.push(std::make_tuple(pname, stage.size(), level, format, comm));
+      savedLogs.push(std::make_tuple(pname, stage, level, format, comm));
     }
   } else {
     std::ostringstream oss;
-    oss << "[" << pname << ":" << level << "] ";
+    std::string pkey = pname + ":" + level;
+    oss << getIndent(stage) << "[" << pkey << "](Rank: " << rank << ") " <<  format ;
+
     if (outFileName.compare("stdout") == 0) {
-      (*fileptr) << getIndent(stage.size()) << logLevelToColor(level, oss.str())
-                 << format << std::endl;
+      (*fileptr) << logLevelToColor(pkey, oss.str()) << std::endl;
     } else {
-      (*fileptr) << getIndent(stage.size()) << oss.str() << format << std::endl;
+      (*fileptr) << oss.str() << std::endl;
     }
   }
 }

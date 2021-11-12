@@ -17,23 +17,22 @@ using namespace VnV;
 InjectionPointStore::InjectionPointStore() {}
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(std::string packageName, std::string name,
-                                                                       const char* pretty ,  
+                                                                       struct VnV_Function_Sig pretty,  
                                                                        NTV& in_args) {
   
   std::string key = packageName + ":" + name;
   auto it = injectionPoints.find(key);
   auto reg = registeredInjectionPoints.find(key);
-  std::cout << "INJECTION POINT PRETTY " << pretty << std::endl;
   if (it != injectionPoints.end() && reg != registeredInjectionPoints.end()) {
-     TemplateCallback templateCallback(pretty); 
-     if (templateCallback.match(it->second.runTemplateName)) {
+     
+     FunctionSigniture sig(pretty); 
+     if (sig.run(it->second.runConfig)) {
 
         std::map<std::string,std::string> spec_map;
         bool foundOne;
         for (auto &it : reg->second.specJson.items()) {
-          json& template_spec = it.value()["templates"];
-          if (templateCallback.match(template_spec)) {
-              for (auto itt : it.value()["parameters"].items()) {
+          if (sig.match(it.key())) {
+              for (auto itt : it.value().items()) {
                 spec_map[itt.key()] = itt.value().get<std::string>();
               }
               foundOne = true;
@@ -41,7 +40,17 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(std::stri
           }
         }
         if (!foundOne) {
-          throw VnVExceptionBase("No template specification matched -- Bugs... run");
+          std::string dump = "";
+          for (auto ita : reg->second.specJson.items()) {
+            dump += "\n" + ita.key();
+          }
+          StringUtils::squash(dump);
+          std::string s = StringUtils::squash_copy(pretty.signiture);
+          VnV_Warn(VNVPACKAGENAME, 
+            "Could not find a parameter set matching the function Signiture:\n%s\n"
+            "The options are:%s", s.c_str() , dump.c_str()
+          );
+          return nullptr;
         }
         
         // Construct and reset because InjectionPoint ctor is only accessible in
@@ -49,7 +58,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(std::stri
         std::shared_ptr<InjectionPoint> injectionPoint;
         injectionPoint.reset(new InjectionPoint(packageName, name, spec_map, in_args));
         for (auto& test : it->second.tests) {
-          if (templateCallback.match(test.runTemplateName)) {  
+          if (sig.run(test.getRunConfig())) {  
               injectionPoint->addTest(test);
           }
         }
@@ -128,7 +137,7 @@ void InjectionPointStore::registerInjectionPoint(std::string packageName, std::s
 }
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::string package, std::string name,
-                                                                         const char* pretty, 
+                                                                         struct VnV_Function_Sig pretty, 
                                                                           InjectionPointType type, NTV& in_args) {
   std::string key = package + ":" + name;
   std::shared_ptr<InjectionPoint> ptr;

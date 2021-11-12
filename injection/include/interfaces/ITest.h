@@ -15,7 +15,7 @@
 #include "interfaces/argType.h"
 #include "json-schema.hpp"
 
-#include "base/TemplateCallback.h"
+#include "base/FunctionSigniture.h"
 #include "base/InjectionPointConfig.h"
 
 //#include "c-interfaces/Logging.h"
@@ -25,9 +25,6 @@ using nlohmann::json_schema::json_validator;
  * @brief The TestConfig class
  */
 namespace VnV {
-
-enum TestStatus { SUCCESS, FAILURE, NOTRUN };
-
 
 
 
@@ -89,13 +86,15 @@ class ITest {
 
   template <typename T> T& getRef(std::string name, std::string type) { return getRef<T>(name, type, true); }
 
+  template <typename T> T& getRef(std::string name, std::string type, bool input) {
+    return *getPtr<T>(name,type,input);
+  }
+  
   template <typename T> T* getPtr(std::string name, std::string type, bool input) {
     return m_config.getParameterMap().getPtr<T>(name, type, input);
   }
 
-  template <typename T> T& getRef(std::string name, std::string type, bool input) {
-    return m_config.getParameterMap().getRef<T>(name, type, input);
-  }
+  
 
  protected:
   TestConfig m_config;

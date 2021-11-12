@@ -9,6 +9,10 @@
 
 int function1(int x) {
 
+struct VnV_Function_Sig a;
+a.compiler = "";
+a.signiture = "";
+
   INJECTION_LOOP_BEGIN(VNV_STR(PNAME), VWORLD, "CFunction", x)
   for (int i = 0; i < 10; i++) {
     x += i;

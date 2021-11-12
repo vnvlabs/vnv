@@ -18,7 +18,7 @@ using namespace VnV;
 IteratorStore::IteratorStore() {}
 
 std::shared_ptr<IterationPoint> IteratorStore::newIterator(std::string packageName, std::string name,
-                                                           const char* pretty, 
+                                                           struct VnV_Function_Sig pretty, 
                                                            int once_,
                                                            NTV& in_args, NTV& out_args) {
   std::string key = packageName + ":" + name;
@@ -27,16 +27,15 @@ std::shared_ptr<IterationPoint> IteratorStore::newIterator(std::string packageNa
 
   if (it != iterators.end() && reg != registeredIterators.end()) {
     
-     TemplateCallback templateCallback(pretty); 
+     FunctionSigniture sig(pretty); 
 
-     if (templateCallback.match(it->second.runTemplateName)) {
+     if (sig.run(it->second.runConfig)) {
 
         std::map<std::string,std::string> spec_map;
         bool foundOne;
         for (auto &it : reg->second.specJson.items()) {
-          json& template_spec = it.value()["templates"];
-          if (templateCallback.match(template_spec)) {
-              for (auto itt : it.value()["parameters"].items()) {
+          if (sig.match(it.key())) {
+              for (auto itt : it.value().items()) {
                 spec_map[itt.key()] = itt.value().get<std::string>();
               }
               foundOne = true;
@@ -52,13 +51,13 @@ std::shared_ptr<IterationPoint> IteratorStore::newIterator(std::string packageNa
         std::shared_ptr<IterationPoint> injectionPoint;
         injectionPoint.reset(new IterationPoint(packageName, name, spec_map, once_, in_args, out_args));
         for (auto& test : it->second.tests) {
-          if (templateCallback.match(test.runTemplateName)) {  
+          if (sig.match(test.getRunConfig())) {  
               injectionPoint->addTest(test);
           }
         }
 
         for (auto& test : it->second.iterators) {
-          if (templateCallback.match(test.runTemplateName)) {
+          if (sig.run(test.getRunConfig())) {
             injectionPoint->addIterator(test);
           }
         }
@@ -146,14 +145,14 @@ json IteratorStore::schema() {
 }
 
 std::shared_ptr<IterationPoint> IteratorStore::getNewIterator(std::string package, std::string name,
-                                                              const char*, int once,
+                                                              struct VnV_Function_Sig pretty, int once,
                                                               NTV& in_args, NTV& out_args) {
   std::string key = package + ":" + name;
   if (iterators.find(key) == iterators.end()) {
     return nullptr;  // Not configured
   }
 
-  return newIterator(package, name, "", once, in_args, out_args);
+  return newIterator(package, name, pretty, once, in_args, out_args);
 }
 
 void IteratorStore::addIterator(std::string package, std::string name, bool runInternal, json &templateName, std::vector<TestConfig>& tests,
