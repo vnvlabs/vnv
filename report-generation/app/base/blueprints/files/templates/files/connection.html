@@ -1,0 +1,84 @@
+
+<div style="width:100%">
+
+    <ul class="breadcrumb">
+    <li class="breadcrumb-item"><a onclick='show_file_reader({{vnvfileid}},"{{filename}}","","{{modal}}")'><i class="feather icon-home" style="cursor:pointer"></i></a></li>
+    <li class="breadcrumb-item"><span style="cursor:pointer" onclick="">connection</span></li>
+    <li class="breadcrumb-item">
+        {%if connection.connected()%}
+        <span style="color:green">Connected</span>
+        {%else%}
+        <span style="color:red">Disconnected</span>
+        {%endif%}
+    </li>
+    </ul>
+
+    {%if reason%}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+	    {%if reason == "disconnected" %}
+        Could not access files because the connection is not active!
+        {%elif reason == "does not exist" %}
+        Could not access file because the File Does not exist!
+        {%endif%}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    {%endif%}
+
+    <div>
+        <form id="connection-form">
+
+            <div class="form-group form-check">
+                <input  name="local" {%if connection.connected()%}disabled{%endif%} type="checkbox" class="form-check-input" id="localhost" {%if connection.local() %}checked {%endif%} >
+                <label class="form-check-label" for="localhost">Files are accessible from the web server.</label>
+            </div>
+            <div class="form-group">
+                <label for="connectionusername">Username</label>
+                <input  {%if connection.connected() or connection.local() %}readonly{%endif%} name="username" type="text" class="form-control" id="connectionusername" placeholder="Enter Username" value="{{connection.username()}}">
+            </div>
+            <div class="form-group">
+                <label for="connectiondomain">Domain</label>
+                <input {%if  connection.connected() or connection.local() %}readonly{%endif%} name="domain" type="text" class="form-control" id="connectiondomain" placeholder="Enter Domain name" value="{{connection.domain()}}">
+            </div>
+            <div class="form-group">
+                <label for="connectionport">Port</label>
+                <input {%if  connection.connected() or connection.local() %}readonly{%endif%} name="port" type="number" min="0" class="form-control" id="connectionport" placeholder="Enter SSH Port Number" value="{{connection.port()}}">
+            </div>
+            {%if not connection.connected() %}
+             <div class="form-group">
+                <label for="connectionpassword">Password</label>
+                <input {%if connection.local() %}readonly{%endif%} name="password" type="password" class="form-control" id="connectionpassword" placeholder="Enter your password" value="">
+            </div>
+            {%endif%}
+            <div class="form-group">
+                <label for="connectionfilename">Filename</label>
+                <input name="filename" type="text" class="form-control" id="connectionfilename" placeholder="Enter Filename" value="{{filename}}">
+            </div>
+        </form>
+
+        <div style="display:flex;justify-content:end">
+            <button class="btn btn-secondary" style="margin-right:20px;{%if not connection.connected()%}display:none;{%endif%}" onclick='show_file_reader({{vnvfileid}}, $("#connectionfilename").val(),"","{{modal}}")'>View File</button>
+            <button class="btn btn-primary" style="{%if not connection.connected()%}display:none;{%endif%}" onclick='close_connection({{vnvfileid}},"connection-form",$("#connectionfilename").val(),"","{{modal}}")'>Disconnect</button>
+            <button class="btn btn-primary" style="{%if connection.connected()%}display:none;{%endif%}" onclick='open_connection({{vnvfileid}}, "connection-form",$("#connectionfilename").val(),"","{{modal}}")'>Connect</button>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+$(document).ready(function() {
+
+    $('#localhost').change(function(){
+            $('#connectionusername').attr('readonly',this.checked)
+            $('#connectiondomain').attr('readonly',this.checked)
+            $('#connectionport').attr('readonly',this.checked)
+            $('#connectionpassword').attr('readonly',this.checked)
+
+    });
+
+});
+
+
+
+</script>

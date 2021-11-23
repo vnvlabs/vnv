@@ -13,13 +13,15 @@ tablist = {
     "packages": ["Packages" , "files/packages.html"],
     "prov": ["Provenance","files/provenance.html"],
     "unit": ["Unit Tests","files/unit_testing.html"],
-    "data": ["Data Explorer" , "files/data.html"]
+    "data": ["Data Explorer" , "files/data.html"],
+    "browser" : ["File Browser", "files/file_browser.html"]
 }
 %}
 
 {%with active_tab = request.args.get("atab", "home") %}
 {% with actionFiles = file.getActions() %}
 
+{%if file.setupNow() %}
 
 <div class=" fcolumn fchild">
 
@@ -75,6 +77,9 @@ tablist = {
 
 </div>
 
+{%else%}
+    <div>Waiting for file initialization.... Refresh to try again. </div>
+{%endif%}
 
 {%endwith%}
 {%endwith%}

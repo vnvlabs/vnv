@@ -1,5 +1,4 @@
 import os
-import shutil
 import textwrap
 
 import sphinx.cmd.build
@@ -24,6 +23,7 @@ exclude_patterns = ['_build']
 html_static_path = ['_static']
 
 '''
+
 def get_conf_template(fileId):
     return conf_template.format(fileId=fileId, path=os.path.abspath(os.path.join('app', 'rendering')))
 

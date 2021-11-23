@@ -144,20 +144,37 @@ function switch_unit(fileId, name, id, element) {
 
 }
 
-function show_file_reader(filename, reader ) {
-       $('#file_viewer_modal').modal('show')
-       $('#file_viewer_modal_body').html("<div>Loading...</div>")
-       $('#file_view_modal_dialog').css("max-width","90%")
+function show_file_reader(vnvfileid, filename, reader , type, options) {
+       if (type.length == 0 ) {
+         $('#file_viewer_modal').modal('show')
+         if (options && !("noload" in options)) {
+           $('#file_viewer_modal_body').html("<div>Loading...</div>")
+         }
+         $('#file_view_modal_dialog').css("max-width","90%")
+       } else if (options && !("noload" in options)) {
+         $('#' + type ).html("<div>Loading...</div>")
+       }
 
-       url = "/files/reader"
-       url += "?reader=" + reader
-       url += "&filename=" + filename
+       url = "/files/reader/" + vnvfileid
+       url += "?filename=" + filename
+       url += "&modal=" + type
+       if (reader.length > 0 ) {
+            url += "&reader=" + reader
+       }
+       if (options) {
+           for (i in options) {
+             url += "&render_" + i + "=" + options[i]
+           }
+
+       }
 
        $.get(url, function(data) {
+          if (type.length == 0 ) {
             $('#file_viewer_modal_body').html(data)
             $('#file_viewer_modal').modal('show')
-
-
+          } else {
+            $('#' + type).html(data)
+          }
        });
 
 }
@@ -261,6 +278,18 @@ function configure_response_validation(inputElmId, fid, ipid, action) {
   })
 }
 
+function close_connection(fileid, formid,file,reader,modal) {
+        $.get('/files/close_connection/' + fileid, function(data){
+            show_file_reader(fileid,file,reader,modal)
+        })
+
+}
+
+function open_connection(fileid, formid, file, reader, modal) {
+        $.post('/files/open_connection/' + fileid, $('#'+formid).serialize(), function(data){
+            show_file_reader(fileid,file,reader,modal)
+        })
+}
 
 $(window).on('load', function() {
     setInterval(function() {

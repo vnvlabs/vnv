@@ -22,7 +22,12 @@ def getPath(filename, exten=None):
             uu += "." + ext[-1]
     else:
         uu += "." + exten
-    p = os.path.join(flask.current_app.config.root_path, "static", "files", uu)
+
+    d = os.path.join(flask.current_app.config.root_path, "static", "files")
+    if not os.path.exists(d):
+        os.makedirs(d)
+
+    p = os.path.join(d, uu)
     return p, uu
 
 
@@ -33,29 +38,29 @@ def getUID(filename, exten=None):
     return uu
 
 
-def render_image(filename):
-    return f"<img class='card' src='/static/files/{getUID(filename)}' style='max-width:89vw;'>"
+def render_image(filename, **kwargs):
+    return f"<img class='card' src='/static/files/{getUID(filename)}' style='max-width:100%;'>"
 
 
-def render_html(filename):
+def render_html(filename, **kwargs):
     return f"<iframe class='card' src='/static/files/{getUID(filename)}' style='width: 100%;height:80vh;'>"
 
 
-def render_pdf(filename):
+def render_pdf(filename, **kwargs):
     return f"<iframe class='card' src='/static/files/{getUID(filename)}' style='width: 100%;height:80vh;'>"
 
 
-def render_glvis(filename):
+def render_glvis(filename, **kwargs):
     path = urllib.request.pathname2url(f"/static/files/{getUID(filename)}")
     return f"<iframe class='card' src='/static/glvis/index.html?stream={path}' style='width: 100%;height:80vh;'>"
 
 
-def render_vti(filename):
+def render_vti(filename, **kwargs):
     path = urllib.request.pathname2url(f"/static/files/{getUID(filename)}")
     return f"<iframe class='card' src='/static/volume/index.html?fileURL={path}' style='width: 100%;height:80vh;'>"
 
 
-def render_rst(filename):
+def render_rst(filename, **kwargs):
     with open(filename, 'r') as f:
         d = f.read()
     p, u = getPath(filename, exten="html")
@@ -66,21 +71,29 @@ def render_rst(filename):
     return f"<iframe src='/static/files/{u}' style='width: 100%;height:80vh;'>"
 
 
-def render_markdown(filename):
+def render_markdown(filename, **kwargs):
     with open(filename, 'r') as f:
         return f"<div>{markdown.markdown(f.read())}</div>"
 
 
-def render_code(filename):
+def render_code(filename, **kwargs):
+
+    h = kwargs.get('highlightline')
+    hl_lines = [int(h)] if h is not None else kwargs.get('highlightlines',[])
+
     with open(filename, 'r') as f:
         d = f.read()
-        lex = guess_lexer_for_filename(filename, d, stripall=True)
+
         form = pygments.formatters.html.HtmlFormatter(
-            linenos=True, style="colorful", noclasses=True)
-        return pygments.highlight(d, lex, form)
+            linenos=True, hl_lines=hl_lines, style="colorful", cssclass="vnvhigh")
 
+        try:
+            lex = guess_lexer_for_filename(filename, d, stripnl=False)
+            return pygments.highlight(d, lex, form)
+        except:
+            return pygments.highlight(d, pygments.lexers.get_lexer_by_name("bash", stripnl=False), form)
 
-def render_csv(filename):
+def render_csv(filename, **kwargs):
     divid = "table-table"
     with open(filename, 'r') as f:
         reader = csv.DictReader(f)
@@ -102,21 +115,22 @@ def render_csv(filename):
  	</script>
     '''
 
+
 ext_map = {
-    ".jpeg" : "image",
-    ".jpg" : "image",
-    ".png" : "image",
-    ".gif" : "image",
-    ".svg" : "image",
-    ".md" : "markdown"
+    ".jpeg": "image",
+    ".jpg": "image",
+    ".png": "image",
+    ".gif": "image",
+    ".svg": "image",
+    ".md": "markdown"
 }
 
-def get_reader(filename):
 
-    if os.path.exists(filename) and Path(filename).is_dir():
-        return "directory"
+def has_reader(reader):
+    return f'render_{reader}' in globals()
 
-    ext = os.path.splitext(filename)[1]
+
+def get_reader(ext):
     if has_reader(ext[1:]):
         return ext[1:]
 
@@ -125,64 +139,98 @@ def get_reader(filename):
     return "code"
 
 
-class LocalFile:
-    def __init__(self, abspath, reader=None):
 
-        self.abspath = abspath
-        self.dir = os.path.dirname(abspath)
-        self.name = os.path.basename(abspath)
-        self.reader = reader if reader is not None else get_reader(self.abspath)
-        if len(self.abspath):
-            self.size = os.lstat(abspath).st_size
-            self.lastMod = os.lstat(abspath).st_mtime
-            value = datetime.datetime.fromtimestamp(self.lastMod)
-            self.lastModStr = (value.strftime('%Y-%m-%d %H:%M:%S'))
+
+
+class LocalFile:
+    def __init__(self, abspath, vnvfileid, connection, reader=None, **kwargs):
+
+        self.inputpath = abspath
+
+        self.vnvfileid = vnvfileid
+        self.connection = connection
+        self.setInfo()
+        self.reader = reader if reader is not None else get_reader(self.ext)
+
+        self.breadcrumb = None
+        self.iconStr = None
+        self.exists_ = None
+        self.children_ = None
+        self.download_ = None
+        self.is_dir_ = None
+        self.root_ = None
+        self.options = kwargs
+
+    def render_reader(self):
+        if has_reader(self.reader):
+            a = globals()[f'render_{self.reader}'](self.download(), **self.options)
+            return a
+        else:
+            return "<div> Reader is not implemented yet. Sorry</div>"
+
+    def setHighlightLines(self, hl_lines):
+        self.highlight = hl_lines
+
+    def has_option(self, key):
+        return key in self.options
+
+    def get_option(self,key, default=None):
+        return self.options.get(key,default)
+
+    def setInfo(self):
+        self.abspath, self.dir, self.name, self.ext, self.size, self.lastMod, self.lastModStr = self.connection.info(self.inputpath)
+
+    def getVnVFileId(self):
+        return self.vnvfileid
 
     def url(self):
         return urllib.request.pathname2url(self.abspath)
 
-    def children(self):
-        c = []
-        for i in os.listdir(self.abspath):
-            ap = os.path.join(self.abspath,i)
-            c.append(LocalFile(ap))
-        return c
+    def is_dir(self):
+        if self.is_dir_ is None:
+            self.is_dir_ = self.connection.is_dir(self.abspath)
+        return self.is_dir_
 
-    def render(self):
+    def connected(self):
+        return self.connection.connected()
+
+    def exists(self):
+        if self.exists_ is None:
+            self.exists_ = self.connection.exists(self.abspath)
+        return self.exists_
+
+    def children(self):
+        if self.children_ is None:
+            self.children_ = [LocalFile(i, self.vnvfileid, self.connection) for i in
+                              self.connection.children(self.abspath)]
+        return self.children_
+
+    def download(self):
+        if self.download_ is None:
+            self.download_ = self.connection.download(self.abspath)
+        return self.download_
+
+    def render(self, modal=""):
+
+        if self.is_dir():
+            return render_template("files/directory.html", file=self, modal=modal)
+
         try:
-            return render_reader(self.abspath, self.reader)
-        except Exception as e :
+            return self.render_reader()
+        except Exception as e:
             return f"<div>{str(e)}</div>"
 
     def icon(self):
-        return "folder" if Path(self.abspath).is_dir() else "file"
+        return "folder" if self.is_dir() else "file"
 
     def crumb(self):
-        c =  os.path.normpath(self.dir).split(os.path.sep)
-        cc = os.path.abspath(os.sep)
-        loc = []
-        for i in c:
-            if len(i):
-                cc = os.path.join(cc,i)
-                loc.append(LocalFile(cc))
-        loc.append(self)
-        return loc
+        if self.breadcrumb is None:
+            cc = self.connection.crumb(self.dir)
+            self.breadcrumb = [LocalFile(i, self.vnvfileid, self.connection) for i in cc]
+            self.breadcrumb.append(self)
+        return self.breadcrumb
 
-def render_directory(filename):
-    if len(filename) == 0 :
-        filename = os.path.abspath(os.sep)
-
-    if os.path.exists(filename) and Path(filename).is_dir():
-        return render_template("files/directory.html", file=LocalFile(os.path.abspath(filename)))
-
-
-def has_reader(reader):
-    return f'render_{reader}' in globals()
-
-
-def render_reader(filename, reader):
-    if has_reader(reader):
-        a = globals()[f'render_{reader}'](filename)
-        return a
-    else:
-        return "<div> Reader is not implemented yet. Sorry</div>"
+    def root(self):
+        if self.root_ is None:
+            self.root_ = self.connection.root()
+        return self.root_

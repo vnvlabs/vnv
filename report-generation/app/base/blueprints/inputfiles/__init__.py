@@ -3,7 +3,6 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 import json
-import os
 from flask import Blueprint
 from flask import render_template, redirect, url_for, request
 

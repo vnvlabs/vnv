@@ -3,6 +3,7 @@
 #define STREAMREADER_TEMPLATES_H
 
 #include <thread>
+#include <mutex>
 
 #include "plugins/engines/streaming/streamtemplate.h"
 
@@ -22,9 +23,11 @@ class JsonElement {
 // A static file iterator.
 class JsonSingleStreamIterator : public Iterator<json> {
   long sId;
+  std::mutex mu;
   std::queue<JsonElement> content;
 
   void getLine(json& current, long& currentValue) override {
+    std::lock_guard<std::mutex> lock(mu);
     if (content.size() > 0) {
       std::string currline;
       current = content.front().data;
@@ -38,11 +41,15 @@ class JsonSingleStreamIterator : public Iterator<json> {
  public:
   JsonSingleStreamIterator(long streamId_) : sId(streamId_) {}
 
-  bool hasNext() override { return content.size() > 0; }
+  bool hasNext() override { 
+    std::lock_guard<std::mutex> lock(mu);
+    return content.size() > 0;
+  }
 
   long streamId() const override { return sId; }
 
   void add(long i, const json& d) {
+    std::lock_guard<std::mutex> lock(mu);
     JsonElement j(i, d);
     content.emplace(j);
   }
@@ -50,11 +57,62 @@ class JsonSingleStreamIterator : public Iterator<json> {
   ~JsonSingleStreamIterator() {}
 };
 
-class JsonStreamIterator
-    : public MultiStreamIterator<JsonSingleStreamIterator, json> {
+class JsonPortStreamIterator : public MultiStreamIterator<VnV::StreamReader::JsonSingleStreamIterator, json> {
+protected:  
+  int port = 0;
+  struct MHD_Daemon* daemon = NULL;
+  std::mutex mu; 
+  bool doneMessageRecieved = false;
+  std::map<std::string,json> responses;
+
  public:
-  virtual bool start_stream_reader() = 0;
-  virtual void stop_stream_reader() = 0;
+  JsonPortStreamIterator(std::string p) : MultiStreamIterator<VnV::StreamReader::JsonSingleStreamIterator, json>() {
+      port = std::atoi(p.c_str());
+  };
+
+  void done() { doneMessageRecieved = true; }
+
+  virtual bool isDone() override {
+    if (!doneMessageRecieved) {
+      return false;
+    }
+    return !hasNext();
+  }
+
+  virtual void respond(long id, long jid, const json& response) override {
+    
+    //Wait for it to finish reading. 
+    std::lock_guard<std::mutex> lock(mu);
+    std::ostringstream oss;
+    oss << id << ":" << jid;
+    responses[oss.str()] = json::parse(response.dump()); //Deep copy.]
+  }
+  
+  virtual bool getResponse(long id, long jid, json&response) {
+    
+    std::lock_guard<std::mutex> lock(mu);
+    std::ostringstream oss;
+    oss << id << ":" << jid;
+    std::string key = oss.str();
+    auto it = responses.find(key);
+    if (it != responses.end()) {
+      response = json::parse(it->second.dump());  
+      responses.erase(it);
+      return true;
+    }
+    
+    return false;
+  }
+
+  ~JsonPortStreamIterator() { }
+};
+
+
+class JsonStreamVisitor : public ParserVisitor<json> {
+public:  
+  virtual void setWriteLock() override {}
+  virtual void releaseWriteLock() override {}
+
 };
 
 

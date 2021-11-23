@@ -7,7 +7,7 @@
     <a href="#!" class="badge badge-success">Up to date</a>
     {% endif %}
     {%if file.readable() %}
-    <a href="#!" onclick='show_file_reader("{{file.getUrl()}}","{{file.reader()}}")' class="badge badge-info"
+    <a href="#!" onclick='show_file_reader({{file.getVnVFileId()}},"{{file.getUrl()}}","{{file.reader()}}","")' class="badge badge-info"
        style="margin-left:10px" ;>View</a>
     {% endif %}
 

@@ -16,7 +16,9 @@ int main(int argc, char** argv) {
 
   INJECTION_INITIALIZE(RPNAME, &argc, &argv, VNV_DEFAULT_INPUT_FILE);
   
-  VnV::Python::ReaderWrapper("./vv-output", "json_file", "{}");
+  auto a = VnV::Python::ReaderWrapper(argv[2], argv[1], "{}");
+  
+  a.get()->worker.join();
 
   INJECTION_FINALIZE(RPNAME)
 }

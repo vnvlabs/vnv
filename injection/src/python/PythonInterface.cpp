@@ -25,8 +25,7 @@ ReaderWrapper::ReaderWrapper(std::string filename, std::string reader,
                              std::string config) {
   // Reset the engine manager, using the provided reader and config.
   json conf = json::parse(config);
-  rootNode =
-      VnV::OutputEngineStore::instance().readFile(filename, reader, conf);
+  rootNode =VnV::OutputEngineStore::instance().readFile(filename, reader, conf);
 
 }
 

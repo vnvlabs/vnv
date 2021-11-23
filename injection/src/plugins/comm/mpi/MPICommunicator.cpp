@@ -545,16 +545,16 @@ bool MPICommunicator::finalizeMPI = false;
 
 MPI_Comm castToMPIComm(ICommunicator_ptr ptr) {
   MPI_Comm mpicomm;
-
-  if (ptr->getName() == "VNV:serial") {
+  
+  if (ptr->getName() == "serial") {
     mpicomm = MPI_COMM_SELF;
 
-  } else if (ptr->getName() == "VNV:mpi") {
+  } else if (ptr->getName() == "mpi") {
     CommKeeper* k = (CommKeeper*)ptr->getData();
     mpicomm = k->comm;
 
   } else {
-    throw VnV::VnVExceptionBase("Cannot convert communicator to MPI");
+    throw VnV::VnVExceptionBase("Cannot convert communicator %s to MPI", ptr->getName().c_str());
   }
   return mpicomm;
 }

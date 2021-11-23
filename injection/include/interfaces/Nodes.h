@@ -12,6 +12,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <thread>
 
 #include "base/Provenance.h"
 #include "base/exceptions.h"
@@ -620,6 +621,8 @@ class IRootNode : public DataBase {
   std::set<IWalker*> walkers;
 
  public:
+  std::thread worker;
+  
   IRootNode();
 
   virtual DataBase* findById(long id) {

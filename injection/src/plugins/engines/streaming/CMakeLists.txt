@@ -1,7 +1,7 @@
 target_sources(
   injection
   PRIVATE ${CMAKE_CURRENT_LIST_DIR}/json_file.cpp
-          ${CMAKE_CURRENT_LIST_DIR}/json_socket.cpp
+          ${CMAKE_CURRENT_LIST_DIR}/json_sock.cpp
           ${CMAKE_CURRENT_LIST_DIR}/json_stdout.cpp)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -25,8 +25,9 @@ if(WITH_ADIOS_ENGINE AND WITH_MPI)
   find_package(ADIOS2)
   if (ADIOS2_FOUND) 
   	target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/adios_file.cpp)
-	target_link_libraries(injection PRIVATE adios2::adios2)
-  	target_compile_definitions(injection PRIVATE WITH_ADIOS=1)
+	  target_link_libraries(injection PRIVATE adios2::adios2)
+    target_compile_definitions(injection PRIVATE WITH_ADIOS=1)
+    add_subdirectory(adios_patch)
   else()
      message(WARNING "Adios Engine Requested but ADIOS2 not found") 
   endif()	  

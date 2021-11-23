@@ -1,11 +1,31 @@
-<div style="width:100%">
+<div style="width:100%" >
+
+
+<div style="position:relative">
+
+<a title="connection info" style="position: absolute;
+top: 8px;
+right: 10px;
+font-size: 25px;" onclick='show_file_reader({{file.getVnVFileId()}},"{{file.url()}}","connection","{{modal}}")'><i
+            class="feather icon-server" style="cursor: pointer;
+border: 1px solid #80808070;
+border-radius: 50px;
+padding: 3px;"></i></a>
+
 <ul class="breadcrumb">
-    <li class="breadcrumb-item"><a onclick='show_file_reader("","directory")'><i class="feather icon-home"></i></a></li>
+    <li class="breadcrumb-item"><a onclick='show_file_reader({{file.getVnVFileId()}},"{{file.root()}}","directory","{{modal}}")'><i class="feather icon-home" style="cursor:pointer"></i></a></li>
     {% for i in file.crumb() %}
-         <li class="breadcrumb-item"><span onclick="show_file_reader('{{i.url()}}','{{i.reader}}')">{{i.name}}</span></li>
+         <li class="breadcrumb-item"><span style="cursor:pointer" onclick="show_file_reader({{i.getVnVFileId()}},'{{i.url()}}','{{i.reader}}','{{modal}}')">{{i.name}}</span></li>
     {% endfor %}
 </ul>
 
-{{file.render() | safe }}
+</div>
+{% if error %}
+ <div class="alert alert-danger" role="alert">
+	{{error}}
+ </div>
+{% endif %}
+
+{{file.render(modal=modal) | safe }}
 
 </div>

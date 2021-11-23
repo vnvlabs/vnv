@@ -182,45 +182,33 @@ std::string ComputeName( std::string compiler,const Decl* func) {
 }
 
 std::string getSig(const CallExpr* call, int count, const FunctionDecl* caller) {
-  auto a = call->getArg(count);
   
-  const clang::Expr* b = nullptr;
+  auto a = call->getArg(count);
   const clang::Expr* bb = nullptr;
+
   if (a->getStmtClass() == clang::Stmt::StmtClass::CallExprClass) {
     bb = ((const clang::CallExpr*)a)->getArg(0);
-    b = ((const clang::CallExpr*)a)->getArg(1);
-
   } else if (a->getStmtClass() == clang::Stmt::StmtClass::CXXConstructExprClass ) {
     
     auto c = ((const clang::CXXConstructExpr*)a)->getArg(0);
     if (c->getStmtClass() == clang::Stmt::StmtClass::MaterializeTemporaryExprClass) {
       
       auto d = ((const clang::MaterializeTemporaryExpr*)c)->getSubExpr();
-      
+
       if (d->getStmtClass() == clang::Stmt::StmtClass::CallExprClass) {
           bb =((const clang::CallExpr*)d)->getArg(0);
-          b = ((const clang::CallExpr*)d)->getArg(1);
       }
     }
   }
-
-  if (bb!=nullptr && bb->getStmtClass() == clang::Stmt::StmtClass::ImplicitCastExprClass) {
-     auto bbv = ((const clang::ImplicitCastExpr*)bb)->getSubExpr();
-     std::string compiler = ((const clang::StringLiteral*)bbv)->getString().str();
-     return ComputeName(compiler,caller);
+  
+  while (bb!=nullptr && bb->getStmtClass() == clang::Stmt::StmtClass::ImplicitCastExprClass) {
+       bb = ((const clang::ImplicitCastExpr*)bb)->getSubExpr();
   }
-
-
-  if (b!=nullptr && b->getStmtClass() == clang::Stmt::StmtClass::ImplicitCastExprClass) {
-      
-      auto bb = ((const clang::ImplicitCastExpr*)b)->getSubExpr();
-      if (bb!=nullptr && bb->getStmtClass() == clang::Stmt::StmtClass::PredefinedExprClass) {
-        auto bbb = ((const clang::PredefinedExpr*)bb)->getFunctionName();        
-        return bbb->getString().str();
-      } 
+  if (bb->getStmtClass() == clang::Stmt::StmtClass::StringLiteralClass) {
+        std::string compiler = ((const clang::StringLiteral*)bb)->getString().str();
+        return ComputeName(compiler,caller);
   }
   throw VnV::VnVExceptionBase("Not a function signiture from Pretty function");
-  
 }
 
 unsigned int getInfo(const CallExpr* call, const FunctionDecl* func, const MatchFinder::MatchResult& Result, json& info,

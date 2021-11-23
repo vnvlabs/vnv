@@ -8,6 +8,8 @@ from urllib.request import pathname2url
 import jsonschema
 import pygments.formatters.html
 from pygments.lexers import guess_lexer, guess_lexer_for_filename
+
+from app.models.VnVConnection import VnVConnection, VnVLocalConnection
 from python_api.VnVReader import node_type_START, node_type_POINT, node_type_DONE, node_type_ITER, node_type_ROOT, \
     node_type_LOG, \
     node_type_END, node_type_WAITING
@@ -15,15 +17,19 @@ from flask import render_template, make_response
 
 from app.models import VnV
 import app.rendering as r
-from app.rendering.readers import has_reader
+from app.rendering.readers import has_reader, LocalFile
 from app.rendering.vnvdatavis.directives.dataclass import render_vnv_template, DataClass
 
 
 class ProvFileWrapper:
 
-    def __init__(self, pfile, description):
+    def __init__(self, vnvfileid, pfile, description):
         self.file = pfile
+        self.vnvfileid = vnvfileid
         self.description = description
+
+    def getVnVFileId(self):
+        return self.vnvfileid
 
     def getName(self):
         return self.file.info.name
@@ -61,9 +67,10 @@ class ProvFileWrapper:
 
 class ProvWrapper:
 
-    def __init__(self, vnvprov, templates):
+    def __init__(self, vnvfileid, vnvprov, templates):
         self.prov = vnvprov
         self.templates = templates
+        self.vnvfileid = vnvfileid
 
     def getD(self, provfile):
         return render_template(
@@ -71,23 +78,26 @@ class ProvWrapper:
                 provfile.package, provfile.name))
 
     def get_executable(self):
-        return ProvFileWrapper(self.prov.executable, "")
+        return ProvFileWrapper(self.vnvfileid, self.prov.executable, "")
+
+    def getVnVFileId(self):
+        return self.vnvfileid
 
     def get_command_line(self):
         return self.prov.commandLine
 
     def get_libraries(self):
-        return [ProvFileWrapper(a, "") for a in self.prov.libraries]
+        return [ProvFileWrapper(self.vnvfileid, a, "") for a in self.prov.libraries]
 
     def get_outputs(self):
-        return [ProvFileWrapper(a, self.getD(a))
+        return [ProvFileWrapper(self.vnvfileid, a, self.getD(a))
                 for a in self.prov.outputFiles]
 
     def get_inputs(self):
-        return [ProvFileWrapper(a, self.getD(a)) for a in self.prov.inputFiles]
+        return [ProvFileWrapper(self.vnvfileid, a, self.getD(a)) for a in self.prov.inputFiles]
 
     def get_input(self):
-        return ProvFileWrapper(self.prov.inputFile, "")
+        return ProvFileWrapper(self.vnvfileid, self.prov.inputFile, "")
 
     def get_timestamp(self):
         t = self.prov.time_in_seconds_since_epoch
@@ -183,6 +193,7 @@ class UnitTestRender:
     def getRST(self, name):
         t = self.templates.get_unit_test_test_content(self.data.getPackage(), self.data.getName(), name);
         return render_vnv_template(t, self.data.getData(), file=self.templates.file)
+
     def getHtml(self):
         t = self.templates.get_html_file_name(
             "UnitTests", self.data.getPackage(), self.data.getName())
@@ -293,9 +304,10 @@ class ActionRender:
 
 
 class SourceFile:
-    def __init__(self, file, line=None):
+    def __init__(self, file, line, vnvfileid):
         self.file = file
         self.line = line
+        self.vnvfileid = vnvfileid
 
     def getFilename(self):
         return self.file
@@ -308,6 +320,9 @@ class SourceFile:
 
     def getLineList(self):
         return [self.getLine()] if self.hasLine() else []
+
+    ### WANT TO RENDER THE SOURCE CODE USING THE BROWSER -
+    ### MAKE THE BUTTONS CHANGE THE FILE.
 
     def render(self):
         try:
@@ -382,9 +397,12 @@ class InjectionPointRender:
                 for a in self.ip.getLogs()]
 
     def getSourceMap(self):
+        vnvfile = VnVFile.FILES[self.getFile()]
+        conn = vnvfile.connection
+
         # map stageId -> [ filename, line]
         source = json.loads(self.ip.getSourceMap())
-        return {a: SourceFile(b[0], b[1]) for a, b in source.items()}
+        return {a: LocalFile(b[0], self.getFile(), conn, highlightline=b[1]) for a, b in source.items()}
 
 
 class VnVFile:
@@ -404,14 +422,29 @@ class VnVFile:
         self.wrapper = VnV.Read(filename, reader)
         self.root = self.wrapper.get()
         self.template_dir = os.path.join(template_root, str(self.id_))
+
+        # By default we have a localhost connection.
+        self.setConnection()
+
         shutil.rmtree(self.template_dir, ignore_errors=True)
 
-        vnvspec = json.loads(self.root.getVnVSpec().get())
-        while vnvspec is None:
-            time.sleep(1)
-            vnvspec = json.loads(self.root.getVnVSpec().get())
+        self.templates = None
+        self.setupNow()
 
-        self.templates = r.build(self.template_dir, vnvspec, self.id_)
+    # Try and setup the templates once we can.
+    def setupNow(self):
+        if self.templates is None:
+            vnvspec = json.loads(self.root.getVnVSpec().get())
+            if vnvspec is not None:
+                self.templates = r.build(self.template_dir, vnvspec, self.id_)
+        return self.templates is not None
+
+
+    def setConnection(self, hostname, username, password, port):
+        self.connection = VnVConnection(hostname, username, password, port)
+
+    def setConnection(self):
+        self.connection = VnVLocalConnection()
 
     def clone(self):
         return VnVFile(self.name, self.filename, self.reader, self.template_root, self.icon, _cid=self.id_)
@@ -425,20 +458,18 @@ class VnVFile:
                 f"Filename: {self.filename}",
                 f"Reader: {self.reader}",
                 {
-                     "text" : self.root.getName(),
-                     "li_attr" : {
-                        "fileId" : self.id_,
-                        "nodeId" : self.root.getId()
-                     },
-                     "children" : True
-               }
+                    "text": self.root.getName(),
+                    "li_attr": {
+                        "fileId": self.id_,
+                        "nodeId": self.root.getId()
+                    },
+                    "children": True
+                }
             ]
         else:
             node = self.getById(int(nodeId)).cast()
-            a =  json.loads(node.getDataChildren(self.id_,2))
+            a = json.loads(node.getDataChildren(self.id_, 2))
             return a
-
-
 
     def getCommRender(self, id):
         return CommRender(id, self.getCommObj())
@@ -476,17 +507,24 @@ class VnVFile:
     def getPackages(self):
         return [{"name": a} for a in self.root.getPackages().fetchkeys()]
 
+    def get_cwd(self):
+        return self.root.getInfoNode().getProv().currentWorkingDirectory
+
+    def browse(self):
+        return LocalFile(self.get_cwd(), self.id_, self.connection, reader="directory")
+
     def getFirstPackage(self):
         a = self.getPackages()
         if len(a) > 0:
             return self.render_package(a[0]["name"])
         return ""
 
-    def displayName(self,a):
+    def displayName(self, a):
         return " ".join([i.capitalize() for i in a.replace("_", " ").split(":")[-1].split(" ")])
 
     def getActions(self):
-        return [{"name": a, "id_": n, "display_name" : self.displayName(a)} for n, a in enumerate(self.root.getActions().fetchkeys())]
+        return [{"name": a, "id_": n, "display_name": self.displayName(a)} for n, a in
+                enumerate(self.root.getActions().fetchkeys())]
 
     def getFirstAction(self):
         a = self.getActions()
@@ -587,15 +625,15 @@ class VnVFile:
                     r = []
                     for a in self.root.getUnitTests():
                         if utest == a.getPackage():
-                            r.append( UnitTestRender(a, self.getCommObj(), self.templates))
+                            r.append(UnitTestRender(a, self.getCommObj(), self.templates))
 
                     return render_template("viewers/unittestpackage.html",
                                            unitrenders=r, package=utest)
 
                 if i.getId() == id:
-                    if utest == i.getName() :
+                    if utest == i.getName():
                         return render_template("viewers/unittest.html",
-                                           unitrender=UnitTestRender(i, self.getCommObj(), self.templates))
+                                               unitrender=UnitTestRender(i, self.getCommObj(), self.templates))
                     else:
                         return render_template("viewers/unittest.html",
                                                unitrender=UnitTestRender(i, self.getCommObj(), self.templates),
@@ -611,7 +649,7 @@ class VnVFile:
         return json.loads(s)
 
     def get_prov(self):
-        return ProvWrapper(self.root.getInfoNode().getProv(), self.templates)
+        return ProvWrapper(self.id_, self.root.getInfoNode().getProv(), self.templates)
 
     def get_node_map(self):
         x = self.root.getCommInfoNode().getNodeMap()

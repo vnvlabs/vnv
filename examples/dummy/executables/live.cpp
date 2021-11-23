@@ -47,7 +47,7 @@
 INJECTION_TEST(Live, interupt) {
   (*runner)++;  
   
-  if (*runner == 40) {
+  if (*runner == 15) {
     nlohmann::json schema = R"({"type":"object"})"_json;
     nlohmann::json response = R"({"type":"object"})"_json;
     if ( engine->Fetch("Hello From Me", schema,500,response) ) {

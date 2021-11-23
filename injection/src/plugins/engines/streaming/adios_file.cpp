@@ -8,9 +8,11 @@
 #include "interfaces/IOutputEngine.h"
 #include "plugins/comms/MPICommunicator.h"
 #include "plugins/engines/streaming/streamtemplate.h"
+#include "plugins/engines/streaming/adios_patch/ifstream.h"
 
 using namespace VnV::VNVPACKAGENAME::Engines::Streaming;
 using nlohmann::json;
+
 
 class IndexIter {
  public:
@@ -68,11 +70,12 @@ class IndexIter {
     return std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<>());
   }
 };
+#define STREAM_READER_NO_MORE_VALUES -19999
 
 // A static file iterator.
 class AdiosFileIterator : public Iterator<json> {
-  adios2::fstream fstream;
-  adios2::fstep step;
+  adios2::ifstream fstream;
+  adios2::ifstream step;
 
   long sId;
   std::ifstream ifs;
@@ -81,15 +84,22 @@ class AdiosFileIterator : public Iterator<json> {
   long currId;
   std::string currJson;
 
-  void getLine(json& current, long& currentValue) override {
+  json nextCurr;
+  long nextValue = -1;
+
+  void getLine_() {
+    
     std::string currline;
-    if (adios2::getstep(fstream, step)) {
-      currentValue = step.read<long>("jid")[0];
+
+    std::cout <<"GETTING STEP" << std::endl;
+    if (getstep(fstream, step,0)) { //blocking !!!!
+
+      std::cout <<"GOT STEP" << std::endl;
+      nextValue = step.read<long>("jid")[0];
       type = step.read<std::string>("type")[0];
 
       std::string s = step.read<std::string>("data")[0];
-      current = json::parse(s);
-
+      nextCurr = json::parse(s);
       if (type.compare("a") == 0) {
         std::size_t dim = step.read<std::size_t>("dim")[0];
         std::vector<std::size_t> shape = step.read<std::size_t>("shape");
@@ -100,8 +110,8 @@ class AdiosFileIterator : public Iterator<json> {
             std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<>());
         long long dtype = step.read<long long>("dtype")[0];
 
-        current[JSD::children] = json::array();
-        json& children = current[JSD::children];
+        nextCurr[JSD::children] = json::array();
+        json& children = nextCurr[JSD::children];
         children.get_ptr<json::array_t*>()->reserve(count);
 
         std::vector<char> jvec = step.read<char>("globalVec");
@@ -129,22 +139,36 @@ class AdiosFileIterator : public Iterator<json> {
             children.at(indexiter++) = it;
           }
         }
+        step.end_step();
       }
     } else {
-      current = json::object();
-      currentValue = -1;
+      std::cout << "NO ADIOS LINE" << std::endl;
+      nextValue = STREAM_READER_NO_MORE_VALUES;
+      nextCurr = json::object();
       more = false;
     }
   }
-
- public:
-  AdiosFileIterator(long streamId_, std::string filename_) : sId(streamId_) {
-    fstream.open(filename_, adios2::fstream::openmode::in);
+ 
+  void getLine(json& current, long& currentValue) override {
+    current = nextCurr;
+    currentValue = nextValue;
+    getLine_();
+    return;
   }
 
-  bool hasNext() override { return more; }
+ public:
+  AdiosFileIterator(long streamId_, std::string filename_) : sId(streamId_) ,fstream(filename_) {
+    std::cout << "HERE" << std::endl;
+    getLine_();
+  }
 
-  bool isDone() override { return more; }
+  bool hasNext() override {
+    std::cout << "ADIOS HASNEXT " << std::endl;
+    if (nextValue == STREAM_READER_NO_MORE_VALUES) {
+      getLine_();
+    }
+    return nextValue != STREAM_READER_NO_MORE_VALUES;
+  }
 
   long streamId() const override { return sId; }
 
@@ -159,6 +183,8 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
   std::map<long, adios2::Engine> streams;
   std::map<long, int> commSize;
   std::map<long, int> commRank;
+
+  std::string tstr = "";
 
   virtual void initialize(json& config, bool readMode) override {
     if (!readMode) {
@@ -182,17 +208,44 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
             std::make_unique<adios2::ADIOS>(configFile, MPI_COMM_WORLD, debug);
 
       io = adios->DeclareIO("BPWriter");
+      
+      io.DefineVariable<std::string>("data");
+      io.DefineVariable<long>("jid");
+      io.DefineVariable<std::string>("type");
+      
       io.AddTransport("File",
                       {{"Library", "POSIX"}, {"Name", filestub.c_str()}});
+    
     }
+  }
+  
+  static std::string getResponseFileName(std::string stub, long id, long jid) {
+    return VnV::DistUtils::join({stub, "__response__", std::to_string(jid) + "_" + std::to_string(id)}, 0777, true);    
+  }
+
+  virtual bool supportsFetch() override { return true; }
+
+  virtual bool fetch(long id, long jid, json& response) override {
+    std::string s = getResponseFileName(filestub, id, jid );
+    std::ifstream ifs(s + ".complete");
+    if (ifs.good()) {
+        response = json::parse(ifs); 
+        return true;
+    }
+    return false;
   }
 
   virtual void finalize(ICommunicator_ptr wcomm, long duration) override {
     // Close all the streams
     for (auto& it : streams) {
-      it.second.Close();
+        json j = json::object();
+        j[JSD::node] = JSN::done;
+        j[JSD::duration] = VnV::RunTime::instance().duration();
+        write(it.first, j, -1);
+        it.second.Close();
     }
   }
+    
 
   virtual void newComm(long id, const json& obj,
                        ICommunicator_ptr comm) override {
@@ -214,10 +267,11 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
   virtual void write(long id, const json& obj, long jid) override {
     auto it = streams.find(id);
     if (it != streams.end()) {
+      tstr = "j";
       it->second.BeginStep();
       it->second.Put("data", obj.dump());
       it->second.Put("jid", jid);
-      it->second.Put("type", "j");
+      it->second.Put("type", tstr);
       it->second.EndStep();
     }
   };
@@ -279,8 +333,9 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
     engine.BeginStep();
 
     if (root) {
+      tstr = "a";
       engine.Put("jid", jid);
-      engine.Put("type", "a");
+      engine.Put("type", tstr);
 
       json j = json::object();
       j[JSD::node] = JSN::shape;
@@ -292,8 +347,8 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
 
       engine.Put("data", j.dump());
     }
-
-    engine.Put<unsigned long>("offsets", offset.data());
+    engine.Put<unsigned long>("shape", gsizes.data());
+    engine.Put<unsigned long>("offset", offset.data());
     engine.Put<unsigned long>("sizes", sizes.data());
 
     std::string jstr = WriteDataJson<json>(data).dump();
@@ -340,6 +395,76 @@ class AdiosStreamManager : public StreamManager<json> {
   }
 };
 
+class MultiAdiosStreamIterator : public MultiStreamIterator<AdiosFileIterator, json> {
+  
+  std::set<std::string> loadedFiles;
+  std::string filestub;
+  std::string response_stub = "";
+
+ public:
+  MultiAdiosStreamIterator(std::string fstub) : MultiStreamIterator<AdiosFileIterator, json>(), filestub(fstub) {
+    bool changed = false;
+
+    while (VnV::DistUtils::fileExists(filestub)) {
+      filestub = fstub + VnV::TimeUtils::timestamp();
+      changed = true;
+    }
+
+    if (changed) {
+      VnV_Warn(VNVPACKAGENAME, "Output will be written to %s because %s already exists", filestub.c_str(),
+               fstub.c_str());
+    }
+  }
+
+  virtual void respond(long id, long jid, const json& response) override { 
+         //Respond to a file request in a format that will be understood by rhe Json Stream that is
+         //waiting for it. 
+         std::string s = AdiosFileStream::getResponseFileName(filestub, id, jid );
+         std::ofstream ofs(s + ".responding");
+         ofs << response.dump();
+         ofs.close();
+         VnV::DistUtils::mv(s+".responding", s+".complete");
+  }
+
+
+  void updateStreams() override {
+    
+    std::cout << extension << "GGGGGGGGGGGGGGGGG " << filestub <<  std::endl;
+    
+    std::vector<std::string> files = VnV::DistUtils::listFilesInDirectory(filestub);
+    for (auto& it : files) {
+      if (it.size()>std::strlen(extension) && loadedFiles.find(it) == loadedFiles.end()) {
+        loadedFiles.insert(it);
+        std::size_t dot = it.find_last_of(".");
+        try {
+          if (dot != std::string::npos && it.substr(dot).compare(extension) == 0) {
+            long id = std::atol(it.substr(0, dot).c_str());
+            std::string fname = VnV::DistUtils::join({filestub, it}, 0777, false);
+            std::cout << "ADDING A STREAM " << fname << std::endl; 
+            add(std::make_shared<AdiosFileIterator>(id, fname));
+          }
+        } catch (...) {
+
+        }
+      }
+    }
+
+    std::cout << "GGGGGGGGGGGGGGGGG" <<  std::endl;
+  }
+};
+
+//Bp4 does not need write blocks (i hope). 
+class AdiosVisitor : public ParserVisitor<json> {
+public:  
+  virtual void setWriteLock() override {}
+  virtual void releaseWriteLock() override {}
+};
+
 INJECTION_ENGINE(VNVPACKAGENAME, adios_file) {
   return new AdiosStreamManager();
+}
+
+INJECTION_ENGINE_READER(VNVPACKAGENAME, adios_file) {
+    auto stream = std::make_shared<MultiAdiosStreamIterator>(filename);
+    return RootNodeWithThread<MultiAdiosStreamIterator, json>::parse(id, stream, std::make_shared<AdiosVisitor>());
 }
