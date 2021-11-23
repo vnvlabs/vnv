@@ -86,8 +86,13 @@ int main(int argc, const char** argv) {
     throw VnV::VnVExceptionBase("No output file specified");
   }
 
+
   std::string packageName_ = packageName.getValue();
   std::hash<std::string> hasher;
+
+  std::cout << "\n"
+            << "********************************************************\n"
+            << "-->Starting VnV Extraction for " << packageName << "\n"; 
 
   // If the output file exists, load the cache from the comments. The cache
   // can then be used to check if any of the files have changed. We can then
@@ -138,13 +143,9 @@ int main(int argc, const char** argv) {
   std::set<std::string> modFiles = checkCache(cacheInfo, theFiles);
 
   if (modFiles.size() == 0) {
-    std::cout << "No changes detected" << std::endl;
+    std::cout << "---->No file changes detected" << std::endl;
   } else {
-    std::cout << "VnV Detected Changes in the following files:\n";
-    for (auto it : modFiles) {
-      std::cout << "\t" << it << std::endl;
-    }
-    std::cout << "\n\n";
+    
     // Update the Cache
     json vnvDeclares1 =
         runPreprocessor(OptionsParser.getCompilations(), modFiles);
@@ -203,5 +204,9 @@ int main(int argc, const char** argv) {
 
   writeFile(cacheInfo, outputFileName, cacheFile_, packageName_,
             force.getValue());
+
+ std::cout  << "-->Finished VnV Extraction for " << packageName << "\n"
+            << "********************************************************\n\n";
+
   return 0;
 }

@@ -68,7 +68,7 @@ class VnVCallBack {
    * @param type The type of the current injection point
    * @param stageId The stage id for the the current injection point.
    */
-  void call(ICommunicator_ptr comm, OutputEngineManager* wrapper, std::map<std::string, VnVParameter> parameterMap,
+  void call(ICommunicator_ptr comm, OutputEngineManager* wrapper, VnV::VnVParameterSet& parameterMap,
             InjectionPointType type, std::string stageId) {
     if (cCallback != nullptr) {
       IOutputEngineWrapper engineWraper = {static_cast<void*>(wrapper->getOutputEngine())};
@@ -84,6 +84,8 @@ class VnVCallBack {
 
 // Typedefs
 typedef std::map<std::string, std::pair<std::string, void*>> NTV;
+
+typedef std::function<void(std::string&, std::size_t &, std::list<std::string,std::string> &)> templateFunc; 
 
 /**
  * @brief The InjectionPoint Base class
@@ -119,7 +121,7 @@ class InjectionPointBase {
   InjectionPointType type; /**< The type of injection point */
   std::string stageId;     /**< The stage Id of the injection point  */
 
-  std::map<std::string, VnVParameter> parameterMap; /**< The parameters available at this injection point */
+  VnV::VnVParameterSet parameterMap; /**< The parameters available at this injection point */
 
   //@todo define a wrapper class for these two callback types.
   std::unique_ptr<VnVCallBack> callback = nullptr;
@@ -142,7 +144,7 @@ class InjectionPointBase {
    * @param in_args The parameters passed as "input" arguments
    * @param out_args The parameters passed as output arguments.
    */
-  InjectionPointBase(std::string packageName, std::string name, json registrationJson, const NTV& in_args,
+  InjectionPointBase(std::string packageName, std::string name, std::map<std::string,std::string> registrationJson, const NTV& in_args,
                      const NTV& out_args);
 
   /**
@@ -237,7 +239,7 @@ class InjectionPoint : public InjectionPointBase {
    * @param in_args The parameters passed as "input" arguments
    * @param out_args The parameters passed as output arguments.
    */
-  InjectionPoint(std::string packageName, std::string name, json registrationJson, const NTV& in_args,
+  InjectionPoint(std::string packageName, std::string name, std::map<std::string,std::string> registrationJson, const NTV& in_args,
                  const NTV& out_args)
       : InjectionPointBase(packageName, name, registrationJson, in_args, out_args){};
 
@@ -253,7 +255,7 @@ class InjectionPoint : public InjectionPointBase {
    * @param registrationJson The registration information for the injection point
    * @param in_args The parameters passed as "input" arguments
    */
-  InjectionPoint(std::string packageName, std::string name, json registrationJson, NTV& in_args)
+  InjectionPoint(std::string packageName, std::string name, std::map<std::string,std::string> registrationJson, NTV& in_args)
       : InjectionPointBase(packageName, name, registrationJson, in_args, {}){};
 
   /**

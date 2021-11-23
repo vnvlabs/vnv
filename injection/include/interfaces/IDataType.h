@@ -71,9 +71,11 @@ class IDataType {
   virtual long long maxSize() {
     throw VnVExceptionBase("Unsupported Operation");
   }  // what is the maximum size of the buffer
+  
   virtual long long pack(void* buffer) {
     throw VnVExceptionBase("Unsupported Operation");
   }  // pack the buffer
+  
   virtual void unpack(void* buffer) {
     throw VnVExceptionBase("Unsupported Operation");
   }  // unpack into a buffer
@@ -82,12 +84,22 @@ class IDataType {
   virtual void axpy(double alpha, IDataType_ptr y) {
     throw VnVExceptionBase("Unsupported Operation");
   }  // y = ax + y
+  
   virtual int compare(IDataType_ptr y) {
     throw VnVExceptionBase("Unsupported Operation");
   }  // -1 less, 0 == , 1 greater.
+  
   virtual void mult(IDataType_ptr y) {
     throw VnVExceptionBase("Unsupported Operation");
   }
+
+  virtual std::string typeId() {
+    throw VnVExceptionBase("Unsupported Operation");  
+  }
+  virtual std::string displayName() {
+    throw VnVExceptionBase("Unsupported Operation");  
+  }
+
 
   void setKey(long long key);
   long long getKey();
@@ -120,6 +132,17 @@ void registerDataType(std::string packageName, VnV::dataType_ptr ptr) {
   }                                                              \
   VnV::IDataType* VnV::PNAME::DataTypes::declare_##name()
 
+
+#define INJECTION_TDATATYPE(PNAME,cname,cls) \
+   INJECTION_DATATYPE(PNAME,cname,cls) {          \
+     class datatype : public VnV::IDataType { \
+        std::string typeId() override { return typeid(cls).name(); } \
+        std::string displayName() override { return #cls; } \
+     }; \
+     return new datatype(); \
+   }
+
+
 #define DECLAREDATATYPE(PNAME, name) \
   namespace VnV {                    \
   namespace PNAME {                  \
@@ -131,3 +154,4 @@ void registerDataType(std::string packageName, VnV::dataType_ptr ptr) {
 #define REGISTERDATATYPE(PNAME, name) VnV::PNAME::DataTypes::register_##name();
 
 #endif
+

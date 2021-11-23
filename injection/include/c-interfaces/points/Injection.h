@@ -13,14 +13,14 @@
 // Injection Points
 
 #  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...)            \
-    _VnV_injectionPoint(COMM, PNAME, NAME, __FILE__, __LINE__, callback, \
+    _VnV_injectionPoint(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, \
                         EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
 #  define INJECTION_POINT(PNAME, COMM, NAME, ...) \
     INJECTION_POINT_C(COMM, PNAME, NAME, NULL, __VA_ARGS__)
 
 #  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...)             \
-    _VnV_injectionPoint_begin(COMM, PNAME, NAME, __FILE__, __LINE__, callback, \
+    _VnV_injectionPoint_begin(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, \
                               EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
 #  define INJECTION_LOOP_BEGIN(PNAME, COMM, NAME, ...) \
@@ -47,12 +47,12 @@
     _VnV_registerInjectionPoint(PNAME, NAME, PARAMETERS);
 
 VNVEXTERNC void _VnV_injectionPoint(VnV_Comm comm, const char* packageName,
-                                    const char* id, const char* fname, int line,
+                                    const char* id, struct VnV_Function_Sig pretty, const char* fname, int line,
                                     injectionDataCallback* callback, ...);
 
 VNVEXTERNC void _VnV_injectionPoint_begin(VnV_Comm comm,
                                           const char* packageName,
-                                          const char* id, const char* fname,
+                                          const char* id, struct VnV_Function_Sig pretty, const char* fname,
                                           int line,
                                           injectionDataCallback* callback, ...);
 

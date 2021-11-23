@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
   INJECTION_POINT_C(
       "Samples", VSELF, "MY_FIRST_INJECTION_POINT_CALLBACK",
       IPCALLBACK {
-        int a = ntv.find("argc")->second.getByRtti<int>();
+        int a = ntv.GetRef("argc",int); 
         engine->Put("argc", a);
       },
       argc);

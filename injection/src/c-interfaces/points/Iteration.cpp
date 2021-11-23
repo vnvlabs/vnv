@@ -13,7 +13,7 @@ using namespace VnV;
 extern "C" {
 
 VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName,
-                                     const char* name, const char* fname,
+                                     const char* name, struct VnV_Function_Sig pretty,  const char* fname,
                                      int line, injectionDataCallback* callback,
                                      int once, int inputParameters, ...) {
   va_list argp;
@@ -21,7 +21,7 @@ VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName,
   NTV inputs = VariadicUtils::UnwrapVariadicArgs(argp, inputParameters);
   NTV outputs = VariadicUtils::UnwrapVariadicArgs(argp);
   VnV_Iterator v = VnV::RunTime::instance().injectionIteration(
-      comm, packageName, name, fname, line, callback, inputs, outputs, once);
+      comm, packageName, name, pretty, fname, line, callback, inputs, outputs, once);
   va_end(argp);
   return v;
 }

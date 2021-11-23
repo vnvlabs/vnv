@@ -152,6 +152,9 @@ const json& getVVSchema() {
         "package" : {
           "type" : "string"
         },
+       "template" : {
+          "$ref" : "#/definitions/runtemplate"
+        },
         "runInternal": {
            "type" : "boolean"
         },
@@ -201,6 +204,9 @@ const json& getVVSchema() {
         "runInternal": {
            "type" : "boolean"
         },
+        "template" : {
+          "$ref" : "#/definitions/runtemplate"
+        },
         "runScope": {
           "type": "array",
           "items": {
@@ -241,6 +247,9 @@ const json& getVVSchema() {
         "package" : {
           "type" : "string"
         },
+        "template" : {
+          "$ref" : "#/definitions/runtemplate"
+        },
         "runInternal": {
            "type" : "boolean"
         },
@@ -277,10 +286,6 @@ const json& getVVSchema() {
         "config" : {
             "type" : "object"
         },
-        "parameters" : {
-            "type" : "object",
-            "additionalParameters" : {"type" : "string" }
-        },
         "runScope": {
           "type": "array",
           "items": {
@@ -302,9 +307,8 @@ const json& getVVSchema() {
         "config" : {
             "type" : "object"
         },
-        "parameters" : {
-            "type" : "object",
-            "additionalParameters" : {"type" : "string" }
+       "template" : {
+          "$ref" : "#/definitions/runtemplate"
         },
         "runScope": {
           "type": "array",
@@ -327,9 +331,8 @@ const json& getVVSchema() {
         "config" : {
             "type" : "object"
         },
-        "parameters" : {
-            "type" : "object",
-            "additionalParameters" : {"type" : "string" }
+        "template" : {
+          "$ref" : "#/definitions/runtemplate"
         },
         "runScope": {
           "type": "array",
@@ -340,10 +343,17 @@ const json& getVVSchema() {
       },
       "required": [
         "name",
-        "package",
-        "parameters"
+        "package"
       ],
       "additionalProperties": false
+    },
+    "runtemplate" : {
+      "type" : "array",
+      "items" : { "type" : "object" , 
+                  "additionalProperties" : {
+                     "type" : "string"
+                  }
+      }
     }
   }
 })"_json;
@@ -371,8 +381,7 @@ json& getDefaultOptionsSchema() {
   return __default_options_schema__;
 }
 
-json getTestValidationSchema(std::map<std::string, std::string>& params,
-                             json& optsschema) {
+json getTestValidationSchema(json& optsschema) {
   json schema = R"(
     {
        "$schema": "http://json-schema.org/draft-07/schema#",
@@ -388,18 +397,11 @@ json getTestValidationSchema(std::map<std::string, std::string>& params,
   json parameters =
       R"({"type":"object" ,"properties" : {}, "additionalProperties" : false})"_json;
   parameters["required"] = json::array();
-  for (auto it : params) {
-    parameters["properties"][it.first] = R"({"type":"string"})"_json;
-    parameters["required"].push_back(it.first);
-  }
-
+  
+  
   properties["parameters"] = parameters;
   schema["properties"] = properties;
-  if (params.size() > 0) {
-    schema["required"] = R"(["configuration","parameters"])"_json;
-  } else {
-    schema["required"] = R"(["configuration"])"_json;
-  }
+  schema["required"] = R"(["configuration"])"_json;
   return schema;
 }
 

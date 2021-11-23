@@ -54,6 +54,7 @@ class Logger {
   friend class RunTime;
   friend class IUnitTester;  // Allow unit tester to Test the private functions.
   int refcount = 0;
+  int rank = -1;
 
   std::map<std::string, std::string> logLevelsToColor;
   std::map<std::string, bool>
@@ -62,13 +63,19 @@ class Logger {
       savedLogs; /** logging statements that occur before engine config. **/
   Logger();
   bool engine = false; /**< True if this logger writes to the output engine. */
-  std::stack<std::pair<int, std::string>> stage;
+  
+  int stage = 0;
+
   bool on = true; /**< Is the logger on */
   std::ostream*
       fileptr; /**< ostream for writing the logs to the intended location */
   bool locked = false; /**< has the logger been configured */
   std::set<std::string> packageBlackList;
   std::string outFileName;
+
+  void setRank(int r) {
+    rank = r;
+  }
 
   /**
    * @arg level The level to which this log should be written.
@@ -132,6 +139,9 @@ class Logger {
   std::string logLevelToColor(std::string logLevel, std::string message);
 
   std::string getIndent(int stage);
+
+  void up();
+  void down();
 };
 
 }  // namespace VnV

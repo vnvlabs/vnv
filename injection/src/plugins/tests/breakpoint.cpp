@@ -29,7 +29,8 @@ int default_signal = SIGTRAP;
 #undef X
 }  // namespace
 
-INJECTION_TEST(VNVPACKAGENAME, hardBreakpoint, int* argv) {
+INJECTION_TEST(VNVPACKAGENAME, hardBreakpoint) {
+  
   json confj = getConfigurationJson();
   auto it = confj.find("signal");
   if (it != confj.end()) {

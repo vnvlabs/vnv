@@ -49,8 +49,8 @@ INJECTION_TRANSFORM(SPNAME, sampleTransform, std::vector<double>, double) { retu
  *
  *
  */
-INJECTION_TEST(SPNAME, sampleTest, std::vector<double> vals) {
-  auto vals = get<std::vector<double>>("vals");
+INJECTION_TEST(SPNAME, sampleTest) {
+  auto vals = GetRef("vals",std::vector<double>);
   for (auto& it : vals) {
     engine->Put("Key", it);
     engine->Put("Value", it);
@@ -190,12 +190,12 @@ void newtonRaphson(double x, double eps, int rank) {
       VNV_STR(SPNAME), VSELF, "NewtonRaphson",
       [](VnV_Comm comm, VnV::VnVParameterSet& p, VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
-        const double& x = p["x"].getByRtti<double>();
-        const double& iter = p["iter"].getByRtti<double>();
-        const int& rank = p["rank"].getByRtti<int>();
-
+        
+        auto x = p.GetRef("x",double);
+        auto iter = p.GetRef("iter",double);
+        auto rank = p.GetRef("rank",int);
+        
         engine->Put("Rank", rank);
-
         engine->Put("root", x);
         engine->Put("iter", iter);
       },
@@ -303,8 +303,6 @@ int main(int argc, char** argv) {
 
   INJECTION_POINT(VNV_STR(SPNAME), VWORLD, "functionTest", function1);
 
-  std::cout << "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT" << std::endl;
-
   MPI_Comm comm, comm1;
   MPI_Comm_split(MPI_COMM_WORLD, rank % 2, rank, &comm);
   MPI_Comm_split(MPI_COMM_WORLD, rank / 2, rank, &comm1);
@@ -362,15 +360,17 @@ int main(int argc, char** argv) {
       [](VnV_Comm comm, VnV::VnVParameterSet& p, VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         if (type == VnV::InjectionPointType::Iter) {
-          const double& ab = p["aa"].getByRtti<double>();
-          const int& i = p["i"].getByRtti<int>();
+          
+          auto ab = p.GetRef("aa",double);
+          auto i = p.GetRef("i",int);
+          
           engine->Put("y", ab);
           engine->Put("x", i);
         } else if (type == VnV::InjectionPointType::Begin) {
           /** Comment block in lambda function **/
-          engine->Put("min", p["min"].getByRtti<int>());
-          engine->Put("max", p["max"].getByRtti<int>());
-          engine->Put("count", p["count"].getByRtti<int>());
+          engine->Put("min", p.GetRef("min",int) );
+          engine->Put("max", p.GetRef("max",int) );
+          engine->Put("count",p.GetRef("count",int) );
         }
       },
       aa, min, max, count, i);
@@ -390,15 +390,17 @@ int main(int argc, char** argv) {
       [](VnV_Comm comm, VnV::VnVParameterSet& p, VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         if (type == VnV::InjectionPointType::Iter) {
-          const double& ab = p["aa"].getByRtti<double>();
-          const int& i = p["i"].getByRtti<int>();
+          
+          auto ab = p.GetRef("aa",double);
+          auto i = p.GetRef("i",int);
+          
           engine->Put("y", ab);
           engine->Put("x", i);
         } else if (type == VnV::InjectionPointType::Begin) {
           /** Comment block in lambda function **/
-          engine->Put("min", p["min"].getByRtti<int>());
-          engine->Put("max", p["max"].getByRtti<int>());
-          engine->Put("count", p["count"].getByRtti<int>());
+          engine->Put("min", p.GetRef("min",int) );
+          engine->Put("max", p.GetRef("max",int) );
+          engine->Put("count",p.GetRef("count",int) );
         }
       },
       aa, min, max, count, i);
@@ -418,15 +420,17 @@ int main(int argc, char** argv) {
       [](VnV_Comm comm, VnV::VnVParameterSet& p, VnV::OutputEngineManager* engine, VnV::InjectionPointType type,
          std::string stageId) {
         if (type == VnV::InjectionPointType::Iter) {
-          const double& ab = p["aa"].getByRtti<double>();
-          const int& i = p["i"].getByRtti<int>();
+          auto ab = p.GetRef("aa",double);
+          auto i = p.GetRef("i",int);
+          
           engine->Put("y", ab);
           engine->Put("x", i);
         } else if (type == VnV::InjectionPointType::Begin) {
           /** Comment block in lambda function **/
-          engine->Put("min", p["min"].getByRtti<int>());
-          engine->Put("max", p["max"].getByRtti<int>());
-          engine->Put("count", p["count"].getByRtti<int>());
+          
+          engine->Put("min", p.GetRef("min",int) );
+          engine->Put("max", p.GetRef("max",int) );
+          engine->Put("count",p.GetRef("count",int) );
         }
       },
       aa, min, max, count, i);

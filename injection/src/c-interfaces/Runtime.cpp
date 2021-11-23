@@ -16,11 +16,10 @@ extern "C" {
 int VnV_init(const char* packageName, int* argc, char*** argv,
              const char* filename, registrationCallBack callback) {
   return VnV::RunTime::instance().InitFromFile(packageName, argc, argv,
-                                               filename, &callback);
+                                               filename, callback);
 }
 
-void VnV_Register_Subpackage(const char* packageName,
-                             const char* subPackageName,
+void VnV_Register_Subpackage(const char* subPackageName,
                              registrationCallBack callback) {
   VnV::RunTime::instance().runTimePackageRegistration(subPackageName, callback);
 }

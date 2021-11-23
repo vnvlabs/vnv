@@ -44,7 +44,7 @@
  * YOU RESPONDED WITH THE VALUE: :vnv:`response[0]`
  * 
  */
-INJECTION_TEST(Live, interupt, double x) {
+INJECTION_TEST(Live, interupt) {
   (*runner)++;  
   
   if (*runner == 40) {

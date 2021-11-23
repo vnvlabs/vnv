@@ -22,11 +22,10 @@ using namespace VnV;
 
 
 **/
-INJECTION_TEST(DLT, EuclideanError, std::vector<double> measured,
-               (std::vector<double>)exact_test) {
-  const std::vector<double> measured = get<std::vector<double>>("measured");
-  const std::vector<double> exact = get<std::vector<double>>("exact");
-
+INJECTION_TEST(DLT, EuclideanError) {
+  auto measured = GetRef("measured", std::vector<double> );
+  auto exact = GetRef("exact", std::vector<double> );
+  
   if (measured.size() != exact.size()) {
     double m1 = -1;
     engine->Put("l2_error", m1);

@@ -95,12 +95,12 @@ class RunTime {
   std::string hotpatchVar;
   bool hotpatch;
 
-  void loadRunInfo(RunInfo& info, registrationCallBack* callback);
+  void loadRunInfo(RunInfo& info, registrationCallBack callback);
 
   void makeLibraryRegistrationCallbacks(
       std::map<std::string, std::string> packageNames);
   bool configure(std::string packageName, RunInfo info,
-                 registrationCallBack* callback);
+                 registrationCallBack callback);
 
  public:
   /**
@@ -120,9 +120,9 @@ class RunTime {
    * designed to work with this injection point in mind.
    */
   bool InitFromFile(const char* packageName, int* argc, char*** argv,
-                    std::string configFile, registrationCallBack* callback);
+                    std::string configFile, registrationCallBack callback);
   bool InitFromJson(const char* packageName, int* argc, char*** argv,
-                    json& configFile, registrationCallBack* callback);
+                    json& configFile, registrationCallBack callback);
 
   int registerCleanUpAction(std::function<void(ICommunicator_ptr)> action);
 
@@ -159,18 +159,21 @@ class RunTime {
   /****************** ITERATIONS ************************************/
  private:
   std::shared_ptr<IterationPoint> getNewInjectionIteration(
-      VnV_Comm comm, std::string pname, std::string id, InjectionPointType type,
+      VnV_Comm comm, std::string pname, std::string id, 
+      struct VnV_Function_Sig pretty, 
+      InjectionPointType type,
       int once, NTV& in_args, NTV& out_args);
 
  public:
   int injectionIterationRun(VnV_Iterator* iterator);
 
   VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id,
+                                  struct VnV_Function_Sig pretty, 
                                   std::string fname, int line,
                                   const DataCallback& callback, NTV& inputs,
                                   NTV& outputs, int once);
 
-  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id,
+  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id,struct VnV_Function_Sig pretty, 
                                   std::string fname, int line,
                                   injectionDataCallback* callback, NTV& inputs,
                                   NTV& outputs, int once);
@@ -179,12 +182,15 @@ class RunTime {
  private:
   std::shared_ptr<PlugPoint> getNewInjectionPlug(VnV_Comm comm,
                                                  std::string pname,
-                                                 std::string id, NTV& in_args,
+                                                 std::string id, 
+                                                 struct VnV_Function_Sig pretty, 
+                                                 NTV& in_args,
                                                  NTV& out_args);
 
  public:
   // Cpp Interface for an Injection Plug
   VnV_Iterator injectionPlug(VnV_Comm, std::string pname, std::string id,
+                             struct VnV_Function_Sig pretty, 
                              std::string fname, int line,
                              const DataCallback& callback, NTV& inputs,
                              NTV& outputs);
@@ -192,7 +198,7 @@ class RunTime {
   int injectionPlugRun(VnV_Iterator* iterator);
 
   // C Interface for an Iteration Point.
-  VnV_Iterator injectionPlug(VnV_Comm, std::string pname, std::string id,
+  VnV_Iterator injectionPlug(VnV_Comm, std::string pname, std::string id, struct VnV_Function_Sig pretty, 
                              std::string fname, int line,
                              injectionDataCallback* callback, NTV& inputs,
                              NTV& outputs);
@@ -202,6 +208,7 @@ class RunTime {
   std::shared_ptr<InjectionPoint> getNewInjectionPoint(VnV_Comm comm,
                                                        std::string pname,
                                                        std::string id,
+                                                       struct VnV_Function_Sig pretty, 
                                                        InjectionPointType type,
                                                        NTV& args);
 
@@ -213,10 +220,12 @@ class RunTime {
 
  public:
   void injectionPoint(VnV_Comm comm, std::string pname, std::string id,
+                      struct VnV_Function_Sig pretty, 
                       std::string fname, int line, const DataCallback& callback,
                       NTV& args);
 
-  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id,
+  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id, 
+                            struct VnV_Function_Sig pretty, 
                             std::string fname, int line,
                             const DataCallback& callback, NTV& args);
 
@@ -226,11 +235,11 @@ class RunTime {
   void injectionPoint_iter(std::string pname, std::string id,
                            std::string iterid, std::string fname, int line);
 
-  void injectionPoint(VnV_Comm comm, std::string pname, std::string id,
+  void injectionPoint(VnV_Comm comm, std::string pname, std::string id,struct VnV_Function_Sig pretty, 
                       std::string fname, int line,
                       injectionDataCallback* callback, NTV& args);
 
-  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id,
+  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id,struct VnV_Function_Sig pretty, 
                             std::string fname, int line,
                             injectionDataCallback* callback, NTV& args);
 

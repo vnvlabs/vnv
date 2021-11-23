@@ -41,7 +41,7 @@ class IterationPoint : public InjectionPoint {
    * @param in_args The parameters that can be modified
    * @param out_args Therparameters to be "evaluated"
    */
-  IterationPoint(std::string packageName, std::string name, json registrationJson, int once_, NTV& in_args,
+  IterationPoint(std::string packageName, std::string name, std::map<std::string,std::string> registrationJson, int once_, NTV& in_args,
                  const NTV& out_args)
       : InjectionPoint(packageName, name, registrationJson, in_args, out_args), once(once_){};
 
@@ -66,3 +66,4 @@ class IterationPoint : public InjectionPoint {
 }  // namespace VnV
 
 #endif  // include gaurd.
+

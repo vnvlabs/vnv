@@ -13,7 +13,7 @@ namespace DataTypes {
 
 // This will work with any <T> that has addition, multiplication
 // and compare operators.
-template <typename T> class GenericDataType : public IDataType {
+template <typename T, const char * dname> class GenericDataType : public IDataType {
   T data;
   SupportedDataType dtype;
 
@@ -37,12 +37,12 @@ template <typename T> class GenericDataType : public IDataType {
 
   // this = this + ay
   void axpy(double alpha, IDataType_ptr y) {
-    GenericDataType<T>* yy = (GenericDataType<T>*)y.get();
+    GenericDataType<T, dname>* yy = (GenericDataType<T, dname>*)y.get();
     data += yy->get() * alpha;
   }
 
   int compare(IDataType_ptr y) {
-    GenericDataType<T>* yy = (GenericDataType<T>*)y.get();
+    GenericDataType<T, dname>* yy = (GenericDataType<T, dname>*)y.get();
     if (yy->get() == data)
       return 0;
     else if (data < yy->get())
@@ -51,8 +51,16 @@ template <typename T> class GenericDataType : public IDataType {
   }
   // this = this * y;
   void mult(IDataType_ptr y) {
-    GenericDataType<T>* yy = (GenericDataType<T>*)y.get();
+    GenericDataType<T, dname>* yy = (GenericDataType<T, dname>*)y.get();
     data = data * yy->get();
+  }
+
+  std::string typeId() override {
+    return typeid(T).name();
+  }
+
+  std::string displayName() override {
+    return dname;
   }
 
   void Put(IOutputEngine* engine) override { engine->Put("value", get()); }
@@ -70,7 +78,7 @@ template <typename T> class GenericDataType : public IDataType {
   void* getPutData(std::string name) override { return &data; }
 };
 
-template <unsigned int N, typename T> class StringDataType : public IDataType {
+template <unsigned int N, typename T, const char* dname> class StringDataType : public IDataType {
  public:
   T data;
   std::function<std::string(const T&)> toString;
@@ -125,6 +133,14 @@ template <unsigned int N, typename T> class StringDataType : public IDataType {
         "multiplication not supported for string data types");
   }
 
+  std::string typeId() override {
+    return typeid(T).name();
+  }
+
+  std::string displayName() override {
+    return dname;
+  }
+
   void Put(IOutputEngine* engine) override { engine->Put("value", get()); }
 
   std::map<std::string, PutData> getLocalPutData() override {
@@ -141,8 +157,9 @@ template <unsigned int N, typename T> class StringDataType : public IDataType {
 }  // namespace VNVPACKAGENAME
 }  // namespace VnV
 
+static const char stringname[] = "std::string";
 INJECTION_DATATYPE(VNVPACKAGENAME, string, std::string) {
-  return new VnV::VNVPACKAGENAME::DataTypes::StringDataType<1024, std::string>(
+  return new VnV::VNVPACKAGENAME::DataTypes::StringDataType<1024, std::string, stringname>(
       SupportedDataType::STRING, [](const std::string& a) { return a; },
       [](char* a) { return std::string(a); },
       [](const std::string& o1, const std::string& o2) {
@@ -150,9 +167,10 @@ INJECTION_DATATYPE(VNVPACKAGENAME, string, std::string) {
       });
 }
 
+static const char jsonname[] = "nlohmann::json";
 INJECTION_DATATYPE(VNVPACKAGENAME, json, nlohmann::json) {
   return new VnV::VNVPACKAGENAME::DataTypes::StringDataType<1024,
-                                                            nlohmann::json>(
+                                                            nlohmann::json, jsonname>(
       SupportedDataType::STRING,
       [](const nlohmann::json& a) { return a.dump(); },
       [](char* a) { return json::parse(a); },
@@ -161,32 +179,26 @@ INJECTION_DATATYPE(VNVPACKAGENAME, json, nlohmann::json) {
       });
 }
 
-INJECTION_DATATYPE(VNVPACKAGENAME, double, double) {
-  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<double>(
-      VnV::SupportedDataType::DOUBLE);
-};
+#define gtypes X(double,double,DOUBLE) \
+               X(int,int,LONG) \
+               X(float,float,LONG)\
+               X(long,long,LONG)\
+               X(longlong, long long, LONG)\
+               X(short,short,LONG)\
+               X(size_t, std::size_t, LONG)
 
-INJECTION_DATATYPE(VNVPACKAGENAME, int, int) {
-  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<int>(
-      VnV::SupportedDataType::LONG);
-};
+#define X(key,clas,Dtype)\
+  static const char key##name[] = #clas; \
+  INJECTION_DATATYPE(VNVPACKAGENAME, key, clas) { \
+  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<clas, key##name>( \
+      VnV::SupportedDataType::Dtype); \
+  };
 
-INJECTION_DATATYPE(VNVPACKAGENAME, float, float) {
-  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<float>(
-      VnV::SupportedDataType::DOUBLE);
-}
+gtypes
 
-INJECTION_DATATYPE(VNVPACKAGENAME, long, long) {
-  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<long>(
-      VnV::SupportedDataType::LONG);
-}
+#undef x
+#undef gtypes
 
-INJECTION_DATATYPE(VNVPACKAGENAME, longlong, long long) {
-  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<long long>(
-      VnV::SupportedDataType::LONG);
-}
 
-INJECTION_DATATYPE(VNVPACKAGENAME, short, short) {
-  return new VnV::VNVPACKAGENAME::DataTypes::GenericDataType<short>(
-      VnV::SupportedDataType::LONG);
-}
+
+

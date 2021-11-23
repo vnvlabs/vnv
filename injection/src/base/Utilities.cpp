@@ -242,8 +242,7 @@ VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp, int count) {
     void* variablePtr = va_arg(argp, void*);
     counter++;
     // add it to the list. In C, we do not have typeId, so we cannot get the
-    // rtti info.
-    // Just set it to void*.
+    // rtti info. Just set it to void*.
     parameterSet.insert(
         std::make_pair(variableName, std::make_pair("void*", variablePtr)));
   }
@@ -454,4 +453,25 @@ json VnV::JsonUtilities::load(std::string configFile) {
     throw Exceptions::parseError(fstream, e.byte, e.what());
   }
   return mainJson;
+}
+
+namespace VnV{ namespace Log {
+int level = 0;
+std::ostream& o = std::cout;
+std::string tab() {
+      std::string s = "----";
+      for (int i = 0; i < level; i++) {
+         s += "----";
+      }
+      return s + ">";
+}
+
+
+void up() { ++level;};
+void down() { --level; }
+std::ostream& log() {
+    o << tab();
+    return o;
+}
+}
 }

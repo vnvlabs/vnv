@@ -19,8 +19,8 @@ set(VNV_MPI_CXX_VERSION @MPI_CXX_VERSION@)
 if(WITH_EXTRACTION AND TARGET Injection::Extraction)
 
 macro(checkcompiler type vnv cm)
-  if ( NOT ${vnv} EQUAL ${cm} )
-    message(WARNING "Project ${type} (${CMAKE_C_COMPILER}) does not match VnV ${type} (${VNV_C_COMPILER}). ")
+  if ( NOT ${vnv} STREQUAL ${cm} )
+    message(WARNING "Project ${type} (${cm}) does not match VnV ${type} (${vnv}). ")
   endif()
 endmacro()
 
@@ -50,7 +50,8 @@ function( add_vnv_generation_target packageName filename cac deps)
                --output ${filename} 
                --cache ${cac} 
                --package ${packageName} 
-               {CMAKE_BINARY_DIR}/compile_commands.json
+               ${CMAKE_BINARY_DIR}/compile_commands.json
+               
         BYPRODUCTS ${depfiles}       
    )
    
@@ -91,20 +92,6 @@ function( add_vnv_generation_target packageName filename cac deps)
 endfunction()
 
 
-# This function sets the vnv targets as dependencies of some 
-# list of targets (pass them in after packageName). This is usefull 
-# in situations where you generate code containing injection points. 
-function( add_generation_dependencies packageName ) 
-   add_dependencies(vnv_gen_${packageName} ${ARGN})
-   add_dependencies(vnv_force_${packageName} ${ARGN})
-   add_dependencies(vnv_reset_${packageName} ${ARGN})
-   add_dependencies(vnv_reset_force_${packageName} ${ARGN})
-
-   verify_compiler_and_mpi()
-
-endfunction()
-
-
 # This one adds all the targets but makes it up to you 
 function(link_vnv_file_root targetName packageName filename deps )
 
@@ -117,13 +104,9 @@ function(link_vnv_file_root targetName packageName filename deps )
 endfunction()
 
 
-function(link_vnv_file_man targetName packageName filename)
-   link_vnv_file_root(${targetName} ${packageName} ${filename} false)
-endfunction()   
-
-# This one adds all the targets but makes it up to you 
-# to add the source. 
+# This one adds all the targets but makes it up to you to add the source. 
 function(link_vnv_file_semi targetName packageName filename)
+   
    link_vnv_file_root(${targetName} ${packageName} ${filename} true)
    
    #Add the file as a source
@@ -131,20 +114,18 @@ function(link_vnv_file_semi targetName packageName filename)
    
    #Ignore the generated file when processing vnv stuff. We need this because other wise
    # the parser tries to find these files which dont exist yet. 
-   set_source_files_properties(
-        ${filename}
-        PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0
+   set_source_files_properties( ${filename} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0
    )
 
 endfunction()
 
 
-
 function(link_vnv_file targetName packageName extension)
+   
+   verify_compiler_and_mpi()
+
    link_vnv_file_semi(${targetName} ${packageName} ${CMAKE_BINARY_DIR}/vnv_registration_${packageName}.${extension})
       
-   # Make the main target depend on the regen step so regen happens during 
-   # the build/                          
    add_dependencies(${targetName} vnv_gen_${packageName})
    
 endfunction()

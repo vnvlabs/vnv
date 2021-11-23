@@ -61,6 +61,7 @@ void JsonParser::addInjectionPoint(
     std::string key = package + ":" + name;
     const json& values = it.value();
     auto aip = ips.find(name);
+    
     if (aip != ips.end()) {
       if (values.find("tests") != values.end()) {
         for (auto& test : values["tests"].items()) {
@@ -116,6 +117,10 @@ void JsonParser::addInjectionPoint(
         ipInfo.runInternal = true;
       }
 
+      if (values.contains("template")) {
+           ipInfo.templateName = values["template"];
+      }
+     
       if (ipInfo.tests.size() > 0 || ipInfo.runInternal ||
           ipInfo.iterators.size() > 0) {
         ips.insert(std::make_pair(key, ipInfo));

@@ -28,7 +28,7 @@ class Transformer {
  public:
   Transformer(std::string from_,
               std::vector<std::pair<std::string, ITransform*>>& trans);
-  virtual void* Transform(void* ptr, std::string& rtti);
+  virtual void* Transform(void* ptr);
   virtual ~Transformer();
 };
 

@@ -25,10 +25,10 @@ class InjectionPlugConfig : public InjectionPointConfig {
  public:
   std::shared_ptr<PlugConfig> plug = nullptr;
 
-  InjectionPlugConfig(std::string package, std::string id, bool runInternal_,
-                      std::vector<TestConfig>& tests_,
+  InjectionPlugConfig(std::string package, std::string id, bool runInternal_, json& templateName,
+                      std::vector<TestConfig>& tests_, 
                       std::shared_ptr<PlugConfig>& plug_)
-      : InjectionPointConfig(package, id, runInternal_, tests_), plug(plug_) {}
+      : InjectionPointConfig(package, id, runInternal_, templateName, tests_), plug(plug_) {}
 };
 
 class PlugStore : public BaseStore {
@@ -38,6 +38,7 @@ class PlugStore : public BaseStore {
   std::map<std::string, PlugSpec> registeredPlugs;
 
   std::shared_ptr<PlugPoint> newPlug(std::string packageName, std::string name,
+                                     struct VnV_Function_Sig pretty, 
                                      NTV& in_args, NTV& out_args);
 
  public:
@@ -46,11 +47,12 @@ class PlugStore : public BaseStore {
   void registerPlug(std::string packageName, std::string id, json& jsonObject);
 
   std::shared_ptr<PlugPoint> getNewPlug(std::string package, std::string name,
+                                        struct VnV_Function_Sig pretty, 
                                         NTV& in_args, NTV& out_args);
 
   nlohmann::json schema();
 
-  void addPlug(std::string package, std::string name, bool runInternal,
+  void addPlug(std::string package, std::string name, bool runInternal, json& templateName, 
                std::vector<TestConfig>& tests,
                std::shared_ptr<PlugConfig>& plug);
 

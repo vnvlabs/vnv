@@ -6,22 +6,26 @@
 void VnV::CppInjection::UnwrapParameterPack(NTV& /*m*/) {}
 
 void VnV::defaultCallBack(VnV_Comm /*comm*/,
-                          std::map<std::string, VnVParameter>& /*params*/,
+                          VnVParameterSet& /*params*/,
                           IOutputEngine* /*engine*/,
                           InjectionPointType /*type*/,
                           std::string /*stageId*/) {}
 
+
 void VnV::CppInjection::BeginLoop(VnV_Comm comm, const char* package,
-                                  const char* id, const char* fname, int line,
+                                  const char* id, struct VnV_Function_Sig pretty,
+                                  const char* fname, int line,
                                   const DataCallback& callback, NTV& map) {
-  VnV::RunTime::instance().injectionPoint_begin(comm, package, id, fname, line,
+  
+  VnV::RunTime::instance().injectionPoint_begin(comm, package, id, pretty, fname, line,
                                                 callback, map);
 }
 
 void VnV::CppInjection::BeginPoint(VnV_Comm comm, const char* package,
-                                   const char* id, const char* fname, int line,
+                                   const char* id, struct VnV_Function_Sig pretty,
+                                   const char* fname, int line,
                                    const DataCallback& callback, NTV& map) {
-  VnV::RunTime::instance().injectionPoint(comm, package, id, fname, line,
+  VnV::RunTime::instance().injectionPoint(comm, package, id, pretty, fname, line,
                                           callback, map);
 }
 

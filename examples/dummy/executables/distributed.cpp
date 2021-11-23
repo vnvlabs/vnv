@@ -32,8 +32,8 @@ INJECTION_EXECUTABLE(SPNAME)
  *       }
  *     }
  */
-INJECTION_TEST(SPNAME, write_vec, std::vector<double> x) {
-  auto x = getReference<std::vector<double>>("x");
+INJECTION_TEST(SPNAME, write_vec) {
+  auto x = GetRef("x",std::vector<double>);
 
   // Write a vector indexed by the rank with local size x.size() on each
   // process.
@@ -59,8 +59,8 @@ INJECTION_TEST(SPNAME, write_vec, std::vector<double> x) {
  * auto& x() { return getReference<std::vector<double> x>("std::vector<double>
  * x");
  */
-INJECTION_TEST(SPNAME, put_rank, std::vector<double> x) {
-  auto x = getReference<std::vector<double>>("x");
+INJECTION_TEST(SPNAME, put_rank) {
+  auto x = GetRef("x",std::vector<double>);
 
   // Could also pull the rank from the user options (TODO).
   int rank = 0;
@@ -91,8 +91,8 @@ INJECTION_TEST(SPNAME, put_rank, std::vector<double> x) {
  * More information is needed to generate more data.
  *
  */
-INJECTION_TEST(SPNAME, put_matrix, std::vector<std::vector<double>> x) {
-  auto x = getReference<std::vector<std::vector<double>>>("x");
+INJECTION_TEST(SPNAME, put_matrix) {
+  auto x = GetRef("x",std::vector<std::vector<double>>);
 
   // First one passed in data + cols where cols in the number of columns in
   // the global output matrix. This function will take and [x,y] local matrix
@@ -116,8 +116,8 @@ INJECTION_TEST(SPNAME, put_matrix, std::vector<std::vector<double>> x) {
  * Demonstrates the reduction interface. These API functions allow
  * a vector to be reduced across the communicator.
  */
-INJECTION_TEST(SPNAME, put_reduce, std::vector<double> x) {
-  auto x = getReference<std::vector<double>>("x");
+INJECTION_TEST(SPNAME, put_reduce) {
+  auto x = GetRef("x",std::vector<double>);
 
   // Find the "min" value in a global vector.
   engine->Put_ReduceVector("Reduce1", "VNV:max", x);

@@ -11,11 +11,13 @@ void VnV::CppIteration::Register(const char* package, const char* id,
 void VnV::CppIteration::UnwrapParameterPack(int inputs, NTV& mm, NTV& m) {}
 
 VnV_Iterator VnV::CppIteration::BeginIteration(
-    VnV_Comm comm, const char* package, const char* id, const char* fname,
+    VnV_Comm comm, const char* package, const char* id, 
+    struct VnV_Function_Sig pretty,
+    const char* fname,
     int line, const DataCallback& callback, int once, NTV& inputs,
     NTV& ouputs) {
   return VnV::RunTime::instance().injectionIteration(
-      comm, package, id, fname, line, callback, inputs, ouputs, once);
+      comm, package, id, pretty,  fname, line, callback, inputs, ouputs, once);
 }
 
 int VnV::CppIteration::Iterate(VnV_Iterator* iterator) {

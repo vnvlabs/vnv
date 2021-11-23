@@ -18,7 +18,7 @@ using namespace VnV;
 
 using nlohmann::json_schema::json_validator;
 
-InjectionPointBase::InjectionPointBase(std::string packageName, std::string name, json registrationJson,
+InjectionPointBase::InjectionPointBase(std::string packageName, std::string name, std::map<std::string,std::string> registrationJson,
                                        const NTV& in_args, const NTV& out_args) {
   this->name = name;
   this->package = packageName;
@@ -31,14 +31,14 @@ InjectionPointBase::InjectionPointBase(std::string packageName, std::string name
       auto rparam = registrationJson.find(it.first);  // Find a parameter with this name.
       if (rparam != registrationJson.end()) {
         parameterMap.insert(std::make_pair(
-            it.first, VnVParameter(it.second.second, rparam.value().get<std::string>(), it.second.first, inputs)));
+            it.first, VnVParameter(it.second.second, rparam->second, inputs)));
       } else {
         VnV_Warn(VNVPACKAGENAME,
                  "Injection Point is not configured Correctly. Unrecognized "
                  "parameter "
                  "%s",
                  it.first.c_str());
-        parameterMap.insert(std::make_pair(it.first, VnVParameter(it.second.second, "void*", it.second.first, inputs)));
+        parameterMap.insert(std::make_pair(it.first, VnVParameter(it.second.second, "void*", inputs)));
       }
     }
   }
@@ -46,15 +46,8 @@ InjectionPointBase::InjectionPointBase(std::string packageName, std::string name
 
 std::string InjectionPointBase::getScope() const { return name; }
 
-std::string InjectionPointBase::getParameterRTTI(std::string key) const {
-  auto it = parameterMap.find(key);
-  if (it != parameterMap.end()) {
-    return it->second.getRtti();
-  }
-  return "";
-}
-
 void InjectionPointBase::addTest(TestConfig& config) {
+  
   config.setParameterMap(parameterMap);
   std::shared_ptr<ITest> test = TestStore::instance().getTest(config);
 
@@ -75,7 +68,7 @@ void InjectionPointBase::setComm(ICommunicator_ptr comm) { this->comm = comm; }
 void InjectionPointBase::runTestsInternal(OutputEngineManager* wrapper) {
   if (callback != nullptr) {
     wrapper->testStartedCallBack(package, "__internal__", true, -1);
-    callback->call(comm,wrapper,parameterMap,type,stageId);
+    callback->call(comm, wrapper, parameterMap, type, stageId);
     wrapper->testFinishedCallBack(true);  // TODO callback should return bool "__internal__");
   }
   for (auto it : m_tests) {

@@ -21,6 +21,9 @@
 #  define VNVEXTERNC
 #endif
 
+
+#include "c-interfaces/prettyfunction.h"
+
 // C Injection Macros.
 
 #define FE_0(WHAT)

@@ -18,10 +18,11 @@
  * The value of x was :vnv:`data.x.value`
  *
  */
-INJECTION_TEST(PNAME, customTest, double x) {
+INJECTION_TEST(PNAME, customTest) {
   // You can pull parameters out of the test parameter map using the get
   // function.
-  const double& x = get<double>("x");
+  auto x = GetRef("x", double);
+
 
   // You can write values to the output engine using the IOutputEngine
   // interface. These values can be used in the test comment template as shown
@@ -36,10 +37,10 @@ INJECTION_TEST(PNAME, customTest, double x) {
  *
  * The sum of x and y was :vnv:`data.sum.value`
  */
-INJECTION_TEST(PNAME, customTest2, double x, double y) {
+INJECTION_TEST(PNAME, customTest2) {
   // You can have up to 20 test parameters
-  const double& x = get<double>("x");
-  const double& y = get<double>("y");
+  auto x = GetRef("x", double);
+  auto y = GetRef("y", double);
   engine->Put("sum", x + y);
   return SUCCESS;
 }
@@ -78,7 +79,8 @@ class CRunner {
  * a schema and a runner. It has one test parameter.
  *
  */
-INJECTION_TEST_RS(PNAME, customTest3, CRunner, c3Schema, double x) {
+INJECTION_TEST_RS(PNAME, customTest3, CRunner, c3Schema) {
+  
   // Calling getConfigurationJson() returns a const reference to the user
   // provided json configuration object that has been validated against the
   // schema provided eariler. With a good schema, you can avoid checking the
@@ -98,8 +100,10 @@ INJECTION_TEST_RS(PNAME, customTest3, CRunner, c3Schema, double x) {
  *
  * Something in here I guess.
  */
-INJECTION_TEST(PNAME, customTest4, double y) {
-  double y = get<double>("y");
+INJECTION_TEST(PNAME, customTest4) {
+  
+  auto y = GetRef("y", double);
+
 
   // Injection points have stages. You can get the current stage using the type
   // variable

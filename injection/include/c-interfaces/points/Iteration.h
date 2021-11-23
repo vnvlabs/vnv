@@ -13,7 +13,7 @@
 #  define INJECTION_ITERATION_C(PNAME, COMM, NAME, ONCE, INPUTS, callback,    \
                                 ...)                                          \
     VnV_Iterator VNV_JOIN(PNAME, _iterator_, NAME) = _VnV_injectionIteration( \
-        COMM, PNANE, NAME, __FILE__, __LINE__, callback, ONCE, INPUTS,        \
+        COMM, PNANE, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, ONCE, INPUTS,        \
         EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);                          \
     while (_VnV_injectionIterate(&VNV_JOIN(PNAME, _iterator_, NAME)))
 
@@ -24,7 +24,7 @@
     _VnV_registerInjectionIterator(PNAME, NAME, PARAMETERS);
 
 VNVEXTERNC VnV_Iterator _VnV_injectionIteration(
-    VnV_Comm comm, const char* packageName, const char* name, const char fname,
+    VnV_Comm comm, const char* packageName, const char* name, struct VnV_Function_Sig pretty, const char fname,
     int line, injectionDataCallback* callback, int once, int inputParameters,
     ...);
 

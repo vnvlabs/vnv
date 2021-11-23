@@ -26,7 +26,6 @@ VNVEXTERNC void VnV_Output_Put_String(struct IOutputEngineWrapper* wrapper,
 
 struct ParameterDTO {
   const char* type;
-  const char* rtti;
   const void* ptr;
 };
 

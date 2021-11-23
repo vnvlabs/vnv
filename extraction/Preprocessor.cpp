@@ -78,11 +78,6 @@ std::string stringArgs(Preprocessor& pp, const Token* token,
   return s;
 }
 
-std::map<std::string, std::string> parseArgs(Preprocessor& pp,
-                                             const Token* token) {
-  return VnV::StringUtils::variadicProcess(stringArgs(pp, token, true).c_str());
-}
-
 }  // namespace
 
 using nlohmann::json;
@@ -255,17 +250,14 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       json& jj =
           getDef("Tests", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
-      jj["parameters"] = parseArgs(pp, Args->getUnexpArgument(4));
     } else if (nae == "INJECTION_ITERATOR_RS") {
       json& jj =
           getDef("Iterators", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
-      jj["parameters"] = parseArgs(pp, Args->getUnexpArgument(4));
     } else if (nae == "INJECTION_PLUG_RS") {
       json& jj =
           getDef("Plugs", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
-      jj["parameters"] = parseArgs(pp, Args->getUnexpArgument(4));
     } else if (nae == "INJECTION_SERIALIZER_R") {
       json& jj = getDef("Serializers", getPackageName(Args, 0),
                         getPackageName(Args, 1));

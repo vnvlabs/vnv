@@ -12,24 +12,24 @@ using namespace VnV;
 
 extern "C" {
 
-void _VnV_injectionPoint(VnV_Comm comm, const char* package, const char* id,
+void _VnV_injectionPoint(VnV_Comm comm, const char* package, const char* id, struct VnV_Function_Sig pretty, 
                          const char* fname, int line,
                          injectionDataCallback* callback, ...) {
   va_list argp;
   va_start(argp, callback);
   NTV map = VariadicUtils::UnwrapVariadicArgs(argp);
-  VnV::RunTime::instance().injectionPoint(comm, package, id, fname, line,
+  VnV::RunTime::instance().injectionPoint(comm, package, id, pretty, fname, line,
                                           callback, map);
   va_end(argp);
 }
 
 void _VnV_injectionPoint_begin(VnV_Comm comm, const char* package,
-                               const char* fname, int line, const char* id,
+                               const char* fname, int line, const char* id, struct VnV_Function_Sig pretty, 
                                injectionDataCallback* callback, ...) {
   va_list argp;
   va_start(argp, callback);
   NTV map = VariadicUtils::UnwrapVariadicArgs(argp);
-  VnV::RunTime::instance().injectionPoint_begin(comm, package, id, fname, line,
+  VnV::RunTime::instance().injectionPoint_begin(comm, package, id, pretty, fname, line,
                                                 callback, map);
   va_end(argp);
 }

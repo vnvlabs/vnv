@@ -121,7 +121,7 @@ struct InjectionPointInfo {
   std::vector<json> tests;                   /**< Test configuration json defined at the injection point */
   std::vector<json> iterators;               /**< Iteration configuration json defined at the injection point */
   json plug = json::object();                /**< Plug configuration json defined at the injection point */
-
+  json templateName = json::object();
   SamplerInfo sampler; /**< Sampler configuration for this injection point */
 
   bool runInternal; /** Should we run the internal callback for this injection point */
