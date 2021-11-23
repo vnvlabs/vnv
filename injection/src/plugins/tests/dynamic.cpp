@@ -39,7 +39,7 @@ void talk(std::string& filename, std::string& symbol) {
     std::cout << "Thanks, now enter the name of the symbol inside the library";
     std::getline(std::cin, symbol);
     if (!symbol.empty()) {
-      std::cout << "Thanks -- loading the library and quiting. ";
+      std::cout << "Thanks -- loading the library and quitting. ";
     } else {
       std::cout << "Ok, we will continue without testing.";
     }

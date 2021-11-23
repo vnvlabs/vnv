@@ -90,7 +90,7 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level,
       // Logging statements that occur prior to the engine being configured at
       // written to std::out.
       if (savedLogs.size() > MAXSAVED_LOGS) {
-        std::cout << "To Many Logs before engine configuration: Dumping to "
+        std::cout << "Too Many Logs before engine configuration: Dumping to "
                      "stdout instead"
                   << std::endl;
         auto& t = savedLogs.front();

@@ -154,7 +154,7 @@ bool TestConfig::preLoadParameterSet(
 // point that this test is being run inside.
 TestStatus ITest::_runTest(ICommunicator_ptr comm, OutputEngineManager* engine,
                            InjectionPointType type, std::string stageId) {
-  VnV_Debug_MPI(VNVPACKAGENAME, comm->asComm(), "Runnnig Test %s ",
+  VnV_Debug_MPI(VNVPACKAGENAME, comm->asComm(), "Running Test %s ",
                 m_config.getName().c_str());
 
   engine->testStartedCallBack(m_config.getPackage(), m_config.getName(), false,

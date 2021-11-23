@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
   
   if (argc == 1 ) {
       std::cout << "Usage: ./live.a <int:time_in_seconds>" << std::endl;
-      std::cout << "\n\nThis application with run for about \"time in seconds\". It will ouput some data to " 
+      std::cout << "\n\nThis application will run for about \"time in seconds\". It will output some data to "
                 << "the ./vv-output-live directory.\nOnce the application is running "  
                 << "open the gui (cd <build>/report-generation && run.py then go localhost:5000) and "
                 << "load the output file (this_directory/vv-output-live). The gui should give you a live view"
