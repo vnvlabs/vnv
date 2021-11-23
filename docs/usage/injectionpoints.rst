@@ -291,7 +291,7 @@ The VnV toolkit is designed as an extensible set of verification and validation 
        <testing code>
     }
 
-Because tests are seperate, unique blocks if code, there is no way to infer the types of the input parameters. Hence,
+Because tests are separate, unique blocks of code, there is no way to infer the types of the input parameters. Hence,
 the input parameters passed to the tests need to be of the form <type> <name> (e.g, double x, int y, KSP z). The user will map injection point parameters to these parameters using the input file.
 
 .. todo:: Allow a test to indicate which parameters are required and which are optional.

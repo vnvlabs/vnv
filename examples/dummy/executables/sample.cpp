@@ -90,9 +90,9 @@ class test1 {
        * Injection point stage Documentation
        * ===================================
        *
-       * Injection point stage documentaiton is parsed by the parser, but
+       * Injection point stage documentation is parsed by the parser, but
        * might not be used depending on the report generator. In either case,
-       * it has the same access to the dat aelements of the overall injection
+       * it has the same access to the data elements of the overall injection
        * points.
        */
       INJECTION_LOOP_ITER(VNV_STR(SPNAME), "Function1Class1", "inner");
@@ -378,7 +378,7 @@ int main(int argc, char** argv) {
   for (; i < max; i += count) {
     aa = 100 * ((double)rand() / (double)RAND_MAX);
 
-    /** Testing stufff
+    /** Testing stuff
      */
     INJECTION_LOOP_ITER(VNV_STR(SPNAME), "loopTest1", "internal");
   }
@@ -408,7 +408,7 @@ int main(int argc, char** argv) {
   for (; i < max; i += count) {
     aa = 100 * ((double)rand() / (double)RAND_MAX);
 
-    /** Testing stufff
+    /** Testing stuff
      */
     INJECTION_LOOP_ITER(VNV_STR(SPNAME), "loopTest2", "internal");
   }
@@ -438,7 +438,7 @@ int main(int argc, char** argv) {
   for (; i < max; i += count) {
     aa = 100 * ((double)rand() / (double)RAND_MAX);
 
-    /** Testing stufff
+    /** Testing stuff
      */
     INJECTION_LOOP_ITER(VNV_STR(SPNAME), "loopTest", "internal");
   }

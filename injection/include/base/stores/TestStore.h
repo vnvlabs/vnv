@@ -103,7 +103,7 @@ class TestStoreTemplate {
     
     if (testJson.find("name") == testJson.end()) {
       // This should be impossible. Input Validation should detect test blocks
-      // incorretly specified.
+      // incorrectly specified.
       throw VnVExceptionBase("Test Declaration does not contain Test Name");
     }
     

@@ -48,7 +48,7 @@ if(Clang_FOUND)
   # (to generate the registration code). To get around this, we staticly link
   # source required in the matcher code into the executable. That way, we can
   # avoid requiring a linking of the VnV library to build the matcher and
-  # without having to pull out a seperate utilities library.
+  # without having to pull out a separate utilities library.
 
   add_executable(
     vnv-matcher

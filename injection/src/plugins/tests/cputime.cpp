@@ -21,7 +21,7 @@ namespace {
 
 /**
  * This test is a test that checks the provenance of the executable. This test
- * does a FULL provenace tracking.
+ * does a FULL provenance tracking.
  */
 class cpuRunner {
  public:
