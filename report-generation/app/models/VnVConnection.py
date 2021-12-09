@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import subprocess
 import tempfile
 import urllib
 import uuid
@@ -16,13 +17,21 @@ class VnVConnection:
     INFO_FILE = get_file_name()
     INFO_FILE_PATH = "__vnv_fetch__.py"
 
-    def __init__(self):
+    def __init__(self, domain=None,port=None,username=None):
         self.transport = None
-        self.username_ = None
-        self.domain_ = None
-        self.port_ = None
+        self.username_ = username
+        self.domain_ = domain
+        self.port_ = port
         self.pythonpath = "python3"
         self.cache = {}
+
+    def toJson(self):
+        return {
+            "username" : self.username_,
+            "domain" : self.domain_,
+            "port" : self.port_,
+        }
+
 
     def getPath(self, filename, exten=None):
         t = tempfile.gettempdir()
@@ -82,6 +91,24 @@ class VnVConnection:
     def sftp(self):
         return paramiko.SFTPClient.from_transport(self.transport)
 
+    def execute(self, command):
+        nbytes = 4096
+        stdout_data = []
+        stderr_data = []
+        session = self.transport.open_channel(kind='session')
+        session.exec_command(command)
+
+        # Block until finished
+        while not session.exit_status_ready():
+          pass
+
+        while session.recv_ready():
+           stdout_data.append(session.recv(nbytes).decode("utf-8"))
+
+        session.recv_exit_status()
+        return "".join(stdout_data)
+
+
     def getInfo(self, path):
 
         if path in self.cache:
@@ -109,6 +136,9 @@ class VnVConnection:
             return a
         except Exception as e:
             print(e)
+
+    def describe(self):
+        return f"{self.username_}@{self.domain_}:{self.port_}"
 
     def download(self, remote):
         info = self.getInfo(remote)
@@ -156,6 +186,12 @@ class VnVLocalConnection:
     def __init__(self):
         self.connected_ = True
 
+    def toJson(self):
+        return {}
+
+    def describe(self):
+        return "localhost"
+
     def local(self):
         return True
 
@@ -177,6 +213,11 @@ class VnVLocalConnection:
 
     def connected(self):
         return self.connected_
+
+    def execute(self, command):
+        result = subprocess.run(command.split(" "), stdout=subprocess.PIPE)
+        return result.stdout.decode("utf-8")
+
 
     def exists(self, path):
         return os.path.exists(os.path.abspath(path))
@@ -219,6 +260,11 @@ class VnVLocalConnection:
                 loc.append(cc)
         return loc
 
+
+def connectionFromJson(j):
+    if j:
+        return VnVConnection(domain=j["domain"],username=j["username"],port=j["port"])
+    return VnVLocalConnection()
 
 class MainConnection:
     MAIN_CONNECTION = VnVLocalConnection()

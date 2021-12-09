@@ -7,10 +7,11 @@
 #include "interfaces/ICommunicator.h"
 #include "interfaces/IOutputEngine.h"
 #include "plugins/comms/MPICommunicator.h"
-#include "plugins/engines/streaming/streamtemplate.h"
-#include "plugins/engines/streaming/adios_patch/ifstream.h"
+#include "plugins/engines/adios_patch/ifstream.h"
 
-using namespace VnV::VNVPACKAGENAME::Engines::Streaming;
+#include "streaming/dispatch.h"
+
+using namespace VnV::Nodes;
 using nlohmann::json;
 
 
@@ -91,10 +92,8 @@ class AdiosFileIterator : public Iterator<json> {
     
     std::string currline;
 
-    std::cout <<"GETTING STEP" << std::endl;
     if (getstep(fstream, step,0)) { //blocking !!!!
 
-      std::cout <<"GOT STEP" << std::endl;
       nextValue = step.read<long>("jid")[0];
       type = step.read<std::string>("type")[0];
 
@@ -142,7 +141,6 @@ class AdiosFileIterator : public Iterator<json> {
         step.end_step();
       }
     } else {
-      std::cout << "NO ADIOS LINE" << std::endl;
       nextValue = STREAM_READER_NO_MORE_VALUES;
       nextCurr = json::object();
       more = false;
@@ -158,12 +156,10 @@ class AdiosFileIterator : public Iterator<json> {
 
  public:
   AdiosFileIterator(long streamId_, std::string filename_) : sId(streamId_) ,fstream(filename_) {
-    std::cout << "HERE" << std::endl;
     getLine_();
   }
 
   bool hasNext() override {
-    std::cout << "ADIOS HASNEXT " << std::endl;
     if (nextValue == STREAM_READER_NO_MORE_VALUES) {
       getLine_();
     }
@@ -429,7 +425,6 @@ class MultiAdiosStreamIterator : public MultiStreamIterator<AdiosFileIterator, j
 
   void updateStreams() override {
     
-    std::cout << extension << "GGGGGGGGGGGGGGGGG " << filestub <<  std::endl;
     
     std::vector<std::string> files = VnV::DistUtils::listFilesInDirectory(filestub);
     for (auto& it : files) {
@@ -440,7 +435,6 @@ class MultiAdiosStreamIterator : public MultiStreamIterator<AdiosFileIterator, j
           if (dot != std::string::npos && it.substr(dot).compare(extension) == 0) {
             long id = std::atol(it.substr(0, dot).c_str());
             std::string fname = VnV::DistUtils::join({filestub, it}, 0777, false);
-            std::cout << "ADDING A STREAM " << fname << std::endl; 
             add(std::make_shared<AdiosFileIterator>(id, fname));
           }
         } catch (...) {
@@ -449,15 +443,7 @@ class MultiAdiosStreamIterator : public MultiStreamIterator<AdiosFileIterator, j
       }
     }
 
-    std::cout << "GGGGGGGGGGGGGGGGG" <<  std::endl;
   }
-};
-
-//Bp4 does not need write blocks (i hope). 
-class AdiosVisitor : public ParserVisitor<json> {
-public:  
-  virtual void setWriteLock() override {}
-  virtual void releaseWriteLock() override {}
 };
 
 INJECTION_ENGINE(VNVPACKAGENAME, adios_file) {
@@ -465,6 +451,6 @@ INJECTION_ENGINE(VNVPACKAGENAME, adios_file) {
 }
 
 INJECTION_ENGINE_READER(VNVPACKAGENAME, adios_file) {
-    auto stream = std::make_shared<MultiAdiosStreamIterator>(filename);
-    return RootNodeWithThread<MultiAdiosStreamIterator, json>::parse(id, stream, std::make_shared<AdiosVisitor>());
+  auto stream = std::make_shared<MultiAdiosStreamIterator>(filename);
+  return engineReaderDispatch<MultiAdiosStreamIterator,json>(async,config, stream, false);
 }

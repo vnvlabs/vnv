@@ -19,9 +19,12 @@ tablist = {
 %}
 
 {%with active_tab = request.args.get("atab", "home") %}
-{% with actionFiles = file.getActions() %}
 
 {%if file.setupNow() %}
+
+{% with actionFiles = file.getActions() %}
+
+
 
 <div class=" fcolumn fchild">
 
@@ -76,12 +79,12 @@ tablist = {
         </div>
 
 </div>
-
+{%endwith%}
 {%else%}
     <div>Waiting for file initialization.... Refresh to try again. </div>
 {%endif%}
 
-{%endwith%}
+
 {%endwith%}
 {%endwith%}
 

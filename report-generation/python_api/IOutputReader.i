@@ -6,32 +6,66 @@
 //%shared_ptr(VnV::Nodes::IRootNode)
 
 
+
 %{
  #include "base/Provenance.h"
  #include "base/LibraryInfo.h"
  #include "python/PythonInterface.h"
 %}
 
-%include <exception.i>
+%include <std_shared_ptr.i>
+%shared_ptr(VnV::Nodes::DataBase)
+%shared_ptr(VnV::Nodes::IDoubleNode)
+%shared_ptr(VnV::Nodes::IIntegerNode)
+%shared_ptr(VnV::Nodes::IFloatNode)
+%shared_ptr(VnV::Nodes::IStringNode)
+%shared_ptr(VnV::Nodes::ILongNode)
+%shared_ptr(VnV::Nodes::IBoolNode)
+%shared_ptr(VnV::Nodes::IJsonNode)
+%shared_ptr(VnV::Nodes::IShapeNode)
+%shared_ptr(VnV::Nodes::IMapNode)
+%shared_ptr(VnV::Nodes::IArrayNode)
+%shared_ptr(VnV::Nodes::IRootNode)
+%shared_ptr(VnV::Nodes::IUnitTestNode)
+%shared_ptr(VnV::Nodes::IUnitTestResultsNode)
+%shared_ptr(VnV::Nodes::IUnitTestResultNode)
+%shared_ptr(VnV::Nodes::ICommMap)
+%shared_ptr(VnV::Nodes::IDataNode)
+%shared_ptr(VnV::Nodes::ILogNode)
+%shared_ptr(VnV::Nodes::IInjectionPointNode)
+%shared_ptr(VnV::Nodes::ITestNode)
+%shared_ptr(VnV::Nodes::IInfoNode)
+%shared_ptr(VnV::Nodes::ICommInfoNode)
+%shared_ptr(VnV::VnVProv)
+%shared_ptr(VnV::ProvFile)
+%shared_ptr(VnV::Nodes::WalkerNode)
 
-//%exception {
-//    try {
-//        $action
-//    }
-//    catch (VnV::VnVExceptionBase e) {
-//        SWIG_exception(SWIG_RuntimeError, e.what());
-//    } catch (std::exception e ) {
-//        SWIG_exception(SWIG_RuntimeError, e.what());
-//    }
-//}
+%except(python) {
+    try {
+        $function
+    }
+    catch (std::exception e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+    } catch (std::exception e ) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+    }
+}
+
+
 
 %include "std_string.i"
 %include "std_vector.i"
 %include "std_map.i"
 %include "std_set.i"
+
+
+
+
 %include "base/LibraryInfo.h"
 %include "base/Provenance.h"
-%include "interfaces/Nodes.h"
+%include "streaming/IDN.h"
+%include "streaming/Nodes.h"
+%include "streaming/Nodes.h"
 %include "python/PythonInterface.h"
 
 namespace std {
@@ -214,7 +248,7 @@ def DumpReaders():
    VnVDumpReaders()
 
 def castDataBase(obj) :
-    return igetattr(obj, "get" + dataBaseCastMap[obj.getType()])()
+    return igetattr(obj, "get" + dataBaseCastMap[obj.getType()])(obj)
 
 %}
 
@@ -360,6 +394,7 @@ PY_GETATTR(VnV::Nodes::ICommInfoNode)
 
 PY_GETATTRLIST(VnV::Nodes::IArrayNode)
 
+
 %define PY_GETATTRMAP(Typename)
 %extend Typename {
     %pythoncode %{
@@ -412,6 +447,7 @@ PY_GETATTRLIST(VnV::Nodes::IArrayNode)
 }
 %enddef
 PY_GETATTRMAP(VnV::Nodes::IMapNode)
+
 
 
 %define PY_GETATTRSHAPE(Typename)
@@ -526,4 +562,3 @@ PY_GETATTRSHAPE(VnV::Nodes::ILongNode)
 PY_GETATTRSHAPE(VnV::Nodes::IBoolNode)
 PY_GETATTRSHAPE(VnV::Nodes::IJsonNode)
 PY_GETATTRSHAPE(VnV::Nodes::IShapeNode)
-

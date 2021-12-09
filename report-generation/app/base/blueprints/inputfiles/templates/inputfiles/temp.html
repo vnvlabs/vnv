@@ -1,0 +1,18 @@
+<script src="/static/assets/js/jsoneditor.min.js"></script>
+<script>
+
+  const schema = JSON.parse('{{file.schema() | safe }}')
+  const json = JSON.parse('{{file.val() | safe }}')
+
+  const options = {
+    schema: schema,
+    mode: 'tree',
+    modes: ['code', 'text', 'tree', 'preview']
+  }
+
+  // create the editor
+  const container = document.getElementById('jsoneditor')
+  const editor = new JSONEditor(container, options, json)
+
+
+</script>

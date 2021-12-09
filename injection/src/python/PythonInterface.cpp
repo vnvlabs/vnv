@@ -14,7 +14,7 @@ ReaderWrapper::ReaderWrapper(std::string filename, std::string config) {
   auto idx = filename.rfind(".");
   if (idx != std::string::npos) {
     std::string ext = filename.substr(idx + 1);
-    rootNode = VnV::OutputEngineStore::instance().readFile(filename, ext, conf);
+    rootNode = VnV::OutputEngineStore::instance().readFile(filename, ext, conf, true);
   } else {
     throw VnVExceptionBase(
         "Engine Detection Failed because output file has no extension.");
@@ -22,10 +22,10 @@ ReaderWrapper::ReaderWrapper(std::string filename, std::string config) {
 }
 
 ReaderWrapper::ReaderWrapper(std::string filename, std::string reader,
-                             std::string config) {
+                             std::string config, bool async) {
   // Reset the engine manager, using the provided reader and config.
   json conf = json::parse(config);
-  rootNode =VnV::OutputEngineStore::instance().readFile(filename, reader, conf);
+  rootNode = VnV::OutputEngineStore::instance().readFile(filename, reader, conf, async);
 
 }
 

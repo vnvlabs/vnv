@@ -4,7 +4,7 @@
 <head>
 
     <title>
-        Flask Gradient Able - {% block title %}{% endblock %} | AppSeed
+        VnV Toolkit
     </title>    
 	<!-- HTML5 Shim and Respond.js IE11 support of HTML5 elements and media queries -->
 	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -36,7 +36,8 @@
         {% block content %}{% endblock content %}
     </div>
     <!-- [ auth-signin ] end -->
-
+    {%include "includes/toast.html" %}
+    {% include 'includes/loading.html' %}
     {% include 'includes/scripts.html' %}
 
     <!-- Specific Page JS goes HERE  -->

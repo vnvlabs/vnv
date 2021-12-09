@@ -19,12 +19,9 @@ namespace {
 void add(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode);
 
 void swap(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode) {
-  std::cout << "Swapping " << node->id << std::endl;
   if (node->parents.size() == 1) {
-    std::cout << "Node has one parent " << std::endl;
     auto parent = node->parents.begin()->second;
     if (willAdd.find(parent->id) != willAdd.end()) {
-      std::cout << "Parent will add proc " << parent->id << std::endl;
       // add(proc, parent, willAdd, newNode);
     } else if (parent->contents.size() == node->contents.size()) {
       // Nodes parents are now parents parents. Also tell parents parents

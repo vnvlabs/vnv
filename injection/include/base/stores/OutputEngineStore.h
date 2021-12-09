@@ -101,7 +101,7 @@ class OutputEngineStore : public BaseStore {
    * @return
    */
   std::shared_ptr<Nodes::IRootNode> readFile(std::string filename,
-                                             std::string engine, json& config);
+                                             std::string engine, json& config, bool async = true);
 
   /**
    * @brief setEngineManager

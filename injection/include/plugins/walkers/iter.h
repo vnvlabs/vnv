@@ -3,14 +3,14 @@
 
 #include <map>
 
-#include "interfaces/Nodes.h"
+#include "streaming/Nodes.h"
 
 namespace VnV {
 namespace Walkers {
 
 class Iter {
  protected:
-  VnV::Nodes::ICommMap* commMap;
+  std::shared_ptr<const VnV::Nodes::ICommMap> commMap;
   std::map<long, std::list<Nodes::IDN>>& nodes;
   std::map<long, std::list<Nodes::IDN>>::iterator niter;
 
@@ -23,7 +23,7 @@ class Iter {
   }
 
  public:
-  Iter(Nodes::ICommMap* comm, std::map<long, std::list<Nodes::IDN>>& n)
+  Iter(std::shared_ptr<const Nodes::ICommMap> comm, std::map<long, std::list<Nodes::IDN>>& n)
       : commMap(comm), nodes(n) {
     niter = nodes.begin();
   }

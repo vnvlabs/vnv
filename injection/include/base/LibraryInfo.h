@@ -15,7 +15,7 @@ struct libInfo {
   long timestamp = 0;
   long size = 0;
 
-  json toJson() {
+  json toJson() const {
     json j = json::object();
     j["name"] = name;
     j["timestamp"] = timestamp;

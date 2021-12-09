@@ -35,20 +35,15 @@ class RegistrationWriter {
   void finalizePackage(std::string packageName) {
     auto it = oss_register.find(packageName);
     if (it != oss_register.end()) {
-      it->second << "\tREGISTER_FULL_JSON(" << packageName
-                 << ", getFullRegistrationJson_" << it->first << ");\n";
-      
-      it->second << "}\n\n";
-      
- 
+      it->second << "\tREGISTER_FULL_JSON(" << packageName << ", getFullRegistrationJson_" << it->first << ");\n";
 
-      oss_declare[packageName]
-          << "const char* getFullRegistrationJson_" << it->first << "(){"
-          << "\n"
-          << "\t return "
-          << VnV::StringUtils::escapeQuotes(pjson[it->first].dump(), true)
-          << ";}\n\n"
-          << it->second.str() << "\n\n";
+      it->second << "}\n\n";
+
+      oss_declare[packageName] << "const char* getFullRegistrationJson_" << it->first << "(){"
+                               << "\n"
+                               << "\t return " << VnV::StringUtils::escapeQuotes(pjson[it->first].dump(), true)
+                               << ";}\n\n"
+                               << it->second.str() << "\n\n";
     }
   }
 
@@ -65,9 +60,8 @@ class RegistrationWriter {
     if (!packageName.empty()) {
       auto it = oss_declare.find(packageName);
       if (it != oss_declare.end()) {
-        
         std::string s = it->second.str();
-        return s; 
+        return s;
       } else {
         // This means the package includes VnV.h, but does not have any VnV
         // INJECTION CALLS. So, we should return a empty configuration.
@@ -84,8 +78,7 @@ class RegistrationWriter {
     return j.dump();
   }
 
-  void registerHelper(json& j, std::string key, std::string reg,
-                      std::string pname) {
+  void registerHelper(json& j, std::string key, std::string reg, std::string pname) {
     if (j.contains(key)) {
       for (auto it : j[key].items()) {
         std::string packageName = it.value()["packageName"];
@@ -96,20 +89,16 @@ class RegistrationWriter {
           // Save the json, declare the engine, register the engine.
           it.value().erase("name");
           it.value().erase("packageName");
-          VnV::JsonUtilities::getOrCreate(pjson[packageName], key)[name] =
-              it.value();
+          VnV::JsonUtilities::getOrCreate(pjson[packageName], key)[name] = it.value();
 
-          oss_declare[packageName] << "DECLARE" << reg << "(" << packageName
-                                   << "," << name << ")\n";
-          oss_register[packageName] << "\tREGISTER" << reg << "(" << packageName
-                                    << "," << name << ");\n";
+          oss_declare[packageName] << "DECLARE" << reg << "(" << packageName << "," << name << ")\n";
+          oss_register[packageName] << "\tREGISTER" << reg << "(" << packageName << "," << name << ");\n";
         }
       }
     }
   }
 
   RegistrationWriter(json& j, std::string packageName = "") {
-    
     registerHelper(j, "Tests", "TEST", packageName);
     registerHelper(j, "Iterators", "ITERATOR", packageName);
     registerHelper(j, "Plugs", "PLUG", packageName);
@@ -120,6 +109,7 @@ class RegistrationWriter {
     registerHelper(j, "Serializers", "SERIALIZER", packageName);
     registerHelper(j, "Transforms", "TRANSFORM", packageName);
     registerHelper(j, "Reducers", "REDUCER", packageName);
+    registerHelper(j, "Pipelines", "PIPELINE", packageName);
     registerHelper(j, "Samplers", "SAMPLER", packageName);
     registerHelper(j, "Walkers", "WALKER", packageName);
     registerHelper(j, "DataTypes", "DATATYPE", packageName);
@@ -132,10 +122,8 @@ class RegistrationWriter {
           std::string n = it.value()["name"].get<std::string>();
           std::string c = it.value()["color"].get<std::string>();
           createPackageOss(pname);
-          oss_register[pname] << "\tREGISTERLOGLEVEL(" << pname << " , " << n
-                              << "," << c << ");\n";
-          VnV::JsonUtilities::getOrCreate(pjson[pname], "LogLevels")[n] =
-              it.value();
+          oss_register[pname] << "\tREGISTERLOGLEVEL(" << pname << " , " << n << "," << c << ");\n";
+          VnV::JsonUtilities::getOrCreate(pjson[pname], "LogLevels")[n] = it.value();
         }
       }
     }
@@ -148,8 +136,7 @@ class RegistrationWriter {
 
           createPackageOss(pname);
 
-          VnV::JsonUtilities::getOrCreate(pjson[pname], "Files")[n] =
-              it.value();
+          VnV::JsonUtilities::getOrCreate(pjson[pname], "Files")[n] = it.value();
         }
       }
     }
@@ -161,10 +148,8 @@ class RegistrationWriter {
           std::string n = it.value()["name"].get<std::string>();
           createPackageOss(pname);
           oss_declare[pname] << "DECLARESUBPACKAGE(" << n << ")\n";
-          oss_register[pname] << "\tREGISTERSUBPACKAGE(" << n
-                              << ");\n";
-          VnV::JsonUtilities::getOrCreate(pjson[pname], "SubPackages")[n] =
-              it.value();
+          oss_register[pname] << "\tREGISTERSUBPACKAGE(" << n << ");\n";
+          VnV::JsonUtilities::getOrCreate(pjson[pname], "SubPackages")[n] = it.value();
         }
       }
     }
@@ -200,30 +185,24 @@ class RegistrationWriter {
     // Catch the injection points
 
     if (j.contains("InjectionPoints")) {
-      
-      
       for (auto it : j["InjectionPoints"].items()) {
         std::string pname = it.value()["packageName"];
         if (packageName.empty() || pname == packageName) {
-        
-       
           std::string name = it.value()["name"].get<std::string>();
 
-          // TODO Extract Template Parameter information. 
-          json& params = it.value()["parameters"]; 
-
+          // TODO Extract Template Parameter information.
+          json& params = it.value()["parameters"];
 
           createPackageOss(pname);
           VnV::JsonUtilities::getOrCreate(pjson[pname], "InjectionPoints")[name] = it.value();
-          
+
           bool iterator = it.value().value("/iterator"_json_pointer, false);
           bool plug = it.value().value("/plug"_json_pointer, false);
-          std::string escaped =
-              VnV::StringUtils::escapeQuotes(params.dump(), true);
+          std::string escaped = VnV::StringUtils::escapeQuotes(params.dump(), true);
           std::string t = iterator ? "Iterator" : plug ? "Plug" : "Point";
 
-          oss_register[pname] << "\tRegister_Injection_" << t << "(\"" << pname
-                              << "\",\"" << name << "\"," << escaped << ");\n";
+          oss_register[pname] << "\tRegister_Injection_" << t << "(\"" << pname << "\",\"" << name << "\"," << escaped
+                              << ");\n";
         }
       }
     }
@@ -231,13 +210,13 @@ class RegistrationWriter {
   }
 };
 
-void writeFile(json& cacheInfo, std::string outputFileName,
-               std::string cacheFile, std::string packageName, bool force) {
-  
+void writeFile(json& cacheInfo, std::string outputFileName, std::string cacheFile, std::string packageName,
+               bool force) {
   std::size_t h = std::hash<std::string>()(cacheInfo["data"].dump());
   std::string hashStr = "///" + packageName + ":" + std::to_string(h);
-  
+
   // First we load the existing file in that directory.
+  bool cacheChanged = true;
   if (!force) {
     std::ifstream efile(outputFileName);
     if (efile.good()) {
@@ -247,57 +226,81 @@ void writeFile(json& cacheInfo, std::string outputFileName,
       if (sLine.compare(hashStr) == 0) {
         // The cache hasnt changed, so this file definetly hasn't changed.
         std::cout << "---->Cache has not changed since this file was written;" << std::endl;
-        efile.close();
-        return;
-      } 
+        cacheChanged = false;
+      }
     }
     efile.close();
   }
 
-  // Pull everything into types, not files.
-  json finalJson = json::object();
-  for (auto it : cacheInfo["data"].items()) {
-    for (std::string type :
-         {"InjectionPoints", "SubPackages", "LogLevels",   "Files",
-          "Tests",           "Iterators",   "Plugs",       "Engines",
-          "EngineReaders",   "Comms",       "Reducers",    "Samplers",
-          "Walkers",         "DataTypes",   "Serializers", "Transforms",
-          "UnitTests",       "Actions",     "Options",     "Introduction",
-          "Conclusion",      "Package",     "Communicator"}) {
-      json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);
-      for (auto it :
-           VnV::JsonUtilities::getOrCreate(it.value(), type).items()) {
-        to[it.key()] = it.value();
+  if (cacheChanged) {
+    // Cache changed so rewrite the file.
+
+    // Pull everything into types, not files.
+    json finalJson = json::object();
+    for (auto it : cacheInfo["data"].items()) {
+      for (std::string type :
+           {"InjectionPoints", "SubPackages",  "LogLevels",     "Files",      "Tests",       "Iterators",
+            "Plugs",           "Engines",      "EngineReaders", "Comms",      "Reducers",    "Samplers",
+            "Walkers",         "DataTypes",    "Serializers",   "Transforms", "UnitTests",   "Actions",
+            "Options",         "Introduction", "Conclusion",    "Package",    "Communicator", "Pipelines"}) {
+        json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);
+        for (auto it : VnV::JsonUtilities::getOrCreate(it.value(), type).items()) {
+          to[it.key()] = it.value();
+        }
       }
     }
-  }
 
+    // Generate the registration code using the given json.
+    RegistrationWriter r(finalJson, packageName);
 
-  // Generate the registration code using the given json.
-  RegistrationWriter r(finalJson, packageName);
+    std::ostringstream oss;
+    oss << "/// This file was automatically generated using the VnV-Matcher "
+           "executable. \n"
+           "/// The matcher allows for automatic registration of all VnV "
+           "plugins and injection \n"
+           "/// points. Building the matcher requires Clang. If Clang is not "
+           "available on this machine,\n"
+           "/// Registration code should be written manually. \n"
+           "/// \n\n";
 
-  std::ostringstream oss;
-  oss << "/// This file was automatically generated using the VnV-Matcher "
-         "executable. \n"
-         "/// The matcher allows for automatic registration of all VnV "
-         "plugins and injection \n"
-         "/// points. Building the matcher requires Clang. If Clang is not "
-         "available on this machine,\n"
-         "/// Registration code should be written manually. \n"
-         "/// \n\n";
+    oss << r.printPackage(packageName);
 
-  oss << r.printPackage(packageName);
+    // Write the file.
+    std::cout << "----> Writing " << outputFileName << std::endl;
+    std::ofstream ofile(outputFileName);
+    ofile << hashStr << "\n";
+    ofile << oss.str();
+    ofile.close();
 
-  // Write the file.
-  std::cout << "----> Writing " << outputFileName << std::endl;
-  std::ofstream ofile(outputFileName);
-  ofile << hashStr << "\n";
-  ofile << oss.str();
-  ofile.close();
+    // Do some cleaning of the data for size.
+    json& d = cacheInfo["data"];
+    for (auto it = d.begin(); it != d.end();) {
+      if (it.value().is_object() && it.value().size() == 0) {
+        it = d.erase(it);
+      } else {
+        ++it;
+      }
+    }
 
-  if (cacheInfo.contains("CACHEHASH") && cacheInfo["CACHEHASH"].get<std::size_t>() == h) {
-      std::cout << "---->Cache has not changed -- Not writing cache" << std::endl;
-      return;  // Cache is the same, no need to rewrite it.
+    // get a list of all includes used in the different files.
+    std::hash<std::string> hasher;
+    std::set<std::string> used;
+    for (auto it : cacheInfo["files"].items()) {
+      for (auto itt : it.value().items()) {
+        used.insert(itt.value().get<std::string>());
+      }
+      used.insert(std::to_string(hasher(it.key())));
+    }
+
+    // remove any files from the map that are not used.
+    json& m = cacheInfo["map"];
+    for (auto it = m.begin(); it != m.end();) {
+      if ((used.end() == used.find(it.key()))) {
+        it = m.erase(it);
+      } else {
+        ++it;
+      }
+    }
   }
 
   if (cacheFile.empty()) {
@@ -311,59 +314,26 @@ void writeFile(json& cacheInfo, std::string outputFileName,
     return;
   }
 
-  // Do some cleaning of the data for size.
-  json& d = cacheInfo["data"];
-  for (auto it = d.begin(); it != d.end();) {
-    if (it.value().is_object() && it.value().size() == 0) {
-      it = d.erase(it);
-    } else {
-      ++it;
-    }
-  }
-
-  // get a list of all includes used in the different files.
-  std::hash<std::string> hasher;
-  std::set<std::string> used;
-  for (auto it : cacheInfo["files"].items()) {
-    for (auto itt : it.value().items()) {
-      used.insert(itt.value().get<std::string>());
-    }
-    used.insert(std::to_string(hasher(it.key())));
-  }
-
-  // remove any files from the map that are not used.
-  json& m = cacheInfo["map"];
-  for (auto it = m.begin(); it != m.end();) {
-    if ((used.end() == used.find(it.key()))) {
-      it = m.erase(it);
-    } else {
-      ++it;
-    }
-  }
-
   // Write the cache.
   std::cout << "----> Writing the cache file" << std::endl;
-  
+
   time_t now;
   time(&now);
   cacheInfo[LAST_RUN_TIME] = VnV::TimeUtils::timeToISOString(&now);
   cacheInfo["CACHEHASH"] = h;
   cacheStream << cacheInfo.dump();
   cacheStream.close();
-
 }
 
 // Returns a list of files that have changed since the cache last ran.
-std::set<std::string> checkCache(json& cacheInfo,
-                                 std::set<std::string>& files) {
-  
+std::set<std::string> checkCache(json& cacheInfo, std::set<std::string>& files) {
   json& cacheMap = VnV::JsonUtilities::getOrCreate(cacheInfo, "map");
   json& cacheFiles = VnV::JsonUtilities::getOrCreate(cacheInfo, "files");
 
   bool hasCache = (cacheInfo.contains(LAST_RUN_TIME));
 
   std::set<std::string> modFiles;
-  
+
   if (hasCache) {
     std::string lastRunTime = cacheInfo[LAST_RUN_TIME].get<std::string>();
 
@@ -372,17 +342,20 @@ std::set<std::string> checkCache(json& cacheInfo,
     bool write = false;
     std::ostringstream oss;
     oss << "----> The following files have changed since we last ran:" << std::endl;
-    
+
     for (auto it : cacheMap.items()) {
-      auto r = (VnV::TimeUtils::timeForFile( it.value().get<std::string>()) > lastRunTime);
+      auto r = (VnV::TimeUtils::timeForFile(it.value().get<std::string>()) > lastRunTime);
       fModMap[it.key()] = r;
-      if (r) { write=true; oss << "--------> " << it.value().get<std::string>() << std::endl; }
+      if (r) {
+        write = true;
+        oss << "--------> " << it.value().get<std::string>() << std::endl;
+      }
     }
     if (write) {
-        std::cout << oss.str() << std::endl;;
+      std::cout << oss.str() << std::endl;
+      ;
     }
 
-    
     for (auto& it : files) {  // all files to be compiled. (strings)
       if (cacheFiles.contains(it)) {
         for (auto f : cacheFiles[it].items()) {
@@ -398,16 +371,16 @@ std::set<std::string> checkCache(json& cacheInfo,
       }
     }
 
-    if (modFiles.size() > 0 ) {
-      std::ostringstream os; 
+    if (modFiles.size() > 0) {
+      std::ostringstream os;
       os << "----> The following files will be reparsed:" << std::endl;
-    
-      for (auto it : modFiles) {
-          os << "--------> " << it << std::endl;
-      }
-      std::cout << os.str() << std::endl;;
-    }
 
+      for (auto it : modFiles) {
+        os << "--------> " << it << std::endl;
+      }
+      std::cout << os.str() << std::endl;
+      ;
+    }
 
     return modFiles;
   } else {

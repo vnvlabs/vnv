@@ -89,11 +89,11 @@ void OutputEngineStore::registerReader(std::string name,
 }
 
 std::shared_ptr<Nodes::IRootNode> OutputEngineStore::readFile(
-    std::string filename, std::string engineType, json& config) {
+    std::string filename, std::string engineType, json& config, bool async) {
   auto it = registeredReaders.find(engineType);
 
   if (it != registeredReaders.end()) {
-    return (*it->second)(filename, idCounter, config);
+    return (*it->second)(filename, idCounter, config, async);
   }
 
   throw VnVExceptionBase("Invalid Engine Reader");

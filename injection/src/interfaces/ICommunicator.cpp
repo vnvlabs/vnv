@@ -67,13 +67,11 @@ void VnV::OpTypeEncodedReduction(void* invec, void* outvec, int* len) {
     out->pack(&(buff[2]));
 
     double* dd = (double*)&(buff[2]);
-    std::cout << *dd << std::endl;
   }
 
   for (int i = 0; i < *len; i++) {
     buff = (long long*)&(coutvec[i * dataSize]);
     double* d = (double*)&(buff[2]);
-    std::cout << buff[0] << " " << buff[1] << " " << *d << std::endl;
     ;
   }
 }

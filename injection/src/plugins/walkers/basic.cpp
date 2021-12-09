@@ -1,6 +1,7 @@
 
 #include "VnV.h"
 #include "plugins/walkers/iter.h"
+#include "streaming/Nodes.h"
 using namespace VnV::Nodes;
 
 namespace {
@@ -42,11 +43,6 @@ class BasicNodeIter : public VnV::IWalker {
     }
   }
 
-  // Override the callback function to be informed when new nodes are added to
-  // the root node.
-  virtual void callback(long index, std::list<IDN>::iterator a) override {
-    std::cout << "New Node Available " << std::endl;
-  }
 };
 
 }  // namespace

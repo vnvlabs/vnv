@@ -122,8 +122,6 @@ endfunction()
 
 function(link_vnv_file targetName packageName extension)
    
-   verify_compiler_and_mpi()
-
    link_vnv_file_semi(${targetName} ${packageName} ${CMAKE_BINARY_DIR}/vnv_registration_${packageName}.${extension})
       
    add_dependencies(${targetName} vnv_gen_${packageName})

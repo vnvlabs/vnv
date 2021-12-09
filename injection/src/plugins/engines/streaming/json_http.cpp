@@ -1,26 +1,30 @@
-#include <curl/curl.h>
 #include <microhttpd.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 
 #include <fstream>
+#include <mutex>
 #include <queue>
 #include <thread>
-#include <mutex>
 
 #include "base/DistUtils.h"
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "interfaces/IOutputEngine.h"
-#include "plugins/engines/streaming/streamreader.h"
+#include "streaming/dispatch.h"
+#include "streaming/curl.h"
 
-using namespace VnV::VNVPACKAGENAME::Engines::Streaming;
+using namespace VnV::Nodes;
 using nlohmann::json;
 
 #define VNV_SPEC -100
 
 namespace {
+
+
+
+
 
 class Request {
  public:
@@ -67,10 +71,12 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
                                 const char* version, const char* upload_data, std::size_t* upload_data_size,
                                 void** con_cls);
 
-class JsonHttpStreamIterator : public VnV::StreamReader::JsonPortStreamIterator {
-  
+class JsonHttpStreamIterator : public JsonPortStreamIterator {
+
+ struct MHD_Daemon* daemon = NULL;
+
  public:
-  JsonHttpStreamIterator(std::string p) : VnV::StreamReader::JsonPortStreamIterator(p) {};
+  JsonHttpStreamIterator(std::string p, const json& config) : JsonPortStreamIterator(p,config){};
 
   bool start_stream_reader() override {
     if (daemon == NULL) {
@@ -88,7 +94,9 @@ class JsonHttpStreamIterator : public VnV::StreamReader::JsonPortStreamIterator 
     }
   }
 
-  ~JsonHttpStreamIterator() { stop_stream_reader(); }
+  ~JsonHttpStreamIterator() { 
+    stop_stream_reader();
+  }
 };
 
 size_t writefunc(void* ptr, size_t size, size_t nmemb, std::string* s) {
@@ -96,43 +104,29 @@ size_t writefunc(void* ptr, size_t size, size_t nmemb, std::string* s) {
   return size * nmemb;
 }
 
-class JsonHttpStream : public StreamWriter<json> {
-  CURL* curl;
-  struct curl_slist* headers = NULL;
+class JsonHttpStream : public PortStreamWriter<json> {
+  VnV::Curl::CurlWrapper& curl;
   std::string filestub;
   std::string rr;
-
  public:
-  virtual void initialize(json& config, bool readMode) override {
+ 
+  JsonHttpStream() : curl(VnV::Curl::CurlWrapper::instance()) {}
+
+  virtual void initialize(json& config, bool readMode)  override {
     if (!readMode) {
-      curl_global_init(CURL_GLOBAL_ALL);
+      
 
-      this->filestub = config["filename"].get<std::string>();
-      this->curl = curl_easy_init();
-      if (!curl) {
-        throw VnV::VnVExceptionBase("Could not set up curl");
-      }
-
-      // headers = curl_slist_append(headers, "Accept: application/json");
-      // headers = curl_slist_append(headers, "Content-Type: application/json");
-      headers = curl_slist_append(headers, "charset: utf-8");
-
-      curl_easy_setopt(curl, CURLOPT_URL, filestub.c_str());
-      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-      curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
-      curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcrp/0.1");
-      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
-      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &rr);
-
-      std::string hello = "Hello";
-      curl_easy_setopt(curl, CURLOPT_POSTFIELDS, hello.c_str());
-
-      long http_code = 0;
+      filestub = PortStreamWriter<json>::init("json_http",config);
+      
+      curl.setUrl(filestub);
+      curl.setPostFields("Hello");
+      
       while (true) {
         std::cout << "Trying to connect.... to " << filestub << std::endl;
-        curl_easy_perform(curl);
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-        if (http_code == 200) {
+
+        curl.send();
+
+        if (curl.getCode() == 200) {
           std::cout << "Connection Successfull --- Lets Gooooooo!" << std::endl;
           break;
         }
@@ -143,17 +137,15 @@ class JsonHttpStream : public StreamWriter<json> {
       throw VnV::VnVExceptionBase("No Read Mode for json_http");
     }
   }
+
   virtual nlohmann::json getConfigurationSchema(bool readMode) override { return json::object(); };
 
   virtual void finalize(ICommunicator_ptr worldComm, long duration) override {
     // Close all the streams
-
     std::string hello = "Goodbye";
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, hello.c_str());
-    curl_easy_perform(curl);
+    curl.setPostFields("Goodbye");
+    curl.send();
 
-    curl_easy_cleanup(curl);
-    curl_global_cleanup();
   }
 
   virtual void newComm(long id, const json& obj, ICommunicator_ptr comm) override { write(id, obj, -1); };
@@ -164,8 +156,8 @@ class JsonHttpStream : public StreamWriter<json> {
     j["jid"] = jid;
     j["data"] = obj;
     std::string s = j.dump();
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, s.c_str());
-    curl_easy_perform(curl);
+    curl.setPostFields(j.dump());
+    curl.send();
   };
 
   virtual bool supportsFetch() override { return true; }
@@ -177,15 +169,12 @@ class JsonHttpStream : public StreamWriter<json> {
     j["fetch"] = "FETCH";
     std::string s = j.dump();
 
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, s.c_str());
+    curl.clearData();
+    curl.setPostFields(s);
+    curl.send();
 
-    rr.clear();
-    curl_easy_perform(curl);
-
-    int http_code = 0;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-    if (http_code == 200) {
-      response = json::parse(rr);
+    if (curl.getCode() == 200) {
+      response = json::parse(curl.getData());
       return true;
     } else {
       return false;
@@ -208,8 +197,28 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
                                 void** con_cls) {
   const char* page = "OK";
   const char* err = "BAD";
+  char* user;
+  char* pass;
+
+  pass = NULL;
+  user = MHD_basic_auth_get_username_password (connection, &pass);
+  
 
   JsonHttpStreamIterator* iter = (JsonHttpStreamIterator*)(cls);
+  if (!iter->authorize(user,pass)) {
+    // Respond as we are done.
+    struct MHD_Response* response;
+    response = MHD_create_response_from_buffer(strlen(page), (void*)page, MHD_RESPMEM_PERSISTENT);
+    MHD_Result ret = MHD_queue_response(connection, MHD_HTTP_FORBIDDEN, response);
+    MHD_free(user);
+    MHD_free(pass);  
+    MHD_destroy_response(response);
+    return ret;
+  }
+
+  MHD_free(user);
+  MHD_free(pass);
+  
   Request* request = (Request*)(*con_cls);
 
   if (request == NULL) {
@@ -242,23 +251,19 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
   }
 
   try {
-
-    std::cout << "SSS" << std::endl;
     json j = request->getData();
-  
-    std::cout << "GOT IT FETCH " << j.dump() << std::endl;
-  
+
+
     long stream = j["stream"].get<long>();
     long jid = j["jid"].get<long>();
 
     if (j.contains("fetch")) {
-      
       struct MHD_Response* response;
       MHD_Result ret;
-      
+
       json j = json::object();
-      if (iter->getResponse(stream,jid,j)) {
-        std::string resp = j.dump();  
+      if (iter->getResponse(stream, jid, j)) {
+        std::string resp = j.dump();
         response = MHD_create_response_from_buffer(resp.size(), (void*)resp.c_str(), MHD_RESPMEM_PERSISTENT);
         ret = MHD_queue_response(connection, MHD_HTTP_OK, response);
       } else {
@@ -279,7 +284,7 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
       }
     }
     if (!found) {
-      auto s = std::make_shared<VnV::StreamReader::JsonSingleStreamIterator>(stream);
+      auto s = std::make_shared<JsonSingleStreamIterator>(stream);
       s->add(jid, data);
       iter->add(s);
     }
@@ -306,7 +311,6 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
 INJECTION_ENGINE(VNVPACKAGENAME, json_http) { return new StreamManager<json>(std::make_shared<JsonHttpStream>()); }
 
 INJECTION_ENGINE_READER(VNVPACKAGENAME, json_http) {
-  auto stream = std::make_shared<JsonHttpStreamIterator>(filename.c_str());
-  return RootNodeWithThread<JsonHttpStreamIterator, json>::parse(
-      id, stream, std::make_shared<VnV::StreamReader::JsonStreamVisitor>());
+  return engineReaderDispatch<JsonHttpStreamIterator, json>(async,config, std::make_shared<JsonHttpStreamIterator>(filename, config), false);
 }
+   

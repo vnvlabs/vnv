@@ -1,0 +1,29 @@
+{%with connection = file.connection %}
+
+<div class="modal-header">
+    <h5 class="modal-title" id="config_file_modal_label">Load Specification</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+<div class="modal-body">
+
+    <form id="spec-connection-form" method="post" action="/inputfiles/configure/{{file.id_}}">
+        <div style="color:green; flex:1">Connection Status: Connected ({{connection.describe()}}).</div>
+
+        <div class="form-group">
+            <label for="specdump">Command to Dump Specification</label>
+            <input name="filename" type="text" class="form-control" id="specdump"
+                   placeholder="Enter Command to Dump Specification" value="{{file.specDump}}">
+        </div>
+
+    </form>
+
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn  btn-secondary" data-dismiss="modal">Close</button>
+    <button type="button" class="btn  btn-primary" onclick="load_spec_file({{file.id_}}, $('#spec-connection-form'))">Load</button>
+</div>
+
+{%endwith%}

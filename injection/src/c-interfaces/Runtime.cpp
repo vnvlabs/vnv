@@ -52,4 +52,29 @@ void VnV_readFileAndWalk(const char* reader, const char* filename,
   VnV::RunTime::instance().readFileAndWalk(reader, filename, package, walker,
                                            json::parse(config));
 }
+
+void VnV_generate_pipeline(const char* package, const char* name, const char* config, const char* filename, int stdo) {
+  VnV::RunTime::instance().pipeline(package,name,json::parse(config),filename, stdo);
+}
+
+void VnV_generate_pipeline_file(const char* package, const char* name, const char* config, const char* filename) {
+  VnV::RunTime::instance().pipeline(package,name,json::parse(config),filename, false);
+}
+
+void VnV_generate_pipeline_stdout(const char* package, const char* name, const char* config) {
+  VnV::RunTime::instance().pipeline(package,name,json::parse(config),true);
+}
+
+char* VnV_generate_pipeline_string(const char* package, const char* name, const char* config) {
+   VnV_Info(VNVPACKAGENAME, "You need to free this youself!");
+   std::string s = VnV::RunTime::instance().pipeline(package,name,json::parse(config),"",false);
+   return strdup(s.c_str());
+}
+
+
+
+
+VNVEXTERNC void VnV_generate_pipeline_stdout(const char* package, const char* name, const char* config);
+
+
 }

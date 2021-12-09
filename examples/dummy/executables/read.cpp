@@ -16,9 +16,7 @@ int main(int argc, char** argv) {
 
   INJECTION_INITIALIZE(RPNAME, &argc, &argv, VNV_DEFAULT_INPUT_FILE);
   
-  auto a = VnV::Python::ReaderWrapper(argv[2], argv[1], "{}");
+  auto a = VnV::Python::ReaderWrapper(argv[2], argv[1], "{}", false);
   
-  a.get()->worker.join();
-
   INJECTION_FINALIZE(RPNAME)
 }

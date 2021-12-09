@@ -9,6 +9,7 @@ import jsonschema
 import pygments.formatters.html
 from pygments.lexers import guess_lexer, guess_lexer_for_filename
 
+from app.base.utils.mongo import validate_name
 from app.models.VnVConnection import VnVConnection, VnVLocalConnection
 from python_api.VnVReader import node_type_START, node_type_POINT, node_type_DONE, node_type_ITER, node_type_ROOT, \
     node_type_LOG, \
@@ -87,14 +88,21 @@ class ProvWrapper:
         return self.prov.commandLine
 
     def get_libraries(self):
-        return [ProvFileWrapper(self.vnvfileid, a, "") for a in self.prov.libraries]
+        return [ProvFileWrapper(self.vnvfileid, self.prov.get(a, 2), "") for a in range(0, self.prov.size(2))]
 
     def get_outputs(self):
-        return [ProvFileWrapper(self.vnvfileid, a, self.getD(a))
-                for a in self.prov.outputFiles]
+        r = []
+        for i in range(0, self.prov.size(1)):
+            a = self.prov.get(i, 1)
+            r.append(ProvFileWrapper(self.vnvfileid, a, self.getD(a)))
+        return r
 
     def get_inputs(self):
-        return [ProvFileWrapper(self.vnvfileid, a, self.getD(a)) for a in self.prov.inputFiles]
+        r = []
+        for i in range(0, self.prov.size(0)):
+            a = self.prov.get(i, 0)
+            r.append(ProvFileWrapper(self.vnvfileid, a, self.getD(a)))
+        return r
 
     def get_input(self):
         return ProvFileWrapper(self.vnvfileid, self.prov.inputFile, "")
@@ -363,13 +371,13 @@ class InjectionPointRender:
     def getStatus(self):
         if self.getRequest() is not None:
             return "Waiting"
-        elif self.ip._open:
+        elif self.open():
             return "Processing"
         else:
             return "Complete"
 
     def open(self):
-        return self.ip._open
+        return self.ip.getopen()
 
     def getInternalTest(self):
         tempoverride = self.templates.get_html_file_name(
@@ -410,19 +418,45 @@ class VnVFile:
 
     FILES = VnV.FILES
 
-    def __init__(self, name, filename, reader, template_root, icon="icon-box", _cid=None):
-        self.name = name
+    def getReaderConfig(self, persist, username, password):
+        if not persist:
+            a = {"persist": "memory"}
+        else:
+            a = {
+                "uri": "mongodb://localhost:27017",
+                "db": "vnv",
+                "collection": self.name,
+                "persist": "mongo"
+            }
+        if username is not None and len(username) > 0 and password is not None and len(password) > 0:
+            a["username"] = username
+            a["password"] = password
+
+        return a
+
+    def __init__(self, name, filename, reader, template_root, icon="icon-box", _cid=None, persist=False, reload=False,
+                 **kwargs):
+
         self.filename = filename
         self.reader = reader
         self.icon = icon
+        self.options = kwargs
+        self.persist = persist
         self.template_root = template_root
         self.id_ = VnVFile.get_id() if _cid is None else _cid
         self.notifications = []
         self.pipeline = False
-        self.wrapper = VnV.Read(filename, reader)
+
+        if not reload:
+            self.name = validate_name(name)
+        else:
+            self.name = name
+
+        self.wrapper = VnV.Read(filename, reader, self.getReaderConfig(self.persist, self.options.get("username"),
+                                                                       self.options.get("password")))
+
         self.root = self.wrapper.get()
         self.template_dir = os.path.join(template_root, str(self.id_))
-
         # By default we have a localhost connection.
         self.setConnection()
 
@@ -435,10 +469,9 @@ class VnVFile:
     def setupNow(self):
         if self.templates is None:
             vnvspec = json.loads(self.root.getVnVSpec().get())
-            if vnvspec is not None:
+            if vnvspec is not None and len(vnvspec) > 0:
                 self.templates = r.build(self.template_dir, vnvspec, self.id_)
         return self.templates is not None
-
 
     def setConnection(self, hostname, username, password, port):
         self.connection = VnVConnection(hostname, username, password, port)
@@ -447,7 +480,8 @@ class VnVFile:
         self.connection = VnVLocalConnection()
 
     def clone(self):
-        return VnVFile(self.name, self.filename, self.reader, self.template_root, self.icon, _cid=self.id_)
+        return VnVFile(self.name, self.filename, self.reader, self.template_root, self.icon, _cid=self.id_,
+                       persist=self.persist)
 
     def getDataRoot(self):
         return self.getDataChildren("#")
@@ -502,6 +536,8 @@ class VnVFile:
         return make_response("Failed", 202)
 
     def get_world_size(self):
+        a = self.root.getCommInfoNode()
+
         return self.root.getCommInfoNode().getWorldSize()
 
     def getPackages(self):
@@ -814,9 +850,8 @@ class VnVFile:
         return VnVFile.COUNTER
 
     @staticmethod
-    def add(name, filename, reader, template_root):
-        f = VnVFile(name, filename, reader, template_root)
-
+    def add(name, filename, reader, template_root, persist=False, reload=False, **kwargs):
+        f = VnVFile(name, filename, reader, template_root, persist=persist, reload=reload, **kwargs)
         VnVFile.FILES[f.id_] = f
         return f
 

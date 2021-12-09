@@ -26,9 +26,11 @@
 #include "base/stores/TestStore.h"
 #include "base/stores/UnitTestStore.h"
 #include "base/stores/WalkerStore.h"
+#include "base/stores/PipelineStore.h"
 #include "c-interfaces/Logging.h"
 #include "interfaces/IAction.h"
 #include "interfaces/points/Injection.h"
+#include "streaming/Nodes.h"
 
 using namespace VnV;
 
@@ -143,6 +145,31 @@ nlohmann::json RunTime::getFullJson() {
   main.merge_patch(template_patch);
   return main;
 }
+
+namespace {
+ std::string generate_pipeline(std::string package, std::string name, const json& config) {
+   return PipelineStore::instance().getPipeline(package,name,config);
+ }
+}
+
+std::string RunTime::pipeline(std::string package, std::string name, const json& config,  std::string filename, bool stdo) {
+  std::string p = generate_pipeline(package,name,config);
+  
+  if (!filename.empty()) {
+    std::ofstream ofs(filename);
+    if (ofs.good()) {
+      ofs << generate_pipeline(package,name,config);
+    }
+    throw VnV::VnVExceptionBase("Bad File Name");
+  } 
+  if (stdo) {
+    std::cout << generate_pipeline(package,name,config) << std::endl;
+  } 
+  return p;
+}
+
+
+
 
 RunTimeOptions* RunTime::getRunTimeOptions() { return &runTimeOptions; }
 

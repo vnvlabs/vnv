@@ -269,6 +269,13 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj["docs"] = getDocs(Range);
       jj["to"] = stringArgs(pp, Args->getUnexpArgument(3), false);
       jj["from"] = stringArgs(pp, Args->getUnexpArgument(4), false);
+      jj["alias"] = false;
+    } else if (nae == "INJECTION_ALIAS") {
+      json& jj = getDef("Transforms", getPackageName(Args, 0), getPackageName(Args, 1));
+      jj["docs"] = getDocs(Range);
+      jj["to"] = stringArgs(pp, Args->getUnexpArgument(2), false);
+      jj["from"] = stringArgs(pp, Args->getUnexpArgument(3), false);
+      jj["alias"] = true;
     } else if (nae == "INJECTION_OPTIONS") {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Options");
       std::string pname = getPackageName(Args, 0);
@@ -317,6 +324,10 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     } else if (nae == "INJECTION_REDUCER") {
       json& jj =
           getDef("Reducers", getPackageName(Args, 0), getPackageName(Args, 1));
+      jj["docs"] = getDocs(Range);
+    } else if (nae == "INJECTION_PIPELINE") {
+      json& jj =
+          getDef("Pipelines", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_SAMPLER_RS") {
       json& jj =

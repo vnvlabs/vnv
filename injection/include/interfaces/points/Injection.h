@@ -32,6 +32,7 @@ void UnwrapParameterPack(NTV& m);
 template <typename T, typename V, typename... Args>
 void UnwrapParameterPack(NTV& m, V& name, T& first, Args&&... args) {
   m.insert(std::make_pair(name, std::make_pair(typeid(&first).name(), reinterpret_cast<void*>(&first))));
+  std::cout << "Inserted " << name << " : " << m[name].second << std::endl;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
 }
 

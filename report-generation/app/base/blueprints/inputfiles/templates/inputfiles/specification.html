@@ -1,0 +1,22 @@
+<div style="display:flex; align-items:center; margin-bottom:15px;">
+
+    <h2 style="flex:1">Specification</h2>
+     <button class="btn btn-primary"  onclick='show_load_spec_file_modal({{file.id_}})'>
+               Load Specification
+     </button>
+
+    <button id="spec_save" class="btn btn-primary input-save-button" style="margin-left:15px" onclick='save_input_spec({{file.id_}},$("#inputspec_value_form"))'>Save</button>
+
+</div>
+
+<form id ="inputspec_value_form">
+<textarea id="inputspec" name="value" class="card" style="width:100%; " rows="30">
+    {{file.spec}}
+</textarea>
+</form>
+
+{% with modal_content = "inputfiles/load_spec_content.html" %}
+{% with modal_id = "spec_load" %}
+{% include "inputfiles/connection.html" %}
+{% endwith %}
+{% endwith %}

@@ -85,6 +85,15 @@ VNVEXTERNC void VnV_readFileAndWalk(const char* reader, const char* filename,
                                     const char* package, const char* walker,
                                     const char* config);
 
+VNVEXTERNC void VnV_generate_pipeline(const char* package, const char* name, const char* config, const char* filename, int stdo);
+VNVEXTERNC void VnV_generate_pipeline_file(const char* package, const char* name, const char* config, const char* filename);
+VNVEXTERNC void VnV_generate_pipeline_stdout(const char* package, const char* name, const char* config);
+VNVEXTERNC char* VnV_generate_pipeline_string(const char* package, const char* name, const char* config);
+
+
+
+
+
 #else  // WITHOUT_VNV
 #  define VnV_init(...)
 #  define VnV_finalize(...)

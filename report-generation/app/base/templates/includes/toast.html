@@ -1,0 +1,26 @@
+<div id="toasts" class="toast-container"></div>
+
+<script>
+function addToast(header, content, delay) {
+    container = $(".toast-container")[0]
+    children = $('.toast-container')[0].children.length
+
+    ht = `
+<div id="toast_${children}" class="toast toast-5s fade hide" role="alert" aria-live="assertive" data-delay="${delay}" aria-atomic="true">
+	<div class="toast-header">
+	  <img src="https://appsrv1-147a1.kxcdn.com/gradient/images/favicon.ico" alt="" class="img-fluid m-r-5" style="width:20px;">
+	  <strong class="mr-auto">${header}</strong>
+	  <button type="button" class="m-l-5 mb-1 mt-1 close" data-dismiss="toast" aria-label="Close">
+		<span>×</span>
+	  </button>
+	</div>
+	<div class="toast-body">
+        ${content}
+	</div>
+</div>
+    `
+   $('#toasts').append(jQuery.parseHTML(ht))
+   $('#toast_' + children).toast('show')
+}
+
+</script>

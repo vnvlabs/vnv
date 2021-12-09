@@ -74,6 +74,20 @@ template <typename To, typename From, typename Runner> class Transform_T : publi
 
 #define INJECTION_TRANSFORM(PNAME, name, from, to) INJECTION_TRANSFORM_R(PNAME, name, int, from, to)
 
+#define INJECTION_ALIAS(PNAME, NAME, From, To)                                                                     \
+  namespace VnV {                                                                                                  \
+  namespace PNAME {                                                                                                \
+  namespace Transforms {                                                                                           \
+  class NAME : public ITransform {                                                                                 \
+   public:                                                                                                         \
+    NAME() : ITransform() {}                                                                                       \
+    void* Transform(void* ptr) override { return ptr; }                                                            \
+  };                                                                                                               \
+  ITransform* declare_##NAME() { return new NAME(); }                                                              \
+  void register_##NAME() {                                                                                         \
+    registerTransform(#NAME, &declare_##NAME, VnV::StringUtils::get_type(#From), VnV::StringUtils::get_type(#To)); \
+  }}}} 
+  
 #define DECLARETRANSFORM(PNAME, name) \
   namespace VnV {                     \
   namespace PNAME {                   \

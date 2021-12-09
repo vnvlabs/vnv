@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "base/exceptions.h"
-#include "interfaces/Nodes.h"
+#include "streaming/Nodes.h"
 //#include "json-schema.hpp"
 
 namespace VnV {
@@ -24,7 +24,7 @@ class ReaderWrapper {
  public:
   ReaderWrapper(std::string filename);
   ReaderWrapper(std::string filename, std::string config);
-  ReaderWrapper(std::string filename, std::string reader, std::string config);
+  ReaderWrapper(std::string filename, std::string reader, std::string config, bool async = true);
 
   Nodes::IRootNode* get();
 

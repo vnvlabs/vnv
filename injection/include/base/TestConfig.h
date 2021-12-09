@@ -78,7 +78,7 @@ class VnVParameter {
     }
 
     if (trans != nullptr && type.compare(transType) == 0) {
-      return static_cast<T*>(trans->Transform(&type));
+      return static_cast<T*>(trans->Transform(ptr));
     }
     throw VnVExceptionBase("Bad Transform Requested -- Cannot transform from %s -> %s", type.c_str(),
                            requestedType.c_str());
@@ -99,6 +99,7 @@ class VnVParameterSet : public std::map<std::string, VnVParameter> {
 
   template <typename T> T* getPtr(std::string name, std::string type) { return getPtr<T>(name, type, true); }
   template <typename T> T& getRef(std::string name, std::string type) { return getRef<T>(name, type, true); }
+
 
   template <typename T> T* getPtr(std::string name, std::string type, bool input) {
     StringUtils::squash(type);

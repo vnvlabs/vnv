@@ -102,7 +102,6 @@ class TemplateBuild:
 
 def build(src_dir, templates, id_):
     setup_build_directory(src_dir, id_)
-
     fnames = []
     for type_, packages in templates.items():
         if type_ in ["Introduction"]:

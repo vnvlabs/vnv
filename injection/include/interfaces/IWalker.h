@@ -1,9 +1,18 @@
 #ifndef WALKER_HEADER_VNV
 #define WALKER_HEADER_VNV
 
-#include "interfaces/Nodes.h"
+#include "streaming/IDN.h"
+#include "json-schema.hpp"
+#include <memory>
+#include <list>
+#include <string>
 
 namespace VnV {
+
+namespace Nodes {
+  class IRootNode;  
+  class WalkerNode;
+}
 
 class IWalker {
   Nodes::IRootNode* rootNode;
@@ -11,11 +20,7 @@ class IWalker {
   virtual bool _next(Nodes::WalkerNode& item) = 0;
 
  public:
-  IWalker(Nodes::IRootNode* root) : rootNode(root) {
-    rootNode->registerWalkerCallback(this);
-  }
-
-  virtual void callback(long index, std::list<Nodes::IDN>::iterator iter) {}
+  IWalker(Nodes::IRootNode* root);
 
   // This lets up wrap the next call at the walker level. I put this in so
   // we could lock the file before walking, but ended up implementing it
@@ -23,15 +28,13 @@ class IWalker {
   // around the pure virtual _next function in place.
   virtual bool next(Nodes::WalkerNode& item) { return _next(item); }
 
-  virtual ~IWalker() { rootNode->deregisterWalkerCallback(this); };
+  virtual ~IWalker();
 };
 
-typedef IWalker* (*walker_maker_ptr)(Nodes::IRootNode* rootNode,
-                                     nlohmann::json& config);
+typedef IWalker* (*walker_maker_ptr)(Nodes::IRootNode* rootNode, nlohmann::json& config);
 typedef std::shared_ptr<IWalker> IWalker_ptr;
 
-void registerWalker(std::string package, std::string name, std::string schema,
-                    VnV::walker_maker_ptr m);
+void registerWalker(std::string package, std::string name, std::string schema, VnV::walker_maker_ptr m);
 
 }  // namespace VnV
 

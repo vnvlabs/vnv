@@ -6,10 +6,12 @@ Copyright (c) 2019 - present AppSeed.us
 from flask import Flask, url_for, render_template
 from logging import basicConfig, DEBUG, getLogger, StreamHandler
 import app.base
+from .base.utils.mongo import Configured
 from .models.VnV import DumpReaders
 
 global_template_variables = {
-    "list_vnv_readers": DumpReaders
+    "list_vnv_readers": DumpReaders,
+    "mongo_configured" : Configured
 }
 
 

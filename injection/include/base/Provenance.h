@@ -1,6 +1,6 @@
 #ifndef PROVANENCE_HEADER
 #define PROVANENCE_HEADER
-
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -12,8 +12,8 @@ namespace VnV {
 
 class ProvFile {
  public:
-  std::string filename;
-  std::string reader;
+  std::string filename= "<unset>";
+  std::string reader = "";
   std::string text = "";
   std::string package = "root";
   std::string name = "<none>";
@@ -24,37 +24,52 @@ class ProvFile {
   ProvFile();
   ProvFile(std::string filename, std::string reader, std::string text = "");
   ProvFile(VnV::DistUtils::libInfo lb, std::string reader);
-
   ProvFile(const json& j);
-  json toJson();
 
-  bool modified();
+  json toJson() const;
+
+  bool modified() const ;
 };
 
 class VnVProv {
-  json toArray(std::vector<ProvFile>& array);
-  void fromArray(std::vector<ProvFile>& array, const json& a);
+  json toArray(const std::vector<std::shared_ptr<ProvFile>>& array) const ;
+  void fromArray(std::vector<std::shared_ptr<ProvFile>>& array, const json& a);
 
  public:
   std::string currentWorkingDirectory;
   long time_in_seconds_since_epoch;
   std::string commandLine;
-  ProvFile inputFile;
-  ProvFile executable;
-  std::vector<ProvFile> inputFiles;
-  std::vector<ProvFile> outputFiles;
-  std::vector<ProvFile> libraries;
+  std::shared_ptr<ProvFile> inputFile;
+  std::shared_ptr<ProvFile> executable;
+  std::vector<std::shared_ptr<ProvFile>> inputFiles;
+  std::vector<std::shared_ptr<ProvFile>> outputFiles;
+  std::vector<std::shared_ptr<ProvFile>> libraries;
 
   VnVProv(int argc, char** argv, std::string inputfileName, json& config);
 
-  json toJson();
+  json toJson() const ;
+  
   VnVProv();
 
   VnVProv(const json& j);
 
-  void addInputFile(ProvFile pv);
+  void addInputFile(std::shared_ptr<ProvFile> pv);
 
-  void addOutputFile(ProvFile pv);
+  void addOutputFile(std::shared_ptr<ProvFile> pv);
+
+  std::shared_ptr<ProvFile> get(std::size_t index, int input) {
+    return (input == 0) ? inputFiles[index] : (input == 1 ?  outputFiles[index] : libraries[index]) ;
+  }
+
+
+  std::size_t size(int input) {
+    return input == 0  ? inputFiles.size() : ( input == 1 ? outputFiles.size() : libraries.size()) ;
+  }
+  
+
+  virtual ~VnVProv() {
+    std::cout << "Destroying the provenance" << std::endl;
+  }
 };
 
 }  // namespace VnV

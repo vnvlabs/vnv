@@ -853,7 +853,7 @@ $(".pcoded-navbar .pcoded-inner-navbar a").each(function() {
     }
 });
 
-function autocomplete(inp) {
+function autocomplete(inp, context) {
 
   var currentFocus;
 
@@ -863,9 +863,11 @@ function autocomplete(inp) {
       closeAllLists();
       if (!val) { return false;}
       currentFocus = -1;
-
-      var url =
-      $.get("/autocomplete?prefix=" + val, function(data) {
+      var url = "/autocomplete?prefix=" + val
+      if (context) {
+        url = url + context()
+      }
+      $.get(url, function(data) {
           updateAutoComplete(inp,data);
       });
   });

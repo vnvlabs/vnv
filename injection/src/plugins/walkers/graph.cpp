@@ -1,6 +1,7 @@
 
 #include "VnV.h"
 #include "plugins/walkers/iter.h"
+#include "streaming/Nodes.h"
 using namespace VnV::Nodes;
 
 namespace {
@@ -73,7 +74,7 @@ class SequentialGraphIter : public VnV::Walkers::Iter {
   // Get the next node id->vector of parents
 
  public:
-  SequentialGraphIter(ICommMap* comm, long commId,
+  SequentialGraphIter(std::shared_ptr<const ICommMap> comm, long commId,
                       std::map<long, std::list<IDN>>& n)
       : Iter(comm, n), rootComm(commId) {
     indexIter = niter->second.begin();
@@ -101,6 +102,7 @@ class SequentialGraphIter : public VnV::Walkers::Iter {
 
 class RootNodeGraphWalk : public VnV::IWalker {
   IRootNode* rootNode;
+  
   std::shared_ptr<SequentialGraphIter> procIter;
   std::tuple<long, node_type, long, std::set<long>> curr;
 

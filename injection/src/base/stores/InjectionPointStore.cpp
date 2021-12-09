@@ -30,8 +30,10 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(std::stri
 
         std::map<std::string,std::string> spec_map;
         bool foundOne;
-        for (auto &it : reg->second.specJson.items()) {
-          if (sig.match(it.key())) {
+        auto& smap = reg->second.specJson;
+
+        for (auto &it : smap.items()) {
+          if (smap.size() == 1 || sig.match(it.key())) {
               for (auto itt : it.value().items()) {
                 spec_map[itt.key()] = itt.value().get<std::string>();
               }

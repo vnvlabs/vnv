@@ -8,27 +8,77 @@
             </div>
             <div class="modal-body">
                 <form id="new_file_form" action="/files/new" method="post">
-                    <div class="form-group">
-                        <label for="name" class="col-form-label">Name</label>
-                        <input type="text" class="form-control" name="name" id="name">
-                    </div>
 
                     <div class="form-group">
                         <label for="reader" class="col-form-label">Reader</label>
                         <select type="text" class="form-control" id="reader" name="reader">
                             {%for r in list_vnv_readers() %}
-                            <option value="{{r}}" {%if loop.index0 == 0 %} selected {%endif%} >{{r}}</option>
+                            <option value="{{r[0]}}" {%if loop.index0 == 0 %} selected {%endif%} >{{r[0]}}</option>
                             {%endfor%}
                         </select>
                     </div>
 
-                    <div class="autocomplete form-group" style="width:100%" >
-                        <label for="filename" class="col-form-label">Filename</label>
-                        <input type="text" class="form-control" id="filename" name="filename" autocomplete="off">
+                    <div id="name-group" class="form-group">
+                        <label for="name" class="col-form-label">Name</label>
+                        <input type="text" class="form-control" name="name" id="name">
                     </div>
+
+                    <div class="autocomplete form-group" style="width:100%" >
+                        {% for r in list_vnv_readers() %}
+                        <div id="reader_message_{{r[0]}}" class="fdesc {{r[2]}}"  style="{%if loop.index0 > 0 %} display:none {%endif%}" >
+                            {{r[1]}}
+                        </div>
+                        {%endfor%}
+                        <input type="text" class="form-control" id="filename" name="filename" autocomplete="off" placeholder="">
+                    </div>
+
+                    <div id="username-group" class="form-group" style="display:none">
+                        <label for="name" class="col-form-label">User Name</label>
+                        <input type="text" class="form-control" id="username" name="username", value="" placeholder="Reader Username (may not be required)">
+                    </div>
+                    <div id="password-group" class="form-group" style="display:none">
+                        <label for="name" class="col-form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Reader Password (may not be required)">
+                    </div>
+
+                    <div id="persist-group" class="form-group" style="display:flex; {%if not mongo_configured() %} display:none {%endif%}">
+                        <input name="persist"
+                               style="width:20px; margin-right:15px;"
+                               type="checkbox"
+                               title="If true, data structure will persist to the DB. Set false for faster performance in smaller applications."
+                               class="form-control"
+                               id="persist"
+                               checked>
+                        <label for="persist" class="col-form-label">Persist to Database</label>
+                    </div>
+
                     <script>
                         $( document ).ready(function() {
-                            autocomplete(document.getElementById('filename'))
+
+                            $('#reader').on('change', function() {
+                                $('.fdesc').hide();
+                                $('#reader_message_' + $(this).val()).show();
+                                if ($(this).val() === "saved") {
+                                    $('#persist-group').hide()
+                                    $('#name-group').hide()
+
+                                } else {
+                                    $('#persist-group').show()
+                                    $('#name-group').show()
+                                }
+                                if ($(this).val() === "json_socket" || $(this).val() === "json_http") {
+                                       $('#username-group').show()
+                                       $('#password-group').show()
+                                } else {
+                                       $('#username-group').hide()
+                                       $('#password-group').hide()
+
+                                }
+
+                            });
+                            autocomplete(document.getElementById('filename'), function() {
+                                return "&context=" + $('#reader').val();
+                            })
                         });
                     </script>
                 </form>

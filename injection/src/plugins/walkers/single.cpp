@@ -1,6 +1,7 @@
 
 #include "VnV.h"
 #include "plugins/walkers/iter.h"
+#include "streaming/Nodes.h"
 using namespace VnV::Nodes;
 
 namespace {
@@ -16,7 +17,7 @@ class ProcIter : public VnV::Walkers::Iter {
   }
 
  public:
-  ProcIter(ICommMap* comm, long proc, std::map<long, std::list<IDN>>& n)
+  ProcIter(std::shared_ptr<const ICommMap> comm, long proc, std::map<long, std::list<IDN>>& n)
       : Iter(comm, n), searchProc(proc){};
 
   virtual bool next(IDN& res) {
@@ -25,7 +26,6 @@ class ProcIter : public VnV::Walkers::Iter {
     if (started) {
       s++;
     }
-    std::cout << niter->first << " sdfsdfsdf " << std::endl;
     while (s != nodes.end()) {
       
       for (auto& it : s->second) {
@@ -36,7 +36,6 @@ class ProcIter : public VnV::Walkers::Iter {
           res.streamId = it.streamId;
           res.type = it.type;
           niter = s; // We found one, so niter should start here next time
-          std::cout << s->first << " " << niter->first << " 22sdfsdfsdf " << std::endl;
           started = true;        
           return true;
         }
@@ -55,7 +54,7 @@ class CommIter : public ProcIter {
   }
 
  public:
-  CommIter(ICommMap* comm, long commId, std::map<long, std::list<IDN>>& n)
+  CommIter(std::shared_ptr<const ICommMap> comm, long commId, std::map<long, std::list<IDN>>& n)
       : ProcIter(comm, commId, n) {}
 };
 
@@ -67,7 +66,7 @@ class OnlyCommIter : public ProcIter {
   }
 
  public:
-  OnlyCommIter(ICommMap* comm, long commId, std::map<long, std::list<IDN>>& n)
+  OnlyCommIter(std::shared_ptr<const ICommMap> comm, long commId, std::map<long, std::list<IDN>>& n)
       : ProcIter(comm, commId, n) {}
 };
 
@@ -79,7 +78,7 @@ class OnlyProcIter : public ProcIter {
   }
 
  public:
-  OnlyProcIter(ICommMap* comm, long commId, std::map<long, std::list<IDN>>& n)
+  OnlyProcIter(std::shared_ptr<const ICommMap> comm, long commId, std::map<long, std::list<IDN>>& n)
       : ProcIter(comm, commId, n) {}
 };
 
@@ -139,7 +138,6 @@ const char* getSchema() {
 }  // namespace
 
 INJECTION_WALKER_S(VNVPACKAGENAME, proc, getSchema()) {
-  std::cout << "SDFSDFS" << std::endl;
   long proc = config["id"].get<long>();
   bool only = config["only"].get<bool>();
   bool comm = config["comm"].get<bool>();

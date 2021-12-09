@@ -4,9 +4,9 @@
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "interfaces/IOutputEngine.h"
-#include "plugins/engines/streaming/streamtemplate.h"
+#include "streaming/streamtemplate.h"
 
-using namespace VnV::VNVPACKAGENAME::Engines::Streaming;
+using namespace VnV::Nodes;
 using nlohmann::json;
 
 class JsonTerminalStream : public StreamWriter<json> {
@@ -32,9 +32,7 @@ class JsonTerminalStream : public StreamWriter<json> {
   };
 
   virtual void write(long id, const json& obj, long jid) override {
-    std::cout << obj.dump() << std::endl;
-    ;
-
+  
     std::cout << "\n\n[STREAM " << id << "]\n" << obj.dump(3) << "\n\n";
     std::cout.flush();
   };
@@ -49,22 +47,9 @@ INJECTION_ENGINE(VNVPACKAGENAME, json_stdout) {
   return new StreamManager<json>(std::make_shared<JsonTerminalStream>());
 }
 
-INJECTION_ENGINE_READER(VNVPACKAGENAME, json_stdout) {
-  VnV_Warn(VNVPACKAGENAME, "No reader for json stdout yet");
-  return nullptr;
-}
-
 INJECTION_ENGINE(VNVPACKAGENAME, json) {
   VnV_Warn(VNVPACKAGENAME,
            "The \"json\" engine is DEPRECIATED, please use one of "
            "\"json_{stdout,socket,http,file}\" instead");
   return new StreamManager<json>(std::make_shared<JsonTerminalStream>());
-}
-
-INJECTION_ENGINE_READER(VNVPACKAGENAME, json) {
-  VnV_Warn(VNVPACKAGENAME,
-           "The \"json\" engine is DEPRECIATED, please use one of "
-           "\"json_{stdout,socket,http,file}\" instead");
-  VnV_Warn(VNVPACKAGENAME, "No reader for json stdout yet");
-  return nullptr;
 }

@@ -1,6 +1,6 @@
 
 
-#include "plugins/engines/streaming/adios_patch/ifstream.h"
+#include "plugins/engines/adios_patch/ifstream.h"
 
 namespace adios2 {
 
@@ -78,20 +78,15 @@ bool StreamPatch::GetStep(double timeoutSeconds) {
   } else {
     m_FirstStep = false;
   }
-  std::cout << "GGGGGGGGGGGGGGGGGGGGGGGGGG" << std::endl;
-  if (!m_Engine) {
-    std::cout << "SHOOT GGGGGGGGGGGGGGGGGGGGGGGGG" << std::endl;
-  }
+
 
   if (m_Engine.BeginStep(StepMode::Read, timeoutSeconds) != StepStatus::OK) {
     m_StepStatus = false;
-    std::cout << "Returning false" << std::endl;
     return false;
 
   }
 
 
-  std::cout << "Returning true" << std::endl;
 
   m_StepStatus = true;
   return true;

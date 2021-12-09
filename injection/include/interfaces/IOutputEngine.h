@@ -698,7 +698,7 @@ class OutputEngineManager : public IInternalOutputEngine {
   virtual ~OutputEngineManager() = default;
 };
 typedef std::shared_ptr<VnV::Nodes::IRootNode> (*engine_reader_ptr)(std::string filename, long& id,
-                                                                    const nlohmann::json& config);
+                                                                    const nlohmann::json& config, bool async);
 typedef OutputEngineManager* (*engine_register_ptr)();
 void registerEngine(std::string name, VnV::engine_register_ptr r);
 void registerReader(std::string name, VnV::engine_reader_ptr r);
@@ -730,13 +730,13 @@ void registerReader(std::string name, VnV::engine_reader_ptr r);
   namespace VnV {                                                                                                      \
   namespace PNAME {                                                                                                    \
   namespace EngineReaders {                                                                                            \
-  std::shared_ptr<VnV::Nodes::IRootNode> declare_##name(std::string filename, long& id, const nlohmann::json& config); \
+  std::shared_ptr<VnV::Nodes::IRootNode> declare_##name(std::string filename, long& id, const nlohmann::json& config, bool async); \
   void register_##name() { registerReader(#name, &declare_##name); }                                                   \
   }                                                                                                                    \
   }                                                                                                                    \
   }                                                                                                                    \
   std::shared_ptr<VnV::Nodes::IRootNode> VnV::PNAME::EngineReaders::declare_##name(std::string filename, long& id,     \
-                                                                                   const nlohmann::json& config)
+                                                                                   const nlohmann::json& config, bool async)
 
 #define DECLAREENGINEREADER(PNAME, name) \
   namespace VnV {                        \

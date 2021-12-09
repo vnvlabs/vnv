@@ -1,0 +1,14 @@
+<div style="flex:1 ">
+{%with r = file.getFileStatus() %}
+<h2> <span class="badge badge-{{r[0]}}" title="{{r[1]}}" >{{r[1]}}</span> VnV Input File: {{file.name}}  </h2>
+{% endwith %}
+<h6> Connection: {{file.connection.describe()}} </h6>
+<h6> Path: {{file.filename}}</h6>
+</div>
+
+<button class="btn btn-primary" style="margin-left:15px;" onclick='$("#config_config").modal("show")'>
+   Configure
+</button>
+<button class="btn btn-primary" style="margin-left:15px;" onclick='$(".input-save-button").click()'>Save All
+</button>
+

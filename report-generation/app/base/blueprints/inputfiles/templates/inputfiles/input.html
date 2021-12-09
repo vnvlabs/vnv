@@ -1,0 +1,24 @@
+<div style="display:flex; align-items:center; margin-bottom:15px;">
+
+    <h2 style="flex:1">Input File Editor</h2>
+     <button class="btn btn-primary"  onclick='show_load_input_file_modal({{file.id_}})'>
+               Load Input File
+     </button>
+
+    <button id="input_save" class="btn btn-primary input-save-button" style="margin-left:15px" onclick='save_input_file({{file.id_}},$("#inputfile_value_form"))'>
+               Save
+     </button>
+
+</div>
+
+<form id ="inputfile_value_form">
+<textarea id="inputfile" name="value" class="card" style="width:100%; " rows="30">
+    {{file.value}}
+</textarea>
+</form>
+
+{% with modal_content = "inputfiles/load_input_content.html" %}
+{% with modal_id = "input_load" %}
+{% include "inputfiles/connection.html" %}
+{% endwith %}
+{% endwith %}

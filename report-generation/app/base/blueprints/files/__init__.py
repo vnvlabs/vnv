@@ -3,14 +3,18 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 import os
+import threading
+
 from flask import Blueprint, make_response, jsonify, flash
 from flask import render_template, redirect, url_for, request
+import socket
 
 from app.models.VnVConnection import VnVLocalConnection, VnVConnection, MAIN_CONNECTION, SetMainConnection, \
     SetFileConnection
 from app.rendering.readers import LocalFile
 from . import viewers
 from app.models.VnVFile import VnVFile
+from ...utils.mongo import collection_exists
 from ...utils.utils import render_error
 
 blueprint = Blueprint(
@@ -29,19 +33,73 @@ def get_file_template_root():
     return os.path.abspath(os.path.join(sdir, "renders"))
 
 
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('0.0.0.0', port)) == 0
+
+
+class FastReadCounter(object):
+    def __init__(self):
+        self.value = 0
+        self._lock = threading.Lock()
+
+    def increment(self):
+        with self._lock:
+            self.value += 1
+            return self.value - 1
+
+PORTCOUNT = FastReadCounter()
+def get_open_port():
+    return 14000 + PORTCOUNT.increment()
+
+@blueprint.route('/autostart', methods=["POST"])
+def autostart():
+    try:
+      port = get_open_port()
+      if port is None:
+          return make_response("error - no available ports",401)
+
+      file = VnVFile.add(
+                request.form["name"],
+                str(port),
+                request.form["reader"],
+                get_file_template_root(),
+                persist=request.form.get("persist"),
+                username=request.form.get("username"),
+                password=request.form.get("password")
+      )
+
+      return make_response(f'0.0.0.0:{port}',200)
+    except Exception as e:
+        return make_response("error",501)
+
+
 @blueprint.route('/new', methods=["POST"])
 def new():
     try:
-        file = VnVFile.add(
-            request.form["name"],
-            request.form["filename"],
-            request.form["reader"],
-            get_file_template_root())
+
+        reader = request.form["reader"]
+        fname = request.form["filename"]
+        if reader == "saved":
+            file = VnVFile.add(
+                fname,
+                fname,
+                "mongo",
+                get_file_template_root(), persist=True, reload=True)
+        else:
+            file = VnVFile.add(
+                request.form["name"],
+                fname,
+                reader,
+                get_file_template_root(),
+                persist=request.form.get("persist"),
+                username=request.form.get("username"),
+                password=request.form.get("password")
+            )
+
         return redirect(url_for("base.files.view", id_=file.id_))
     except Exception as e:
-        print(e)
         return render_error(501, "Error Loading File")
-
 
 @blueprint.route('/delete/<int:id_>', methods=["POST"])
 def delete(id_):
@@ -189,7 +247,8 @@ def faker():
             "test",
             "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output",
             "json_file",
-            get_file_template_root())
+            get_file_template_root(), persist=True)
+
 
     if False and os.path.exists("/home/ben/source/vv/vv-neams/build/examples/dummy/executables/adios-output-live"):
         VnVFile.add(
@@ -198,18 +257,25 @@ def faker():
             "adios_file",
             get_file_template_root())
 
-    if True:
+    if False:
         VnVFile.add(
             "http",
-            "5004",
+            "14000",
             "json_socket",
-            get_file_template_root())
+            get_file_template_root(),username="ben", password="hello")
 
 
     if False and os.path.exists("/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live"):
         VnVFile.add(
             "test1",
             "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live",
+            "json_file",
+            get_file_template_root())
+
+    if True and os.path.exists("/home/ben/source/vv/applications/asgard/build/vv-output"):
+        VnVFile.add(
+            "asgard",
+            "/home/ben/source/vv/applications/asgard/build/vv-output",
             "json_file",
             get_file_template_root())
 

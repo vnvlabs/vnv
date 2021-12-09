@@ -6,7 +6,6 @@
 
 
 INJECTION_TEST(SPNAME,trial) {
-  std::cout << "HERE" << std::endl;
   //dumpParameters();
   return SUCCESS;
 }

@@ -2,7 +2,12 @@ target_sources(
   injection
   PRIVATE ${CMAKE_CURRENT_LIST_DIR}/json_file.cpp
           ${CMAKE_CURRENT_LIST_DIR}/json_sock.cpp
-          ${CMAKE_CURRENT_LIST_DIR}/json_stdout.cpp)
+          ${CMAKE_CURRENT_LIST_DIR}/json_stdout.cpp
+          ${CMAKE_CURRENT_LIST_DIR}/mongo_load.cpp
+          
+          ${CMAKE_CURRENT_LIST_DIR}/sssssh.cpp
+          
+          )
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(CURL)
@@ -14,7 +19,7 @@ if(CURL_FOUND AND MICROHTTPD_FOUND)
   target_include_directories(injection PRIVATE ${CURL_INCLUDE_DIRS})
   target_include_directories(injection PRIVATE ${MICROHTTPD_INCLUDE_DIRS})
   target_link_libraries(injection PRIVATE ${MICROHTTPD_LIBRARIES})
-
+  target_compile_definitions(injection PRIVATE WITH_LIBCURL=1)
   target_sources(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/json_http.cpp)
 
 endif()

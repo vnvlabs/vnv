@@ -52,6 +52,8 @@ if(BUILD_TESTS)
   add_subdirectory(test)
 endif()
 
+add_subdirectory(tools)
+
 if(BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
