@@ -6,12 +6,12 @@
 
 #include "base/Logger.h"
 #include "base/points/InjectionPoint.h"
+#include "base/stores/ActionStore.h"
 #include "base/stores/InjectionPointStore.h"
 #include "base/stores/IteratorStore.h"
 #include "base/stores/IteratorsStore.h"
 #include "base/stores/OutputEngineStore.h"
 #include "base/stores/TestStore.h"
-#include "base/stores/ActionStore.h"
 #include "c-interfaces/Logging.h"
 #include "interfaces/IIterator.h"
 #include "json-schema.hpp"
@@ -46,7 +46,7 @@ bool IterationPoint::iterate(std::string filename, int line) {
   }
 
   // Set the first values();
-  wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId, filename, line);
+  wrapper->injectionPointStartedCallBack(comm, package, getName(), type, stageId, filename, line);
 
   InjectionPointBase::runTestsInternal(wrapper);
 
@@ -58,7 +58,7 @@ bool IterationPoint::iterate(std::string filename, int line) {
     }
     result = itIndex < m_iterators.size();
   }
-  wrapper->injectionPointEndedCallBack(getScope(), type, stageId);
+  wrapper->injectionPointEndedCallBack(getName(), type, stageId);
   started++;
 
   if (result || once > started) {

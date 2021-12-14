@@ -3,6 +3,7 @@
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/Tooling.h>
+#include <clang/Basic/Version.h>
 
 #include <iostream>
 #include <string>
@@ -119,7 +120,11 @@ std::string ComputeName(const clang::Decl *CurrentDecl, Compiler compiler) {
     }
 
     std::string sep = (compiler == Compiler::GNU) ? "; " : ", ";
+    
+    #if CLANG_VERSION_MAJOR > 11 
     Policy.SuppressDefaultTemplateArgs = !(compiler == Compiler::CLANG11);
+    #endif
+
     std::string with = (compiler == Compiler::GNU) ? "with" : "";
 
     FunctionTemplateSpecializationInfo *FSI

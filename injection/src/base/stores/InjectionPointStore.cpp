@@ -17,57 +17,53 @@ using namespace VnV;
 InjectionPointStore::InjectionPointStore() {}
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(std::string packageName, std::string name,
-                                                                       struct VnV_Function_Sig pretty,  
-                                                                       NTV& in_args) {
-  
+                                                                       struct VnV_Function_Sig pretty, NTV& in_args) {
   std::string key = packageName + ":" + name;
   auto it = injectionPoints.find(key);
   auto reg = registeredInjectionPoints.find(key);
   if (it != injectionPoints.end() && reg != registeredInjectionPoints.end()) {
-     
-     FunctionSigniture sig(pretty); 
-     if (sig.run(it->second.runConfig)) {
+    FunctionSigniture sig(pretty);
+    if (sig.run(it->second.runConfig)) {
+      std::map<std::string, std::string> spec_map;
+      bool foundOne;
+      auto& smap = reg->second.specJson;
 
-        std::map<std::string,std::string> spec_map;
-        bool foundOne;
-        auto& smap = reg->second.specJson;
+      for (auto& it : smap.items()) {
+        if (smap.size() == 1 || sig.match(it.key())) {
+          for (auto itt : it.value().items()) {
+            spec_map[itt.key()] = itt.value().get<std::string>();
+          }
+          foundOne = true;
+          break;
+        }
+      }
+      if (!foundOne) {
+        std::string dump = "";
+        for (auto ita : reg->second.specJson.items()) {
+          dump += "\n" + ita.key();
+        }
+        StringUtils::squash(dump);
+        std::string s = StringUtils::squash_copy(pretty.signiture);
+        VnV_Warn(VNVPACKAGENAME,
+                 "Could not find a parameter set matching the function Signiture:\n%s\n"
+                 "The options are:%s",
+                 s.c_str(), dump.c_str());
+        return nullptr;
+      }
 
-        for (auto &it : smap.items()) {
-          if (smap.size() == 1 || sig.match(it.key())) {
-              for (auto itt : it.value().items()) {
-                spec_map[itt.key()] = itt.value().get<std::string>();
-              }
-              foundOne = true;
-              break;
-          }
+      // Construct and reset because InjectionPoint ctor is only accessible in
+      // InjectionPointStore.
+      std::shared_ptr<InjectionPoint> injectionPoint;
+      injectionPoint.reset(new InjectionPoint(packageName, name, spec_map, in_args));
+      for (auto& test : it->second.tests) {
+        if (sig.run(test.getRunConfig())) {
+          injectionPoint->addTest(test);
         }
-        if (!foundOne) {
-          std::string dump = "";
-          for (auto ita : reg->second.specJson.items()) {
-            dump += "\n" + ita.key();
-          }
-          StringUtils::squash(dump);
-          std::string s = StringUtils::squash_copy(pretty.signiture);
-          VnV_Warn(VNVPACKAGENAME, 
-            "Could not find a parameter set matching the function Signiture:\n%s\n"
-            "The options are:%s", s.c_str() , dump.c_str()
-          );
-          return nullptr;
-        }
-        
-        // Construct and reset because InjectionPoint ctor is only accessible in
-        // InjectionPointStore.
-        std::shared_ptr<InjectionPoint> injectionPoint;
-        injectionPoint.reset(new InjectionPoint(packageName, name, spec_map, in_args));
-        for (auto& test : it->second.tests) {
-          if (sig.run(test.getRunConfig())) {  
-              injectionPoint->addTest(test);
-          }
-        }
-        injectionPoint->runInternal = it->second.runInternal;
+      }
+      injectionPoint->runInternal = it->second.runInternal;
 
-        return injectionPoint;
-     }
+      return injectionPoint;
+    }
   }
   return nullptr;
 }
@@ -139,7 +135,7 @@ void InjectionPointStore::registerInjectionPoint(std::string packageName, std::s
 }
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::string package, std::string name,
-                                                                         struct VnV_Function_Sig pretty, 
+                                                                          struct VnV_Function_Sig pretty,
                                                                           InjectionPointType type, NTV& in_args) {
   std::string key = package + ":" + name;
   std::shared_ptr<InjectionPoint> ptr;
@@ -147,13 +143,13 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::s
     return nullptr;  // Not configured
   } else if (type == InjectionPointType::Single) {
     ptr = newInjectionPoint(package, name, pretty, in_args);
-  } else if (type == InjectionPointType::Begin) {    /* New staged injection point.
-                                                     -- Add it to the stack */
+  } else if (type == InjectionPointType::Begin) {            /* New staged injection point.
+                                                             -- Add it to the stack */
     ptr = newInjectionPoint(package, name, pretty, in_args); /*Not nullptr because we checked above*/
     registerLoopedInjectionPoint(package, name, ptr);
   } else {
     // Should never happen.
-    return fetchFromQueue(package, name, type);
+    throw VnV::VnVExceptionBase("New Injection point called but stage is not single or begin");
   }
   return ptr;
 }
@@ -161,7 +157,6 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::s
 std::shared_ptr<InjectionPoint> InjectionPointStore::getExistingInjectionPoint(std::string package, std::string name,
                                                                                InjectionPointType type) {
   std::string key = package + ":" + name;
-  std::shared_ptr<InjectionPoint> ptr;
   if (injectionPoints.find(key) == injectionPoints.end()) {
     return nullptr;  // Not configured
   }
@@ -170,30 +165,25 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getExistingInjectionPoint(s
 
 void InjectionPointStore::registerLoopedInjectionPoint(std::string package, std::string name,
                                                        std::shared_ptr<InjectionPoint>& ptr) {
-  std::string key = package + ":" + name;
-  auto it = active.find(key);
-  if (it == active.end()) {
-    std::stack<std::shared_ptr<InjectionPoint>> s;
-    s.push(ptr);
-    active.insert(std::make_pair(key, s));
-  } else {
-    it->second.push(ptr);
-  }
+  active.push(ptr);
 }
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::fetchFromQueue(std::string package, std::string name,
                                                                     InjectionPointType stage) {
   // Stage > 0 --> Fetch the queue.
   std::string key = package + ":" + name;
-  std::shared_ptr<InjectionPoint> ptr;
-  auto it = active.find(key);
-  if (it == active.end() || it->second.size() == 0) {
-    return nullptr; /* queue doesn't exist or not active ip. */
-  } else if (stage == InjectionPointType::End) {
-    ptr = it->second.top();  // Final stage, remove it from the stack.
-    it->second.pop();
-  } else {
-    ptr = it->second.top();  // Intermediate stage -> return top of stack.
+
+  if (active.size() == 0) {
+    throw VnV::VnVExceptionBase("Fetch from Queue called with no Injection points int the stack");
+  }
+  auto ptr = active.top();
+  if (key.compare(ptr->getPackage() + ":" + ptr->getName()) != 0) {
+    throw VnV::VnVExceptionBase("Injection Point Nesting Error. Cannot call %s stage  inside a %s:%s", key,
+                                ptr->getPackage().c_str(), ptr->getName().c_str());
+  }
+
+  if (stage == InjectionPointType::End) {
+    active.pop();
   }
   return ptr;
 }

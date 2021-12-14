@@ -18,8 +18,9 @@ using namespace VnV;
 
 using nlohmann::json_schema::json_validator;
 
-InjectionPointBase::InjectionPointBase(std::string packageName, std::string name, std::map<std::string,std::string> registrationJson,
-                                       const NTV& in_args, const NTV& out_args) {
+InjectionPointBase::InjectionPointBase(std::string packageName, std::string name,
+                                       std::map<std::string, std::string> registrationJson, const NTV& in_args,
+                                       const NTV& out_args) {
   this->name = name;
   this->package = packageName;
 
@@ -30,8 +31,7 @@ InjectionPointBase::InjectionPointBase(std::string packageName, std::string name
     for (auto it : args) {
       auto rparam = registrationJson.find(it.first);  // Find a parameter with this name.
       if (rparam != registrationJson.end()) {
-        parameterMap.insert(std::make_pair(
-            it.first, VnVParameter(it.second.second, rparam->second, inputs)));
+        parameterMap.insert(std::make_pair(it.first, VnVParameter(it.second.second, rparam->second, inputs)));
       } else {
         VnV_Warn(VNVPACKAGENAME,
                  "Injection Point is not configured Correctly. Unrecognized "
@@ -44,10 +44,8 @@ InjectionPointBase::InjectionPointBase(std::string packageName, std::string name
   }
 }
 
-std::string InjectionPointBase::getScope() const { return name; }
 
 void InjectionPointBase::addTest(TestConfig& config) {
-  
   config.setParameterMap(parameterMap);
   std::shared_ptr<ITest> test = TestStore::instance().getTest(config);
 
@@ -96,11 +94,11 @@ void InjectionPoint::run(std::string function, int line) {
   if (runIt) {
     OutputEngineManager* wrapper = OutputEngineStore::instance().getEngineManager();
 
-    wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId, function, line);
+    wrapper->injectionPointStartedCallBack(comm, package, getName(), type, stageId, function, line);
 
     runTestsInternal(wrapper);
 
-    wrapper->injectionPointEndedCallBack(getScope(), type, stageId);
+    wrapper->injectionPointEndedCallBack(getName(), type, stageId);
 
   } else if (type == InjectionPointType::Begin) {
     // If we didn;t run and this is a BEGIN, then we set our skipped property

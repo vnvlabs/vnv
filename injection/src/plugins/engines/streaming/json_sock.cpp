@@ -1,5 +1,4 @@
 #include <arpa/inet.h>
-#include <curl/curl.h>
 #include <microhttpd.h>
 #include <netdb.h>  //hostent
 #include <sys/select.h>
@@ -14,6 +13,7 @@
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "interfaces/IOutputEngine.h"
+#include "streaming/curl.h"
 #include "streaming/dispatch.h"
 
 using namespace VnV::Nodes;
@@ -100,7 +100,10 @@ class UDPServer {
 
   void stop() { done.store(true, std::memory_order_relaxed); }
 
-  void run() { worker = std::thread(&UDPServer::runner, this); worker.detach(); }
+  void run() {
+    worker = std::thread(&UDPServer::runner, this);
+    worker.detach();
+  }
 
   void runner() {
     struct timeval tv;
@@ -149,7 +152,7 @@ class UDPServer {
         message.push_back(buffer[i]);
         if (message.size() == messageCount) {
           std::string s(message.begin(), message.end());
-          
+
           parseMessage(sender, len, c, s);
           message.clear();
           messageCount = -1;
@@ -185,7 +188,6 @@ class UPDClient {
     servaddr.sin_port = htons(port);
     servaddr.sin_addr.s_addr = inet_addr(domain.c_str());
     len = sizeof(servaddr);
-    
   }
 
   void setTimeout(int seconds, int microseconds) {
@@ -300,8 +302,7 @@ class JsonSocketStreamIterator : public JsonPortStreamIterator {
   };
 
   std::string auth(std::string data) {
-    
-    std::string p = data.substr(0, upassLen);    
+    std::string p = data.substr(0, upassLen);
     if (p.compare(upass) == 0) {
       return data.substr(upassLen);
     }
@@ -336,13 +337,11 @@ class JsonSocketStream : public PortStreamWriter<json> {
 
  public:
   virtual void initialize(json& config, bool readMode) override {
-    
     filestub = PortStreamWriter<json>::init("json_socket", config);
 
     auto t = filestub.find_last_of(":");
-    std::string domain = filestub.substr(0,t);
-    int port = std::atoi(filestub.substr(t+1).c_str()); 
-    
+    std::string domain = filestub.substr(0, t);
+    int port = std::atoi(filestub.substr(t + 1).c_str());
 
     upass = getUsername() + ":" + getPassword();
     client.reset(new UPDClient(domain, port, getUsername(), getPassword()));
@@ -404,9 +403,8 @@ void UDPServer::respondWithFetchData(const struct sockaddr* sender, socklen_t se
 }
 
 void UDPServer::parseMessage(const struct sockaddr* sender, socklen_t lena, std::string client, std::string message) {
-  
   std::string data = iter->auth(message);
-  
+
   if (data.size() == 0) {
     // Auth failed -- Ignoring
     std::cout << "AUTHORIZATION FAILED" << std::endl;

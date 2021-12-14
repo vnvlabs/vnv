@@ -2,6 +2,7 @@
 #define CURL_WRAPPER_VNV_H
 
 #if WITH_LIBCURL
+
 #include "json-schema.hpp"
 #include <curl/curl.h>
 using nlohmann::json;

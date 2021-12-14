@@ -85,7 +85,7 @@ class VnVCallBack {
 // Typedefs
 typedef std::map<std::string, std::pair<std::string, void*>> NTV;
 
-typedef std::function<void(std::string&, std::size_t &, std::list<std::string,std::string> &)> templateFunc; 
+typedef std::function<void(std::string&, std::size_t&, std::list<std::string, std::string>&)> templateFunc;
 
 /**
  * @brief The InjectionPoint Base class
@@ -144,8 +144,8 @@ class InjectionPointBase {
    * @param in_args The parameters passed as "input" arguments
    * @param out_args The parameters passed as output arguments.
    */
-  InjectionPointBase(std::string packageName, std::string name, std::map<std::string,std::string> registrationJson, const NTV& in_args,
-                     const NTV& out_args);
+  InjectionPointBase(std::string packageName, std::string name, std::map<std::string, std::string> registrationJson,
+                     const NTV& in_args, const NTV& out_args);
 
   /**
    * @brief Set the Injection Point Type object
@@ -173,15 +173,10 @@ class InjectionPointBase {
  public:
   bool runInternal = false; /**< should we run the internal injection point test. */
 
-  /**
-   * @brief getScope
-   * @return the name of this injection point
-   *
-   * Get the unique name for this injection point.
-   *
-   * @todo rename this to getName() Why in the world did I call it getScope() anyway?
-   **/
-  std::string getScope() const;
+
+  std::string getName() const { return name; }
+
+  std::string getPackage() const { return package; }
 
   /**
    * @brief addTest Add a test Config to the injection point.
@@ -239,8 +234,8 @@ class InjectionPoint : public InjectionPointBase {
    * @param in_args The parameters passed as "input" arguments
    * @param out_args The parameters passed as output arguments.
    */
-  InjectionPoint(std::string packageName, std::string name, std::map<std::string,std::string> registrationJson, const NTV& in_args,
-                 const NTV& out_args)
+  InjectionPoint(std::string packageName, std::string name, std::map<std::string, std::string> registrationJson,
+                 const NTV& in_args, const NTV& out_args)
       : InjectionPointBase(packageName, name, registrationJson, in_args, out_args){};
 
  public:
@@ -255,7 +250,8 @@ class InjectionPoint : public InjectionPointBase {
    * @param registrationJson The registration information for the injection point
    * @param in_args The parameters passed as "input" arguments
    */
-  InjectionPoint(std::string packageName, std::string name, std::map<std::string,std::string> registrationJson, NTV& in_args)
+  InjectionPoint(std::string packageName, std::string name, std::map<std::string, std::string> registrationJson,
+                 NTV& in_args)
       : InjectionPointBase(packageName, name, registrationJson, in_args, {}){};
 
   /**
