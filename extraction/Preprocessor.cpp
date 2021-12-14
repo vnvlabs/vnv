@@ -323,7 +323,9 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range);
       thisStage["docs"] = "";
-      thisStage["point"] = (nae == "INJECTION_POINT_C");
+      if (nae == "INJECTION_LOOP_BEGIN_C") {
+        jj["loop"] = true;
+      }
 
     } else if (nae == "INJECTION_ITERATION_C") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 1, true), getPackageName(Args, 3, true));
