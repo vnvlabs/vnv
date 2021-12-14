@@ -7,7 +7,26 @@
 
 {% block content %}
 
-<div> HOME </div>
+<div style="display:flex; justify-content: center; align-items:center; margin:40px;">
+    <img style="width:80%; max-width:800px; height:300px;" src="/static/assets/images/logo_crop.png" alt="" >
+</div>
+
+    {% with buttons = [
+    ["Load A New VnV Report","fa fa-play-circle"],
+    ["Create a New Input File","feather icon-file-plus"],
+    ["Start a Terminal Session","fa fa-terminal"],
+    ["Open the File Browser","fa fa-folder"],
+    ["Settings","fa fa-tachometer-alt"],
+    ["Logout","fa fa-sign-out-alt"]
+    ]%}
+    {%for r in buttons %}
+    <div class="index-container">
+        <i class="index-icon icon {{r[1]}}" ></i>
+        <div class="index-content">{{r[0]}}</div>
+    </div>
+    {%endfor%}
+    {% endwith %}
+</div>
 
 {% endblock content %}
 

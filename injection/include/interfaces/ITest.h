@@ -104,6 +104,7 @@ class ITest {
 #define GetRef(name, T) getRef<T>(name, #T)
 #define GetPtr(name, T) getPtr<T>(name, #T)
 
+
 typedef ITest* (*maker_ptr)(TestConfig config);
 void registerTest(std::string package, std::string name, std::string schema, VnV::maker_ptr m);
 

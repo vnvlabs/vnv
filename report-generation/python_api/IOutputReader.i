@@ -36,6 +36,7 @@
 %shared_ptr(VnV::Nodes::ITestNode)
 %shared_ptr(VnV::Nodes::IInfoNode)
 %shared_ptr(VnV::Nodes::ICommInfoNode)
+%shared_ptr(VnV::Nodes::FetchRequest)
 %shared_ptr(VnV::VnVProv)
 %shared_ptr(VnV::ProvFile)
 %shared_ptr(VnV::Nodes::WalkerNode)

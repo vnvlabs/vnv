@@ -242,7 +242,7 @@ def template_globals(globs):
 def faker():
     # Development stuff -- this loads some files by default on my computer. Feel free to add your
     # own
-    if False and os.path.exists("/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output"):
+    if  os.path.exists("/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output"):
         VnVFile.add(
             "test",
             "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output",

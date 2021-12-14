@@ -456,12 +456,13 @@ class ITestNode : public DataBase {
  public:
   ITestNode();
 
-  virtual FetchRequest* getFetchRequest() {
+  virtual std::shared_ptr<FetchRequest> getFetchRequest() {
     if (fetch != nullptr) {
-      return fetch.get();
+      return fetch;
     }
     return nullptr;
   }
+
   virtual void resetFetchRequest() { fetch.reset(); }
 
   virtual void setFetchRequest(std::string schema, long id, long jid, long expiry, std::string message) {

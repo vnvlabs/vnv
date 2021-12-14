@@ -141,6 +141,48 @@ File: style.css
     opacity: 0.6;
 }
 
+.vnv-foot {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	height: 40px;
+	width: 100%;
+	position: fixed;
+	bottom: 0;
+	background: #551919;
+	overflow: hidden;
+	z-index: 2000;
+	padding-left: 20px;
+	padding-right: 23px;
+	color: white;
+}
+
+.index-container {
+    display: flex;
+    padding: 20px 20px;
+    margin: 8px;
+    background: linear-gradient(to right, #11345d, #73b4ff);
+    color: white;
+    font-size: 25px;
+    border-radius: 6px;
+    align-items: center;
+    justify-content: flex-start;
+    cursor:pointer;
+}
+
+.index-content {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.index-icon {
+	margin: 10px 20px 10px 10px;
+}
+.index-container:hover {
+	background: gray;
+}
+
 .gridster ul {
   list-style: none;
 }
@@ -14083,7 +14125,7 @@ li.cross::marker {
     content: "\f360";
 }
 
-.fa-eye:before {
+.fa-:before {
     content: "\f06e";
 }
 

@@ -691,17 +691,27 @@ class MongoPersistance {
 
     virtual std::shared_ptr<IArrayNode> getLogs() override { return getInternal_logs(); }
 
-    virtual FetchRequest* getFetchRequest() {
+    virtual std::shared_ptr<FetchRequest> getFetchRequest() override {
+      if (fetch != nullptr) {
+         return fetch;
+      } 
+      
+
       json& j = getfrequest();
+      
+
       if ( j.size() > 0 ) {
+      
         std::string schema = j["s"].get<std::string>();
         long id = j["i"].get<long>();
         long jid = j["j"].get<long>();
-        long expiry = j["expiry"].get<long>();
+        long expiry = j["e"].get<long>();
         std::string message = j["m"].get<std::string>();
         fetch.reset(new FetchRequest(schema, id, jid, expiry,message));
-        return fetch.get();
+        
+        return fetch;
       } 
+
       return nullptr;
     }
 
@@ -843,8 +853,8 @@ class MongoPersistance {
     virtual std::shared_ptr<IUnitTestResultNode> get(std::string key) {
       if (getM()->contains(key)) {
         auto a = getM()->get(key);
-        auto b = a->getAsArrayNode(a)->get(0);
-        return a->getAsUnitTestResultNode(a);
+        auto b = a->get(0);
+        return b->getAsUnitTestResultNode(b);
       }
       throw VnVExceptionBase("Key error");
     };

@@ -18,7 +18,7 @@ blueprint = Blueprint(
     template_folder='templates'
 )
 
-AUTHENTICATE = False
+AUTHENTICATE = True
 PASSWORD = generate_password_hash("password")
 COOKIE_PASS = uuid.uuid4().hex
 

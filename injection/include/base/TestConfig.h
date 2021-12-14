@@ -69,7 +69,7 @@ class VnVParameter {
 
   bool isInput() const { return input; };
 
-  template <typename T> T* getPtr(std::string requestedType) {
+  template <typename T> T* getPtr(std::string requestedType, bool throwOnError = true ) {
     StringUtils::squash(type);
 
     if (trans == nullptr || type.compare(transType) != 0) {
@@ -80,11 +80,15 @@ class VnVParameter {
     if (trans != nullptr && type.compare(transType) == 0) {
       return static_cast<T*>(trans->Transform(ptr));
     }
-    throw VnVExceptionBase("Bad Transform Requested -- Cannot transform from %s -> %s", type.c_str(),
+    if (throwOnError) {
+        throw VnVExceptionBase("Bad Transform Requested -- Cannot transform from %s -> %s", type.c_str(),
                            requestedType.c_str());
+    }
+    return NULL;
+
   }
 
-  template <typename T> T& getRef(std::string type) { return *getPtr<T>(type); }
+  template <typename T> T& getRef(std::string type) { return *getPtr<T>(type, true); }
 };
 
 class VnVParameterSet : public std::map<std::string, VnVParameter> {
@@ -101,19 +105,28 @@ class VnVParameterSet : public std::map<std::string, VnVParameter> {
   template <typename T> T& getRef(std::string name, std::string type) { return getRef<T>(name, type, true); }
 
 
-  template <typename T> T* getPtr(std::string name, std::string type, bool input) {
+  template <typename T> T* getPtr(std::string name, std::string type, bool input, bool throwOnError = true ) {
     StringUtils::squash(type);
     auto it = find(name);
     if (it != end()) {
       if (it->second.isInput() != input) {
-        if (input) {
-          throw VnVExceptionBase("Requested an input parameter but got an output parameter");
+        if (input ) {
+          if (throwOnError) {
+            throw VnVExceptionBase("Requested an input parameter but got an output parameter");
+          }
+          return NULL;
         }
-        throw VnVExceptionBase("Requested an output parameter but got an input parameter");
+        if (throwOnError) {
+          throw VnVExceptionBase("Requested an output parameter but got an input parameter");
+        }
+        return NULL;
       }
-      return it->second.getPtr<T>(type);
+      return it->second.getPtr<T>(type, throwOnError);
     }
-    throw VnVExceptionBase("Parameter Mapping Error.");
+    if (throwOnError) {
+      throw VnVExceptionBase("Parameter Mapping Error.");
+    }
+    return NULL;
   }
 
   template <typename T> T& getRef(std::string name, std::string type, bool input) {
