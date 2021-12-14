@@ -21,8 +21,7 @@ namespace {
 
 // Copied shamelessly from an anonomous namespace in the Clang source code in
 // RawCommentList.cpp
-static bool onlyWhitespaceBetween(SourceManager& SM, SourceLocation Loc1,
-                                  SourceLocation Loc2,
+static bool onlyWhitespaceBetween(SourceManager& SM, SourceLocation Loc1, SourceLocation Loc2,
                                   unsigned MaxNewlinesAllowed) {
   std::pair<FileID, unsigned> Loc1Info = SM.getDecomposedLoc(Loc1);
   std::pair<FileID, unsigned> Loc2Info = SM.getDecomposedLoc(Loc2);
@@ -54,9 +53,7 @@ static bool onlyWhitespaceBetween(SourceManager& SM, SourceLocation Loc1,
       if (NumNewlines > MaxNewlinesAllowed) return false;
 
       // Collapse \r\n and \n\r into a single newline.
-      if (I + 1 != Loc2Info.second &&
-          (Buffer[I + 1] == '\n' || Buffer[I + 1] == '\r') &&
-          Buffer[I] != Buffer[I + 1])
+      if (I + 1 != Loc2Info.second && (Buffer[I + 1] == '\n' || Buffer[I + 1] == '\r') && Buffer[I] != Buffer[I + 1])
         ++I;
       break;
     }
@@ -65,13 +62,10 @@ static bool onlyWhitespaceBetween(SourceManager& SM, SourceLocation Loc1,
   return true;
 }
 
-std::string stringArgs(Preprocessor& pp, const Token* token,
-                       bool spaceBeforeLast) {
+std::string stringArgs(Preprocessor& pp, const Token* token, bool spaceBeforeLast) {
   std::string s = "";
   while (token->isNot(tok::eof)) {
-    if (spaceBeforeLast &&
-        (pp.getSpelling(*(token + 1)) == "," || (token + 1)->is(tok::eof)))
-      s += " ";
+    if (spaceBeforeLast && (pp.getSpelling(*(token + 1)) == "," || (token + 1)->is(tok::eof))) s += " ";
     s += pp.getSpelling(*token);
     token++;
   }
@@ -108,10 +102,9 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     // PP.addCommentHandler(this);
   }
 
-  void override_comment(SourceRange range, std::string packageName,
-                        std::string name, std::string type, int importannce) {
-    json& docOverrides =
-        VnV::JsonUtilities::getOrCreate(thisJson, "doc_overrides");
+  void override_comment(SourceRange range, std::string packageName, std::string name, std::string type,
+                        int importannce) {
+    json& docOverrides = VnV::JsonUtilities::getOrCreate(thisJson, "doc_overrides");
     json& j = VnV::JsonUtilities::getOrCreate(docOverrides, type);
     json& jj = VnV::JsonUtilities::getOrCreate(j, packageName + ":" + name);
 
@@ -122,13 +115,11 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     jj["docs"] = getDocs(range);
   }
 
-  std::string getCommentFor(DiagnosticsEngine& eng, SourceManager& SM,
-                            SourceLocation loc) {
+  std::string getCommentFor(DiagnosticsEngine& eng, SourceManager& SM, SourceLocation loc) {
     SourceLocation macroSrcLoc = SM.getExpansionLoc(loc);
     std::pair<FileID, unsigned> macroLoc = SM.getDecomposedLoc(macroSrcLoc);
     while (currComment.size() > 0) {
-      std::pair<FileID, unsigned> lastCommLoc =
-          SM.getDecomposedLoc(currentLoc.back());
+      std::pair<FileID, unsigned> lastCommLoc = SM.getDecomposedLoc(currentLoc.back());
       // Question does not make sense if locations are in different files.
       if (macroLoc.first != lastCommLoc.first) {
         return "";
@@ -138,8 +129,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
         // Catch cases where there were comments in the lambda function.
         currComment.pop_back();
         currentLoc.pop_back();
-      } else if (onlyWhitespaceBetween(SM, currentLoc.back(),
-                                       SM.getExpansionLoc(loc), 1000)) {
+      } else if (onlyWhitespaceBetween(SM, currentLoc.back(), SM.getExpansionLoc(loc), 1000)) {
         std::string s = currComment.back()->getFormattedText(SM, eng);
         currComment.clear();  // reset(nullptr);
         currentLoc.clear();
@@ -173,12 +163,10 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
   }
 
   std::string getDocs(SourceRange Range) {
-    return getCommentFor(pp.getDiagnostics(), pp.getSourceManager(),
-                         Range.getBegin());
+    return getCommentFor(pp.getDiagnostics(), pp.getSourceManager(), Range.getBegin());
   }
 
-  std::string getPackageName(const MacroArgs* Args, int c,
-                             bool removeQuotes = false) {
+  std::string getPackageName(const MacroArgs* Args, int c, bool removeQuotes = false) {
     std::string s = "";
     for (auto it : const_cast<MacroArgs*>(Args)->getPreExpArgument(c, pp)) {
       s += pp.getSpelling(it);
@@ -186,8 +174,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     return removeQuotes ? s.substr(1, s.size() - 2) : s;
   }
 
-  void FileChanged(SourceLocation Loc, FileChangeReason Reason,
-                   SrcMgr::CharacteristicKind FileType,
+  void FileChanged(SourceLocation Loc, FileChangeReason Reason, SrcMgr::CharacteristicKind FileType,
                    FileID PrevFID) override {
     std::string fname = pp.getSourceManager().getFilename(Loc).str();
     if (!fname.empty()) {
@@ -203,8 +190,8 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     currComment.clear();
   }
 
-  void MacroExpands(const Token& MacroNameTok, const MacroDefinition& MD,
-                    SourceRange Range, const MacroArgs* Args) override {
+  void MacroExpands(const Token& MacroNameTok, const MacroDefinition& MD, SourceRange Range,
+                    const MacroArgs* Args) override {
     if (!active) return;
 
     std::string nae = pp.getSpelling(MacroNameTok);
@@ -212,10 +199,8 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     // TODOO CATCH THE TEST ASSERT EQUALS CALLS FOR GETTING DOCS FOR INDIVIDUAL
     // UNIT TESTS
 
-    if ((nae == "TEST_ASSERT_EQUALS" || nae == "TEST_ASSERT_NOT_EQUALS") &&
-        lastTestJson != nullptr) {
-      std::string name = VnV::StringUtils::trim_copy(
-          pp.getSpelling(*Args->getUnexpArgument(0)));
+    if ((nae == "TEST_ASSERT_EQUALS" || nae == "TEST_ASSERT_NOT_EQUALS") && lastTestJson != nullptr) {
+      std::string name = VnV::StringUtils::trim_copy(pp.getSpelling(*Args->getUnexpArgument(0)));
       if (name.size() < 3) {
         std::cout << "WARNING VNV TEST INVALID NAME" << std::endl;
       }
@@ -247,25 +232,20 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       override_comment(Range, pname, name, type, import);
 
     } else if (nae == "INJECTION_TEST_RS") {
-      json& jj =
-          getDef("Tests", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("Tests", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_ITERATOR_RS") {
-      json& jj =
-          getDef("Iterators", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("Iterators", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_PLUG_RS") {
-      json& jj =
-          getDef("Plugs", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("Plugs", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_SERIALIZER_R") {
-      json& jj = getDef("Serializers", getPackageName(Args, 0),
-                        getPackageName(Args, 1));
+      json& jj = getDef("Serializers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
       jj["type"] = stringArgs(pp, Args->getUnexpArgument(3), false);
     } else if (nae == "INJECTION_TRANSFORM_R") {
-      json& jj = getDef("Transforms", getPackageName(Args, 0),
-                        getPackageName(Args, 1));
+      json& jj = getDef("Transforms", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
       jj["to"] = stringArgs(pp, Args->getUnexpArgument(3), false);
       jj["from"] = stringArgs(pp, Args->getUnexpArgument(4), false);
@@ -281,65 +261,50 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       std::string pname = getPackageName(Args, 0);
       jj[pname] = getDocs(Range);
     } else if (nae == "INJECTION_INPUT_FILE_") {
-      json& jj =
-          getDef("Files", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("Files", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_OUTPUT_FILE_") {
-      json& jj =
-          getDef("Files", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("Files", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_LOGLEVEL") {
-      json& jj =
-          getDef("LogLevels", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("LogLevels", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["color"] = pp.getSpelling(*Args->getUnexpArgument(2));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_SUBPACKAGE") {
-      json& jj = getDef("SubPackages", getPackageName(Args, 0),
-                        getPackageName(Args, 1));
+      json& jj = getDef("SubPackages", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
-    } else if (nae == "INJECTION_UNITTEST_R" ||
-               nae == "INJECTION_UNITTEST_RAW") {
-      json& jj =
-          getDef("UnitTests", getPackageName(Args, 0), getPackageName(Args, 1));
+    } else if (nae == "INJECTION_UNITTEST_R" || nae == "INJECTION_UNITTEST_RAW") {
+      json& jj = getDef("UnitTests", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
       jj["tests"] = json::object();
       lastTestJson = &jj;
 
     } else if (nae == "INJECTION_ACTION") {
-      json& jj =
-          getDef("Actions", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("Actions", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_ENGINE") {
-      json& jj =
-          getDef("Engines", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("Engines", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_ENGINE_READER") {
-      json& jj = getDef("EngineReaders", getPackageName(Args, 0),
-                        getPackageName(Args, 1));
+      json& jj = getDef("EngineReaders", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_DATATYPE") {
-      json& jj =
-          getDef("DataTypes", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("DataTypes", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_REDUCER") {
-      json& jj =
-          getDef("Reducers", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("Reducers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_PIPELINE") {
-      json& jj =
-          getDef("Pipelines", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("Pipelines", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_SAMPLER_RS") {
-      json& jj =
-          getDef("Samplers", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("Samplers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_WALKER_S") {
-      json& jj =
-          getDef("Walkers", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("Walkers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_COMM") {
-      json& jj =
-          getDef("Comms", getPackageName(Args, 0), getPackageName(Args, 1));
+      json& jj = getDef("Comms", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_INITIALIZE") {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Introduction");
@@ -352,17 +317,16 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       std::string pname = pp.getSpelling(*Args->getUnexpArgument(0));
       jj[pname] = getDocs(Range);
     } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true),
-                        getPackageName(Args, 2, true));
+      json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 2, true));
 
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range);
       thisStage["docs"] = "";
+      thisStage["point"] = (nae == "INJECTION_POINT_C");
 
     } else if (nae == "INJECTION_ITERATION_C") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 1, true),
-                        getPackageName(Args, 3, true));
+      json& jj = getDef("InjectionPoints", getPackageName(Args, 1, true), getPackageName(Args, 3, true));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range);
@@ -370,31 +334,26 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       thisStage["docs"] = "";
 
     } else if (nae == "INJECTION_FUNCTION_PLUG_C") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 1, true),
-                        getPackageName(Args, 3, true));
+      json& jj = getDef("InjectionPoints", getPackageName(Args, 1, true), getPackageName(Args, 3, true));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range);
       jj["plug"] = true;
       thisStage["docs"] = "";
     } else if (nae == "INJECTION_LOOP_ITER") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true),
-                        getPackageName(Args, 1, true));
+      json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
-      json& thisStage = VnV::JsonUtilities::getOrCreate(
-          stages, getPackageName(Args, 2, true));
+      json& thisStage = VnV::JsonUtilities::getOrCreate(stages, getPackageName(Args, 2, true));
       thisStage["docs"] = getDocs(Range);
     } else if (nae == "INJECTION_LOOP_END") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true),
-                        getPackageName(Args, 1, true));
+      json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "End");
       thisStage["docs"] = getDocs(Range);
     }
   }
 
-  void MacroDefined(const Token& MacroNameTok,
-                    const MacroDirective* MD) override {
+  void MacroDefined(const Token& MacroNameTok, const MacroDirective* MD) override {
     if (active) return;
     std::string nae = pp.getSpelling(MacroNameTok);
     if (nae == "VNV_INCLUDED") {
@@ -417,11 +376,9 @@ class PreProcessVnV : public PreprocessorFrontendAction {
     Preprocessor& PP = getCompilerInstance().getPreprocessor();
     SourceManager& SRC = PP.getSourceManager();
 
-    filename =
-        SRC.getFileEntryForID(SRC.getMainFileID())->tryGetRealPathName().str();
+    filename = SRC.getFileEntryForID(SRC.getMainFileID())->tryGetRealPathName().str();
     subJson = json::object();
-    PP.addPPCallbacks(
-        std::make_unique<PreprocessCallback>(subJson, includes, PP));
+    PP.addPPCallbacks(std::make_unique<PreprocessCallback>(subJson, includes, PP));
     PP.IgnorePragmas();
 
     Token Tok;
@@ -441,15 +398,11 @@ class PreProcessVnV : public PreprocessorFrontendAction {
   }
 };
 
-class VnVPackageFinderFrontendActionFactory
-    : public tooling::FrontendActionFactory {
+class VnVPackageFinderFrontendActionFactory : public tooling::FrontendActionFactory {
  public:
-  VnVPackageFinderFrontendActionFactory(json& processed)
-      : mainJson(processed) {}
+  VnVPackageFinderFrontendActionFactory(json& processed) : mainJson(processed) {}
 
-  std::unique_ptr<FrontendAction> create() override {
-    return std::make_unique<PreProcessVnV>(mainJson);
-  }
+  std::unique_ptr<FrontendAction> create() override { return std::make_unique<PreProcessVnV>(mainJson); }
 
   void finalize() {
     if (mainJson.contains("doc_overrides")) {
@@ -461,8 +414,7 @@ class VnVPackageFinderFrontendActionFactory
             if (tjson.contains(n.key())) {
               tjson[n.key()]["docs"] = n.value()["docs"];
             } else {
-              std::cout << "Error -- No " << type.key() << " named " << n.key()
-                        << std::endl;
+              std::cout << "Error -- No " << type.key() << " named " << n.key() << std::endl;
             }
           }
         } else {

@@ -39,7 +39,7 @@ bool PlugPoint::plug(std::string filename, int line) {
 
   started = true;
 
-  wrapper->injectionPointStartedCallBack(comm, package, getScope(), type, stageId, filename, line);
+  wrapper->injectionPointStartedCallBack(comm, package, getName(), type, stageId, filename, line);
 
   // Run the tests before setting the values.
   InjectionPointBase::runTestsInternal(wrapper);
@@ -50,7 +50,7 @@ bool PlugPoint::plug(std::string filename, int line) {
     result = m_plug->plug_(comm, wrapper);
   }
 
-  wrapper->injectionPointEndedCallBack(getScope(), type, stageId);
+  wrapper->injectionPointEndedCallBack(getName(), type, stageId);
 
   if (result) {
     // Finalize the tests after the plug.

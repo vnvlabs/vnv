@@ -12,11 +12,11 @@
 #include <string>
 #include <vector>
 
-#include "base/stores/BaseStore.h"
-#include "json-schema.hpp"
-#include "interfaces/ITest.h"
 #include "base/FunctionSigniture.h"
 #include "base/InjectionPointConfig.h"
+#include "base/stores/BaseStore.h"
+#include "interfaces/ITest.h"
+#include "json-schema.hpp"
 
 using nlohmann::json;
 
@@ -28,11 +28,9 @@ class InjectionPoint;
 class TestConfig;
 class SamplerConfig;
 
-
 class InjectionPointStore : public BaseStore {
-
-  std::map<std::string, std::stack<std::shared_ptr<InjectionPoint>>> active; /**< Active injection point stack*/
-  std::map<std::string, InjectionPointConfig> injectionPoints;               /**< The stored configurations */
+  std::stack<std::shared_ptr<InjectionPoint>> active;          /**< Active injection point stack*/
+  std::map<std::string, InjectionPointConfig> injectionPoints; /**< The stored configurations */
   std::map<std::string, InjectionPointSpec> registeredInjectionPoints;
 
   /**
@@ -48,8 +46,6 @@ class InjectionPointStore : public BaseStore {
 
   std::shared_ptr<InjectionPoint> fetchFromQueue(std::string packageName, std::string name, InjectionPointType stage);
 
-
-
   void registerLoopedInjectionPoint(std::string packageName, std::string name, std::shared_ptr<InjectionPoint>& ptr);
 
   // JsonObject is a json object that validates againt the Injection point
@@ -62,8 +58,6 @@ class InjectionPointStore : public BaseStore {
    * Private constructor. The class creates itself on first use.
    */
   InjectionPointStore();
-
- 
 
   /**
    * @brief getInjectionPoint
@@ -85,8 +79,8 @@ class InjectionPointStore : public BaseStore {
    *
    */
   std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string package, std::string name,
-                                                       struct VnV_Function_Sig pretty,
-                                                       InjectionPointType type, NTV& in_args);
+                                                       struct VnV_Function_Sig pretty, InjectionPointType type,
+                                                       NTV& in_args);
 
   std::shared_ptr<InjectionPoint> getExistingInjectionPoint(std::string package, std::string name,
                                                             InjectionPointType type);
@@ -100,8 +94,8 @@ class InjectionPointStore : public BaseStore {
    * Add an injection point to the store. In the case that an injection point
    * already exists in the store, the test configuration will be overwritten.
    */
-  void addInjectionPoint(std::string package, std::string name, bool runInternal, json& templateName, std::vector<TestConfig>& tests,
-                         const SamplerConfig& config);
+  void addInjectionPoint(std::string package, std::string name, bool runInternal, json& templateName,
+                         std::vector<TestConfig>& tests, const SamplerConfig& config);
 
   // Register Injection point. JsonStr must be json that validates against the
   // injection point schema OR an array of objects that individually validate

@@ -12,8 +12,8 @@
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "interfaces/IOutputEngine.h"
-#include "streaming/dispatch.h"
 #include "streaming/curl.h"
+#include "streaming/dispatch.h"
 
 using namespace VnV::Nodes;
 using nlohmann::json;
@@ -22,9 +22,9 @@ using nlohmann::json;
 
 namespace {
 
-
-
-
+#if WITH_MHD_RESULT == 1
+using MHD_Result = int;
+#endif
 
 class Request {
  public:
@@ -72,11 +72,10 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
                                 void** con_cls);
 
 class JsonHttpStreamIterator : public JsonPortStreamIterator {
-
- struct MHD_Daemon* daemon = NULL;
+  struct MHD_Daemon* daemon = NULL;
 
  public:
-  JsonHttpStreamIterator(std::string p, const json& config) : JsonPortStreamIterator(p,config){};
+  JsonHttpStreamIterator(std::string p, const json& config) : JsonPortStreamIterator(p, config){};
 
   bool start_stream_reader() override {
     if (daemon == NULL) {
@@ -94,9 +93,7 @@ class JsonHttpStreamIterator : public JsonPortStreamIterator {
     }
   }
 
-  ~JsonHttpStreamIterator() { 
-    stop_stream_reader();
-  }
+  ~JsonHttpStreamIterator() { stop_stream_reader(); }
 };
 
 size_t writefunc(void* ptr, size_t size, size_t nmemb, std::string* s) {
@@ -108,19 +105,17 @@ class JsonHttpStream : public PortStreamWriter<json> {
   VnV::Curl::CurlWrapper& curl;
   std::string filestub;
   std::string rr;
+
  public:
- 
   JsonHttpStream() : curl(VnV::Curl::CurlWrapper::instance()) {}
 
-  virtual void initialize(json& config, bool readMode)  override {
+  virtual void initialize(json& config, bool readMode) override {
     if (!readMode) {
-      
+      filestub = PortStreamWriter<json>::init("json_http", config);
 
-      filestub = PortStreamWriter<json>::init("json_http",config);
-      
       curl.setUrl(filestub);
       curl.setPostFields("Hello");
-      
+
       while (true) {
         std::cout << "Trying to connect.... to " << filestub << std::endl;
 
@@ -145,7 +140,6 @@ class JsonHttpStream : public PortStreamWriter<json> {
     std::string hello = "Goodbye";
     curl.setPostFields("Goodbye");
     curl.send();
-
   }
 
   virtual void newComm(long id, const json& obj, ICommunicator_ptr comm) override { write(id, obj, -1); };
@@ -201,24 +195,23 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
   char* pass;
 
   pass = NULL;
-  user = MHD_basic_auth_get_username_password (connection, &pass);
-  
+  user = MHD_basic_auth_get_username_password(connection, &pass);
 
   JsonHttpStreamIterator* iter = (JsonHttpStreamIterator*)(cls);
-  if (!iter->authorize(user,pass)) {
+  if (!iter->authorize(user, pass)) {
     // Respond as we are done.
     struct MHD_Response* response;
     response = MHD_create_response_from_buffer(strlen(page), (void*)page, MHD_RESPMEM_PERSISTENT);
     MHD_Result ret = MHD_queue_response(connection, MHD_HTTP_FORBIDDEN, response);
     MHD_free(user);
-    MHD_free(pass);  
+    MHD_free(pass);
     MHD_destroy_response(response);
     return ret;
   }
 
   MHD_free(user);
   MHD_free(pass);
-  
+
   Request* request = (Request*)(*con_cls);
 
   if (request == NULL) {
@@ -252,7 +245,6 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
 
   try {
     json j = request->getData();
-
 
     long stream = j["stream"].get<long>();
     long jid = j["jid"].get<long>();
@@ -311,6 +303,6 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
 INJECTION_ENGINE(VNVPACKAGENAME, json_http) { return new StreamManager<json>(std::make_shared<JsonHttpStream>()); }
 
 INJECTION_ENGINE_READER(VNVPACKAGENAME, json_http) {
-  return engineReaderDispatch<JsonHttpStreamIterator, json>(async,config, std::make_shared<JsonHttpStreamIterator>(filename, config), false);
+  return engineReaderDispatch<JsonHttpStreamIterator, json>(
+      async, config, std::make_shared<JsonHttpStreamIterator>(filename, config), false);
 }
-   

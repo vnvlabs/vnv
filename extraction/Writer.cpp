@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "base/Utilities.h"
+#include "base/exceptions.h"
 #include "json-schema.hpp"
 
 #define LAST_RUN_TIME "__LAST_RUN_TIME__"
@@ -190,8 +191,17 @@ class RegistrationWriter {
         if (packageName.empty() || pname == packageName) {
           std::string name = it.value()["name"].get<std::string>();
 
-          // TODO Extract Template Parameter information.
           json& params = it.value()["parameters"];
+
+          auto s = it.value()["stages"];
+          if (!s.contains("Begin")) {
+            throw VnV::VnVExceptionBase("Injection Point %s:%s has no Begin Stage", pname.c_str(), name.c_str());
+          } else {
+            auto b = s["Begin"]["point"].get<bool>();
+            if (b && !s.contains("End")) {
+              throw VnV::VnVExceptionBase("Injection Loop %s:%s has no End Stage", pname.c_str(), name.c_str());
+            }
+          }
 
           createPackageOss(pname);
           VnV::JsonUtilities::getOrCreate(pjson[pname], "InjectionPoints")[name] = it.value();
@@ -239,9 +249,9 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string cacheFil
     json finalJson = json::object();
     for (auto it : cacheInfo["data"].items()) {
       for (std::string type :
-           {"InjectionPoints", "SubPackages",  "LogLevels",     "Files",      "Tests",       "Iterators",
-            "Plugs",           "Engines",      "EngineReaders", "Comms",      "Reducers",    "Samplers",
-            "Walkers",         "DataTypes",    "Serializers",   "Transforms", "UnitTests",   "Actions",
+           {"InjectionPoints", "SubPackages",  "LogLevels",     "Files",      "Tests",        "Iterators",
+            "Plugs",           "Engines",      "EngineReaders", "Comms",      "Reducers",     "Samplers",
+            "Walkers",         "DataTypes",    "Serializers",   "Transforms", "UnitTests",    "Actions",
             "Options",         "Introduction", "Conclusion",    "Package",    "Communicator", "Pipelines"}) {
         json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);
         for (auto it : VnV::JsonUtilities::getOrCreate(it.value(), type).items()) {

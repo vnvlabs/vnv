@@ -2,37 +2,36 @@
 #define TEST_CONFIG_H
 
 #include <map>
-#include <string>
 #include <regex>
+#include <string>
 
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "base/stores/TransformStore.h"
+#include "c-interfaces/Communication.h"
 #include "json-schema.hpp"
 
 using nlohmann::json;
-
 
 namespace VnV {
 
 enum TestStatus { SUCCESS, FAILURE, NOTRUN };
 
+class IOutputEngine;
+
 enum class InjectionPointType { Single, Begin, End, Iter };
 namespace InjectionPointTypeUtils {
 std::string getType(InjectionPointType type, std::string stageId);
 int toC(InjectionPointType type);
-} 
+}  // namespace InjectionPointTypeUtils
 
 enum class VariableEnum { Double, String, Int, Float, Long };
 namespace VariableEnumFactory {
-  VariableEnum fromString(std::string s);
-  std::string toString(VariableEnum e);
+VariableEnum fromString(std::string s);
+std::string toString(VariableEnum e);
 }  // namespace VariableEnumFactory
 
 typedef std::map<std::string, std::string> MetaData;
-
-
-
 
 class OutputEngineManager;
 
@@ -100,7 +99,6 @@ class VnVParameterSet : public std::map<std::string, VnVParameter> {
   template <typename T> T* getPtr(std::string name, std::string type) { return getPtr<T>(name, type, true); }
   template <typename T> T& getRef(std::string name, std::string type) { return getRef<T>(name, type, true); }
 
-
   template <typename T> T* getPtr(std::string name, std::string type, bool input) {
     StringUtils::squash(type);
     auto it = find(name);
@@ -132,7 +130,6 @@ class VnVParameterSet : public std::map<std::string, VnVParameter> {
   }
 };
 
-
 class TestConfig {
  protected:
   std::map<std::string, std::shared_ptr<Transformer>> transformers;
@@ -161,7 +158,7 @@ class TestConfig {
 
   VnVParameterSet& getParameterMap();
 
-  json& getRunConfig() { return runConfig;}
+  json& getRunConfig() { return runConfig; }
 
   void setParameterMap(VnVParameterSet& args);
 
@@ -178,14 +175,12 @@ class TestConfig {
 };
 
 typedef std::function<void(VnV_Comm comm, VnV::VnVParameterSet& ntv, VnV::OutputEngineManager* engine,
-                           VnV::InjectionPointType type, std::string stageId)> DataCallback;
+                           VnV::InjectionPointType type, std::string stageId)>
+    DataCallback;
 
 void defaultCallBack(VnV_Comm comm, VnV::VnVParameterSet& ntv, IOutputEngine* engine, InjectionPointType type,
                      std::string stageId);
 
-
-}
-
-
+}  // namespace VnV
 
 #endif
