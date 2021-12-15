@@ -41,8 +41,8 @@ namespace VnV {
  *
  * When that approach is used, Engines are automatically registered with
  * the EngineStore when the library is loaded. This includes external
- * libraries loaded using the "testLibraries" portion of the input file. That is
- * to say, engines can be compiled in seperate .so files an imported and
+ * libraries loaded using the "testLibraries" portion of the input file. That
+ * is to say, engines can be compiled in separate .so files and imported and
  * registered with the VnV Engine store through the input file.
  *
  */

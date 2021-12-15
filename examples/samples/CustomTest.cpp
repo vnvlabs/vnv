@@ -6,7 +6,7 @@
 
 #define PNAME Samples
 
-// This is a set of tests. You can compile tests into a seperate testing
+// This is a set of tests. You can compile tests into a separate testing
 // library, or you can add them directly in the executable. All that is
 // required is that you call the INJECTION_EXECUTABLE(PackageName) macro
 // at some point.
