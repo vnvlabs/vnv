@@ -1,3 +1,4 @@
+import hashlib
 import os
 import re
 import uuid
@@ -8,8 +9,7 @@ from sphinx.directives import optional_int
 from sphinx.util.docutils import SphinxDirective
 from app.base.blueprints import files as dddd
 
-
-from app.rendering.vnvdatavis.directives.jmes import get_target_node,jmes_jinja_query
+from app.rendering.vnvdatavis.directives.jmes import get_target_node, jmes_jinja_query
 
 vnv_directives = {}
 
@@ -25,13 +25,13 @@ class VnVChartNode(docutils.nodes.General, docutils.nodes.Element):
     def depart_node(visitor, node):
         pass
 
+
 VnVChartNode.NODE_VISITORS = {
     'html': (VnVChartNode.visit_node, VnVChartNode.depart_node)
 }
 
 
 class JsonChartDirective(SphinxDirective):
-
     registration = {}
     required_arguments = 0
     optional_arguments = 0
@@ -40,36 +40,36 @@ class JsonChartDirective(SphinxDirective):
     option_spec = {
         "height": str,
         "width": str,
-        "class" : str
+        "class": str
     }
+
+    def getRawContent(self):
+        return "\n".join(self.content)
 
     def register(self):
         return None
 
-    def getScript(self): return self.script_template
+    def getScript(self):
+        return self.script_template
 
     def getContent(self):
         return re.sub(
             '{{(.*?)}}',
             lambda x: jmes_jinja_query(
                 x.group(1)),
-            "\n".join(
-                self.content))
+            self.getRawContent())
 
     def getHtml(self, id_, uid):
         return f'''
-          <div class="{self.options.get("class","")}" style="width:{self.options.get("width","100%")}; height:{self.options.get("height" , "100%")};">{self.getScript().format(
+          <div class="{self.options.get("class", "")}" style="width:{self.options.get("width", "100%")}; height:{self.options.get("height", "100%")};">{self.getScript().format(
             id_=id_,
-
             config=self.getContent(),
             uid=uid
         )}</div>
         '''
 
-
     def get_update_dir(self):
-        dir = os.path.join(os.path.dirname(dddd.__file__), "templates", "renders", str(the_app.config.vnv_file),
-                           "updates")
+        dir = os.path.join(os.getcwd(), "updates")
         if not os.path.exists(dir):
             os.makedirs(dir)
         return dir
@@ -77,10 +77,10 @@ class JsonChartDirective(SphinxDirective):
     def updateRegistration(self):
         r = self.register()
         if r is not None:
-            uid = str(uuid.uuid4().hex)
-            with open(os.path.join(self.get_update_dir(), uid + ".html"), 'w') as f:
-                f.write(r)
-
+            uid = hashlib.md5(r.encode()).hexdigest()
+            if not os.path.exists(uid):
+                with open(os.path.join(self.get_update_dir(), uid + ".html"), 'w') as f:
+                    f.write(r)
             return uid
         return -1
 
@@ -233,6 +233,7 @@ class TreeChartDirective(JsonChartDirective):
     def register(self):
         return self.getContent()
 
+
 class TerminalDirective(JsonChartDirective):
     script_template = '''
             <div id="{id_}" class='card vnv_terminalviewer' style="height:100%;">
@@ -312,7 +313,6 @@ except NameError:
 
 
 def setup(sapp):
-
     global the_app
     the_app = sapp
 
@@ -320,5 +320,3 @@ def setup(sapp):
 
     for key, value in vnv_directives.items():
         sapp.add_directive(key, value)
-
-
