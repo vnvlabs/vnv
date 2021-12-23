@@ -1,0 +1,98 @@
+{%with
+tablist = {
+    "home": ["Injection","viewers/view.html"],
+    "comm": ["Communication","files/comms.html"],
+    "packages": ["Packages" , "files/packages.html"],
+    "prov": ["Provenance","files/provenance.html"],
+    "unit": ["Unit Tests","files/unit_testing.html"],
+    "data": ["Data Explorer" , "files/data.html"],
+    "browser" : ["File Browser", "files/file_browser.html"]
+}
+%}
+
+{%with active_tab = request.args.get("atab", "home") %}
+
+<div id="tab-view-content">
+{%if file.setupNow() %}
+{% with actionFiles = file.getActions() %}
+
+
+<div class=" fcolumn fchild">
+
+        <div class="page-header-title">
+            <div style="display:flex; align-items:center;">
+                <h1 class="fchild" >{{file.name}}</h1>
+                {%if file.isProcessing() %}
+                <div id="processing_{{file.id_}}" class="badge badge-warning">Processing</div>
+                <script>
+                    $(window).on('load', function() {
+                       update_processing({{file.id_}}, "#processing_{{file.id_}}")
+                    });
+                </script>
+                {%endif%}
+            </div>
+        </div>
+
+
+        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+            {% for tab in tablist %}
+            <li class="nav-item">
+                <a class="nav-link {% if active_tab == tab %} active {%endif %}"  id="pills-{{tab}}-tab" data-toggle="pill" href="#pills-{{tab}}" role="tab"
+                   aria-controls="pills-{{tab}}" aria-selected="true">{{tablist[tab][0]}}</a>
+            </li>
+            {%endfor%}
+            {% if actionFiles | length > 0 %}
+            {% for action in actionFiles %}
+            <li class="nav-item">
+                <a class="nav-link {% if active_tab == 'action-{{action.id_}}' %} active {%endif %}"  id="pills-action-{{action.id_}}-tab" data-toggle="pill" href="#pills-action-{{action.id_}}" role="tab"
+                   aria-controls="pills-action-{{action.id_}}" aria-selected="true">{{action.display_name}}</a>
+            </li>
+           {% endfor %}
+           {%endif%}
+        </ul>
+
+        <div class="tab-content fcolumn fchild " id="pills-tabContent">
+            {%for tab in tablist %}
+            <div class="tab-pane fade {% if active_tab == tab %} show active {%endif%} finlinecolumn fchild" id="pills-{{tab}}" role="tabpanel"
+                 aria-labelledby="pills-{{tab}}-tab">
+                    {% include tablist[tab][1] %}
+            </div>
+            {%endfor%}
+            {% if actionFiles | length > 0 %}
+            {% for action in actionFiles %}
+            <div class="tab-pane fade {% if active_tab == 'action-{{action.id_}}' %} show active {%endif%} finlinecolumn fchild" id="pills-action-{{action.id_}}" role="tabpanel"
+                 aria-labelledby="pills-action-{{action.id_}}-tab">
+                     {{ file.render_action(action.name) | safe }}
+            </div>
+           {% endfor %}
+           {%endif%}
+
+        </div>
+
+</div>
+{%endwith%}
+{%else%}
+    {% with listOptions = [
+        "...Loading Data...",
+        "...Parsing the Data...",
+        "...Processing Restructured Text...",
+        "...Generating HTML Files...",
+        "...This is taking a long time...",
+    ]%}
+    <div style="width:100%; height:90vh; display:flex; justify-content:center; align-items:center;">
+        <h1>{{listOptions[count % ( listOptions | length )] }}</h1>
+    </div>
+    {%endwith%}
+
+    <script>
+       setTimeout(function() {
+          $.get('{{url_for('base.files.view', id_=file.id_, full=False, count=count+1) | safe }}', function(data) {
+              $('#tab-view-content').html(data)
+          });
+       }, 2000)
+    </script>
+{%endif%}
+</div>
+
+{%endwith%}
+{%endwith%}

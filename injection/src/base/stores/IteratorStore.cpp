@@ -42,8 +42,13 @@ std::shared_ptr<IterationPoint> IteratorStore::newIterator(std::string packageNa
               break;
           }
         }
+        
         if (!foundOne) {
-          throw VnVExceptionBase("No template specification matched -- Bugs... run");
+          json j = json::array();
+          for (auto it : reg->second.specJson.items())  {
+            j.push_back(it.key());
+          }
+          throw INJECTION_BUG_REPORT("No template specification matched: %s:%s:%s", pretty.signiture, pretty.compiler, j.dump());
         }
      
         // Construct and reset because InjectionPoint ctor is only accessible in
@@ -161,5 +166,10 @@ void IteratorStore::addIterator(std::string package, std::string name, bool runI
   std::string key = package + ":" + name;
   iterators.insert(std::make_pair(key, InjectionIteratorConfig(package, name, runInternal, templateName, tests, niterators)));
 }
+
+
+  bool IteratorStore::registeredIterator(std::string package, std::string name) {
+      return iterators.find(package + ":" + name) != iterators.end();
+  }
 
 BaseStoreInstance(IteratorStore) BaseStoreInstance(IteratorsStore)

@@ -54,7 +54,9 @@ class TestStoreTemplate {
     test_factory.insert({package + ":" + name, k});
   }
 
+  //TODO -- THIS SHOULD RETURN THE VALIDATION ERROR SOMEHOW>
   bool verifySchema(std::string package, std::string name, json& opts) {
+    
     // Validate the test configuration provided to the constructor.
     json_validator validator;
     auto sch = test_factory.find(package + ":" + name);
@@ -65,7 +67,6 @@ class TestStoreTemplate {
         return true;
       } catch (std::exception e) {
         return false;
-        throw VnVExceptionBase(e.what());
       }
     }
     return true;
@@ -93,8 +94,12 @@ class TestStoreTemplate {
   std::vector<Config> validateTests(std::vector<json>& configs) {
     std::vector<Config> conf;
     for (auto& it : configs) {
-      conf.push_back(validateTest(it));
-    
+      
+       try {
+         conf.push_back(validateTest(it));
+       } catch (VnVExceptionBase &e ) {
+         VnV_Error(VNVPACKAGENAME, "Test Validation Failed for %s  --- %s", it.dump().c_str(), e.what() );
+       }
     }
     return conf;
   }
@@ -104,7 +109,7 @@ class TestStoreTemplate {
     if (testJson.find("name") == testJson.end()) {
       // This should be impossible. Input Validation should detect test blocks
       // incorrectly specified.
-      throw VnVExceptionBase("Test Declaration does not contain Test Name");
+      HTHROW INJECTION_EXCEPTION("Error During Test Validation: Test Declaration does not contain Test Name\n %s", testJson.dump().c_str());
     }
     
     std::string name = testJson["name"].get<std::string>();
@@ -152,7 +157,7 @@ class TestStoreTemplate {
 
       return f;
     }
-    throw VnVExceptionBase("test not found");
+    HTHROW INJECTION_EXCEPTION("Error During Test Validation: Teset %s:%s does not exist.", package.c_str(), name.c_str() );
   }
 
   json& getSchema(std::string package, std::string name) {

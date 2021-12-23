@@ -96,7 +96,7 @@ class PlotlyChartDirective(JsonChartDirective):
             <div id="{id_}" style="width:"100%"; height:"100%"></div>
             <script>
             $(document).ready(function() {{
-              const obj = JSON.parse('{config}')
+              const obj = {config}
               Plotly.newPlot('{id_}',obj['data'],obj['layout']);
               
               url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"

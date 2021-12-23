@@ -5,7 +5,7 @@
         <h5>Realtime Chart</h5>
     </div>
 
-    <div class="card-body" >
+    <div class="card-body">
         <div id="realtime-chart"></div>
     </div>
 
@@ -21,6 +21,7 @@
             var running = false;
             var depth = {}
             var lastD = -1
+            var overall = -1;
             var selectedNode = 0
                        barH = 50
             function totalHeight(depth) {
@@ -31,8 +32,9 @@
             function getNewSeries(baseval, yrange) {
 
                 var url = '{{url_for('base.files.viewers.next', id_=file.id_, count=10 )}}'
-                $.get(  url , function(r) {
-
+                $.get(  url , function(dd) {
+                    overall = dd['endtime'];
+                    var r = dd['data']
                     r.forEach(function (item, index) {
 
                        if ("restart" in item) {
@@ -41,7 +43,7 @@
                           lastD = -1;
                        }
 
-                       // r => { "x" : xx, "y" : xx, "id : xx, "done : xx, "wait" : T/F }
+                       // r => { "x" : xx, "y" : xx, "id" : xx, "done" : xx, "wait" : T/F }
                        del = []
 
                        // Did we step down
@@ -52,12 +54,15 @@
                           if (item.y > key ) {
 
                               data[value].y[1] = item.x+1
-
+                              if (data[value].endtime < 0 ) {
+                                data[value].endtime = overall;
+                              }
                           } else if (item.y == key ) {
 
                               if ( data[value].id === item.id || item.id < 0 ) {
 
                                  data[value].y[1] = item.x+1
+                                 data[value].endtime = item.endtime
 
                               } else {
 
@@ -65,7 +70,10 @@
                                      x : String(key) ,
                                      y : [ item.x, item.x+1 ],
                                      id : item.id,
-                                     title: item.title
+                                     title: item.title,
+                                     starttime : item.starttime,
+                                     endtime : item.endtime,
+                                     wait : item.wait
                                    })
                                    depth[key] = data.length - 1
                               }
@@ -82,16 +90,18 @@
                                  x : String(item.y) ,
                                  y : [ item.x, item.x + 1 ],
                                  id : item.id,
+                                 starttime : item.starttime,
+                                 endtime : item.endtime,
+                                 wait : item.wait,
                                  title: item.title
                               })
                               depth[item.y] = data.length - 1
                        }
                     });
-                    console.log(data)
-
-                    chart.updateSeries([{name: "Bob", data:data}])
+                    if (r.length > 0 ) {
+                        chart.updateSeries([{name: "Injection Point", data:data}])
+                    }
                     if ( ( r.length == 0 || !("done" in r[r.length -1]) ) ){
-
                          chartInterval = window.setTimeout(getDataFromServer,3000)
                     }
                 });
@@ -100,7 +110,7 @@
             options = {
                 series: [
                     {
-                        name: "Bob",
+                        name: "Injection Point",
                         data: []
                     }
                 ],
@@ -123,14 +133,36 @@
                 },
                 colors: [
                     function ({ value, seriesIndex, dataPointIndex, w }) {
-                        if (dataPointIndex == selectedNode) {
-                             return "#7E36AF";
-                         } else {
-                             return "#11345d";
-                         }
+                      return getColorAsScalar(dataPointIndex, dataPointIndex == selectedNode);
                     }
                 ],
+                tooltip: {
+                    custom : function (opt) {
+                        d = data[opt.dataPointIndex]
+                        var url = '{{url_for('base.files.viewers.render_label', id_=file.id_)}}'
+                        url += "?ipid=" + data[opt.dataPointIndex].id
 
+                        var a = window.sessionStorage.getItem(url,data)
+                        if (!a) {
+
+                            $.get(  url , function( data ) {
+                                window.sessionStorage.setItem(url,data)
+                                $(`#tooltip-${opt.dataPointIndex}`).html(data)
+                            });
+                            return `<div id="tooltip-${opt.dataPointIndex}" class="label-container">
+                                 Loading...
+                            </div>`
+
+                        } else {
+                            return `<div id="tooltip-${opt.dataPointIndex}" class="label-container">
+                                 ${a}
+                             </div>`
+                        }
+                    },
+                    fixed: {
+                        enabled: false, position: "topLeft"
+                    }
+                },
                 plotOptions: {
                     bar: {
                         horizontal: true,
@@ -157,13 +189,18 @@
             var chart = new ApexCharts(document.querySelector("#realtime-chart"), options);
             chart.render();
 
+            function getColorAsScalar(index, selected) {
+
+                    var l = 50;
+                    if (selected) { l = 80 }
+
+                    var n = 240 * ( data[index].endtime - data[index].starttime ) / ( data[0].endtime - data[0].starttime )
+                    return 'hsl(' + n + ', 100%, ' + l +'%)';
+            }
 
             var dataPointsLength = 10;
             function getDataFromServer() {
                 if (!pause) {
-
-                  console.log("SDSSSSSSSSSSSSSSSSS " )
-
                   getNewSeries(lastDate, {
                      min: 10,
                      max: 90
@@ -177,6 +214,7 @@
             getDataFromServer()
 
         });
+
 
 </script>
 

@@ -30,7 +30,7 @@ IReduction_ptr ReductionStore::getReducer(long long key) {
     s->setKey(key);
     return s;
   }
-  throw VnV::VnVExceptionBase("Un supported Data Type)");
+  throw INJECTION_EXCEPTION("Un supported Data Type %d", key);
 }
 
 IReduction_ptr ReductionStore::getReducer(std::string packageName,

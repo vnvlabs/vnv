@@ -301,10 +301,9 @@ class InjectionPointMerger {
   static std::shared_ptr<InjectionPointMerger> join(
       std::string outputfile, std::set<CommWrap_ptr>& comms,
       std::function<std::shared_ptr<InjectionPointInterface>(long)>& parse) {
-    if (comms.size() != 1) {
-      throw VnV::VnVExceptionBase("Invalid Comms Object");
-    }
-
+    
+    INJECTION_ASSERT(comms.size() != 1, "Invalid Comms Object. Size should be one but it was %d", comms.size());
+    
     std::map<long, CommWrap_ptr> commsMap = CommMapper::convertToMap(comms);
     std::shared_ptr<InjectionPointMerger> dstruct = nullptr;
     std::set<long> done;

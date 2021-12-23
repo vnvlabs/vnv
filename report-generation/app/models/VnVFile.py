@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import threading
 import time
 from datetime import datetime
 from urllib.request import pathname2url
@@ -192,6 +193,8 @@ class UnitTestRender:
     def getTests(self):
         return [a for a in self.data.getResults().fetchkeys()]
 
+
+
     def getResult(self, name):
         try:
             return self.data.getResults().get(name).getResult()
@@ -245,6 +248,14 @@ class TestRender:
         self.commObj = commObj
         self.templates = templates
         self.template_override = template_override
+
+    def getData(self):
+        return self.data.getData()
+
+    def getTitle(self):
+        d = self.templates.get_type_description("Tests", self.data.getPackage(), self.data.getName())
+        t = d["title"]
+        return t if len(t) > 0 else self.data.getPackage() + " - " + self.data.getName()
 
     def getHtml(self):
         if self.template_override is None:
@@ -356,6 +367,23 @@ class InjectionPointRender:
     def getId(self):
         return self.ip.getId()
 
+    def getRawRST(self):
+        return self.templates.get_raw_rst(self.ip)
+
+    def getDuration(self):
+        a =  self.ip.getEndTime() - self.ip.getStartTime()
+        if a <=0:
+            return  (time.time() * 1000) - self.ip.getStartTime()
+        return a
+    def getDescription(self):
+        d =  self.templates.get_type_description("InjectionPoints",self.ip.getPackage(), self.ip.getName())
+        return d["description"]
+
+    def getTitle(self):
+        d = self.templates.get_type_description("InjectionPoints", self.ip.getPackage(), self.ip.getName())
+        t = d["title"]
+        return t if len(t) > 0 else self.ip.getPackage() + ": " + self.ip.getName();
+
     def getFile(self):
         return self.templates.file
 
@@ -462,22 +490,39 @@ class VnVFile:
 
         shutil.rmtree(self.template_dir, ignore_errors=True)
 
+        self.th = None
         self.templates = None
         self.setupNow()
 
     # Try and setup the templates once we can.
     def setupNow(self):
-        if self.templates is None:
-            vnvspec = json.loads(self.root.getVnVSpec().get())
-            if vnvspec is not None and len(vnvspec) > 0:
-                self.templates = r.build(self.template_dir, vnvspec, self.id_)
+        if self.templates is None and self.th is None :
+             self.vnvspec = json.loads(self.root.getVnVSpec().get())
+             if self.vnvspec is not None and len(self.vnvspec) > 0:
+                self.th = threading.Thread(target=self.setup_thread)
+                self.th.start()
         return self.templates is not None
+
+    def setup_thread(self):
+        self.templates = r.build(self.template_dir, self.vnvspec, self.id_)
+        self.vnvspec = None
+
+    def render_temp_string(self, content):
+        if self.setupNow():
+            return self.templates.render_temp_string(content)
+
+    def get_raw_rst(self, data):
+        if self.setupNow():
+            return self.templates.get_raw_rst(data)
+
 
     def setConnection(self, hostname, username, password, port):
         self.connection = VnVConnection(hostname, username, password, port)
 
     def setConnection(self):
         self.connection = VnVLocalConnection()
+
+
 
     def clone(self):
         return VnVFile(self.name, self.filename, self.reader, self.template_root, self.icon, _cid=self.id_,
@@ -519,6 +564,11 @@ class VnVFile:
         if data is not None:
             return DataClass(data, dataid, self.id_).query(query)
 
+    def query_str(self, dataid, query):
+        data = self.root.findById(dataid).cast()
+        if data is not None:
+            return DataClass(data, dataid, self.id_).query_str(query)
+
     def respond(self, ipid, id_, jid, response):
         try:
 
@@ -543,6 +593,9 @@ class VnVFile:
     def getPackages(self):
         return [{"name": a} for a in self.root.getPackages().fetchkeys()]
 
+    def getPackage(self,package):
+        return self.root.getPackage(package)
+
     def get_cwd(self):
         return self.root.getInfoNode().getProv().currentWorkingDirectory
 
@@ -554,6 +607,8 @@ class VnVFile:
         if len(a) > 0:
             return self.render_package(a[0]["name"])
         return ""
+
+
 
     def displayName(self, a):
         return " ".join([i.capitalize() for i in a.replace("_", " ").split(":")[-1].split(" ")])
@@ -786,12 +841,18 @@ class VnVFile:
         return False
 
     def proc_iter_next(self, count=10):
-        if (self.currX > 50):
-            return []
+
         res = []
         if self.currX == -1:
             res.append(
-                {"x": 0, "y": 0, "id": VnVFile.INJECTION_INTRO, "time": 0, "wait": False, "title": "Application"})
+                {"x": 0,
+                 "y": 0,
+                 "id": VnVFile.INJECTION_INTRO,
+                 "starttime": self.root.getInfoNode().getStartTime(),
+                 "endtime" : self.root.getInfoNode().getEndTime(),
+                 "wait": False,
+                 "title": "Application"}
+            )
             self.currX = 0
             self.currY = 0
 
@@ -818,14 +879,19 @@ class VnVFile:
                                 "done": True,
                                 "wait": False,
                                 "title": "",
-                                "time": n.time})
+                                "starttime": self.root.getInfoNode().getStartTime(),
+                                "endtime" : self.root.getInfoNode().getEndTime()
+                                })
                     break
                 else:
+
                     ip = self.get_injection_point(n.item.getId()).cast()
+
                     res.append({"x": self.currX,
                                 "y": self.currY,
                                 "id": n.item.getId(),
-                                "time": n.time,
+                                "starttime": ip.getStartTime(),
+                                "endtime": ip.getEndTime(),
                                 "title": ip.getPackage() + ":" + ip.getName(),
                                 "wait": self.waiting(n.item.getId())
                                 })

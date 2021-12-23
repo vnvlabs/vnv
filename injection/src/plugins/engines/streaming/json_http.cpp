@@ -129,13 +129,13 @@ class JsonHttpStream : public PortStreamWriter<json> {
       }
 
     } else {
-      throw VnV::VnVExceptionBase("No Read Mode for json_http");
+      throw INJECTION_EXCEPTION_("No Read Mode for json_http without microhttp installed");
     }
   }
 
   virtual nlohmann::json getConfigurationSchema(bool readMode) override { return json::object(); };
 
-  virtual void finalize(ICommunicator_ptr worldComm, long duration) override {
+  virtual void finalize(ICommunicator_ptr worldComm, long currentTime) override {
     // Close all the streams
     std::string hello = "Goodbye";
     curl.setPostFields("Goodbye");
@@ -300,7 +300,9 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
 
 }  // namespace
 
-INJECTION_ENGINE(VNVPACKAGENAME, json_http) { return new StreamManager<json>(std::make_shared<JsonHttpStream>()); }
+INJECTION_ENGINE(VNVPACKAGENAME, json_http) { 
+  return new StreamManager<json>(std::make_shared<JsonHttpStream>());
+}
 
 INJECTION_ENGINE_READER(VNVPACKAGENAME, json_http) {
   return engineReaderDispatch<JsonHttpStreamIterator, json>(

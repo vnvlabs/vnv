@@ -40,7 +40,12 @@ std::shared_ptr<PlugPoint> PlugStore::newPlug(std::string packageName, std::stri
         }
       }
       if (!foundOne) {
-        throw VnVExceptionBase("No template specification matched -- Bugs... run");
+        json j = json::array();
+        for (auto it : reg->second.specJson.items()) {
+          j.push_back(it.key());
+        }
+        throw INJECTION_BUG_REPORT("No template specification matched: %s:%s:%s", pretty.signiture, pretty.compiler,
+                                   j.dump());
       }
 
       // Construct and reset because InjectionPoint ctor is only accessible in
@@ -68,6 +73,11 @@ std::shared_ptr<PlugPoint> PlugStore::newPlug(std::string packageName, std::stri
 void PlugStore::registerPlug(std::string packageName, std::string id, json& jsonObject) {
   registeredPlugs.insert(std::make_pair(packageName + ":" + id, PlugSpec(packageName, id, jsonObject)));
 }
+
+  bool PlugStore::registeredPlug(std::string package, std::string name) {
+      return plugs.find(package + ":" + name) != plugs.end();
+  }
+
 
 json PlugStore::schema() {
   nlohmann::json temp = R"({

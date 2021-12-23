@@ -101,7 +101,7 @@ template <unsigned int N, typename T, const char* dname> class StringDataType : 
 
   void set(T d) {
     if (toString(data).size() >= N) {
-      throw VnV::VnVExceptionBase("String to large");
+      throw INJECTION_EXCEPTION("String to large %d >= %d ", toString(data).size(), N);
     }
     data = d;
   }
@@ -120,7 +120,7 @@ template <unsigned int N, typename T, const char* dname> class StringDataType : 
   void unpack(void* buffer) { data = fromCharStar((char*)buffer); }
 
   void axpy(double alpha, IDataType_ptr y) {
-    throw VnV::VnVExceptionBase("axpy not supported for string data types");
+    throw INJECTION_EXCEPTION_("axpy not supported for string data types");
   }
 
   int compare(IDataType_ptr y) {
@@ -129,7 +129,7 @@ template <unsigned int N, typename T, const char* dname> class StringDataType : 
   }
 
   void mult(IDataType_ptr y) {
-    throw VnV::VnVExceptionBase(
+    throw INJECTION_EXCEPTION_(
         "multiplication not supported for string data types");
   }
 

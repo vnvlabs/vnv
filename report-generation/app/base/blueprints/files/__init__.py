@@ -109,6 +109,12 @@ def delete(id_):
         return make_response(url_for('base.files.view', id_=id_))
     return "success", 200
 
+@blueprint.route("/source/<int:id_>/<int:dataId>")
+def source(id_,dataId):
+    with VnVFile.find(id_) as file:
+        d = file.getById(dataId);
+        return render_template("files/sourcemap.html", sourcemap = file.getSourceMap(dataId) )
+
 @blueprint.route("/reader/<int:id_>")
 def reader(id_):
     try:
@@ -208,7 +214,8 @@ def data_root(id_):
 def view(id_):
     try:
         with VnVFile.find(id_) as file:
-
+            if "full" in  request.args:
+                return render_template("files/tab-view-content.html", file=file, count=int(request.args.get("count","0")))
             return render_template("files/tab-view.html", file=file)
     except Exception as e:
         print(e)
@@ -272,7 +279,7 @@ def faker():
             "json_file",
             get_file_template_root())
 
-    if True and os.path.exists("/home/ben/source/vv/applications/asgard/build/vv-output"):
+    if False and os.path.exists("/home/ben/source/vv/applications/asgard/build/vv-output"):
         VnVFile.add(
             "asgard",
             "/home/ben/source/vv/applications/asgard/build/vv-output",

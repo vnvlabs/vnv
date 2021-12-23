@@ -17,6 +17,8 @@
 #include "base/parser/JsonSchema.h"
 #include "c-interfaces/Logging.h"
 #include "json-schema.hpp"
+#include "base/exceptions.h"
+
 using nlohmann::json_schema::json_validator;
 
 using namespace VnV;
@@ -40,7 +42,14 @@ Transformer::~Transformer() {
 
 void* Transformer::Transform(void* ptr) {
   for (auto it = transPath.begin(); it != transPath.end(); it++) {
-    ptr = it->second->Transform(ptr);
+    try {
+      ptr = it->second->Transform(ptr);
+    } catch (VnV::VnVExceptionBase &e ) {
+      ptr = nullptr;
+    }
+    if (ptr == nullptr) {
+      throw INJECTION_EXCEPTION_("Transform Failed");
+    }
   }
   return ptr;
 }

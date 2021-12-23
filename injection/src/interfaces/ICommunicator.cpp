@@ -36,9 +36,9 @@ VnV::IDataType_vec VnV::IRequest::unpack() {
     buffer = nullptr;
     return results;
   } else {
-    throw VnV::VnVExceptionBase(
+    throw INJECTION_EXCEPTION(
         "Attempted to unpack Request that was not marked ready or already "
-        "unpacked or not a recv");
+        "unpacked or not a recv (ready : %d, buffer: %d, recv: %d", ready, buffer, recv);
   }
 }
 
@@ -46,6 +46,7 @@ void VnV::OpTypeEncodedReduction(void* invec, void* outvec, int* len) {
   long long* buff = (long long*)invec;
   long long reducerKey = buff[0];
   long long dataKey = buff[1];
+  
   long dataSize = DataTypeStore::instance().getDataType(dataKey)->maxSize() +
                   2 * sizeof(long long);
   IReduction_ptr reducer = ReductionStore::instance().getReducer(reducerKey);

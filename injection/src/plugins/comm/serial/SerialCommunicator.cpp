@@ -212,7 +212,7 @@ class SerialCommunicator : public VnV::ICommunicator {
     getRecvQueue().push_back(s);
     Process();
     if (!s->sent_or_recvd) {
-      throw VnV::VnVExceptionBase("No send found for this recv");
+      throw INJECTION_EXCEPTION_("No send found for this recv");
     }
     return getSP(s->m_tag, s->m_size);
   }
@@ -229,7 +229,7 @@ class SerialCommunicator : public VnV::ICommunicator {
       Process();
     }
     if (!s->sent_or_recvd) {
-      VnV::VnVExceptionBase("No send for this request");
+      INJECTION_EXCEPTION_("No send for this request");
     }
     return getSP(s->m_tag, s->m_size);
   }
@@ -255,7 +255,7 @@ class SerialCommunicator : public VnV::ICommunicator {
 
     for (auto it : r) {
       if (!it->sent_or_recvd) {
-        throw VnV::VnVExceptionBase("No send for a Wait --");
+        throw INJECTION_EXCEPTION_("No send for a Wait --");
       } else {
         res.push_back(getSP(it->m_tag, it->m_size));
       }
@@ -285,7 +285,7 @@ class SerialCommunicator : public VnV::ICommunicator {
       }
       count++;
     }
-    throw VnV::VnVExceptionBase("No Wait was successfull");
+    throw INJECTION_EXCEPTION_("No Wait was successfull");
   }
 
   int Count(VnV::IStatus_ptr status, int dataTypeSize) {
@@ -300,7 +300,7 @@ class SerialCommunicator : public VnV::ICommunicator {
         return getSP(it->m_tag, it->m_size);
       }
     }
-    throw VnV::VnVExceptionBase("Probe with no matching send");
+    throw INJECTION_EXCEPTION_("Probe with no matching send");
   }
 
   std::pair<VnV::IStatus_ptr, int> IProbe(int source, int tag) {
@@ -396,7 +396,7 @@ class SerialCommunicator : public VnV::ICommunicator {
     Reduce(buffer, count, recvBuffer, dataTypeSize, op, 0);
   }
 
-  void Abort(int errorcode) { VnV::VnVExceptionBase("Serial Abort called"); }
+  void Abort(int errorcode) { INJECTION_EXCEPTION_("Serial Abort called"); }
 };
 
 int SerialCommunicator::communicatorCount = 0;

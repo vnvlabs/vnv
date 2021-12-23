@@ -195,9 +195,9 @@ class RegistrationWriter {
 
           auto s = it.value()["stages"];
           if (!s.contains("Begin")) {
-            throw VnV::VnVExceptionBase("Injection Point %s:%s has no Begin Stage", pname.c_str(), name.c_str());
+            HTHROW INJECTION_EXCEPTION("Injection Point %s:%s has no Begin Stage", pname.c_str(), name.c_str());
           } else if (it.value().value("loop", false) && !s.contains("End")) {
-            throw VnV::VnVExceptionBase("Injection Loop %s:%s has no End Stage", pname.c_str(), name.c_str());
+            HTHROW INJECTION_EXCEPTION("Injection Loop %s:%s has no End Stage", pname.c_str(), name.c_str());
           }
 
           createPackageOss(pname);

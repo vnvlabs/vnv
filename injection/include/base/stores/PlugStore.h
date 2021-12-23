@@ -52,6 +52,8 @@ class PlugStore : public BaseStore {
 
   nlohmann::json schema();
 
+  bool registeredPlug(std::string package, std::string name) ;
+
   void addPlug(std::string package, std::string name, bool runInternal, json& templateName, 
                std::vector<TestConfig>& tests,
                std::shared_ptr<PlugConfig>& plug);

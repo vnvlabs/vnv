@@ -49,7 +49,7 @@ void sendUPD(int sockfd, const struct sockaddr* servaddr, socklen_t addrlen, con
       messageLength -= chunkSize;
       sendPosition += chunkSize;
     } else {
-      throw VnV::VnVExceptionBase("Error sending %d", chunkSize);
+      throw INJECTION_EXCEPTION("Error sending %d", chunkSize);
     }
   }
 }
@@ -180,7 +180,7 @@ class UPDClient {
     this->upass = username + ":" + password;
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-      throw VnV::VnVExceptionBase("socket creation failed");
+      throw INJECTION_EXCEPTION_("socket creation failed");
     }
     // Filling server information
     memset(&servaddr, 0, sizeof(servaddr));
@@ -360,7 +360,7 @@ class JsonSocketStream : public PortStreamWriter<json> {
 
     std::string p = ss.substr(0, upass.size());
     if (p.compare(upass) != 0) {
-      throw VnV::VnVExceptionBase("Authentication Error");
+      throw INJECTION_EXCEPTION_("Authentication Error");
     }
 
     std::string s = ss.substr(upass.size());
@@ -374,7 +374,7 @@ class JsonSocketStream : public PortStreamWriter<json> {
 
   virtual nlohmann::json getConfigurationSchema(bool readMode) override { return json::object(); };
 
-  virtual void finalize(ICommunicator_ptr worldComm, long duration) override {
+  virtual void finalize(ICommunicator_ptr worldComm, long currentTime) override {
     // Close all the streams
     client->goodbye();
     client.reset();
@@ -441,7 +441,7 @@ void UDPServer::parseMessage(const struct sockaddr* sender, socklen_t lena, std:
         iter->add(s);
       }
     } catch (...) {
-      throw VnV::VnVExceptionBase("COULD NOT PARSE %s ", data);
+      throw INJECTION_EXCEPTION("COULD NOT PARSE %s ", data);
     }
   }
 }

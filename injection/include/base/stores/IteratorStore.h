@@ -39,6 +39,7 @@ class IteratorStore : public BaseStore {
  public:
   IteratorStore();
 
+
   void registerIterator(std::string packageName, std::string id,
                         json& jsonObject);
 
@@ -47,6 +48,8 @@ class IteratorStore : public BaseStore {
                                                  struct VnV_Function_Sig pretty, 
                                                  int once,
                                                  NTV& in_args, NTV& out_args);
+
+  bool registeredIterator(std::string package, std::string name);
 
   void addIterator(std::string package, std::string name, bool runInternal, json& templateName,
                    std::vector<TestConfig>& tests,

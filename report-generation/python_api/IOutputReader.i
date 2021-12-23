@@ -41,18 +41,21 @@
 %shared_ptr(VnV::ProvFile)
 %shared_ptr(VnV::Nodes::WalkerNode)
 
-%except(python) {
+%exception { 
     try {
-        $function
-    }
-    catch (std::exception e) {
-        SWIG_exception(SWIG_RuntimeError, e.what());
-    } catch (std::exception e ) {
-        SWIG_exception(SWIG_RuntimeError, e.what());
+        $action
+    } catch (VnV::VnVExceptionBase &e) {
+        std::string s("VnV Exception: "), s2(e.what());
+        s = s + s2;
+        SWIG_exception(SWIG_RuntimeError, s.c_str());
+    } catch (std::exception &e) {
+        std::string s("std::exception: "), s2(e.what());
+        s = s + s2;
+        SWIG_exception(SWIG_RuntimeError, s.c_str());
+    } catch (...) {
+        SWIG_exception(SWIG_RuntimeError, "unknown exception");
     }
 }
-
-
 
 %include "std_string.i"
 %include "std_vector.i"

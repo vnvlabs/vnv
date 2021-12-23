@@ -5,40 +5,60 @@
 namespace VnV {
 namespace Python {
 
-ReaderWrapper::ReaderWrapper(std::string filename)
-    : ReaderWrapper(filename, "{}") {}
+ReaderWrapper::ReaderWrapper(std::string filename) : ReaderWrapper(filename, "{}") {}
 
 ReaderWrapper::ReaderWrapper(std::string filename, std::string config) {
-  json conf = json::object();
+  try {
+    json conf = json::object();
 
-  auto idx = filename.rfind(".");
-  if (idx != std::string::npos) {
-    std::string ext = filename.substr(idx + 1);
-    rootNode = VnV::OutputEngineStore::instance().readFile(filename, ext, conf, true);
-  } else {
-    throw VnVExceptionBase(
-        "Engine Detection Failed because output file has no extension.");
+    auto idx = filename.rfind(".");
+
+    if (idx != std::string::npos) {
+      std::string ext = filename.substr(idx + 1);
+      rootNode = VnV::OutputEngineStore::instance().readFile(filename, ext, conf, true);
+    } else {
+      throw INJECTION_EXCEPTION("Engine Detection Failed because output file %s has no extension.", filename.c_str());
+    }
+  } catch (...) {
+    throw INJECTION_EXCEPTION("Engine Detection Failed because output file %s has no extension.", filename.c_str());
   }
 }
 
-ReaderWrapper::ReaderWrapper(std::string filename, std::string reader,
-                             std::string config, bool async) {
+ReaderWrapper::ReaderWrapper(std::string filename, std::string reader, std::string config, bool async) {
   // Reset the engine manager, using the provided reader and config.
-  json conf = json::parse(config);
-  rootNode = VnV::OutputEngineStore::instance().readFile(filename, reader, conf, async);
-
+  try {
+    json conf = json::parse(config);
+    rootNode = VnV::OutputEngineStore::instance().readFile(filename, reader, conf, async);
+  } catch (...) {
+    throw INJECTION_EXCEPTION("Engine Detection Failed because output file %s has no extension.", filename.c_str());
+  }
 }
 
 Nodes::IRootNode* ReaderWrapper::get() { return rootNode.get(); }
 
-void VnVFinalize() { RunTime::instance().Finalize(); }
+void VnVFinalize() {
+  try {
+    RunTime::instance().Finalize();
+  } catch (...) {
+    std::cout << "Finalization failed" << std::endl;
+  }
+}
 
 void VnVLoadPlugin(std::string name, std::string filename) {
-  RunTime::instance().loadPlugin(filename, name);
+  try {
+    RunTime::instance().loadPlugin(filename, name);
+  } catch (...) {
+    VnV_Error(VNVPACKAGENAME, "Loading Plugin Failed: %s:%s", name.c_str(), filename.c_str());
+  }
 }
 
 std::string VnVDumpReaders() {
-  return OutputEngineStore::instance().listReaders().dump();
+  try {
+    return OutputEngineStore::instance().listReaders().dump();
+  } catch (...) {
+    VnV_Error(VNVPACKAGENAME, "Listing readers failed");
+    return "[]";
+  }
 }
 
 namespace {
@@ -72,20 +92,32 @@ bool VnVInit_Str(std::vector<std::string> args, std::string configStr) {
     std::cout << args[i] << " " << argv[i] << std::endl;
   }
 
-  bool success = RunTime::instance().InitFromJson("PYTHON_READER", &argc, &argv,
-                                                  conf, nullptr);
-  return success == 0;
+  try {
+    bool success = RunTime::instance().InitFromJson("PYTHON_READER", &argc, &argv, conf, nullptr);
+    return success == 0;
+  } catch (...) {
+    return false;
+  }
 }
 
 bool VnVInit(std::vector<std::string> args, std::string config) {
   int argc = args.size();
   std::vector<char*> cstrings = stringsToChars(args);
   char** argv = &cstrings[0];
-  return RunTime::instance().InitFromFile("PYTHON_READER", &argc, &argv, config,
-                                          nullptr);
+  try {
+    return RunTime::instance().InitFromFile("PYTHON_READER", &argc, &argv, config, nullptr);
+  } catch (...) {
+    return false;
+  }
 }
 
-bool VnVIsInitialized() { return RunTime::instance().isInitialized(); }
+bool VnVIsInitialized() {
+  try {
+    return RunTime::instance().isInitialized();
+  } catch (...) {
+    return false;
+  }
+}
 
 }  // namespace Python
 }  // namespace VnV

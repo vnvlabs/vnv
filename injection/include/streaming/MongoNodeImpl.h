@@ -25,6 +25,7 @@
       long idv = get##NAME##Id();                                                              \
       if (idv < 0) {                                                                           \
         rootNode()->registerNode(ptr);                                                         \
+        ptr->setname(#NAME);                                                                   \
         set##NAME##Id(ptr->getId());                                                           \
         persist();                                                                             \
       } else {                                                                                 \
@@ -91,13 +92,13 @@ class Client {
     // Create the uri
     this->uri = mongoc_uri_new_with_error(uri.c_str(), &error);
     if (!this->uri) {
-      throw VnV::VnVExceptionBase("Error Creating Mongo URI (%s) %s", uri.c_str(), error.message);
+      throw INJECTION_EXCEPTION("Error Creating Mongo URI (%s) %s", uri.c_str(), error.message);
     }
 
     // Create the client
     client = mongoc_client_new_from_uri(this->uri);
     if (!client) {
-      throw VnV::VnVExceptionBase("Error Creating Mongo Client");
+      throw INJECTION_EXCEPTION_("Error Creating Mongo Client");
     }
 
     // Set the app name
@@ -161,7 +162,7 @@ class Cursor {
       init = true;
       return plus();
     }
-    throw "Cannot call begin twice on Cursor";
+    throw INJECTION_EXCEPTION_("Cannot call begin twice on Cursor");
   }
 
   json asJson() {
@@ -199,6 +200,7 @@ class Cursor {
 };
 
 class Mongo_Does_Not_Exist : public std::exception {};
+class Mongo_Insert_Failed : public std::exception {};
 
 class Collection {
   std::string name;
@@ -208,7 +210,7 @@ class Collection {
 
   void insert(std::shared_ptr<bson_wrap> value) {
     if (!mongoc_collection_insert_one(collection, value->get(), NULL, NULL, &error)) {
-      throw VnV::VnVExceptionBase("Insert failed");
+      throw Mongo_Insert_Failed();
     }
   }
   auto count(std::shared_ptr<bson_wrap> filter) {
@@ -367,7 +369,7 @@ class Document {
     if (doc.contains(field)) {
       return doc[field];
     }
-    throw VnV::VnVExceptionBase("Nope");
+    throw INJECTION_EXCEPTION("Field %s does not exist:", field.c_str());
   }
 
   json& getOr(std::string field, const json& value) {
@@ -443,7 +445,7 @@ class MongoPersistance {
    public:
     ArrayNode() : DataBaseImpl<IArrayNode>() {}
 
-    Mongo_getter_setter(value, std::string, "");
+    ;
     Mongo_getter_setter_json(vec, json::array());
 
     virtual std::shared_ptr<DataBase> get(std::size_t idx) override {
@@ -462,7 +464,6 @@ class MongoPersistance {
       return nullptr;
     }
 
-    std::string getValue() override { return getvalue(); }
 
     virtual std::size_t size() override { return getvec().size(); };
 
@@ -478,7 +479,7 @@ class MongoPersistance {
    public:
     MapNode() : DataBaseImpl<IMapNode>() {}
 
-    Mongo_getter_setter(value, std::string, "");
+    ;
     Mongo_getter_setter_json(map, json::object());
 
     virtual void insert(std::string key, std::shared_ptr<DataBase> val) {
@@ -517,10 +518,9 @@ class MongoPersistance {
           return it->second;
         }
       }
-      throw VnV::VnVExceptionBase("Invalud key");
+      throw INJECTION_EXCEPTION("Key %s does not exist in the map:", key.c_str());
     }
 
-    virtual std::string getValue() override { return getvalue(); }
     virtual bool contains(std::string key) override { return getmap().contains(key); }
 
     virtual std::vector<std::string> fetchkeys() override {
@@ -559,7 +559,7 @@ class MongoPersistance {
         if (getshape().size() == 0)                                                                \
           return getValueByIndex(0);                                                               \
         else                                                                                       \
-          throw VnVExceptionBase("No shape provided to non scalar shape tensor object");           \
+          throw INJECTION_EXCEPTION("%s: No shape provided to non scalar shape tensor object", #x);   \
       }                                                                                            \
                                                                                                    \
       int getNumElements() override { return calculateNumElements<std::size_t>(getshape()); }      \
@@ -580,21 +580,26 @@ class MongoPersistance {
 
    public:
     InfoNode() : DataBaseImpl<IInfoNode>() {
-      std::cout << "Cretating Info Node" << std::endl;
     }
 
     Mongo_getter_setter(title, std::string, "");
-    Mongo_getter_setter(date, long, -1);
-    Mongo_getter_setter(value, std::string, "");
+    Mongo_getter_setter(start, long, 0);
+    Mongo_getter_setter(end, long, 0);
+    
     Mongo_getter_setter_json(prov, json::object());
 
     virtual std::string getTitle() override { return gettitle(); }
-    virtual long getDate() override { return getdate(); }
-    virtual std::string getValue() override { return getvalue(); }
 
     void setprov(std::shared_ptr<VnVProv> p) {
       provStruct = p;
       setprov(provStruct->toJson());
+    }
+
+    virtual long getStartTime() override {
+      return getstart();
+    }
+    virtual long getEndTime() override {
+      return getend();
     }
 
     virtual std::shared_ptr<VnVProv> getProvInternal() override {
@@ -673,7 +678,7 @@ class MongoPersistance {
 
     public :
      Mongo_getter_setter(package, std::string, "") 
-     Mongo_getter_setter(value, std::string, "")
+     Mongo_getter_setter(usage, std::string, "Test")
      Mongo_getter_setter(internal, bool, false) 
      Mongo_getter_setter(result, bool, false)
      Mongo_getter_setter(uid, long, -1)
@@ -681,11 +686,14 @@ class MongoPersistance {
 
      TestNode() : DataBaseImpl<ITestNode>() {}
 
-     virtual std::string getValue() override { return getvalue(); }
 
     virtual bool isInternal() override { return getinternal(); }
 
     virtual std::string getPackage() override { return getpackage(); }
+
+    virtual ITestNode::TestNodeUsage getUsage() override { return ITestNode::getUsageFromString(getusage());}
+
+    void setusage(ITestNode::TestNodeUsage u) { setusage(ITestNode::getUsageString(u));}
 
     virtual std::shared_ptr<IMapNode> getData() override { return getInternal_data(); }
 
@@ -732,8 +740,10 @@ class MongoPersistance {
    public:
     Mongo_docuemnt_ref(logs, Array) Mongo_docuemnt_ref(tests, Array) Mongo_docuemnt_ref(internal, Test)
 
-        Mongo_getter_setter(package, std::string, "") Mongo_getter_setter(value, std::string, "")
+        Mongo_getter_setter(package, std::string, "") 
             Mongo_getter_setter(commId, long long, -1) Mongo_getter_setter(startIndex, long, -1)
+     Mongo_getter_setter(startTime, long , -1) Mongo_getter_setter(endTime, long, -1)
+
                 Mongo_getter_setter(endIndex, long, -1) Mongo_getter_setter(isIter, bool, false)
                     Mongo_getter_setter(isOpen, bool, false)
                         Mongo_getter_setter_json(sourceMap, nlohmann::json::object())
@@ -763,11 +773,12 @@ class MongoPersistance {
     virtual std::shared_ptr<IArrayNode> getLogs() override { return getInternal_logs(); }
 
     virtual std::string getComm() override { return std::to_string(getcommId()); }
-    virtual std::string getValue() override { return getvalue(); }
     virtual std::string getSourceMap() override { return getsourceMap().dump(); }
 
     virtual long getStartIndex() override { return getstartIndex(); }
     virtual long getEndIndex() override { return getendIndex(); }
+    virtual long getStartTime() override { return getstartTime(); }
+    virtual long getEndTime() override { return getendTime(); }
 
     std::shared_ptr<TestNode> getTestByUID(long uid) {
       auto a = getTests();
@@ -797,7 +808,6 @@ class MongoPersistance {
     virtual std::string getLevel() override { return getlevel(); }
     virtual std::string getMessage() override { return getmessage(); }
     virtual std::string getComm() override { return getcomm(); }
-    virtual std::string getValue() override { return getmessage(); }
     virtual std::string getStage() override { return getstage(); }
     virtual ~LogNode() {}
   };
@@ -809,14 +819,13 @@ class MongoPersistance {
     Mongo_docuemnt_ref(logs, Array) Mongo_docuemnt_ref(children, Map)
 
         public : Mongo_getter_setter(local, bool, false) Mongo_getter_setter(key, long long, -1)
-                     Mongo_getter_setter(package, std::string, "") Mongo_getter_setter(value, std::string, "")
+                     Mongo_getter_setter(package, std::string, "") 
 
                          DataNode()
         : DataBaseImpl<IDataNode>() {}
 
     virtual bool getLocal() override { return getlocal(); }
     virtual long long getDataTypeKey() override { return getkey(); }
-    virtual std::string getValue() override { return getvalue(); }
 
     virtual std::shared_ptr<IMapNode> getData() override { return getInternal_children(); }
 
@@ -831,14 +840,13 @@ class MongoPersistance {
     bool result;
 
    public:
-    Mongo_getter_setter(desc, std::string, "") Mongo_getter_setter(value, std::string, "")
+    Mongo_getter_setter(desc, std::string, "") 
         Mongo_getter_setter(result, bool, false)
 
             UnitTestResultNode()
         : DataBaseImpl<IUnitTestResultNode>() {}
     virtual std::string getDescription() override { return getdesc(); }
     virtual bool getResult() override { return getresult(); }
-    virtual std::string getTemplate() override { return getvalue(); }
     virtual ~UnitTestResultNode() {}
   };
 
@@ -856,7 +864,7 @@ class MongoPersistance {
         auto b = a->get(0);
         return b->getAsUnitTestResultNode(b);
       }
-      throw VnVExceptionBase("Key error");
+      throw INJECTION_EXCEPTION("Unit Tests Results Node: Key %s does not exist:", key.c_str());
     };
 
     void insert(std::string name, std::shared_ptr<IUnitTestResultNode> value) { getM()->insert(name, value); }
@@ -869,11 +877,14 @@ class MongoPersistance {
   };
 
   class UnitTestNode : public DataBaseImpl<IUnitTestNode> {
-    Mongo_docuemnt_ref(logs, Array) Mongo_docuemnt_ref(children, Map) Mongo_docuemnt_ref(resultsMap, UnitTestResults)
-
-        public : Mongo_getter_setter(package, std::string, "") Mongo_getter_setter(value, std::string, "")
-
-                     Mongo_getter_setter_json(testTemplate, json::object());
+        Mongo_docuemnt_ref(logs, Array) 
+        Mongo_docuemnt_ref(children, Map) 
+        Mongo_docuemnt_ref(resultsMap, UnitTestResults)
+        
+  public : 
+        
+    Mongo_getter_setter(package, std::string, "") 
+          
 
     UnitTestNode() : DataBaseImpl<IUnitTestNode>() {}
 
@@ -881,11 +892,9 @@ class MongoPersistance {
 
     virtual std::shared_ptr<IMapNode> getData() override { return getInternal_children(); }
 
-    virtual std::string getValue() override { return getvalue(); }
 
     virtual std::shared_ptr<IArrayNode> getLogs() override { return getInternal_logs(); };
 
-    virtual std::string getTestTemplate(std::string name) override { return gettestTemplate().value(name, ""); }
 
     virtual std::shared_ptr<IUnitTestResultsNode> getResults() override { return getInternal_resultsMap(); }
   };
@@ -911,7 +920,6 @@ class MongoPersistance {
    public:
     Mongo_getter_setter(lowerId, long, -1);
     Mongo_getter_setter(upperId, long, -1);
-    Mongo_getter_setter(duration, long, -1);
 
     Mongo_getter_setter_json(idn, json::object());
 
@@ -950,8 +958,6 @@ class MongoPersistance {
       setspecdata(s);
     }
 
-    virtual long getTotalDuration() override { return getduration(); }
-
     virtual bool processing() const override { return _processing.load(); }
 
     void lock() override {
@@ -969,7 +975,7 @@ class MongoPersistance {
       try {
         return LoadNode(rootNode(), id);
       } catch (...) {
-        throw VnV::VnVExceptionBase("Invalid Id %s", id);
+        throw INJECTION_EXCEPTION("Error Loading Internal Node: Invalid Id %s", id);
       }
     }
 
@@ -994,12 +1000,11 @@ class MongoPersistance {
       // Registration is not needed -- We dont save nodes.
     }
 
-    virtual void addIDN(long id, long streamId, node_type type, long index, long duration, std::string stage) override {
+    virtual void addIDN(long id, long streamId, node_type type, long index, std::string stage) override {
       json newIDN = json::object();
       newIDN["id"] = id;
       newIDN["streamId"] = streamId;
       newIDN["type"] = Node_Type_To_Int(type);
-      newIDN["duration"] = duration;
       newIDN["stage"] = stage;
 
       json& idn = getidn();
@@ -1036,7 +1041,7 @@ class MongoRootNodeWithThread : public StreamParserTemplate<MongoPersistance>::R
     collection = Collection::Initialize(collname,db);
 
     if (!allowExisting && collection->size() > 0) {
-      throw VnV::VnVExceptionBase("Cannot Load into an existing collection. Please provide a unique collection name.");
+      throw INJECTION_EXCEPTION("Cannot Load into an existing collection %s. Please provide a unique collection name.", collname.c_str());
     }
     MongoPersistance::RootNode::setMainCollection(collection);
   }

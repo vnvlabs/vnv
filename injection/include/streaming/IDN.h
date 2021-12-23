@@ -20,17 +20,15 @@ class IDN {
   long id;
   long streamId;
   node_type type;
-  long duration;
   std::string stage;
 
-  IDN(long a, long b, node_type c, long d, std::string e) : id(a), streamId(b), type(c), duration(d), stage(e) {}
+  IDN(long a, long b, node_type c,std::string e) : id(a), streamId(b), type(c), stage(e) {}
   
-  IDN() : id(-1), streamId(-1), type(node_type::ROOT), duration(-1), stage("") {}
+  IDN() : id(-1), streamId(-1), type(node_type::ROOT), stage("") {}
   
   IDN(nlohmann::json& j) {
     id = j["id"].get<long>();
     streamId = j["streamId"].get<long>();
-    duration = j["duration"].get<long>();
     stage = j["stage"].get<std::string>();
     type = Node_Type_From_Int(j["type"].get<int>());
   }

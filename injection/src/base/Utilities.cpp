@@ -175,13 +175,13 @@ std::string VnV::StringUtils::toString(std::vector<std::size_t> vector) {
 }
 
 int VnV::StringUtils::StringSplit(const std::string& s, const char* delim,
-                                  std::vector<std::string>& result) {
+                                  std::vector<std::string>& result, bool addEmpty) {
   std::stringstream ss;
   ss.str(s);
   std::string item;
   result.clear();
   while (std::getline(ss, item, delim[0])) {
-    if (!item.empty()) result.push_back(item);
+    if (addEmpty || !item.empty()) result.push_back(item);
   }
   return 1;
 }
@@ -260,7 +260,7 @@ std::vector<std::pair<std::string, std::string>> VnV::bfs(
   if (start == end) {
     return {};  // Nothing to be done.
   } else if (m.find(start) == m.end()) {
-    throw VnVExceptionBase("From not in graph");
+    throw INJECTION_EXCEPTION("%s was not found in the graph", start.c_str());
   } else {
     bool yes = false;
     for (auto& t : m) {
@@ -270,7 +270,7 @@ std::vector<std::pair<std::string, std::string>> VnV::bfs(
       }
     }
     if (!yes) {
-      throw VnVExceptionBase("End node is not in the graph");
+      throw INJECTION_EXCEPTION("End node %s is not in the graph", end.c_str());
     }
   }
   while (!queue.empty()) {
@@ -303,7 +303,7 @@ std::vector<std::pair<std::string, std::string>> VnV::bfs(
       }
     }
   }
-  throw VnVExceptionBase("No Path");
+  throw INJECTION_EXCEPTION("No Path exists from %s to %s", start.c_str(), end.c_str());
 }
 
 std::map<std::string, std::string> VnV::StringUtils::variadicProcess(
@@ -323,7 +323,7 @@ std::map<std::string, std::string> VnV::StringUtils::variadicProcess(
       res[squash_copy(p.second)] = squash_copy(p.first);
       curr = "";
     } else if (count == pmess.size()) {
-      throw VnVExceptionBase("Unbalenced parenthesis in class name");
+      throw INJECTION_EXCEPTION("Unbalenced parenthesis in class name: %s", mess);
     }
   }
   return res;

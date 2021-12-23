@@ -231,12 +231,12 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
     return false;
   }
 
-  virtual void finalize(ICommunicator_ptr wcomm, long duration) override {
+  virtual void finalize(ICommunicator_ptr wcomm, long currentTime) override {
     // Close all the streams
     for (auto& it : streams) {
         json j = json::object();
         j[JSD::node] = JSN::done;
-        j[JSD::duration] = VnV::RunTime::instance().duration();
+        j[JSD::time] = currentTime;
         write(it.first, j, -1);
         it.second.Close();
     }
@@ -347,7 +347,14 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
     engine.Put<unsigned long>("offset", offset.data());
     engine.Put<unsigned long>("sizes", sizes.data());
 
-    std::string jstr = WriteDataJson<json>(data).dump();
+    std::string jstr;
+    try {
+      jstr = WriteDataJson<json>(data).dump();
+    } catch (VnV::VnVExceptionBase &e) {
+      VnV_Error(VNVPACKAGENAME, "Could not write global array: %s", e.what());
+      return;
+    }
+
     adios2::Variable<char> v = io.InquireVariable<char>("globalVec");
     if (!v) {
       v = io.DefineVariable<char>("globalVec", {adios2::JoinedDim}, {},

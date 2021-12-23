@@ -107,6 +107,9 @@ class InjectionPointStore : public BaseStore {
    */
   void print();
 
+  bool registered(std::string package, std::string name);
+  bool registeredTest(std::string package, std::string name);
+  
   static InjectionPointStore& instance();
 
   nlohmann::json schema();

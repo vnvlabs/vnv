@@ -19,6 +19,8 @@
 
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="//unpkg.com/force-graph"></script>
+    <script src="//unpkg.com/element-resize-detector/dist/element-resize-detector.min.js"></script>
 
     {% include 'notifications/scripts.html'%}
     {% include 'plugins/scripts.html'%}
@@ -28,8 +30,9 @@
 
     <script>
         $(document).ready(function(){
-            let grid = GridStack.init({
-            });
+            if ($('.grid-stack').length > 0 ) {
+                let grid = GridStack.init({});
+            }
         });
         </script>
 

@@ -7,11 +7,12 @@
 #include <stdexcept>
 #include <vector>
 
-#include "base/ActionType.h"
-#include "base/parser/JsonSchema.h"
+#include "interfaces/ActionType.h"
 #include "interfaces/ICommunicator.h"
 #include "interfaces/IOutputEngine.h"
 #include "interfaces/argType.h"
+
+#include "json-schema.hpp"
 namespace VnV {
 
 class ActionStore;

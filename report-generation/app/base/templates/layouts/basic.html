@@ -41,53 +41,11 @@
         <div class="loader-fill"></div>
     </div>
 </div>
-<!-- [ Pre-loader ] End -->
 
-{% include 'includes/sidebar.html' %}
-
-{% include 'includes/navigation.html' %}
-{% include 'includes/loading.html' %}
-
-
-<div class="pcoded-main-container fcolumn"  >
-    <div class="pcoded-content fcolumn fchild" >
-        <div class="form-group" style="margin-top:-20px;">
-              <input type="range" class="form-control-range" id="formControlRange" min="0" max="100" value="100">
-        </div>
-        <div id="formControlElm" class="page-block fcolumn fchild">
-
-            {% block content %}{% endblock content %}
-
-        </div>
-    </div>
-</div>
-
-{%include "includes/toast.html" %}
-
+{% block content %}{% endblock content %}
 {% include 'includes/scripts.html' %}
-
-<!-- Specific Page JS goes HERE  -->
-
 {% block javascripts %}{% endblock javascripts %}
 
-<script>
-$("#formControlRange").on("input change",(e)=>{
-   $('#formControlElm').css('max-width', e.target.value + "%")
-})
-$('#formControlElm').css('max-width', $('#formControlRange').val() + "%")
-
-</script>
-
-<footer>
-<div class="vnv-foot" >
-    <div>&copy RNET Technologies 2021 </div>
-  <img height="30px" src="/static/assets/images/logo.png">
-  <a style="color:white" href="mailto:boneill@rnet-tech.com"> Contact Us </a>
-</div>
-</footer>
-
-
 </body>
-
 
 </html>

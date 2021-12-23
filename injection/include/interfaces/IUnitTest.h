@@ -47,8 +47,7 @@ class IUnitTest {
 };
 
 typedef IUnitTest* (*tester_ptr)();
-void registerUnitTester(std::string packageName, std::string name,
-                        VnV::tester_ptr ptr, int cores);
+void registerUnitTester(std::string packageName, std::string name, VnV::tester_ptr ptr, int cores);
 
 template <typename Runner> class UnitTester_T : public IUnitTest {
  public:
@@ -58,61 +57,62 @@ template <typename Runner> class UnitTester_T : public IUnitTest {
 
 }  // namespace VnV
 
-#define TEST_ASSERT_EQUALS(name, expected, got)                    \
-  {                                                                \
-    if (!((got) == (expected))) {                                  \
-      std::stringstream tmpstream;                                 \
-      tmpstream << "Got " << (got) << ", expected " << (expected); \
-      results.emplace_back((name), tmpstream.str(), false);        \
-      if (!continue_on_fail) throw std::runtime_error((name));     \
-    } else {                                                       \
-      results.emplace_back((name), "", true);                      \
-    }                                                              \
+#define TEST_ASSERT_EQUALS(name, expected, got)                                                       \
+  {                                                                                                   \
+    if (!((got) == (expected))) {                                                                     \
+      std::stringstream tmpstream;                                                                    \
+      tmpstream << "Got " << (got) << ", expected " << (expected);                                    \
+      results.emplace_back((name), tmpstream.str(), false);                                           \
+      if (!continue_on_fail) {                                                                        \
+        VnV_Error(VNVPACKAGENAME, "Test Assertion failed"); \
+        std::abort();                                                                                 \
+      }                                                                                               \
+    } else {                                                                                          \
+      results.emplace_back((name), "", true);                                                         \
+    }                                                                                                 \
   }
 
-#define TEST_ASSERT_NOT_EQUALS(name, expected, got)                \
-  {                                                                \
-    if (((got) == (expected))) {                                   \
-      std::stringstream tmpstream;                                 \
-      tmpstream << "Got " << (got) << ", expected " << (expected); \
-      results.emplace_back((name), tmpstream.str(), false);        \
-      if (!continue_on_fail) throw std::runtime_error((name));     \
-    } else {                                                       \
-      results.emplace_back((name), "", true);                      \
-    }                                                              \
+#define TEST_ASSERT_NOT_EQUALS(name, expected, got)                                                   \
+  {                                                                                                   \
+    if (((got) == (expected))) {                                                                      \
+      std::stringstream tmpstream;                                                                    \
+      tmpstream << "Got " << (got) << ", expected " << (expected);                                    \
+      results.emplace_back((name), tmpstream.str(), false);                                           \
+      if (!continue_on_fail) {                                                                        \
+          VnV_Error(VNVPACKAGENAME,"Test Assertion failed"); \
+          std::abort();\
+      }                                                                                               \
+    } else {                                                                                          \
+      results.emplace_back((name), "", true);                                                         \
+    }                                                                                                 \
   }
 
-#define INJECTION_UNITTEST_R(PNAME, name, Runner, cores)               \
-  namespace VnV {                                                      \
-  namespace PNAME {                                                    \
-  namespace UnitTests {                                                \
-  class name : public VnV::UnitTester_T<VnV_Arg_Type(Runner)> {        \
-   public:                                                             \
-    name() : VnV::UnitTester_T<VnV_Arg_Type(Runner)>() {}              \
-    virtual void run() override;                                       \
-  };                                                                   \
-  IUnitTest* declare_##name() { return new name(); }                   \
-  void register_##name() {                                             \
-    registerUnitTester(VNV_STR(PNAME), #name, &declare_##name, cores); \
-  }                                                                    \
-  }                                                                    \
-  }                                                                    \
-  }                                                                    \
+#define INJECTION_UNITTEST_R(PNAME, name, Runner, cores)                                        \
+  namespace VnV {                                                                               \
+  namespace PNAME {                                                                             \
+  namespace UnitTests {                                                                         \
+  class name : public VnV::UnitTester_T<VnV_Arg_Type(Runner)> {                                 \
+   public:                                                                                      \
+    name() : VnV::UnitTester_T<VnV_Arg_Type(Runner)>() {}                                       \
+    virtual void run() override;                                                                \
+  };                                                                                            \
+  IUnitTest* declare_##name() { return new name(); }                                            \
+  void register_##name() { registerUnitTester(VNV_STR(PNAME), #name, &declare_##name, cores); } \
+  }                                                                                             \
+  }                                                                                             \
+  }                                                                                             \
   void VnV::PNAME::UnitTests::name::run()
 
-#define INJECTION_UNITTEST(PNAME, name, cores) \
-  INJECTION_UNITTEST_R(PNAME, name, int, cores)
+#define INJECTION_UNITTEST(PNAME, name, cores) INJECTION_UNITTEST_R(PNAME, name, int, cores)
 
-#define INJECTION_UNITTEST_RAW(PNAME, name, cls, cores)        \
-  namespace VnV {                                              \
-  namespace PNAME {                                            \
-  namespace UnitTests {                                        \
-  IUnitTest* declare_##name() { return new cls(); }            \
-  void register_##name() {                                     \
-    registerUnitTester(#PNAME, #name, &declare_##name, cores); \
-  }                                                            \
-  }                                                            \
-  }                                                            \
+#define INJECTION_UNITTEST_RAW(PNAME, name, cls, cores)                                 \
+  namespace VnV {                                                                       \
+  namespace PNAME {                                                                     \
+  namespace UnitTests {                                                                 \
+  IUnitTest* declare_##name() { return new cls(); }                                     \
+  void register_##name() { registerUnitTester(#PNAME, #name, &declare_##name, cores); } \
+  }                                                                                     \
+  }                                                                                     \
   }
 
 #define DECLAREUNITTEST(PNAME, name) \

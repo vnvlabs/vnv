@@ -1,9 +1,9 @@
 ﻿#include <clang/AST/Expr.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/Basic/Version.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/Tooling.h>
-#include <clang/Basic/Version.h>
 
 #include <iostream>
 #include <string>
@@ -22,44 +22,39 @@ std::string getValueFromStringLiteral(const Expr* a) {
   if (xx == "StringLiteral") {
     return ((const clang::StringLiteral*)a)->getString().str();
   } else {
-    llvm::errs() << "Error Not a String Literal ";
-    throw VnV::VnVExceptionBase("SDFSDF");
-    return "";
+    HTHROW INJECTION_EXCEPTION("Could not extract value for expression as it is a %s and not a StringLiteral",
+                               xx.c_str());
   }
 }
 
 enum class Compiler { CLANG11, CLANG12, GNU };
 
+// Rewrite this function so clang prints in GCC Format.
+std::string ComputeName(const clang::Decl* CurrentDecl, Compiler compiler) {
+  clang::ASTContext& Context = CurrentDecl->getASTContext();
 
-//Rewrite this function so clang prints in GCC Format. 
-std::string ComputeName(const clang::Decl *CurrentDecl, Compiler compiler) {
-  clang::ASTContext &Context = CurrentDecl->getASTContext();
-
-  if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(CurrentDecl)) {
-    
+  if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(CurrentDecl)) {
     SmallString<256> Name;
     llvm::raw_svector_ostream Out(Name);
 
-    if (const CXXMethodDecl *MD = dyn_cast<CXXMethodDecl>(FD)) {
-      if (MD->isStatic())
-        Out << "static ";
+    if (const CXXMethodDecl* MD = dyn_cast<CXXMethodDecl>(FD)) {
+      if (MD->isStatic()) Out << "static ";
     }
 
     PrintingPolicy Policy(Context.getLangOpts());
     std::string Proto;
     llvm::raw_string_ostream POut(Proto);
 
-    const FunctionDecl *Decl = FD;
-    
+    const FunctionDecl* Decl = FD;
+
     if (const FunctionDecl* Pattern = FD->getTemplateInstantiationPattern()) {
       Decl = Pattern;
     }
-    
-    const clang::FunctionType *AFT = Decl->getType()->getAs<clang::FunctionType>();
-    const FunctionProtoType *FT = nullptr;
-    
-    if (FD->hasWrittenPrototype())
-      FT = dyn_cast<FunctionProtoType>(AFT);
+
+    const clang::FunctionType* AFT = Decl->getType()->getAs<clang::FunctionType>();
+    const FunctionProtoType* FT = nullptr;
+
+    if (FD->hasWrittenPrototype()) FT = dyn_cast<FunctionProtoType>(AFT);
 
     FD->printQualifiedName(POut, Policy);
 
@@ -79,12 +74,10 @@ std::string ComputeName(const clang::Decl *CurrentDecl, Compiler compiler) {
     }
     POut << ")";
 
-    if (const CXXMethodDecl *MD = dyn_cast<CXXMethodDecl>(FD)) {
+    if (const CXXMethodDecl* MD = dyn_cast<CXXMethodDecl>(FD)) {
       assert(FT && "We must have a written prototype in this case.");
-      if (FT->isConst())
-        POut << " const";
-      if (FT->isVolatile())
-        POut << " volatile";
+      if (FT->isConst()) POut << " const";
+      if (FT->isVolatile()) POut << " volatile";
       RefQualifierKind Ref = MD->getRefQualifier();
       if (Ref == RQ_LValue)
         POut << " &";
@@ -92,23 +85,20 @@ std::string ComputeName(const clang::Decl *CurrentDecl, Compiler compiler) {
         POut << " &&";
     }
 
-    typedef SmallVector<const ClassTemplateSpecializationDecl *, 8> SpecsTy;
+    typedef SmallVector<const ClassTemplateSpecializationDecl*, 8> SpecsTy;
     SpecsTy Specs;
-    const DeclContext *Ctx = FD->getDeclContext();
+    const DeclContext* Ctx = FD->getDeclContext();
     while (Ctx && isa<NamedDecl>(Ctx)) {
-      const ClassTemplateSpecializationDecl *Spec
-                               = dyn_cast<ClassTemplateSpecializationDecl>(Ctx);
-      if (Spec && !Spec->isExplicitSpecialization())
-        Specs.push_back(Spec);
+      const ClassTemplateSpecializationDecl* Spec = dyn_cast<ClassTemplateSpecializationDecl>(Ctx);
+      if (Spec && !Spec->isExplicitSpecialization()) Specs.push_back(Spec);
       Ctx = Ctx->getParent();
     }
 
     std::string TemplateParams;
     llvm::raw_string_ostream TOut(TemplateParams);
-    for (const ClassTemplateSpecializationDecl *D : llvm::reverse(Specs)) {
-      const TemplateParameterList *Params =
-          D->getSpecializedTemplate()->getTemplateParameters();
-      const TemplateArgumentList &Args = D->getTemplateArgs();
+    for (const ClassTemplateSpecializationDecl* D : llvm::reverse(Specs)) {
+      const TemplateParameterList* Params = D->getSpecializedTemplate()->getTemplateParameters();
+      const TemplateArgumentList& Args = D->getTemplateArgs();
       assert(Params->size() == Args.size());
       for (unsigned i = 0, numParams = Params->size(); i != numParams; ++i) {
         StringRef Param = Params->getParam(i)->getName();
@@ -120,25 +110,23 @@ std::string ComputeName(const clang::Decl *CurrentDecl, Compiler compiler) {
     }
 
     std::string sep = (compiler == Compiler::GNU) ? "; " : ", ";
-    
-    #if CLANG_VERSION_MAJOR > 11 
+
+#if CLANG_VERSION_MAJOR > 11
     Policy.SuppressDefaultTemplateArgs = !(compiler == Compiler::CLANG11);
-    #endif
+#endif
 
     std::string with = (compiler == Compiler::GNU) ? "with" : "";
 
-    FunctionTemplateSpecializationInfo *FSI
-                                          = FD->getTemplateSpecializationInfo();
+    FunctionTemplateSpecializationInfo* FSI = FD->getTemplateSpecializationInfo();
     if (FSI && !FSI->isExplicitSpecialization()) {
-      const TemplateParameterList* Params
-                                  = FSI->getTemplate()->getTemplateParameters();
+      const TemplateParameterList* Params = FSI->getTemplate()->getTemplateParameters();
       const TemplateArgumentList* Args = FSI->TemplateArguments;
       assert(Params->size() == Args->size());
       for (unsigned i = 0, e = Params->size(); i != e; ++i) {
         StringRef Param = Params->getParam(i)->getName();
         if (Param.empty()) continue;
         TOut << Param << " = ";
-                
+
         Args->get(i).print(Policy, TOut);
         TOut << sep;
       }
@@ -157,14 +145,10 @@ std::string ComputeName(const clang::Decl *CurrentDecl, Compiler compiler) {
     // type deduction and lambdas. For trailing return types resolve the
     // decltype expression. Otherwise print the real type when this is
     // not a constructor or destructor.
-    if (isa<CXXMethodDecl>(FD) &&
-         cast<CXXMethodDecl>(FD)->getParent()->isLambda())
+    if (isa<CXXMethodDecl>(FD) && cast<CXXMethodDecl>(FD)->getParent()->isLambda())
       Proto = "auto " + Proto;
     else if (FT && FT->getReturnType()->getAs<DecltypeType>())
-      FT->getReturnType()
-          ->getAs<DecltypeType>()
-          ->getUnderlyingType()
-          .getAsStringInternal(Proto, Policy);
+      FT->getReturnType()->getAs<DecltypeType>()->getUnderlyingType().getAsStringInternal(Proto, Policy);
     else if (!isa<CXXConstructorDecl>(FD) && !isa<CXXDestructorDecl>(FD))
       AFT->getReturnType().getAsStringInternal(Proto, Policy);
 
@@ -173,47 +157,45 @@ std::string ComputeName(const clang::Decl *CurrentDecl, Compiler compiler) {
     return std::string(Name);
   }
   return "unknown";
-  
 }
 
-std::string ComputeName( std::string compiler,const Decl* func) {
-  if (compiler.compare("GNU") == 0 ) {
+std::string ComputeName(std::string compiler, const Decl* func) {
+  if (compiler.compare("GNU") == 0) {
     return ComputeName(func, Compiler::GNU);
   } else if (compiler.compare("CLANG11") == 0) {
     return ComputeName(func, Compiler::CLANG11);
   } else {
-    return ComputeName(func, Compiler::CLANG12);  
+    return ComputeName(func, Compiler::CLANG12);
   }
 }
 
 std::string getSig(const CallExpr* call, int count, const FunctionDecl* caller) {
-  
   auto a = call->getArg(count);
   const clang::Expr* bb = nullptr;
 
   if (a->getStmtClass() == clang::Stmt::StmtClass::CallExprClass) {
     bb = ((const clang::CallExpr*)a)->getArg(0);
-  } else if (a->getStmtClass() == clang::Stmt::StmtClass::CXXConstructExprClass ) {
-    
+  } else if (a->getStmtClass() == clang::Stmt::StmtClass::CXXConstructExprClass) {
     auto c = ((const clang::CXXConstructExpr*)a)->getArg(0);
     if (c->getStmtClass() == clang::Stmt::StmtClass::MaterializeTemporaryExprClass) {
-      
       auto d = ((const clang::MaterializeTemporaryExpr*)c)->getSubExpr();
 
       if (d->getStmtClass() == clang::Stmt::StmtClass::CallExprClass) {
-          bb =((const clang::CallExpr*)d)->getArg(0);
+        bb = ((const clang::CallExpr*)d)->getArg(0);
       }
     }
   }
-  
-  while (bb!=nullptr && bb->getStmtClass() == clang::Stmt::StmtClass::ImplicitCastExprClass) {
-       bb = ((const clang::ImplicitCastExpr*)bb)->getSubExpr();
+
+  while (bb != nullptr && bb->getStmtClass() == clang::Stmt::StmtClass::ImplicitCastExprClass) {
+    bb = ((const clang::ImplicitCastExpr*)bb)->getSubExpr();
   }
   if (bb->getStmtClass() == clang::Stmt::StmtClass::StringLiteralClass) {
-        std::string compiler = ((const clang::StringLiteral*)bb)->getString().str();
-        return ComputeName(compiler,caller);
+    std::string compiler = ((const clang::StringLiteral*)bb)->getString().str();
+    return ComputeName(compiler, caller);
   }
-  throw VnV::VnVExceptionBase("Not a function signiture from Pretty function");
+  HTHROW INJECTION_EXCEPTION(
+      "Error extracting Function Signiture. The parameter is not a string literal class (it is %s)",
+      bb->getStmtClassName());
 }
 
 unsigned int getInfo(const CallExpr* call, const FunctionDecl* func, const MatchFinder::MatchResult& Result, json& info,
@@ -262,14 +244,20 @@ void addParameters(std::string sig, const CallExpr* E, json& idJson, unsigned in
   auto it = possibleParams.find(sig);
   if (it != possibleParams.end()) {
     if (it->dump().compare(params.dump()) != 0) {
-      throw VnV::VnVExceptionBase(
-          "Two injection points with same signiture and ID but different parameters were encounted");
+      std::string s = it->dump();
+      std::string p = params.dump();
+      HTHROW INJECTION_EXCEPTION(
+          "Two injection points with same signiture and ID but different parameters were encounted\n"
+          "Signuture: %s\n"
+          "Option 1: %s \n"
+          "Option 2: %s",
+          sig.c_str(), s.c_str(), p.c_str());
     }
+
   } else {
     possibleParams[sig] = params;
   }
 }
-
 }  // namespace
 
 class VnVPrinter : public MatchFinder::MatchCallback {

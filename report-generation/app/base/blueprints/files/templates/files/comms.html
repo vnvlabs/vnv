@@ -1,5 +1,3 @@
-<script src="//unpkg.com/force-graph"></script>
-<script src="//unpkg.com/element-resize-detector/dist/element-resize-detector.min.js"></script>
 
 <div class="">
     <div class="card-body">
@@ -36,7 +34,7 @@
 </div>
 
 <script>
-
+$(document).ready(function(){
     const gData = JSON.parse('{{file.getGlobalCommMap()|safe}}')
 
     selected = gData.nodes[0]
@@ -72,7 +70,7 @@
        container,
        el => {Graph.width(el.offsetWidth); Graph.zoomToFit(400,100);}
     );
-
+});
 
 
 </script>

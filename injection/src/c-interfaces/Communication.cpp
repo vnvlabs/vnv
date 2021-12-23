@@ -5,16 +5,33 @@
 
 #include "base/exceptions.h"
 #include "base/stores/CommunicationStore.h"
+#include "c-interfaces/Logging.h"
 
 extern "C" {
 
-VnV_Comm VnV_Comm_Self() { return VnV::CommunicationStore::instance().self(); }
+VnV_Comm VnV_Comm_Self() { 
+  try {
+    return VnV::CommunicationStore::instance().self();
+  } catch (...) {
+    VnV_Error(VNVPACKAGENAME,"Error fetching communicator");  
+    return {"Error",NULL};
+  } }
 
 VnV_Comm VnV_Comm_World() {
-  return VnV::CommunicationStore::instance().world();
+  try {
+    return VnV::CommunicationStore::instance().world();
+  } catch (...) {
+    VnV_Error(VNVPACKAGENAME,"Error fetching communicator");  
+    return {"Error",NULL};
+  }
 }
 
 VnV_Comm VnV_Comm_Custom(const char* name, void* data) {
-  return VnV::CommunicationStore::instance().custom(name, data);
+  try {
+    return VnV::CommunicationStore::instance().custom(name,data);
+  } catch (...) {
+    VnV_Error(VNVPACKAGENAME,"Error fetching communicator");  
+    return {"Error",NULL};
+  }
 }
 }

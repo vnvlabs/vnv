@@ -13,16 +13,16 @@ class JsonTerminalStream : public StreamWriter<json> {
  public:
   virtual void initialize(json& config, bool readMode) override {
     if (readMode) {
-      throw VnV::VnVExceptionBase("No read mode for json_stdout");
+      throw INJECTION_EXCEPTION_("No read mode for json_stdout");
     }
   }
   virtual nlohmann::json getConfigurationSchema(bool readMode) override {
     return json::object();
   };
 
-  virtual void finalize(ICommunicator_ptr worldComm, long duration) override {
+  virtual void finalize(ICommunicator_ptr worldComm, long currentTime) override {
     if (worldComm->Rank() == 0) {
-      std::cout << "Total Elapsed Time: " << duration << " ns" << std::endl;
+      std::cout << "END Time in ms since epoch: " << currentTime << std::endl;
     }
   }
 

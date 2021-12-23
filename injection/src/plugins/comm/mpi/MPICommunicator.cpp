@@ -117,7 +117,7 @@ class MPICommunicator : public ICommunicator {
     case OpType::ENCODED_NONCOMMUTE:
       return getEncodedNonCommuteOp();
     }
-    throw VnV::VnVExceptionBase("Un supported Operation type");
+    throw INJECTION_BUG_REPORT_("Un supported Operation type");
   }
   MPI_Comm comm;
 
@@ -271,7 +271,7 @@ class MPICommunicator : public ICommunicator {
     if (name.compare("serial") == 0) {
       return self();
     } else {
-      throw VnVExceptionBase(
+      throw INJECTION_EXCEPTION(
           "MPI Executable cannot handle communicator with name %s", name);
     }
   }
@@ -554,7 +554,7 @@ MPI_Comm castToMPIComm(ICommunicator_ptr ptr) {
     mpicomm = k->comm;
 
   } else {
-    throw VnV::VnVExceptionBase("Cannot convert communicator %s to MPI", ptr->getName().c_str());
+    throw INJECTION_EXCEPTION("Cannot convert communicator %s to MPI", ptr->getName().c_str());
   }
   return mpicomm;
 }

@@ -1,7 +1,8 @@
 #ifndef VNV_IDATATYPE_HEADER
 #define VNV_IDATATYPE_HEADER
 
-#include <base/exceptions.h>
+#include "base/exceptions.h"
+#include "c-interfaces/Logging.h"
 
 #include <map>
 #include <memory>
@@ -31,7 +32,7 @@ class IDataType {
 
  public:
   virtual void setData(void* data) {
-    throw VnV::VnVExceptionBase("unsupported operation");
+    HTHROW INJECTION_EXCEPTION("DataType %d does not support function setData", key);
   }
   // set from a raw pointer to the data.
 
@@ -64,40 +65,40 @@ class IDataType {
   // returned in the getLocalPutData map. The function should return a pointer
   // to the data associated with this key.
   virtual void* getPutData(std::string name) {
-    throw VnV::VnVExceptionBase("Unrecognized name;");
+     HTHROW INJECTION_EXCEPTION("DataType %d does not support function getPutData", key);
   }
 
   // Needed if you want to support data type redcution and vectors.
   virtual long long maxSize() {
-    throw VnVExceptionBase("Unsupported Operation");
+      throw INJECTION_EXCEPTION("DataType %d does not support function maxSize", key);
   }  // what is the maximum size of the buffer
   
   virtual long long pack(void* buffer) {
-    throw VnVExceptionBase("Unsupported Operation");
+     throw INJECTION_EXCEPTION("DataType %d does not support function pack", key);
   }  // pack the buffer
   
   virtual void unpack(void* buffer) {
-    throw VnVExceptionBase("Unsupported Operation");
+   throw INJECTION_EXCEPTION("DataType %d does not support function unpack", key);
   }  // unpack into a buffer
 
   // Needed if you want to use reduction operations.
   virtual void axpy(double alpha, IDataType_ptr y) {
-    throw VnVExceptionBase("Unsupported Operation");
+      throw INJECTION_EXCEPTION("DataType %d does not support function axpy", key);
   }  // y = ax + y
   
   virtual int compare(IDataType_ptr y) {
-    throw VnVExceptionBase("Unsupported Operation");
+     throw INJECTION_EXCEPTION("DataType %d does not support function compare", key);
   }  // -1 less, 0 == , 1 greater.
   
   virtual void mult(IDataType_ptr y) {
-    throw VnVExceptionBase("Unsupported Operation");
+      throw INJECTION_EXCEPTION("DataType %d does not support function mult", key);
   }
 
   virtual std::string typeId() {
-    throw VnVExceptionBase("Unsupported Operation");  
+     throw INJECTION_EXCEPTION("DataType %d does not support function typeId", key);
   }
   virtual std::string displayName() {
-    throw VnVExceptionBase("Unsupported Operation");  
+     throw INJECTION_EXCEPTION("DataType %d does not support function displayName", key);
   }
 
 

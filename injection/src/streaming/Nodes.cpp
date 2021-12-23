@@ -31,7 +31,7 @@ DataBase::DataType DataBase::getDataTypeFromString(std::string s) {
   STYPES
   RTYPES
   #undef X
-  throw VnVExceptionBase("Unknown");
+  throw INJECTION_EXCEPTION("Unknown Datatype %s", s.c_str());
 }
 
 
@@ -51,7 +51,7 @@ std::string DataBase::getTypeStr() {
   default:
     return "Custom";
   }
-  throw VnVExceptionBase("Impossible");
+  throw INJECTION_BUG_REPORT_("Impossible");
 }
 
 #define X(x, y)                                                     \
@@ -59,7 +59,7 @@ std::string DataBase::getTypeStr() {
   I##x##Node::~I##x##Node() {}                                      \
   std::shared_ptr<I##x##Node> DataBase::getAs##x##Node(std::shared_ptr<DataBase> ptr) {                          \
     if (check(DataType::x)) return std::dynamic_pointer_cast<I##x##Node>(ptr); \
-    throw VnVExceptionBase("Invalid Cast to DataType::%s from %s ", #x, dataType);     \
+    throw INJECTION_EXCEPTION("Invalid Cast to DataType::%s from %s ", #x, dataType);     \
   }
 DTYPES
 #undef X
@@ -88,7 +88,7 @@ SDTYPES
   I##x##Node::~I##x##Node() {}                                      \
   std::shared_ptr<I##x##Node> DataBase::getAs##x##Node(std::shared_ptr<DataBase> ptr) {                          \
     if (check(DataType::x)) return std::dynamic_pointer_cast<I##x##Node>(ptr); \
-    throw VnVExceptionBase("Invalid Cast to DataType::%s -> %s", #x, dataType);     \
+    throw INJECTION_EXCEPTION("Invalid Cast to DataType::%s -> %s", #x, dataType);     \
   }
 STYPES
 RTYPES
@@ -115,11 +115,9 @@ std::shared_ptr<WalkerNode> WalkerWrapper::next() {
   node->edges.clear();
   if (!rootNode()->processing() ) {
     node->type = node_type::DONE;
-    node->time = rootNode()->getTotalDuration();
   } else {
     node->type = node_type::WAITING;
     node->edges.clear();
-    node->time = -1;
   }
   return node;
 }
@@ -132,7 +130,7 @@ WalkerWrapper IRootNode::getWalker(std::string package, std::string name, std::s
   auto a = WalkerStore::instance().getWalker(package, name, rootNode(), j);
   
   if (a == nullptr) {
-    throw VnVExceptionBase("No Walker with that name");
+    throw INJECTION_EXCEPTION("No Walker with the name %s:%s found", package.c_str(), name.c_str());
   }
 
   return WalkerWrapper(a, rootNode());

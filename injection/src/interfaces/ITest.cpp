@@ -43,12 +43,20 @@ ITest::ITest(TestConfig& config) : m_config(config) { uuid = uid++; }
 // point that this test is being run inside.
 TestStatus ITest::_runTest(ICommunicator_ptr comm, OutputEngineManager* engine, InjectionPointType type,
                            std::string stageId) {
-  VnV_Debug_MPI(VNVPACKAGENAME, comm->asComm(), "Running Test %s ", m_config.getName().c_str());
-
+ 
+  
+  TestStatus s = FAILURE;
   engine->testStartedCallBack(m_config.getPackage(), m_config.getName(), false, uuid);
-  TestStatus s = runTest(comm, engine->getOutputEngine(), type, stageId);
+  try {
+    s = runTest(comm, engine->getOutputEngine(), type, stageId);
+  } catch (VnVExceptionBase &e) {
+    s=FAILURE;
+    VnV_Error(VNVPACKAGENAME, "Exception occured during test %s:%s: %s", m_config.getPackage().c_str(),m_config.getName().c_str(), e.what());
+  }
   engine->testFinishedCallBack((s == SUCCESS) ? true : false);
   return s;
+
+
 }
 
 ITest::~ITest() {}

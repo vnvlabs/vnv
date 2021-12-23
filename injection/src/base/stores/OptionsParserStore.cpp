@@ -87,7 +87,7 @@ nlohmann::json& OptionsParserStore::getSchema(std::string package) {
   if (it != factory.end()) {
     return it->second.first;
   }
-  throw VnV::VnVExceptionBase("no such package");
+  throw INJECTION_EXCEPTION("Options Store: No pacakge %s exists", package.c_str());
 }
 
 BaseStoreInstance(OptionsParserStore)

@@ -149,7 +149,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::s
     registerLoopedInjectionPoint(package, name, ptr);
   } else {
     // Should never happen.
-    throw VnV::VnVExceptionBase("New Injection point called but stage is not single or begin");
+    throw INJECTION_BUG_REPORT("New Injection point called but stage is not single or begin (%s)", key.c_str());
   }
   return ptr;
 }
@@ -174,11 +174,11 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::fetchFromQueue(std::string 
   std::string key = package + ":" + name;
 
   if (active.size() == 0) {
-    throw VnV::VnVExceptionBase("Fetch from Queue called with no Injection points int the stack");
+    throw INJECTION_BUG_REPORT("Fetch from Queue called with no Injection points int the stack %s:%s", package.c_str(), name.c_str());
   }
   auto ptr = active.top();
   if (key.compare(ptr->getPackage() + ":" + ptr->getName()) != 0) {
-    throw VnV::VnVExceptionBase("Injection Point Nesting Error. Cannot call %s stage  inside a %s:%s", key,
+    throw INJECTION_EXCEPTION("Injection Point Nesting Error. Cannot call %s stage  inside a %s:%s", key,
                                 ptr->getPackage().c_str(), ptr->getName().c_str());
   }
 
@@ -187,6 +187,22 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::fetchFromQueue(std::string 
   }
   return ptr;
 }
+
+bool InjectionPointStore::registered(std::string package, std::string name) {
+  std::cout << "FFFF " << injectionPoints.size() << " " << package << " " << name << std::endl;
+  return injectionPoints.find(package+":"+name) != injectionPoints.end();
+}
+bool InjectionPointStore::registeredTest(std::string package, std::string name) {
+   for (auto it : injectionPoints) {
+      for (auto t : it.second.tests) {
+        if (t.getPackage().compare(package) ==0 && t.getName().compare(name) == 0 ) {
+          return true;
+        }
+      } 
+   }
+   return false;
+}
+
 
 void InjectionPointStore::addInjectionPoint(std::string package, std::string name, bool runInternal, json& templateName,
                                             std::vector<TestConfig>& tests, const SamplerConfig& sinfo) {

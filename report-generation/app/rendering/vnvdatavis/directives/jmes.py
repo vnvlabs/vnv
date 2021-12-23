@@ -46,6 +46,16 @@ def jmes_jinja_query_json(text):
     else:
         raise ExtensionError("Invalid jmes path query")
 
+def jmes_jinja_query_join(text):
+    if jmespath.compile(text):
+        return "{{ data.query_join('" + text + "') | safe}}"
+    else:
+        raise ExtensionError("Invalid jmes path query")
+
+def jmes_jinja_query_str_array(text):
+    return "{{ data.query_str_array('" + text + "') | safe}}"
+
+
 def jmes_check(text):
     return jmespath.compile(text)
 

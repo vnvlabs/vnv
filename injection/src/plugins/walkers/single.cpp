@@ -31,7 +31,6 @@ class ProcIter : public VnV::Walkers::Iter {
       for (auto& it : s->second) {
         
         if (procContainedIn(it.streamId)) {
-          res.duration = it.duration;
           res.id = it.id;
           res.streamId = it.streamId;
           res.type = it.type;
@@ -91,7 +90,6 @@ class RootNodeProcWalk : public VnV::IWalker {
     if (procIter->next(curr)) {
       node.item = rootNode->findById(curr.id);
       node.type = curr.type;
-      node.time = curr.duration;
       node.edges.clear();
       return true;
     }

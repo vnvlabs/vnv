@@ -282,7 +282,7 @@ bool DynamicCommMap::searchNodeInMainNodeCommChain(long mainNode, long searchNod
   if (it != map.end()) {
     return it->second->inCommChain(searchNode);
   }
-  throw VnVExceptionBase("unregistered communicator.");
+  throw INJECTION_EXCEPTION("unregistered communicator %d in %d", mainNode, searchNode);
 }
 
 std::vector<long> CommMapper::listAllComms(ICommunicator_ptr worldComm) {

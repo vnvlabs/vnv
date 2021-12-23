@@ -1,3 +1,8 @@
+#ifndef TEMPLATES_HEADER_H
+#define TEMPLATES_HEADER_H
+
+
+
 #define TESTING 0
 /************************************************************
  * 
@@ -25,7 +30,7 @@
  */
 
 #define VNV_TEMPLATE_(VAR, NAME, PARAM,CALLBACK) \
-  if (auto VAR = GetPtr(NAME, PARAM)) { \
+  if (auto VAR = GetPtr_NoThrow(NAME, PARAM, true, false)) { \
      CALLBACK \
   }	  
 
@@ -124,4 +129,4 @@ VNV_TEMPLATE_2_2({printf("Hello");}, {printf{"THERE"}, "a","b", double, float, i
 #endif
 
 /************************************************************************/
-
+#endif

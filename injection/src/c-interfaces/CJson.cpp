@@ -270,19 +270,35 @@ void VnV_CJson_printJson(c_json json, int* err) {
 
 void _VnV_registerOptions(const char* name, const char* s,
                           options_callback_ptr v) {
-  json k = json::parse(s);
-  VnV::OptionsParserStore::instance().add(name, k, v);
+  try {
+    json k = json::parse(s);
+    VnV::OptionsParserStore::instance().add(name, k, v);
+  } catch (...) {
+    VnV_Error(VNVPACKAGENAME,"Error Registering Options");  
+  }
 }
 
 void VnV::RegisterOptions(std::string packageName, std::string schema,
                           options_cpp_callback_ptr callback) {
-  json j = json::parse(schema);
-  VnV::RegisterOptions_Json(packageName, j, callback);
+  
+  try {
+    json j = json::parse(schema);
+    VnV::RegisterOptions_Json(packageName, j, callback);
+  } catch (...) {
+    VnV_Error(VNVPACKAGENAME,"Error Registering Options");  
+  }
+
 }
 
 void VnV::RegisterOptions_Json(std::string name, json& schema,
                                options_cpp_callback_ptr callback) {
-  VnV::OptionsParserStore::instance().add(name, schema, callback);
+
+  try {
+    VnV::OptionsParserStore::instance().add(name, schema, callback);
+  } catch (...) {
+    VnV_Error(VNVPACKAGENAME,"Error Registering Options");  
+  }
+
 }
 
 json* VnV::asJson(c_json json) { return VnV_CJson_castJson(json); }

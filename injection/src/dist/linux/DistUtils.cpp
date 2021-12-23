@@ -84,18 +84,18 @@ std::string join(std::vector<std::string> vec, mode_t i, bool makeDir) {
           if (S_ISDIR(sb.st_mode)) {
             continue;
           } else {
-            throw VnVExceptionBase(
+            throw INJECTION_EXCEPTION(
                 "Cannot create directory as file with that name exists (%s)",
                 s.c_str());
           }
         } else if (!makedir(s, i)) {
-          throw VnV::VnVExceptionBase("Cannot make directory %s", s.c_str());
+          throw INJECTION_EXCEPTION("Cannot make directory %s", s.c_str());
         }
       }
     }
     return s;
   }
-  throw VnV::VnVExceptionBase("Empty directory list");
+  throw INJECTION_EXCEPTION_("Empty directory list passed to join");
 }
 
 static int info_callback(struct dl_phdr_info* info, size_t /*size*/,
@@ -114,13 +114,12 @@ void getAllLinkedLibraryData(libData* data) {
 
 void* loadLibrary(std::string name) {
   if (name.empty()) {
-    throw VnVExceptionBase("File Name invalid");
+    throw INJECTION_EXCEPTION("File Name %s is invalid", name.c_str());
   }
   void* dllib = dlopen(name.c_str(), RTLD_NOW);
 
   if (dllib == nullptr) {
-    std::cout << "Could not load library " << dlerror() << std::endl;
-    throw VnVExceptionBase("Could not open shared library");
+    throw INJECTION_EXCEPTION("Could not open shared library %s", name.c_str());
   }
   return dllib;
 }
@@ -133,7 +132,7 @@ registrationCallBack searchLibrary(void* dylib, std::string packageName) {
   if (callback != nullptr) {
     return ((registrationCallBack)callback);
   }
-  throw VnVExceptionBase("Library Registration symbol not found");
+  throw INJECTION_EXCEPTION("Library Registration symbol not found for package %s", packageName.c_str());
 }
 
 bool searchLibrary(std::string name, std::set<std::string>& packageNames) {
@@ -192,7 +191,7 @@ std::vector<std::string> listFilesInDirectory(std::string directory) {
     closedir(dir);
     return res;
   } else {
-    throw VnVExceptionBase("Could not open directory");
+    throw INJECTION_EXCEPTION("Error Listing files in %s: Could not open directory", directory.c_str());
   }
 }
 

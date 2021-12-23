@@ -48,7 +48,7 @@ class A {
     if (type == "B") {
       return (B*)this;
     }
-    throw VnV::VnVExceptionBase("Invalid Conversion");
+    HTHROW INJECTION_EXCEPTION("Invalid Transform. This class only supports transforming to type %s", type.c_str());
   }
 };
 
@@ -61,4 +61,6 @@ INJECTION_TRANSFORM_R(Samples, BtoA, int, B, A) {
   return dynamic_cast<A*>(ptr);
 }
 
-INJECTION_TRANSFORM_R(Samples, AtoB, int, A, B) { return ptr->getAsB(); }
+INJECTION_TRANSFORM_R(Samples, AtoB, int, A, B) { 
+  return ptr->getAsB();
+}

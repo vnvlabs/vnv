@@ -78,7 +78,7 @@ bool balancedParenthesis(std::string expr);
  * @return
  */
 int StringSplit(const std::string& s, const char* delim,
-                std::vector<std::string>& result);
+                std::vector<std::string>& result, bool addEmpty = false);
 
 template <typename ContainerT, typename PredicateT>
 void erase_if(ContainerT& items, const PredicateT& predicate) {

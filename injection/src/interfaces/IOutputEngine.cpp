@@ -39,7 +39,7 @@ int VnV::InjectionPointTypeUtils::toC(InjectionPointType type) {
   case InjectionPointType::End:
     return InjectionPointType_End;
   }
-  throw VnVExceptionBase(
+  throw INJECTION_BUG_REPORT_(
       "Someone added an injection point type without implementing an intmap "
       "for it - tisk tisk");
 }
@@ -56,8 +56,7 @@ VariableEnum VariableEnumFactory::fromString(std::string s) {
   else if (s.compare("Long") == 0)
     return VariableEnum::Long;
 
-  s = "VariableEnumFactory::fromString: Unknown Variable Type" + s;
-  throw VnVExceptionBase(s.c_str());
+  throw INJECTION_EXCEPTION("From String failed for VariableEnum: %s", s.c_str());
 }
 
 std::string VariableEnumFactory::toString(VariableEnum e) {
@@ -74,7 +73,7 @@ std::string VariableEnumFactory::toString(VariableEnum e) {
     return "String";
   }
 
-  throw VnVExceptionBase(
+  throw INJECTION_BUG_REPORT_(
       "VariableEnumFactory::toString: Unhandled Variable Enum Type");
 }
 

@@ -77,7 +77,7 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level,
 
   if (engine) {
     try {
-      // Next statement throws if true.
+
       OutputEngineManager* eng =
           OutputEngineStore::instance().getEngineManager();
 

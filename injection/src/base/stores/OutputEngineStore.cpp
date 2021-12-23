@@ -17,16 +17,28 @@ bool OutputEngineStore::isInitialized() { return initialized; }
 
 void OutputEngineStore::setEngineManager(ICommunicator_ptr world,
                                          std::string type, json& config) {
+  
   auto it = registeredEngines.find(type);
   if (it != registeredEngines.end()) {
+    
+    try {
     manager.reset((*it->second)());
+    } catch (std::exception &e) {
+      HTHROW INJECTION_EXCEPTION("Engine init failed:  %s", e.what());
+    } catch (...) {
+      HTHROW INJECTION_EXCEPTION_("Unknown third party exception occured during engine init:");
+    }
+
+    if (manager == nullptr) {
+      std::abort();
+    }
+    
     manager->set(world, config, type, false);
     initialized = true;
     engineName = type;
     return;
   }
-
-  throw VnVExceptionBase("Invalid Engine Name");
+  HTHROW INJECTION_EXCEPTION("Invalid Engine Name %s", type.c_str());
 }
 
 void OutputEngineStore::printAvailableEngines() {
@@ -90,18 +102,17 @@ void OutputEngineStore::registerReader(std::string name,
 
 std::shared_ptr<Nodes::IRootNode> OutputEngineStore::readFile(
     std::string filename, std::string engineType, json& config, bool async) {
+  
   auto it = registeredReaders.find(engineType);
-
   if (it != registeredReaders.end()) {
     return (*it->second)(filename, idCounter, config, async);
   }
-
-  throw VnVExceptionBase("Invalid Engine Reader");
+  throw INJECTION_EXCEPTION("Invalid Engine Reader %s ", engineType.c_str());
 }
 
 OutputEngineManager* OutputEngineStore::getEngineManager() {
   if (manager != nullptr) return manager.get();
-  throw VnVExceptionBase("Engine Not Initialized Error");
+  throw INJECTION_BUG_REPORT_("Engine Not Initialized Error");
 }
 
 BaseStoreInstance(OutputEngineStore)

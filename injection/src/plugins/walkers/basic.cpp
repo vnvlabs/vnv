@@ -17,7 +17,6 @@ class BasicNodeIter : public VnV::IWalker {
       while (indexIter != niter->second.end()) {
         node.item = root->findById(indexIter->id);
         node.type = indexIter->type;
-        node.time = indexIter->duration;
         node.edges.clear();
         ++indexIter;
         return true;

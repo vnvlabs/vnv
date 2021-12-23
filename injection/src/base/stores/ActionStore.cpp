@@ -30,7 +30,12 @@ nlohmann::json ActionStore::schema() {
 
 ActionStore& ActionStore::instance() { return RunTime::instance().store<ActionStore>(); }
 
+
 void VnV::registerAction(std::string packageName, std::string name, std::string schema, action_ptr m) {
-  json j = json::parse(schema);
-  ActionStore::instance().registerAction(packageName, name, j, m);
+  try {
+    json j = json::parse(schema);
+    ActionStore::instance().registerAction(packageName, name, j, m);
+  } catch (...) {
+    VnV_Error(VNVPACKAGENAME, "Could not register action %s:%s --> Invalid Schema", packageName.c_str(), name.c_str());
+  }
 }

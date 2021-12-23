@@ -414,7 +414,7 @@ bool validateSchema(const json& config, const json& schema,
     return true;
   } catch (std::exception e) {
     if (throwOnInvalid) {
-      throw VnVExceptionBase(e.what());
+      throw INJECTION_EXCEPTION("Schema validation failed: %s", e.what());
     } else {
       return false;
     }

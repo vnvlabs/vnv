@@ -27,7 +27,7 @@ class CurlWrapper {
       curl = curl_easy_init();
       
       if (!curl) {
-        throw VnV::VnVExceptionBase("Could not set up curl");
+        throw INJECTION_EXCEPTION_("Could not set up curl");
       }
 
       headers = curl_slist_append(headers, "charset: utf-8");

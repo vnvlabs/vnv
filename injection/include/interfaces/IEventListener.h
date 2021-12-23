@@ -4,11 +4,7 @@
 #include <string>
 #include <type_traits>
 
-#include "base/Communication.h"
-#include "base/exceptions.h"
-#include "base/stores/CommunicationStore.h"
-#include "base/stores/DataTypeStore.h"
-#include "base/stores/ReductionStore.h"
+
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/Logging.h"
 #include "c-interfaces/PackageName.h"

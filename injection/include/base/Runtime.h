@@ -17,7 +17,7 @@
 #include <string>
 #include <typeindex>
 
-#include "base/ActionType.h"
+#include "interfaces/ActionType.h"
 #include "base/Logger.h"
 #include "base/Provenance.h"
 #include "base/parser/JsonParser.h"
@@ -133,7 +133,7 @@ class RunTime {
 
   bool useAsciiColors();
 
-  long duration();
+  long currentTime();
 
   /**
    * @brief printRunTimeInformation

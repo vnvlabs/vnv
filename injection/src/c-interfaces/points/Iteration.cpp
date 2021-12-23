@@ -12,26 +12,36 @@ using namespace VnV;
 
 extern "C" {
 
-VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName,
-                                     const char* name, struct VnV_Function_Sig pretty,  const char* fname,
-                                     int line, injectionDataCallback* callback,
-                                     int once, int inputParameters, ...) {
-  va_list argp;
-  va_start(argp, inputParameters);
-  NTV inputs = VariadicUtils::UnwrapVariadicArgs(argp, inputParameters);
-  NTV outputs = VariadicUtils::UnwrapVariadicArgs(argp);
-  VnV_Iterator v = VnV::RunTime::instance().injectionIteration(
-      comm, packageName, name, pretty, fname, line, callback, inputs, outputs, once);
-  va_end(argp);
-  return v;
+VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName, const char* name,
+                                     struct VnV_Function_Sig pretty, const char* fname, int line,
+                                     injectionDataCallback* callback, int once, int inputParameters, ...) {
+  try {
+    va_list argp;
+    va_start(argp, inputParameters);
+    NTV inputs = VariadicUtils::UnwrapVariadicArgs(argp, inputParameters);
+    NTV outputs = VariadicUtils::UnwrapVariadicArgs(argp);
+    VnV_Iterator v = VnV::RunTime::instance().injectionIteration(comm, packageName, name, pretty, fname, line, callback,
+                                                                 inputs, outputs, once);
+    va_end(argp);
+    return v;
+  } catch (...) {
+    assert(false && "This should never happen");
+  }
 }
 
 int _VnV_injectionIterate(VnV_Iterator* iterator) {
-  return VnV::RunTime::instance().injectionIterationRun(iterator);
+  try {
+    return VnV::RunTime::instance().injectionIterationRun(iterator);
+  } catch (...) {
+    assert(false && "This should never happen");
+  }
 }
 
-void _VnV_registerInjectionIterator(const char* package, const char* id,
-                                    const char* parameters) {
-  VnV::IteratorStore::instance().registerIterator(package, id, parameters);
+void _VnV_registerInjectionIterator(const char* package, const char* id, const char* parameters) {
+  try {
+    VnV::IteratorStore::instance().registerIterator(package, id, parameters);
+  } catch (...) {
+    VnV_Error(VNVPACKAGENAME, "Failed to register iterator %s:%s", package, id);
+  }
 }
 }

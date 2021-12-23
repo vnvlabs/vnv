@@ -80,7 +80,7 @@ class VnVParameter {
       return static_cast<T*>(trans->Transform(ptr));
     }
     if (throwOnError) {
-        throw VnVExceptionBase("Bad Transform Requested -- Cannot transform from %s -> %s", type.c_str(),
+       HTHROW INJECTION_EXCEPTION("Bad Transform Requested -- Cannot transform from %s -> %s", type.c_str(),
                            requestedType.c_str());
     }
     return NULL;
@@ -110,19 +110,19 @@ class VnVParameterSet : public std::map<std::string, VnVParameter> {
       if (it->second.isInput() != input) {
         if (input ) {
           if (throwOnError) {
-            throw VnVExceptionBase("Requested an input parameter but got an output parameter");
+            HTHROW INJECTION_EXCEPTION("Requested an input parameter called %s but it is an output parameter ", name.c_str());
           }
           return NULL;
         }
         if (throwOnError) {
-          throw VnVExceptionBase("Requested an output parameter but got an input parameter");
+          HTHROW INJECTION_EXCEPTION("Requested an output parameter called %s but it is an input parameter", name.c_str());
         }
         return NULL;
       }
       return it->second.getPtr<T>(type, throwOnError);
     }
     if (throwOnError) {
-      throw VnVExceptionBase("Parameter Mapping Error.");
+      HTHROW INJECTION_EXCEPTION("Parameter Mapping Error. No parameter called %s exists", name.c_str());
     }
     return NULL;
   }
@@ -133,13 +133,14 @@ class VnVParameterSet : public std::map<std::string, VnVParameter> {
     if (it != end()) {
       if (it->second.isInput() != input) {
         if (input) {
-          throw VnVExceptionBase("Requested an input parameter but got an output parameter");
+         HTHROW INJECTION_EXCEPTION("Requested an input parameter called %s but got an output parameter", name.c_str());
         }
-        throw VnVExceptionBase("Requested an output parameter but got an input parameter");
+        HTHROW INJECTION_EXCEPTION("Requested an output parameter called %s but got an input parameter", name.c_str());
       }
       return it->second.getRef<T>(type);
     }
-    throw VnVExceptionBase("Parameter Mapping Error.");
+    
+    HTHROW INJECTION_EXCEPTION("Parameter Mapping Error: No parameter named %s exists. ", name.c_str() );
   }
 };
 

@@ -33,6 +33,7 @@ class NullManager : public OutputEngineManager {
   void finalize(ICommunicator_ptr worldComm, long duration) override {}
 
   void setFromJson(ICommunicator_ptr worldComm, json& config, bool readMode) override {}
+  void sendInfoNode(ICommunicator_ptr worldComm) override {}
 
   void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageVal) override {}
 

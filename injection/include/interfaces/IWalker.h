@@ -1,11 +1,12 @@
 #ifndef WALKER_HEADER_VNV
 #define WALKER_HEADER_VNV
 
-#include "streaming/IDN.h"
-#include "json-schema.hpp"
 #include <memory>
 #include <list>
 #include <string>
+#include "streaming/IDN.h"
+#include "json-schema.hpp"
+
 
 namespace VnV {
 

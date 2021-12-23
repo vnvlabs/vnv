@@ -1,4 +1,4 @@
-from app.rendering.vnvdatavis.directives import basic, line,charts,jmes,dashboard,gauge,table, psip, issues
+from app.rendering.vnvdatavis.directives import basic, line,charts,jmes,dashboard,gauge,table, psip, issues, plotly
 
 
 def setup(sapp):
@@ -11,3 +11,4 @@ def setup(sapp):
     table.setup(sapp)
     psip.setup(sapp)
     issues.setup(sapp)
+    plotly.setup(sapp)

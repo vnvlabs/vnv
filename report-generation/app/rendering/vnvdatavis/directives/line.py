@@ -4,7 +4,7 @@ from sphinx.errors import ExtensionError
 
 from app.rendering.vnvdatavis.directives.charts import JsonChartDirective, VnVChartNode, ApexChartDirective
 from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query, get_target_node, jmes_jinja_query_json, \
-    jmes_check, jmes_jinja_zip
+    jmes_check, jmes_jinja_zip, jmes_jinja_query_join, jmes_jinja_query_str_array
 
 
 def jmes_expression(x):
@@ -99,6 +99,24 @@ def jmes_check_local(text):
         return text
     raise ExtensionError("Invalid Jmes")
 
+def jmes_array_str(text):
+    # Could be a string or, it could be an array of jmes stuff
+    return text
+
+
+def jmes_array_str_array(text):
+    try:
+        a = json.loads(text)
+        if isinstance(a,list):
+            for i in a:
+                jmes_array_str(i)
+            return text
+
+    except:
+        pass
+
+    raise ExtensionError("Invalid Jmes Array Str Array")
+
 
 class ApexMultiLineChartDirective(ApexChartDirective):
     required_arguments = 0
@@ -106,25 +124,36 @@ class ApexMultiLineChartDirective(ApexChartDirective):
     file_argument_whitespace = True
     has_content = False
     option_spec = {
-        'yaxis': json_jmes_array,
-        'xaxis': jmes_check_local,
-        'type': json_array,
-        'labels': json_array,
-        'title': str,
+        'ydata': json_jmes_array,
+        'xdata': jmes_check_local,
+        'labels': jmes_array_str_array,
+        'colors' : json_array,
+        'type':   json_array,
+        'title':  jmes_array_str,
+        'ylabel': jmes_array_str,
+        'xlabel': jmes_array_str,
     }
 
     def getSeries(self):
         series = "["
-        yax = self.options.get("yaxis", [])
+
+        yax = self.options.get("ydata", [])
         labels = self.options.get("labels", [f'Series {i}' for i in range(0, len(yax))])
         type = self.options.get("type", ['line' for i in range(0, len(yax))])
+
         for n, y in enumerate(yax):
-            series += f'{{"name" : "{labels[n]}" , "data" : {jmes_jinja_query_json(y)} , "type" : "{type[n]}" }}'
+            series += f'{{"name" : "{jmes_jinja_query_str_array(labels[n])}" , ' \
+                      f'  "data" : {jmes_jinja_query_json(y)} , ' \
+                      f'  "type" : "{type[n]}" }}'
+
             series += "," if (n + 1 < len(yax)) else "]"
+
         return series
 
-    def getCatagories(self):
-        return jmes_jinja_query_json(self.options.get("xaxis", '`[]`'))
+    def getColors(self):
+        if "colors" in self.options:
+            return f' , "colors" : {self.options.get("colors")}'
+        return ""
 
     def getContent(self):
         return f'''
@@ -143,23 +172,23 @@ class ApexMultiLineChartDirective(ApexChartDirective):
             }},
             "stroke": {{
                 "curve": "smooth"
-            }},
+            }}
+            {self.getColors()},
             "plotOptions": {{
                 "bar": {{
                     "columnWidth": "50%"
                 }}
             }},
             "title": {{
-                "text": "{self.options.get('title', 'Multi Line Chart')}",
+                "text": {jmes_jinja_query_str_array(self.options.get('title', "'Multi Line Chart'"))}",
                 "align": "left"
             }},
             "xaxis": {{
-                "categories": {self.getCatagories()}
+                "categories": {jmes_jinja_query_json(self.options.get("xdata",'`[]`'))}
+                "type" : "numeric"
             }}
         }}
         '''
-
-
 
 class ApexTimeSeriesChartDirective(ApexChartDirective):
     required_arguments = 0
@@ -228,6 +257,7 @@ class ApexScatterChartDirective(ApexChartDirective):
 
     def getData(self):
         return jmes_jinja_zip({"x": self.options.get("xdata", '`[]`'), "y": self.options.get("ydata", "`[]`")})
+
     def getContent(self):
         return f'''
         {{
@@ -247,7 +277,7 @@ class ApexScatterChartDirective(ApexChartDirective):
              }}
           }},
           "xaxis": {{
-              "tickAmount": 10
+              "tickAmount": 10,
           }},
           "yaxis": {{
             "tickAmount": 7

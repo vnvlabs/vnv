@@ -41,10 +41,7 @@ class DataClass:
 
     def query(self, text) -> str:
         """Return the jmes query result"""
-        if (text == "Data.TotalTime"):
-            a = self._compile('TotalTime').search(self.data)
-            print(a)
-            return str(a[0])
+
         try:
             return self._compile(text).search(self.data)
         except Exception as e:
@@ -81,6 +78,34 @@ class DataClass:
         a = self.query(text)
         r =  json.dumps(a, cls=jmespath.VnVJsonEncoder)
         return r
+
+    def query_join(self, text):
+        """Return the jmes query as a string"""
+
+        a = self.query(text)
+        try:
+            return "".join([str(aa) for aa in a])
+        except:
+            return str(a)
+
+    def query_str_array(self, text):
+        """Return the jmes query as a string"""
+
+        try:
+            a = json.loads(text)
+            if isinstance(a,list):
+                x = []
+                for e in a:
+                    x.append(str(self.query(e)))
+                return "".join(x)
+        except:
+            pass
+
+        try:
+            return str(self.query(text))
+        except:
+            return str(text)
+
     def codeblock(self, text):
         """Return highlighted json html for the resulting jmes query"""
         j = self.query_str(text)

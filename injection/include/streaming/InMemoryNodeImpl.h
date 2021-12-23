@@ -19,11 +19,11 @@ namespace VnV {
 namespace Nodes {
 namespace Memory {
 
-#define INITMEMBER(name, Type)    \
-  if (name == nullptr) {          \
-    name.reset(new Type());       \
+#define INITMEMBER(name, Type)      \
+  if (name == nullptr) {            \
+    name.reset(new Type());         \
     rootNode()->registerNode(name); \
-    name->setname(#name);         \
+    name->setname(#name);           \
   }
 
 class InMemory {
@@ -50,7 +50,6 @@ class InMemory {
   };
 
   class ArrayNode : public DataBaseImpl<IArrayNode> {
-    std::string value;
     std::vector<std::shared_ptr<DataBase>> vec;
 
    public:
@@ -60,17 +59,12 @@ class InMemory {
       return (idx < vec.size()) ? (vec[idx]) : nullptr;
     }
 
-    std::string getValue() override { return value; }
-
     virtual std::size_t size() override { return vec.size(); };
 
     virtual void add(std::shared_ptr<DataBase> data) override { vec.push_back(data); }
-
-    GETTERSETTER(value, std::string)
   };
 
   class MapNode : public DataBaseImpl<IMapNode> {
-    std::string val;
     std::map<std::string, std::shared_ptr<ArrayNode>> map;
 
    public:
@@ -94,7 +88,6 @@ class InMemory {
       return (it == map.end()) ? nullptr : (it->second);
     }
 
-    virtual std::string getValue() override { return val; }
     virtual bool contains(std::string key) override { return map.find(key) != map.end(); }
 
     virtual std::vector<std::string> fetchkeys() override {
@@ -107,53 +100,53 @@ class InMemory {
 
     virtual std::size_t size() override { return map.size(); };
 
-    GETTERSETTER(val, std::string);
-
     virtual ~MapNode(){};
   };
 
-#define X(x, y)                                                                        \
-  class x##Node : public DataBaseImpl<I##x##Node> {                                    \
-    std::vector<std::size_t> shape;                                                    \
-    std::vector<y> value;                                                              \
-                                                                                       \
-   public:                                                                             \
-    x##Node() : DataBaseImpl<I##x##Node>() {}                                          \
-                                                                                       \
-    const std::vector<std::size_t>& getShape() override { return shape; }              \
-                                                                                       \
-    y getValueByShape(const std::vector<std::size_t>& rshape) override {               \
-      if (shape.size() == 0) {                                                         \
-        return value[0];                                                               \
-      }                                                                                \
-      if (rshape.size() != shape.size()) throw VnVExceptionBase("Invalid Shape");      \
-      int index = 0;                                                                   \
-      for (int i = 0; i < shape.size(); i++) {                                         \
-        index += rshape[i] * shape[i];                                                 \
-      }                                                                                \
-      return getValueByIndex(index);                                                   \
-    }                                                                                  \
-    void add(const y& v) { value.push_back(v); }                                       \
-    y getValueByIndex(const size_t ind) override { return value[ind]; }                \
-                                                                                       \
-    y getScalarValue() override {                                                      \
-      if (shape.size() == 0)                                                           \
-        return value[0];                                                               \
-      else                                                                             \
-        throw VnVExceptionBase("No shape provided to non scalar shape tensor object"); \
-    }                                                                                  \
-                                                                                       \
-    int getNumElements() override { return value.size(); }                             \
-    virtual ~x##Node() {}                                                              \
-    virtual void setShape(const std::vector<std::size_t>& s) { shape = s; }            \
-    virtual void setValue(const std::vector<y>& s) { value = s; }                      \
+#define X(x, y)                                                                                         \
+  class x##Node : public DataBaseImpl<I##x##Node> {                                                     \
+    std::vector<std::size_t> shape;                                                                     \
+    std::vector<y> value;                                                                               \
+                                                                                                        \
+   public:                                                                                              \
+    x##Node() : DataBaseImpl<I##x##Node>() {}                                                           \
+                                                                                                        \
+    const std::vector<std::size_t>& getShape() override { return shape; }                               \
+                                                                                                        \
+    y getValueByShape(const std::vector<std::size_t>& rshape) override {                                \
+      if (shape.size() == 0) {                                                                          \
+        return value[0];                                                                                \
+      }                                                                                                 \
+      if (rshape.size() != shape.size())                                                                \
+        throw INJECTION_EXCEPTION("%s: Invalid Shape Size %d (should be %d)", #x,  rshape.size(), shape.size()); \
+      int index = 0;                                                                                    \
+      for (int i = 0; i < shape.size(); i++) {                                                          \
+        index += rshape[i] * shape[i];                                                                  \
+      }                                                                                                 \
+      return getValueByIndex(index);                                                                    \
+    }                                                                                                   \
+    void add(const y& v) { value.push_back(v); }                                                        \
+    y getValueByIndex(const size_t ind) override { return value[ind]; }                                 \
+                                                                                                        \
+    y getScalarValue() override {                                                                       \
+      if (shape.size() == 0)                                                                            \
+        return value[0];                                                                                \
+      else                                                                                              \
+        throw INJECTION_EXCEPTION("%s: No shape provided to non scalar shape tensor object", #x);       \
+    }                                                                                                   \
+                                                                                                        \
+    int getNumElements() override { return value.size(); }                                              \
+    virtual ~x##Node() {}                                                                               \
+    virtual void setShape(const std::vector<std::size_t>& s) { shape = s; }                             \
+    virtual void setValue(const std::vector<y>& s) { value = s; }                                       \
   };
   DTYPES
 #undef X
 
   class InfoNode : public DataBaseImpl<IInfoNode> {
-    long date;
-    std::string title, value;
+    long start = 0;
+    long end = 0;
+    std::string title;
     std::shared_ptr<VnVProv> prov = nullptr;
 
     virtual std::shared_ptr<VnVProv> getProvInternal() { return prov; };
@@ -161,12 +154,12 @@ class InMemory {
    public:
     InfoNode() : DataBaseImpl<IInfoNode>() {}
     virtual std::string getTitle() override { return title; }
-    virtual long getDate() override { return date; }
-    virtual std::string getValue() override { return value; }
+    virtual long getStartTime() override { return start; }
+    virtual long getEndTime() override { return end; }
 
-    GETTERSETTER(date, long)
+    GETTERSETTER(start, long)
+    GETTERSETTER(end,long)
     GETTERSETTER(title, std::string)
-    GETTERSETTER(value, std::string)
     GETTERSETTER(prov, std::shared_ptr<VnVProv>)
 
     virtual ~InfoNode() {}
@@ -197,8 +190,8 @@ class InMemory {
 
   class TestNode : public DataBaseImpl<ITestNode> {
     long uid;
-
-    std::string package, value;
+    ITestNode::TestNodeUsage usage;
+    std::string package;
     std::shared_ptr<MapNode> data = nullptr;
     std::shared_ptr<ArrayNode> logs = nullptr;
     bool result;
@@ -215,14 +208,15 @@ class InMemory {
       INITMEMBER(logs, ArrayNode)
       return logs;
     }
-    virtual std::string getValue() override { return value; }
+
+    virtual ITestNode::TestNodeUsage getUsage() override { return usage; }
     virtual bool isInternal() override { return internal; }
 
     GETTERSETTER(uid, long);
     GETTERSETTER(result, bool);
     GETTERSETTER(internal, bool);
+    GETTERSETTER(usage, ITestNode::TestNodeUsage);
     GETTERSETTER(package, std::string);
-    GETTERSETTER(value, std::string);
     GETTERSETTER(data, std::shared_ptr<MapNode>)
     GETTERSETTER(logs, std::shared_ptr<ArrayNode>)
   };
@@ -232,12 +226,13 @@ class InMemory {
     std::shared_ptr<ArrayNode> tests;
     std::shared_ptr<TestNode> internal;
     std::string package;
-    std::string value;
 
     nlohmann::json sourceMap = json::object();
 
     long startIndex = -1;
     long endIndex = -1;
+    long startTime = -1;
+    long endTime = -1;
     long long commId;
 
     bool isIter = false;  // internal property to help with parsing.
@@ -245,11 +240,11 @@ class InMemory {
 
    public:
     GETTERSETTER(package, std::string)
-    GETTERSETTER(value, std::string)
     GETTERSETTER(sourceMap, nlohmann::json)
     GETTERSETTER(commId, long long)
     GETTERSETTER(internal, std::shared_ptr<TestNode>)
-
+    GETTERSETTER(startTime, long);
+    GETTERSETTER(endTime, long);
     GETTERSETTER(startIndex, long)
     GETTERSETTER(endIndex, long)
     GETTERSETTER(isIter, bool)
@@ -284,12 +279,12 @@ class InMemory {
     }
 
     virtual std::string getComm() override { return std::to_string(commId); }
-    virtual std::string getValue() override { return value; }
     virtual std::string getSourceMap() override { return sourceMap.dump(); }
 
     virtual long getStartIndex() override { return startIndex; }
     virtual long getEndIndex() override { return endIndex; }
-
+    virtual long getStartTime() override { return startTime; }
+    virtual long getEndTime() override { return endTime; }
     std::shared_ptr<TestNode> getTestByUID(long uid) {
       for (int i = 0; i < getTests()->size(); i++) {
         auto t = std::dynamic_pointer_cast<TestNode>(getTests()->get(i));
@@ -320,7 +315,6 @@ class InMemory {
     virtual std::string getLevel() override { return level; }
     virtual std::string getMessage() override { return message; }
     virtual std::string getComm() override { return comm; }
-    virtual std::string getValue() override { return message; }
     virtual std::string getStage() override { return stage; }
     virtual ~LogNode() {}
   };
@@ -329,20 +323,18 @@ class InMemory {
     bool local;
     long long key;
     std::shared_ptr<ArrayNode> logs;
-    std::string package, value;
+    std::string package;
     std::shared_ptr<MapNode> children;
 
    public:
     GETTERSETTER(local, bool)
     GETTERSETTER(key, long long)
     GETTERSETTER(package, std::string)
-    GETTERSETTER(value, std::string)
 
     DataNode() : DataBaseImpl<IDataNode>() {}
 
     virtual bool getLocal() override { return local; }
     virtual long long getDataTypeKey() override { return key; }
-    virtual std::string getValue() override { return value; }
 
     virtual std::shared_ptr<IMapNode> getData() override {
       INITMEMBER(children, MapNode)
@@ -359,18 +351,15 @@ class InMemory {
 
   class UnitTestResultNode : public DataBaseImpl<IUnitTestResultNode> {
     std::string desc;
-    std::string value;
     bool result;
 
    public:
     GETTERSETTER(desc, std::string)
-    GETTERSETTER(value, std::string)
     GETTERSETTER(result, bool)
 
     UnitTestResultNode() : DataBaseImpl<IUnitTestResultNode>() {}
     virtual std::string getDescription() override { return desc; }
     virtual bool getResult() override { return result; }
-    virtual std::string getTemplate() override { return value; }
     virtual ~UnitTestResultNode() {}
   };
 
@@ -391,7 +380,7 @@ class InMemory {
         auto b = a->getAsArrayNode(a)->get(0);
         return a->getAsUnitTestResultNode(a);
       }
-      throw VnVExceptionBase("Key error");
+      throw INJECTION_EXCEPTION("Unit Test Results Node: Key %s does not exist", key.c_str());
     };
 
     void insert(std::string name, std::shared_ptr<IUnitTestResultNode> value) { getM()->insert(name, value); }
@@ -404,7 +393,7 @@ class InMemory {
   };
 
   class UnitTestNode : public DataBaseImpl<IUnitTestNode> {
-    std::string package, value;
+    std::string package;
     std::shared_ptr<ArrayNode> logs;
     std::shared_ptr<MapNode> children;
     std::shared_ptr<UnitTestResultsNode> resultsMap;
@@ -412,8 +401,6 @@ class InMemory {
 
    public:
     GETTERSETTER(package, std::string)
-    GETTERSETTER(value, std::string)
-    GETTERSETTER(testTemplate, MetaData)
 
     UnitTestNode() : DataBaseImpl<IUnitTestNode>() {}
 
@@ -424,17 +411,10 @@ class InMemory {
       return children;
     }
 
-    virtual std::string getValue() override { return value; }
-
     virtual std::shared_ptr<IArrayNode> getLogs() override {
       INITMEMBER(logs, ArrayNode)
       return logs;
     };
-
-    virtual std::string getTestTemplate(std::string name) override {
-      auto it = testTemplate.find(name);
-      return (it == testTemplate.end()) ? "" : it->second;
-    }
 
     virtual std::shared_ptr<IUnitTestResultsNode> getResults() override {
       INITMEMBER(resultsMap, UnitTestResultsNode)
@@ -444,7 +424,6 @@ class InMemory {
 
   class RootNode : public DataBaseImpl<IRootNode> {
     long lowerId, upperId;
-    long duration = -1;
     std::atomic<bool> _processing = ATOMIC_VAR_INIT(true);
 
     std::shared_ptr<VnVSpec> spec;
@@ -463,7 +442,6 @@ class InMemory {
    public:
     GETTERSETTER(lowerId, long);
     GETTERSETTER(upperId, long);
-    GETTERSETTER(duration, long);
     GETTERSETTER(infoNode, std::shared_ptr<InfoNode>)
 
     RootNode() : DataBaseImpl<IRootNode>(), spec(new VnVSpec()) {}
@@ -482,7 +460,6 @@ class InMemory {
       INITMEMBER(commInfo, CommInfoNode) return commInfo;
     }
 
-    virtual long getTotalDuration() override { return getduration(); }
     virtual bool processing() const override { return _processing.load(); }
 
     void lock() override {
@@ -496,27 +473,25 @@ class InMemory {
       }
     }
 
-    virtual std::shared_ptr<DataBase> findById_Internal(long id) override{
+    virtual std::shared_ptr<DataBase> findById_Internal(long id) override {
       auto it = idMap.find(id);
       if (it != idMap.end()) {
         return it->second;
       }
-      throw VnV::VnVExceptionBase("Invalid Id %s", id);
+      throw INJECTION_EXCEPTION("Invalid Id %s", id);
     }
 
-    virtual void registerNodeInternal(std::shared_ptr<DataBase> ptr) { 
-      idMap[ptr->getId()] = ptr;
-    }
+    virtual void registerNodeInternal(std::shared_ptr<DataBase> ptr) { idMap[ptr->getId()] = ptr; }
 
     virtual std::map<long, std::list<IDN>>& getNodes() override { return nodes; }
 
-    void addIDN(long id, long streamId, node_type type, long index, long duration, std::string stage) override {
+    void addIDN(long id, long streamId, node_type type, long index, std::string stage) override {
       auto it = nodes.find(index);
       if (it == nodes.end()) {
         nodes[index] = std::list<IDN>();
-        nodes[index].push_back(IDN(id, streamId, type, duration, stage));
+        nodes[index].push_back(IDN(id, streamId, type, stage));
       } else {
-        (it->second).push_back(IDN(id, streamId, type, duration, stage));
+        (it->second).push_back(IDN(id, streamId, type, stage));
       }
     }
 

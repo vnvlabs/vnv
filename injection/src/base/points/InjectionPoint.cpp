@@ -44,7 +44,6 @@ InjectionPointBase::InjectionPointBase(std::string packageName, std::string name
   }
 }
 
-
 void InjectionPointBase::addTest(TestConfig& config) {
   config.setParameterMap(parameterMap);
   std::shared_ptr<ITest> test = TestStore::instance().getTest(config);
@@ -64,13 +63,22 @@ void InjectionPointBase::setInjectionPointType(InjectionPointType type_, std::st
 void InjectionPointBase::setComm(ICommunicator_ptr comm) { this->comm = comm; }
 
 void InjectionPointBase::runTestsInternal(OutputEngineManager* wrapper) {
-  if (callback != nullptr) {
-    wrapper->testStartedCallBack(package, "__internal__", true, -1);
-    callback->call(comm, wrapper, parameterMap, type, stageId);
-    wrapper->testFinishedCallBack(true);  // TODO callback should return bool "__internal__");
-  }
-  for (auto it : m_tests) {
-    it->_runTest(comm, wrapper, type, stageId);
+  try {
+    if (callback != nullptr) {
+      wrapper->testStartedCallBack(package, "__internal__", true, -1);
+      try {
+        callback->call(comm, wrapper, parameterMap, type, stageId);
+      } catch (VnVExceptionBase& e) {
+        VnV_Error(VNVPACKAGENAME, "Error Running internal Test: %s", e.what());
+      }
+      wrapper->testFinishedCallBack(true);  // TODO callback should return bool "__internal__");
+    }
+    for (auto it : m_tests) {
+      it->_runTest(comm, wrapper, type, stageId);
+    }
+
+  } catch (VnVExceptionBase& e) {
+    VnV_Error(VNVPACKAGENAME, "Exception occured when running tests");
   }
 }
 

@@ -27,7 +27,7 @@ template <typename T> T calculateNumElements(const std::vector<T>& shape) {
 
 template <typename T> T computeShapeIndex(const std::vector<T>& rshape, const std::vector<T>& shape) {
   if (rshape.size() != shape.size()) {
-    throw VnVExceptionBase("Invalid Shape");
+    throw INJECTION_EXCEPTION("Invalid Shape. Size is %s when it should be %s", shape.size(), rshape.size() );
   }
 
   T index = 0;

@@ -9,7 +9,7 @@
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/DataTypeStore.h"
 #include "base/stores/ReductionStore.h"
-#include "base/ActionType.h"
+#include "interfaces/ActionType.h"
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/Logging.h"
 #include "c-interfaces/PackageName.h"
@@ -110,38 +110,69 @@ class IOutputEngine {
   // Get all the  class types that might have a datatype wrapper.
   template <typename T, typename std::enable_if<vnv_has_datatype<T>{}, T>::type* = nullptr>
   void Put(std::string variableName, const T& value, const MetaData& m = MetaData()) {
-    auto it = DataTypeStore::instance().getDataType(T::vnv_datatype);
-    if (it != nullptr) {
-      it->setData(&value);
+    try {
+      auto it = DataTypeStore::instance().getDataType(T::vnv_datatype);
+      if (it != nullptr) {
+        it->setData(&value);
+        return;
+      }
+    } catch (VnVExceptionBase e) {
+        VnV_Error(VNVPACKAGENAME, "Could not put Data Type %s because %s ", T::vnv_datatype.c_str(), e.what());
     }
+    VnV_Error(VNVPACKAGENAME, "Could not put Data Type %s because it does not exist ", T::vnv_datatype.c_str());
+    
+   
   }
 
   template <typename T>
   void Write(std::string variableName, long long key, T* data, const BaseAction& action, const MetaData& m = MetaData()) {
        int total = action.count(comm, getRoot());
 
-    IDataType_vec vec(total);
-
-    auto& c = DataTypeStore::instance();
+    try {
+      
+      IDataType_vec vec(total);
+      auto& c = DataTypeStore::instance();
     
-    for (int i = 0; i < total; i++) {
-    vec[i] = c.getDataType(key);
-      (vec[i])->setData((void*)&(data[i]));
-    }
-    action.write(comm, key, variableName, vec, this, m);
+      for (int i = 0; i < total; i++) {
+        auto di = c.getDataType(key);
+        if (di != nullptr ) {
+            di->setData((void*)&(data[i]));
+            vec[i] = di;
+        } else {
+          VnV_Error(VNVPACKAGENAME, "Could not write %s as datatype does not exist", variableName.c_str());
+          return;
+        }
+      }
+      action.write(comm, key, variableName, vec, this, m);
+    
+    } catch (VnVExceptionBase &e ) {
+       VnV_Error(VNVPACKAGENAME, "Could not write %s", variableName.c_str());
+    }    
+
   }
 
   
   template <typename T, typename std::enable_if<vnv_has_datatype<T>{}, T>::type* = nullptr>
   void Write(std::string variableName, T* data, const BaseAction& action, const MetaData& m = MetaData()) {
-      auto did = DataTypeStore::instance().getDataType(T::vnv_datatype)->getKey();
-      Write(variableName,did,data,action,m);
+      auto did = DataTypeStore::instance().getDataType(T::vnv_datatype);
+      if (did != nullptr) {
+        Write(variableName,did->getKey(),data,action,m);
+      } else {
+        VnV_Error(VNVPACKAGENAME, "Could not write %s", variableName.c_str());   
+      }
+
   }
 
   template <typename T, typename std::enable_if<!(vnv_has_datatype<T>{}), T>::type* = nullptr>
   void Write(std::string variableName, T* data, const BaseAction& action, const MetaData& m = MetaData()) {
-      auto did = DataTypeStore::instance().getDataType(typeid(T).name())->getKey();
-      Write(variableName,did,data,action,m);
+      auto did = DataTypeStore::instance().getDataType(typeid(T).name());
+      if (did != nullptr ) {
+         Write(variableName,did->getKey(),data,action,m);
+      } else {
+        VnV_Error(VNVPACKAGENAME, "Could not write %s", variableName.c_str());   
+      }
+     
+     
   }
 
   /**
@@ -346,12 +377,17 @@ class MatrixAction : public BaseAction {
   MatrixAction(int x_, int y_, int columns = 1) : x(x_), y(y_), ymax(columns) {}
   virtual void write(ICommunicator_ptr comm, long long dtype, std::string variableName, IDataType_vec data,
                      IOutputEngine* engine, const MetaData& m) const override {
+    
     int s = comm->Size();  // number of processors.
 
     // If ymax is not a multiple of y we have an issue
     // If ymax/y is not a multiple of s we have an issue
-    if ((ymax % y != 0) && (s % (ymax / y) != 0))
-      throw VnV::VnVExceptionBase("Invalid matrix Size given for Matrix Action");
+    if ((ymax % y != 0) && (s % (ymax / y) != 0)) {
+      VnV_Error(VNVPACKAGENAME, "Invalid matrix Size given for Matrix Action. ymax should"
+                                "be a multiple of y and (ymax/y) should be a multiple of s."
+                                "{ ymax: %d, y: %d , s: %d,  ",ymax,y,s);
+      return;
+    }
 
     int r = comm->Rank();
     int xs = x * y * comm->Size() / ymax;
@@ -647,6 +683,8 @@ class IInternalOutputEngine : public IOutputEngine{
  public:
   virtual void setFromJson(ICommunicator_ptr worldComm, json& configuration, bool readMode) = 0;
 
+  virtual void sendInfoNode(ICommunicator_ptr worldComm) = 0;
+
   virtual json getConfigurationSchema(bool readMode) = 0;
 
   virtual void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string id,
@@ -675,7 +713,7 @@ class IInternalOutputEngine : public IOutputEngine{
 
   virtual std::string print() = 0;
 
-  virtual void finalize(ICommunicator_ptr worldComm, long duration) = 0;
+  virtual void finalize(ICommunicator_ptr worldComm, long currentTime) = 0;
 
   virtual ~IInternalOutputEngine() = default;
 };
@@ -690,8 +728,6 @@ class OutputEngineManager : public IInternalOutputEngine {
   std::string getKey() { return key; };
 
   void set(ICommunicator_ptr world, json& configuration, std::string key, bool readMode);
-
-  virtual std::string getMainFilePath() { throw VnVExceptionBase("Engine does not write to file"); }
 
   IOutputEngine* getOutputEngine();
 

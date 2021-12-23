@@ -29,10 +29,10 @@ std::string PipelineStore::getPipeline(std::string packageName,
     if (JsonUtilities::validate(config, json::parse(s->schema()))) {
       return s->generatePipeline(config);
     } else {
-      throw VnV::VnVExceptionBase("Bad Config failed validation");
+      throw INJECTION_EXCEPTION("Pipeline %s:%s config failed validation", packageName.c_str(), name.c_str());
     }
   }
-  throw VnV::VnVExceptionBase("Unknown Pipeline: %s:%s", packageName.c_str(), name.c_str());
+  throw INJECTION_EXCEPTION("Unknown Pipeline: %s:%s", packageName.c_str(), name.c_str());
 
 }
 

@@ -1,14 +1,12 @@
-{% extends "layouts/base.html" %}
+{% extends "layouts/basic.html" %}
 
-{% block title %} {{file.name}} {% endblock %}
+{% block title %}  {% endblock %}
 
 {% block stylesheets %} {% endblock stylesheets %}
 
 {% block content %}
 
-{% with count = 0 %}
-{% include 'files/tab-view-content.html' %}
-{% endwith %}
+{{content|safe}}
 
 {% endblock content %}
 

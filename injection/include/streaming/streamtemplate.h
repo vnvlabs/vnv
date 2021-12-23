@@ -11,7 +11,7 @@
 #include <string>
 #include <thread>
 
-#include "base/ActionType.h"
+#include "interfaces/ActionType.h"
 #include "base/DistUtils.h"
 #include "base/Runtime.h"
 #include "streaming/Nodes.h"
@@ -36,7 +36,7 @@ constexpr auto outputFile = "outputFile";
   X(comm)        \
   X(children)    \
   X(prov)        \
-  X(duration)    \
+  X(time)    \
   X(key)         \
   X(stage)       \
   X(message)     \
@@ -53,7 +53,6 @@ constexpr auto outputFile = "outputFile";
   X(line)        \
   X(filename)    \
   X(results)     \
-  X(time)        \
   X(spec) X(commList) X(testuid) X(sdt) X(title) X(nodeMap) X(worldSize) X(date)
 #define X(a) constexpr auto a = #a;
 NTYPES
@@ -79,7 +78,7 @@ namespace JSN {
   X(fetch)                     \
   X(fetchSuccess)              \
   X(fetchFail)                 \
-  X(testStarted) X(file) X(done) X(duration) X(testFinished) X(unitTestStarted) X(unitTestFinished) X(commInfo) X(info)
+  X(testStarted) X(file) X(done) X(finalTime) X(testFinished) X(unitTestStarted) X(unitTestFinished) X(commInfo) X(info)
 
 #define X(a) constexpr auto a = #a;
 NTYPES
@@ -132,7 +131,7 @@ template <typename V> class Iterator {
       getLine(current.first, current.second);
 
       if (!current.first.contains(JSD::node)) {
-        throw VnV::VnVExceptionBase("Stream sent info without node %s", current.first.dump());
+        throw INJECTION_EXCEPTION("Stream sent info without node %s", current.first.dump().c_str());
       }
       if ((current.first)[JSD::node].template get<std::string>() == JSN::done) {
         donedone = true;
@@ -146,7 +145,9 @@ template <typename V> class Iterator {
     return current.second;
   };
 
-  virtual void respond(long id, long jid, const json& response) { throw VnVExceptionBase("Not implemented Error"); }
+  virtual void respond(long id, long jid, const json& response) {
+    throw INJECTION_EXCEPTION_("This reader does not implement the respond function.");
+  }
 
   virtual ~Iterator(){};
 
@@ -251,7 +252,7 @@ class JsonSingleStreamIterator : public Iterator<json> {
       currentValue = content.front().id;
       content.pop();
     } else {
-      throw VnV::VnVExceptionBase("get line called when no line available");
+      throw INJECTION_EXCEPTION_("get line called when no line available");
     }
   }
 
@@ -331,7 +332,7 @@ class JsonPortStreamIterator : public MultiStreamIterator<JsonSingleStreamIterat
   ~JsonPortStreamIterator() {}
 };
 
-template <typename T> T WriteDataJson(IDataType_vec gather) {
+template <typename T> T WriteDataJson(IDataType_vec gather) {  
   void* outdata;
   T main = T::array();
   for (int i = 0; i < gather.size(); i++) {
@@ -344,7 +345,14 @@ template <typename T> T WriteDataJson(IDataType_vec gather) {
       T childJson = T::object();
 
       PutData& p = it.second;
-      outdata = d->getPutData(it.first);
+      try {
+        outdata = d->getPutData(it.first);  // TODO_THROWS
+      } catch (VnV::VnVExceptionBase& e) {
+        HTHROW INJECTION_EXCEPTION(
+            "DataType is not configured Correctly %s is listed as a type in"
+            "get local put data, but getPutData throws when it is passed to it.",
+            it.first.c_str());
+      }
       childJson[JSD::node] = JSN::shape;
       childJson[JSD::name] = p.name;
       childJson[JSD::shape] = p.shape;
@@ -413,7 +421,7 @@ template <typename T> T WriteDataJson(IDataType_vec gather) {
 template <typename T> class StreamWriter {
  public:
   virtual void initialize(nlohmann::json& config, bool readMode) = 0;
-  virtual void finalize(ICommunicator_ptr worldComm, long duration) = 0;
+  virtual void finalize(ICommunicator_ptr worldComm, long currentTime) = 0;
   virtual void newComm(long id, const T& obj, ICommunicator_ptr comm) = 0;
   virtual void write(long id, const T& obj, long jid) = 0;
 
@@ -429,25 +437,23 @@ template <typename T> class StreamWriter {
 };
 
 template <typename T> class PortStreamWriter : public StreamWriter<T> {
- 
- std::string username;
- std::string password;
- std::string port;
- std::string reader; 
+  std::string username;
+  std::string password;
+  std::string port;
+  std::string reader;
 
-   virtual std::string autostart(const json& config) {
+  virtual std::string autostart(const json& config) {
 #ifdef WITH_LIBCURL
 
     std::string readerUrl = config.value("url", "localhost:5000");
     std::string newurl = readerUrl + "/files/autostart";
 
     std::ostringstream oss;
-    oss << "reader=" << reader 
-        << "&username=" << username << ""
+    oss << "reader=" << reader << "&username=" << username << ""
         << "&password=" << password << ""
         << "&name=" << config.value("name", "vnv_report") << ""
         << "&__token__=" << config.value("vnvpass", "password") << "";
-       
+
     if (config.value("persist", true)) {
       oss << "&persist=on";
     }
@@ -462,42 +468,32 @@ template <typename T> class PortStreamWriter : public StreamWriter<T> {
     if (w.getCode() == 200) {
       std::cout << "Auto Start Successfull" << std::endl;
       return w.getData();
-    } 
-#endif
-   throw VnV::VnVExceptionBase("Auto Start Failed");
-
-}
+    }
+  #endif
+    throw INJECTION_EXCEPTION_("Could not autostart the engine reader.");
+  }
 
  public:
-
   std::string init(std::string reader, const json& config) {
-    
     username = config.value("username", "root");
     password = config.value("password", "password");
     this->reader = reader;
-   
+
     std::string newFileStub;
-    
+
     if (config.contains("autostart")) {
-       newFileStub = autostart(config["autostart"]);
+      newFileStub = autostart(config["autostart"]);
     } else {
-       newFileStub = config["filename"].get<std::string>();
+      newFileStub = config["filename"].get<std::string>();
     }
 
-    VnV::Curl::CurlWrapper::instance().addBasic(username,password);
+    VnV::Curl::CurlWrapper::instance().addBasic(username, password);
     return newFileStub;
   }
-  
-  std::string getUsername() {
-    return username;
-  }
 
-  std::string getPassword() {
-    return password;
-  }
-  
+  std::string getUsername() { return username; }
 
-  
+  std::string getPassword() { return password; }
 };
 
 template <typename T> class StreamManager : public OutputEngineManager {
@@ -533,7 +529,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   std::string getId() { return std::to_string(StreamManager<T>::id++); }
 
   virtual void write(T& j) {
-    j[JSD::duration] = VnV::RunTime::instance().duration();
+    j[JSD::time] = VnV::RunTime::instance().currentTime();
     if (stream != nullptr) {
       stream->write(comm->uniqueId(), j, StreamManager<T>::id++);
     }
@@ -554,8 +550,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
         nJson[JSD::node] = JSN::commInfo;
         nJson[JSD::comm] = id;
         nJson[JSD::commList] = procList;
-
-        nJson[JSD::duration] = VnV::RunTime::instance().duration();
+        nJson[JSD::time] = VnV::RunTime::instance().currentTime();
 
         stream->newComm(id, nJson, comm);
       }
@@ -685,15 +680,19 @@ template <typename T> class StreamManager : public OutputEngineManager {
     IDataType_vec gather = d.GatherV(data, dtype, getRoot(), gsizes, sizes, offset, false);
 
     if (gather.size() > 0 && comm->Rank() == getRoot()) {
-      json j;
-      j[JSD::name] = variableName;
-      j[JSD::node] = JSN::shape;
-      j[JSD::shape] = gsizes;
-      j[JSD::dtype] = JST::GlobalArray;
-      j[JSD::key] = dtype;
-      j[JSD::meta] = m;
-      j[JSD::children] = WriteDataJson<json>(gather);
-      write(j);
+      try {
+        json j;
+        j[JSD::name] = variableName;
+        j[JSD::node] = JSN::shape;
+        j[JSD::shape] = gsizes;
+        j[JSD::dtype] = JST::GlobalArray;
+        j[JSD::key] = dtype;
+        j[JSD::meta] = m;
+        j[JSD::children] = WriteDataJson<json>(gather);
+        write(j);
+      } catch (VnV::VnVExceptionBase& e) {
+        VnV_Error(VNVPACKAGENAME, "Could not Write Global Array: %s", e.what());
+      }
     }
   }
 
@@ -725,16 +724,16 @@ template <typename T> class StreamManager : public OutputEngineManager {
 
   json getConfigurationSchema(bool readMode) override { return stream->getConfigurationSchema(readMode); }
 
-  void finalize(ICommunicator_ptr worldComm, long duration) override {
+  void finalize(ICommunicator_ptr worldComm, long currentTime) override {
     setComm(worldComm, false);
     if (comm->Rank() == getRoot()) {
       T nJson = T::object();
-      nJson[JSD::node] = JSN::duration;
-      nJson[JSD::duration] = duration;
+      nJson[JSD::node] = JSN::finalTime;
+      nJson[JSD::time] = currentTime;
       write(nJson);
     }
 
-    stream->finalize(worldComm, duration);
+    stream->finalize(worldComm, currentTime);
   }
 
   T getNodeMap(ICommunicator_ptr world) {
@@ -761,6 +760,12 @@ template <typename T> class StreamManager : public OutputEngineManager {
     if (!readMode) {
       stream->initialize(config, readMode);
       setComm(worldComm, false);
+    }
+  }
+
+   void sendInfoNode(ICommunicator_ptr worldComm) override {
+    
+      setComm(worldComm, false);
 
       T node_map = getNodeMap(worldComm);
 
@@ -768,9 +773,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
         // This is the first one so we send over the info. .
         T nJson = T::object();
         nJson[JSD::title] = "VnV Simulation Report";
-        nJson[JSD::date] =
-            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
-                .count();
+        nJson[JSD::date] = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         nJson[JSD::name] = "MainInfo";
         nJson[JSD::node] = JSN::info;
         nJson[JSD::worldSize] = comm->Size();
@@ -781,7 +784,6 @@ template <typename T> class StreamManager : public OutputEngineManager {
 
         write(nJson);
       }
-    }
   }
 
   void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile, std::string filename,
@@ -970,7 +972,7 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
     )"_json;
   };
 
-  virtual void finalize(ICommunicator_ptr wcomm, long duration) = 0;
+  virtual void finalize(ICommunicator_ptr wcomm, long currentTime) = 0;
 
   virtual void newComm(long id, const V& obj, ICommunicator_ptr comm) = 0;
 
@@ -1130,7 +1132,7 @@ template <class DB> class StreamParserTemplate {
       auto n = mks<typename DB::InfoNode>(j);
       n->open(true);
       n->settitle(j[JSD::title].template get<std::string>());
-      n->setdate(j[JSD::date].template get<long>());
+      n->setstart(j[JSD::date].template get<long>());
       n->setprov(std::make_shared<VnVProv>(j[JSD::prov]));
 
       rootInternal()->setspec(j[JSD::spec]);
@@ -1173,9 +1175,9 @@ template <class DB> class StreamParserTemplate {
 
       if (!rootInternal()->getActions()->contains(pn)) {
         auto n = mks<typename DB::TestNode>(j);
+        n->setusage(ITestNode::TestNodeUsage::ACTION);
         n->setpackage(package);
         n->open(true);
-        n->setvalue(rootInternal()->getVnVSpec().action(n->getpackage(), n->getName()));
         rootInternal()->getActions()->insert(pn, n);
         return n;
       }
@@ -1193,9 +1195,9 @@ template <class DB> class StreamParserTemplate {
 
     virtual std::shared_ptr<typename DB::TestNode> visitPackageNodeStarted(const T& j) {
       auto n = mks_str<typename DB::TestNode>("Information");
+      n->setusage(ITestNode::TestNodeUsage::PACKAGE);
       n->open(true);
       n->setpackage(j[JSD::package].template get<std::string>());
-      n->setvalue(rootInternal()->getVnVSpec().package(n->getpackage()));
       return n;
     };
 
@@ -1209,16 +1211,6 @@ template <class DB> class StreamParserTemplate {
       auto n = mks<typename DB::UnitTestNode>(j);
       n->open(true);
       n->setpackage(j[JSD::package].template get<std::string>());
-
-      json templs = rootInternal()->getVnVSpec().unitTest(n->getpackage(), n->getName());
-      n->setvalue(templs["docs"].get<std::string>());
-
-      std::map<std::string, std::string> testTemplate;
-      for (auto it : templs["tests"].items()) {
-        testTemplate[it.key()] = it.value().template get<std::string>();
-      }
-      n->settestTemplate(std::move(testTemplate));
-
       return n;
     };
 
@@ -1255,10 +1247,10 @@ template <class DB> class StreamParserTemplate {
       n->open(true);
       n->setuid(j[JSD::testuid].template get<long>());
       n->setpackage(j[JSD::package].template get<std::string>());
-      n->setvalue((j[JSD::internal].template get<bool>())
-                      ? ""
-                      : rootInternal()->getVnVSpec().test(n->getpackage(), n->getName()));
-      n->setinternal(j[JSD::internal]);
+
+      auto b = j[JSD::internal].template get<bool>();
+      n->setusage(b ? ITestNode::TestNodeUsage::INTERNAL : ITestNode::TestNodeUsage::TEST);
+      n->setinternal(b);
       return n;
     }
 
@@ -1287,12 +1279,12 @@ template <class DB> class StreamParserTemplate {
     }
 
     virtual std::shared_ptr<typename DB::InjectionPointNode> visitInjectionPointStartedNode(const T& j,
-                                                                                            long elementId) {
+                                                                                            long elementId, long time) {
       auto n = mks<typename DB::InjectionPointNode>(j);
       n->setpackage(j[JSD::package].template get<std::string>());
-      n->setvalue(rootInternal()->getVnVSpec().injectionPoint(n->getpackage(), n->getName()));
       n->setcommId(j[JSD::comm].template get<long>());
       n->setstartIndex(elementId);
+      n->setstartTime(time);
       n->open(true);
       addSource(j, n);
 
@@ -1326,10 +1318,12 @@ template <class DB> class StreamParserTemplate {
     }
 
     virtual std::shared_ptr<typename DB::InjectionPointNode> visitInjectionPointEndedNode(
-        const T& j, std::shared_ptr<DataBase> node, long elementId) {
+        const T& j, std::shared_ptr<DataBase> node, long elementId, long time) {
       auto n = std::dynamic_pointer_cast<typename DB::InjectionPointNode>(node);
       n->setendIndex(elementId);
+      n->setendTime(time);
       n->open(false);
+      
       return n;
     }
 
@@ -1377,7 +1371,7 @@ template <class DB> class StreamParserTemplate {
             auto p = jstream->next();
             visit(p.first, p.second);
           } catch (std::exception e) {
-            throw VnV::VnVExceptionBase(e.what());
+            throw INJECTION_EXCEPTION("Unknown Exception Found: %s", e.what());
           }
 
           releaseWriteLock();
@@ -1405,7 +1399,7 @@ template <class DB> class StreamParserTemplate {
 
     void release() override { read_lock.store(false, std::memory_order_relaxed); }
 
-    void childNodeDispatcher(std::shared_ptr<DataBase> child, long elementId, long duration) {
+    void childNodeDispatcher(std::shared_ptr<DataBase> child, long elementId, long currentTime) {
       std::shared_ptr<DataBase> parent = jstream->top();
 
       DataBase::DataType ptype = (parent == nullptr) ? DataBase::DataType::Root : parent->getType();
@@ -1445,33 +1439,40 @@ template <class DB> class StreamParserTemplate {
 
         if (ctype == DataBase::DataType::Test) {
           if (child->getAsTestNode(child)->isInternal()) {
-            p->setinternal(std::dynamic_pointer_cast<typename DB::TestNode>(child));
+            auto a = std::dynamic_pointer_cast<typename DB::TestNode>(child);
+            p->setinternal(a);
           } else {
             p->getTests()->add(child);
           }
 
         } else if (ctype == DataBase::DataType::Log) {
           p->getLogs()->add(child);
-          rootInternal()->addIDN(child->getId(), child->getStreamId(), node_type::LOG, elementId, duration, "Log");
+          rootInternal()->addIDN(child->getId(), child->getStreamId(), node_type::LOG, elementId, "Log");
         } else {
-          throw VnVExceptionBase("Hmmmm");
+          INJECTION_EXCEPTION(
+              "This should not happen -- Valid children for an injection point are types Test or Log, but this is type "
+              "%s",
+              child->getTypeStr().c_str());
         }
 
       } else if (ctype == DataBase::DataType::InjectionPoint) {
       } else if (ctype == DataBase::DataType::Log) {
-        rootInternal()->addIDN(child->getId(), child->getStreamId(), node_type::LOG, elementId, duration, "Log");
+        rootInternal()->addIDN(child->getId(), child->getStreamId(), node_type::LOG, elementId, "Log");
       } else {
-        throw VnVExceptionBase("Unsupported Parent element type");
+        throw INJECTION_EXCEPTION("Unsupported Parent element type %s", parent->getTypeStr().c_str());
       }
     }
 
     void visit(const T& j, long elementId) {
       std::string node = j[JSD::node].template get<std::string>();
 
-      long duration = j[JSD::duration].template get<long>();
+      std::cout << "VISIT" << j.dump() << std::endl;
 
-      if (node == JSN::duration) {
-        rootInternal()->setduration(j[JSD::duration].template get<long>());
+      long currentTime = j[JSD::time].template get<long>();
+
+      if (node == JSN::finalTime) {
+        auto i = rootInternal()->getInfoNode();
+        std::dynamic_pointer_cast<typename DB::InfoNode>(i)->setend(currentTime);
 
       } else if (node == JSN::done) {
         // DONE
@@ -1486,7 +1487,7 @@ template <class DB> class StreamParserTemplate {
 
       } else if (node == JSN::dataTypeStarted) {
         auto n = visitDataNodeStarted(j);
-        childNodeDispatcher(n, elementId, duration);
+        childNodeDispatcher(n, elementId, currentTime);
         jstream->push(n);
 
       } else if (node == JSN::info) {
@@ -1511,7 +1512,7 @@ template <class DB> class StreamParserTemplate {
         std::shared_ptr<typename DB::InjectionPointNode> p =
             std::dynamic_pointer_cast<typename DB::InjectionPointNode>(jstream->pop());
         p->setisOpen(false);
-        visitInjectionPointEndedNode(j, p, elementId);
+        visitInjectionPointEndedNode(j, p, elementId, currentTime);
 
         // Close the tests
         auto tests = p->getTests();
@@ -1519,16 +1520,16 @@ template <class DB> class StreamParserTemplate {
           tests->get(i)->open(false);
         }
 
-        rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::END, elementId, duration, "End");
+        rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::END, elementId,"End");
 
       } else if (node == JSN::injectionPointStarted) {
-        std::shared_ptr<typename DB::InjectionPointNode> p = visitInjectionPointStartedNode(j, elementId);
+        std::shared_ptr<typename DB::InjectionPointNode> p = visitInjectionPointStartedNode(j, elementId, currentTime);
 
         p->setisOpen(true);
-        childNodeDispatcher(p, elementId, duration);
+        childNodeDispatcher(p, elementId, currentTime);
         jstream->push(p);
 
-        rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::START, elementId, duration, "Begin");
+        rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::START, elementId, "Begin");
 
       } else if (node == JSN::injectionPointIterEnded) {
         std::shared_ptr<typename DB::InjectionPointNode> p =
@@ -1546,12 +1547,12 @@ template <class DB> class StreamParserTemplate {
         std::string stage = j[JSD::stageId].template get<std::string>();
         p->setisOpen(true);
         p->setisIter(true);
-        rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::ITER, elementId, duration, stage);
+        rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::ITER, elementId, stage);
 
       } else if (node == JSN::log) {
         std::shared_ptr<typename DB::LogNode> n = visitLogNode(j);
         n->setidentity(elementId);
-        childNodeDispatcher(n, elementId, duration);
+        childNodeDispatcher(n, elementId, currentTime);
 
       } else if (node == JSN::testFinished) {
         auto p = jstream->pop();
@@ -1567,7 +1568,8 @@ template <class DB> class StreamParserTemplate {
       } else if (node == JSN::testStarted) {
         auto p = jstream->top();
         if (p->getType() != DataBase::DataType::InjectionPoint) {
-          throw VnVExceptionBase("Bad Heirrarchy");
+          throw INJECTION_EXCEPTION("Bad Heirrarchy: Test Started called when top of stack is %s",
+                                    p->getTypeStr().c_str());
         }
 
         std::shared_ptr<typename DB::InjectionPointNode> pp =
@@ -1580,7 +1582,7 @@ template <class DB> class StreamParserTemplate {
           if (j[JSD::internal].template get<bool>()) {
             auto t = std::dynamic_pointer_cast<typename DB::TestNode>(pp->getinternal());
             if (t->getuid() != uid) {
-              throw VnV::VnVExceptionBase("Wrong uid for internal test");
+              throw INJECTION_EXCEPTION("Test UID is %d and message uid is %d", t->getuid(), uid);
             }
             visitTestNodeIterStarted(j, t);
             jstream->push(t);
@@ -1591,12 +1593,12 @@ template <class DB> class StreamParserTemplate {
               visitTestNodeIterStarted(j, t);
               jstream->push(t);
             } else {
-              throw VnV::VnVExceptionBase("ERROR COULD NOT FIND TEST DURING ITERATION");
+              throw INJECTION_EXCEPTION("Test UID does not exist : %d", uid);
             }
           }
         } else {
           std::shared_ptr<typename DB::TestNode> t = visitTestNodeStarted(j);
-          childNodeDispatcher(t, elementId, duration);
+          childNodeDispatcher(t, elementId, currentTime);
           jstream->push(t);
         }
 
@@ -1623,29 +1625,29 @@ template <class DB> class StreamParserTemplate {
         std::string type = j[JSD::dtype].template get<std::string>();
 
         if (type == JST::String) {
-          childNodeDispatcher(visitShapeNode<typename DB::StringNode, std::string>(j), elementId, duration);
+          childNodeDispatcher(visitShapeNode<typename DB::StringNode, std::string>(j), elementId, currentTime);
 
         } else if (type == JST::Bool) {
-          childNodeDispatcher(visitShapeNode<typename DB::BoolNode, bool>(j), elementId, duration);
+          childNodeDispatcher(visitShapeNode<typename DB::BoolNode, bool>(j), elementId, currentTime);
 
         } else if (type == JST::Long) {
-          childNodeDispatcher(visitShapeNode<typename DB::LongNode, long>(j), elementId, duration);
+          childNodeDispatcher(visitShapeNode<typename DB::LongNode, long>(j), elementId, currentTime);
 
         } else if (type == JST::Double) {
-          childNodeDispatcher(visitShapeNode<typename DB::DoubleNode, double>(j), elementId, duration);
+          childNodeDispatcher(visitShapeNode<typename DB::DoubleNode, double>(j), elementId, currentTime);
 
         } else if (type == JST::Json) {
-          childNodeDispatcher(visitJsonNode(j), elementId, duration);
+          childNodeDispatcher(visitJsonNode(j), elementId, currentTime);
 
         } else if (type == JST::GlobalArray) {
-          childNodeDispatcher(visitGlobalArrayNode(j), elementId, duration);
+          childNodeDispatcher(visitGlobalArrayNode(j), elementId, currentTime);
 
         } else {
-          throw VnVExceptionBase("Bad data type");
+          throw INJECTION_EXCEPTION("Bad data type %s", type.c_str());
         }
 
       } else {
-        throw VnVExceptionBase("Unrecognized Node Type");
+        throw INJECTION_EXCEPTION("Unrecognized Node Type %s", node.c_str());
       }
     }
   };

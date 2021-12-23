@@ -14,6 +14,7 @@
 #include "interfaces/ITransform.h"
 #include "interfaces/argType.h"
 #include "json-schema.hpp"
+#include "interfaces/templates.h"
 
 #include "base/FunctionSigniture.h"
 #include "base/InjectionPointConfig.h"
@@ -94,7 +95,6 @@ class ITest {
     return m_config.getParameterMap().getPtr<T>(name, type, input);
   }
 
-  
 
  protected:
   TestConfig m_config;
@@ -103,6 +103,7 @@ class ITest {
 // Little shortcut macros for cases where the type name is the type.
 #define GetRef(name, T) getRef<T>(name, #T)
 #define GetPtr(name, T) getPtr<T>(name, #T)
+#define GetPtr_NoThrow(name, T) getPtr<T>(name, #T, true, false)
 
 
 typedef ITest* (*maker_ptr)(TestConfig config);

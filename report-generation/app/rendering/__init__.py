@@ -1,8 +1,9 @@
+import json
 import os
 import textwrap
+import uuid
 
 import sphinx.cmd.build
-
 
 conf_template = '''
 import sys
@@ -24,6 +25,7 @@ html_static_path = ['_static']
 
 '''
 
+
 def get_conf_template(fileId):
     return conf_template.format(fileId=fileId, path=os.path.abspath(os.path.join('app', 'rendering')))
 
@@ -39,13 +41,28 @@ def setup_build_directory(src_dir, fileId):
 
     # Override the template with a simple template that just shows the body.
 
+
 # files dict ( type -> package -> name -> template
 
 
 class TemplateBuild:
-    def __init__(self, src_dir, id_):
-        self.src_dir = src_dir
+    def __init__(self, src_dir, id_, descrip = None):
+        self.src_dir = os.path.basename(src_dir)
+        self.root_dir = src_dir
         self.file = id_
+        self.descrip = descrip
+
+
+    def read(self, f):
+        with open(os.path.join(self.root_dir, f), 'r') as ff:
+            r = ff.readlines()
+            return "".join(r)
+
+    def get_type_description(self, type, package, name):
+        if self.descrip is None:
+            with open(os.path.join(self.root_dir,"descriptions.json"),'r') as w:
+                self.descrip = json.load(w)
+        return self.descrip.get(type,{}).get(package + ":" + name )
 
     def get_html_file_name(self, type, package, name):
         return os.path.join(
@@ -59,7 +76,42 @@ class TemplateBuild:
         return self.get_html_file_name("Actions", package, name)
 
     def get_unit_test_test_content(self, package, name, test):
-        return os.path.join("renders",self.src_dir, "_build", "html", f"UnitTest_Test_{package}_{name}_{test}.html")
+        return os.path.join("renders", self.src_dir, "_build", "html", f"UnitTest_Test_{package}_{name}_{test}.html")
+
+    def render_temp_string(self, content):
+        temp_dir = os.path.join(self.root_dir, "temp")
+        if not os.path.exists(temp_dir):
+            setup_build_directory(temp_dir, self.file)
+
+        with open(os.path.join(temp_dir, "index.rst"), 'w') as w:
+            w.write(content)
+        params = ["-M", "html", temp_dir, os.path.join(temp_dir, "_build")]
+        sphinx.cmd.build.make_main(params)
+        return os.path.join("renders", self.src_dir, "temp", "_build", "html", "index.html")
+
+    def get_raw_rst(self, data):
+        usage = data.getUsageType()
+        if usage == "Internal":
+            return None  # not supported yet -- internal test doesn't know what ip it belongs to.
+        elif usage == "Package":
+            fname = f"Options_{data.getPackage()}.rst"
+
+        else:
+            fname = f"{usage}s_{data.getPackage()}_{data.getName()}.rst"
+
+        return self.read(fname)
+
+    def get_unit_test_test_raw(self, package, name, test):
+        return os.path.join("renders", self.src_dir, "_build", "html", f"UnitTest_Test_{package}_{name}_{test}.html")
+
+    def get_raw_introduction(self):
+        return self.read("Introduction.rst")
+
+    def get_raw_conclusion(self):
+        return self.read("Conclusion.rst")
+
+    def get_raw_package(self, package):
+        return self.read(f"Options_{package}.rst")
 
     def get_package(self, package):
         return os.path.join(
@@ -97,24 +149,23 @@ class TemplateBuild:
         return self.get_html_file_name("Files", package, name)
 
 
-
-
-
 def build(src_dir, templates, id_):
     setup_build_directory(src_dir, id_)
     fnames = []
+    descriptions = {}
     for type_, packages in templates.items():
-        if type_ in ["Introduction"]:
+        if type_ in ["Introduction", "Conclusion"]:
             fnames.append(f"{type_}.rst")
             with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
-                w.write(f'{textwrap.dedent(packages["docs"])}\n\n')
+                w.write(f'{textwrap.dedent(packages["docs"]["template"])}\n\n')
+
         elif type_ in ["Options"]:
             for package, docinfo in packages.items():
                 fnames.append("Options_" + package + ".rst")
                 with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
-                    w.write(f'\n\n{textwrap.dedent(docinfo["docs"])}\n\n')
+                    w.write(f'\n\n{textwrap.dedent(docinfo["docs"]["template"])}\n\n')
 
-        elif type_ not in ["Conclusion"]:
+        else:
             for package, point in packages.items():
                 name_package = package.split(":")
                 fnames.append(
@@ -124,11 +175,15 @@ def build(src_dir, templates, id_):
                     if len(point["docs"]) == 0:
                         w.write(f"\n\n<No information available>\n\n")
                     else:
-                        w.write(f"\n{textwrap.dedent(point['docs'])}\n\n")
+                        w.write(f"\n{textwrap.dedent(point['docs']['template'])}\n\n")
+
+
+                descriptions.setdefault(type_, {})[name_package[0] + ":" + name_package[1]] = point["docs"]
+
 
                 if type_ == "UnitTests":
                     tests = point["tests"]
-                    for test in tests.keys() :
+                    for test in tests.keys():
                         fnames.append(f"UnitTest_Test_{name_package[0]}_{name_package[1]}_{test}.rst")
                         with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
                             if len(point["docs"]) == 0:
@@ -136,20 +191,15 @@ def build(src_dir, templates, id_):
                             else:
                                 w.write(f"\n{textwrap.dedent(tests[test])}\n\n")
 
-        else:
-            fnames.append(f"{type_}.rst")
-            with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
-                w.write(f'\n\n{textwrap.dedent(packages["docs"])}\n\n')
-
     index = '''.. toctree::\n\t:maxdepth: 22\n\t:caption: Contents:\n\n\t{files}\n\n'''.format(
         files="\n\t".join(fnames))
     with open(os.path.join(src_dir, "index.rst"), 'w') as w:
         w.write(index)
 
+    with open(os.path.join(src_dir, "descriptions.json"), 'w') as w:
+        json.dump(descriptions,w)
+
     params = ["-M", "html", src_dir, os.path.join(src_dir, "_build")]
     sphinx.cmd.build.make_main(params)
 
-    return TemplateBuild(os.path.basename(src_dir), id_)
-
-
-
+    return TemplateBuild(src_dir, id_,descrip=descriptions)

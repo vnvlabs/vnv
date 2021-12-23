@@ -77,7 +77,7 @@ cpuRunner::~cpuRunner() {}
  * ==============================
  *
  * The overall time was :vnv:`TotalTime[0]` :vnv:`units[0]`
- *
+ * 
  * .. vnv-chart::
  *
  *    {

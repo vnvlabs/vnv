@@ -1,6 +1,15 @@
 
-<div class="card" style="padding:10px; overflow:scroll;">
-    <div id="data_tree_div_ip" style="">
+<div class="card" style="padding:10px; overflow:scroll; display: flex; flex-direction:row; ">
+    <div id="data_tree_div_ip" style="width:50%; overflow:scroll; margin-right:10px;">
+    </div>
+    <div id="data_jmes_div" style="width:50%; overflow:scroll; display:flex; flex-direction:column; margin-left:10px;">
+        <div id="name-group" class="form-group">
+            <label for="jmes_query" class="col-form-label">JMES Path Query: Press Enter to Submit</label>
+            <input type="text" class="form-control" name="name" id="jmes_query">
+        </div>
+        <div class="card" style="padding:10px; font-size:20px; margin:5px; flex-grow:1" id="jmes_query_result">
+            Results will display here:
+        </div>
     </div>
 </div>
 <script>
@@ -14,12 +23,12 @@ $(document).ready( function () { $('#data_tree_div_ip').jstree(
     'data' : {
       url : function (node) {
         if (node.id === "#")
-            return  '/files/viewers/data_root/{{iprender.getFile()}}';
+            return  '/files/viewers/data_root/{{fileId}}';
         return  '/files/data';
       },
       data : function (node) {
         if (node.id === "#")
-            return  { "ipid" : {{iprender.getId()}} };
+            return  { "ipid" : {{dataId}} };
         return { 'fileId':node.li_attr.fileId , nodeId : node.li_attr.nodeId  };
       },
       dataType : "json"
@@ -29,7 +38,13 @@ $(document).ready( function () { $('#data_tree_div_ip').jstree(
     "contextmenu", "dnd", "search",
     "state", "types", "wholerow"
   ]
-}
-);
+});
+
+$("#jmes_query").change(function() {
+  $.get('/files/viewers/jmes-query?fileId={{fileId}}&dataId={{dataId}}&query=' + encodeURIComponent($(this).val()) , function(data) {
+    $('#jmes_query_result').html(data);
+  });
+});
+
 });
 </script>

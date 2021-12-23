@@ -134,7 +134,7 @@ class ExampleDataType : public VnV::IDataType {
     } else if (name.compare("z") == 0) {
       return &(t->getZ());
     }
-    throw VnV::VnVExceptionBase("Invalid Put Data Name");
+    HTHROW INJECTION_EXCEPTION("Invalid Put Data Request %s. Only x,y,z are supported", name.c_str() );
   }
 };
 

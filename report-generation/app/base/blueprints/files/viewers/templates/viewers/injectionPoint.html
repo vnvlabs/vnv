@@ -1,5 +1,5 @@
 <div style="display:flex; align-items:center ">
-    <h1 style="flex:1"> Injection Point: {{iprender.getName()}} from {{ iprender.getPackage()}} </h1>
+    <h1 style="flex:1"> {{ iprender.getTitle()}}</h1>
     {% if iprender.getLogs() | length %}
     <button class="btn  btn-icon btn-outline-primary " type="button" style="margin-right:10px"
             onclick="$('#log-modal').modal('toggle')" aria-haspopup="true" aria-expanded="false"><i
@@ -7,32 +7,51 @@
     </button>
     {%endif%}
 
-    <a id='ipprocessing-{{iprender.getId()}}' href="#!" onclick="" class="badge badge-success" style="margin-left:10px" ;>{{iprender.getStatus()}}</a>
-    <a href="#!" onclick="$('#comm-modal').modal('toggle')" class="badge badge-success" style="margin-left:10px" ;>Communication Map </a>
-    <a href="#!" onclick="$('#source-modal').modal('toggle')" class="badge badge-info" style="margin-left:10px" ;>Source Code</a>
-    <a href="#!" onclick="$('#data-modal').modal('toggle')" class="badge badge-info" style="margin-left:10px" ;>Data Explorer</a>
+    <a id='ipprocessing-{{iprender.getId()}}' href="#!" onclick="" class="badge badge-success" style="margin-left:10px"
+       ;>{{iprender.getStatus()}}</a>
+    <a href="#!" onclick="$('#comm-modal').modal('toggle')" class="badge badge-success" style="margin-left:10px" ;>Communication
+        Map </a>
+    <a href="#!" onclick="show_rst_editor({{iprender.getFile()}}, {{iprender.getId()}}, {{iprender.getInternalTest().getData().getId()}} )"" class="badge badge-success" style="margin-left:10px"
+       ;>RST</a>
+    <a href="#!" onclick="$('#source-modal').modal('toggle')" class="badge badge-info" style="margin-left:10px" ;>Source
+        Code</a>
+    <a href="#!" onclick="show_data_explorer({{iprender.getFile()}}, {{iprender.getId()}})" class="badge badge-info" style="margin-left:10px" ;>Data
+        Explorer</a>
 
     <script>
         setTimeout(function() {
               update_ip_processing("ipprocessing-{{iprender.getId()}}", {{iprender.getFile()}},{{iprender.getId()}})
         }, 3000 )
+
     </script>
 </div>
 
 {%include "viewers/request.html"%}
 
-
+<div class="iscale">
 {% with testrender = iprender.getInternalTest() %}
 {%include 'viewers/test.html' %}
 {% endwith %}
+</div>
 
 
 {% if iprender.getAdditionalTests() | length > 0 %}
+<div class="injection-tests" >
+    {% for testrender in iprender.getAdditionalTests() %}
 
-{% for testrender in iprender.getAdditionalTests() %}
-{%include 'viewers/test.html' %}
-{% endfor %}
 
+        <div class="card injection_test" style="padding:20px;">
+           <div style="display:flex; align-items:center ">
+                <h1 style="flex:1"> Additional Test {{loop.index}}: {{ testrender.getTitle()}} </h1>
+                <a href="#!" onclick="show_rst_editor({{iprender.getFile()}}, {{testrender.getId()}} , {{testrender.getData().getId()}} )" class="badge badge-success" style="margin-left:10px">RST</a>
+                <a href="#!" onclick="show_data_explorer({{iprender.getFile()}}, {{testrender.getId()}})" class="badge badge-info" style="margin-left:10px" ;>Data Explorer</a>
+           </div>
+            <div class="iscale">
+                {%include 'viewers/test.html' %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
 {% endif %}
 
 {% if iprender.getLogs() | length %}
@@ -74,6 +93,31 @@
     </div>
 </div>
 
+<div id="raw-modal" class="modal fade" tabindex="-1" style="height:98vh;" role="dialog"
+     aria-labelledby="rst-modal-label"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="width:98vw; max-width:98vw" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rst-modal-label"> RST Editor </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="rst-modal-body">
+                {% with content = iprender.getRawRST() %}
+                {% with dataId = iprender.getId() %}
+                {% with adataId = iprender.getInternalTest().getData().getId() %}
+                {% with fileId = iprender.getFile() %}
+                {%include "viewers/rst_editor.html" %}
+                {%endwith%}
+                {%endwith%}
+                {%endwith%}
+                {%endwith%}
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <div id="source-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="source-modal-label"
      aria-hidden="true">
@@ -104,12 +148,23 @@
                 </button>
             </div>
             <div class="modal-body" id="data-modal-body">
-                {%include 'viewers/data.html' %}
             </div>
         </div>
     </div>
 </div>
 
 <script>
+  function show_rst_editor(fileId, testId, atestId ) {
+     $.get('/files/viewers/rst/raw/' + fileId + '/' + testId, function(data) {
+           set_rst(fileId, testId, atestId, data) ;
+           $('#raw-modal').modal('toggle')
+     });
+  }
+  function show_data_explorer(fileId, testId) {
+     $.get('/files/viewers/dataexplorer/' + fileId + '/' + testId, function(data) {
+           $('#data-modal-body').html(data)
+           $('#data-modal').modal('toggle')
+     });
+  }
 
 </script>

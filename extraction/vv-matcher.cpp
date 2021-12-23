@@ -79,11 +79,13 @@ static llvm::cl::opt<bool> force("force", llvm::cl::desc("force"),
  * Main Executable for VnV Processor.
  */
 int main(int argc, const char** argv) {
+  
+try {  
   // Parse the options
   CommonOptionsParser OptionsParser(argc, argv, VnVParserCatagory);
   std::string outputFileName = outputFile.getValue();
   if (outputFileName.empty()) {
-    throw VnV::VnVExceptionBase("No output file specified");
+    HTHROW INJECTION_EXCEPTION_("No output file specified");
   }
 
 
@@ -209,4 +211,12 @@ int main(int argc, const char** argv) {
             << "********************************************************\n\n";
 
   return 0;
+
+} catch ( std::exception e ) {
+
+   std::cout << "An Error Occurred: " << e.what() << std::endl;
+   std::abort();
+
+}
+
 }

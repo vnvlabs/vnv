@@ -60,7 +60,7 @@ VNVEXTERNC void _VnV_injectionPoint_loop(const char* packageName,
                                          const char* id, const char* stageId,
                                          const char* fname, int line);
 
-VNVEXTERNC int _VnV_injectionPoint_end(const char* packageName, const char* id,
+VNVEXTERNC void _VnV_injectionPoint_end(const char* packageName, const char* id,
                                        const char* fname, int line);
 
 VNVEXTERNC void _VnV_registerInjectionPoint(const char* packageName,

@@ -106,6 +106,8 @@ class ParallelEngine : public OutputEngineManager {
   void setFromJson(ICommunicator_ptr worldComm, json& config,
                    bool readMode) override;
 
+  virtual void sendInfoNode(ICommunicator_ptr worldComm) override;;
+
   /**
    * @brief endInjectionPoint
    * @param id
@@ -163,8 +165,7 @@ class ParallelEngine : public OutputEngineManager {
   void unitTestFinishedCallBack(IUnitTest* tester) override;
 
   std::string print() override {
-    throw VnV::VnVExceptionBase(
-        "Print not implemented for Parallel Output Engine");
+    return "Parallel Output Engine: Print not implemented;";
   }
 
   std::shared_ptr<Router> getRouter(RouterAction action = RouterAction::IGNORE);

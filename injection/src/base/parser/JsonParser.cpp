@@ -15,8 +15,7 @@
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
-void JsonParser::addTest(const json& testJson, std::vector<json>& testConfigs,
-                         std::set<std::string>& runScopes) {
+void JsonParser::addTest(const json& testJson, std::vector<json>& testConfigs, std::set<std::string>& runScopes) {
   if (add(testJson, runScopes)) {
     testConfigs.push_back(testJson);
   }
@@ -27,8 +26,7 @@ bool JsonParser::add(const json& testJson, std::set<std::string>& runScopes) {
     bool add = false;
     if (testJson.contains("runScope")) {
       for (auto& scope : testJson["runScope"].items()) {
-        if (runScopes.find(scope.value().get<std::string>()) !=
-            runScopes.end()) {
+        if (runScopes.find(scope.value().get<std::string>()) != runScopes.end()) {
           add = true;
           break;
         }
@@ -43,14 +41,12 @@ SamplerInfo JsonParser::getSamplerInfo(const json& samplerJson) {
   SamplerInfo info;
   info.name = samplerJson["name"].get<std::string>();
   info.package = samplerJson["package"].get<std::string>();
-  info.config =
-      samplerJson.contains("config") ? samplerJson["config"] : json::object();
+  info.config = samplerJson.contains("config") ? samplerJson["config"] : json::object();
   return info;
 }
 
-void JsonParser::addInjectionPoint(
-    const json& ip, std::set<std::string>& runScopes,
-    std::map<std::string, InjectionPointInfo>& ips, InjectionType type) {
+void JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runScopes,
+                                   std::map<std::string, InjectionPointInfo>& ips, InjectionType type) {
   for (auto& it : ip.items()) {
     if (!add(it.value(), runScopes)) {
       continue;
@@ -61,7 +57,7 @@ void JsonParser::addInjectionPoint(
     std::string key = package + ":" + name;
     const json& values = it.value();
     auto aip = ips.find(name);
-    
+
     if (aip != ips.end()) {
       if (values.find("tests") != values.end()) {
         for (auto& test : values["tests"].items()) {
@@ -95,8 +91,7 @@ void JsonParser::addInjectionPoint(
           addTest(test.value(), ipInfo.tests, runScopes);
         }
       }
-      if (type == InjectionType::ITER &&
-          values.find("iterators") != values.end()) {
+      if (type == InjectionType::ITER && values.find("iterators") != values.end()) {
         for (auto& test : it.value()["iterators"].items()) {
           addTest(test.value(), ipInfo.iterators, runScopes);
         }
@@ -118,19 +113,17 @@ void JsonParser::addInjectionPoint(
       }
 
       if (values.contains("template")) {
-           ipInfo.templateName = values["template"];
+        ipInfo.templateName = values["template"];
       }
-     
-      if (ipInfo.tests.size() > 0 || ipInfo.runInternal ||
-          ipInfo.iterators.size() > 0) {
+
+      if (ipInfo.tests.size() > 0 || ipInfo.runInternal || ipInfo.iterators.size() > 0) {
         ips.insert(std::make_pair(key, ipInfo));
       }
     }
   }
 }
 
-void JsonParser::addTestLibrary(const json& lib,
-                                std::map<std::string, std::string>& libs) {
+void JsonParser::addTestLibrary(const json& lib, std::map<std::string, std::string>& libs) {
   for (auto& it : lib.items()) {
     libs.insert(std::make_pair(it.key(), it.value().get<std::string>()));
   }
@@ -165,9 +158,7 @@ UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json& unitTestJson) {
   UnitTestInfo info;
   if (unitTestJson.contains("runUnitTests")) {
     info.runUnitTests = unitTestJson["runUnitTests"].get<bool>();
-    info.unitTestConfig = unitTestJson.contains("config")
-                              ? unitTestJson["config"]
-                              : json::object();
+    info.unitTestConfig = unitTestJson.contains("config") ? unitTestJson["config"] : json::object();
   } else {
     info.runUnitTests = false;
     info.unitTestConfig = json::object();
@@ -201,44 +192,45 @@ namespace {
 
 // We accept arguments of the type
 // "vnv/options/sdfsdf/sdfsdf/sdfsdf/=valid_json"
-nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile,
-                                                  int* argc, char** argv) {
+nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile, int* argc, char** argv) {
   nlohmann::json main = mainFile;
 
   for (int i = 0; i < *argc; i++) {
     std::string s = argv[i];
-    if (s.substr(0, 6).compare("--vnv/") == 0) {
-      std::size_t ind = s.find_first_of("=");
-      if (ind != std::string::npos) {
-        std::string point = s.substr(6, ind);
-        std::string ans = s.substr(ind + 1);
-        json ansJson;
-        json::json_pointer ptr;
+    try {
+      if (s.substr(0, 6).compare("--vnv/") == 0) {
+        std::size_t ind = s.find_first_of("=");
+        if (ind != std::string::npos) {
+          std::string point = s.substr(6, ind);
+          std::string ans = s.substr(ind + 1);
+          json ansJson;
+          json::json_pointer ptr;
 
-        try {
-          json ansJson = json::parse(ans);
           try {
-            json::json_pointer ptr = json::json_pointer(point);
-            if (main.contains(ptr)) {
-              main[ptr] = ansJson;
-            } else {
-              std::cout
-                  << "Adding new values using command line is untested - YMMV "
-                  << std::endl;
-              main[ptr] = ansJson;
+            json ansJson = json::parse(ans);
+            try {
+              json::json_pointer ptr = json::json_pointer(point);
+              if (main.contains(ptr)) {
+                main[ptr] = ansJson;
+              } else {
+                throw INJECTION_EXCEPTION_("Adding new values is not supported: ");
+              }
+            } catch (...) {
+              throw INJECTION_EXCEPTION("Invalid Json Pointer: %s", point.c_str());
             }
+
           } catch (...) {
-            throw VnVExceptionBase("Command Json Pointer Format not right");
+            throw INJECTION_EXCEPTION("Invalid Json %s", ans.c_str());
           }
 
-        } catch (...) {
-          throw VnVExceptionBase("Command Json Format not right");
+        } else {
+          throw INJECTION_EXCEPTION_("Invalid VnV Command line argument");
         }
-
-      } else {
-        std::cout << "The command format not correct" << std::endl;
       }
+    } catch (VnVExceptionBase& e) {
+       std::cout << "Ignoring VnV command line parameter : " << s << "\n Reason: " << e.message << std::endl;
     }
+
   }
   return main;
 }
@@ -281,16 +273,14 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   if (main.find("outputEngine") != main.end()) {
     info.engineInfo = getEngineInfo(main["outputEngine"]);
   } else {
-    info.engineInfo =
-        getEngineInfo(R"({"type" : "json_stdout" , "config" : {} })"_json);
+    info.engineInfo = getEngineInfo(R"({"type" : "json_stdout" , "config" : {} })"_json);
   }
 
   // Get the output Engine information.
   if (main.find("unit-testing") != main.end()) {
     info.unitTestInfo = getUnitTestInfo(main["unit-testing"]);
   } else {
-    info.unitTestInfo =
-        getUnitTestInfo(R"({"runTests" : false , "config" : {} })"_json);
+    info.unitTestInfo = getUnitTestInfo(R"({"runTests" : false , "config" : {} })"_json);
   }
 
   if (main.contains("actions")) {
@@ -305,25 +295,21 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   }
 
   // Get the test libraries infomation.
-  if (main.find("additionalPlugins") != main.end())
-    addTestLibrary(main["additionalPlugins"], info.additionalPlugins);
+  if (main.find("additionalPlugins") != main.end()) addTestLibrary(main["additionalPlugins"], info.additionalPlugins);
 
   // Add all the injection points;
   if (main.find("injectionPoints") != main.end()) {
-    addInjectionPoint(main["injectionPoints"], runScopes, info.injectionPoints,
-                      InjectionType::POINT);
+    addInjectionPoint(main["injectionPoints"], runScopes, info.injectionPoints, InjectionType::POINT);
   }
 
   // Add all the injection points;
   if (main.find("iterators") != main.end()) {
-    addInjectionPoint(main["iterators"], runScopes, info.injectionPoints,
-                      InjectionType::ITER);
+    addInjectionPoint(main["iterators"], runScopes, info.injectionPoints, InjectionType::ITER);
   }
 
   // Add all the injection points;
   if (main.find("plugs") != main.end()) {
-    addInjectionPoint(main["plugs"], runScopes, info.injectionPoints,
-                      InjectionType::PLUG);
+    addInjectionPoint(main["plugs"], runScopes, info.injectionPoints, InjectionType::PLUG);
   }
 
   if (main.find("hotpatch") != main.end()) {
@@ -347,8 +333,7 @@ json JsonParser::commandLineParser(int* argc, char** argv) {
 
     // valid parameters are --vnv.packageName.key <value>
     if (result.size() >= 3 && result[0].compare("--vnv") == 0) {
-      json& j = JsonUtilities::getOrCreate(main, result[1],
-                                           JsonUtilities::CreateType::Object);
+      json& j = JsonUtilities::getOrCreate(main, result[1], JsonUtilities::CreateType::Object);
 
       // Set the value to be argv[i+1], the next token in the command line.
       // A bit hacky, but don't set i+=1 to skip the next parameter. This
@@ -364,9 +349,10 @@ json JsonParser::commandLineParser(int* argc, char** argv) {
 RunInfo JsonParser::parse(std::ifstream& fstream, int* argc, char** argv) {
   json mainJson;
   if (!fstream.good()) {
-    throw VnVExceptionBase(
+    
+    throw INJECTION_EXCEPTION_(
         "Invalid Input File Stream. The input file stream passed "
-        "to JsonParser::parse could not be found and/or opened");
+        "to JsonParser::parse could not be opened");
   }
 
   try {
@@ -384,7 +370,7 @@ RunInfo JsonParser::parse(const json& _json, int* argc, char** argv) {
   try {
     validator.validate(_json);
   } catch (std::exception e) {
-    throw VnVExceptionBase(e.what());
+    throw INJECTION_EXCEPTION("Input File Parsing Failed.\n Reason : %s", e.what());
   }
   return _parse(_json, argc, argv);
 }

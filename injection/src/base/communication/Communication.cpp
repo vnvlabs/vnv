@@ -65,7 +65,10 @@ std::tuple<IStatus_ptr, int, int> DataTypeCommunication::TestAny(
 }
 
 IRequest_ptr DataTypeCommunication::Send(IDataType_vec& data, int dest, int tag,
-                                         bool blocking) {
+                                         bool blocking) {  
+  
+   
+
   long dataSize = data[0]->maxSize() + sizeof(long long);
   char* buffer = (char*)malloc(dataSize * data.size());
   long long dataKey = data[0]->getKey();
@@ -133,7 +136,7 @@ std::pair<IDataType_vec, IStatus_ptr> DataTypeCommunication::Recv(int source,
     IDataType_ptr ptr = DataTypeStore::instance().getDataType(dataType);
     long dataSize = ptr->maxSize() + sizeof(long long);
     if (byteSize % dataSize != 0) {
-      throw VnV::VnVExceptionBase(
+      throw INJECTION_EXCEPTION_(
           "Invalid Recv Data Found. Recv is not some multiple of data size. ");
     }
     int count = byteSize / dataSize;
@@ -146,8 +149,8 @@ std::pair<IDataType_vec, IStatus_ptr> DataTypeCommunication::Recv(int source,
     free(buffer);
   } else if (byteSize == 0) {
   } else {
-    throw VnV::VnVExceptionBase(
-        "Invalid message recieved -- message to small to be from VnV");
+    throw INJECTION_EXCEPTION_(
+        "Invalid message recieved -- message to small to be from VnV:" );
   }
   return std::make_pair(results, status);
 }

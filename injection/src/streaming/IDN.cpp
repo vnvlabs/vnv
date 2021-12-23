@@ -14,7 +14,7 @@ int VnV::Nodes::Node_Type_To_Int(node_type t) {
   case node_type::WAITING: return 6;
   case node_type::DONE: return 7; 
   }
-  throw VnV::VnVExceptionBase("code issue 11232344");
+  throw INJECTION_BUG_REPORT_("unsupported node type in serialization");
 }
 
 node_type VnV::Nodes::Node_Type_From_Int(int i) {
@@ -29,6 +29,6 @@ node_type VnV::Nodes::Node_Type_From_Int(int i) {
   case 6: return node_type::WAITING;
   case 7: return node_type::DONE; 
   }
-  throw VnV::VnVExceptionBase("code issue 11232344a");
+  throw INJECTION_EXCEPTION("unrecognized int in node_type deserialization (%d)", i);
 
 }

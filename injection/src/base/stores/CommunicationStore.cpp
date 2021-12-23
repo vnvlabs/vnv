@@ -35,8 +35,7 @@ constexpr const char* world_str = "w";
 constexpr const char* cust_str = "c";
 
 CommunicationStore::CommunicationStore() {
-#define X(a) \
-  addCommunicator(#a, VnV::VNVPACKAGENAME::Communication::declare_##a);
+#define X(a) addCommunicator(#a, VnV::VNVPACKAGENAME::Communication::declare_##a);
   SUPP
 #undef X
 }
@@ -55,7 +54,6 @@ void CommunicationStore::set(std::string name) {
   }
 
   this->name = name;
-
   auto it = communicator_factory.find(name);
   if (it != communicator_factory.end()) {
     root.reset(it->second(CommType::World));
@@ -64,14 +62,16 @@ void CommunicationStore::set(std::string name) {
     return;
   }
 
-  throw VnVExceptionBase(
-      "We could not find a communicator with the name %s. Please set the communication parameter in the \
-    input file to a valid communicator class name. The default is %s",
-      name.c_str(), DEFCOMM);
+  VnV_Error(VNVPACKAGENAME,
+            "We could not find a communicator with the name %s. Please set the communication parameter in the \
+    input file to a valid communicator class name. For now, we will use the default: %s",
+            name.c_str(), DEFCOMM);
+
+  //Use the default 
+  set("");
 }
 
-void CommunicationStore::addCommunicator(std::string name,
-                                         comm_register_ptr m) {
+void CommunicationStore::addCommunicator(std::string name, comm_register_ptr m) {
   communicator_factory.insert(std::make_pair(name, m));
 }
 
@@ -85,7 +85,7 @@ ICommunicator_ptr CommunicationStore::getCommunicator(VnV_Comm comm) {
     p->setName(name);
     return p;
   }
-  throw VnVExceptionBase("Invalid package name");
+  throw INJECTION_BUG_REPORT("Invalid name in VnV_Comm %s", comm.name);
 }
 
 ICommunicator_ptr CommunicationStore::worldComm() {
@@ -100,13 +100,9 @@ ICommunicator_ptr CommunicationStore::selfComm() {
   return p;
 }
 
-VnV_Comm CommunicationStore::toVnVComm(ICommunicator_ptr ptr) {
-  return toVnVComm(ptr.get());
-}
+VnV_Comm CommunicationStore::toVnVComm(ICommunicator_ptr ptr) { return toVnVComm(ptr.get()); }
 
-VnV_Comm CommunicationStore::toVnVComm(ICommunicator* ptr) {
-  return {cust_str, ptr->getData()};
-}
+VnV_Comm CommunicationStore::toVnVComm(ICommunicator* ptr) { return {cust_str, ptr->getData()}; }
 
 VnV_Comm CommunicationStore::custom(std::string commName, void* data) {
   if (commName == name) {
@@ -115,7 +111,6 @@ VnV_Comm CommunicationStore::custom(std::string commName, void* data) {
     auto p = root->handleOtherCommunicators(commName, data);
     return {cust_str, p->getData()};
   }
-  throw VnVExceptionBase("Invalid Communication Objects");
 }
 
 VnV_Comm CommunicationStore::world() { return {world_str, NULL}; }

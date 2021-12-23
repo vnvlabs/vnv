@@ -445,15 +445,15 @@ int main(int argc, char** argv) {
   /** sdfsdfsdfsdf**/
   INJECTION_LOOP_END(VNV_STR(SPNAME), "loopTest");
 
-  INJECTION_INPUT_FILE_(SPNAME, "IMAGE", VWORLD, "/home/ben/Downloads/mpi.jpeg", "image");
-  INJECTION_INPUT_FILE_(SPNAME, "CSV", VWORLD, "/home/ben/te/test.csv", "csv");
-  INJECTION_INPUT_FILE_(SPNAME, "GLVIS", VWORLD, "/home/ben/Downloads/laghos.saved", "glvis");
-  INJECTION_INPUT_FILE_(SPNAME, "GLVIS", VWORLD, "/home/ben/Downloads/head-ascii.vti", "vti");
-  INJECTION_INPUT_FILE_(SPNAME, "HTML", VWORLD, "/home/ben/Downloads/index.html", "html");
-  INJECTION_INPUT_FILE_(SPNAME, "RST", VWORLD, "/home/ben/Downloads/sample.rst", "rst");
-  INJECTION_INPUT_FILE_(SPNAME, "MARK", VWORLD, "/home/ben/Downloads/sample.md", "markdown");
-  INJECTION_INPUT_FILE_(SPNAME, "CODE", VWORLD, "/home/ben/Downloads/sample.cpp", "code");
-  INJECTION_INPUT_FILE_(SPNAME, "CODE", VWORLD, "/home/ben/Downloads/act_gpu.pdf", "pdf");
+  INJECTION_INPUT_FILE_(SPNAME, IMAGE, VWORLD, "/home/ben/Downloads/mpi.jpeg", "image");
+  INJECTION_INPUT_FILE_(SPNAME, CSV, VWORLD, "/home/ben/te/test.csv", "csv");
+  INJECTION_INPUT_FILE_(SPNAME, GLVIS, VWORLD, "/home/ben/Downloads/laghos.saved", "glvis");
+  INJECTION_INPUT_FILE_(SPNAME, VTI, VWORLD, "/home/ben/Downloads/head-ascii.vti", "vti");
+  INJECTION_INPUT_FILE_(SPNAME, HTML, VWORLD, "/home/ben/Downloads/index.html", "html");
+  INJECTION_INPUT_FILE_(SPNAME, RST, VWORLD, "/home/ben/Downloads/sample.rst", "rst");
+  INJECTION_INPUT_FILE_(SPNAME, MARK, VWORLD, "/home/ben/Downloads/sample.md", "markdown");
+  INJECTION_INPUT_FILE_(SPNAME, CODE, VWORLD, "/home/ben/Downloads/sample.cpp", "code");
+  INJECTION_INPUT_FILE_(SPNAME, PDF, VWORLD, "/home/ben/Downloads/act_gpu.pdf", "pdf");
 
   sample_class_1.function1(10);
   sample_class_2.function1(10);

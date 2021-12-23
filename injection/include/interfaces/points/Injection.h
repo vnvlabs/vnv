@@ -32,7 +32,6 @@ void UnwrapParameterPack(NTV& m);
 template <typename T, typename V, typename... Args>
 void UnwrapParameterPack(NTV& m, V& name, T& first, Args&&... args) {
   m.insert(std::make_pair(name, std::make_pair(typeid(&first).name(), reinterpret_cast<void*>(&first))));
-  std::cout << "Inserted " << name << " : " << m[name].second << std::endl;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
 }
 
@@ -51,17 +50,25 @@ void RegisterInjectionPoint(const char* package, const char* id, std::string jso
 template <typename A, typename... Args>
 void BeginLoopPack(A comm, const char* package, const char* id, struct VnV_Function_Sig pretty, const char* fname, int line,
                    const DataCallback& callback, Args&&... args) {
+  try {
   std::map<std::string, std::pair<std::string, void*>> m;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
   BeginLoop(comm, package, id, pretty, fname, line, callback, m);
+ } catch(...) {
+      VnV_Error(VNVPACKAGENAME, "Error Packing Injection Point");
+  }
 }
 
 template <typename A, typename... Args>
 void BeginPack(A comm, const char* package, const char* id, struct VnV_Function_Sig pretty, const char* fname, int line,
                const DataCallback& callback, Args&&... args) {
+  try {
   std::map<std::string, std::pair<std::string, void*>> m;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
   BeginPoint(comm, package, id, pretty, fname, line, callback, m);
+  } catch(...) {
+      VnV_Error(VNVPACKAGENAME, "Error Packing Injection Point");
+  }
 }
 
 }  // namespace CppInjection

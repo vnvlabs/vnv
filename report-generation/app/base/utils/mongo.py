@@ -37,6 +37,7 @@ def validate_name(name):
         return f'{name}_{i}'
     return name
 
+
 def loadInputFile(name):
     if Configured():
         return input_collection.find_one({"name" : name})

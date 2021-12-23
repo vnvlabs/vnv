@@ -63,7 +63,7 @@ namespace {
    public:
     JsonFileIterator(long streamId_, std::string filename_) : sId(streamId_), ifs(filename_), lockfile(filename_) {
       if (!ifs.good()) {
-        throw VnV::VnVExceptionBase("Could not open file %s", filename_.c_str());
+        throw INJECTION_EXCEPTION("Could not open file %s", filename_.c_str());
       }
       getLine_();
     }
@@ -91,12 +91,12 @@ namespace {
     std::string response_stub = "";
 
    public:
-    virtual void finalize(ICommunicator_ptr wcomm, long duration) override {
+    virtual void finalize(ICommunicator_ptr wcomm, long currentTime) override {
       for (auto& it : streams) {
         if (it.second.good()) {
           json j = json::object();
           j[JSD::node] = JSN::done;
-          j[JSD::duration] = VnV::RunTime::instance().duration();
+          j[JSD::time] = currentTime;
           it.second << "{ \"id\": " << -1204 << ", \"object\" : " << j.dump() << "}" << std::endl;
         }
       }
@@ -143,10 +143,10 @@ namespace {
           return;
 
         } else {
-          throw VnV::VnVExceptionBase("Invalid Output file stream");
+          throw INJECTION_EXCEPTION_("Invalid Output file stream");
         }
       }
-      throw VnV::VnVExceptionBase("Tried to write to a non-existent stream with id %ld", id);
+      throw INJECTION_EXCEPTION("Tried to write to a non-existent stream with id %ld", id);
     };
 
     virtual ~JsonFileStream() {
