@@ -23,6 +23,7 @@ function add_input_file(event) {
 
 
 function save_input_config(fileid, elm) {
+    debugger;
     $.post("/inputfiles/configure/" + fileid, elm.serialize(), function(data) {
         $('#config_content_config').html(data)
         $.get("/inputfiles/update_main_header/" + fileid, function(data) {
@@ -32,6 +33,7 @@ function save_input_config(fileid, elm) {
 }
 
 
+
 function close_inputfile_connection(fileid) {
     $.post("/inputfiles/disconnect/" + fileid, function(data) {
         $('#config_content_config').html(data)
@@ -39,89 +41,99 @@ function close_inputfile_connection(fileid) {
 }
 
 
-function show_load_input_file_modal(fileid) {
-    $.get("/inputfiles/connected/" + fileid , function(data,s,xhr) {
+
+
+
+function save_input_object(fileid ,elm, object ) {
+
+    a = {"value" : ace.edit(elm).getValue()};
+
+    $.ajax("/inputfiles/" + object + "/" + fileid,
+      {
+        data : JSON.stringify(a),
+        contentType : 'application/json',
+        type : 'POST',
+        success: function(data, s, xhr) {
+                    if (xhr.status == 200) {
+            addToast("Save Successfull", "", 5000)
+         } else {
+            alert("Something went wrong - Please try again.")
+         }
+        }
+    });
+}
+
+function save_input_input(fileid) {
+  save_input_object(fileid,"inputfile", "save_input")
+}
+function save_input_spec(fileid) {
+  save_input_object(fileid,"specfile", "save_spec")
+}
+function save_input_exec(fileid) {
+  save_input_object(fileid,"execfile", "save_exec")
+}
+
+
+function show_input_modal(fileId, modalId) {
+    $.get("/inputfiles/connected/" + fileId , function(data,s,xhr) {
         if (xhr.status == 200) {
-            $('#config_input_load').modal('show')
+            $(modalId).modal('show')
         } else {
             alert("You must open a valid connection before loading an input file. ")
         }
     })
 }
 
-function load_input_file(fileid,felm) {
-    $.post("/inputfiles/load_input_file/" + fileid, felm.serialize(), function(data) {
-        $('#inputfile').val(data)
-    })
-}
 
-function save_input_file(fileid,elm) {
-    $.post("/inputfiles/save_input_file/" + fileid, elm.serialize(), function(data, s, xhr) {
-         if (xhr.status == 200) {
-            addToast("Save Successfull", "The input file was saved successfully", 5000)
-         } else {
-            alert("Something went wrong - Please try again.")
-         }
-    })
+function get_ace_editor(fileid, elmId, mode, live, autocompl) {
 
-}
+    var input_editor = ace.edit(elmId,
+    {
+        theme: "ace/theme/tomorrow_night_blue",
+        mode: "ace/mode/" + mode,
+        autoScrollEditorIntoView: true,
+        minLines: 40,
+        id: elmId
+    });
 
-function show_load_spec_file_modal(fileid) {
-    $.get("/inputfiles/connected/" + fileid , function(data,s,xhr) {
-        if (xhr.status == 200) {
-            $('#config_spec_load').modal('show')
-        } else {
-            alert("You must open a valid connection before loading a specification. ")
+    if (autocompl) {
+
+        input_editor.setOptions({
+            enableBasicAutocompletion: true,
+            enableLiveAutocompletion: live
+        });
+
+        var inputWordCompleter = {
+            getCompletions: function(editor, session, pos, prefix, callback) {
+               if (ace.edit(elmId) == editor ) {
+                 autocompl(editor,session,pos,prefix,callback);
+               }
+            }
         }
-    })
+        langTools.addCompleter(inputWordCompleter)
+    }
+
+    const originalSetAnnotations = input_editor.session.setAnnotations
+
+    input_editor.session.setAnnotations = function (annotations) {
+
+      // If we have annotations already, then set them.
+      if (annotations && annotations.length) {
+        originalSetAnnotations.call(input_editor.session, annotations)
+      } else {
+        // Validate the thing and see if that works.
+        $.ajax("/inputfiles/validate/" + elmId + "/" + fileid, {
+          data : JSON.stringify({"value" : input_editor.getValue() }),
+          contentType : 'application/json',
+          type : 'POST',
+          success: function(data, s, xhr) {
+               originalSetAnnotations.call(input_editor.session, data)
+          }
+        });
+      }
+    }
+
+    return input_editor
 }
 
 
-function load_spec_file(fileid,elm) {
-    $.post("/inputfiles/load_spec/" + fileid, elm.serialize(), function(data) {
-        $('#inputspec').val(data)
-    })
-}
-
-function save_input_spec(fileid,elm) {
- $.post("/inputfiles/save_spec/" + fileid, elm.serialize(), function(data, s, xhr) {
-         if (xhr.status == 200) {
-            addToast("Save Successfull", "The specification file was saved successfully", 5000)
-         } else {
-            alert("Something went wrong - Please try again.")
-         }
-    })
-}
-
-
-function show_load_exec(fileid) {
-    $.get("/inputfiles/connected/" + fileid , function(data,s,xhr) {
-        if (xhr.status == 200) {
-            $('#config_exec_load').modal('show')
-        } else {
-            alert("You must open a valid connection before loading a execution template.")
-        }
-    })
-}
-
-function load_exec_file(fileid,elm) {
-   $.post("/inputfiles/load_exec/" + fileid, elm.serialize(), function(data) {
-        $('#inputexec').val(data)
-    })
-}
-
-function save_exec_file(fileid,elm) {
-   $.post("/inputfiles/save_exec/" + fileid, elm.serialize(), function(data, s, xhr) {
-         if (xhr.status == 200) {
-            addToast("Save Successfull", "The execution file was saved successfully", 5000)
-         } else {
-            alert("Something went wrong - Please try again.")
-         }
-    })
-}
-
-
-function execute_file(fileid) {
-   $('.input-save-button').click();
-   alert("Execution Is Not Implemented Yet")
-}

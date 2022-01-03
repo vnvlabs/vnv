@@ -7,6 +7,8 @@
 
     <div class="card-body">
         <div id="realtime-chart"></div>
+        <div id="brush-chart"></div>
+
     </div>
 
 </div>
@@ -16,14 +18,17 @@
   $(function() {
             var lastDate = 0;
             var data = [];
+            var ddata = [];
             var ids = [];
             var pause = false;
             var running = false;
             var depth = {}
             var lastD = -1
             var overall = -1;
+            var time = []
             var selectedNode = 0
-                       barH = 50
+            barH = 50
+
             function totalHeight(depth) {
                r = depth*barH + 30
                return r.toString() + "px"
@@ -39,16 +44,21 @@
 
                        if ("restart" in item) {
                           data = []
+                          ddata = []
                           depth = {}
                           lastD = -1;
                        }
 
-                       // r => { "x" : xx, "y" : xx, "id" : xx, "done" : xx, "wait" : T/F }
                        del = []
+
+
 
                        // Did we step down
                        down = item.y < lastD
                        lastD = item.y
+
+
+
                        for (const [key, value] of Object.entries(depth)) {
 
                           if (item.y > key ) {
@@ -58,12 +68,12 @@
                                 data[value].endtime = overall;
                               }
                           } else if (item.y == key ) {
-
-                              if ( data[value].id === item.id || item.id < 0 ) {
-
+                              if (item.id < 0 ) {
+                                 data[value].y[1] = item.x + 1
+                                 data[value].endtime = item.endtime
+                              } else if ( data[value].id === item.id ) {
                                  data[value].y[1] = item.x+1
                                  data[value].endtime = item.endtime
-
                               } else {
 
                                    data.push( {
@@ -97,9 +107,38 @@
                               })
                               depth[item.y] = data.length - 1
                        }
+
+                       console.log(ddata)
+                       console.log(data)
+
+                       d =  Object.keys(depth).length;
+                       ddata.push( { x: item.x , y: d } )
+
+                       if (item.id == -101) {
+                           ddata.push({ x:ddata[ddata.length-1].x + 1 , y:1})
+                       }
+
+
+
                     });
+
                     if (r.length > 0 ) {
+
+                         // update time
+                         time = []
+                         data.forEach(function(value,index) {
+                            time.push({x : value.y[0], y : value.starttime})
+                            time.push({x : value.y[1], y : value.endtime})
+                         });
+                         time.sort(function(a, b) {
+                              if (a.x < b.x) return -1;
+                              if (a.x > b.x) return 1;
+                              return 0;
+                         });
+
                         chart.updateSeries([{name: "Injection Point", data:data}])
+                        chart1.updateSeries([{type:'area', name: "depth", data:ddata}, {type: 'line', "name" : "time" , data: time}])
+
                     }
                     if ( ( r.length == 0 || !("done" in r[r.length -1]) ) ){
                          chartInterval = window.setTimeout(getDataFromServer,3000)
@@ -116,6 +155,7 @@
                 ],
                 chart: {
                     type: "rangeBar",
+                    id : "chart2",
                     events: {
                          dataPointSelection: function(event, chartContext, config) {
                                var url = '{{url_for('base.files.viewers.ip', id_=file.id_)}}'
@@ -186,16 +226,67 @@
                 }
             };
 
+
+            var optionsLine = {
+                       series: [ { name: "depth" , data: ddata, type: 'area' }, { type: 'line', name: "time" , data: [] } ],
+                       chart: {
+                                      id: 'chart1',
+                                      height: 200,
+                                      brush:{
+                                            target: 'chart2',
+                                            enabled: true
+                                       },
+                                       selection: {
+                                            enabled: true,
+                                            xaxis: {min: 0, max: 4}
+                                       }
+                                },
+
+                       colors: ['#008FFB','#FF0000'],
+                       fill: {
+                                  type: 'gradient',
+                                    gradient: {
+                                        opacityFrom: 0.91,
+                                        opacityTo: 0.7,
+                                    }
+                                },
+                        stroke: {
+                             curve: ['stepline','smooth'],
+                             width: [2, 5]
+                        },
+                       xaxis: {
+                                        type: 'datetime',
+                                        tooltip: { enabled: true }
+                                },
+                       yaxis: [{
+                                  tickAmount: 2,
+                                  min:0,
+                                  seriesName: "depth"
+                                },{
+                                    opposite: true,
+                                    seriesName : "time",
+                                    tickAmount: 2,
+                                    min : function(e) { return time[0].y; },
+                                    max : function(e) { return time[time.length-1].y; }
+                                }]
+
+            };
+
+
             var chart = new ApexCharts(document.querySelector("#realtime-chart"), options);
+            var chart1 = new ApexCharts(document.querySelector("#brush-chart"), optionsLine);
+            chart1.render();
             chart.render();
 
             function getColorAsScalar(index, selected) {
-
+                if (data.length > index ) {
                     var l = 50;
                     if (selected) { l = 80 }
 
                     var n = 240 * ( data[index].endtime - data[index].starttime ) / ( data[0].endtime - data[0].starttime )
                     return 'hsl(' + n + ', 100%, ' + l +'%)';
+                }
+                return "rgb(10,10,10)"
             }
 
             var dataPointsLength = 10;

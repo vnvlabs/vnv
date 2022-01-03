@@ -6,12 +6,12 @@
 <div style="display:flex; justify-content:space-between; width:100%; height:75vh; padding=20px;" >
 
     <div id="rst_editor" style="width:49%; height:100%; overflow:scroll">
-    <form id="rst_editor_form" style="width:100%">
-       <input id="rst_fileId" type="hidden" name="id"  value="{{fileId}}">
-       <input id="rst_dataId" type="hidden" name="dataId" value="{{dataId}}">
-       <input id="rst_adataId" type="hidden" name="adataId" value="{{adataId}}">
-       <textarea id="rst_content" style="width:100%; font-size:24px; border:1px solid lightgray; padding:16px; " name="content" rows="50"  >{{content}}</textarea>
-    </form>
+     <input id="rst_fileId" type="hidden" name="id"  value="{{fileId}}">
+     <input id="rst_dataId" type="hidden" name="dataId" value="{{dataId}}">
+     <input id="rst_adataId" type="hidden" name="adataId" value="{{adataId}}">
+     <div id="rst_content" style="width:100%; font-size:20px; height:100%">
+           {{content}}
+     </div>
     </div>
     <iframe src="/files/viewers/rst/render?fileId={{fileId}}&dataId={{dataId}}&adataId={{adataId}}&content=Loading" id="rst_render" style="width:49%; height:100%; overflow:scroll; border:1px solid lightgray; padding:16px;">
     </iframe>
@@ -21,30 +21,58 @@
 <script>
 
 function render_rst() {
-   fileId = $('#rst_fileId').val()
-   dataId =  $('#rst_dataId').val()
-   adataId =  $('#rst_adataId').val()
-   content =  $('#rst_content').val()
-   url = `fileId=${fileId}&dataId=${dataId}&adataId=${adataId}&content=${encodeURIComponent(content)}`
-   $('#rst_render').attr("src", "/files/viewers/rst/render?" + url)
-}
+        fileId = $('#rst_fileId').val()
+        dataId =  $('#rst_dataId').val()
+        adataId =  $('#rst_adataId').val()
+        content =  editor.getValue()
+        url = `fileId=${fileId}&dataId=${dataId}&adataId=${adataId}&content=${encodeURIComponent(content)}`
+        $('#rst_render').attr("src", "/files/viewers/rst/render?" + url)
+    }
 
-function render_comment() {
-   comment = "/**" + $('#rst_content').val().split(/\r?\n/).join('\n   * ') + "\n   **/"
-   navigator.clipboard.writeText(comment);
-   addToast("Copied","",1000)
-   alert(comment)
-}
+    function render_comment() {
+        comment = "/**" + editor.getValue().split(/\r?\n/).join('\n   * ') + "\n   **/"
+        navigator.clipboard.writeText(comment);
+        addToast("Copied","",1000)
+        alert(comment)
+    }
 
-function set_rst(fileId, dataId, adataId, content) {
-    $('#rst_fileId').val(fileId)
-    $('#rst_dataId').val(dataId)
-    $('#rst_adataId').val(adataId)
-    $('#rst_content').val(content)
-    render_rst()
-}
+    function set_rst(fileId, dataId, adataId, content) {
+        $('#rst_fileId').val(fileId)
+        $('#rst_dataId').val(dataId)
+        $('#rst_adataId').val(adataId)
+        editor.setValue(content)
+        render_rst()
+    }
+
 
 $( document ).ready(function() {
+
+    editor = ace.edit("rst_content",
+    {
+        theme: "ace/theme/tomorrow_night_blue",
+        mode: "ace/mode/rst",
+        autoScrollEditorIntoView: true,
+        minLines: 50
+    });
+
+    var langTools = ace.require('ace/ext/language_tools');
+    editor.setOptions({
+        enableBasicAutocompletion: true
+    });
+    var staticWordCompleter = {
+        getCompletions: function(editor, session, pos, prefix, callback) {
+
+            console.log(pos)
+            debugger;
+
+            var f = $('#rst_fileId').val()
+            var d = $('#rst_dataId').val()
+            $.get(`/files/viewers/rst/auto/${f}/${d}?row=${pos.row}&col=${pos.column}&prefix=${prefix}&val=${encodeURIComponent(editor.getValue())}`, function(data) {
+                callback(null, data );
+            });
+        }
+    }
+    langTools.setCompleters([staticWordCompleter])
     render_rst();
 });
 </script>

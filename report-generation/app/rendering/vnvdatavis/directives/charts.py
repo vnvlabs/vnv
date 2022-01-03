@@ -91,23 +91,6 @@ class JsonChartDirective(SphinxDirective):
         return [target, block]
 
 
-class PlotlyChartDirective(JsonChartDirective):
-    script_template = '''
-            <div id="{id_}" style="width:"100%"; height:"100%"></div>
-            <script>
-            $(document).ready(function() {{
-              const obj = {config}
-              Plotly.newPlot('{id_}',obj['data'],obj['layout']);
-              
-              url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-              update_soon(url, "{id_}", 1000, function(config) {{
-                var xx = JSON.parse(config)
-                Plotly.update('{id_}',xx['data'],xx['layout']);
-              }})
-                            
-            }})
-            </script>
-            '''
 
     def register(self):
         return self.getContent()
@@ -299,7 +282,6 @@ class TerminalDirective(JsonChartDirective):
 
 
 vnv_directives["vnv-apex"] = ApexChartDirective
-vnv_directives["vnv-plotly"] = PlotlyChartDirective
 vnv_directives["vnv-gchart"] = GChartChartDirective
 vnv_directives["vnv-chart"] = ChartJsChartDirective
 vnv_directives["vnv-table"] = TableChartDirective

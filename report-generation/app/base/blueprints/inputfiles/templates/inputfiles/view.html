@@ -46,7 +46,15 @@ tablist = {
 
 {% with modal_content = "inputfiles/connection_content.html" %}
 {% with modal_id = "config" %}
-{% include "inputfiles/connection.html" %}
+<div class="modal fade" id="config_config" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div id="config_content_config" class="modal-content">
+                {%include "inputfiles/connection_content.html" %}
+        </div>
+    </div>
+</div>
+
+
 {% endwith %}
 {% endwith %}
 

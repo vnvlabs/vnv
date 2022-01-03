@@ -829,7 +829,7 @@ class VnVFile:
         node_type_ITER: [1, -1, 0],
         node_type_ROOT: [1, 0, 0],
         node_type_LOG: [0, 0, 0],
-        node_type_END: [0, -1, 1]
+        node_type_END: [0, -1, 0]
     }
     INJECTION_INTRO = -100
     INJECTION_CONC = -101

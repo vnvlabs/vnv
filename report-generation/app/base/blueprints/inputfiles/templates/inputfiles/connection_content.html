@@ -7,12 +7,9 @@
 </div>
 <div class="modal-body">
 
-    <form id="input-connection-form" method="post" action="/inputfiles/configure/{{file.id_}}">
+    <form id="input-configuration-form" method="post" action="/inputfiles/configure/{{file.id_}}">
 
-        {%if connection.connected()%}
-        <div style="color:green; flex:1">Connection Status: Connected ({{connection.describe()}}).</div>
-        {%endif%}
-        <div class="form-group">
+       <div class="form-group">
             <label for="application">Application</label>
             <input name="application" type="text" class="form-control" id="application"
                    placeholder="Enter Path to application" value="{{file.filename}}">
@@ -69,8 +66,12 @@
     <button type="button" class="btn  btn-secondary" onclick='close_inputfile_connection({{file.id_}})'>Disconnect
     </button>
     {%endif%}
-    <button type="button" class="btn  btn-primary" onclick="save_input_config({{file.id_}}, $('#input-connection-form'))">Save</button>
+    <button type="button" class="btn  btn-primary" onclick="save_input_config({{file.id_}}, $('#input-configuration-form'))">Save</button>
 </div>
+{%if connection.connected()%}
+        <div style="color:green; flex:1; text-align:end; padding:0px 9px 5px 0px;">Connection Status: Connected to {{connection.describe()}}.</div>
+{%endif%}
+
 {%endwith%}
 
 <script>

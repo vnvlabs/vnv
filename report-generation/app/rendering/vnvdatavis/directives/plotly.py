@@ -4,7 +4,7 @@ import os.path
 from flask import render_template_string
 from sphinx.errors import ExtensionError
 
-from app.rendering.vnvdatavis.directives.charts import PlotlyChartDirective
+from app.rendering.vnvdatavis.directives.charts import JsonChartDirective
 from collections.abc import MutableMapping
 
 try:
@@ -25,7 +25,7 @@ def plotly_array(ff, arrayOk=False):
                     raise ExtensionError("Invalid option not an array")
             except:
                 pass
-        return ff(t, min, max)
+        return ff(t)
 
     return f
 
@@ -102,6 +102,7 @@ def plotly_string(noBlank=False, values=None, arrayOk=False,**kwargs):
             raise ExtensionError(t + " not in " + values)
         if noBlank and len(t) == 0:
             raise ExtensionError(t + " can not be empty ")
+        return t
 
     return plotly_array(s, arrayOk)
 
@@ -168,6 +169,7 @@ def plotly_post_process(text, data):
     t = "trace."
     traces = {"layout": "layout",
               "config": "config"}
+    errors = {}
 
     for k, v in options.items():
         if k[0:len(t)] == t:
@@ -183,19 +185,24 @@ def plotly_post_process(text, data):
                 raise ExtensionError("invalid arguement " + k)
 
             elif a[0] not in traces:
-                traces[a[0]] = options.get("defaultTrace", "line")
+                traces[a[0]] = options.get("defaultTrace", "scatter")
 
             dc = rdata
             for c in a[0:-1]:
                 dc = dc.setdefault(c, {})
-            dc[a[-1]] = plotly_convert(a[1:], v, traces[a[0]], data)
+            try:
+                dc[a[-1]] = plotly_convert(a[1:], v, traces[a[0]], data)
+            except Exception as e:
+                errors[k] = { "value" : v , "error" : str(e)}
 
     # Raw data is in the correct format, but it is not
     rawdata = {
         "layout": {},
         "config": {},
-        "data": []
+        "data": [],
+        "errors" : errors
     }
+
     for k, v in rdata.items():
         if k == "layout":
             rawdata["layout"] = v
@@ -206,9 +213,6 @@ def plotly_post_process(text, data):
             v.setdefault("name", k)
             rawdata["data"].append(v)
 
-    # Raw data is in the correct format, but everything is a string.
-    # But we might have {{jmes}} stuff in there, so what we need to do
-    # is return the data as strings and process it after data injection.
     return json.dumps(rawdata)
 
 
@@ -241,6 +245,23 @@ class PlotlyOptionsDict(MutableMapping):
         return len(self.store)
 
 
+class PlotlyChartDirective(JsonChartDirective):
+    script_template = '''
+            <div id="{id_}" style="width:"100%"; height:"100%"></div>
+            <script>
+            $(document).ready(function() {{
+              const obj = {config}
+              Plotly.newPlot('{id_}',obj['data'],obj['layout']);
+
+              url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
+              update_soon(url, "{id_}", 1000, function(config) {{
+                var xx = JSON.parse(config)
+                Plotly.update('{id_}',xx['data'],xx['layout']);
+              }})
+
+            }})
+            </script>
+            '''
 class PlotlyDirec(PlotlyChartDirective):
     required_arguments = 0
     optional_arguments = 0
@@ -249,6 +270,7 @@ class PlotlyDirec(PlotlyChartDirective):
     option_spec = PlotlyOptionsDict()
     external = ["width", "height", "defaultTrace"]
 
+
     postprocess = plotly_post_process
 
     script_template = '''
@@ -256,7 +278,10 @@ class PlotlyDirec(PlotlyChartDirective):
                  <script>
                  $(document).ready(function() {{
                    url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}?plotly"
-                   Plotly.newPlot('{id_}',[],{{}},{{ }});
+                   var load = [88,12]
+                   Plotly.newPlot('{id_}',[{{values: load, text:'Loading', textposition:'inside', hole: 0.5, labels: 
+                   ['Loaded','Remaining'], type: 'pie'}}],{{showlegend:false,
+                   annotations: [{{font: {{size: 20}},showarrow: false, text: `${{load[0]}}%`,x: 0.5,y: 0.5}}] }},{{ }});
                    update_now(url, "{id_}", 1000, function(config) {{
                      var xx = JSON.parse(config)
                      console.log(xx)
@@ -276,4 +301,5 @@ class PlotlyDirec(PlotlyChartDirective):
 
 
 def setup(sapp):
-    sapp.add_directive("vnv-plotly-trace", PlotlyDirec)
+    sapp.add_directive("vnv-plotly-raw", PlotlyChartDirective)
+    sapp.add_directive("vnv-plotly", PlotlyDirec)

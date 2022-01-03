@@ -21,6 +21,13 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="//unpkg.com/force-graph"></script>
     <script src="//unpkg.com/element-resize-detector/dist/element-resize-detector.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ext-language_tools.min.js"?></script>
+
+    <script>
+      langTools = ace.require('ace/ext/language_tools');
+      langTools.setCompleters([])
+    </script>
 
     {% include 'notifications/scripts.html'%}
     {% include 'plugins/scripts.html'%}

@@ -1,43 +1,12 @@
-<div style="display:flex; align-items:center; margin-bottom:15px;">
+{%with NAME = "Execution", VALUE= "exec" , TEXT=file.exec, DEFAULTFILE=file.execFile, LABEL="Path to Execution Template",
+EXTBTN = [["execute_file" ,"Execute"]] %}
+{%include "inputfiles/input_edit_template.html" %}
+{%endwith%}
 
-    <h2 style="flex:1">Execution Template</h2>
-    <button class="btn btn-primary" onclick='show_load_exec({{file.id_}})'>
-        Load Template
-    </button>
+<script>
+function execute_file(fileid) {
+   $('.input-save-button').click();
+   alert("Execution Is Not Implemented Yet")
+}
 
-    <button id="exec_save" class="btn btn-primary input-save-button" style="margin-left:15px"
-            onclick='save_exec_file({{file.id_}},$("#exec_value_form"))'>Save
-    </button>
-
-</div>
-
-<form id="exec_value_form">
-<textarea id="inputexec" name="value" class="card" style="width:100%; " rows="30">
-    {{file.exec}}
-</textarea>
-</form>
-
-<button class="btn btn-primary" style="" onclick='execute_file({{file.id_}})'>
-    Execute
-</button>
-
-{% with modal_content = "inputfiles/load_exec_content.html" %}
-{% with modal_id = "exec_load" %}
-{% include "inputfiles/connection.html" %}
-{% endwith %}
-{% endwith %}
-
-<div class="toast toast-3s fade hide" role="alert" aria-live="assertive" data-delay="3000" aria-atomic="true">
-    <div class="toast-header">
-        <img src="https://appsrv1-147a1.kxcdn.com/gradient/images/favicon.ico" alt="" class="img-fluid m-r-5"
-             style="width:20px;">
-        <strong class="mr-auto">Save Successfull</strong>
-        <small class="text-muted">11 mins ago</small>
-        <button type="button" class="m-l-5 mb-1 mt-1 close" data-dismiss="toast" aria-label="Close">
-            <span>×</span>
-        </button>
-    </div>
-    <div class="toast-body">
-        Hello, world! This is a toast message.
-    </div>
-</div>
+</script>

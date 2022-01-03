@@ -1,0 +1,51 @@
+
+<div style="display:flex; align-items:center; margin-bottom:15px;">
+    <h2 style="flex:1">{{NAME}} Template</h2>
+    {%if EXTBTN %}
+     {%for i in EXTBTN%}
+      <button class="btn btn-primary" style="margin-right:10px;" onclick='{{i[0]}}({{file.id_}})'>
+        {{i[1]}}
+      </button>
+     {%endfor%}
+    {%endif%}
+    <button class="btn btn-primary" onclick='show_load_{{VALUE}}({{file.id_}})'>
+        Load
+    </button>
+    <button id="exec_save" class="btn btn-primary input-save-button" style="margin-left:10px"
+            onclick='save_{{VALUE}}_file({{file.id_}})'>Save
+    </button>
+
+</div>
+
+<div id="{{VALUE}}file" style="font-size:20px; height:1050px; width:100%; ">{{TEXT}}</div>
+
+<script>
+
+function load_{{VALUE}}_file(fileid,elm) {
+   $.post("/inputfiles/load_{{VALUE}}/" + fileid, elm.serialize(), function(data) {
+        ace.edit("{{VALUE}}file").setValue(data)
+   })
+}
+
+function show_load_{{VALUE}}(fileid) {
+   show_input_modal(fileid,"#config_{{VALUE}}_load")
+}
+
+function save_{{VALUE}}_file(fileid) {
+  save_input_object(fileid,"{{VALUE}}file", "save_{{VALUE}}")
+}
+
+$( document ).ready(function(){
+
+    get_ace_editor({{file.id_}}, "{{VALUE}}file","json", false, function(editor, session, pos, prefix, callback) {
+            $.get(`/inputfiles/autocomplete/{{VALUE}}/{{file.id_}}?row=${pos.row}&col=${pos.column}&pre=${prefix}&val=${encodeURIComponent(editor.getValue())}`, function(data) {
+                callback(null, data );
+            });
+    })
+});
+
+</script>
+
+{% with modal_id = VALUE + "_load" %}
+{% include "inputfiles/connection.html" %}
+{% endwith %}

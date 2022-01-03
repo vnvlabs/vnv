@@ -2,9 +2,56 @@ import json
 import os
 import uuid
 
+import jsonschema
+from jsonschema.exceptions import ErrorTree, ValidationError, SchemaError
+
 from app.base.utils import mongo
 from app.models import VnV
 from app.models.VnVConnection import VnVLocalConnection, VnVConnection, connectionFromJson
+
+
+
+def get_current_path(newVal, row, col):
+    i = 0
+    while i < len(newVal):
+        c = newVal[i]
+        if c in map:
+           looking = map[c]
+
+
+
+
+def get_row_and_column(path, newVal, a):
+    try:
+        if len(path) == 0:
+            return 1, 1
+        p = a
+        while len(path) > 1:
+            p = p[path.popleft()]
+        p[path.pop()] = "91123212"
+        aa = json.dumps(a, separators=(',', ':')).find("91123212")
+
+        s = newVal.split("\n")
+        newlines = 0
+        currcol = 0
+        inquotes = False
+        for i in newVal:
+            sub = True
+            currcol += 1
+            if i == "\n":  # new line so reset col count and currcol
+                sub = False
+                newlines += 1
+                currcol = 0
+            elif i == " " and not inquotes:
+                sub = False
+            elif i == "\"" and (i == 0 or newVal[i - 1] != "\\"):
+                inquotes = not inquotes
+            if sub: aa -= 1
+            if aa == 0: return newlines, currcol;
+    except:
+        pass
+
+    return 1, 1
 
 
 class VnVInputFile:
@@ -64,14 +111,14 @@ class VnVInputFile:
     def getFileStatus(self):
         if self.connection.connected():
             if self.connection.exists(self.filename):
-                return ["success","Valid"]
+                return ["green", "Valid"]
             else:
-                return ["warning", "Application does not exist"]
+                return ["#d54287", "Application does not exist"]
         else:
-            return ["error", "Connection is not open"]
+            return ["red", "Connection is not open"]
 
     def getSpecDumpCommand(self):
-        return self.specDump.replace("${application}",self.filename)
+        return self.specDump.replace("${application}", self.filename)
 
     def loadSpec(self):
         self.spec = self.connection.execute(self.getSpecDumpCommand())
@@ -84,6 +131,58 @@ class VnVInputFile:
 
     def execTemplate(self):
         return self.exec
+
+    def validateSpec(self, newVal):
+        try:
+            s = json.loads(newVal)
+            jsonschema.Draft7Validator.check_schema(s)
+            return []
+        except SchemaError as v:
+            r, c = get_row_and_column(v.path, newVal, s)
+            return [{"row": r, "column": c, "text": v.message, "type": 'warning', "source": 'vnv'}]
+        except Exception as e:
+            return [{"row": 1, "column": 1, "text": str(e), "type": 'warning', "source": 'vnv'}]
+
+    def validateInput(self, newVal):
+        try:
+            s = json.loads(self.spec)
+            a = json.loads(newVal)
+            errs = jsonschema.validate(a, schema=s)
+            return []
+        except ValidationError as v:
+            r, c = get_row_and_column(v.path, newVal, a)
+            return [{"row": r, "column": c, "text": v.message, "type": 'warning', "source": 'vnv'}]
+        except Exception as e:
+            return [{"row": 1, "column": 1, "text": str(e), "type": 'warning', "source": 'vnv'}]
+
+    # TODO Implement this.
+    EXECUTION_SCHEMA = {
+        "type": "object",
+        "properties": {
+            "run": {"type": "boolean"}
+        },
+        "additionalProperties": False
+    }
+
+    def validateExecution(self, newVal):
+        try:
+            a = json.loads(newVal)
+            errs = jsonschema.validate(a, schema=VnVInputFile.EXECUTION_SCHEMA)
+            return []
+        except ValidationError as v:
+            r, c = get_row_and_column(v.path, newVal, a)
+            return [{"row": r, "column": c, "text": v.message, "type": 'warning', "source": 'vnv'}]
+        except Exception as e:
+            return [{"row": 1, "column": 1, "text": str(e), "type": 'warning', "source": 'vnv'}]
+
+    def autocomplete_input(self, row, col, pre, val):
+        return []
+
+    def autocomplete_exec(self, row, col, pre, val):
+        return []
+
+    def autocomplete_spec(self, row, col, pre, val):
+        return []
 
     @staticmethod
     def get_id():
@@ -109,7 +208,7 @@ class VnVInputFile:
     @staticmethod
     def find(id_):
         if id_ in VnVInputFile.FILES:
-           return VnVInputFile.FileLockWrapper(VnVInputFile.FILES[id_])
+            return VnVInputFile.FileLockWrapper(VnVInputFile.FILES[id_])
         raise FileNotFoundError
 
     class FileLockWrapper:
