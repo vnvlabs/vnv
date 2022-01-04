@@ -154,7 +154,7 @@ std::string ComputeName(const clang::Decl* CurrentDecl, Compiler compiler) {
 
     Out << Proto;
 
-    return std::string(Name);
+    return std::string(Name.c_str());
   }
   return "unknown";
 }

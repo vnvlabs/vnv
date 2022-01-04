@@ -12,7 +12,7 @@ namespace VnV {
 
 class ProvFile {
  public:
-  std::string filename= "<unset>";
+  std::string filename = "<unset>";
   std::string reader = "";
   std::string text = "";
   std::string package = "root";
@@ -28,11 +28,11 @@ class ProvFile {
 
   json toJson() const;
 
-  bool modified() const ;
+  bool modified() const;
 };
 
 class VnVProv {
-  json toArray(const std::vector<std::shared_ptr<ProvFile>>& array) const ;
+  json toArray(const std::vector<std::shared_ptr<ProvFile>>& array) const;
   void fromArray(std::vector<std::shared_ptr<ProvFile>>& array, const json& a);
 
  public:
@@ -47,8 +47,8 @@ class VnVProv {
 
   VnVProv(int argc, char** argv, std::string inputfileName, json& config);
 
-  json toJson() const ;
-  
+  json toJson() const;
+
   VnVProv();
 
   VnVProv(const json& j);
@@ -58,18 +58,14 @@ class VnVProv {
   void addOutputFile(std::shared_ptr<ProvFile> pv);
 
   std::shared_ptr<ProvFile> get(std::size_t index, int input) {
-    return (input == 0) ? inputFiles[index] : (input == 1 ?  outputFiles[index] : libraries[index]) ;
+    return (input == 0) ? inputFiles[index] : (input == 1 ? outputFiles[index] : libraries[index]);
   }
-
 
   std::size_t size(int input) {
-    return input == 0  ? inputFiles.size() : ( input == 1 ? outputFiles.size() : libraries.size()) ;
+    return input == 0 ? inputFiles.size() : (input == 1 ? outputFiles.size() : libraries.size());
   }
-  
 
-  virtual ~VnVProv() {
-    std::cout << "Destroying the provenance" << std::endl;
-  }
+  virtual ~VnVProv() {}
 };
 
 }  // namespace VnV

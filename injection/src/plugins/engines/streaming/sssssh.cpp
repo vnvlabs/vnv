@@ -21,18 +21,18 @@ class NullManager : public OutputEngineManager {
 #undef X
 #undef LTypes
 
-  void PutGlobalArray(long long dtype, std::string variableName, IDataType_vec data, std::vector<int> gsizes,
-                     std::vector<int> sizes, std::vector<int> offset, const MetaData& m) {}
+      void
+      PutGlobalArray(long long dtype, std::string variableName, IDataType_vec data, std::vector<int> gsizes,
+                     std::vector<int> sizes, std::vector<int> offset, const MetaData& m) {
+  }
 
   void Log(ICommunicator_ptr logcomm, const char* package, int stage, std::string level, std::string message) {}
 
   void file(VnV::ICommunicator_ptr, std::string, std::string, bool, std::string, std::string) {}
 
-  json getConfigurationSchema(bool readMode) override { return json::object(); }
-
   void finalize(ICommunicator_ptr worldComm, long duration) override {}
 
-  void setFromJson(ICommunicator_ptr worldComm, json& config, bool readMode) override {}
+  void setFromJson(ICommunicator_ptr worldComm, json& config) override {}
   void sendInfoNode(ICommunicator_ptr worldComm) override {}
 
   void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageVal) override {}
@@ -61,8 +61,8 @@ class NullManager : public OutputEngineManager {
   std::string print() override { return ""; }
 };
 
-}
-}
-}
+}  // namespace Engines
+}  // namespace VNVPACKAGENAME
+}  // namespace VnV
 
-INJECTION_ENGINE(VNVPACKAGENAME, null) { return new NullManager(); }
+INJECTION_ENGINE(VNVPACKAGENAME, null, "{}") { return new NullManager(); }

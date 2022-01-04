@@ -19,17 +19,17 @@ const json& getVVSchema() {
   "description": "Schema for a VnV runtime Configuration file",
   "type": "object",
   "properties": {
-    "runTests" : {
-        "type" : "boolean"
+    "runTests": {
+      "type": "boolean"
     },
-    "logging" : {
-       "$ref": "#/definitions/logger"
+    "logging": {
+      "$ref": "#/definitions/logger"
     },
-    "unit-testing" : {
-       "$ref" : "#/definitions/unit-testing"
+    "unit-testing": {
+      "$ref": "#/definitions/unit-testing"
     },
-    "actions" : {
-       "$ref" : "#/definitions/actions"
+    "actions": {
+      "$ref": "#/definitions/actions"
     },
     "additionalPlugins": {
       "$ref": "#/definitions/additionalPlugins"
@@ -40,172 +40,214 @@ const json& getVVSchema() {
     "runScopes": {
       "$ref": "#/definitions/runScopes"
     },
-    "hot-patch" : {
-      "type" : "boolean"
+    "hot-patch": {
+      "type": "boolean"
     },
     "injectionPoints": {
       "$ref": "#/definitions/injectionPoints"
     },
-     "iterators": {
+    "iterators": {
       "$ref": "#/definitions/iterators"
     },
-     "plugs": {
+    "plugs": {
       "$ref": "#/definitions/plugs"
     },
-    "options" : {
-      "type" : "object"
+    "options": {
+      "type": "object"
     },
-    "template-overrides" : {
-      "type" : "object"
+    "template-overrides": {
+      "type": "object"
     },
-    "communicator" : {"$ref" : "#/definitions/communicator" }
+    "communicator": {
+      "$ref": "#/definitions/communicator"
+    }
   },
   "additionalProperties": false,
   "definitions": {
     "additionalPlugins": {
       "description": "Map describing all plugins in the system",
       "type": "object",
-      "additionalProperties" : {"type" : "string" }
+      "additionalProperties": {
+        "type": "string"
+      },
+      "vnv-file": true,
+      "default": {}
     },
-    "communicator" : {"type" : "string" , "default" : "mpi" },
+    "communicator": {
+      "type": "string",
+      "default": "mpi"
+    },
     "outputEngine": {
       "description": "Parameters to configure the output Engine",
       "type": "object",
-      "properties": {
-        "type": {
-          "type": "string",
-          "description": "Registered Typename for the engine"
-        },
-        "config": {
-          "type": "object",
-          "description": "Additional Configuration Properties to be sent to the Engine"
-        }
-      },
-      "required": [
-        "type"
-      ],
-      "additionalProperties": false
+      "minProperties": 1,
+      "maxProperties": 1,
+      "default": {
+        "json_stdout": {}
+      }
     },
     "runScopes": {
       "description": "List of scopes to run. Empty indicates all scopes should run. Type an invalid runscope to turn of all e.g. none ",
       "type": "array",
-      "items" : {"type" : "string" } 
+      "items": {
+        "type": "string"
+      }
     },
-    "unit-testing" : {
-       "type" : "object",
-       "properties" : {
-          "runTests" : {"type" : "boolean"},
-          "config" : {
-                "type" : "object",
-                "additionalProperties" : {
-                     "type" : "object",
-                     "properties" : {
-                         "runUnitTests" : {"type" : "boolean"},
-                         "unitTests" : {
-                            "type" : "object",
-                            "additionalProperties" : { "type" : "boolean" }
-                         }
-                     }
+    "unit-testing": {
+      "default": {
+        "runTests": false
+      },
+      "type": "object",
+      "properties": {
+        "runTests": {
+          "type": "boolean",
+          "default": true
+        },
+        "config": {
+          "default": {},
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "runUnitTests": {
+                "type": "boolean"
+              },
+              "unitTests": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "boolean"
                 }
-          },
-          "exitAfter" : {"type" : "boolean" }
-       }
+              }
+            }
+          }
+        },
+        "exitAfter": {
+          "type": "boolean",
+          "default": true
+        }
+      }
     },
-    "actions" : {
-      "type" : "object"
+    "actions": {
+      "default": {},
+      "type": "object",
+      "description": "Actions to be performed during the simulation"
     },
     "logger": {
-        "description" : "VnV Logging Configuration",
-        "type" : "object",
-        "properties" : {
-            "on" : { "type" : "boolean" } ,
-            "filename" : { "type " : "string" },
-            "logs" : { "$ref" : "#/definitions/logTypes" },
-            "blackList" : { "type" : "array", "items" : { "type" : "string" } }
+      "description": "VnV Logging Configuration",
+      "type": "object",
+      "properties": {
+        "on": {
+          "type": "boolean"
         },
-        "required" : ["on","filename","logs"]
-    },
-    "logTypes": {
-        "type" : "object",
-        "additionalProperties" : {"type" : "boolean" }
-    },
-    "injectionPoints": {
-      "description": "Injection Points",
-      "type": "array",
-      "items" : {
-         "$ref": "#/definitions/injectionPoint"
-       }
-    },
-    "runScope" : {
-      "type": "array",
+        "filename": {
+          "type ": "string"
+        },
+        "logs": {
+          "$ref": "#/definitions/logTypes"
+        },
+        "blackList": {
+          "type": "array",
           "items": {
             "type": "string"
           }
+        }
+      },
+      "required": [
+        "on",
+        "filename",
+        "logs"
+      ],
+      "default": {
+        "on": true,
+        "filename": ".vnv-logs",
+        "logTypes": {}
+      }
+    },
+    "logTypes": {
+      "default": {},
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "injectionPoints": {
+      "description": "Injection Points",
+      "type": "object",
+      "patternProperties": {
+        "^.*?:.*?$": {
+          "$ref": "#/definitions/injectionPoint"
+        },
+        "additionalProperties": false
+      },
+      "default": {}
+    },
+    "runScope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "injectionPoint": {
       "description": "An injection Point defined somewhere in the code",
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "package" : {
-          "type" : "string"
-        },
-       "template" : {
-          "$ref" : "#/definitions/runtemplate"
+        "template": {
+          "$ref": "#/definitions/runtemplate"
         },
         "runInternal": {
-           "type" : "boolean"
+          "type": "boolean",
+          "default": true
         },
-        "sampler" : {
-           "$ref" : "#/definitions/sampler"
+        "sampler": {
+          "$ref": "#/definitions/sampler"
         },
         "runScope": {
-          "$ref" : "#/definitions/runScope"
+          "$ref": "#/definitions/runScope"
         },
         "tests": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/test"
-          }
+          "type": "object",
+          "patternProperties": {
+            "^.*?:.*?$": {
+              "$ref": "#/definitions/test"
+            }
+          },
+          "additionalProperties": false
         }
       },
-      "required": [
-        "name","package"
-      ]
+      "default": {
+        "runInternal": true,
+        "tests": {}
+      }
     },
-    "sampler" : {
-      "type" : "object",
-      "properties" : {
-         "name" : {"type" : "string" },
-         "package" : {"type" : "string" },
-         "config" : {"type" : "object" }
+    "sampler": {
+      "type": "object",
+      "patternProperties": {
+        "^.*?:.*?$": {
+          "type": "object"
+        }
       },
-      "required" : ["name","package"]
+      "additionalProperties": false
     },
     "iterators": {
       "description": "Injection Iteration Points",
-      "type": "array",
-      "items" : {
-         "$ref": "#/definitions/iteratorfunc"
-       }
+      "type": "object",
+      "patternProperties": {
+        "^.*?:.*?$": {
+          "$ref": "#/definitions/iterator"
+        },
+        "additionalProperties": false
+      }
     },
     "iterator": {
       "description": "An injection iterator defined somewhere in the code",
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "package" : {
-          "type" : "string"
-        },
         "runInternal": {
-           "type" : "boolean"
+          "type": "boolean"
         },
-        "template" : {
-          "$ref" : "#/definitions/runtemplate"
+        "template": {
+          "$ref": "#/definitions/runtemplate"
         },
         "runScope": {
           "type": "array",
@@ -214,44 +256,49 @@ const json& getVVSchema() {
           }
         },
         "tests": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/test"
-          }
+          "type": "object",
+          "patternProperties": {
+            "^.*?:.*?$": {
+              "$ref": "#/definitions/test"
+            }
+          },
+          "additionalProperties": false
         },
         "iterators": {
-            "type": "array",
-            "items": {
-               "$ref": "#/definitions/test"
+          "type": "object",
+          "patternProperties": {
+            "^.*?:.*?$": {
+              "$ref": "#/definitions/iteratorfunc"
             }
-        } 
+          },
+          "additionalProperties": false
+        }
       },
-      "required": [
-        "name","package"
-      ]
+      "default": {
+        "runInternal": true,
+        "tests": {},
+        "iterators": {}
+      }
     },
     "plugs": {
       "description": "Plugs",
-      "type": "array",
-      "items" : {
-         "$ref": "#/definitions/plug"
-       }
+      "type": "object",
+      "patternProperties": {
+        "^.*?:.*?$": {
+          "$ref": "#/definitions/plug"
+        }
+      },
+      "additionalProperties": false
     },
     "plug": {
       "description": "An injection plug defined somewhere in the code",
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "package" : {
-          "type" : "string"
-        },
-        "template" : {
-          "$ref" : "#/definitions/runtemplate"
+        "template": {
+          "$ref": "#/definitions/runtemplate"
         },
         "runInternal": {
-           "type" : "boolean"
+          "type": "boolean"
         },
         "runScope": {
           "type": "array",
@@ -260,31 +307,29 @@ const json& getVVSchema() {
           }
         },
         "tests": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/test"
-          }
+          "type": "object",
+          "patternProperties": {
+            "^.*?:.*?$": {
+              "$ref": "#/definitions/test"
+            }
+          },
+          "additionalProperties": false
         },
-        "plug" : {
-            "$ref": "#/definitions/plugger"
-        } 
+        "plug": {
+          "$ref": "#/definitions/plugger"
+        }
       },
-      "required": [
-        "name","package"
-      ]
+      "default": {
+        "runInternal": true,
+        "tests": {},
+        "plug": {}
+      }
     },
-    "plugger": {
-      "description": "Test information",
+    "plugged": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "package" : {
-          "type" : "string"
-        },
-        "config" : {
-            "type" : "object"
+        "config": {
+          "type": "object"
         },
         "runScope": {
           "type": "array",
@@ -294,21 +339,39 @@ const json& getVVSchema() {
         }
       }
     },
+    "plugger": {
+      "description": "Test information",
+      "type": "object",
+      "patternProperties": {
+        "^.*?:.*?$": {
+          "$ref": "#/definitions/plugged"
+        }
+      },
+      "maxProperties": 1,
+      "minProperties": 1,
+      "additionalProperties": false
+    },
     "iteratorfunc": {
       "description": "Test information",
       "type": "object",
+      "patternProperties": {
+        "^.*?:.*?$": {
+          "$ref": "#/definitions/iteratorconfig"
+        }
+      },
+      "maxProperties": 1,
+      "minProperties": 1,
+      "additionalProperties": false
+    },
+    "iteratorconfig": {
+      "description": "Test information",
+      "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
+        "config": {
+          "type": "object"
         },
-        "package" : {
-          "type" : "string"
-        },
-        "config" : {
-            "type" : "object"
-        },
-       "template" : {
-          "$ref" : "#/definitions/runtemplate"
+        "template": {
+          "$ref": "#/definitions/runtemplate"
         },
         "runScope": {
           "type": "array",
@@ -316,23 +379,20 @@ const json& getVVSchema() {
             "type": "string"
           }
         }
+      },
+      "default": {
+        "config": {}
       }
     },
     "test": {
       "description": "Test information",
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
+        "config": {
+          "type": "object"
         },
-        "package" : {
-          "type" : "string"
-        },
-        "config" : {
-            "type" : "object"
-        },
-        "template" : {
-          "$ref" : "#/definitions/runtemplate"
+        "template": {
+          "$ref": "#/definitions/runtemplate"
         },
         "runScope": {
           "type": "array",
@@ -341,22 +401,23 @@ const json& getVVSchema() {
           }
         }
       },
-      "required": [
-        "name",
-        "package"
-      ],
+      "default": {
+        "config": {}
+      },
       "additionalProperties": false
     },
-    "runtemplate" : {
-      "type" : "array",
-      "items" : { "type" : "object" , 
-                  "additionalProperties" : {
-                     "type" : "string"
-                  }
+    "runtemplate": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
       }
     }
   }
-})"_json;
+}
+)"_json;
 
   return __vv_schema__;
 }
@@ -394,19 +455,16 @@ json getTestValidationSchema(json& optsschema) {
   json properties = R"({})"_json;
   properties["configuration"] = optsschema;
 
-  json parameters =
-      R"({"type":"object" ,"properties" : {}, "additionalProperties" : false})"_json;
+  json parameters = R"({"type":"object" ,"properties" : {}, "additionalProperties" : false})"_json;
   parameters["required"] = json::array();
-  
-  
+
   properties["parameters"] = parameters;
   schema["properties"] = properties;
   schema["required"] = R"(["configuration"])"_json;
   return schema;
 }
 
-bool validateSchema(const json& config, const json& schema,
-                    bool throwOnInvalid) {
+bool validateSchema(const json& config, const json& schema, bool throwOnInvalid) {
   json_validator validator;
   validator.set_root_schema(schema);
   try {

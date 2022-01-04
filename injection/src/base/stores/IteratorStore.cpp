@@ -18,59 +18,57 @@ using namespace VnV;
 IteratorStore::IteratorStore() {}
 
 std::shared_ptr<IterationPoint> IteratorStore::newIterator(std::string packageName, std::string name,
-                                                           struct VnV_Function_Sig pretty, 
-                                                           int once_,
-                                                           NTV& in_args, NTV& out_args) {
+                                                           struct VnV_Function_Sig pretty, int once_, NTV& in_args,
+                                                           NTV& out_args) {
   std::string key = packageName + ":" + name;
   auto it = iterators.find(key);
   auto reg = registeredIterators.find(key);
 
   if (it != iterators.end() && reg != registeredIterators.end()) {
-    
-     FunctionSigniture sig(pretty); 
+    FunctionSigniture sig(pretty);
 
-     if (sig.run(it->second.runConfig)) {
-
-        std::map<std::string,std::string> spec_map;
-        bool foundOne;
-        for (auto &it : reg->second.specJson.items()) {
-          if (sig.match(it.key())) {
-              for (auto itt : it.value().items()) {
-                spec_map[itt.key()] = itt.value().get<std::string>();
-              }
-              foundOne = true;
-              break;
+    if (sig.run(it->second.runConfig)) {
+      std::map<std::string, std::string> spec_map;
+      bool foundOne;
+      for (auto& it : reg->second.specJson.items()) {
+        if (sig.match(it.key())) {
+          for (auto itt : it.value().items()) {
+            spec_map[itt.key()] = itt.value().get<std::string>();
           }
+          foundOne = true;
+          break;
         }
-        
-        if (!foundOne) {
-          json j = json::array();
-          for (auto it : reg->second.specJson.items())  {
-            j.push_back(it.key());
-          }
-          throw INJECTION_BUG_REPORT("No template specification matched: %s:%s:%s", pretty.signiture, pretty.compiler, j.dump());
-        }
-     
-        // Construct and reset because InjectionPoint ctor is only accessible in
-        // InjectionPointStore.
-        std::shared_ptr<IterationPoint> injectionPoint;
-        injectionPoint.reset(new IterationPoint(packageName, name, spec_map, once_, in_args, out_args));
-        for (auto& test : it->second.tests) {
-          if (sig.match(test.getRunConfig())) {  
-              injectionPoint->addTest(test);
-          }
-        }
+      }
 
-        for (auto& test : it->second.iterators) {
-          if (sig.run(test.getRunConfig())) {
-            injectionPoint->addIterator(test);
-          }
+      if (!foundOne) {
+        json j = json::array();
+        for (auto it : reg->second.specJson.items()) {
+          j.push_back(it.key());
         }
+        throw INJECTION_BUG_REPORT("No template specification matched: %s:%s:%s", pretty.signiture, pretty.compiler,
+                                   j.dump());
+      }
 
-        injectionPoint->runInternal = it->second.runInternal;
+      // Construct and reset because InjectionPoint ctor is only accessible in
+      // InjectionPointStore.
+      std::shared_ptr<IterationPoint> injectionPoint;
+      injectionPoint.reset(new IterationPoint(packageName, name, spec_map, once_, in_args, out_args));
+      for (auto& test : it->second.tests) {
+        if (sig.match(test.getRunConfig())) {
+          injectionPoint->addTest(test);
+        }
+      }
 
-        return injectionPoint;
-     }
+      for (auto& test : it->second.iterators) {
+        if (sig.run(test.getRunConfig())) {
+          injectionPoint->addIterator(test);
+        }
+      }
+
+      injectionPoint->runInternal = it->second.runInternal;
+
+      return injectionPoint;
+    }
   }
   return nullptr;
 }
@@ -98,12 +96,6 @@ json IteratorStore::schema() {
       "description": "An injection iterator defined somewhere in the code",
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "package" : {
-          "type" : "string"
-        },
         "runInternal": {
            "type" : "boolean"
         },
@@ -114,44 +106,30 @@ json IteratorStore::schema() {
           }
         },
         "tests": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/test"
-          }
+          "$ref" : "#/definitions/test"
         },
         "iterators": {
-            "type": "array",
-            "items": {
-               "$ref": "#/definitions/test"
-            }
+          "$ref" : "#/definitions/iterators"
         } 
-      },
-      "required": [
-        "name","package"
-      ]
+      }
     })"_json;
 
-  nlohmann::json oneof = json::array();
+  nlohmann::json props = json::object();
   for (auto& it : registeredIterators) {
     json j = temp;
-    j["properties"]["name"]["const"] = it.second.name;
-    j["properties"]["package"]["const"] = it.second.package;
     j["vnvprops"] = it.second.specJson;
-    oneof.push_back(j);
+    props[it.second.package + ":" + it.second.name] = j;
   }
-
-  if (oneof.size() > 0) {
-    nlohmann::json ret = json::object();
-    ret["oneOf"] = oneof;
-    return ret;
-  } else {
-    return R"({"const" : false})"_json;
-  }
+  json j = json::object();
+  j["type"] = "object";
+  j["properties"] = props;
+  j["additionalProperties"] = false;
+  return j;
 }
 
 std::shared_ptr<IterationPoint> IteratorStore::getNewIterator(std::string package, std::string name,
-                                                              struct VnV_Function_Sig pretty, int once,
-                                                              NTV& in_args, NTV& out_args) {
+                                                              struct VnV_Function_Sig pretty, int once, NTV& in_args,
+                                                              NTV& out_args) {
   std::string key = package + ":" + name;
   if (iterators.find(key) == iterators.end()) {
     return nullptr;  // Not configured
@@ -160,16 +138,15 @@ std::shared_ptr<IterationPoint> IteratorStore::getNewIterator(std::string packag
   return newIterator(package, name, pretty, once, in_args, out_args);
 }
 
-void IteratorStore::addIterator(std::string package, std::string name, bool runInternal, json &templateName, std::vector<TestConfig>& tests,
-                                std::vector<IteratorConfig>& niterators) {
-  
+void IteratorStore::addIterator(std::string package, std::string name, bool runInternal, json& templateName,
+                                std::vector<TestConfig>& tests, std::vector<IteratorConfig>& niterators) {
   std::string key = package + ":" + name;
-  iterators.insert(std::make_pair(key, InjectionIteratorConfig(package, name, runInternal, templateName, tests, niterators)));
+  iterators.insert(
+      std::make_pair(key, InjectionIteratorConfig(package, name, runInternal, templateName, tests, niterators)));
 }
 
-
-  bool IteratorStore::registeredIterator(std::string package, std::string name) {
-      return iterators.find(package + ":" + name) != iterators.end();
-  }
+bool IteratorStore::registeredIterator(std::string package, std::string name) {
+  return iterators.find(package + ":" + name) != iterators.end();
+}
 
 BaseStoreInstance(IteratorStore) BaseStoreInstance(IteratorsStore)

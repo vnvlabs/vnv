@@ -5,18 +5,18 @@
 #include <type_traits>
 
 #include "base/Communication.h"
+#include "base/InjectionPointConfig.h"
 #include "base/exceptions.h"
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/DataTypeStore.h"
 #include "base/stores/ReductionStore.h"
-#include "interfaces/ActionType.h"
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/Logging.h"
 #include "c-interfaces/PackageName.h"
 #include "c-interfaces/Wrappers.h"
+#include "interfaces/ActionType.h"
 #include "interfaces/IUnitTest.h"
 #include "json-schema.hpp"
-#include "base/InjectionPointConfig.h"
 #define FetchTypes X(std::string) X(int) X(double) X(long)
 
 /**
@@ -37,8 +37,6 @@ namespace InjectionPointTypeUtils {
 std::string getType(InjectionPointType type, std::string stageId);
 int toC(InjectionPointType type);
 }  // namespace InjectionPointTypeUtils
-
-
 
 class BaseAction {
  public:
@@ -101,11 +99,9 @@ class IOutputEngine {
     this->Put(variableName, b, m);
   }
 
-  template <typename T, typename = void>
-  struct vnv_has_datatype : std::false_type{};
+  template <typename T, typename = void> struct vnv_has_datatype : std::false_type {};
 
-  template <typename T>
-  struct vnv_has_datatype<T, decltype( (void) T::vnv_datatype, void())> : std::true_type {};
+  template <typename T> struct vnv_has_datatype<T, decltype((void)T::vnv_datatype, void())> : std::true_type {};
 
   // Get all the  class types that might have a datatype wrapper.
   template <typename T, typename std::enable_if<vnv_has_datatype<T>{}, T>::type* = nullptr>
@@ -117,62 +113,55 @@ class IOutputEngine {
         return;
       }
     } catch (VnVExceptionBase e) {
-        VnV_Error(VNVPACKAGENAME, "Could not put Data Type %s because %s ", T::vnv_datatype.c_str(), e.what());
+      VnV_Error(VNVPACKAGENAME, "Could not put Data Type %s because %s ", T::vnv_datatype.c_str(), e.what());
     }
     VnV_Error(VNVPACKAGENAME, "Could not put Data Type %s because it does not exist ", T::vnv_datatype.c_str());
-    
-   
   }
 
   template <typename T>
-  void Write(std::string variableName, long long key, T* data, const BaseAction& action, const MetaData& m = MetaData()) {
-       int total = action.count(comm, getRoot());
+  void Write(std::string variableName, long long key, T* data, const BaseAction& action,
+             const MetaData& m = MetaData()) {
+    int total = action.count(comm, getRoot());
 
     try {
-      
       IDataType_vec vec(total);
       auto& c = DataTypeStore::instance();
-    
+
       for (int i = 0; i < total; i++) {
         auto di = c.getDataType(key);
-        if (di != nullptr ) {
-            di->setData((void*)&(data[i]));
-            vec[i] = di;
+        if (di != nullptr) {
+          di->setData((void*)&(data[i]));
+          vec[i] = di;
         } else {
           VnV_Error(VNVPACKAGENAME, "Could not write %s as datatype does not exist", variableName.c_str());
           return;
         }
       }
       action.write(comm, key, variableName, vec, this, m);
-    
-    } catch (VnVExceptionBase &e ) {
-       VnV_Error(VNVPACKAGENAME, "Could not write %s", variableName.c_str());
-    }    
 
+    } catch (VnVExceptionBase& e) {
+      VnV_Error(VNVPACKAGENAME, "Could not write %s", variableName.c_str());
+    }
   }
 
-  
   template <typename T, typename std::enable_if<vnv_has_datatype<T>{}, T>::type* = nullptr>
   void Write(std::string variableName, T* data, const BaseAction& action, const MetaData& m = MetaData()) {
-      auto did = DataTypeStore::instance().getDataType(T::vnv_datatype);
-      if (did != nullptr) {
-        Write(variableName,did->getKey(),data,action,m);
-      } else {
-        VnV_Error(VNVPACKAGENAME, "Could not write %s", variableName.c_str());   
-      }
-
+    auto did = DataTypeStore::instance().getDataType(T::vnv_datatype);
+    if (did != nullptr) {
+      Write(variableName, did->getKey(), data, action, m);
+    } else {
+      VnV_Error(VNVPACKAGENAME, "Could not write %s", variableName.c_str());
+    }
   }
 
   template <typename T, typename std::enable_if<!(vnv_has_datatype<T>{}), T>::type* = nullptr>
   void Write(std::string variableName, T* data, const BaseAction& action, const MetaData& m = MetaData()) {
-      auto did = DataTypeStore::instance().getDataType(typeid(T).name());
-      if (did != nullptr ) {
-         Write(variableName,did->getKey(),data,action,m);
-      } else {
-        VnV_Error(VNVPACKAGENAME, "Could not write %s", variableName.c_str());   
-      }
-     
-     
+    auto did = DataTypeStore::instance().getDataType(typeid(T).name());
+    if (did != nullptr) {
+      Write(variableName, did->getKey(), data, action, m);
+    } else {
+      VnV_Error(VNVPACKAGENAME, "Could not write %s", variableName.c_str());
+    }
   }
 
   /**
@@ -296,8 +285,6 @@ class IOutputEngine {
   void Put_ReduceVectorRankOnly(std::string variableName, std::string reducer, int size, T* data, int root = -1,
                                 const MetaData& m = MetaData());
 
- 
-
   virtual ~IOutputEngine() = default;
 };
 // Action to write <size> values from process <rank> to the engine.
@@ -377,15 +364,16 @@ class MatrixAction : public BaseAction {
   MatrixAction(int x_, int y_, int columns = 1) : x(x_), y(y_), ymax(columns) {}
   virtual void write(ICommunicator_ptr comm, long long dtype, std::string variableName, IDataType_vec data,
                      IOutputEngine* engine, const MetaData& m) const override {
-    
     int s = comm->Size();  // number of processors.
 
     // If ymax is not a multiple of y we have an issue
     // If ymax/y is not a multiple of s we have an issue
     if ((ymax % y != 0) && (s % (ymax / y) != 0)) {
-      VnV_Error(VNVPACKAGENAME, "Invalid matrix Size given for Matrix Action. ymax should"
-                                "be a multiple of y and (ymax/y) should be a multiple of s."
-                                "{ ymax: %d, y: %d , s: %d,  ",ymax,y,s);
+      VnV_Error(VNVPACKAGENAME,
+                "Invalid matrix Size given for Matrix Action. ymax should"
+                "be a multiple of y and (ymax/y) should be a multiple of s."
+                "{ ymax: %d, y: %d , s: %d,  ",
+                ymax, y, s);
       return;
     }
 
@@ -679,22 +667,21 @@ void IOutputEngine::Put_ReduceVectorRankOnly(std::string variableName, std::stri
   Put_ReduceVectorRankOnly(variableName, reducer, data.size(), data.data(), root, m);
 }
 
-class IInternalOutputEngine : public IOutputEngine{
+class IInternalOutputEngine : public IOutputEngine {
  public:
-  virtual void setFromJson(ICommunicator_ptr worldComm, json& configuration, bool readMode) = 0;
+  virtual void setFromJson(ICommunicator_ptr worldComm, json& configuration) = 0;
 
   virtual void sendInfoNode(ICommunicator_ptr worldComm) = 0;
-
-  virtual json getConfigurationSchema(bool readMode) = 0;
 
   virtual void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string id,
                                              InjectionPointType type, std::string stageId, std::string filename,
                                              int line) = 0;
 
-  virtual void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageId) = 0 ;
+  virtual void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageId) = 0;
 
-  virtual void actionStartedCallBack(ICommunicator_ptr comm, std::string package, std::string name, ActionStage::type stage) {} ;
-  virtual void actionEndedCallBack(ActionStage::type stage) {};
+  virtual void actionStartedCallBack(ICommunicator_ptr comm, std::string package, std::string name,
+                                     ActionStage::type stage){};
+  virtual void actionEndedCallBack(ActionStage::type stage){};
 
   virtual void testStartedCallBack(std::string packageName, std::string testName, bool internal, long uuid) = 0;
 
@@ -704,12 +691,11 @@ class IInternalOutputEngine : public IOutputEngine{
 
   virtual void unitTestFinishedCallBack(IUnitTest* tester) = 0;
 
-  virtual void packageOptionsStartedCallBack(ICommunicator_ptr comm, std::string packageName) = 0 ;
-  virtual void packageOptionsEndedCallBack(std::string packageName) = 0 ;
+  virtual void packageOptionsStartedCallBack(ICommunicator_ptr comm, std::string packageName) = 0;
+  virtual void packageOptionsEndedCallBack(std::string packageName) = 0;
 
   virtual void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile,
                     std::string filename, std::string reader) = 0;
-
 
   virtual std::string print() = 0;
 
@@ -727,7 +713,7 @@ class OutputEngineManager : public IInternalOutputEngine {
  public:
   std::string getKey() { return key; };
 
-  void set(ICommunicator_ptr world, json& configuration, std::string key, bool readMode);
+  void set(ICommunicator_ptr world, json& configuration, std::string key);
 
   IOutputEngine* getOutputEngine();
 
@@ -735,21 +721,24 @@ class OutputEngineManager : public IInternalOutputEngine {
 };
 typedef std::shared_ptr<VnV::Nodes::IRootNode> (*engine_reader_ptr)(std::string filename, long& id,
                                                                     const nlohmann::json& config, bool async);
+typedef std::string (*engine_schema_ptr)();
+
 typedef OutputEngineManager* (*engine_register_ptr)();
-void registerEngine(std::string name, VnV::engine_register_ptr r);
-void registerReader(std::string name, VnV::engine_reader_ptr r);
+void registerEngine(std::string name, VnV::engine_register_ptr r, VnV::engine_schema_ptr s);
+void registerReader(std::string name, VnV::engine_reader_ptr r, VnV::engine_schema_ptr s);
 
 }  // namespace VnV
 
-#define INJECTION_ENGINE(PNAME, name)                                \
-  namespace VnV {                                                    \
-  namespace PNAME {                                                  \
-  namespace Engines {                                                \
-  OutputEngineManager* declare_##name();                             \
-  void register_##name() { registerEngine(#name, &declare_##name); } \
-  }                                                                  \
-  }                                                                  \
-  }                                                                  \
+#define INJECTION_ENGINE(PNAME, name, schema)                                     \
+  namespace VnV {                                                                 \
+  namespace PNAME {                                                               \
+  namespace Engines {                                                             \
+  OutputEngineManager* declare_##name();                                          \
+  std::string sch_##name() { return schema; }                                     \
+  void register_##name() { registerEngine(#name, &declare_##name, &sch_##name); } \
+  }                                                                               \
+  }                                                                               \
+  }                                                                               \
   VnV::OutputEngineManager* VnV::PNAME::Engines::declare_##name()
 
 #define DECLAREENGINE(PNAME, name) \
@@ -762,17 +751,19 @@ void registerReader(std::string name, VnV::engine_reader_ptr r);
   }
 #define REGISTERENGINE(PNAME, name) VnV::PNAME::Engines::register_##name();
 
-#define INJECTION_ENGINE_READER(PNAME, name)                                                                           \
-  namespace VnV {                                                                                                      \
-  namespace PNAME {                                                                                                    \
-  namespace EngineReaders {                                                                                            \
-  std::shared_ptr<VnV::Nodes::IRootNode> declare_##name(std::string filename, long& id, const nlohmann::json& config, bool async); \
-  void register_##name() { registerReader(#name, &declare_##name); }                                                   \
-  }                                                                                                                    \
-  }                                                                                                                    \
-  }                                                                                                                    \
-  std::shared_ptr<VnV::Nodes::IRootNode> VnV::PNAME::EngineReaders::declare_##name(std::string filename, long& id,     \
-                                                                                   const nlohmann::json& config, bool async)
+#define INJECTION_ENGINE_READER(PNAME, name, schema)                                                                  \
+  namespace VnV {                                                                                                     \
+  namespace PNAME {                                                                                                   \
+  namespace EngineReaders {                                                                                           \
+  std::string sch_##name() { return schema; }                                                                         \
+  std::shared_ptr<VnV::Nodes::IRootNode> declare_##name(std::string filename, long& id, const nlohmann::json& config, \
+                                                        bool async);                                                  \
+  void register_##name() { registerReader(#name, &declare_##name, &sch_##name); }                                     \
+  }                                                                                                                   \
+  }                                                                                                                   \
+  }                                                                                                                   \
+  std::shared_ptr<VnV::Nodes::IRootNode> VnV::PNAME::EngineReaders::declare_##name(                                   \
+      std::string filename, long& id, const nlohmann::json& config, bool async)
 
 #define DECLAREENGINEREADER(PNAME, name) \
   namespace VnV {                        \

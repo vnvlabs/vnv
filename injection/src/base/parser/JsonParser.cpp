@@ -15,9 +15,16 @@
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
-void JsonParser::addTest(const json& testJson, std::vector<json>& testConfigs, std::set<std::string>& runScopes) {
+void JsonParser::addTest(const std::string key, const json& testJson, std::vector<json>& testConfigs,
+                         std::set<std::string>& runScopes) {
+  std::vector<std::string> r;
+  StringUtils::StringSplit(key, ":", r);
+  assert(r.size() == 2 && "Not a valid key");
+  json t = testJson;
+  t["name"] = r[1];
+  t["package"] = r[0];
   if (add(testJson, runScopes)) {
-    testConfigs.push_back(testJson);
+    testConfigs.push_back(t);
   }
 }
 
@@ -38,11 +45,20 @@ bool JsonParser::add(const json& testJson, std::set<std::string>& runScopes) {
 }
 
 SamplerInfo JsonParser::getSamplerInfo(const json& samplerJson) {
-  SamplerInfo info;
-  info.name = samplerJson["name"].get<std::string>();
-  info.package = samplerJson["package"].get<std::string>();
-  info.config = samplerJson.contains("config") ? samplerJson["config"] : json::object();
-  return info;
+  assert(samplerJson.size() == 1);
+
+  for (auto it : samplerJson.items()) {
+    SamplerInfo info;
+    std::vector<std::string> s;
+    StringUtils::StringSplit(it.key(), ":", s);
+    assert(s.size() == 2);
+    info.package = s[0];
+    info.name = s[1];
+    info.config = it.value();
+    return info;
+  }
+
+  throw VnVExceptionBase("Schema Validation Error -- This should be possible");
 }
 
 void JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runScopes,
@@ -52,21 +68,18 @@ void JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runSco
       continue;
     }
 
-    std::string name = it.value()["name"].get<std::string>();
-    std::string package = it.value()["package"].get<std::string>();
-    std::string key = package + ":" + name;
     const json& values = it.value();
-    auto aip = ips.find(name);
+    auto aip = ips.find(it.key());
 
     if (aip != ips.end()) {
       if (values.find("tests") != values.end()) {
         for (auto& test : values["tests"].items()) {
-          addTest(test.value(), aip->second.tests, runScopes);
+          addTest(test.key(), test.value(), aip->second.tests, runScopes);
         }
       }
       if (values.find("iterators") != values.end()) {
         for (auto& test : values["iterators"].items()) {
-          addTest(test.value(), aip->second.iterators, runScopes);
+          addTest(test.key(), test.value(), aip->second.iterators, runScopes);
         }
       }
       if (values.find("plug") != values.end()) {
@@ -81,19 +94,23 @@ void JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runSco
       }
 
     } else {
+      std::vector<std::string> res;
+      StringUtils::StringSplit(it.key(), ":", res);
+      assert(res.size() == 2);
+
       InjectionPointInfo ipInfo;
       ipInfo.type = type;
-      ipInfo.name = name;
-      ipInfo.package = package;
+      ipInfo.name = res[1];
+      ipInfo.package = res[0];
 
       if (values.find("tests") != values.end()) {
         for (auto test : values["tests"].items()) {
-          addTest(test.value(), ipInfo.tests, runScopes);
+          addTest(test.key(), test.value(), ipInfo.tests, runScopes);
         }
       }
       if (type == InjectionType::ITER && values.find("iterators") != values.end()) {
         for (auto& test : it.value()["iterators"].items()) {
-          addTest(test.value(), ipInfo.iterators, runScopes);
+          addTest(test.key(), test.value(), ipInfo.iterators, runScopes);
         }
       }
       if (type == InjectionType::PLUG && values.find("plug") != values.end()) {
@@ -117,7 +134,7 @@ void JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runSco
       }
 
       if (ipInfo.tests.size() > 0 || ipInfo.runInternal || ipInfo.iterators.size() > 0) {
-        ips.insert(std::make_pair(key, ipInfo));
+        ips.insert(std::make_pair(it.key(), ipInfo));
       }
     }
   }
@@ -148,10 +165,15 @@ LoggerInfo JsonParser::getLoggerInfo(const json& logging) {
 }
 
 EngineInfo JsonParser::getEngineInfo(const json& engine) {
-  EngineInfo einfo;
-  einfo.engineType = engine["type"].get<std::string>();
-  einfo.engineConfig = engine["config"];
-  return einfo;
+  assert(engine.size() == 1 && "Validation should make this always true");
+
+  for (auto it : engine.items()) {
+    EngineInfo einfo;
+    einfo.engineType = it.key();
+    einfo.engineConfig = it.value();
+    return einfo;
+  }
+  throw VnVExceptionBase("Validation Error");
 }
 
 UnitTestInfo JsonParser::getUnitTestInfo(const nlohmann::json& unitTestJson) {
@@ -228,9 +250,8 @@ nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile, int* arg
         }
       }
     } catch (VnVExceptionBase& e) {
-       std::cout << "Ignoring VnV command line parameter : " << s << "\n Reason: " << e.message << std::endl;
+      std::cout << "Ignoring VnV command line parameter : " << s << "\n Reason: " << e.message << std::endl;
     }
-
   }
   return main;
 }
@@ -273,7 +294,7 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   if (main.find("outputEngine") != main.end()) {
     info.engineInfo = getEngineInfo(main["outputEngine"]);
   } else {
-    info.engineInfo = getEngineInfo(R"({"type" : "json_stdout" , "config" : {} })"_json);
+    info.engineInfo = getEngineInfo(R"({ "json_stdout" : {} })"_json);
   }
 
   // Get the output Engine information.
@@ -349,7 +370,6 @@ json JsonParser::commandLineParser(int* argc, char** argv) {
 RunInfo JsonParser::parse(std::ifstream& fstream, int* argc, char** argv) {
   json mainJson;
   if (!fstream.good()) {
-    
     throw INJECTION_EXCEPTION_(
         "Invalid Input File Stream. The input file stream passed "
         "to JsonParser::parse could not be opened");

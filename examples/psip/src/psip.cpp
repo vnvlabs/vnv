@@ -5,11 +5,10 @@ class PSIPAction : public VnV::IAction {
   json conf;
 
  public:
-  PSIPAction(const json &config) { conf = config; }
+  PSIPAction(const json& config) { conf = config; }
 
   json getDefault() {
-
-        return R"(
+    return R"(
 {
    "sa" : [
       [0,0,0,0,0],
@@ -28,52 +27,47 @@ class PSIPAction : public VnV::IAction {
    ]
 }
 )"_json;
+  }
 
-}
-
-  virtual void initialize() override { 
-      if (conf.size()==0) {
-         conf = getDefault();
-
-      }
-      getEngine()->Put("psip", conf );
+  virtual void initialize() override {
+    if (conf.size() == 0) {
+      conf = getDefault();
+    }
+    getEngine()->Put("psip", conf);
   }
 };
 
 const char* schema = R"(
 {
- "OneOf" : 
- [ {
         "type" : "object",
         "properties" : {
             "sa" : {
                 "type" : "array",
                 "items" : {"type" : "array" , "items":{"type" : "integer", "min":0, "max":3 } },
                 "length" : 5
-            },
-            "ptc" : {
-                "type" : "array",
-                "items" : {
-                    "type" : "object",
-                    "properties" : {
-                        "process" : {"type" : "string"},
-                        "target" : {"type" : "string" },
-                        "score" : {"type" : "integer", "min" : 0 },
-                        "scores" : {"type" : "array" , "items" : {"type" :"string"} }
-                    },
-                    "required" : ["process","target","score","scores"]
-                },
-                "minLength" : 1
-            }
+            },    
         }, 
-        "required" : ["sa","ptc"]       
-},{
-	"type" : "object",
-    "properties" : {},
-  	"additionalProperties" : false
-}
-]
-  
+        "dependencies" : {
+            "sa" : {
+                "properties": {
+                    "ptc" : {
+                       "type" : "array",
+                       "items" : {
+                          "type" : "object",
+                            "properties" : {
+                                "process" : {"type" : "string"},
+                                "target" : {"type" : "string" },
+                                "score" : {"type" : "integer", "min" : 0 },
+                                "scores" : {"type" : "array" , "items" : {"type" :"string"} }
+                            },
+                            "required" : ["process","target","score","scores"]
+                        },
+                        "minLength" : 1
+                    }
+                },
+                "required": ["ptc"]
+            }
+        }
 }
 )";
 

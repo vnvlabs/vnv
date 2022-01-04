@@ -10,21 +10,15 @@
     "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so"
   },
   "outputEngine": {
-    "type": "json_file",
-    "config": {
+    "json_file" : {
        "filename" : "vv-output"
     }
   },
-  "injectionPoints": [
-      {
-        "name" : "initialization",
-        "package" : "VNV",
-        "tests" : [
-            {
-                "name" : "cputime",
-                "package" : "VNV"
-            }
-        ]
-      }
-  ]
+  "injectionPoints": {
+     "VNV:initialization" : {
+        "tests" : {
+          "VNV:cputime" : {}
+	}
+     }	     
+  }
 }

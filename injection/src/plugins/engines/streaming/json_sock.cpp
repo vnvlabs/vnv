@@ -336,7 +336,7 @@ class JsonSocketStream : public PortStreamWriter<json> {
   std::string upass;
 
  public:
-  virtual void initialize(json& config, bool readMode) override {
+  virtual void initialize(json& config) override {
     filestub = PortStreamWriter<json>::init("json_socket", config);
 
     auto t = filestub.find_last_of(":");
@@ -371,8 +371,6 @@ class JsonSocketStream : public PortStreamWriter<json> {
       return true;
     }
   }
-
-  virtual nlohmann::json getConfigurationSchema(bool readMode) override { return json::object(); };
 
   virtual void finalize(ICommunicator_ptr worldComm, long currentTime) override {
     // Close all the streams
@@ -448,9 +446,11 @@ void UDPServer::parseMessage(const struct sockaddr* sender, socklen_t lena, std:
 
 }  // namespace
 
-INJECTION_ENGINE(VNVPACKAGENAME, json_socket) { return new StreamManager<json>(std::make_shared<JsonSocketStream>()); }
+INJECTION_ENGINE(VNVPACKAGENAME, json_socket, JsonSocketStream::getSchema()) {
+  return new StreamManager<json>(std::make_shared<JsonSocketStream>());
+}
 
-INJECTION_ENGINE_READER(VNVPACKAGENAME, json_socket) {
+INJECTION_ENGINE_READER(VNVPACKAGENAME, json_socket, JsonSocketStreamIterator::getSchema(VnV::Nodes::dispathSchema())) {
   auto stream = std::make_shared<JsonSocketStreamIterator>(filename.c_str(), config);
   return engineReaderDispatch<JsonSocketStreamIterator, json>(async, config, stream, false);
 }

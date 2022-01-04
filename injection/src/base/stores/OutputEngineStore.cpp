@@ -15,15 +15,12 @@ using nlohmann::json_schema::json_validator;
 
 bool OutputEngineStore::isInitialized() { return initialized; }
 
-void OutputEngineStore::setEngineManager(ICommunicator_ptr world,
-                                         std::string type, json& config) {
-  
+void OutputEngineStore::setEngineManager(ICommunicator_ptr world, std::string type, json& config) {
   auto it = registeredEngines.find(type);
   if (it != registeredEngines.end()) {
-    
     try {
-    manager.reset((*it->second)());
-    } catch (std::exception &e) {
+      manager.reset((*it->second)());
+    } catch (std::exception& e) {
       HTHROW INJECTION_EXCEPTION("Engine init failed:  %s", e.what());
     } catch (...) {
       HTHROW INJECTION_EXCEPTION_("Unknown third party exception occured during engine init:");
@@ -32,11 +29,21 @@ void OutputEngineStore::setEngineManager(ICommunicator_ptr world,
     if (manager == nullptr) {
       std::abort();
     }
-    
-    manager->set(world, config, type, false);
-    initialized = true;
-    engineName = type;
-    return;
+
+    json schema = json::parse((*registeredEngineSchema[type])());
+    try {
+      if (!schema.empty()) {
+        json_validator validator;
+        validator.set_root_schema(schema);
+        validator.validate(config);
+        manager->set(world, config, type);
+        initialized = true;
+        engineName = type;
+        return;
+      }
+    } catch (...) {
+      HTHROW INJECTION_EXCEPTION_("Invalid Engine Schema");
+    }
   }
   HTHROW INJECTION_EXCEPTION("Invalid Engine Name %s", type.c_str());
 }
@@ -65,46 +72,45 @@ json OutputEngineStore::listReaders() {
 }
 
 json OutputEngineStore::schema() {
-  nlohmann::json oneof = json::array();
+  nlohmann::json m = R"({"type":"object"})"_json;
+  nlohmann::json properties = json::object();
+
   for (auto& it : registeredEngines) {
-    nlohmann::json m = R"({"type":"object"})"_json;
-
-    nlohmann::json properties = json::object();
-
-    nlohmann::json package = json::object();
-    package["const"] = it.first;
-    properties["type"] = package;
-    properties["config"] = R"({"type":"object"})"_json;  // todo
-
-    m["properties"] = properties;
-    m["required"] = R"(["type"])"_json;
-    oneof.push_back(m);
+    properties[it.first] = json::parse((*registeredEngineSchema[it.first])());  // todo
   }
-
-  if (oneof.size() > 0) {
-    nlohmann::json ret = json::object();
-    ret["oneOf"] = oneof;
-    return ret;
-  } else {
-    return R"({"const" : false})"_json;
-  }
+  m["properties"] = properties;
+  m["minProperties"] = 1;
+  m["maxProperties"] = 1;
+  m["additionalProperties"] = false;
+  return m;
 }
 
-void OutputEngineStore::registerEngine(std::string name,
-                                       engine_register_ptr engine_ptr) {
+void OutputEngineStore::registerEngine(std::string name, engine_register_ptr engine_ptr, VnV::engine_schema_ptr s) {
   registeredEngines.insert(std::make_pair(name, engine_ptr));
+  registeredEngineSchema.insert(std::make_pair(name, s));
 }
 
-void OutputEngineStore::registerReader(std::string name,
-                                       engine_reader_ptr engine_ptr) {
+void OutputEngineStore::registerReader(std::string name, engine_reader_ptr engine_ptr, VnV::engine_schema_ptr s) {
   registeredReaders.insert(std::make_pair(name, engine_ptr));
+  registeredReaderSchema.insert(std::make_pair(name, s));
 }
 
-std::shared_ptr<Nodes::IRootNode> OutputEngineStore::readFile(
-    std::string filename, std::string engineType, json& config, bool async) {
-  
+std::shared_ptr<Nodes::IRootNode> OutputEngineStore::readFile(std::string filename, std::string engineType,
+                                                              json& config, bool async) {
   auto it = registeredReaders.find(engineType);
+
   if (it != registeredReaders.end()) {
+    json schema = json::parse((*registeredReaderSchema[engineType])());
+    try {
+      if (!schema.empty()) {
+        json_validator validator;
+        validator.set_root_schema(schema);
+        validator.validate(config);
+      }
+    } catch (...) {
+      throw INJECTION_EXCEPTION("Invalid Engine Reader Configuration: %s", engineType.c_str());
+    }
+
     return (*it->second)(filename, idCounter, config, async);
   }
   throw INJECTION_EXCEPTION("Invalid Engine Reader %s ", engineType.c_str());

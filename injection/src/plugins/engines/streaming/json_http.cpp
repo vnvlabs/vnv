@@ -109,31 +109,24 @@ class JsonHttpStream : public PortStreamWriter<json> {
  public:
   JsonHttpStream() : curl(VnV::Curl::CurlWrapper::instance()) {}
 
-  virtual void initialize(json& config, bool readMode) override {
-    if (!readMode) {
-      filestub = PortStreamWriter<json>::init("json_http", config);
+  virtual void initialize(json& config) override {
+    filestub = PortStreamWriter<json>::init("json_http", config);
 
-      curl.setUrl(filestub);
-      curl.setPostFields("Hello");
+    curl.setUrl(filestub);
+    curl.setPostFields("Hello");
 
-      while (true) {
-        std::cout << "Trying to connect.... to " << filestub << std::endl;
+    while (true) {
+      std::cout << "Trying to connect.... to " << filestub << std::endl;
 
-        curl.send();
+      curl.send();
 
-        if (curl.getCode() == 200) {
-          std::cout << "Connection Successfull --- Lets Gooooooo!" << std::endl;
-          break;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+      if (curl.getCode() == 200) {
+        std::cout << "Connection Successfull --- Lets Gooooooo!" << std::endl;
+        break;
       }
-
-    } else {
-      throw INJECTION_EXCEPTION_("No Read Mode for json_http without microhttp installed");
+      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     }
   }
-
-  virtual nlohmann::json getConfigurationSchema(bool readMode) override { return json::object(); };
 
   virtual void finalize(ICommunicator_ptr worldComm, long currentTime) override {
     // Close all the streams
@@ -300,11 +293,11 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
 
 }  // namespace
 
-INJECTION_ENGINE(VNVPACKAGENAME, json_http) { 
+INJECTION_ENGINE(VNVPACKAGENAME, json_http, JsonHttpStream::getSchema()) {
   return new StreamManager<json>(std::make_shared<JsonHttpStream>());
 }
 
-INJECTION_ENGINE_READER(VNVPACKAGENAME, json_http) {
+INJECTION_ENGINE_READER(VNVPACKAGENAME, json_http, JsonHttpStreamIterator::getSchema(VnV::Nodes::dispathSchema())) {
   return engineReaderDispatch<JsonHttpStreamIterator, json>(
       async, config, std::make_shared<JsonHttpStreamIterator>(filename, config), false);
 }

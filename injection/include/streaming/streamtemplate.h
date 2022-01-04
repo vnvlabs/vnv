@@ -11,9 +11,9 @@
 #include <string>
 #include <thread>
 
-#include "interfaces/ActionType.h"
 #include "base/DistUtils.h"
 #include "base/Runtime.h"
+#include "interfaces/ActionType.h"
 #include "streaming/Nodes.h"
 #include "streaming/curl.h"
 
@@ -36,7 +36,7 @@ constexpr auto outputFile = "outputFile";
   X(comm)        \
   X(children)    \
   X(prov)        \
-  X(time)    \
+  X(time)        \
   X(key)         \
   X(stage)       \
   X(message)     \
@@ -291,9 +291,14 @@ class JsonPortStreamIterator : public MultiStreamIterator<JsonSingleStreamIterat
     uname = config.value("username", "root");
   };
 
+  static std::string getSchema(std::string baseObjectSchema) {
+    auto a = json::parse(baseObjectSchema);
+    a["properties"]["password"] = R"({"type":"string","default":"password"})"_json;
+    a["properties"]["username"] = R"({"type":"string","default":"root"})"_json;
+    return a;
+  }
+
   bool authorize(std::string username, std::string password) {
-    std::cout << "AUth " << username << " : " << password << " " << uname << " " << pass << "" << password.compare(pass)
-              << " " << username.compare(uname) << std::endl;
     return (username.compare(uname) == 0 && password.compare(pass) == 0);
   }
 
@@ -332,7 +337,7 @@ class JsonPortStreamIterator : public MultiStreamIterator<JsonSingleStreamIterat
   ~JsonPortStreamIterator() {}
 };
 
-template <typename T> T WriteDataJson(IDataType_vec gather) {  
+template <typename T> T WriteDataJson(IDataType_vec gather) {
   void* outdata;
   T main = T::array();
   for (int i = 0; i < gather.size(); i++) {
@@ -420,15 +425,13 @@ template <typename T> T WriteDataJson(IDataType_vec gather) {
 
 template <typename T> class StreamWriter {
  public:
-  virtual void initialize(nlohmann::json& config, bool readMode) = 0;
+  virtual void initialize(nlohmann::json& config) = 0;
   virtual void finalize(ICommunicator_ptr worldComm, long currentTime) = 0;
   virtual void newComm(long id, const T& obj, ICommunicator_ptr comm) = 0;
   virtual void write(long id, const T& obj, long jid) = 0;
 
   virtual bool supportsFetch() { return false; }
   virtual bool fetch(long id, long jid, json& obj) { return false; }
-
-  virtual nlohmann::json getConfigurationSchema(bool readMode) = 0;
 
   StreamWriter(){};
   virtual ~StreamWriter(){
@@ -469,11 +472,32 @@ template <typename T> class PortStreamWriter : public StreamWriter<T> {
       std::cout << "Auto Start Successfull" << std::endl;
       return w.getData();
     }
-  #endif
+#endif
     throw INJECTION_EXCEPTION_("Could not autostart the engine reader.");
   }
 
  public:
+  static std::string getSchema() {
+    return R"({
+      "type" : "object",
+      "properties" : {
+        "filename" : {"type" : "string" },
+        "username" : {"type" : "string", "default" : "root" },
+        "password" : {"type" : "string", "default" : "password" },
+        "autostart" : {
+            "type" : "object",
+            "properties" : {
+               "url" : {"type" : "string", "default" : "localhost:5000" },
+               "name" : {"type" : "string", "default" : "vnv_report" },
+               "vnvpass" : { "type" : "string", "default" : "password"},
+               "persist" : {"type" : "boolean" , "default" : true}
+            }
+        }
+      },
+      "required" : ["filename"]
+    })";
+  }
+
   std::string init(std::string reader, const json& config) {
     username = config.value("username", "root");
     password = config.value("password", "password");
@@ -722,8 +746,6 @@ template <typename T> class StreamManager : public OutputEngineManager {
     }
   }
 
-  json getConfigurationSchema(bool readMode) override { return stream->getConfigurationSchema(readMode); }
-
   void finalize(ICommunicator_ptr worldComm, long currentTime) override {
     setComm(worldComm, false);
     if (comm->Rank() == getRoot()) {
@@ -756,34 +778,33 @@ template <typename T> class StreamManager : public OutputEngineManager {
     return T::object();
   }
 
-  void setFromJson(ICommunicator_ptr worldComm, json& config, bool readMode) override {
-    if (!readMode) {
-      stream->initialize(config, readMode);
-      setComm(worldComm, false);
-    }
+  void setFromJson(ICommunicator_ptr worldComm, json& config) override {
+    stream->initialize(config);
+    setComm(worldComm, false);
   }
 
-   void sendInfoNode(ICommunicator_ptr worldComm) override {
-    
-      setComm(worldComm, false);
+  void sendInfoNode(ICommunicator_ptr worldComm) override {
+    setComm(worldComm, false);
 
-      T node_map = getNodeMap(worldComm);
+    T node_map = getNodeMap(worldComm);
 
-      if (comm->Rank() == getRoot()) {
-        // This is the first one so we send over the info. .
-        T nJson = T::object();
-        nJson[JSD::title] = "VnV Simulation Report";
-        nJson[JSD::date] = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        nJson[JSD::name] = "MainInfo";
-        nJson[JSD::node] = JSN::info;
-        nJson[JSD::worldSize] = comm->Size();
-        nJson[JSD::spec] = RunTime::instance().getFullJson();
-        nJson[JSD::nodeMap] = node_map;
-        nJson[JSD::mpiversion] = comm->VersionLibrary();
-        nJson[JSD::prov] = RunTime::instance().getProv().toJson();
+    if (comm->Rank() == getRoot()) {
+      // This is the first one so we send over the info. .
+      T nJson = T::object();
+      nJson[JSD::title] = "VnV Simulation Report";
+      nJson[JSD::date] =
+          std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+              .count();
+      nJson[JSD::name] = "MainInfo";
+      nJson[JSD::node] = JSN::info;
+      nJson[JSD::worldSize] = comm->Size();
+      nJson[JSD::spec] = RunTime::instance().getFullJson();
+      nJson[JSD::nodeMap] = node_map;
+      nJson[JSD::mpiversion] = comm->VersionLibrary();
+      nJson[JSD::prov] = RunTime::instance().getProv().toJson();
 
-        write(nJson);
-      }
+      write(nJson);
+    }
   }
 
   void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile, std::string filename,
@@ -955,21 +976,17 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
   }
 
  public:
-  virtual void initialize(json& config, bool readMode) override {
-    if (!readMode) {
-      this->filestub = config["filename"].template get<std::string>();
-    }
-  }
+  virtual void initialize(json& config) override { this->filestub = config["filename"].template get<std::string>(); }
 
-  virtual nlohmann::json getConfigurationSchema(bool readMode) override {
-    return readMode ? R"({})"_json : R"(
+  static std::string getSchema() {
+    return R"(
       { "type" : "object" , 
         "properties" : {
            "filename" : {"type":"string"}
         },
         "required" : ["filename"] 
       }
-    )"_json;
+    )";
   };
 
   virtual void finalize(ICommunicator_ptr wcomm, long currentTime) = 0;
@@ -1278,8 +1295,8 @@ template <class DB> class StreamParserTemplate {
       }
     }
 
-    virtual std::shared_ptr<typename DB::InjectionPointNode> visitInjectionPointStartedNode(const T& j,
-                                                                                            long elementId, long time) {
+    virtual std::shared_ptr<typename DB::InjectionPointNode> visitInjectionPointStartedNode(const T& j, long elementId,
+                                                                                            long time) {
       auto n = mks<typename DB::InjectionPointNode>(j);
       n->setpackage(j[JSD::package].template get<std::string>());
       n->setcommId(j[JSD::comm].template get<long>());
@@ -1323,7 +1340,7 @@ template <class DB> class StreamParserTemplate {
       n->setendIndex(elementId);
       n->setendTime(time);
       n->open(false);
-      
+
       return n;
     }
 
@@ -1520,7 +1537,7 @@ template <class DB> class StreamParserTemplate {
           tests->get(i)->open(false);
         }
 
-        rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::END, elementId,"End");
+        rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::END, elementId, "End");
 
       } else if (node == JSN::injectionPointStarted) {
         std::shared_ptr<typename DB::InjectionPointNode> p = visitInjectionPointStartedNode(j, elementId, currentTime);

@@ -15,9 +15,9 @@
 #include <string>
 #include <vector>
 
+#include "base/parser/JsonSchema.h"
 #include "base/stores/BaseStore.h"
 #include "interfaces/ITest.h"
-#include "base/parser/JsonSchema.h"
 
 namespace VnV {
 
@@ -35,28 +35,24 @@ template <typename V> class TestInfoTemplate {
 /**
  * @brief The TestStore class
  */
-template <typename Inter, typename Maker, typename Config>
-class TestStoreTemplate {
+template <typename Inter, typename Maker, typename Config> class TestStoreTemplate {
  public:
   TestStoreTemplate() {}
 
   std::map<std::string, json> registeredTests;
 
-  std::map<std::string, TestInfoTemplate<Maker>, std::less<std::string>>
-      test_factory;
+  std::map<std::string, TestInfoTemplate<Maker>, std::less<std::string>> test_factory;
 
   void addTest(std::string package, std::string name, std::string s, Maker m) {
-    
-    VnV_Warn(VNVPACKAGENAME, "Adding a new Test %s:%s", package.c_str(),name.c_str());
-    
+    VnV_Debug(VNVPACKAGENAME, "Adding a new Test %s:%s", package.c_str(), name.c_str());
+
     json j = json::parse(s);
     TestInfoTemplate<Maker> k(m, j);
     test_factory.insert({package + ":" + name, k});
   }
 
-  //TODO -- THIS SHOULD RETURN THE VALIDATION ERROR SOMEHOW>
+  // TODO -- THIS SHOULD RETURN THE VALIDATION ERROR SOMEHOW>
   bool verifySchema(std::string package, std::string name, json& opts) {
-    
     // Validate the test configuration provided to the constructor.
     json_validator validator;
     auto sch = test_factory.find(package + ":" + name);
@@ -73,7 +69,6 @@ class TestStoreTemplate {
   }
 
   std::shared_ptr<Inter> getTest(Config& config) {
-
     std::string key = config.getPackage() + ":" + config.getName();
 
     auto it = test_factory.find(key);
@@ -94,31 +89,29 @@ class TestStoreTemplate {
   std::vector<Config> validateTests(std::vector<json>& configs) {
     std::vector<Config> conf;
     for (auto& it : configs) {
-      
-       try {
-         conf.push_back(validateTest(it));
-       } catch (VnVExceptionBase &e ) {
-         VnV_Error(VNVPACKAGENAME, "Test Validation Failed for %s  --- %s", it.dump().c_str(), e.what() );
-       }
+      try {
+        conf.push_back(validateTest(it));
+      } catch (VnVExceptionBase& e) {
+        VnV_Error(VNVPACKAGENAME, "Test Validation Failed for %s  --- %s", it.dump().c_str(), e.what());
+      }
     }
     return conf;
   }
 
   Config validateTest(json& testJson) {
-    
     if (testJson.find("name") == testJson.end()) {
       // This should be impossible. Input Validation should detect test blocks
       // incorrectly specified.
-      HTHROW INJECTION_EXCEPTION("Error During Test Validation: Test Declaration does not contain Test Name\n %s", testJson.dump().c_str());
+      HTHROW INJECTION_EXCEPTION("Error During Test Validation: Test Declaration does not contain Test Name\n %s",
+                                 testJson.dump().c_str());
     }
-    
+
     std::string name = testJson["name"].get<std::string>();
     std::string package = testJson["package"].get<std::string>();
     std::string key = package + ":" + name;
-    
+
     auto it = test_factory.find(key);
     if (it != test_factory.end()) {
-      
       json test_schema;
       auto itt = registeredTests.find(key);
       if (itt == registeredTests.end()) {
@@ -145,19 +138,20 @@ class TestStoreTemplate {
       } else {
         testConfigJson["configuration"] = json::object();
       }
-     
+
       validator.validate(testConfigJson);
 
       // Finally, if a config spec was added for the test
       Config f(package, name, testConfigJson);
-      
+
       if (testJson.contains("template")) {
         f.runTemplateName = testJson["template"];
       }
 
       return f;
     }
-    HTHROW INJECTION_EXCEPTION("Error During Test Validation: Teset %s:%s does not exist.", package.c_str(), name.c_str() );
+    HTHROW INJECTION_EXCEPTION("Error During Test Validation: Teset %s:%s does not exist.", package.c_str(),
+                               name.c_str());
   }
 
   json& getSchema(std::string package, std::string name) {
@@ -170,46 +164,23 @@ class TestStoreTemplate {
   }
 
   nlohmann::json schema() {
-    nlohmann::json oneof = json::array();
+    nlohmann::json props = json::object();
     for (auto& it : test_factory) {
-      std::vector<std::string> ss;
-      StringUtils::StringSplit(it.first, ":", ss);
-
       nlohmann::json properties = json::object();
-      nlohmann::json req = json::array();
-
-      nlohmann::json package = json::object();
-      package["const"] = ss[0];
-
-      json name = json::object();
-      name["const"] = ss[1];
-
-      properties["package"] = package;
-      properties["name"] = name;
       properties["config"] = it.second.schema;
-
-      json parms = json::object();
-      json pprops = json::object();
-      json preq = json::array();
-      parms["type"] = "object";
-      parms["properties"] = pprops;
-      parms["required"] = preq;
-      parms["additionalProperties"] = false;
 
       json p = json::object();
       p["type"] = "object";
       p["properties"] = properties;
-      p["required"] = R"(["name","package"])"_json;
-      oneof.push_back(p);
+      p["additionalProperties"] = false;
+      props[it.first] = p;
     }
 
-    if (oneof.size() > 0) {
-      nlohmann::json ret = json::object();
-      ret["oneOf"] = oneof;
-      return ret;
-    } else {
-      return R"({"const" : false})"_json;
-    }
+    json r = json::object();
+    r["type"] = "object";
+    r["properties"] = props;
+    r["additionalProperties"] = false;
+    return r;
   }
 
   /**
@@ -221,8 +192,7 @@ class TestStoreTemplate {
   }
 };
 
-class TestStore : public TestStoreTemplate<ITest, maker_ptr, TestConfig>,
-                  public BaseStore {
+class TestStore : public TestStoreTemplate<ITest, maker_ptr, TestConfig>, public BaseStore {
  public:
   TestStore() : TestStoreTemplate<ITest, maker_ptr, TestConfig>() {}
   static TestStore& instance();

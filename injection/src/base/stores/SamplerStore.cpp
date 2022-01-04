@@ -10,13 +10,11 @@ namespace VnV {
 
 BaseStoreInstance(SamplerStore)
 
-    void SamplerStore::addSampler(std::string packageName, std::string name,
-                                  std::string schema, sampler_ptr m) {
+    void SamplerStore::addSampler(std::string packageName, std::string name, std::string schema, sampler_ptr m) {
   sampler_factory[packageName + ":" + name] = std::make_pair(m, schema);
 }
 
-ISampler_ptr SamplerStore::getSamplerForInjectionPoint(std::string ipPackage,
-                                                       std::string ipName) {
+ISampler_ptr SamplerStore::getSamplerForInjectionPoint(std::string ipPackage, std::string ipName) {
   auto it = samplers.find(ipPackage + ":" + ipName);
   if (it != samplers.end()) {
     return it->second;
@@ -25,38 +23,16 @@ ISampler_ptr SamplerStore::getSamplerForInjectionPoint(std::string ipPackage,
 }
 
 nlohmann::json SamplerStore::schema() {
-  nlohmann::json oneof = json::array();
+  nlohmann::json samples = json::object();
+  samples["type"] = "object";
+  samples["properties"] = json::object();
+
   for (auto& it : sampler_factory) {
-    std::vector<std::string> ss;
-    StringUtils::StringSplit(it.first, ":", ss);
-
-    nlohmann::json properties = json::object();
-    nlohmann::json req = json::array();
-
-    nlohmann::json package = json::object();
-    package["const"] = ss[0];
-
-    json name = json::object();
-    name["const"] = ss[1];
-
-    properties["package"] = package;
-    properties["name"] = name;
-    properties["config"] = it.second.second;
-
-    json p = json::object();
-    p["type"] = "object";
-    p["properties"] = properties;
-    p["required"] = R"(["name","package"])"_json;
-    oneof.push_back(p);
+    samples["properties"][it.first] = json::parse(it.second.second);
   }
-
-  if (oneof.size() > 0) {
-    nlohmann::json ret = json::object();
-    ret["oneOf"] = oneof;
-    return ret;
-  } else {
-    return R"({"const" : false})"_json;
-  }
+  samples["maxProperties"] = 1;
+  samples["minProperties"] = 1;
+  return samples;
 }
 
 bool SamplerStore::createSampler(const SamplerConfig& config) {

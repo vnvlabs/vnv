@@ -48,13 +48,12 @@ namespace VnV {
  */
 class OutputEngineStore : public BaseStore {
  private:
-  std::map<std::string, engine_register_ptr>
-      registeredEngines; /**< List of all registered engines */
-  std::map<std::string, engine_reader_ptr>
-      registeredReaders; /**< List of all registered engine readers */
+  std::map<std::string, engine_register_ptr> registeredEngines;    /**< List of all registered engines */
+  std::map<std::string, engine_reader_ptr> registeredReaders;      /**< List of all registered engine readers */
+  std::map<std::string, engine_schema_ptr> registeredEngineSchema; /**< List of all registered engines */
+  std::map<std::string, engine_schema_ptr> registeredReaderSchema; /**< List of all registered engine readers */
 
-  std::shared_ptr<OutputEngineManager>
-      manager; /**< The current Engine Manager being used in VnV for all IO */
+  std::shared_ptr<OutputEngineManager> manager; /**< The current Engine Manager being used in VnV for all IO */
   std::string engineName;
 
   bool initialized = false; /**< Set when the Engine has been initialized */
@@ -78,9 +77,9 @@ class OutputEngineStore : public BaseStore {
    * of a child impl of OutputEngineManager.
    *
    */
-  void registerEngine(std::string name, engine_register_ptr engine_ptr);
+  void registerEngine(std::string name, engine_register_ptr engine_ptr, VnV::engine_schema_ptr s);
 
-  void registerReader(std::string name, engine_reader_ptr reader_ptr);
+  void registerReader(std::string name, engine_reader_ptr reader_ptr, VnV::engine_schema_ptr s);
 
   json listReaders();
 
@@ -100,8 +99,7 @@ class OutputEngineStore : public BaseStore {
    * @param config config options for the engine.
    * @return
    */
-  std::shared_ptr<Nodes::IRootNode> readFile(std::string filename,
-                                             std::string engine, json& config, bool async = true);
+  std::shared_ptr<Nodes::IRootNode> readFile(std::string filename, std::string engine, json& config, bool async = true);
 
   /**
    * @brief setEngineManager

@@ -78,12 +78,6 @@ json InjectionPointStore::schema() {
       "description": "An injection Point defined somewhere in the code",
       "type": "object",
       "properties": {
-        "name": {
-          "const": "string"
-        },
-        "package" : {
-          "const" : "string"
-        },
         "runInternal": {
            "type" : "boolean"
         },
@@ -94,32 +88,24 @@ json InjectionPointStore::schema() {
           "$ref" : "#/definitions/runScope"
         },
         "tests": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/test"
-          }
+          "$ref" : "#/definitions/test"
         }
-      },
-      "required": [
-        "name","package"
-      ]
+      }
     })"_json;
 
-  nlohmann::json oneof = json::array();
+  nlohmann::json ipo = R"({
+    "type" : "object",
+    "additionalProperties" : false
+  })"_json;
+
+  json props = json::object();
   for (auto& it : registeredInjectionPoints) {
     json j = temp;
-    j["properties"]["name"]["const"] = it.second.name;
-    j["properties"]["package"]["const"] = it.second.package;
     j["vnvprops"] = it.second.specJson;
-    oneof.push_back(j);
+    props[it.second.package + ":" + it.second.name] = j;
   }
-  nlohmann::json ret = json::object();
-  if (oneof.size() > 0) {
-    ret["oneOf"] = oneof;
-    return ret;
-  } else {
-    return R"({"const" : false})"_json;
-  }
+  ipo["properties"] = props;
+  return ipo;
 }
 
 void InjectionPointStore::registerInjectionPoint(std::string packageName, std::string id, std::string parameters_str) {
@@ -174,12 +160,13 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::fetchFromQueue(std::string 
   std::string key = package + ":" + name;
 
   if (active.size() == 0) {
-    throw INJECTION_BUG_REPORT("Fetch from Queue called with no Injection points int the stack %s:%s", package.c_str(), name.c_str());
+    throw INJECTION_BUG_REPORT("Fetch from Queue called with no Injection points int the stack %s:%s", package.c_str(),
+                               name.c_str());
   }
   auto ptr = active.top();
   if (key.compare(ptr->getPackage() + ":" + ptr->getName()) != 0) {
     throw INJECTION_EXCEPTION("Injection Point Nesting Error. Cannot call %s stage  inside a %s:%s", key,
-                                ptr->getPackage().c_str(), ptr->getName().c_str());
+                              ptr->getPackage().c_str(), ptr->getName().c_str());
   }
 
   if (stage == InjectionPointType::End) {
@@ -189,20 +176,18 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::fetchFromQueue(std::string 
 }
 
 bool InjectionPointStore::registered(std::string package, std::string name) {
-  std::cout << "FFFF " << injectionPoints.size() << " " << package << " " << name << std::endl;
-  return injectionPoints.find(package+":"+name) != injectionPoints.end();
+  return injectionPoints.find(package + ":" + name) != injectionPoints.end();
 }
 bool InjectionPointStore::registeredTest(std::string package, std::string name) {
-   for (auto it : injectionPoints) {
-      for (auto t : it.second.tests) {
-        if (t.getPackage().compare(package) ==0 && t.getName().compare(name) == 0 ) {
-          return true;
-        }
-      } 
-   }
-   return false;
+  for (auto it : injectionPoints) {
+    for (auto t : it.second.tests) {
+      if (t.getPackage().compare(package) == 0 && t.getName().compare(name) == 0) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
-
 
 void InjectionPointStore::addInjectionPoint(std::string package, std::string name, bool runInternal, json& templateName,
                                             std::vector<TestConfig>& tests, const SamplerConfig& sinfo) {

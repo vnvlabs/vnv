@@ -2,7 +2,7 @@ target_sources(
   injection
   PRIVATE ${CMAKE_CURRENT_LIST_DIR}/IDN.cpp
           ${CMAKE_CURRENT_LIST_DIR}/Nodes.cpp
-          
+          ${CMAKE_CURRENT_LIST_DIR}/dispatch.cpp
           )
 
 

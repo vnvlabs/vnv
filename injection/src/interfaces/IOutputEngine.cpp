@@ -15,8 +15,7 @@
 using namespace VnV;
 using nlohmann::json_schema::json_validator;
 
-std::string VnV::InjectionPointTypeUtils::getType(InjectionPointType type,
-                                                  std::string stageId) {
+std::string VnV::InjectionPointTypeUtils::getType(InjectionPointType type, std::string stageId) {
   if (type == InjectionPointType::Begin) {
     return "Begin";
   } else if (type == InjectionPointType::End) {
@@ -73,33 +72,20 @@ std::string VariableEnumFactory::toString(VariableEnum e) {
     return "String";
   }
 
-  throw INJECTION_BUG_REPORT_(
-      "VariableEnumFactory::toString: Unhandled Variable Enum Type");
+  throw INJECTION_BUG_REPORT_("VariableEnumFactory::toString: Unhandled Variable Enum Type");
 }
 
-void OutputEngineManager::set(ICommunicator_ptr world, json& inputjson,
-                              std::string key, bool readMode) {
+void OutputEngineManager::set(ICommunicator_ptr world, json& inputjson, std::string key) {
   this->key = key;
-
-  json schema = getConfigurationSchema(readMode);
-
-  if (!schema.empty()) {
-    json_validator validator;
-    validator.set_root_schema(schema);
-    validator.validate(inputjson);
-  }
-
-  setFromJson(world, inputjson, readMode);
+  setFromJson(world, inputjson);
 }
 
-IOutputEngine* OutputEngineManager::getOutputEngine() {
-  return dynamic_cast<IOutputEngine*>(this);
+IOutputEngine* OutputEngineManager::getOutputEngine() { return dynamic_cast<IOutputEngine*>(this); }
+
+void VnV::registerEngine(std::string name, engine_register_ptr r, VnV::engine_schema_ptr s) {
+  OutputEngineStore::instance().registerEngine(name, r, s);
 }
 
-void VnV::registerEngine(std::string name, engine_register_ptr r) {
-  OutputEngineStore::instance().registerEngine(name, r);
-}
-
-void VnV::registerReader(std::string name, engine_reader_ptr r) {
-  OutputEngineStore::instance().registerReader(name, r);
+void VnV::registerReader(std::string name, engine_reader_ptr r, VnV::engine_schema_ptr s) {
+  OutputEngineStore::instance().registerReader(name, r, s);
 }

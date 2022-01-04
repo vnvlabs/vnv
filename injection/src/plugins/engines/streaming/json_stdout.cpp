@@ -11,14 +11,7 @@ using nlohmann::json;
 
 class JsonTerminalStream : public StreamWriter<json> {
  public:
-  virtual void initialize(json& config, bool readMode) override {
-    if (readMode) {
-      throw INJECTION_EXCEPTION_("No read mode for json_stdout");
-    }
-  }
-  virtual nlohmann::json getConfigurationSchema(bool readMode) override {
-    return json::object();
-  };
+  virtual void initialize(json& config) override {}
 
   virtual void finalize(ICommunicator_ptr worldComm, long currentTime) override {
     if (worldComm->Rank() == 0) {
@@ -26,13 +19,9 @@ class JsonTerminalStream : public StreamWriter<json> {
     }
   }
 
-  virtual void newComm(long id, const json& obj,
-                       ICommunicator_ptr comm) override {
-    write(id, obj, -1);
-  };
+  virtual void newComm(long id, const json& obj, ICommunicator_ptr comm) override { write(id, obj, -1); };
 
   virtual void write(long id, const json& obj, long jid) override {
-  
     std::cout << "\n\n[STREAM " << id << "]\n" << obj.dump(3) << "\n\n";
     std::cout.flush();
   };
@@ -43,11 +32,11 @@ class JsonTerminalStream : public StreamWriter<json> {
   }
 };
 
-INJECTION_ENGINE(VNVPACKAGENAME, json_stdout) {
+INJECTION_ENGINE(VNVPACKAGENAME, json_stdout, "{}") {
   return new StreamManager<json>(std::make_shared<JsonTerminalStream>());
 }
 
-INJECTION_ENGINE(VNVPACKAGENAME, json) {
+INJECTION_ENGINE(VNVPACKAGENAME, json, "{}") {
   VnV_Warn(VNVPACKAGENAME,
            "The \"json\" engine is DEPRECIATED, please use one of "
            "\"json_{stdout,socket,http,file}\" instead");

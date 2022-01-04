@@ -19,100 +19,97 @@ using nlohmann::json;
 
 namespace {
 
-  class ProcessedComment {
-    public:
-    std::string templ = "";
-    std::string title = "";
-    std::string description = "";
-    std::string instructions = "";
-    std::map<std::string, std::string> params;
-    ProcessedComment() {};
-    ProcessedComment(std::string templ_, std::string title_, std::string desc, std::string inst, const std::map<std::string,std::string> &m) 
-    : templ(templ_), title(title_), description(desc), instructions(inst), params(m) {}
+class ProcessedComment {
+ public:
+  std::string templ = "";
+  std::string title = "";
+  std::string description = "";
+  std::string instructions = "";
+  std::map<std::string, std::string> params;
+  ProcessedComment(){};
+  ProcessedComment(std::string templ_, std::string title_, std::string desc, std::string inst,
+                   const std::map<std::string, std::string>& m)
+      : templ(templ_), title(title_), description(desc), instructions(inst), params(m) {}
 
-    json toJson() {
-      json j = json :: object();
-      j["template"] = templ;
-      j["title"] = title;
-      j["description"] = description;
-      j["instructions"] = instructions;
-      j["params"] = params;
-      return j;
-    }
-
-  };
-
-
-  ProcessedComment processComment(std::string comment) {
-    /**
-     * @title This is the title
-     * @description This is the description and it can be single lines. 
-     * @instructions These are the instructions.
-     * @param x sdfsdfdsf
-     * 
-     * sdfsdfs
-     * sdfsdfsdfsdf
-     * 
-     */
-    ProcessedComment c;
-    std::vector<std::string> result;
-    VnV::StringUtils::StringSplit(comment,"\n",result, true);
-    std::ostringstream oss;
-    
-    std::string *curr = nullptr; 
-    for (auto it : result) {
-       if (c.title.empty()) {
-        auto t = it.find("@title");
-        if (t != std::string::npos) {
-         c.title = VnV::StringUtils::trim_copy(it.substr(t + 6 ));
-         curr = &(c.title);
-         continue;
-        }
-       }
-       if (c.description.empty()) {
-        auto t = it.find("@description");
-        if (t != std::string::npos) {
-         c.description = VnV::StringUtils::trim_copy(it.substr(t + 12 ));
-         curr = &(c.description);
-         continue;
-        }
-       }
-       if (c.instructions.empty()) {
-        auto t = it.find("@instructions");
-        if (t != std::string::npos) {
-         c.instructions = VnV::StringUtils::trim_copy(it.substr(t + 13 ));
-         curr = &(c.instructions);
-         continue;
-        }
-       }
-       auto t = it.find("@param");
-       if (t != std::string::npos) {
-         
-         auto subs = VnV::StringUtils::ltrim_copy(it.substr(t + 6 ));
-         auto tt = subs.find_first_of(" ");
-         if (tt != std::string::npos) {
-            c.params[subs.substr(0,tt)] = subs.substr(tt+1);
-            curr = &(c.params[subs.substr(0,tt)]);
-         } else {
-            c.params[subs] = "No description provided"; 
-            curr = &(c.params[subs.substr(0,tt)]);
-         }
-         continue;
-       }
-       if (curr != nullptr) {
-          auto s = VnV::StringUtils::trim_copy(it);
-          if (s.length() > 0 ) {
-            (*curr) += "\n" + it;
-            continue;
-          }
-       }
-       curr = nullptr;
-       oss << it << "\n";     
-    }
-    c.templ = oss.str();
-    return c;
+  json toJson() {
+    json j = json ::object();
+    j["template"] = templ;
+    j["title"] = title;
+    j["description"] = description;
+    j["instructions"] = instructions;
+    j["params"] = params;
+    return j;
   }
+};
 
+ProcessedComment processComment(std::string comment) {
+  /**
+   * @title This is the title
+   * @description This is the description and it can be single lines.
+   * @instructions These are the instructions.
+   * @param x sdfsdfdsf
+   *
+   * sdfsdfs
+   * sdfsdfsdfsdf
+   *
+   */
+  ProcessedComment c;
+  std::vector<std::string> result;
+  VnV::StringUtils::StringSplit(comment, "\n", result, true);
+  std::ostringstream oss;
+
+  std::string* curr = nullptr;
+  for (auto it : result) {
+    if (c.title.empty()) {
+      auto t = it.find("@title");
+      if (t != std::string::npos) {
+        c.title = VnV::StringUtils::trim_copy(it.substr(t + 6));
+        curr = &(c.title);
+        continue;
+      }
+    }
+    if (c.description.empty()) {
+      auto t = it.find("@description");
+      if (t != std::string::npos) {
+        c.description = VnV::StringUtils::trim_copy(it.substr(t + 12));
+        curr = &(c.description);
+        continue;
+      }
+    }
+    if (c.instructions.empty()) {
+      auto t = it.find("@instructions");
+      if (t != std::string::npos) {
+        c.instructions = VnV::StringUtils::trim_copy(it.substr(t + 13));
+        curr = &(c.instructions);
+        continue;
+      }
+    }
+    auto t = it.find("@param");
+    if (t != std::string::npos) {
+      auto subs = VnV::StringUtils::ltrim_copy(it.substr(t + 6));
+      auto tt = subs.find_first_of(" ");
+      if (tt != std::string::npos) {
+        c.params[subs.substr(0, tt)] = subs.substr(tt + 1);
+        curr = &(c.params[subs.substr(0, tt)]);
+      } else {
+        c.params[subs] = "No description provided";
+        curr = &(c.params[subs.substr(0, tt)]);
+      }
+      continue;
+    }
+    if (curr != nullptr) {
+      auto s = VnV::StringUtils::trim_copy(it);
+      if (s.length() > 0) {
+        (*curr) += "\n" + it;
+        continue;
+      }
+    }
+    curr = nullptr;
+    oss << it << "\n";
+  }
+  c.templ = oss.str();
+  return c;
+}
 
 // Copied shamelessly from an anonomous namespace in the Clang source code in
 // RawCommentList.cpp
@@ -169,8 +166,6 @@ std::string stringArgs(Preprocessor& pp, const Token* token, bool spaceBeforeLas
 
 }  // namespace
 
-
-
 using nlohmann::json;
 using namespace clang;
 
@@ -211,9 +206,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     jj["imp"] = importannce;
     jj["docs"] = getDocs(range).toJson();
   }
-
-
-
 
   ProcessedComment getCommentFor(DiagnosticsEngine& eng, SourceManager& SM, SourceLocation loc) {
     SourceLocation macroSrcLoc = SM.getExpansionLoc(loc);

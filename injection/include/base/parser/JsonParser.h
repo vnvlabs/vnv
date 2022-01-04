@@ -150,10 +150,10 @@ struct UnitTestInfo {
  *
  */
 struct ActionConfig {
-  json config;          /**< the action specific configuration object */
-  std::string name;     /**< the name of the action to run */
-  std::string package;  /**< the package that declared the action */
-  bool run = false; /**< when should the action be executed (todo --> enum )*/
+  json config;         /**< the action specific configuration object */
+  std::string name;    /**< the name of the action to run */
+  std::string package; /**< the package that declared the action */
+  bool run = false;    /**< when should the action be executed (todo --> enum )*/
 };
 
 /**
@@ -297,7 +297,8 @@ class JsonParser {
    * @param[in] runScopes A list of runscopes specified for execution in this run
    *
    */
-  void addTest(const json& testJson, std::vector<json>& testConfig, std::set<std::string>& runScopes);
+  void addTest(const std::string key, const json& testJson, std::vector<json>& testConfig,
+               std::set<std::string>& runScopes);
 
   /**
    * @brief Determine if a test should be added based on the user supplied runscopes

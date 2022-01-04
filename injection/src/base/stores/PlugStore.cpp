@@ -74,22 +74,15 @@ void PlugStore::registerPlug(std::string packageName, std::string id, json& json
   registeredPlugs.insert(std::make_pair(packageName + ":" + id, PlugSpec(packageName, id, jsonObject)));
 }
 
-  bool PlugStore::registeredPlug(std::string package, std::string name) {
-      return plugs.find(package + ":" + name) != plugs.end();
-  }
-
+bool PlugStore::registeredPlug(std::string package, std::string name) {
+  return plugs.find(package + ":" + name) != plugs.end();
+}
 
 json PlugStore::schema() {
   nlohmann::json temp = R"({
       "description": "An injection plug defined somewhere in the code",
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "package" : {
-          "type" : "string"
-        },
         "runInternal": {
            "type" : "boolean"
         },
@@ -100,36 +93,25 @@ json PlugStore::schema() {
           }
         },
         "tests": {
-          "type": "array",
-          "items": {
             "$ref": "#/definitions/test"
-          }
         },
         "plug" : {
             "$ref": "#/definitions/plugger"
         } 
-      },
-      "required": [
-        "name","package"
-      ]
+      }
     })"_json;
 
-  nlohmann::json oneof = json::array();
+  nlohmann::json props = json::object();
   for (auto& it : registeredPlugs) {
     json j = temp;
-    j["properties"]["name"]["const"] = it.second.name;
-    j["properties"]["package"]["const"] = it.second.package;
     j["vnvprops"] = it.second.specJson;
-    oneof.push_back(j);
+    props[it.second.package + ":" + it.second.name] = j;
   }
-
-  if (oneof.size() > 0) {
-    nlohmann::json ret = json::object();
-    ret["oneOf"] = oneof;
-    return ret;
-  } else {
-    return R"({"const" : false})"_json;
-  }
+  json j = json::object();
+  j["type"] = "object";
+  j["properties"] = props;
+  j["additionalProperties"] = false;
+  return j;
 }
 
 void PlugStore::registerPlug(std::string packageName, std::string id,

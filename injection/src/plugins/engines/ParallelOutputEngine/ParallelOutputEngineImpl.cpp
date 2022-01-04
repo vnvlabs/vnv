@@ -32,55 +32,44 @@ void ParallelEngine::Put(std::string variableName,
   std::string str = std::to_string(value);
   Put(variableName, str, m);
 }
-void ParallelEngine::Put(std::string variableName, const long long& value,
-                         const MetaData& m) {
+void ParallelEngine::Put(std::string variableName, const long long& value, const MetaData& m) {
   std::string str = std::to_string(value);
   Put(variableName, str, m);
 }
 
-void ParallelEngine::Put(std::string variableName, IDataType_ptr data,
-                         const MetaData& m) {
+void ParallelEngine::Put(std::string variableName, IDataType_ptr data, const MetaData& m) {
   printf("Parallel ENGINE DATATYPE PUT START\n");
   data->Put(this);
   printf("DEBUG ENGINE DATATYPE PUT End\n");
 }
 
-void ParallelEngine::Put(std::string variableName, const bool& value,
-                         const MetaData& m) {
+void ParallelEngine::Put(std::string variableName, const bool& value, const MetaData& m) {
   std::string str = std::to_string(value);
   Put(variableName, str, m);
 }
 
-void ParallelEngine::Put(std::string variableName, const json& value,
-                         const MetaData& m) {
+void ParallelEngine::Put(std::string variableName, const json& value, const MetaData& m) {
   Put(variableName, value.dump(), m);
 }
 
-void ParallelEngine::Put(std::string variableName, const std::string& value,
-                         const MetaData& m) {
+void ParallelEngine::Put(std::string variableName, const std::string& value, const MetaData& m) {
   getRouter(RouterAction::PUSH)->send(variableName, value);
 }
 
-void ParallelEngine::Log(ICommunicator_ptr comm, const char* package, int stage,
-                         std::string level, std::string message) {
+void ParallelEngine::Log(ICommunicator_ptr comm, const char* package, int stage, std::string level,
+                         std::string message) {
   currComm = comm;
   if (getRouter(RouterAction::IGNORE)->isRoot()) {
     std::string s = VnV::StringUtils::getIndent(stage);
-    printf("%s[%s:%s]: %s\n", s.c_str(), package, level.c_str(),
-           message.c_str());
+    printf("%s[%s:%s]: %s\n", s.c_str(), package, level.c_str(), message.c_str());
   }
-}
-
-json ParallelEngine::getConfigurationSchema(bool radMode) {
-  return __parallel_engine_schema__;
 }
 
 void ParallelEngine::finalize(ICommunicator_ptr worldComm, long currentTime) {
   VnV_Info(VNVPACKAGENAME, "PARALLEL ENGINE: FINALIZE %ld", currentTime);
 }
 
-void ParallelEngine::setFromJson(ICommunicator_ptr comm, json& config,
-                                 bool readMode) {
+void ParallelEngine::setFromJson(ICommunicator_ptr comm, json& config) {
   printf("PARALLEL ENGINE WRAPPER Init with file %s\n", config.dump().c_str());
   // router = new Router();
 }
@@ -88,31 +77,25 @@ void ParallelEngine::sendInfoNode(ICommunicator_ptr comm) {
   // router = new Router();
 }
 
-void ParallelEngine::injectionPointEndedCallBack(std::string id,
-                                                 InjectionPointType type,
-                                                 std::string stageVal) {
+void ParallelEngine::injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageVal) {
   printf("PARALLEL ENGINE End Injection Point %s : %s \n", id.c_str(),
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
   getRouter(RouterAction::POP)->forward();
 }
 
-void ParallelEngine::packageOptionsStartedCallBack(ICommunicator_ptr world,
-                                                   std::string packageName) {}
+void ParallelEngine::packageOptionsStartedCallBack(ICommunicator_ptr world, std::string packageName) {}
 
 void ParallelEngine::packageOptionsEndedCallBack(std::string packageName) {}
 
-void ParallelEngine::injectionPointStartedCallBack(
-    ICommunicator_ptr comm, std::string packageName, std::string id,
-    InjectionPointType type, std::string stageVal, std::string filename,
-    int line) {
+void ParallelEngine::injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string id,
+                                                   InjectionPointType type, std::string stageVal, std::string filename,
+                                                   int line) {
   currComm = comm;
   printf("PARALLEL ENGINE Start Injection Point %s : %s \n", id.c_str(),
          InjectionPointTypeUtils::getType(type, stageVal).c_str());
 }
 
-void ParallelEngine::testStartedCallBack(std::string packageName,
-                                         std::string testName, bool internal,
-                                         long uid) {
+void ParallelEngine::testStartedCallBack(std::string packageName, std::string testName, bool internal, long uid) {
   currComm = comm;
   printf("PARALLEL ENGINE Start Test %s \n", testName.c_str());
 }
@@ -121,8 +104,7 @@ void ParallelEngine::testFinishedCallBack(bool result_) {
   printf("PARALLEL ENGINE Stop Test. Test Was Successful-> %d\n", result_);
 }
 
-void ParallelEngine::unitTestStartedCallBack(ICommunicator_ptr comm,
-                                             std::string packageName,
+void ParallelEngine::unitTestStartedCallBack(ICommunicator_ptr comm, std::string packageName,
                                              std::string unitTestName) {
   currComm = comm;
   printf("PARALLEL ENGINE START UNIT TEST: %s\n", unitTestName.c_str());
@@ -132,15 +114,13 @@ void ParallelEngine::unitTestFinishedCallBack(IUnitTest* tester) {
   printf("Test Results\n");
   bool suiteSuccessful = true;
   for (auto it : tester->getResults()) {
-    printf("\t%s : %s\n", std::get<0>(it).c_str(),
-           std::get<2>(it) ? "Successful" : "Failed");
+    printf("\t%s : %s\n", std::get<0>(it).c_str(), std::get<2>(it) ? "Successful" : "Failed");
     if (!std::get<2>(it)) {
       printf("\t\t%s\n", std::get<1>(it).c_str());
       suiteSuccessful = false;
     }
   }
-  printf("PARALLEL ENGINE Test Suite Completed : %s\n",
-         (suiteSuccessful) ? "Successfully" : "Unsuccessfully");
+  printf("PARALLEL ENGINE Test Suite Completed : %s\n", (suiteSuccessful) ? "Successfully" : "Unsuccessfully");
 }
 
 std::shared_ptr<Router> ParallelEngine::getRouter(RouterAction action) {
@@ -165,6 +145,4 @@ std::shared_ptr<Router> ParallelEngine::getRouter(RouterAction action) {
 }  // namespace VNVPACKAGENAME
 }  // namespace VnV
 
-INJECTION_ENGINE(VNVPACKAGENAME, Parallel) {
-  return new VnV::VNVPACKAGENAME::Engines::ParallelEngine();
-}
+INJECTION_ENGINE(VNVPACKAGENAME, Parallel, "{}") { return new VnV::VNVPACKAGENAME::Engines::ParallelEngine(); }

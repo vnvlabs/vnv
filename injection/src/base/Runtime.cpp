@@ -100,7 +100,7 @@ nlohmann::json RunTime::getFullJsonSchema() {
   json main = json::parse(getVVSchema().dump());
   main["options"] = OptionsParserStore::instance().schema();
   json& defs = main["definitions"];
-  defs["injectionPoint"] = InjectionPointStore::instance().schema();
+  defs["injectionPoints"] = InjectionPointStore::instance().schema();
   defs["iterator"] = IteratorStore::instance().schema();
   defs["plug"] = PlugStore::instance().schema();
   defs["test"] = TestStore::instance().schema();
@@ -128,13 +128,9 @@ nlohmann::json RunTime::getFullJson() {
         json jf = OptionsParserStore::instance().getSchema(package.first);
         jf["docs"] = type.value();
         mj[package.first] = jf;
-      } else if (type.key() == "DataType" 
-             || type.key() == "Files"
-             || type.key() == "Pipelines"
-        ) {
-
+      } else if (type.key() == "DataType" || type.key() == "Files" || type.key() == "Pipelines") {
         for (auto& entry : type.value().items()) {
-          mj[package.first +":" + entry.key()] = entry.value();
+          mj[package.first + ":" + entry.key()] = entry.value();
         }
       } else if (type.key() == "Introduction" || type.key() == "Conclusion") {
         if (package.first == mainPackageName) {
@@ -176,7 +172,7 @@ nlohmann::json RunTime::getFullJson() {
             mj[package.first + ":" + entry.key()] = entry.value();
           }
         }
-      } 
+      }
     }
   }
   main.merge_patch(template_patch);
@@ -650,7 +646,6 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
 
   OutputEngineStore::instance().getEngineManager()->sendInfoNode(world);
   ActionStore::instance().initialize(info.actionInfo);
-
 }
 
 void RunTime::loadInjectionPoints(json _json) {
