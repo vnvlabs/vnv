@@ -138,10 +138,6 @@ def get_reader(ext):
         return ext_map[ext]
     return "code"
 
-
-
-
-
 class LocalFile:
     def __init__(self, abspath, vnvfileid, connection, reader=None, **kwargs):
 
