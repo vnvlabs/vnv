@@ -71,6 +71,8 @@ class VnVInputFile:
         self.value = json.dumps(VnV.getVnVConfigFile(), indent=4)
         self.spec = "{}"
         self.specDump = "${application} --vnv-dump 1"
+        self.specMode = "auto"
+
         self.exec = "{}"
         self.execFile = ""
 
@@ -121,7 +123,13 @@ class VnVInputFile:
         return self.specDump.replace("${application}", self.filename)
 
     def loadSpec(self):
-        self.spec = self.connection.execute(self.getSpecDumpCommand())
+        res = self.connection.execute(self.getSpecDumpCommand())
+        a = res.find("===START SCHEMA DUMP===") + len("===START SCHEMA DUMP===")
+        b = res.find("===END SCHEMA DUMP===")
+        if a > 0 and b > 0 and b > a :
+            self.spec = res[a:b]
+            return True
+        return False
 
     def schema(self):
         return self.spec

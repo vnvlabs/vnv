@@ -96,6 +96,15 @@ void RunTime::writeSpecification(std::string filename, bool quit) {
   }
 }
 
+void dumpSpecification(bool quit) {
+  std::cout << "===START SCHEMA DUMP===" << std::endl;
+  std::cout << RunTime::instance().getFullJsonSchema().dump(4);
+  std::cout << "===END SCHEMA_DUMP===" << std::endl;
+  if (quit) {
+    std::exit(0);
+  }
+}
+
 nlohmann::json RunTime::getFullJsonSchema() {
   json main = json::parse(getVVSchema().dump());
   main["options"] = OptionsParserStore::instance().schema();
@@ -732,10 +741,16 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
   for (int i = 0; i < *argc; i++) {
     std::string s((*argv)[i]);
     if (s.compare("--vnv-dump") == 0) {
+      dumpSpecification(false);
+      break;
+    } else if (s.compare("--vnv-qdump") == 0) {
+      dumpSpecification(false);
+      break;
+    } else if (s.compare("--vnv-fdump") == 0) {
       std::string dumpfile = (*argv)[i + 1];
       writeSpecification(dumpfile, false);
       break;
-    } else if (s.compare("--vnv-qdump") == 0) {
+    } else if (s.compare("--vnv-qfdump") == 0) {
       std::string dumpfile = (*argv)[i + 1];
       writeSpecification(dumpfile, true);
       std::exit(0);
