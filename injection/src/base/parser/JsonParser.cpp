@@ -256,6 +256,24 @@ nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile, int* arg
   return main;
 }
 
+ void addCommandLinePlugins(int* argc, char** argv, std::map<std::string, std::string>& libs) {
+   int i = 0;
+   while (i < *argc) {
+     std::string s = argv[i++];
+     if (s.compare("--vnv-plugin") == 0 ) {
+       if ( i+1 < *argc ) {
+         std::string pname = argv[i++];
+         std::string file = argv[i++];
+         libs[pname] = file;
+       } else {
+         throw INJECTION_EXCEPTION_("Invalid Command line plugin");
+       }
+     }
+   } 
+   
+}
+
+
 }  // namespace
 
 RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
@@ -267,6 +285,11 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   else {
     info.logInfo.filename = "stdout";
     info.logInfo.on = true;
+  }
+
+  if (main.find("schema") != main.end()) {
+    info.schemaDump = main["schema"].value("dump",false);
+    info.schemaQuit = main["schema"].value("quit",false);
   }
 
   if (main.find("options") != main.end()) {
@@ -317,6 +340,10 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
 
   // Get the test libraries infomation.
   if (main.find("additionalPlugins") != main.end()) addTestLibrary(main["additionalPlugins"], info.additionalPlugins);
+  
+  // Add any explicity stated command line plugins. 
+  addCommandLinePlugins(argc,argv, info.additionalPlugins);
+
 
   // Add all the injection points;
   if (main.find("injectionPoints") != main.end()) {

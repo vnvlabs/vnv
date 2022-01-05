@@ -39,8 +39,8 @@ void OutputEngineStore::setEngineManager(ICommunicator_ptr world, std::string ty
         manager->set(world, config, type);
         initialized = true;
         engineName = type;
-        return;
       }
+      return;
     } catch (...) {
       HTHROW INJECTION_EXCEPTION_("Invalid Engine Schema");
     }

@@ -50,15 +50,15 @@ def disconnect(id_):
 def save_input_file(id_):
     with VnVInputFile.find(id_) as file:
         form = request.get_json()
-        file.value = form["value"]
+        file.saveInput(form["value"])
         return make_response("", 200)
 
 @blueprint.route('/save_spec/<int:id_>', methods=["POST"])
 def save_spec(id_):
     with VnVInputFile.find(id_) as file:
         form = request.get_json()
-        file.spec = form["value"]
-        return make_response("", 200)
+        s = file.saveSpec(form["auto"], form.get("dump"), form.get("value"))
+        return make_response(s, 200)
 
 @blueprint.route('/save_exec/<int:id_>', methods=["POST"])
 def save_exec(id_):
@@ -110,7 +110,6 @@ def load_input(id_):
 
 @blueprint.route('/load_spec/<int:id_>', methods=["POST"])
 def load_spec(id_):
-    return make_response("esedfsdf", 200)
 
     with VnVInputFile.find(id_) as file:
         path = request.form["filename"]
@@ -193,7 +192,7 @@ def configure(id_):
                 password = request.form["password"]
                 file.setConnection(domain, username, password, port)
 
-        file.filename = request.form.get("application", file.filename)
+        file.setFilename(request.form.get("application", file.filename))
         return render_template("inputfiles/connection_content.html", file=file)
 
 

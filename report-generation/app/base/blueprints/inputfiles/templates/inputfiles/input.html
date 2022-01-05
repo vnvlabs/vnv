@@ -1,5 +1,26 @@
 {%with NAME = "Input File", VALUE= "input" , TEXT=file.value, DEFAULTFILE=file.loadfile, LABEL="Path to Input File",
-EXTBTN=[] %}
+EXTBTN = [["format_input_file", "Format"],["shrink_input_file", "Minify"]] %}
 {%include "inputfiles/input_edit_template.html" %}
 {%endwith%}
 
+<script>
+function format_input_file(fileid) {
+   s = ace.edit("inputfile")
+   try {
+      ace.edit("inputfile").setValue(JSON.stringify(JSON.parse(ace.edit("inputfile").getValue()),null,5))
+   } catch {
+      addToast("Format Failed","We can only format valid json at this time",4000)
+   }
+}
+
+function shrink_input_file(fileid) {
+   s = ace.edit("inputfile")
+   try {
+      ace.edit("inputfile").setValue(JSON.stringify(JSON.parse(ace.edit("inputfile").getValue())))
+   } catch {
+      addToast("Format Failed","We can only format valid json at this time",4000)
+   }
+}
+
+
+</script>

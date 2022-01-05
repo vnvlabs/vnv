@@ -20,13 +20,9 @@ def getVnVConfigFile():
             "filename": "stdout",
             "logs": {}
         },
-        "additionalPlugins": {},
         "outputEngine": {
-            "type": "null",
-            "config": {}
-        },
-        "injectionPoints": [
-        ]
+            "null" : {}
+        }
     }
 
 

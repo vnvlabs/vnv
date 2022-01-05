@@ -51,7 +51,7 @@ class JsonWithBail:
         string = ""
         try:
             number = ""
-
+            self.white()
             if self.ch == '-':
                 string = '-';
                 self.next();
@@ -85,8 +85,10 @@ class JsonWithBail:
             return Bail("number", string)
 
     def string(self):
+        stri = ""
+
         try:
-            stri = ""
+            self.white()
             if self.ch == '"':
                 while self.next():
                     if self.ch == '"':
@@ -107,8 +109,9 @@ class JsonWithBail:
             self.next()
 
     def word(self):
-        self.s = self.ch
         try:
+            self.white()
+            self.s = self.ch
             if self.ch == "t":
                 self.next("t")
                 self.next("r")
@@ -134,9 +137,9 @@ class JsonWithBail:
             return Bail("word", self.s)
 
     def array(self):
-
         a = []
         try:
+            self.white()
             if self.ch == '[':
                 self.next('[');
                 self.white();
@@ -171,11 +174,15 @@ class JsonWithBail:
       key = ""
       ob = {}
       try:
+        self.white()
         if self.ch == '{':
             self.next('{');
             self.white();
             if self.ch == '}':
-                self.next('}');
+                try:
+                  self.next('}');
+                except Exception as e:
+                    pass # Excepts if end
                 return ob
 
             while self.ch:
@@ -191,20 +198,24 @@ class JsonWithBail:
 
                 if key in ob:
                   raise Exception("Duplicate Key")
-                nn = self.value()
-                if isinstance(nn,Bail):
-                    return Bail("object-value", key,child=nn)
-                ob[key] = nn
+                try:
+                    nn = self.value()
+                    if isinstance(nn,Bail):
+                        return Bail("object-value", key,child=nn)
+                    ob[key] = nn
+                except BailException as e:
+                    return Bail("object-value", key, child=None )
+                b = False
                 try:
                     self.white();
                     if self.ch == '}':
                         self.next('}');
                         return ob
-
+                    self.white()
                     self.next(',');
-                    self.white();
                 except:
-                    return Bail("object-end-or-comma","")
+                    return Bail("object-end-or-comma", "")
+
 
         self.error("Bad object");
       except BailException as e:
@@ -225,21 +236,22 @@ class JsonWithBail:
             return self.word()
 
 
-def resolve_schema(schema):
+def resolve_schema(schema, main_schema):
     while "$ref" in schema:
         a = schema["$ref"].split("/")
         if a[0] != "#":
             raise Exception("Non root refs not supported")
         else:
+            schema = main_schema
             for i in a[1:]:
                 if isinstance(schema,dict):
-                    schema = resolve_schema(schema[i])
+                    schema = resolve_schema(schema[i], main_schema)
                 elif isinstance(schema,list):
-                    schema = resolve_schema(schema[int(i)])
+                    schema = resolve_schema(schema[int(i)], main_schema)
     return schema
 
 
-def getObjectSchema(bail, schema):
+def getObjectSchema(bail, schema, main_schema):
     if schema.get("type", "object") == "object":
         props = schema.get("properties", {})
         if bail.val in props:
@@ -257,7 +269,8 @@ def getObjectSchema(bail, schema):
     return {}
 
 
-def getArraySchema(bail, schema):
+def getArraySchema(bail, schema, main_schema):
+
     if schema.get("type", "array") == "array":
         if "items" in schema:
             items = schema["items"]
@@ -272,12 +285,12 @@ def getArraySchema(bail, schema):
                         return ad
 
 
-def buildDefault(schema):
-
+def buildDefault(schema, main_schema):
+    schema = resolve_schema(schema,main_schema)
     if "default" in schema:
         return json.dumps(schema["default"])
     elif "oneOf" in schema:
-        return buildDefault(schema["oneOf"][0])
+        return buildDefault(schema["oneOf"][0], main_schema)
     elif "const" in schema:
         return str(schema["const"])
     elif schema.get("type","") == "object":
@@ -286,11 +299,11 @@ def buildDefault(schema):
         addProps = schema.get("additionalProperties",True)
         for i in schema.get("required",[]):
             if i in props:
-                d[i] == buildDefault(props[i])
+                d[i] == buildDefault(props[i], main_schema)
             elif isinstance(addProps,dict):
-                d[i] = buildDefault(addProps)
+                d[i] = buildDefault(addProps, main_schema)
             else:
-                d[i] = buildDefault({})
+                d[i] = buildDefault({}, main_schema)
         return json.dumps(d)
     elif schema.get("type") == "array":
         return "[]"
@@ -304,9 +317,9 @@ def buildDefault(schema):
     elif schema.get("type") == "string":
         e = schema.get("enum",[])
         if len(e):
-            return e[0]
+            return "\"" + e[0] + "\""
         else:
-            return ""
+            return "\"\""
 
     elif schema.get("type") == "boolean":
         return "true"
@@ -314,41 +327,43 @@ def buildDefault(schema):
         return "null"
 
 
-def oneOfDefaults(schema):
+def oneOfDefaults(schema, main_schema):
     r = []
     for n,i in enumerate(schema.get("oneOf",[])):
         name = i.get("vnv-name",str(n))
-        de = buildDefault(i)
+        de = buildDefault(i, main_schema)
         desc = i.get("vnv-desc", "")
         r.append([name,de,desc])
     return r
 
-def getSchema(bail, schema):
-    schema = resolve_schema(schema)
+def getSchema(bail, schema, main_schema):
+    schema = resolve_schema(schema, main_schema)
 
-    if bail.type in ["object-keys"]:
-        p = ["\"", "\""]
+    if bail.type in ["object-keys"] or bail.type == "object-key" and len(bail.val)==0 :
         props = schema.get("properties", {})
-        return [[i, p[0] + i + p[1], props.get(i, {}).get("description", i)] for i in props]
+        return [ [i, "\"" + i + "\"", props.get(i, {}).get("description", i)] for i in props]
 
-    if bail.type in ["object-keys", "object-key"] :
-        p = ["","\""]
+    if bail.type in ["object-key"] :
         props = schema.get("properties",{})
-        return [ [ i , p[0] + i + "\" :" + buildDefault(props.get(i)) , props.get(i).get("description",i)] for i in props ]
+        return [ [ i , i + "\"" , props.get(i).get("description",i) ] for i in props ]
     if bail.type == "object-value":
-        return getSchema(bail.child,getObjectSchema(bail,schema))
+        if bail.child is not None:
+            return getSchema(bail.child,getObjectSchema(bail,schema, main_schema), main_schema)
+        else:
+            s = getObjectSchema(bail,schema, main_schema)
+            return [["default", buildDefault(s,main_schema), "Default"]]
+
     if bail.type == "object-colon":
         return [[":", ":", "Colon Seperator"]]
     if bail.type == "object-end-or-comma":
         return [[",",",","Add another item"],["}","}","End the object"]]
     if bail.type == "array-item":
-        return getSchema(bail.child, getArraySchema(bail, schema))
+        return getSchema(bail.child, getArraySchema(bail, schema, main_schema), main_schema)
     if bail.type == "array-items":
-        schema = getArraySchema(bail,schema)
+        schema = getArraySchema(bail,schema, main_schema)
         if "oneOf" in schema:
-            return oneOfDefaults(schema)
-
-        return buildDefault(schema)
+            return oneOfDefaults(schema,main_schema)
+        return buildDefault(schema, main_schema)
     if bail.type == "array-end-or-comma":
         return [[",", ",", "Add another item"], ["]", "]", "End the Array"]]
     if bail.type == "string":
@@ -365,16 +380,15 @@ def getSchema(bail, schema):
        return [["true","true","true"],["false", "false", "false"],["null","null","null"]]
 
 
-def process(txt, schema, row, col):
-    a = txt.split("\n")[0:row]
-    a[-1] = a[-1][0:col]
-    bail = JsonWithBail("".join(a)).value()
-
-
-
-    res = getSchema(bail, json.loads(schema))
-    print(res)
-
+def autocomplete(txt, schema, row, col):
+    try:
+        a = txt[0:row+1]
+        a[-1] = a[-1][0:col] + "   " # add a little white space to catch some issues that might occur
+        bail = JsonWithBail("".join(a)).value()
+        res = getSchema(bail,schema, schema)
+        return [ {"caption" : i[0], "value" : i[1], "meta" : i[2]} for i in res ]
+    except Exception as e:
+        print(e)
 
 if __name__ == "__main__":
     txt = '{"ghsdgsd": {"sdfsdf" : { "asdaaa" : { "sdf" : "sdfsdf" } } } } '

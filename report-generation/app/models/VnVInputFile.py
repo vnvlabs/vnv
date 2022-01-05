@@ -8,7 +8,7 @@ from jsonschema.exceptions import ErrorTree, ValidationError, SchemaError
 from app.base.utils import mongo
 from app.models import VnV
 from app.models.VnVConnection import VnVLocalConnection, VnVConnection, connectionFromJson
-
+from app.models.json_heal import autocomplete
 
 
 def get_current_path(newVal, row, col):
@@ -16,9 +16,7 @@ def get_current_path(newVal, row, col):
     while i < len(newVal):
         c = newVal[i]
         if c in map:
-           looking = map[c]
-
-
+            looking = map[c]
 
 
 def get_row_and_column(path, newVal, a):
@@ -59,6 +57,8 @@ class VnVInputFile:
 
     FILES = {}
 
+    DEFAULT_SPEC = {}
+
     def __init__(self, name):
         self.name = name
         self.filename = "path/to/application"
@@ -68,13 +68,18 @@ class VnVInputFile:
         self.connection = VnVLocalConnection()
 
         self.loadfile = ""
-        self.value = json.dumps(VnV.getVnVConfigFile(), indent=4)
-        self.spec = "{}"
-        self.specDump = "${application} --vnv-dump 1"
-        self.specMode = "auto"
-
+        self.additionalPlugins = {}
+        self.spec = json.dumps(VnVInputFile.DEFAULT_SPEC)
+        self.specLoad = VnVInputFile.DEFAULT_SPEC.copy()
+        self.specDump = "${application} ${inputfile}"
+        self.specAuto = True
         self.exec = "{}"
         self.execFile = ""
+
+        self.plugs = None
+
+        # Set the default Input file.
+        self.saveInput(json.dumps(VnV.getVnVConfigFile(), indent=4))
 
     def toJson(self):
         a = {}
@@ -85,6 +90,7 @@ class VnVInputFile:
         a["loadfile"] = self.loadfile
         a["value"] = self.value
         a["spec"] = self.spec
+        a["specAuto"] = self.specAuto
         a["specDump"] = self.specDump
         a["exec"] = self.exec
         a["execFile"] = self.execFile
@@ -95,13 +101,23 @@ class VnVInputFile:
         r = VnVInputFile(a["name"])
         r.filename = a["filename"]
         r.icon = a["icon"]
+
         r.connection = connectionFromJson(a["connection"])
+
         r.loadfile = a["loadfile"]
         r.value = a["value"]
+
         r.spec = a["spec"]
+        r.specAuto = a.get("specAuto", True)
         r.specDump = a["specDump"]
         r.exec = a["exec"]
         r.execFile = a["execFile"]
+
+        try:
+            r.specLoad = json.loads(r.spec)
+        except:
+            r.specLoad = VnVInputFile.DEFAULT_SPEC.copy()
+
         return r
 
     def setConnection(self, hostname, username, password, port):
@@ -109,6 +125,10 @@ class VnVInputFile:
 
     def setConnection(self):
         self.connection = VnVLocalConnection()
+
+    def setFilename(self,fname):
+        self.filename = fname
+        self.updateSpec()
 
     def getFileStatus(self):
         if self.connection.connected():
@@ -119,26 +139,85 @@ class VnVInputFile:
         else:
             return ["red", "Connection is not open"]
 
-    def getSpecDumpCommand(self):
-        return self.specDump.replace("${application}", self.filename)
+    def getPlugins(self, val=None):
+        if val is None:
+            val = self.value
+        try:
+            # if the input is valid, then do it the easy way.
+            a = json.loads(val)
+            return a.get("additionalPlugins", {})
+        except:
+            return {}
 
-    def loadSpec(self):
-        res = self.connection.execute(self.getSpecDumpCommand())
-        a = res.find("===START SCHEMA DUMP===") + len("===START SCHEMA DUMP===")
-        b = res.find("===END SCHEMA DUMP===")
-        if a > 0 and b > 0 and b > a :
-            self.spec = res[a:b]
-            return True
-        return False
+    # When user clicks save we save the input and update the plugins.
+    # if auto is on, we should also update the specification.
+    def saveInput(self, newValue):
+
+        self.value = newValue
+        # if the plugins are different, try to reload the specification.
+        if self.plugs is None or self.plugs != self.getPlugins(newValue):
+            self.updateSpec()
+
+    def validateInput(self, newVal):
+        try:
+            a = json.loads(newVal)
+            jsonschema.validate(a, schema=self.specLoad)
+            return []
+        except ValidationError as v:
+            r, c = get_row_and_column(v.path, newVal, a)
+            return [{"row": r, "column": c, "text": v.message, "type": 'warning', "source": 'vnv'}]
+        except Exception as e:
+            return [{"row": 1, "column": 1, "text": str(e), "type": 'warning', "source": 'vnv'}]
 
     def schema(self):
         return self.spec
 
-    def describe(self):
-        return f'{self.connection.describe()}://{self.filename}'
+    def saveSpec(self, auto, dump, value):
+        self.specAuto = auto
+        if auto:
+            self.specDump = dump
+            self.updateSpec()
+        else:
+            self.spec = value
+            try:
+                self.specLoad = json.loads(self.spec)
+            except:
+                self.specLoad = VnVInputFile.DEFAULT_SPEC.copy()
 
-    def execTemplate(self):
-        return self.exec
+        return self.spec
+
+    def updateSpec(self):
+
+        def getSpecDumpCommand(inputfilename):
+            main = self.specDump.replace("${application}", self.filename)
+            main = main.replace("${inputfile}", inputfilename)
+            return main
+
+        if self.specAuto:
+            try:
+                aa = json.loads(self.value)
+                s = {"additionalPlugins": aa.get("additionalPlugins", {})}
+            except:
+                s = {"additionalPlugins": {}}
+
+            s["schema"] = {"dump": True, "quit": True}
+            path = self.connection.write(json.dumps(s), None)
+
+            a = getSpecDumpCommand(path)
+            try:
+                res = self.connection.execute(a)
+                a = res.find("===START SCHEMA DUMP===") + len("===START SCHEMA DUMP===")
+                b = res.find("===END SCHEMA_DUMP===")
+                if a > 0 and b > 0 and b > a:
+                    self.spec = res[a:b]
+                    try:
+                        self.specLoad = json.loads(self.spec)
+                    except:
+                        self.specLoad = VnVInputFile.DEFAULT_SPEC.copy()
+            except Exception as e:
+                # Cant update spec unless the input file is at least valid json.
+                # It also won't update if the input file is invalid.
+                print(e)
 
     def validateSpec(self, newVal):
         try:
@@ -151,17 +230,11 @@ class VnVInputFile:
         except Exception as e:
             return [{"row": 1, "column": 1, "text": str(e), "type": 'warning', "source": 'vnv'}]
 
-    def validateInput(self, newVal):
-        try:
-            s = json.loads(self.spec)
-            a = json.loads(newVal)
-            errs = jsonschema.validate(a, schema=s)
-            return []
-        except ValidationError as v:
-            r, c = get_row_and_column(v.path, newVal, a)
-            return [{"row": r, "column": c, "text": v.message, "type": 'warning', "source": 'vnv'}]
-        except Exception as e:
-            return [{"row": 1, "column": 1, "text": str(e), "type": 'warning', "source": 'vnv'}]
+    def describe(self):
+        return f'{self.connection.describe()}://{self.filename}'
+
+    def execTemplate(self):
+        return self.exec
 
     # TODO Implement this.
     EXECUTION_SCHEMA = {
@@ -184,7 +257,7 @@ class VnVInputFile:
             return [{"row": 1, "column": 1, "text": str(e), "type": 'warning', "source": 'vnv'}]
 
     def autocomplete_input(self, row, col, pre, val):
-        return []
+        return autocomplete(val,self.specLoad, int(row), int(col))
 
     def autocomplete_exec(self, row, col, pre, val):
         return []

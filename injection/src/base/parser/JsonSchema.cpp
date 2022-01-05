@@ -22,6 +22,14 @@ const json& getVVSchema() {
     "runTests": {
       "type": "boolean"
     },
+    "schema" : {
+      "type" : "object",
+      "properties" : {
+        "dump" : {"type" : "boolean", "default" : false },
+        "quit" : {"type" : "boolean", "default" : false }
+      },
+      "additionalProperties" : false
+    },
     "logging": {
       "$ref": "#/definitions/logger"
     },
@@ -53,7 +61,7 @@ const json& getVVSchema() {
       "$ref": "#/definitions/plugs"
     },
     "options": {
-      "type": "object"
+      "$ref" : "#/definitions/options"
     },
     "template-overrides": {
       "type": "object"
@@ -163,6 +171,7 @@ const json& getVVSchema() {
         "logTypes": {}
       }
     },
+    "options" : { "type" : "object" },
     "logTypes": {
       "default": {},
       "type": "object",
@@ -425,12 +434,12 @@ const json& getVVSchema() {
 json& getBaseOptionsSchema() {
   static json __base_options_schema__ = R"({
          "type" : "object",
-         "parameters" : {
+         "properties" : {
              "logUnhandled" : { "type" : "boolean" },
              "dumpConfig" : {"type" : "string" },
              "exitAfterDumpConfig" : {"type" : "boolean"}
          },
-         "additionalParameters" : false
+         "additionalProperties" : false
       }
 )"_json;
 

@@ -153,6 +153,17 @@ class VnVConnection:
     def upload(self, remote, local):
         self.sftp().put(local, remote)
 
+    def write(self, txt, path):
+        if path is None:
+            path = self.execute("mktemp")
+
+        sf = self.sftp()
+        f = sf.file(path,'w',-1)
+        f.write(txt)
+        f.flush()
+        sf.close()
+        return path
+
     def destroy(self):
         if self.sftp: self.sftp.close()
         if self.transport: self.transport.close()
@@ -215,9 +226,11 @@ class VnVLocalConnection:
         return self.connected_
 
     def execute(self, command):
-        result = subprocess.run(command.split(" "), stdout=subprocess.PIPE)
-        return result.stdout.decode("utf-8")
-
+        try:
+            result = subprocess.run(command.split(" "), stdout=subprocess.PIPE)
+            return result.stdout.decode("utf-8")
+        except Exception as e:
+            raise Exception("Failed to execute command: " + str(e) )
 
     def exists(self, path):
         return os.path.exists(os.path.abspath(path))
@@ -235,6 +248,16 @@ class VnVLocalConnection:
         ext = "directory" if os.path.exists(abspath) and Path(abspath).is_dir() else os.path.splitext(abspath)[1]
         return abspath, dir, name, ext, size, lastMod, lastModStr
 
+    def write(self, txt, path):
+        if path is None:
+            path = self.execute("mktemp").rstrip().lstrip()
+
+        with open(path,'w') as f:
+            f.write(txt)
+
+        return path
+
+
     def home(self):
         return os.path.expanduser("~")
 
@@ -247,8 +270,8 @@ class VnVLocalConnection:
     def download(self, remote):
         return remote
 
-    def upload(self, remote):
-        return remote
+    def upload(self, remote, local):
+        shutil.copy(local,remote)
 
     def crumb(self, dir):
         c = os.path.normpath(dir).split(os.path.sep)

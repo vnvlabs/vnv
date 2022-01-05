@@ -156,6 +156,15 @@ File: style.css
 	padding-right: 23px;
 	color: white;
 }
+.vnv-foot-spacer {
+	height: 10px;
+	width: 100%;
+	position: fixed;
+	bottom: 40px;
+	background: white;
+	overflow: hidden;
+	z-index: 2000;
+}
 
 .index-container {
     display: flex;

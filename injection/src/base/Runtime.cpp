@@ -107,8 +107,8 @@ void dumpSpecification(bool quit) {
 
 nlohmann::json RunTime::getFullJsonSchema() {
   json main = json::parse(getVVSchema().dump());
-  main["options"] = OptionsParserStore::instance().schema();
   json& defs = main["definitions"];
+  defs["options"] = OptionsParserStore::instance().schema();
   defs["injectionPoints"] = InjectionPointStore::instance().schema();
   defs["iterator"] = IteratorStore::instance().schema();
   defs["plug"] = PlugStore::instance().schema();
@@ -620,6 +620,10 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
   // Process the configs (wait until now because it allows loaded test libraries
   // to register options objects.
   processToolConfig(info.pluginConfig, info.cmdline, world);
+
+  if ( info.schemaDump ) {
+    dumpSpecification(info.schemaQuit);
+  }
 
   hotpatch = info.hotpatch;
 

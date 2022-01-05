@@ -1,5 +1,74 @@
-{%with NAME = "Specification", VALUE= "spec" , TEXT=file.spec, DEFAULTFILE=file.specDump, LABEL="Command to dump Specification" ,
-EXTBTN=[]%}
-{%include "inputfiles/input_edit_template.html" %}
-{%endwith%}
+
+<div style="display:flex; align-items:center; margin-bottom:15px;">
+    <h2 style="flex:1">Application Schema</h2>
+
+    <button id="exec_save" class="btn btn-primary input-save-button" style="margin-left:10px"
+            onclick='save_spec_file({{file.id_}})'>Save
+    </button>
+
+</div>
+
+<form id="Schema_Div">
+   <div class="form-group form-check">
+     <input  name="auto" type="checkbox" class="form-check-input" id="specAuto" {%if file.specAuto %} checked {%endif%} >
+     <label class="form-check-label" for="specAuto">Automatically Extract the Specification from the Application.</label>
+   </div>
+   <div class="form-group">
+     <label for="specDump">Command required to extract application schema.</label>
+     <input  {%if not file.specAuto %} readonly {%endif%} name="specDump" type="text" class="form-control" id="specDump" value="{{file.specDump}}">
+     <small>This should be the command required to run the application with an input file called ${inputfile}. We will substitute the value
+       of ${application} with the file path configured above. The value %{inputfile} will be substituted with a path to a tempory file that
+         we upload to the remote machine (the temp file path is created using the bash "mktemp" command)
+     </small>
+   </div>
+   <h3>Current Schema:</h3>
+   <div id="specFile" style="font-size:20px; height:1050px; width:100%; ">{{file.spec}}</div>
+</form>
+
+
+<script>
+
+function save_spec_file(fileid) {
+
+    var a = {}
+
+    if ( $('#specAuto')[0].checked ) {
+        a["auto"] = true;
+        a["dump"] = $('#specDump').val()
+
+    } else {
+        a["auto"] = false;
+        a["value"] = ace.edit("specFile").getValue()
+    }
+
+    $.ajax("/inputfiles/save_spec/" + fileid,
+      {
+        data : JSON.stringify(a),
+        contentType : 'application/json',
+        type : 'POST',
+        success: function(data, s, xhr) {
+          if (xhr.status == 200) {
+            ace.edit('specFile').setValue(data)
+            addToast("Save Successfull", "", 5000)
+          } else {
+            alert("Something went wrong - Please try again.")
+          }
+        }
+    });}
+
+$( document ).ready(function(){
+    get_ace_editor({{file.id_}}, "specFile","json", false)
+
+    {% if file.specAuto %}
+        ace.edit("specFile").setReadOnly(true)
+    {% endif %}
+
+    $('#specAuto').change(function(){
+            ace.edit("specFile").setReadOnly(this.checked)
+            $('#specDump').attr('readonly', !(this.checked) )
+    });
+
+});
+
+</script>
 
