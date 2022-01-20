@@ -25,7 +25,7 @@ void swap(long proc, CommWrap_ptr node, CommMap& willAdd, CommWrap_ptr newNode) 
       // add(proc, parent, willAdd, newNode);
     } else if (parent->contents.size() == node->contents.size()) {
       // Nodes parents are now parents parents. Also tell parents parents
-      // that they are now linked to Node instead of parent.
+      // that they are now linklinked to Node instead of parent.
       node->parents.clear();
       for (auto p : parent->parents) {
         node->parents.insert(std::make_pair(p.first, p.second));

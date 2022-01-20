@@ -9,6 +9,7 @@ from flask import Blueprint, make_response, jsonify, flash
 from flask import render_template, redirect, url_for, request
 import socket
 
+import Directory
 from app.models.VnVConnection import VnVLocalConnection, VnVConnection, MAIN_CONNECTION, SetMainConnection, \
     SetFileConnection
 from app.rendering.readers import LocalFile
@@ -26,12 +27,7 @@ blueprint.register_blueprint(viewers.blueprint, url_prefix="/viewers")
 
 
 def get_file_template_root():
-    sdir = os.path.join(
-        os.path.abspath(
-            os.path.dirname(__file__)),
-        blueprint.template_folder)
-    return os.path.abspath(os.path.join(sdir, "renders"))
-
+    return Directory.RENDERS_DIR
 
 def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -66,7 +62,9 @@ def autostart():
                 get_file_template_root(),
                 persist=request.form.get("persist"),
                 username=request.form.get("username"),
-                password=request.form.get("password")
+                password=request.form.get("password"),
+                workflowJob = request.form.get("workflowJob",""),
+                workflowName=request.form.get("workflowName","")
       )
 
       return make_response(f'0.0.0.0:{port}',200)
@@ -78,6 +76,14 @@ def autostart():
 def new():
     try:
 
+        # If there was a job name, then look for a file with that jobname
+        # if it exists, return that
+        if "jobName" in request.form:
+            file = VnVFile.findByJobName(request.form["jobName"])
+            if file is not None:
+                return redirect(url_for("base.files.view", id_=file.id_))
+
+        # No jobname so we should load a new file.
         reader = request.form["reader"]
         fname = request.form["filename"]
         if reader == "saved":
@@ -100,6 +106,8 @@ def new():
         return redirect(url_for("base.files.view", id_=file.id_))
     except Exception as e:
         return render_error(501, "Error Loading File")
+
+
 
 @blueprint.route('/delete/<int:id_>', methods=["POST"])
 def delete(id_):
@@ -189,6 +197,37 @@ def comm(id_):
         commrender = file.getCommRender(commId)
         return render_template("files/comm.html", commrender=commrender)
 
+@blueprint.route("/workflow/node_image/<string:nodeType>")
+def workflow_node_image(nodeType):
+    return redirect("/static/assets/images/pink-circle.jpeg")
+
+@blueprint.route("/workflow/render_job/<int:id_>")
+def workflow_render_job(id_):
+    try:
+        with VnVFile.find(id_) as file:
+         creator = request.args.get("creator")
+         name = request.args.get("name")
+         code = request.args.get("code")
+         if creator is not None:
+            c = creator.split(":")
+            return make_response(file.render_workflow_job(c[0],c[1], code),200)
+
+    except Exception as e:
+        print(e)
+    return make_response("",200)
+
+@blueprint.route("/workflow/raw_rst/<int:id_>")
+def workflow_render_rst(id_):
+    try:
+        with VnVFile.find(id_) as file:
+         creator = request.args.get("creator")
+         if creator is not None:
+            c = creator.split(":")
+            return make_response(file.render_workflow_rst(c[0],c[1], request.args.get("jobName")),200)
+
+    except Exception as e:
+        print(e)
+    return make_response("",200)
 
 @blueprint.route('/data', methods=["GET"])
 def data():
@@ -236,7 +275,7 @@ def processing(id_):
 
 def unique_files():
     return [
-        a for a in VnVFile.FILES.values() if not a.pipeline
+        a for a in VnVFile.FILES.values()
     ]
 
 
@@ -245,44 +284,19 @@ def template_globals(globs):
     globs["files"] = VnVFile.FILES
     globs["uniquefiles"] = unique_files
 
+files = [
+    [True, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output", "json_file",{"persist": True}],
+    [True, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-workflow-output", "json_file", {"persist":True}],
+    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/adios-output-live", "adios", True, {}],
+    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live", "json_file",{"persist": True}],
+    [False, "/home/ben/source/vv/applications/asgard/build/vv-output", "json_file",{"persist": True}],
+]
 
 def faker():
     # Development stuff -- this loads some files by default on my computer. Feel free to add your
     # own
-    if  os.path.exists("/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output"):
-        VnVFile.add(
-            "test",
-            "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output",
-            "json_file",
-            get_file_template_root(), persist=True)
+  for f in files:
+    if f[0] and os.path.exists(f[1]):
+        VnVFile.add("faker", f[1], f[2], get_file_template_root(), **f[3])
 
-
-    if False and os.path.exists("/home/ben/source/vv/vv-neams/build/examples/dummy/executables/adios-output-live"):
-        VnVFile.add(
-            "adios",
-            "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/adios-output-live",
-            "adios_file",
-            get_file_template_root())
-
-    if False:
-        VnVFile.add(
-            "http",
-            "14000",
-            "json_socket",
-            get_file_template_root(),username="ben", password="hello")
-
-
-    if False and os.path.exists("/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live"):
-        VnVFile.add(
-            "test1",
-            "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live",
-            "json_file",
-            get_file_template_root())
-
-    if False and os.path.exists("/home/ben/source/vv/applications/asgard/build/vv-output"):
-        VnVFile.add(
-            "asgard",
-            "/home/ben/source/vv/applications/asgard/build/vv-output",
-            "json_file",
-            get_file_template_root())
 

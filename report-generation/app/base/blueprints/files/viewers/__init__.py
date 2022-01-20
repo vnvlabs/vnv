@@ -365,16 +365,34 @@ def rstraw(id_, dataId):
     except Exception as e:
         return make_response("Error\n-----", 200)
 
+@blueprint.route('/workflow_node/<int:id_>')
+def workflowNode(id_):
+    try:
+        
+        with VnVFile.VnVFile.find(id_) as file:
+            creator = request.args.get("creator")
+            if creator is not None:
+                return make_response(creator,200)
+    except:
+        pass
+    return make_response("", 200)
+
 
 @blueprint.route('/ip/<int:id_>')
 def ip(id_):
     try:
         with VnVFile.VnVFile.find(id_) as file:
             injection = request.args.get('ipid', type=int)
+
+            if injection == -100:
+                return render_template("viewers/introduction.html",introRender=file.get_introduction())
+
+
             iprender = file.render_ip(injection)
 
             if isinstance(iprender, str):
                 return iprender
+
             resp = render_template(
                 "viewers/injectionPoint.html",
                 iprender=iprender)
@@ -383,6 +401,7 @@ def ip(id_):
 
     except Exception as e:
         return render_error(501, "Error Loading File")
+
 
 
 @blueprint.route('/render_label/<int:id_>')

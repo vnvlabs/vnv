@@ -13,6 +13,8 @@ import pygments
 from flask import render_template
 from pygments.lexers import guess_lexer_for_filename
 
+import Directory
+
 
 def getPath(filename, exten=None):
     uu = hashlib.sha1(filename.encode()).hexdigest()
@@ -23,10 +25,7 @@ def getPath(filename, exten=None):
     else:
         uu += "." + exten
 
-    d = os.path.join(flask.current_app.config.root_path, "static", "files")
-    if not os.path.exists(d):
-        os.makedirs(d)
-
+    d = Directory.STATIC_FILES_DIR
     p = os.path.join(d, uu)
     return p, uu
 
@@ -39,24 +38,24 @@ def getUID(filename, exten=None):
 
 
 def render_image(filename, **kwargs):
-    return f"<img class='card' src='/static/files/{getUID(filename)}' style='max-width:100%;'>"
+    return f"<img class='card' src='/temp/files/{getUID(filename)}' style='max-width:100%;'>"
 
 
 def render_html(filename, **kwargs):
-    return f"<iframe class='card' src='/static/files/{getUID(filename)}' style='width: 100%;height:80vh;'>"
+    return f"<iframe class='card' src='/temp/files/{getUID(filename)}' style='width: 100%;height:80vh;'>"
 
 
 def render_pdf(filename, **kwargs):
-    return f"<iframe class='card' src='/static/files/{getUID(filename)}' style='width: 100%;height:80vh;'>"
+    return f"<iframe class='card' src='/temp/files/{getUID(filename)}' style='width: 100%;height:80vh;'>"
 
 
 def render_glvis(filename, **kwargs):
-    path = urllib.request.pathname2url(f"/static/files/{getUID(filename)}")
-    return f"<iframe class='card' src='/static/glvis/index.html?stream={path}' style='width: 100%;height:80vh;'>"
+    path = urllib.request.pathname2url(f"/temp/files/{getUID(filename)}")
+    return f"<iframe class='card' src='/temp/glvis/index.html?stream={path}' style='width: 100%;height:80vh;'>"
 
 
 def render_vti(filename, **kwargs):
-    path = urllib.request.pathname2url(f"/static/files/{getUID(filename)}")
+    path = urllib.request.pathname2url(f"/temp/files/{getUID(filename)}")
     return f"<iframe class='card' src='/static/volume/index.html?fileURL={path}' style='width: 100%;height:80vh;'>"
 
 

@@ -75,16 +75,31 @@ class TemplateBuild:
     def get_action(self, package, name):
         return self.get_html_file_name("Actions", package, name)
 
+    def get_job_creator(self,package,name):
+        return self.get_html_file_name("JobCreators",package,name)
+
+    def get_job_creator_job(self,package,name, jobName):
+        return os.path.join("renders", self.src_dir, "_build", "html", f"JobCreator_Job_{package}_{name}_{jobName}.html")
+
+    def get_raw_job_creator_job(self,package,name, jobName):
+        return self.read( f"JobCreator_Job_{package}_{name}_{jobName}.rst")
+
+
+    def get_raw_job_creator(self,package,name):
+        return self.read( f"JobCreators_{package}_{name}.rst")
+
     def get_unit_test_test_content(self, package, name, test):
         return os.path.join("renders", self.src_dir, "_build", "html", f"UnitTest_Test_{package}_{name}_{test}.html")
 
     def render_temp_string(self, content):
+
         temp_dir = os.path.join(self.root_dir, "temp")
         if not os.path.exists(temp_dir):
             setup_build_directory(temp_dir, self.file)
 
         with open(os.path.join(temp_dir, "index.rst"), 'w') as w:
             w.write(content)
+
         params = ["-M", "html", temp_dir, os.path.join(temp_dir, "_build")]
         sphinx.cmd.build.make_main(params)
         return os.path.join("renders", self.src_dir, "temp", "_build", "html", "index.html")
@@ -95,11 +110,13 @@ class TemplateBuild:
             return None  # not supported yet -- internal test doesn't know what ip it belongs to.
         elif usage == "Package":
             fname = f"Options_{data.getPackage()}.rst"
-
+        elif usage == "Root":
+            fname = "Introduction.rst"
         else:
             fname = f"{usage}s_{data.getPackage()}_{data.getName()}.rst"
 
         return self.read(fname)
+
 
     def get_unit_test_test_raw(self, package, name, test):
         return os.path.join("renders", self.src_dir, "_build", "html", f"UnitTest_Test_{package}_{name}_{test}.html")
@@ -109,6 +126,7 @@ class TemplateBuild:
 
     def get_raw_conclusion(self):
         return self.read("Conclusion.rst")
+
 
     def get_raw_package(self, package):
         return self.read(f"Options_{package}.rst")
@@ -186,10 +204,19 @@ def build(src_dir, templates, id_):
                     for test in tests.keys():
                         fnames.append(f"UnitTest_Test_{name_package[0]}_{name_package[1]}_{test}.rst")
                         with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
-                            if len(point["docs"]) == 0:
+                            if len(tests[test]) == 0:
                                 w.write(f"\n\n<No information available>\n\n")
                             else:
                                 w.write(f"\n{textwrap.dedent(tests[test])}\n\n")
+                elif type_ == "JobCreators":
+                    tests = point["jobs"]
+                    for test in tests.keys():
+                        fnames.append(f"JobCreator_Job_{name_package[0]}_{name_package[1]}_{test}.rst")
+                        with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
+                            if len(tests[test]) == 0:
+                                w.write(f"\n\n<No information available>\n\n")
+                            else:
+                                w.write(f"\n{textwrap.dedent(tests[test]['template'])}\n\n")
 
     index = '''.. toctree::\n\t:maxdepth: 22\n\t:caption: Contents:\n\n\t{files}\n\n'''.format(
         files="\n\t".join(fnames))

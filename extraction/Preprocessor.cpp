@@ -182,6 +182,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
   std::vector<SourceLocation> currentLoc;
 
   json* lastTestJson = nullptr;
+  json* lastWorkflowJson = nullptr;
 
   std::string lastUnitTestPackage;
 
@@ -290,6 +291,8 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
 
     // TODOO CATCH THE TEST ASSERT EQUALS CALLS FOR GETTING DOCS FOR INDIVIDUAL
     // UNIT TESTS
+     
+  
 
     if ((nae == "TEST_ASSERT_EQUALS" || nae == "TEST_ASSERT_NOT_EQUALS") && lastTestJson != nullptr) {
       std::string name = VnV::StringUtils::trim_copy(pp.getSpelling(*Args->getUnexpArgument(0)));
@@ -310,12 +313,24 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
         j[name] = t.value().get<std::string>() + docs;
       }
       return;
+    } else if (nae == "INJECTION_CREATE_JOB" &&  lastWorkflowJson != nullptr )  {
+
+         std::string name = VnV::StringUtils::trim_copy(pp.getSpelling(*Args->getUnexpArgument(1)));
+         if (name[0] == '\"' && name[name.size() - 1] == '\"') {
+             name = name.substr(1, name.size() - 2);
+         }
+         json &j = (*lastWorkflowJson)["jobs"];
+         j[name] = getDocs(Range).toJson();
+         std::cout << j.dump() << std::endl;
+         return;
     }
+
 
     if (nae.substr(0, 10).compare("INJECTION_") != 0) return;
 
     // Reset the lastTestJson object as we have a new Injection macro.
     lastTestJson = nullptr;
+    lastWorkflowJson = nullptr;
     if (nae == "INJECTION_COMMENT") {
       std::string pname = getPackageName(Args, 0);
       std::string name = getPackageName(Args, 1);
@@ -370,7 +385,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj["docs"] = getDocs(Range).toJson();
       jj["tests"] = json::object();
       lastTestJson = &jj;
-
     } else if (nae == "INJECTION_ACTION") {
       json& jj = getDef("Actions", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
@@ -389,7 +403,21 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     } else if (nae == "INJECTION_PIPELINE") {
       json& jj = getDef("Pipelines", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_SAMPLER_RS") {
+    } else if (nae == "INJECTION_SCHEDULER") {
+      json& jj = getDef("Schedulers", getPackageName(Args, 0), getPackageName(Args, 1));
+      jj["docs"] = getDocs(Range).toJson();
+    } else if (nae == "INJECTION_VALIDATOR") {
+      json& jj = getDef("Validators", getPackageName(Args, 0), getPackageName(Args, 1));
+      jj["docs"] = getDocs(Range).toJson();
+    } else if (nae == "INJECTION_JOBCREATOR") {
+      json& jj = getDef("JobCreators", getPackageName(Args, 0), getPackageName(Args, 1));
+      jj["jobs"] = json::object();
+      jj["docs"] = getDocs(Range).toJson();
+      lastWorkflowJson = &jj;
+    } else if (nae == "INJECTION_SCRIPTGENERATOR") {
+      json& jj = getDef("ScriptGenerators", getPackageName(Args, 0), getPackageName(Args, 1));
+      jj["docs"] = getDocs(Range).toJson();
+    }  else if (nae == "INJECTION_SAMPLER_RS") {
       json& jj = getDef("Samplers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
     } else if (nae == "INJECTION_WALKER_S") {

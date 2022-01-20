@@ -71,6 +71,12 @@ json OutputEngineStore::listReaders() {
   return a;
 }
 
+json OutputEngineStore::getRunInfo() {
+  auto a = getEngineManager();
+  if (a != nullptr) return a->getRunInfo();
+  return json::object();
+}
+
 json OutputEngineStore::schema() {
   nlohmann::json m = R"({"type":"object"})"_json;
   nlohmann::json properties = json::object();

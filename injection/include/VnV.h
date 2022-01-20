@@ -35,6 +35,7 @@
 #  include "interfaces/IPipeline.h"
 #  include "interfaces/IUnitTest.h"
 #  include "interfaces/IWalker.h"
+#  include "interfaces/IWorkflow.h"
 #  include "interfaces/argType.h"
 #  include "interfaces/points/Injection.h"
 #  include "interfaces/points/Iteration.h"

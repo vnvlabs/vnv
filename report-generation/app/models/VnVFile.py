@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import shutil
 import threading
 import time
@@ -193,8 +194,6 @@ class UnitTestRender:
     def getTests(self):
         return [a for a in self.data.getResults().fetchkeys()]
 
-
-
     def getResult(self, name):
         try:
             return self.data.getResults().get(name).getResult()
@@ -303,6 +302,134 @@ class PackageRender:
                 for a in self.data.getLogs()]
 
 
+class IntroductionRender:
+
+    def __init__(self, package, root, templates):
+        self.root = root
+        self.templates = templates
+        self.package = package
+
+    def getTitle(self):
+        return self.package
+
+    def getFile(self):
+        return self.templates.file
+
+    def getId(self):
+        return self.root.getId()
+
+    def getHtml(self):
+        return render_vnv_template(self.templates.get_introduction(), data=self.root, file=self.templates.file)
+
+    def getRawRST(self):
+        return self.templates.get_raw_introduction()
+
+    def getRequest(self):
+        return None
+
+
+class WorkflowRender:
+
+    def __init__(self, workflowNode, template_root, root, templates, persist):
+        self.workflowNode = workflowNode
+        self.root = root
+        self.name = workflowNode.getName()
+        self.template_root = template_root
+        self.templates = templates
+        self.package = workflowNode.getPackage()
+        self.persist = persist
+        self.creators = []
+        self.codeNameMap = {}
+        self.infoStr = '{"nodes":[],"links":[]}'
+        self.reports = {}
+        self.loadWorkflow()
+
+    def getTitle(self):
+        return self.package + ":" + self.name
+
+    def getFile(self):
+        return self.templates.file
+
+    def getId(self):
+        return self.workflowNode.getId()
+
+    def getWorkflowGraph(self):
+        self.loadWorkflow()
+        return self.infoStr
+
+    def getVnVFile(self, name, engineInfo):
+
+        # if the job name matches then its that one
+        f = VnVFile.findByJobName(name)
+        if f is not None:
+            return f
+
+        # if the engine name matches and the reader matches then its prob that one.
+        for k, v in VnVFile.FILES.items():
+            if v.filename == engineInfo["filename"] and v.reader == engineInfo["reader"]:
+               return v
+
+        # make a new one.
+        ff = VnVFile.add(name, engineInfo["filename"], engineInfo["reader"], self.template_root, self.persist, False,
+                         **engineInfo)
+        return ff
+
+    def loadWorkflow(self):
+        if self.workflowNode.getInfoStr() != self.infoStr:
+            self.infoStr = self.workflowNode.getInfoStr()
+            s = json.loads(self.infoStr)
+            creators = {}
+            codeNameMap = {}
+
+            for i in s["nodes"]:
+
+                if i["type"] == "Job":
+                    codeNameMap[i["value"]["code"]] = i["value"]["name"]
+                    c = i["value"]["creator"]
+                    cc = c.split(":")
+                    jobH = self.render_job_html(cc[0],cc[1],i["value"]["name"])
+                    if c not in creators:
+                        ht = render_vnv_template(self.templates.get_job_creator(cc[0], cc[1]), data=self.workflowNode,
+                                                 file=self.templates.file)
+                        creators[c] = {"name": c, "html": ht, "jobs": [{"name": i["value"]["name"] ,"html" : jobH} ] }
+                    else:
+                        creators[c]["jobs"].append({"name": i["value"]["name"] ,"html" : jobH})
+                elif i["type"] == "VnVReport":
+                    val = i["value"]
+                    if not self.workflowNode.hasReport(val["alias"]):
+                        ff = self.getVnVFile(val["name"], val["engine"])
+                        self.reports[val["alias"]] = ff
+                        self.workflowNode.setReport(val["alias"], ff.id_,  ff.root)
+
+            self.creators = [v for k, v in creators.items()]
+            self.codeNameMap = codeNameMap
+
+    def render_job_html(self, package, name, jobName):
+        return render_vnv_template(self.templates.get_job_creator_job(package, name, jobName),
+                                   data=self.workflowNode, file=self.templates.file)
+
+    def getHtml(self, package, name, code=None):
+        self.loadWorkflow()
+        if code is not None:
+            jobName = self.codeNameMap[code]
+            return self.render_job_html(package, name, jobName)
+        return render_vnv_template(self.templates.get_job_creator(package, name), data=self.workflowNode,
+                                   file=self.templates.file)
+
+    def getWorkflowCreators(self):
+        self.loadWorkflow()
+        return self.creators
+
+
+    def getRawRST(self, package, name, jobName=None):
+        if jobName is not None:
+            return self.templates.get_raw_job_creator_job(package, name, jobName)
+        return self.templates.get_raw_job_creator(package, name)
+
+    def getRequest(self):
+        return None
+
+
 class ActionRender:
     def __init__(self, package, data, templates):
         self.data = data
@@ -371,12 +498,13 @@ class InjectionPointRender:
         return self.templates.get_raw_rst(self.ip)
 
     def getDuration(self):
-        a =  self.ip.getEndTime() - self.ip.getStartTime()
-        if a <=0:
-            return  (time.time() * 1000) - self.ip.getStartTime()
+        a = self.ip.getEndTime() - self.ip.getStartTime()
+        if a <= 0:
+            return (time.time() * 1000) - self.ip.getStartTime()
         return a
+
     def getDescription(self):
-        d =  self.templates.get_type_description("InjectionPoints",self.ip.getPackage(), self.ip.getName())
+        d = self.templates.get_type_description("InjectionPoints", self.ip.getPackage(), self.ip.getName())
         return d["description"]
 
     def getTitle(self):
@@ -473,7 +601,8 @@ class VnVFile:
         self.template_root = template_root
         self.id_ = VnVFile.get_id() if _cid is None else _cid
         self.notifications = []
-        self.pipeline = False
+        self.workflowRender = None
+
 
         if not reload:
             self.name = validate_name(name)
@@ -496,9 +625,9 @@ class VnVFile:
 
     # Try and setup the templates once we can.
     def setupNow(self):
-        if self.templates is None and self.th is None :
-             self.vnvspec = json.loads(self.root.getVnVSpec().get())
-             if self.vnvspec is not None and len(self.vnvspec) > 0:
+        if self.templates is None and self.th is None:
+            self.vnvspec = json.loads(self.root.getVnVSpec().get())
+            if self.vnvspec is not None and len(self.vnvspec) > 0:
                 self.th = threading.Thread(target=self.setup_thread)
                 self.th.start()
         return self.templates is not None
@@ -516,13 +645,29 @@ class VnVFile:
             return self.templates.get_raw_rst(data)
 
 
+
     def setConnection(self, hostname, username, password, port):
         self.connection = VnVConnection(hostname, username, password, port)
 
     def setConnection(self):
         self.connection = VnVLocalConnection()
 
+    def getWorkflow(self):
+        if self.setupNow():
+            return self.root.getInfoNode().getWorkflow()
+        return None
 
+    def render_workflow_job(self, package, name, code=None):
+        return self.getWorkflowRender().getHtml(package, name, code)
+
+    def render_workflow_rst(self, package, name, jobName=None):
+        return self.getWorkflowRender().getRawRST(package, name, jobName)
+
+
+    def getJobName(self):
+        if self.setupNow():
+            return self.root.getInfoNode().getJobName()
+        return None
 
     def clone(self):
         return VnVFile(self.name, self.filename, self.reader, self.template_root, self.icon, _cid=self.id_,
@@ -560,12 +705,12 @@ class VnVFile:
         return self.root.findById(dataid)
 
     def query(self, dataid, query):
-        data = self.root.findById(dataid)
+        data = self.getById(dataid)
         if data is not None:
             return DataClass(data, dataid, self.id_).query(query)
 
     def query_str(self, dataid, query):
-        data = self.root.findById(dataid).cast()
+        data = self.getById(dataid).cast()
         if data is not None:
             return DataClass(data, dataid, self.id_).query_str(query)
 
@@ -593,7 +738,7 @@ class VnVFile:
     def getPackages(self):
         return [{"name": a} for a in self.root.getPackages().fetchkeys()]
 
-    def getPackage(self,package):
+    def getPackage(self, package):
         return self.root.getPackage(package)
 
     def get_cwd(self):
@@ -607,8 +752,6 @@ class VnVFile:
         if len(a) > 0:
             return self.render_package(a[0]["name"])
         return ""
-
-
 
     def displayName(self, a):
         return " ".join([i.capitalize() for i in a.replace("_", " ").split(":")[-1].split(" ")])
@@ -625,6 +768,29 @@ class VnVFile:
 
     def getGlobalCommMap(self):
         return self.root.getCommInfoNode().getCommMap().toJsonStr(False)
+
+    def getWorkflowRender(self):
+
+        if self.workflowRender is None:
+            n = self.root.getWorkflowNode()
+            self.workflowRender = WorkflowRender(n, self.template_root, self.root, self.templates, self.persist)
+
+        return self.workflowRender
+
+
+    def hasComm(self):
+        return self.root.getCommInfoNode().getWorldSize() > 1
+
+    DEBUG_WORKFLOW = False
+
+    def hasWorkflow(self):
+        if self.root.getWorkflowNode() is not None:
+            s = self.root.getWorkflowNode().getInfoStr()
+            try:
+                ss = json.loads(s)
+                return VnVFile.DEBUG_WORKFLOW or len(ss.get("nodes", [])) > 1
+            except:
+                return False
 
     def renderDefaultComm(self):
 
@@ -758,17 +924,14 @@ class VnVFile:
         return self.getCommObj().keys()
 
     def get_injection_point(self, id):
-        return self.root.findById(id)
+        return self.getById(id).cast()
 
     def list_injection_points(self, proc):
         """Return a nested heirarchy of injection points and logs for this comm."""
         return self.root.single_proc_heirarchy(proc)
 
     def get_introduction(self):
-        try:
-            return render_template(self.templates.get_introduction())
-        except:
-            return "<div> No Introduction Available </div>"
+        return IntroductionRender("VnV Application", self.root, self.templates)
 
     def get_conclusion(self):
         return render_template(self.templates.get_conclusion())
@@ -849,7 +1012,7 @@ class VnVFile:
                  "y": 0,
                  "id": VnVFile.INJECTION_INTRO,
                  "starttime": self.root.getInfoNode().getStartTime(),
-                 "endtime" : self.root.getInfoNode().getEndTime(),
+                 "endtime": self.root.getInfoNode().getEndTime(),
                  "wait": False,
                  "title": "Application"}
             )
@@ -880,7 +1043,7 @@ class VnVFile:
                                 "wait": False,
                                 "title": "",
                                 "starttime": self.root.getInfoNode().getStartTime(),
-                                "endtime" : self.root.getInfoNode().getEndTime()
+                                "endtime": self.root.getInfoNode().getEndTime()
                                 })
                     break
                 else:
@@ -917,9 +1080,17 @@ class VnVFile:
 
     @staticmethod
     def add(name, filename, reader, template_root, persist=False, reload=False, **kwargs):
+
         f = VnVFile(name, filename, reader, template_root, persist=persist, reload=reload, **kwargs)
         VnVFile.FILES[f.id_] = f
         return f
+
+    @staticmethod
+    def findByJobName(jname):
+        for k, v in VnVFile.FILES.items():
+            if v.getJobName() == jname:
+                return v
+        return None
 
     @staticmethod
     def removeById(fileId, refresh):

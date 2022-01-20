@@ -49,6 +49,8 @@ namespace VnV {
  *
  */
 
+class JobManager;
+
 class RunTimeOptions {
  public:
   bool logUnhandled = false;
@@ -93,9 +95,19 @@ class RunTime {
 
   std::string configFile = "<unknown>";
   std::string hotpatchVar;
+
+
+  // Workflow Identification
+  std::string workflowName_ = StringUtils::random(10);
+  std::string workflowJob_ = StringUtils::random(10);
+  std::string workflowDir_ = "/tmp" ;
+  std::shared_ptr<JobManager> jobManager = nullptr;
+  
   bool hotpatch;
 
   void loadRunInfo(RunInfo& info, registrationCallBack callback);
+
+  void writeRunInfoFile();
 
   void makeLibraryRegistrationCallbacks(
       std::map<std::string, std::string> packageNames);
@@ -134,6 +146,9 @@ class RunTime {
   bool useAsciiColors();
 
   long currentTime();
+
+  std::string workflowName () { return workflowName_; }
+  std::string workflowJob () { return workflowJob_; }
 
   /**
    * @brief printRunTimeInformation

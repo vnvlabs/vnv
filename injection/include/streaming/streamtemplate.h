@@ -39,6 +39,7 @@ constexpr auto outputFile = "outputFile";
   X(time)        \
   X(key)         \
   X(stage)       \
+  X(info)        \
   X(message)     \
   X(internal)    \
   X(description) \
@@ -49,6 +50,8 @@ constexpr auto outputFile = "outputFile";
   X(reader)      \
   X(level)       \
   X(dtype)       \
+  X(workflow)    \
+  X(jobName)     \
   X(endid)       \
   X(line)        \
   X(filename)    \
@@ -75,6 +78,9 @@ namespace JSN {
   X(packageOptionsFinished)    \
   X(actionStarted)             \
   X(actionFinished)            \
+  X(workflowStarted)           \
+  X(workflowFinished)          \
+  X(workflowUpdated)           \
   X(fetch)                     \
   X(fetchSuccess)              \
   X(fetchFail)                 \
@@ -298,6 +304,8 @@ class JsonPortStreamIterator : public MultiStreamIterator<JsonSingleStreamIterat
     return a;
   }
 
+
+
   bool authorize(std::string username, std::string password) {
     return (username.compare(uname) == 0 && password.compare(pass) == 0);
   }
@@ -429,7 +437,7 @@ template <typename T> class StreamWriter {
   virtual void finalize(ICommunicator_ptr worldComm, long currentTime) = 0;
   virtual void newComm(long id, const T& obj, ICommunicator_ptr comm) = 0;
   virtual void write(long id, const T& obj, long jid) = 0;
-
+  virtual json getRunInfo() = 0;
   virtual bool supportsFetch() { return false; }
   virtual bool fetch(long id, long jid, json& obj) { return false; }
 
@@ -445,6 +453,14 @@ template <typename T> class PortStreamWriter : public StreamWriter<T> {
   std::string port;
   std::string reader;
 
+  json getRunInfo() override {
+     json j = json::object();
+     j["reader"] = reader;
+     j["password"] = password;
+     j["username"] = username;  
+     return j;
+  }
+
   virtual std::string autostart(const json& config) {
 #ifdef WITH_LIBCURL
 
@@ -455,7 +471,10 @@ template <typename T> class PortStreamWriter : public StreamWriter<T> {
     oss << "reader=" << reader << "&username=" << username << ""
         << "&password=" << password << ""
         << "&name=" << config.value("name", "vnv_report") << ""
+        << "&workflowJob=" << RunTime::instance().workflowJob() << ""
+        << "&workflowName=" << RunTime::instance().workflowName() << ""
         << "&__token__=" << config.value("vnvpass", "password") << "";
+
 
     if (config.value("persist", true)) {
       oss << "&persist=on";
@@ -632,6 +651,10 @@ template <typename T> class StreamManager : public OutputEngineManager {
     return false;
   }
 
+  json getRunInfo() override{
+    return stream->getRunInfo(); 
+  }
+
   bool Fetch(std::string message, const json& schema, long timeoutInSeconds, json& response) override {
     std::string line = response.dump();
     long size = -1;
@@ -802,7 +825,8 @@ template <typename T> class StreamManager : public OutputEngineManager {
       nJson[JSD::nodeMap] = node_map;
       nJson[JSD::mpiversion] = comm->VersionLibrary();
       nJson[JSD::prov] = RunTime::instance().getProv().toJson();
-
+      nJson[JSD::workflow] = RunTime::instance().workflowName();
+      nJson[JSD::jobName] = RunTime::instance().workflowJob();
       write(nJson);
     }
   }
@@ -902,6 +926,32 @@ template <typename T> class StreamManager : public OutputEngineManager {
       write(j);
     }
   };
+  
+  void workflowCallback(std::string stage, ICommunicator_ptr comm, std::string package, std::string name, const json&info) {
+    if (comm->Rank() == getRoot()) {
+      T j = T::object();
+      j[JSD::node] = stage;
+      j[JSD::name] = name;
+      j[JSD::package] = package;
+      j[JSD::info] = info;
+      write(j);
+    }
+  }
+
+ 
+
+  void workflowStartedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json&info) override {
+    setComm(comm, true);
+    workflowCallback(JSN::workflowStarted, comm,package,name,info);
+  };
+  void workflowEndedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json&info){
+    workflowCallback(JSN::workflowFinished, comm,package,name,info);
+  };
+  
+  void workflowUpdatedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json&info){
+     workflowCallback(JSN::workflowUpdated, comm,package,name,info);
+  };
+
 
   void unitTestStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string unitTestName) override {
     setComm(comm, true);
@@ -965,6 +1015,13 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
   std::string getFileName(long id, bool makedir = true) {
     std::vector<std::string> fname = {std::to_string(id)};
     return getFileName_(filestub, {std::to_string(id) + extension}, true);
+  }
+
+  json getRunInfo() override {
+     json j = json::object();
+     j["reader"] = "json_file";
+     j["filename"] = DistUtils::getAbsolutePath(filestub);
+     return j;
   }
 
   std::string getFileName_(std::string root, std::vector<std::string> fname, bool mkdir) {
@@ -1151,6 +1208,8 @@ template <class DB> class StreamParserTemplate {
       n->settitle(j[JSD::title].template get<std::string>());
       n->setstart(j[JSD::date].template get<long>());
       n->setprov(std::make_shared<VnVProv>(j[JSD::prov]));
+      n->setworkflow(j[JSD::workflow].template get<std::string>());
+      n->setjobName(j[JSD::jobName].template get<std::string>());
 
       rootInternal()->setspec(j[JSD::spec]);
       auto cim = std::dynamic_pointer_cast<typename DB::CommInfoNode>(rootInternal()->getCommInfoNode());
@@ -1209,6 +1268,31 @@ template <class DB> class StreamParserTemplate {
       }
       return n;
     };
+
+    virtual std::shared_ptr<typename DB::WorkflowNode> visitWorkflowStartedNode(const T& j) {
+       auto n = mks<typename DB::WorkflowNode>(j);
+       n->setpackage(j[JSD::package].template get<std::string>());
+       n->setname(j[JSD::name].template get<std::string>());
+       n->setinfo(j[JSD::info]);
+       n->setstate("Started");
+       return n;
+    }
+    
+    virtual std::shared_ptr<typename DB::WorkflowNode> visitWorkflowUpdatedNode(const T& j) {
+       auto n = std::dynamic_pointer_cast<typename DB::WorkflowNode>(rootInternal()->getWorkflowNode());
+       n->setinfo(j[JSD::info]);
+       n->setstate("Updated");
+       return n;
+    }
+    
+    virtual std::shared_ptr<typename DB::WorkflowNode> visitWorkflowEndedNode(const T& j) {
+       auto n = std::dynamic_pointer_cast<typename DB::WorkflowNode>(rootInternal()->getWorkflowNode());
+       n->setinfo(j[JSD::info]);
+       n->setstate("Done");
+       return n;
+    }
+    
+    
 
     virtual std::shared_ptr<typename DB::TestNode> visitPackageNodeStarted(const T& j) {
       auto n = mks_str<typename DB::TestNode>("Information");
@@ -1506,7 +1590,12 @@ template <class DB> class StreamParserTemplate {
         auto n = visitDataNodeStarted(j);
         childNodeDispatcher(n, elementId, currentTime);
         jstream->push(n);
-
+      } else if (node == JSN::workflowStarted) {
+        rootInternal()->setworkflowNode(visitWorkflowStartedNode(j));
+      } else if (node == JSN::workflowUpdated) {
+         visitWorkflowUpdatedNode(j);
+      } else if (node == JSN::workflowFinished) {
+          visitWorkflowEndedNode(j);
       } else if (node == JSN::info) {
         rootInternal()->setinfoNode(visitInfoNode(j));
       } else if (node == JSN::fetch) {

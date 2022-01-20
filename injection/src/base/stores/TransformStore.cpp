@@ -58,7 +58,7 @@ TransformStore::TransformStore() {}
 
 nlohmann::json TransformStore::schema() {
   std::set<std::string> nodes;
-  nlohmann::json edges;
+  nlohmann::json edges = json::array();
   for (auto& it : trans_map) {
     nodes.insert(it.first);
     for (auto& itt : it.second) {
@@ -71,7 +71,7 @@ nlohmann::json TransformStore::schema() {
   }
   nlohmann::json r = json::object();
   r["nodes"] = nodes;
-  r["edges"] = edges;
+  r["links"] = edges;
   return r;
 }
 

@@ -102,6 +102,7 @@ class JsonFileStream : public FileStream<JsonFileIterator, json> {
     }
   }
 
+  
   virtual void newComm(long id, const json& obj, ICommunicator_ptr comm) override {
     if (streams.find(id) == streams.end()) {
       std::ofstream off(getFileName(id));
@@ -167,18 +168,7 @@ class MultiFileStreamIterator : public MultiStreamIterator<JsonFileIterator, jso
   std::string response_stub = "";
 
  public:
-  MultiFileStreamIterator(std::string fstub) : MultiStreamIterator<JsonFileIterator, json>(), filestub(fstub) {
-    bool changed = false;
-    while (VnV::DistUtils::fileExists(filestub)) {
-      filestub = fstub + VnV::TimeUtils::timestamp();
-      changed = true;
-    }
-
-    if (changed) {
-      VnV_Warn(VNVPACKAGENAME, "Output will be written to %s because %s already exists", filestub.c_str(),
-               fstub.c_str());
-    }
-  }
+  MultiFileStreamIterator(std::string fstub) : MultiStreamIterator<JsonFileIterator, json>(), filestub(fstub) { }
 
   virtual void respond(long id, long jid, const json& response) override {
     // Respond to a file request in a format that will be understood by rhe Json Stream that is

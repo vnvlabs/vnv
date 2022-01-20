@@ -38,6 +38,11 @@ class ParallelEngine : public OutputEngineManager {
    */
   void Log(ICommunicator_ptr comm, const char* package, int stage, std::string level, std::string message) override;
 
+ json getRunInfo() override {
+    return json::object();
+  }
+
+
   /**
    * @brief Put
    * @param variableName

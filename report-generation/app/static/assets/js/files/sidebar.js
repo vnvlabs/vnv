@@ -36,6 +36,34 @@ function add_file(event) {
    event.preventDefault();
 }
 
+function show_ip_rst_editor(fileId, testId, atestId ) {
+     $.get('/files/viewers/rst/raw/' + fileId + '/' + testId, function(data) {
+           set_rst(fileId, testId, atestId, data) ;
+           $('#raw-modal').modal('toggle')
+     });
+}
+
+function show_workflow_rst_editor(fileId, dataId,  creator, job ) {
+     u = '/files/workflow/raw_rst/' + fileId + "?creator=" + encodeURIComponent(creator)
+     if (job) {
+        u += "&jobName=" + encodeURIComponent(job)
+     }
+
+     $.get(u, function(data) {
+           set_rst(fileId, dataId, dataId, data) ;
+           $('#raw-modal').modal('toggle')
+     });
+}
+
+function show_data_explorer(fileId, testId) {
+     $.get('/files/viewers/dataexplorer/' + fileId + '/' + testId, function(data) {
+           $('#data-modal-body').html(data)
+           $('#data-modal').modal('toggle')
+     });
+}
+
+
+
 function start_processing_update(fileId, procTag) {
   $(window).on('load', function() {
         update_processing(fileId, procTag);

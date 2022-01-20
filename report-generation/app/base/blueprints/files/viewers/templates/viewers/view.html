@@ -31,7 +31,9 @@
 
 
     <div id="{{injection_element |safe }}">
-        {{ file.get_introduction() | safe }}
+        {%with introRender = file.get_introduction() %}
+        {%include "viewers/introduction.html" %}
+        {%endwith%}
     </div>
 
 </div>

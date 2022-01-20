@@ -92,6 +92,9 @@ void erase_if(ContainerT& items, const PredicateT& predicate) {
 
 std::string toString(std::vector<std::size_t> vector);
 
+
+std::string random(std::size_t size);
+
 }  // namespace StringUtils
 
 std::vector<std::pair<std::string, std::string>> bfs(

@@ -48,14 +48,12 @@ blueprint.register_blueprint(
     blueprints.plugins.blueprint,
     url_prefix="/plugins")
 blueprint.register_blueprint(blueprints.files.blueprint, url_prefix="/files")
+
+blueprint.register_blueprint(blueprints.tempfiles.blueprint, url_prefix="/temp")
+
 blueprint.register_blueprint(
     blueprints.inputfiles.blueprint,
     url_prefix="/inputfiles")
-
-blueprint.register_blueprint(
-    blueprints.pipelines.blueprint,
-    url_prefix="/pipelines")
-
 
 blueprint.register_blueprint(
     blueprints.notifications.blueprint,
@@ -102,7 +100,6 @@ def available_ports() :
 context_map = {
     "json_file" : lambda x : glob.glob(x + "*"),
     "adios_file": lambda x: glob.glob(x + "*"),
-    "pipeline": lambda x: glob.glob(x + "*"),
     "json_http": lambda x : [str(a) for a in available_ports()],
     "json_socket": lambda x : [str(a) for a in available_ports()],
     "saved" : lambda x : list_mongo_collections()
@@ -133,10 +130,8 @@ def template_globals(d):
     blueprints.notifications.template_globals(d)
     blueprints.inputfiles.template_globals(d)
     blueprints.directives.template_globals(d)
-    blueprints.pipelines.template_globals(d)
 
 
 def faker():
     blueprints.files.faker()
-    blueprints.pipelines.faker()
     blueprints.inputfiles.faker()

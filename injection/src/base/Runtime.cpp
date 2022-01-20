@@ -27,6 +27,7 @@
 #include "base/stores/TestStore.h"
 #include "base/stores/UnitTestStore.h"
 #include "base/stores/WalkerStore.h"
+#include "base/stores/WorkflowStore.h"
 #include "c-interfaces/Logging.h"
 #include "interfaces/IAction.h"
 #include "interfaces/points/Injection.h"
@@ -121,6 +122,7 @@ nlohmann::json RunTime::getFullJsonSchema() {
   defs["action"] = ActionStore::instance().schema();
   defs["unittest"] = UnitTestStore::instance().schema();
   defs["transform"] = TransformStore::instance().schema();
+  defs["workflows"] = WorkflowStore::instance().schema();
   return main;
 }
 
@@ -128,7 +130,9 @@ nlohmann::json RunTime::getFullJson() {
   json main = json::object();
 
   for (auto& package : jsonCallbacks) {
+    
     json j = json::parse(package.second());
+    
     for (auto type : j.items()) {
       // Add all the options and stuff
       json& mj = JsonUtilities::getOrCreate(main, type.key(), JsonUtilities::CreateType::Object);
@@ -177,7 +181,13 @@ nlohmann::json RunTime::getFullJson() {
         }
       } else if (type.key().compare("Plugs") == 0) {
         for (auto& entry : type.value().items()) {
-          if (IteratorStore::instance().registeredIterator(package.first, entry.key())) {
+          if (PlugStore::instance().registeredPlug(package.first, entry.key())) {
+            mj[package.first + ":" + entry.key()] = entry.value();
+          }
+        }
+      } else if (type.key().compare("JobCreators") == 0 ) {
+        for (auto& entry : type.value().items()) {
+          if (WorkflowStore::instance().registeredJobCreator(package.first, entry.key())) {
             mj[package.first + ":" + entry.key()] = entry.value();
           }
         }
@@ -536,7 +546,15 @@ RunTime& RunTime::instance(bool reset) {
 RunTime& RunTime::instance() { return instance(false); }
 RunTime& RunTime::reset() { return instance(true); }
 
-RunTime::RunTime() { start = std::chrono::steady_clock::now(); }
+RunTime::RunTime() { 
+
+
+  // Set the workflow name and job ids. 
+  workflowName_ = DistUtils::getEnvironmentVariable("VNV_WORKFLOW_ID", StringUtils::random(5));
+  workflowJob_ = StringUtils::random(5);  
+  start = std::chrono::steady_clock::now();
+
+}
 
 void RunTime::registerLogLevel(std::string packageName, std::string name, std::string color) {
   logger.registerLogLevel(packageName, name, color);
@@ -556,7 +574,28 @@ void RunTimeOptions::fromJson(json& j) {
   }
 }
 
+
 void RunTime::getFullSchema(std::string filename) {}
+
+void RunTime::writeRunInfoFile() {
+  
+  // WorkflowName is fixed for for a particular "Job"
+  // Workflow Job is unique to this example.  
+  
+  std::string f = "vnv_" + workflowName() + "_" + workflowJob() + ".runInfo";
+
+  std::string filename = DistUtils::join({workflowDir_, f},077,false);
+  std::ofstream ofs(filename);
+  if (ofs.good()) {
+    json rinfo = json::object();
+    rinfo["workflow"] = workflowName();
+    rinfo["name"] = workflowJob();
+    rinfo["engine"] = OutputEngineStore::instance().getRunInfo();
+    rinfo["alias"] = DistUtils::getEnvironmentVariable("VNV_RUN_ALIAS",workflowJob());
+    ofs << rinfo.dump(3);
+    ofs.close();
+  }
+}
 
 void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
   initializedCount++;
@@ -572,6 +611,10 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
       for (auto it : info.logInfo.blackList) {
         logger.addToBlackList(it);
       }
+    }
+
+    if (!info.workflowDir.empty()) {
+      workflowDir_ = info.workflowDir;
     }
 
     // Pull out the template patch. This is the user provides specification file
@@ -598,6 +641,7 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
   ICommunicator_ptr world = CommunicationStore::instance().worldComm();
   logger.setRank(world->Rank());
 
+
   if (initializedCount == 1) {
     if (!OutputEngineStore::instance().isInitialized()) {
       VnV_Debug(VNVPACKAGENAME, "Configuring The Output Engine");
@@ -615,6 +659,9 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
       }
       VnV_Debug(VNVPACKAGENAME, "Output Engine Configuration Successful");
     }
+
+  
+
   }
 
   // Process the configs (wait until now because it allows loaded test libraries
@@ -624,6 +671,9 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
   if ( info.schemaDump ) {
     dumpSpecification(info.schemaQuit);
   }
+  
+  // Write the run info file -- This contains all the info needed to launch the reader. 
+  writeRunInfoFile();
 
   hotpatch = info.hotpatch;
 
@@ -656,9 +706,12 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
       throw INJECTION_BUG_REPORT("Unknown Injection point type %d", it.second.type);
     }
   }
+  jobManager = WorkflowStore::instance().buildJobManager(mainPackageName, workflowName(), info.workflowInfo.workflows);
 
   OutputEngineStore::instance().getEngineManager()->sendInfoNode(world);
   ActionStore::instance().initialize(info.actionInfo);
+
+
 }
 
 void RunTime::loadInjectionPoints(json _json) {
@@ -818,8 +871,12 @@ bool RunTime::configure(std::string packageName, RunInfo info, registrationCallB
 
   if (runTests) {
     CommunicationStore::instance().set(info.communicator);
+    auto commW = CommunicationStore::instance().worldComm();
 
     loadRunInfo(info, callback);
+ 
+    // Run any workflows listed in the application 
+    jobManager->run(commW,true);
 
     if (info.unitTestInfo.runUnitTests) {
       runUnitTests(VnV_Comm_World(), info.unitTestInfo);
@@ -829,7 +886,6 @@ bool RunTime::configure(std::string packageName, RunInfo info, registrationCallB
       }
     }
 
-    auto commW = CommunicationStore::instance().worldComm();
     ActionStore::instance().initialize(commW);
 
   } else if (info.error) {
@@ -864,6 +920,9 @@ bool RunTime::Finalize() {
     INJECTION_LOOP_END(VNV_STR(VNVPACKAGENAME), "initialization");
 
     ActionStore::instance().finalize(comm);
+
+    // Run any workflow jobs marked for execution after the workflow finishs., 
+    jobManager->run(comm,false);
 
     auto engine = OutputEngineStore::instance().getEngineManager();
     engine->finalize(comm, currentTime());

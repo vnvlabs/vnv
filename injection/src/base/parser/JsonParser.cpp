@@ -256,7 +256,7 @@ nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile, int* arg
   return main;
 }
 
- void addCommandLinePlugins(int* argc, char** argv, std::map<std::string, std::string>& libs) {
+ void addCommandLinePlugins(int* argc, char** argv, RunInfo& info) {
    int i = 0;
    while (i < *argc) {
      std::string s = argv[i++];
@@ -264,17 +264,41 @@ nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile, int* arg
        if ( i+1 < *argc ) {
          std::string pname = argv[i++];
          std::string file = argv[i++];
-         libs[pname] = file;
+         info.additionalPlugins[pname] = file;
        } else {
          throw INJECTION_EXCEPTION_("Invalid Command line plugin");
        }
-     }
+     } 
    } 
-   
 }
 
 
 }  // namespace
+
+WorkflowInfo JsonParser::getWorkflowInfo(const json& workflowInfo) {
+  WorkflowInfo info = { true, true, {} };
+
+  info.run = workflowInfo.value("run", true);
+  info.quit = workflowInfo.value("quit", true);
+  
+  for (auto &it : workflowInfo.items()) {
+    if (it.key().compare("run") == 0 ) {
+      info.run = it.value().get<bool>();
+    } else if ( it.key().compare("quit") == 0) {
+      info.quit = it.value().get<bool>();
+    } else {
+      std::vector<std::string>r;
+      StringUtils::StringSplit(it.key(),":",r);
+      if (r.size() == 2) {
+        info.workflows.push_back({r[0], r[1], it.value() });
+      } else {
+        throw VnVExceptionBase("Validation should catch this");
+      }
+    }
+  }
+  return info;
+
+}
 
 RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   json main = updateFileWithCommandLineOverrides(mainFile, argc, argv);
@@ -286,6 +310,12 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
     info.logInfo.filename = "stdout";
     info.logInfo.on = true;
   }
+
+  if (main.find("job") != main.end()) {
+
+    info.workflowDir = main["job"].value("dir", "/tmp");
+  }
+
 
   if (main.find("schema") != main.end()) {
     info.schemaDump = main["schema"].value("dump",false);
@@ -342,8 +372,15 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   if (main.find("additionalPlugins") != main.end()) addTestLibrary(main["additionalPlugins"], info.additionalPlugins);
   
   // Add any explicity stated command line plugins. 
-  addCommandLinePlugins(argc,argv, info.additionalPlugins);
+  addCommandLinePlugins(argc,argv, info);
 
+
+  if (main.find("workflows") != main.end()) {
+    info.workflowInfo = getWorkflowInfo(main["workflows"]);
+  } else {
+    info.workflowInfo.quit = false;
+    info.workflowInfo.run = false;
+  }
 
   // Add all the injection points;
   if (main.find("injectionPoints") != main.end()) {

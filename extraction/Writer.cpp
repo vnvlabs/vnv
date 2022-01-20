@@ -111,6 +111,10 @@ class RegistrationWriter {
     registerHelper(j, "Transforms", "TRANSFORM", packageName);
     registerHelper(j, "Reducers", "REDUCER", packageName);
     registerHelper(j, "Pipelines", "PIPELINE", packageName);
+    registerHelper(j, "ScriptGenerators", "SCRIPTGENERATOR", packageName);
+    registerHelper(j, "Validators", "VALIDATOR", packageName);
+    registerHelper(j, "JobCreators", "JOBCREATOR", packageName);
+    registerHelper(j, "Schedulers", "SCHEDULER", packageName);
     registerHelper(j, "Samplers", "SAMPLER", packageName);
     registerHelper(j, "Walkers", "WALKER", packageName);
     registerHelper(j, "DataTypes", "DATATYPE", packageName);
@@ -249,7 +253,8 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string cacheFil
            {"InjectionPoints", "SubPackages",  "LogLevels",     "Files",      "Tests",        "Iterators",
             "Plugs",           "Engines",      "EngineReaders", "Comms",      "Reducers",     "Samplers",
             "Walkers",         "DataTypes",    "Serializers",   "Transforms", "UnitTests",    "Actions",
-            "Options",         "Introduction", "Conclusion",    "Package",    "Communicator", "Pipelines"}) {
+            "Options",         "Introduction", "Conclusion",    "Package",    "Communicator", "Pipelines",
+            "Schedulers",      "Validators",   "JobCreators",   "ScriptGenerators" }) {
         json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);
         for (auto it : VnV::JsonUtilities::getOrCreate(it.value(), type).items()) {
           to[it.key()] = it.value();

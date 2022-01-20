@@ -1,0 +1,10 @@
+
+<div style="display:flex; align-items:center ">
+    <h1 style="flex:1"> {{ introRender.getTitle() }}</h1>
+    <a href="#!" onclick="show_ip_rst_editor({{introRender.getFile()}}, {{introRender.getId()}}, {{ introRender.getId() }} )" class="badge badge-success" style="margin-left:10px;">RST</a>
+</div>
+
+<div class="iscale">
+   {{ introRender.getHtml() | safe }}
+</div>
+

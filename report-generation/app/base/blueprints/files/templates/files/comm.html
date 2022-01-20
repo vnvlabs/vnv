@@ -15,10 +15,7 @@ var options = {
           enabled: true,
           formatter: function (val, opts) {
                 d = opts.w.config.series[opts.seriesIndex].data[opts.dataPointIndex]
-                console.log(d)
-
                 rr =  "Rank " + d.r ;
-                console.log(rr)
                 return rr
           },
           textAnchor: 'middle',

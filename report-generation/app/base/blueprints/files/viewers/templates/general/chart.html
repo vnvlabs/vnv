@@ -24,6 +24,7 @@
             var running = false;
             var depth = {}
             var lastD = -1
+            var lastDx = -1
             var overall = -1;
             var time = []
             var selectedNode = 0
@@ -36,10 +37,16 @@
 
             function getNewSeries(baseval, yrange) {
 
+
                 var url = '{{url_for('base.files.viewers.next', id_=file.id_, count=10 )}}'
                 $.get(  url , function(dd) {
                     overall = dd['endtime'];
                     var r = dd['data']
+
+                    if (ddata.length > 0 ) {
+                        lastDx = ddata[ddata.length-1].x
+                    }
+
                     r.forEach(function (item, index) {
 
                        if ("restart" in item) {
@@ -47,6 +54,7 @@
                           ddata = []
                           depth = {}
                           lastD = -1;
+                          lastDx = -1
                        }
 
                        del = []
@@ -56,7 +64,6 @@
                        // Did we step down
                        down = item.y < lastD
                        lastD = item.y
-
 
 
                        for (const [key, value] of Object.entries(depth)) {
@@ -108,9 +115,6 @@
                               depth[item.y] = data.length - 1
                        }
 
-                       console.log(ddata)
-                       console.log(data)
-
                        d =  Object.keys(depth).length;
                        ddata.push( { x: item.x , y: d } )
 
@@ -138,7 +142,7 @@
 
                         chart.updateSeries([{name: "Injection Point", data:data}])
                         chart1.updateSeries([{type:'area', name: "depth", data:ddata}, {type: 'line', "name" : "time" , data: time}])
-
+                        updateBrush(ddata[0].x, ddata[ddata.length -1].x, lastDx )
                     }
                     if ( ( r.length == 0 || !("done" in r[r.length -1]) ) ){
                          chartInterval = window.setTimeout(getDataFromServer,3000)
@@ -223,6 +227,9 @@
                 xaxis: {
                     type: "datetime",
                     "labels" : { "show" : false }
+                },
+                yaxis: {
+                    "labels" : { "show" : false }
                 }
             };
 
@@ -238,7 +245,7 @@
                                        },
                                        selection: {
                                             enabled: true,
-                                            xaxis: {min: 0, max: 4}
+                                            xaxis: {min: -100, max: 100}
                                        }
                                 },
 
@@ -261,13 +268,21 @@
                        yaxis: [{
                                   tickAmount: 2,
                                   min:0,
+                                  show: false,
                                   seriesName: "depth"
                                 },{
+                                    show: false,
                                     opposite: true,
                                     seriesName : "time",
                                     tickAmount: 2,
-                                    min : function(e) { return time[0].y; },
-                                    max : function(e) { return time[time.length-1].y; }
+                                    min : function(e) {
+                                      if (time.length == 0 ) return 0;
+                                      return time[0].y  ;
+                                    },
+                                    max : function(e) {
+                                        if (time.length == 0 ) return 1;
+                                        return time[time.length-1].y;
+                                    }
                                 }]
 
             };
@@ -275,8 +290,28 @@
 
             var chart = new ApexCharts(document.querySelector("#realtime-chart"), options);
             var chart1 = new ApexCharts(document.querySelector("#brush-chart"), optionsLine);
-            chart1.render();
             chart.render();
+            chart1.render();
+
+            function updateBrush(min, max, lastD ){
+                cmin = chart1.opts.chart.selection.xaxis.min
+                cmax = chart1.opts.chart.selection.xaxis.max
+
+                xopt = {}
+                if ( cmin < min ) {
+                    xopt["min"] = min
+                }
+                if ( cmax > max ) {
+                    xopt["max"] = max
+                }
+                if (lastD == cmax ) {
+                     xopt["max"] = max
+                }
+
+
+                opt = { chart : { selection : { xaxis : xopt } } }
+                chart1.updateOptions(opt)
+            }
 
             function getColorAsScalar(index, selected) {
                 if (data.length > index ) {

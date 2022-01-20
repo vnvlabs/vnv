@@ -117,6 +117,8 @@ class OutputEngineStore : public BaseStore {
    */
   void setEngineManager(ICommunicator_ptr world, std::string key, json& config);
 
+  json getRunInfo();
+
   /**
    * @brief printAvailableEngines
    *

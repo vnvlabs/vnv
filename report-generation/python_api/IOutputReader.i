@@ -34,6 +34,7 @@
 %shared_ptr(VnV::Nodes::ILogNode)
 %shared_ptr(VnV::Nodes::IInjectionPointNode)
 %shared_ptr(VnV::Nodes::ITestNode)
+%shared_ptr(VnV::Nodes::IWorkflowNode)
 %shared_ptr(VnV::Nodes::IInfoNode)
 %shared_ptr(VnV::Nodes::ICommInfoNode)
 %shared_ptr(VnV::Nodes::FetchRequest)
@@ -162,6 +163,7 @@ dataBaseCastMap = {
     DataBase.DataType_Log : "AsLogNode",
     DataBase.DataType_InjectionPoint : "AsInjectionPointNode",
     DataBase.DataType_Info : "AsInfoNode",
+    DataBase.DataType_Workflow : "AsWorkflowNode",
     DataBase.DataType_CommInfo : "AsCommInfoNode",
     DataBase.DataType_Test : "AsTestNode",
     DataBase.DataType_UnitTest : "AsUnitTestNode",
@@ -181,7 +183,8 @@ type2Str = {
     DataBase.DataType_Log : "Log",
     DataBase.DataType_InjectionPoint : "InjectionPoint",
     DataBase.DataType_Info : "Info",
-    DataBase.DataType_Info : "CommInfo",
+    DataBase.DataType_Workflow : "Workflow",
+    DataBase.DataType_CommInfo : "CommInfo",
     DataBase.DataType_Test : "Test",
     DataBase.DataType_Shape : "Shape",
     DataBase.DataType_UnitTest : "UnitTest",
@@ -273,8 +276,12 @@ def castDataBase(obj) :
            return str(self.getValue())
 
       def __getitem__(self,key):
+         
          if key == "metaData" or key == "MetaData":
             return json.loads(self.getMetaData().asJson())
+
+         if isinstance(key,str) and key[0] == "_":
+            return str(self.getMetaData().get(key[1:]))
 
          res = igetattr(self,"get"+key)
          if res is not None:
@@ -298,9 +305,6 @@ def castDataBase(obj) :
 
       def __iter__(self):
         return classIterator(self)
-
-
-
 
       def values(self):
          res = []
@@ -334,9 +338,8 @@ PY_GETATTR(VnV::Nodes::ILogNode)
 PY_GETATTR(VnV::Nodes::IInjectionPointNode)
 PY_GETATTR(VnV::Nodes::ITestNode)
 PY_GETATTR(VnV::Nodes::IInfoNode)
+PY_GETATTR(VnV::Nodes::IWorkflowNode)
 PY_GETATTR(VnV::Nodes::ICommInfoNode)
-
-
 
 %define PY_GETATTRLIST(Typename)
 %extend Typename {
@@ -349,7 +352,6 @@ PY_GETATTR(VnV::Nodes::ICommInfoNode)
         if isinstance(key,str) and key[0] == "_":
             return str(self.getMetaData().get(key[1:]))
 
-         
         if isinstance(key,int) and abs(key) < self.size() :
           if (key < 0 ) :
              key = self.size() + key
@@ -451,6 +453,54 @@ PY_GETATTRLIST(VnV::Nodes::IArrayNode)
 }
 %enddef
 PY_GETATTRMAP(VnV::Nodes::IMapNode)
+
+
+%define PY_GETATTRWORK(Typename)
+%extend Typename {
+    %pythoncode %{
+
+        def __getitem__(self,key):
+
+            if isinstance(key,str) and self.hasReport(key):
+                return castDataBase(self.getReport(key))
+            
+            print("Not a key {} {} ".format(key, self.__class__))
+            raise KeyError("not a valid key")
+
+        def __len__(self):
+            return self.size();
+
+        def __iter__(self):
+            return mapclassIterator(self)
+
+        def __getType__(self):
+            return "object"
+
+        def values(self):
+            res = []
+            for name in self.keys():
+                res.append(castDataBase(self.getReport(name)))
+            return res
+
+        def keys(self):
+             res = []
+             for name in self.listReports():
+                res.append(name)
+             return res
+
+        def __contains__(self,item):
+             return self.hasReport(item)
+
+        def __str__(self):
+            return str({ a : str(self.__getitem__(a)) for a in self.keys() })
+
+        def __json__(self):
+         return { a : self.__getitem__(a).__json__() for a in self.keys()()}
+          
+   %}
+}
+%enddef
+PY_GETATTRWORK(VnV::Nodes::IWorkflowNode)
 
 
 

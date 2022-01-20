@@ -84,7 +84,7 @@ SDTYPES
 
 
 #define X(x)                                                        \
-  I##x##Node::I##x##Node() : DataBase(DataBase::DataType::x) {}     \
+  I##x##Node::I##x##Node() : DataBase(DataBase::DataType::x) {std::cout << "Creating " << getTypeStr() << std::endl; }     \
   I##x##Node::~I##x##Node() {}                                      \
   std::shared_ptr<I##x##Node> DataBase::getAs##x##Node(std::shared_ptr<DataBase> ptr) {                          \
     if (check(DataType::x)) return std::dynamic_pointer_cast<I##x##Node>(ptr); \
@@ -161,6 +161,33 @@ void IUnitTestNode::open(bool value) {
   getData()->open(value);
   getLogs()->open(value);
 }
+
+
+ json IWorkflowNode::getDataChildren_(int fileId, int level) {
+    
+    json j = DataBase::getDataChildren_(fileId, level);
+    j.push_back("Package:" + getPackage());
+    j.push_back("Info:" + getInfo().dump());
+    j.push_back("State:" + getState());
+    
+    json jj = json::object();
+    jj["text"] = "Report";
+    jj["children"] = json::array();
+    
+    for (auto it : listReports()) {
+      auto r = getReport(it);
+      if (r!=nullptr) {
+        int i = getReportFileId(it);
+        auto a = r->getAsDataChild(i,level-1);
+        a["text"] = it;
+        jj["children"].push_back(a);
+      }
+    }
+
+    j.push_back(jj);
+    return j;
+    
+   }
 
 }  // namespace Nodes
 }  // namespace VnV

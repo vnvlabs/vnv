@@ -185,6 +185,13 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
     })";
   }
 
+  json getRunInfo() override {
+     json j = json::object();
+     j["reader"] = "adios_file";
+     j["filename"] = filestub;
+     return j;
+  }
+
   virtual void initialize(json& config) override {
     this->filestub = config["filename"].get<std::string>();
     bool debug = false;
@@ -381,17 +388,7 @@ class MultiAdiosStreamIterator : public MultiStreamIterator<AdiosFileIterator, j
 
  public:
   MultiAdiosStreamIterator(std::string fstub) : MultiStreamIterator<AdiosFileIterator, json>(), filestub(fstub) {
-    bool changed = false;
-
-    while (VnV::DistUtils::fileExists(filestub)) {
-      filestub = fstub + VnV::TimeUtils::timestamp();
-      changed = true;
-    }
-
-    if (changed) {
-      VnV_Warn(VNVPACKAGENAME, "Output will be written to %s because %s already exists", filestub.c_str(),
-               fstub.c_str());
-    }
+    
   }
 
   virtual void respond(long id, long jid, const json& response) override {

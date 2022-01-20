@@ -7,6 +7,8 @@ import docutils
 from docutils.nodes import SkipNode
 from sphinx.directives import optional_int
 from sphinx.util.docutils import SphinxDirective
+
+import Directory
 from app.base.blueprints import files as dddd
 
 from app.rendering.vnvdatavis.directives.jmes import get_target_node, jmes_jinja_query
@@ -69,10 +71,8 @@ class JsonChartDirective(SphinxDirective):
         '''
 
     def get_update_dir(self):
-        dir = os.path.join(os.getcwd(), "updates")
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-        return dir
+       return Directory.UPDATE_DIR
+
 
     def updateRegistration(self):
         r = self.register()

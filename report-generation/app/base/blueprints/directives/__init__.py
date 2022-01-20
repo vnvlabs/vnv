@@ -10,6 +10,7 @@ import jinja2
 from flask import Blueprint, render_template, make_response, request, jsonify, render_template_string
 from jinja2 import FileSystemLoader
 
+import Directory
 from app.models.VnVFile import VnVFile
 from app.rendering.vnvdatavis.directives.dataclass import DataClass
 from app.rendering.vnvdatavis.directives.plotly import plotly_post_process
@@ -22,14 +23,14 @@ blueprint = Blueprint(
     template_folder='templates'
 )
 
-UPDATE_DIR = os.path.join(os.getcwd(), "updates")
+
 
 @blueprint.route('/updates/<updateId>/<int:fileid>/<int:dataid>', methods=["GET"])
 def chartupdates(updateId, fileid, dataid):
     try:
         with VnVFile.find(fileid) as file:
             data = file.getById(dataid).cast()
-            with open(os.path.join(UPDATE_DIR, updateId + ".html"), 'r') as w:
+            with open(os.path.join(Directory.UPDATE_DIR, updateId + ".html"), 'r') as w:
                 if "plotly" in request.args:
                     config = plotly_post_process(w.read(), data=DataClass(data, dataid, fileid))
                 else:

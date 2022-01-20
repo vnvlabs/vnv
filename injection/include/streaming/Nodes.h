@@ -103,7 +103,7 @@ class MetaDataWrapper {
   X(Log)            \
   X(InjectionPoint) \
   X(Info)           \
-  X(CommInfo) X(Test) X(UnitTest) X(Data) X(UnitTestResult) X(UnitTestResults)
+  X(CommInfo) X(Test) X(UnitTest) X(Workflow) X(Data) X(UnitTestResult) X(UnitTestResults)
 #define RTYPES X(Root)
 
 #define X(x, y) class I##x##Node;
@@ -368,6 +368,7 @@ class IDataNode : public DataBase {
   virtual void open(bool value) override;
 };
 
+
 class IInfoNode : public DataBase {
  protected:
   virtual std::shared_ptr<VnV::VnVProv> getProvInternal() = 0;
@@ -378,13 +379,17 @@ class IInfoNode : public DataBase {
   virtual std::string getTitle() = 0;
   virtual long getStartTime() = 0;
   virtual long getEndTime() = 0;
-
+  virtual std::string getWorkflow() = 0;
+  virtual std::string getJobName() = 0;
 
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
     j.push_back("Title:" + getTitle());
     j.push_back("Start:" + std::to_string(getStartTime()));
     j.push_back("End:" + std::to_string(getEndTime()));
+    j.push_back("Workflow:" + getWorkflow());
+    j.push_back("JobName:" + getJobName());
+    
     j.push_back("Durr:" + std::to_string(getEndTime()-getStartTime()));
     j.push_back("Prov: TODO");
     return j;
@@ -541,6 +546,30 @@ public:
   }
 
   virtual void open(bool value) override;
+};
+
+class IWorkflowNode : public DataBase {
+   std::string jobName;
+
+
+public:
+   IWorkflowNode();
+   virtual std::string getPackage() = 0;
+   virtual json getInfo() = 0;
+   virtual std::string getState() = 0;
+   virtual ~IWorkflowNode();
+
+   virtual std::string getInfoStr() { return getInfo().dump(); }
+
+   virtual json getDataChildren_(int fileId, int level) override;
+
+   virtual std::shared_ptr<IRootNode> getReport(std::string reportName) = 0;
+   virtual bool hasReport(std::string reportName) = 0;
+   virtual void setReport(std::string reportName, int fileId, std::shared_ptr<IRootNode> rootNode) = 0;
+   virtual std::vector<std::string> listReports() = 0; 
+   virtual int getReportFileId(std::string reportName) = 0 ;
+
+
 };
 
 class IInjectionPointNode : public DataBase {
@@ -729,6 +758,7 @@ class WalkerWrapper {
 };
 
 
+
 class IRootNode : public DataBase {
  std::weak_ptr<IRootNode> rootNode_; 
  long idCounter = 0;
@@ -775,7 +805,9 @@ class IRootNode : public DataBase {
   virtual std::shared_ptr<IInfoNode> getInfoNode() = 0;
   virtual std::shared_ptr<ICommInfoNode> getCommInfoNode() = 0;
   virtual std::shared_ptr<IMapNode> getPackages() = 0;
-
+  virtual std::shared_ptr<IWorkflowNode> getWorkflowNode() = 0;
+  
+  
   virtual long getEndTime() {
     auto a = getInfoNode();
     if (a != nullptr) {
@@ -797,6 +829,10 @@ class IRootNode : public DataBase {
     j.push_back(getUnitTests()->getAsDataChild(fileId, level - 1));
     j.push_back(getInfoNode()->getAsDataChild(fileId, level - 1));
     j.push_back(getChildren()->getAsDataChild(fileId, level - 1));
+    
+    std::cout << "SDFSDFSDF" << std::endl;
+    j.push_back(getWorkflowNode()->getAsDataChild(fileId, level - 1));
+    std::cout << "11SDFSDFSDF" << std::endl;
 
     json jj = json::object();
     jj["text"] = "Injection Points and Log Messages";

@@ -165,6 +165,18 @@ struct ActionInfo {
   std::vector<ActionConfig> actions; /**< the list of action configuration to execute */
 };
 
+struct WorkflowConfig {
+  std::string package;
+  std::string name;
+  json config;
+};
+
+struct WorkflowInfo {
+  bool run;
+  bool quit;
+  std::vector<WorkflowConfig> workflows;
+};
+
 /**
  * @brief Runtime configuration options
  *
@@ -174,7 +186,10 @@ struct RunInfo {
   bool runTests; /**< Should any tests be run */
   bool schemaDump = false;
   bool schemaQuit = false;
- 
+  std::string workflowName = "";
+  std::string workflowJob = "";
+  std::string workflowDir = "";
+
   std::string communicator = "mpi";                          /**< what communicator should be used*/
   std::map<std::string, std::string> additionalPlugins;      /**< List of file paths to included plugin libraries */
   std::map<std::string, InjectionPointInfo> injectionPoints; /**< all injection points with tests */
@@ -187,6 +202,8 @@ struct RunInfo {
   EngineInfo engineInfo;     /**< Information about the IO engine */
 
   ActionInfo actionInfo; /**< action configuration */
+
+  WorkflowInfo workflowInfo;
 
   /**
    * @brief User provided template overrides
@@ -267,6 +284,8 @@ class JsonParser {
    */
 
   ActionInfo getActionInfo(const json& actionJson);
+
+  WorkflowInfo getWorkflowInfo(const json& workflowInfo);
 
   /**
    * @brief Get the Sampler Info object

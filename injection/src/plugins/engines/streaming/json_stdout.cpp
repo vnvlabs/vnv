@@ -21,6 +21,11 @@ class JsonTerminalStream : public StreamWriter<json> {
 
   virtual void newComm(long id, const json& obj, ICommunicator_ptr comm) override { write(id, obj, -1); };
 
+ json getRunInfo() override {
+    return json::object();
+  }
+
+
   virtual void write(long id, const json& obj, long jid) override {
     std::cout << "\n\n[STREAM " << id << "]\n" << obj.dump(3) << "\n\n";
     std::cout.flush();

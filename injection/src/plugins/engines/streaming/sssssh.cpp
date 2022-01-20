@@ -57,6 +57,10 @@ class NullManager : public OutputEngineManager {
 
   void unitTestFinishedCallBack(IUnitTest* tester) {}
 
+  json getRunInfo() override {
+    return json::object();
+  }
+
   // IInternalOutputEngine interface
   std::string print() override { return ""; }
 };

@@ -683,8 +683,18 @@ class IInternalOutputEngine : public IOutputEngine {
                                      ActionStage::type stage){};
   virtual void actionEndedCallBack(ActionStage::type stage){};
 
+  virtual void workflowStartedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json&info){
+    throw VnVExceptionBase("Workflows not supported by this engine;");
+  };
+  virtual void workflowEndedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json&info){
+    throw VnVExceptionBase("Workflows not supported by this engine;");
+  };
+  
+  virtual void workflowUpdatedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json&info){
+    throw VnVExceptionBase("Workflows not supported by this engine;");
+  };
+  
   virtual void testStartedCallBack(std::string packageName, std::string testName, bool internal, long uuid) = 0;
-
   virtual void testFinishedCallBack(bool result_) = 0;
 
   virtual void unitTestStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string unitTestName) = 0;
@@ -698,6 +708,8 @@ class IInternalOutputEngine : public IOutputEngine {
                     std::string filename, std::string reader) = 0;
 
   virtual std::string print() = 0;
+
+  virtual json getRunInfo() = 0;
 
   virtual void finalize(ICommunicator_ptr worldComm, long currentTime) = 0;
 
@@ -716,6 +728,8 @@ class OutputEngineManager : public IInternalOutputEngine {
   void set(ICommunicator_ptr world, json& configuration, std::string key);
 
   IOutputEngine* getOutputEngine();
+
+
 
   virtual ~OutputEngineManager() = default;
 };

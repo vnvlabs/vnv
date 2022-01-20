@@ -147,6 +147,8 @@ class InMemory {
     long start = 0;
     long end = 0;
     std::string title;
+    std::string workflow;
+    std::string jobName;
     std::shared_ptr<VnVProv> prov = nullptr;
 
     virtual std::shared_ptr<VnVProv> getProvInternal() { return prov; };
@@ -156,7 +158,11 @@ class InMemory {
     virtual std::string getTitle() override { return title; }
     virtual long getStartTime() override { return start; }
     virtual long getEndTime() override { return end; }
-
+    virtual std::string getWorkflow() override { return workflow; }
+    virtual std::string getJobName() override { return jobName; }
+    
+    GETTERSETTER(workflow,std::string)
+    GETTERSETTER(jobName,std::string)
     GETTERSETTER(start, long)
     GETTERSETTER(end,long)
     GETTERSETTER(title, std::string)
@@ -186,6 +192,60 @@ class InMemory {
     GETTERSETTER(version, std::string);
 
     virtual ~CommInfoNode(){};
+  };
+
+  class WorkflowNode : public DataBaseImpl<IWorkflowNode> {
+    std::string package = "";
+    std::string state = "";
+    json info;
+    std::map<std::string, std::shared_ptr<IRootNode>> rootNodes;
+    std::map<std::string, int> fileIds;
+  
+  public:
+  
+    WorkflowNode() : DataBaseImpl<IWorkflowNode>() {}
+    virtual std::string getPackage() override { return package; }
+    virtual std::string getState() override { return state; }
+    virtual json getInfo() override { return info; }
+    
+    GETTERSETTER(package, std::string);
+    GETTERSETTER(state, std::string);
+    GETTERSETTER(info, json);
+
+    virtual std::shared_ptr<IRootNode> getReport(std::string reportName) override {
+     
+     auto it = rootNodes.find(reportName);
+     if (it != rootNodes.end()) {
+       return it->second;
+     }
+     return nullptr;
+   }
+ 
+   virtual bool hasReport(std::string reportName) override {
+     return rootNodes.find( reportName) != rootNodes.end();
+   }
+
+   virtual void setReport(std::string reportName, int fileId, std::shared_ptr<IRootNode> rootNode) override {
+     fileIds[ reportName ] = fileId ;
+     rootNodes[ reportName ] = rootNode; 
+   }
+
+   virtual std::vector<std::string> listReports() override {
+     std::vector<std::string> ret; 
+     for (auto &it : rootNodes) {
+       ret.push_back(it.first);
+     }
+     return ret;
+   }
+
+   virtual int getReportFileId(std::string reportName) {
+      auto it = fileIds.find(reportName);
+     if (it != fileIds.end()) {
+       return it->second;
+     }
+     return -100;
+   }
+
   };
 
   class TestNode : public DataBaseImpl<ITestNode> {
@@ -433,6 +493,7 @@ class InMemory {
     std::shared_ptr<MapNode> packages;
     std::shared_ptr<InfoNode> infoNode;
     std::shared_ptr<CommInfoNode> commInfo;
+    std::shared_ptr<WorkflowNode> workflowNode;
 
     VisitorLock* visitorLocking = nullptr;
 
@@ -443,6 +504,7 @@ class InMemory {
     GETTERSETTER(lowerId, long);
     GETTERSETTER(upperId, long);
     GETTERSETTER(infoNode, std::shared_ptr<InfoNode>)
+    GETTERSETTER(workflowNode, std::shared_ptr<WorkflowNode>)
 
     RootNode() : DataBaseImpl<IRootNode>(), spec(new VnVSpec()) {}
 
@@ -456,6 +518,7 @@ class InMemory {
     virtual std::shared_ptr<IArrayNode> getChildren() override { INITMEMBER(children, ArrayNode) return children; }
     virtual std::shared_ptr<IArrayNode> getUnitTests() override { INITMEMBER(unitTests, ArrayNode) return unitTests; }
     virtual std::shared_ptr<IInfoNode> getInfoNode() override { INITMEMBER(infoNode, InfoNode) return infoNode; }
+    virtual std::shared_ptr<IWorkflowNode> getWorkflowNode() override { INITMEMBER(workflowNode, WorkflowNode) return workflowNode; }
     virtual std::shared_ptr<ICommInfoNode> getCommInfoNode() override {
       INITMEMBER(commInfo, CommInfoNode) return commInfo;
     }

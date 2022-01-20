@@ -2,9 +2,8 @@
 
 #include "base/Utilities.h"
 
-#include <ctime>
-
 #include <algorithm>
+#include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -13,8 +12,10 @@
 #include <type_traits>
 //#include "base/InjectionPoint.h"
 #include <sys/stat.h>
+
 #include <list>
 #include <queue>
+#include <random>
 #include <set>
 
 #include "base/exceptions.h"
@@ -39,8 +40,7 @@ std::string VnV::ProvenanceUtils::cmdLineToString(int argc, char** argv) {
   return commandline.str();
 }
 
-std::string VnV::StringUtils::metaDataToJsonString(
-    const std::map<std::string, std::string>& metadata) {
+std::string VnV::StringUtils::metaDataToJsonString(const std::map<std::string, std::string>& metadata) {
   std::ostringstream oss;
   oss << "{";
 
@@ -56,8 +56,7 @@ std::string VnV::StringUtils::metaDataToJsonString(
   return oss.str();
 }
 
-std::string VnV::StringUtils::escapeQuotes(std::string str,
-                                           bool escapeFullString) {
+std::string VnV::StringUtils::escapeQuotes(std::string str, bool escapeFullString) {
   std::ostringstream oss;
   if (escapeFullString) oss << "\"";
   for (std::size_t i = 0; i < str.size(); i++) {
@@ -105,16 +104,12 @@ std::string VnV::StringUtils::escapeQuotes(std::string str,
 
 // trim from start (in place)
 void VnV::StringUtils::ltrim(std::string& s) {
-  s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-                                  [](int ch) { return !std::isspace(ch); }));
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return !std::isspace(ch); }));
 }
 
 // trim from end (in place)
 void VnV::StringUtils::rtrim(std::string& s) {
-  s.erase(std::find_if(s.rbegin(), s.rend(),
-                       [](int ch) { return !std::isspace(ch); })
-              .base(),
-          s.end());
+  s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); }).base(), s.end());
 }
 
 // trim from both ends (in place)
@@ -163,6 +158,43 @@ std::string VnV::StringUtils::get_type(std::string s) {
   }
 }
 
+std::string VnV::StringUtils::random(std::size_t maxlength) {
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+  static std::uniform_int_distribution<> dis(0, 15);
+  static std::uniform_int_distribution<> dis2(8, 11);
+
+  std::stringstream ss;
+  int i;
+  ss << std::hex;
+  for (i = 0; i < 8; i++) {
+    ss << dis(gen);
+  }
+  ss << "-";
+  for (i = 0; i < 4; i++) {
+    ss << dis(gen);
+  }
+  ss << "-4";
+  for (i = 0; i < 3; i++) {
+    ss << dis(gen);
+  }
+  ss << "-";
+  ss << dis2(gen);
+  for (i = 0; i < 3; i++) {
+    ss << dis(gen);
+  }
+  ss << "-";
+  for (i = 0; i < 12; i++) {
+    ss << dis(gen);
+  };
+
+  std::string s = ss.str();
+  if (s.size() < maxlength) {
+    return s;
+  }
+  return s.substr(0, maxlength);
+}
+
 std::string VnV::StringUtils::toString(std::vector<std::size_t> vector) {
   std::ostringstream oss;
   oss << "[";
@@ -174,8 +206,8 @@ std::string VnV::StringUtils::toString(std::vector<std::size_t> vector) {
   return oss.str();
 }
 
-int VnV::StringUtils::StringSplit(const std::string& s, const char* delim,
-                                  std::vector<std::string>& result, bool addEmpty) {
+int VnV::StringUtils::StringSplit(const std::string& s, const char* delim, std::vector<std::string>& result,
+                                  bool addEmpty) {
   std::stringstream ss;
   ss.str(s);
   std::string item;
@@ -186,8 +218,7 @@ int VnV::StringUtils::StringSplit(const std::string& s, const char* delim,
   return 1;
 }
 
-nlohmann::json& VnV::JsonUtilities::getOrCreate(json& parent, std::string key,
-                                                CreateType type) {
+nlohmann::json& VnV::JsonUtilities::getOrCreate(json& parent, std::string key, CreateType type) {
   if (!parent.contains(key)) {
     switch (type) {
     case CreateType::Object:
@@ -223,8 +254,7 @@ bool VnV::JsonUtilities::validate(const nlohmann::json& obj, const nlohmann::jso
 }
 
 std::string VnV::getFileExtension(const std::string& fileName) {
-  if (fileName.find_last_of(".") != std::string::npos)
-    return fileName.substr(fileName.find_last_of(".") + 1);
+  if (fileName.find_last_of(".") != std::string::npos) return fileName.substr(fileName.find_last_of(".") + 1);
   return "";
 }
 
@@ -240,8 +270,7 @@ VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp, int count) {
     counter++;
     // add it to the list. In C, we do not have typeId, so we cannot get the
     // rtti info. Just set it to void*.
-    parameterSet.insert(
-        std::make_pair(variableName, std::make_pair("void*", variablePtr)));
+    parameterSet.insert(std::make_pair(variableName, std::make_pair("void*", variablePtr)));
   }
   return parameterSet;
 }
@@ -250,9 +279,8 @@ VnV::NTV VnV::VariadicUtils::UnwrapVariadicArgs(va_list argp) {
   return VnV::VariadicUtils::UnwrapVariadicArgs(argp, -1);
 }
 
-std::vector<std::pair<std::string, std::string>> VnV::bfs(
-    std::map<std::string, std::map<std::string, std::string>>& m,
-    std::string start, std::string end) {
+std::vector<std::pair<std::string, std::string>> VnV::bfs(std::map<std::string, std::map<std::string, std::string>>& m,
+                                                          std::string start, std::string end) {
   std::queue<std::string> queue({start});
   std::set<std::string> visited;
   std::map<std::string, std::string> parentMap;
@@ -306,8 +334,7 @@ std::vector<std::pair<std::string, std::string>> VnV::bfs(
   throw INJECTION_EXCEPTION("No Path exists from %s to %s", start.c_str(), end.c_str());
 }
 
-std::map<std::string, std::string> VnV::StringUtils::variadicProcess(
-    const char* mess) {
+std::map<std::string, std::string> VnV::StringUtils::variadicProcess(const char* mess) {
   std::map<std::string, std::string> res;
   std::vector<std::string> pmess = process_variadic(mess);
   // We need to support class types with commas in the name. To support that,
@@ -329,8 +356,7 @@ std::map<std::string, std::string> VnV::StringUtils::variadicProcess(
   return res;
 }
 
-std::pair<std::string, std::string> VnV::StringUtils::splitCppArgString(
-    std::string str_) {
+std::pair<std::string, std::string> VnV::StringUtils::splitCppArgString(std::string str_) {
   std::string str = VnV::StringUtils::trim_copy(str_);
   std::size_t last = str.find_last_of("&*> ");
   return std::make_pair(str.substr(0, last + 1), str.substr(last + 1));
@@ -415,13 +441,10 @@ std::string VnV::TimeUtils::timeToISOString(time_t* t) {
 }
 
 std::string VnV::TimeUtils::timestamp() {
-    
-    time_t    caltime;
-    time(&caltime);
-    return timeToISOString(&caltime);    
+  time_t caltime;
+  time(&caltime);
+  return timeToISOString(&caltime);
 }
-
-
 
 std::string VnV::TimeUtils::timeForFile(std::string filename) {
   struct stat result;
@@ -452,23 +475,23 @@ json VnV::JsonUtilities::load(std::string configFile) {
   return mainJson;
 }
 
-namespace VnV{ namespace Log {
+namespace VnV {
+namespace Log {
 int level = 0;
 std::ostream& o = std::cout;
 std::string tab() {
-      std::string s = "----";
-      for (int i = 0; i < level; i++) {
-         s += "----";
-      }
-      return s + ">";
+  std::string s = "----";
+  for (int i = 0; i < level; i++) {
+    s += "----";
+  }
+  return s + ">";
 }
 
-
-void up() { ++level;};
+void up() { ++level; };
 void down() { --level; }
 std::ostream& log() {
-    o << tab();
-    return o;
+  o << tab();
+  return o;
 }
-}
-}
+}  // namespace Log
+}  // namespace VnV

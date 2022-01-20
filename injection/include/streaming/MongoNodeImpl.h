@@ -16,7 +16,12 @@
 
 #  define Mongo_getter_setter_json(name, def)                      \
     json& get##name() { return getDocument()->getOr(#name, def); } \
-    void set##name(const json& value) { getDocument()->update(#name, value); if (autop) { persist(); } }
+    void set##name(const json& value) {                            \
+      getDocument()->update(#name, value);                         \
+      if (autop) {                                                 \
+        persist();                                                 \
+      }                                                            \
+    }
 
 #  define Mongo_docuemnt_ref(NAME, TYPE)                                                       \
     Mongo_getter_setter(NAME##Id, long, -1) std::shared_ptr<TYPE##Node> getInternal_##NAME() { \
@@ -120,7 +125,6 @@ class Database {
   bson_error_t error;
 
  protected:
-
  public:
   Database(std::string name, std::shared_ptr<Client> c) {
     this->client = c;
@@ -203,7 +207,7 @@ class Mongo_Does_Not_Exist : public std::exception {};
 class Mongo_Insert_Failed : public std::exception {};
 
 class Collection {
-  std::string name;
+  std::string collectionName;
   mongoc_collection_t* collection;
   std::shared_ptr<Database> db;
   bson_error_t error;
@@ -236,23 +240,24 @@ class Collection {
   }
 
   static auto bwrap(json& j) { return std::make_shared<bson_wrap>(j); }
-  
+
   std::weak_ptr<Collection> selfAsShared;
 
   Collection(std::string collection, std::shared_ptr<Database> db) {
     this->db = db;
     this->collection = db->getCollection(collection);
+    this->collectionName = collection;
   }
 
-
  public:
-
   static std::shared_ptr<Collection> Initialize(std::string collection, std::shared_ptr<Database> db) {
     std::shared_ptr<Collection> p;
-    p.reset(new Collection(collection,db));
+    p.reset(new Collection(collection, db));
     p->selfAsShared = p;
     return p;
   }
+
+  std::string getCollectionName() { return collectionName; }
 
   void update_one(json& filter, json& update) { update_one(bwrap(filter), bwrap(update)); }
   std::shared_ptr<Cursor> find(json& selector, json& opts) {
@@ -315,7 +320,6 @@ class Collection {
     return sp;
   }
 
-
   bool persistAll();
   bool persist(long id, json update) {
     json filter = json::object();
@@ -333,12 +337,10 @@ class Collection {
     return true;
   }
 
-  virtual ~Collection() { 
-      pullDocument(-1,"",true); //Clears the cache 
-      mongoc_collection_destroy(collection);
+  virtual ~Collection() {
+    pullDocument(-1, "", true);  // Clears the cache
+    mongoc_collection_destroy(collection);
   }
-
-
 };
 
 typedef std::shared_ptr<Collection> Collection_ptr;
@@ -395,9 +397,7 @@ class MongoPersistance {
     std::shared_ptr<Document> doc = nullptr;
 
    protected:
-
-    bool autop = false; 
- 
+    bool autop = false;
 
     Collection_ptr getCollection() {
       return dynamic_cast<MongoPersistance::RootNode*>(T::rootNode())->getMainCollection();
@@ -421,9 +421,7 @@ class MongoPersistance {
       getDocument()->update("metadata", meta.asJson());
     }
 
-    void persist() {
-      getDocument()->persist();
-    }
+    void persist() { getDocument()->persist(); }
 
     MetaDataWrapper w;
     const MetaDataWrapper& getmetadata() {
@@ -443,9 +441,10 @@ class MongoPersistance {
     std::map<long, std::shared_ptr<DataBase>> nodes;
 
    public:
-    ArrayNode() : DataBaseImpl<IArrayNode>() {}
+    ArrayNode()
+        : DataBaseImpl<IArrayNode>(){}
 
-    ;
+          ;
     Mongo_getter_setter_json(vec, json::array());
 
     virtual std::shared_ptr<DataBase> get(std::size_t idx) override {
@@ -464,7 +463,6 @@ class MongoPersistance {
       return nullptr;
     }
 
-
     virtual std::size_t size() override { return getvec().size(); };
 
     virtual void add(std::shared_ptr<DataBase> data) override {
@@ -477,9 +475,10 @@ class MongoPersistance {
     std::map<std::string, std::shared_ptr<IArrayNode>> nodes;
 
    public:
-    MapNode() : DataBaseImpl<IMapNode>() {}
+    MapNode()
+        : DataBaseImpl<IMapNode>(){}
 
-    ;
+          ;
     Mongo_getter_setter_json(map, json::object());
 
     virtual void insert(std::string key, std::shared_ptr<DataBase> val) {
@@ -536,41 +535,41 @@ class MongoPersistance {
     virtual ~MapNode(){};
   };
 
-#  define X(x, y)                                                                                  \
-    class x##Node : public DataBaseImpl<I##x##Node> {                                              \
-      std::map<std::size_t, y> nodes;                                                              \
-      Mongo_getter_setter_json(shape, json::array()) Mongo_getter_setter_json(vals, json::array()) \
-                                                                                                   \
-          public : x##Node()                                                                       \
-          : DataBaseImpl<I##x##Node>() {}                                                          \
-      std::vector<std::size_t> ss;                                                                 \
-      const std::vector<std::size_t>& getShape() override {                                        \
-        ss = convertArrayToVector<std::size_t>(getshape());                                        \
-        return ss;                                                                                 \
-      }                                                                                            \
-                                                                                                   \
-      y getValueByShape(const std::vector<std::size_t>& rshape) override {                         \
-        return getValueByIndex(computeShapeIndex<std::size_t>(rshape, getshape()));                \
-      }                                                                                            \
-      void add(const y& v);                                                                        \
-      y getValueByIndex(const size_t ind) override;                                                \
-                                                                                                   \
-      y getScalarValue() override {                                                                \
-        if (getshape().size() == 0)                                                                \
-          return getValueByIndex(0);                                                               \
-        else                                                                                       \
-          throw INJECTION_EXCEPTION("%s: No shape provided to non scalar shape tensor object", #x);   \
-      }                                                                                            \
-                                                                                                   \
-      int getNumElements() override { return calculateNumElements<std::size_t>(getshape()); }      \
-      virtual ~x##Node() {}                                                                        \
-      virtual void setShape(const std::vector<std::size_t>& s) { setshape(s); }                    \
-      virtual void setValue(const std::vector<y>& s) {                                             \
-        setvals(json::array());                                                                    \
-        for (auto ot : s) {                                                                        \
-          add(ot);                                                                                 \
-        }                                                                                          \
-      }                                                                                            \
+#  define X(x, y)                                                                                   \
+    class x##Node : public DataBaseImpl<I##x##Node> {                                               \
+      std::map<std::size_t, y> nodes;                                                               \
+      Mongo_getter_setter_json(shape, json::array()) Mongo_getter_setter_json(vals, json::array())  \
+                                                                                                    \
+          public : x##Node()                                                                        \
+          : DataBaseImpl<I##x##Node>() {}                                                           \
+      std::vector<std::size_t> ss;                                                                  \
+      const std::vector<std::size_t>& getShape() override {                                         \
+        ss = convertArrayToVector<std::size_t>(getshape());                                         \
+        return ss;                                                                                  \
+      }                                                                                             \
+                                                                                                    \
+      y getValueByShape(const std::vector<std::size_t>& rshape) override {                          \
+        return getValueByIndex(computeShapeIndex<std::size_t>(rshape, getshape()));                 \
+      }                                                                                             \
+      void add(const y& v);                                                                         \
+      y getValueByIndex(const size_t ind) override;                                                 \
+                                                                                                    \
+      y getScalarValue() override {                                                                 \
+        if (getshape().size() == 0)                                                                 \
+          return getValueByIndex(0);                                                                \
+        else                                                                                        \
+          throw INJECTION_EXCEPTION("%s: No shape provided to non scalar shape tensor object", #x); \
+      }                                                                                             \
+                                                                                                    \
+      int getNumElements() override { return calculateNumElements<std::size_t>(getshape()); }       \
+      virtual ~x##Node() {}                                                                         \
+      virtual void setShape(const std::vector<std::size_t>& s) { setshape(s); }                     \
+      virtual void setValue(const std::vector<y>& s) {                                              \
+        setvals(json::array());                                                                     \
+        for (auto ot : s) {                                                                         \
+          add(ot);                                                                                  \
+        }                                                                                           \
+      }                                                                                             \
     };
   DTYPES
 #  undef X
@@ -579,28 +578,29 @@ class MongoPersistance {
     std::shared_ptr<VnVProv> provStruct;
 
    public:
-    InfoNode() : DataBaseImpl<IInfoNode>() {
-    }
+    InfoNode() : DataBaseImpl<IInfoNode>() {}
 
     Mongo_getter_setter(title, std::string, "");
+    Mongo_getter_setter(workflow, std::string, "");
+    Mongo_getter_setter(jobName, std::string, "");
     Mongo_getter_setter(start, long, 0);
     Mongo_getter_setter(end, long, 0);
-    
+
     Mongo_getter_setter_json(prov, json::object());
 
     virtual std::string getTitle() override { return gettitle(); }
+
+    virtual std::string getWorkflow() override { return getworkflow(); }
+
+    virtual std::string getJobName() override { return getjobName(); }
 
     void setprov(std::shared_ptr<VnVProv> p) {
       provStruct = p;
       setprov(provStruct->toJson());
     }
 
-    virtual long getStartTime() override {
-      return getstart();
-    }
-    virtual long getEndTime() override {
-      return getend();
-    }
+    virtual long getStartTime() override { return getstart(); }
+    virtual long getEndTime() override { return getend(); }
 
     virtual std::shared_ptr<VnVProv> getProvInternal() override {
       if (provStruct == nullptr) {
@@ -619,9 +619,7 @@ class MongoPersistance {
       setprov(provStruct->toJson());
     }
 
-    virtual ~InfoNode() {
-      std::cout << "Destroying info node" << std::endl;
-    }
+    virtual ~InfoNode() { std::cout << "Destroying info node" << std::endl; }
   };
 
   class CommInfoNode : public DataBaseImpl<ICommInfoNode> {
@@ -672,28 +670,59 @@ class MongoPersistance {
     virtual ~CommInfoNode(){};
   };
 
+  class WorkflowNode : public DataBaseImpl<IWorkflowNode> {
+   private:
+   public:
+    Mongo_getter_setter_json(info, json::object());
+    Mongo_getter_setter_json(reports, json::object());
+
+    Mongo_getter_setter(package, std::string, "");
+    Mongo_getter_setter(state, std::string, "");
+
+    WorkflowNode() : DataBaseImpl<IWorkflowNode>() {}
+    virtual std::string getPackage() override { return getpackage(); }
+    virtual std::string getState() override { return getstate(); }
+    virtual json getInfo() override { return getinfo(); }
+
+    virtual std::shared_ptr<IRootNode> getReport(std::string reportName) override;
+
+    virtual bool hasReport(std::string reportName) override { return getreports().contains(reportName); }
+
+    virtual void setReport(std::string reportName, int fileId, std::shared_ptr<IRootNode> rootNode) override;
+
+    virtual std::vector<std::string> listReports() override {
+      std::vector<std::string> ret;
+      for (auto& it : getreports().items()) {
+        ret.push_back(it.key());
+      }
+      return ret;
+    }
+
+    virtual int getReportFileId(std::string reportName) {
+      if (hasReport(reportName)) {
+        return getreports()[reportName]["fid"].get<int>();
+      }
+      return -2200;
+    }
+  };
+
   class TestNode : public DataBaseImpl<ITestNode> {
    private:
     Mongo_docuemnt_ref(logs, Array) Mongo_docuemnt_ref(data, Map)
 
-    public :
-     Mongo_getter_setter(package, std::string, "") 
-     Mongo_getter_setter(usage, std::string, "Test")
-     Mongo_getter_setter(internal, bool, false) 
-     Mongo_getter_setter(result, bool, false)
-     Mongo_getter_setter(uid, long, -1)
-     Mongo_getter_setter_json(frequest, json::object());
+        public : Mongo_getter_setter(package, std::string, "") Mongo_getter_setter(usage, std::string, "Test")
+                     Mongo_getter_setter(internal, bool, false) Mongo_getter_setter(result, bool, false)
+                         Mongo_getter_setter(uid, long, -1) Mongo_getter_setter_json(frequest, json::object());
 
-     TestNode() : DataBaseImpl<ITestNode>() {}
-
+    TestNode() : DataBaseImpl<ITestNode>() {}
 
     virtual bool isInternal() override { return getinternal(); }
 
     virtual std::string getPackage() override { return getpackage(); }
 
-    virtual ITestNode::TestNodeUsage getUsage() override { return ITestNode::getUsageFromString(getusage());}
+    virtual ITestNode::TestNodeUsage getUsage() override { return ITestNode::getUsageFromString(getusage()); }
 
-    void setusage(ITestNode::TestNodeUsage u) { setusage(ITestNode::getUsageString(u));}
+    void setusage(ITestNode::TestNodeUsage u) { setusage(ITestNode::getUsageString(u)); }
 
     virtual std::shared_ptr<IMapNode> getData() override { return getInternal_data(); }
 
@@ -701,38 +730,38 @@ class MongoPersistance {
 
     virtual std::shared_ptr<FetchRequest> getFetchRequest() override {
       if (fetch != nullptr) {
-         return fetch;
-      } 
-      
+        return fetch;
+      }
 
       json& j = getfrequest();
-      
 
-      if ( j.size() > 0 ) {
-      
+      if (j.size() > 0) {
         std::string schema = j["s"].get<std::string>();
         long id = j["i"].get<long>();
         long jid = j["j"].get<long>();
         long expiry = j["e"].get<long>();
         std::string message = j["m"].get<std::string>();
-        fetch.reset(new FetchRequest(schema, id, jid, expiry,message));
-        
+        fetch.reset(new FetchRequest(schema, id, jid, expiry, message));
+
         return fetch;
-      } 
+      }
 
       return nullptr;
     }
 
-    virtual void resetFetchRequest() { fetch.reset(); setfrequest(json::object()); }
+    virtual void resetFetchRequest() {
+      fetch.reset();
+      setfrequest(json::object());
+    }
 
     virtual void setFetchRequest(std::string schema, long id, long jid, long expiry, std::string message) {
-        json j = json::object();
-        j["s"] = schema;
-        j["i"] = id;
-        j["j"] = jid;
-        j["e"] = expiry;
-        j["m"] = message;
-        setfrequest(j);
+      json j = json::object();
+      j["s"] = schema;
+      j["i"] = id;
+      j["j"] = jid;
+      j["e"] = expiry;
+      j["m"] = message;
+      setfrequest(j);
     }
   };
 
@@ -740,15 +769,15 @@ class MongoPersistance {
    public:
     Mongo_docuemnt_ref(logs, Array) Mongo_docuemnt_ref(tests, Array) Mongo_docuemnt_ref(internal, Test)
 
-        Mongo_getter_setter(package, std::string, "") 
-            Mongo_getter_setter(commId, long long, -1) Mongo_getter_setter(startIndex, long, -1)
-     Mongo_getter_setter(startTime, long , -1) Mongo_getter_setter(endTime, long, -1)
+        Mongo_getter_setter(package, std::string, "") Mongo_getter_setter(commId, long long, -1)
+            Mongo_getter_setter(startIndex, long, -1) Mongo_getter_setter(startTime, long, -1)
+                Mongo_getter_setter(endTime, long, -1)
 
-                Mongo_getter_setter(endIndex, long, -1) Mongo_getter_setter(isIter, bool, false)
-                    Mongo_getter_setter(isOpen, bool, false)
-                        Mongo_getter_setter_json(sourceMap, nlohmann::json::object())
+                    Mongo_getter_setter(endIndex, long, -1) Mongo_getter_setter(isIter, bool, false)
+                        Mongo_getter_setter(isOpen, bool, false)
+                            Mongo_getter_setter_json(sourceMap, nlohmann::json::object())
 
-                            void addToSourceMap(std::string stage, std::string function, int line) {
+                                void addToSourceMap(std::string stage, std::string function, int line) {
       json& sm = getsourceMap();
       if (!sm.contains(stage)) {
         json j = json::array();
@@ -819,7 +848,7 @@ class MongoPersistance {
     Mongo_docuemnt_ref(logs, Array) Mongo_docuemnt_ref(children, Map)
 
         public : Mongo_getter_setter(local, bool, false) Mongo_getter_setter(key, long long, -1)
-                     Mongo_getter_setter(package, std::string, "") 
+                     Mongo_getter_setter(package, std::string, "")
 
                          DataNode()
         : DataBaseImpl<IDataNode>() {}
@@ -840,10 +869,9 @@ class MongoPersistance {
     bool result;
 
    public:
-    Mongo_getter_setter(desc, std::string, "") 
-        Mongo_getter_setter(result, bool, false)
+    Mongo_getter_setter(desc, std::string, "") Mongo_getter_setter(result, bool, false)
 
-            UnitTestResultNode()
+        UnitTestResultNode()
         : DataBaseImpl<IUnitTestResultNode>() {}
     virtual std::string getDescription() override { return getdesc(); }
     virtual bool getResult() override { return getresult(); }
@@ -877,37 +905,37 @@ class MongoPersistance {
   };
 
   class UnitTestNode : public DataBaseImpl<IUnitTestNode> {
-        Mongo_docuemnt_ref(logs, Array) 
-        Mongo_docuemnt_ref(children, Map) 
-        Mongo_docuemnt_ref(resultsMap, UnitTestResults)
-        
-  public : 
-        
-    Mongo_getter_setter(package, std::string, "") 
-          
+    Mongo_docuemnt_ref(logs, Array) Mongo_docuemnt_ref(children, Map) Mongo_docuemnt_ref(resultsMap, UnitTestResults)
 
-    UnitTestNode() : DataBaseImpl<IUnitTestNode>() {}
+        public :
+
+        Mongo_getter_setter(package, std::string, "")
+
+            UnitTestNode()
+        : DataBaseImpl<IUnitTestNode>() {}
 
     virtual std::string getPackage() override { return getpackage(); }
 
     virtual std::shared_ptr<IMapNode> getData() override { return getInternal_children(); }
 
-
     virtual std::shared_ptr<IArrayNode> getLogs() override { return getInternal_logs(); };
-
 
     virtual std::shared_ptr<IUnitTestResultsNode> getResults() override { return getInternal_resultsMap(); }
   };
 
   class RootNode : public DataBaseImpl<IRootNode> {
     Collection_ptr collection;
+    Database_ptr database;
     VisitorLock* visitorLocking = nullptr;
     std::atomic<bool> _processing = ATOMIC_VAR_INIT(true);
 
     Mongo_docuemnt_ref(children, Array) Mongo_docuemnt_ref(unitTests, Array) Mongo_docuemnt_ref(actions, Map)
-        Mongo_docuemnt_ref(packages, Map) Mongo_docuemnt_ref(infoNode, Info) Mongo_docuemnt_ref(commInfoNode, CommInfo)
+        Mongo_docuemnt_ref(packages, Map)
 
-            std::shared_ptr<VnVSpec> spec;
+            Mongo_docuemnt_ref(infoNode, Info) Mongo_docuemnt_ref(commInfoNode, CommInfo)
+                Mongo_docuemnt_ref(workflowNode, Workflow)
+
+                    std::shared_ptr<VnVSpec> spec;
     Mongo_getter_setter_json(specdata, json::object());
 
     auto getSpecInternal() {
@@ -924,17 +952,21 @@ class MongoPersistance {
     Mongo_getter_setter_json(idn, json::object());
 
     Collection_ptr getMainCollection() { return collection; }
+    Database_ptr getMainDatabase() { return database; }
 
-    void setMainCollection(Collection_ptr c) { collection = c; }
+    void setMainCollection(Database_ptr db, Collection_ptr c ) { database=db, collection = c; }
 
     RootNode() : DataBaseImpl<IRootNode>() {
-      autop = true; //Root Node should autopersist because it might not get deleted. 
+      autop = true;  // Root Node should autopersist because it might not get deleted.
     }
 
     void setinfoNode(std::shared_ptr<IInfoNode> node) { setinfoNodeId(node->getId()); }
+    void setworkflowNode(std::shared_ptr<IWorkflowNode> node) { setworkflowNodeId(node->getId()); }
 
     void setVisitorLock(VisitorLock* lock) { visitorLocking = lock; }
     void setProcessing(bool value) { _processing.store(value, std::memory_order_relaxed); }
+
+    virtual void respond(long id, long jid, const std::string& response) override {}
 
     virtual std::shared_ptr<IMapNode> getPackages() override { return getInternal_packages(); }
 
@@ -947,6 +979,8 @@ class MongoPersistance {
     virtual std::shared_ptr<IInfoNode> getInfoNode() override { return getInternal_infoNode(); }
 
     virtual std::shared_ptr<ICommInfoNode> getCommInfoNode() override { return getInternal_commInfoNode(); }
+
+    virtual std::shared_ptr<IWorkflowNode> getWorkflowNode() override { return getInternal_workflowNode(); }
 
     virtual void persist() override {
       getDocument()->persist();
@@ -1020,12 +1054,7 @@ class MongoPersistance {
 
     virtual const VnVSpec& getVnVSpec() { return *(getSpecInternal()); }
   };
-
-  
-
 };
-
-
 
 template <typename T, typename V>
 class MongoRootNodeWithThread : public StreamParserTemplate<MongoPersistance>::RootNodeWithThread<T, V> {
@@ -1037,19 +1066,19 @@ class MongoRootNodeWithThread : public StreamParserTemplate<MongoPersistance>::R
   MongoRootNodeWithThread(std::string uri, std::string dbname, std::string collname, bool allowExisting = false) {
     client.reset(new Client(uri));
     db.reset(new Database(dbname, client));
-    
-    collection = Collection::Initialize(collname,db);
+
+    collection = Collection::Initialize(collname, db);
 
     if (!allowExisting && collection->size() > 0) {
-      throw INJECTION_EXCEPTION("Cannot Load into an existing collection %s. Please provide a unique collection name.", collname.c_str());
+      throw INJECTION_EXCEPTION("Cannot Load into an existing collection %s. Please provide a unique collection name.",
+                                collname.c_str());
     }
-    MongoPersistance::RootNode::setMainCollection(collection);
+    MongoPersistance::RootNode::setMainCollection(db, collection);
   }
- 
+
   static std::shared_ptr<IRootNode> parse(
       bool async, std::string uri, std::string dbname, std::string collname, std::shared_ptr<T> stream,
       std::shared_ptr<StreamParserTemplate<MongoPersistance>::ParserVisitor<V>> visitor = nullptr) {
-    
     auto root = std::make_shared<MongoRootNodeWithThread>(uri, dbname, collname);
 
     root->stream = stream;
@@ -1062,8 +1091,6 @@ class MongoRootNodeWithThread : public StreamParserTemplate<MongoPersistance>::R
     root->run(async);
     return root;
   }
-
-
 };
 
 typedef StreamParserTemplate<MongoPersistance> MongoParser;
