@@ -32,7 +32,6 @@
 #  include "interfaces/ISampler.h"
 #  include "interfaces/ITest.h"
 #  include "interfaces/ITransform.h"
-#  include "interfaces/IPipeline.h"
 #  include "interfaces/IUnitTest.h"
 #  include "interfaces/IWalker.h"
 #  include "interfaces/IWorkflow.h"

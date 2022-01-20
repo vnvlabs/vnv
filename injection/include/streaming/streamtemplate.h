@@ -1033,7 +1033,12 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
   }
 
  public:
-  virtual void initialize(json& config) override { this->filestub = config["filename"].template get<std::string>(); }
+  virtual void initialize(json& config) override {
+    this->filestub = config["filename"].template get<std::string>();
+    if (DistUtils::fileExists(filestub)) {
+      throw INJECTION_EXCEPTION("Cannot write into a directory that allready exists: %s",filestub.c_str());
+    }
+  }
 
   static std::string getSchema() {
     return R"(

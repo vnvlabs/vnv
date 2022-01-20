@@ -20,7 +20,6 @@
 #include "base/stores/IteratorsStore.h"
 #include "base/stores/OptionsParserStore.h"
 #include "base/stores/OutputEngineStore.h"
-#include "base/stores/PipelineStore.h"
 #include "base/stores/PlugStore.h"
 #include "base/stores/PlugsStore.h"
 #include "base/stores/SamplerStore.h"
@@ -141,7 +140,7 @@ nlohmann::json RunTime::getFullJson() {
         json jf = OptionsParserStore::instance().getSchema(package.first);
         jf["docs"] = type.value();
         mj[package.first] = jf;
-      } else if (type.key() == "DataType" || type.key() == "Files" || type.key() == "Pipelines") {
+      } else if (type.key() == "DataType" || type.key() == "Files" ) {
         for (auto& entry : type.value().items()) {
           mj[package.first + ":" + entry.key()] = entry.value();
         }
@@ -198,28 +197,6 @@ nlohmann::json RunTime::getFullJson() {
   return main;
 }
 
-namespace {
-std::string generate_pipeline(std::string package, std::string name, const json& config) {
-  return PipelineStore::instance().getPipeline(package, name, config);
-}
-}  // namespace
-
-std::string RunTime::pipeline(std::string package, std::string name, const json& config, std::string filename,
-                              bool stdo) {
-  std::string p = generate_pipeline(package, name, config);
-
-  if (!filename.empty()) {
-    std::ofstream ofs(filename);
-    if (ofs.good()) {
-      ofs << generate_pipeline(package, name, config);
-    }
-    throw INJECTION_EXCEPTION("Error Generating Pipeline: Bad File Name %s", filename.c_str());
-  }
-  if (stdo) {
-    std::cout << generate_pipeline(package, name, config) << std::endl;
-  }
-  return p;
-}
 
 RunTimeOptions* RunTime::getRunTimeOptions() { return &runTimeOptions; }
 
@@ -770,6 +747,7 @@ void RunTime::loadHotPatch(VnV_Comm comm) {
 
 VnVProv RunTime::getProv() { return *prov; }
 
+
 // Cant overload the name because "json" can be a "string".
 bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, json& config,
                            registrationCallBack callback) {
@@ -862,8 +840,11 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv, std
   }
 
   std::ifstream fstream(configFile);
-  json mainJson = JsonUtilities::load(configFile);
-  return InitFromJson(packageName, argc, argv, mainJson, callback);
+  if (fstream.good()) {
+    json mainJson = JsonUtilities::load(configFile);
+    return InitFromJson(packageName, argc, argv, mainJson, callback);
+  }
+  throw INJECTION_EXCEPTION("Bad Input File %s", configFile.c_str());
 }
 
 bool RunTime::configure(std::string packageName, RunInfo info, registrationCallBack callback) {

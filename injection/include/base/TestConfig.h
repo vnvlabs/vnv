@@ -69,8 +69,13 @@ class VnVParameter {
   bool isInput() const { return input; };
 
   template <typename T> T* getPtr(std::string requestedType, bool throwOnError = true ) {
+    
     StringUtils::squash(type);
-
+    
+    if (type.empty()) { // Type checking turned off.
+      return (T*)(ptr);
+    }
+    
     if (trans == nullptr || type.compare(transType) != 0) {
       trans = TransformStore::instance().getTransformer(type, requestedType);
       transType = requestedType;
@@ -79,6 +84,7 @@ class VnVParameter {
     if (trans != nullptr && type.compare(transType) == 0) {
       return static_cast<T*>(trans->Transform(ptr));
     }
+    
     if (throwOnError) {
        HTHROW INJECTION_EXCEPTION("Bad Transform Requested -- Cannot transform from %s -> %s", type.c_str(),
                            requestedType.c_str());
@@ -101,12 +107,16 @@ class VnVParameterSet : public std::map<std::string, VnVParameter> {
   template <typename T> T& getOutputRef(std::string name, std::string type) { return getRef<T>(name, type, false); }
 
   template <typename T> T* getPtr(std::string name, std::string type) { return getPtr<T>(name, type, true); }
+  
   template <typename T> T& getRef(std::string name, std::string type) { return getRef<T>(name, type, true); }
 
   template <typename T> T* getPtr(std::string name, std::string type, bool input, bool throwOnError = true ) {
+    
     StringUtils::squash(type);
+    
     auto it = find(name);
     if (it != end()) {
+    
       if (it->second.isInput() != input) {
         if (input ) {
           if (throwOnError) {

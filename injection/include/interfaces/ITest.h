@@ -83,9 +83,10 @@ class ITest {
 
   template <typename T> T& getOutputRef(std::string name, std::string type) { return getRef<T>(name, type, false); }
 
-  template <typename T> T* getPtr(std::string name, std::string type) { return getPtr<T>(name, type, true); }
+  template <typename T> T* getPtr(std::string name, std::string type = "") { return getPtr<T>(name, type, true); }
 
-  template <typename T> T& getRef(std::string name, std::string type) { return getRef<T>(name, type, true); }
+  template <typename T> T& getRef(std::string name, std::string type = "") { return getRef<T>(name, type, true); }
+
 
   template <typename T> T& getRef(std::string name, std::string type, bool input) {
     return *getPtr<T>(name,type,input);
@@ -104,6 +105,10 @@ class ITest {
 #define GetRef(name, T) getRef<T>(name, #T)
 #define GetPtr(name, T) getPtr<T>(name, #T)
 #define GetPtr_NoThrow(name, T) getPtr<T>(name, #T, true, false)
+
+#define GetRef_NoCheck(name, T) getRef<T>(name)
+#define GetPtr_NoCheck(name, T) getPtr<T>(name)
+
 
 
 typedef ITest* (*maker_ptr)(TestConfig config);

@@ -12,4 +12,3 @@ link_vnv_file(issues ISSUES cpp)
 
 set_target_properties(issues PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/examples/issues/lib)
 target_compile_definitions(issues PRIVATE ISSUES=ISSUES)
-install(TARGETS psip DESTINATION examples/issues/lib)

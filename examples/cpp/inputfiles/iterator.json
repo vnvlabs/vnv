@@ -1,0 +1,18 @@
+﻿{
+  "runTests": true,
+  "additionalPlugins": {
+    "DummyTestLibOne" : "../tests/libdummyTestLibOne.so"
+  },
+  "outputEngine": {
+    "json_file" : {
+       "filename" : "vv-output"
+    }
+  },
+  "injectionPoints": {
+     "VNV:initialization" : {
+        "tests" : {
+          "VNV:cputime" : {}
+	      }
+     }	     
+  }
+}

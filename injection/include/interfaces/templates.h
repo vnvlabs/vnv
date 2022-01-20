@@ -30,7 +30,7 @@
  */
 
 #define VNV_TEMPLATE_(VAR, NAME, PARAM,CALLBACK) \
-  if (auto VAR = GetPtr_NoThrow(NAME, PARAM, true, false)) { \
+  if (auto VAR = GetPtr_NoThrow(NAME, PARAM)) { \
      CALLBACK \
   }	  
 

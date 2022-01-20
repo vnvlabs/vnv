@@ -1,21 +1,20 @@
 ﻿{
   "runTests": true,
-
   "logging": {
+
     "on" : true,
     "filename" : "stdout",
     "logs" : {}
   },
-
+  "additionalPlugins": {
+    "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so"
+  },
   "outputEngine": {
-    "type": "json_stdout",
-    "config": {
-       "outputFile":"test-results.json"
+    "json_file" : {
+       "filename" : "test-results"
     }
   },
-
   "unit-testing" : {
      "runUnitTests" : true
   }
-
 }

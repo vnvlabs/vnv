@@ -12,7 +12,6 @@ target_sources(
           ${CMAKE_CURRENT_LIST_DIR}/PlugStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/DataTypeStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/ReductionStore.cpp
-          ${CMAKE_CURRENT_LIST_DIR}/PipelineStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/WorkflowStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/SamplerStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/WalkerStore.cpp)

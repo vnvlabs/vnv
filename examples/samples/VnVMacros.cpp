@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
   double x(0), y(0), z(0), w(0);
 
   // Initalize The VnV Library
-  INJECTION_INITIALIZE(Samples, &argc, &argv, "add_injection_point.json");
+  INJECTION_INITIALIZE(Samples, &argc, &argv, "input.json");
 
   // Logging -- Default it to only write logs on the root comm of the world
   // processor.

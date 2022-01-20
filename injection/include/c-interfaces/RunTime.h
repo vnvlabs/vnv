@@ -16,6 +16,10 @@
     VnV_init(VNV_STR(PNAME), argc, argv, filename,          \
              VNV_REGISTRATION_CALLBACK_NAME(PNAME))
 
+#  define INJECTION_INITIALIZE_RAW(PNAME, argc, argv, inputjson) \
+    VnV_init_raw(VNV_STR(PNAME), argc, argv, inputjson,          \
+             VNV_REGISTRATION_CALLBACK_NAME(PNAME))
+
 #  define INJECTION_FINALIZE(PNAME) VnV_finalize();
 
 #  define DECLARESUBPACKAGE(NAME) INJECTION_REGISTRATION(NAME);
@@ -61,6 +65,21 @@ VNVEXTERNC void VnV_declarePackageJson(const char* packageName,
  */
 VNVEXTERNC int VnV_init(const char* packageName, int* argc, char*** argv,
                         const char* filename, registrationCallBack callback);
+
+
+/**
+ * @brief VnV_init
+ * @param argc argc from the command line ( used in case of MPI_Init )
+ * @param argv argv from the command line ( used in case of MPI_Init )
+ * @param filename The configuration file name
+ * @return todo.
+ *
+ * Initialize the VnV library. If this function is not called, no injection
+ * point testing will take place.
+ */
+VNVEXTERNC int VnV_init_raw(const char* packageName, int* argc, char*** argv,
+                        const char* inputjson, registrationCallBack callback);
+
 /**
  * @brief VnV_finalize
  * @return todo
@@ -84,14 +103,6 @@ VNVEXTERNC void VnV_readFile(const char* reader, const char* filename);
 VNVEXTERNC void VnV_readFileAndWalk(const char* reader, const char* filename,
                                     const char* package, const char* walker,
                                     const char* config);
-
-VNVEXTERNC void VnV_generate_pipeline(const char* package, const char* name, const char* config, const char* filename, int stdo);
-VNVEXTERNC void VnV_generate_pipeline_file(const char* package, const char* name, const char* config, const char* filename);
-VNVEXTERNC void VnV_generate_pipeline_stdout(const char* package, const char* name, const char* config);
-VNVEXTERNC char* VnV_generate_pipeline_string(const char* package, const char* name, const char* config);
-
-
-
 
 
 #else  // WITHOUT_VNV

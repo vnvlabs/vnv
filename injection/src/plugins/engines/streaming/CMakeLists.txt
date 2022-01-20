@@ -15,10 +15,9 @@ find_package(Microhttpd)
 
 if(CURL_FOUND AND MICROHTTPD_FOUND)
  
-  execute_process(COMMAND grep "MHD_Result" ${MICROHTTPD_INCLUDE_DIRS}/microhttpd.h RESULT_VARIABLE MHD_NO_RES)
+  execute_process(COMMAND grep "MHD_Result" ${MICROHTTPD_INCLUDE_DIRS}/microhttpd.h RESULT_VARIABLE MHD_NO_RES OUTPUT_VARIABLE MM)
   target_compile_definitions(injection PRIVATE WITH_MHD_RESULT=${MHD_NO_RES})
   
-
   target_link_libraries(injection PRIVATE ${CURL_LIBRARIES})
   target_include_directories(injection PRIVATE ${CURL_INCLUDE_DIRS})
   target_include_directories(injection PRIVATE ${MICROHTTPD_INCLUDE_DIRS})

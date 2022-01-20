@@ -14,3 +14,6 @@ target_sources(
           ${CMAKE_CURRENT_LIST_DIR}/CustomTransform.cpp
           ${CMAKE_CURRENT_LIST_DIR}/CustomUnitTests.cpp
           ${CMAKE_CURRENT_LIST_DIR}/CustomSampler.cpp)
+
+configure_file(${CMAKE_CURRENT_LIST_DIR}/input.json ${CMAKE_CURRENT_BINARY_DIR}/input.json COPYONLY)
+        

@@ -12,7 +12,11 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt
 find_package(VirtualEnv 15.0 REQUIRED)
 find_package(Python3 3.5 REQUIRED)
 
-execute_process(COMMAND ${VIRTUALENV_EXECUTABLE} -p ${Python3_EXECUTABLE}
-                        ${CMAKE_CURRENT_BINARY_DIR}/virt)
-execute_process(COMMAND ${CMAKE_CURRENT_BINARY_DIR}/virt/bin/pip3 install -r
-                        ${CMAKE_CURRENT_BINARY_DIR}/requirements.txt)
+
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/virt
+    COMMAND ${VIRTUALENV_EXECUTABLE} -p ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/virt
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/virt/bin/pip3 install -r ${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt
+)
+

@@ -347,13 +347,6 @@ class RunTime {
    */
   void runUnitTests(VnV_Comm comm, UnitTestInfo info);
 
-  std::string pipeline(std::string package, std::string name, const json& config,  std::string filename = "", bool stdo = false);
-  
-  std::string pipeline(std::string package, std::string name, const json& config, bool stdo) {
-    return pipeline(package,name,config,"",stdo);
-  }
-  
-
   std::shared_ptr<Nodes::IRootNode> readFile(std::string reader,
                                              std::string filename);
   void readFileAndWalk(std::string reader, std::string filename,

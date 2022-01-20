@@ -18,6 +18,7 @@ R"(Roll Call:
 );
 
 INJECTION_INJA_TEMPLATE(VNVPACKAGENAME, SimpleSlurmHeader, 
+
 R"(
 
 {   
@@ -55,8 +56,4 @@ pwd; hostname; date
    module load python
 ## endfor
 
-echo {{ hello }}
-
-)"
-
-);
+echo {{ hello }})");

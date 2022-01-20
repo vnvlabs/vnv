@@ -22,6 +22,17 @@ int VnV_init(const char* packageName, int* argc, char*** argv, const char* filen
   }
 }
 
+int VnV_init_raw(const char* packageName, int* argc, char*** argv, const char* inputjson, registrationCallBack callback) {
+  try {
+    json j = json::parse(inputjson);
+    return VnV::RunTime::instance().InitFromJson(packageName, argc, argv, j, callback);
+  } catch (...) {
+    std::cout << "Error Initializing VnV" << std::endl;
+    std::abort();
+  }
+}
+
+
 void VnV_Register_Subpackage(const char* subPackageName, registrationCallBack callback) {
   try {
     VnV::RunTime::instance().runTimePackageRegistration(subPackageName, callback);
@@ -81,38 +92,4 @@ void VnV_readFileAndWalk(const char* reader, const char* filename, const char* p
   }
 }
 
-void VnV_generate_pipeline(const char* package, const char* name, const char* config, const char* filename, int stdo) {
-  try {
-    VnV::RunTime::instance().pipeline(package, name, json::parse(config), filename, stdo);
-  } catch (...) {
-    VnV_Error(VNVPACKAGENAME, "Error During finalization");
-  }
-}
-
-void VnV_generate_pipeline_file(const char* package, const char* name, const char* config, const char* filename) {
-  try {
-    VnV::RunTime::instance().pipeline(package, name, json::parse(config), filename, false);
-  } catch (...) {
-    VnV_Error(VNVPACKAGENAME, "Error generating pipeline");
-  }
-}
-
-void VnV_generate_pipeline_stdout(const char* package, const char* name, const char* config) {
-  try {
-    VnV::RunTime::instance().pipeline(package, name, json::parse(config), true);
-  } catch (...) {
-    VnV_Error(VNVPACKAGENAME, "Error generating pipeline");
-  }
-}
-
-char* VnV_generate_pipeline_string(const char* package, const char* name, const char* config) {
-  try {
-    VnV_Info(VNVPACKAGENAME, "You need to free this youself!");
-    std::string s = VnV::RunTime::instance().pipeline(package, name, json::parse(config), "", false);
-    return strdup(s.c_str());
-  } catch (...) {
-    VnV_Error(VNVPACKAGENAME, "Error Generating pipeline");
-    return strdup("");
-  }
-}
 }

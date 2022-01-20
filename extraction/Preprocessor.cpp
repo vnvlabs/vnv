@@ -400,9 +400,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     } else if (nae == "INJECTION_REDUCER") {
       json& jj = getDef("Reducers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_PIPELINE") {
-      json& jj = getDef("Pipelines", getPackageName(Args, 0), getPackageName(Args, 1));
-      jj["docs"] = getDocs(Range).toJson();
     } else if (nae == "INJECTION_SCHEDULER") {
       json& jj = getDef("Schedulers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
@@ -426,7 +423,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     } else if (nae == "INJECTION_COMM") {
       json& jj = getDef("Comms", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_INITIALIZE") {
+    } else if (nae == "INJECTION_INITIALIZE" || nae == "INJECTION_INITIALIZE_RAW") {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Introduction");
       jj[getPackageName(Args, 0)] = getDocs(Range).toJson();
     } else if (nae == "INJECTION_FINALIZE") {
