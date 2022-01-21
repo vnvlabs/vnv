@@ -32,6 +32,12 @@ def jmes_jinja_query(text):
     else:
         raise ExtensionError("Invalid jmes path query")
 
+def jmes_jinja_if_query(text):
+    if jmespath.compile(text):
+        return "{%if data.query('" + text + "') %}"
+    else:
+        raise ExtensionError("Invalid jmes path query")
+
 
 def jmes_jinja_query_str(text):
     if jmespath.compile(text):

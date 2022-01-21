@@ -1,5 +1,4 @@
 ﻿#include "base/exceptions.h"
-
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -50,6 +49,7 @@ VnV::VnVExceptionBase::VnVExceptionBase(std::string function, std::string file, 
   va_start(args, format);
   message = extract(format,args);
   va_end(args);
+
 }
 
 VnV::VnVBugReport::VnVBugReport(std::string function, std::string file, int line, const char* format, ...) : VnVExceptionBase("") {
@@ -61,6 +61,7 @@ VnV::VnVBugReport::VnVBugReport(std::string function, std::string file, int line
   va_start(args, format);
   message = extract(format,args);
   va_end(args);
+
 }
 
 

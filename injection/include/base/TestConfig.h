@@ -72,7 +72,7 @@ class VnVParameter {
     
     StringUtils::squash(type);
     
-    if (type.empty()) { // Type checking turned off.
+    if (requestedType.empty()) { // Type checking turned off.
       return (T*)(ptr);
     }
     

@@ -158,7 +158,7 @@ def plotly_convert(keys, value, trace, data):
     m = f'plotly_{s["valType"]}'
     if m in globals():
         return globals()[m](**s)(rendered)
-    raise ExtensionError("Type val not supported")
+    return rendered
 
 
 def plotly_post_process(text, data):
@@ -256,12 +256,14 @@ class PlotlyChartDirective(JsonChartDirective):
               url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
               update_soon(url, "{id_}", 1000, function(config) {{
                 var xx = JSON.parse(config)
+                debugger;
                 Plotly.update('{id_}',xx['data'],xx['layout']);
               }})
 
             }})
             </script>
             '''
+
 class PlotlyDirec(PlotlyChartDirective):
     required_arguments = 0
     optional_arguments = 0

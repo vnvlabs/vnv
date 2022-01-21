@@ -388,7 +388,7 @@ PY_GETATTR(VnV::Nodes::ICommInfoNode)
         return "array"
 
       def __str__(self):
-         return str([ self.__getitem__(i) for i in range(0,self.size())])
+          return json.dumps(self.__json__())
    
       def __json__(self):
          return [ self.__getitem__(i).__json__() for i in range(0,self.size())]

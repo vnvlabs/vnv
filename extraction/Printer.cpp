@@ -388,13 +388,20 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       addParameters(sig, E, idJson, count);
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iter")) {
       // Iteration of a loop in the C AND C++ interface
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 0);
+      //unsigned int count = getInfo(E, FF, Result, info, id, filename, 0);
 
-      std::string iterid =
-          VnV::StringUtils::trim_copy(getValueFromStringLiteral(E->getArg(count++)->IgnoreParenCasts()));
-      json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
-      json& stagesJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
-      stagesJson[iterid] = info;
+      //json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
+      //json& stagesJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
+      
+      //std::string iterid;
+      //try{
+      //   iterid = VnV::StringUtils::trim_copy(getValueFromStringLiteral(E->getArg(count++)->IgnoreParenCasts()));
+      //} catch (...) {
+      //   do {
+      //     iterid = "Dynamic_" + VnV::StringUtils::random(4);
+      //   } while (stagesJson.contains(iterid));   
+      //}
+      //stagesJson[iterid] = info;
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_end")) {
       // End of  a loop in the C AND C++ interface

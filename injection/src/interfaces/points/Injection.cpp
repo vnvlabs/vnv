@@ -35,7 +35,7 @@ bool VnV::CppInjection::EndLoop(const char* package, const char* id, const char*
     return true;
   }
 }
-void VnV::CppInjection::IterLoop(const char* package, const char* id, const char* iterId, const char* fname, int line) {
+void VnV::CppInjection::IterLoop(const char* package, const char* id, std::string iterId, const char* fname, int line) {
   try {
     VnV::RunTime::instance().injectionPoint_iter(package, id, iterId, fname, line);
   } catch (...) {

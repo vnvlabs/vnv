@@ -41,7 +41,7 @@ class DataClass:
         else:
             return f"todo:{meth}({query})"
 
-    def query(self, text) -> str:
+    def query(self, text):
         """Return the jmes query result"""
 
         try:

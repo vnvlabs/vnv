@@ -22,7 +22,6 @@ vnv_roles = {}
 
 ################ ADD A BUNCH OF ROLES TO TAKE STATISTICS OF JMES RESTULT #
 def process_query(text, stats_function, tag="span"):
-    r = jmes_jinga_stat(text, stats_function)
     html = f'''
                 <{tag} data-o="on" 
                   data-f="{{{{data.getFile()}}}}" 

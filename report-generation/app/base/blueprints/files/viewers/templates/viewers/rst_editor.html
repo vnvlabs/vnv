@@ -60,9 +60,6 @@ $( document ).ready(function() {
     var staticWordCompleter = {
         getCompletions: function(editor, session, pos, prefix, callback) {
 
-            console.log(pos)
-            debugger;
-
             var f = $('#rst_fileId').val()
             var d = $('#rst_dataId').val()
             $.get(`/files/viewers/rst/auto/${f}/${d}?row=${pos.row}&col=${pos.column}&prefix=${prefix}&val=${encodeURIComponent(editor.getValue())}`, function(data) {

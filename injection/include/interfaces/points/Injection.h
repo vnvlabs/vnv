@@ -16,7 +16,7 @@
 typedef void (*vnv_registration_function)();
 
 #  define IPCALLBACK                                                                                               \
-    [](VnV_Comm comm, VnV::VnVParameterSet & ntv, VnV::OutputEngineManager * engine, VnV::InjectionPointType type, \
+    [&](VnV_Comm comm, VnV::VnVParameterSet & ntv, VnV::OutputEngineManager * engine, VnV::InjectionPointType type, \
        std::string stageId)
 
 // Put comma before the first variable -- Because we have nothing after
@@ -31,7 +31,9 @@ void UnwrapParameterPack(NTV& m);
 
 template <typename T, typename V, typename... Args>
 void UnwrapParameterPack(NTV& m, V& name, T& first, Args&&... args) {
-  m.insert(std::make_pair(name, std::make_pair(typeid(&first).name(), reinterpret_cast<void*>(&first))));
+
+  auto t = reinterpret_cast<void*>(& (const_cast<typename std::remove_const<T>::type &>(first)) );
+  m.insert(std::make_pair(name, std::make_pair(typeid(&first).name(),t )));
   UnwrapParameterPack(m, std::forward<Args>(args)...);
 }
 
@@ -41,7 +43,7 @@ void BeginPoint(VnV_Comm comm, const char* package, const char* id, struct VnV_F
 void BeginLoop(VnV_Comm comm, const char* package, const char* id, struct VnV_Function_Sig pretty, const char* fname, int line,
                const DataCallback& callback, NTV& map);
 
-void IterLoop(const char* package, const char* id, const char* iterId, const char* fname, int line);
+void IterLoop(const char* package, const char* id, std::string iterId, const char* fname, int line);
 
 bool EndLoop(const char* package, const char* id, const char* fname, int line);
 

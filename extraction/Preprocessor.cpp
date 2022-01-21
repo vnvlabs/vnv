@@ -321,7 +321,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
          }
          json &j = (*lastWorkflowJson)["jobs"];
          j[name] = getDocs(Range).toJson();
-         std::cout << j.dump() << std::endl;
          return;
     }
 
@@ -459,11 +458,14 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj["docs"] = getDocs(Range).toJson();
       jj["plug"] = true;
       thisStage["docs"] = ProcessedComment().toJson();
+     
     } else if (nae == "INJECTION_LOOP_ITER") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
-      json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
-      json& thisStage = VnV::JsonUtilities::getOrCreate(stages, getPackageName(Args, 2, true));
-      thisStage["docs"] = getDocs(Range).toJson();
+      
+      //json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
+      //json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
+      //json& thisStage = VnV::JsonUtilities::getOrCreate(stages, getPackageName(Args, 2, true));
+      //thisStage["docs"] = getDocs(Range).toJson();
+    
     } else if (nae == "INJECTION_LOOP_END") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");

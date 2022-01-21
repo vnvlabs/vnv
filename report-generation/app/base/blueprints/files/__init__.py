@@ -289,7 +289,7 @@ files = [
     [True, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-workflow-output", "json_file", {"persist":True}],
     [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/adios-output-live", "adios", True, {}],
     [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live", "json_file",{"persist": True}],
-    [False, "/home/ben/source/vv/applications/asgard/build/vv-output", "json_file",{"persist": True}],
+    [True, "/home/ben/source/vv/applications/asgard/build/vv-output", "json_file",{"persist": True}],
 ]
 
 def faker():
