@@ -13,7 +13,7 @@ import pygments
 from flask import render_template
 from pygments.lexers import guess_lexer_for_filename
 
-import Directory
+from app import Directory
 
 
 def getPath(filename, exten=None):

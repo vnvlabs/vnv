@@ -8,7 +8,7 @@ from docutils.nodes import SkipNode
 from sphinx.directives import optional_int
 from sphinx.util.docutils import SphinxDirective
 
-import Directory
+from app import Directory
 from app.base.blueprints import files as dddd
 
 from app.rendering.vnvdatavis.directives.jmes import get_target_node, jmes_jinja_query

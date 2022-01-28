@@ -9,7 +9,7 @@ from flask import Blueprint, make_response, jsonify, flash
 from flask import render_template, redirect, url_for, request
 import socket
 
-import Directory
+from app import Directory
 from app.models.VnVConnection import VnVLocalConnection, VnVConnection, MAIN_CONNECTION, SetMainConnection, \
     SetFileConnection
 from app.rendering.readers import LocalFile
