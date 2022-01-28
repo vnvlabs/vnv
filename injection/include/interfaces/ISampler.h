@@ -53,7 +53,7 @@ class ISampler {
 
 typedef ISampler* (*sampler_ptr)(nlohmann::json&);
 
-void registerSampler(std::string packageName, std::string name,
+void registerVnVSampler(std::string packageName, std::string name,
                      std::string schema, VnV::sampler_ptr r);
 
 template <typename Runner> class Sampler_T : public ISampler {
@@ -83,7 +83,7 @@ template <typename Runner> class Sampler_T : public ISampler {
     return new name(config);                                              \
   }                                                                       \
   void register_##name() {                                                \
-    VnV::registerSampler(VNV_STR(PNAME), #name, schema, &declare_##name); \
+    VnV::registerVnVSampler(VNV_STR(PNAME), #name, schema, &declare_##name); \
   }                                                                       \
   }                                                                       \
   }                                                                       \

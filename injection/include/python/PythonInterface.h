@@ -30,6 +30,12 @@ class ReaderWrapper {
 
   long getLowerId() { return lowerId; }
   long getUpperId() { return upperId; }
+
+  virtual ~ReaderWrapper() {
+     if (rootNode) {
+       rootNode->kill();
+     }
+  }
 };
 
 bool VnVInit(std::vector<std::string> args, std::string configFilename);

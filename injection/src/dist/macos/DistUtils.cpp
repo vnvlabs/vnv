@@ -55,6 +55,19 @@ std::string getAbsolutePath(std::string filename) {
   return filename;
 }
 
+
+bool fileEquals(std::string f1, std::string f2) {
+  return getAbsolutePath(f1).compare(getAbsolutePath(f2)) == 0;
+}
+
+
+bool fileInDirectory(std::string file, std::string directory) {
+   auto ap = getAbsolutePath(file);
+   auto ad = getAbsolutePath(directory);
+   return ap.rfind(ad, 0) == 0
+}
+
+
 void getAllLinkedLibraryData(libData* data) {
   uint32_t count = _dyld_image_count();
   for (uint32_t i = 0; i < count; i++) {
@@ -81,22 +94,13 @@ void* loadLibrary(std::string name) {
 }
 
 registrationCallBack searchLibrary(void* dylib, std::string packageName) {
-  std::string s = VNV_GET_REGISTRATION + packageName;
-  void* callback = dlsym(dylib, s.c_str());
+  void* callback = dlsym(dylib, packageName.c_str());
   if (callback != nullptr) {
     return ((registrationCallBack)callback);
   }
   throw INJECTION_EXCEPTION("Library Registration Symbol not found for package %s", packageName.c_str());
 }
 
-bool searchLibrary(std::string name, std::set<std::string>& packageNames) {
-  void* dylib = loadLibrary(name);
-  for (auto it : packageNames) {
-    searchLibrary(dylib, it);
-  }
-  dlclose(dylib);
-  return false;
-}
 
 // Not sure if works on mac -- please fix and commit if not compile.
 std::string getEnvironmentVariable(std::string name) {
@@ -154,23 +158,5 @@ std::vector<std::string> listFilesInDirectory(std::string directory) {
   }
 }
 
-void callAllLibraryRegistrationFunctions(
-    std::map<std::string, std::string> packageNames) {
-  std::set<std::string> linked;
-  for (auto it : packageNames) {
-    linked.insert(it.first);
-  }
-  uint32_t count = _dyld_image_count();
-  for (uint32_t i = 0; i < count; i++) {
-    const char* img_name = _dyld_get_image_name(i);
-    std::string name(img_name);
-    try {
-      searchLibrary(name, linked);
-    } catch (...) {
-      // VnV_Error("Could not load Shared Library %s", name.c_str());
-      return;
-    }
-  }
-}
 }  // namespace DistUtils
 }  // namespace VnV

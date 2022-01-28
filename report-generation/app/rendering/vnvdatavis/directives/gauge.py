@@ -1,6 +1,7 @@
 
-from app.rendering.vnvdatavis.directives.charts import ApexChartDirective
 from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_percentage
+from app.rendering.vnvdatavis.directives.apex import ApexChartDirective
+
 
 class ApexGaugeDirective(ApexChartDirective):
     required_arguments = 0

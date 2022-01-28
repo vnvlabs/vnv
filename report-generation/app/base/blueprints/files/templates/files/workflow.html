@@ -9,14 +9,14 @@
 
             <li class="nav-item">
                 <a class="nav-link active " id="pills-main-workflow-tab"
-                   data-toggle="pill" href="#pills-main-workflow" role="tab"
+                   state="workflow" data-toggle="pill" href="#pills-main-workflow" role="tab"
                    aria-controls="pills-main-workflow" aria-selected="true">Workflow</a>
             </li>
 
             {% for creator in creators %}
             <li class="nav-item">
                 <a class="nav-link " id="pills-creator-{{loop.index}}-tab"
-                   data-toggle="pill" href="#pills-creator-{{loop.index}}" role="tab"
+                   state="workflow" data-toggle="pill" href="#pills-creator-{{loop.index}}" role="tab"
                    aria-controls="pills-creator-{{loop.index}}" aria-selected="true">{{creator.name}}</a>
             </li>
             {%endfor%}

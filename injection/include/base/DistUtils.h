@@ -14,13 +14,13 @@
 
 using nlohmann::json;
 
-typedef void (*registrationCallback)();
+typedef void (*registrationCallBack)();
 
 namespace VnV {
 namespace DistUtils {
 
 void* loadLibrary(std::string libraryPath);
-registrationCallback searchLibrary(void* dllib, std::string packageName);
+registrationCallBack searchLibrary(void* dllib, std::string packageName);
 /**
  * Get "stat" information for the file. Here add is the "address".
  **/
@@ -62,6 +62,8 @@ public:
 
 };  
 
+bool fileEquals(std::string f1, std::string f2); 
+bool fileInDirectory(std::string file, std::string directory);
 
 /**
  * Convert a relative filename to an absolute.
@@ -76,9 +78,6 @@ std::string getAbsolutePath(std::string realativeFileName);
  * them.
  */
 void getAllLinkedLibraryData(libData* data);
-
-void callAllLibraryRegistrationFunctions(
-    std::map<std::string, std::string> packageNames);
 
 /**
  * Make the directory with the given mode.

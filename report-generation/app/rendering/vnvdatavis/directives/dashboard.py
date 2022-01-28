@@ -110,4 +110,4 @@ class VnVDashBoardWidgetDirective(SphinxDirective):
 def setup(sapp):
     sapp.add_node(VnVDashBoardNode, **VnVDashBoardNode.NODE_VISITORS)
     sapp.add_directive("vnv-dashboard", VnVDashBoardDirective)
-    sapp.add_directive("vnv-db-widget", VnVDashBoardWidgetDirective)
+    sapp.add_directive("vnv-dashboard-widget", VnVDashBoardWidgetDirective)

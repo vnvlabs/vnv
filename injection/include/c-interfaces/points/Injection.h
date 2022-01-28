@@ -17,7 +17,7 @@
                         EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
 #  define INJECTION_POINT(PNAME, COMM, NAME, ...) \
-    INJECTION_POINT_C(COMM, PNAME, NAME, NULL, __VA_ARGS__)
+    INJECTION_POINT_C(PNAME, COMM, NAME, NULL, __VA_ARGS__)
 
 #  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...)             \
     _VnV_injectionPoint_begin(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, \

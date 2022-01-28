@@ -15,7 +15,7 @@
     <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
         {% for i in loopList %}
         <li class="nav-item">
-            <a class="nav-link {%if active_tab == i[0] %} active {%endif%}" id="pills-{{i[0]}}-tab" data-toggle="pill"
+            <a class="nav-link {%if active_tab == i[0] %} active {%endif%}" state="provVals" id="pills-{{i[0]}}-tab" data-toggle="pill"
                href="#pills-{{i[0]}}" role="tab"
                aria-controls="pills-{{i[0]}}" aria-selected="true">{{i[1]}}</a>
         </li>

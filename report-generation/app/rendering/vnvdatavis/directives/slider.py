@@ -21,7 +21,7 @@ class VnVMainSliderNode(docutils.nodes.General, docutils.nodes.Element):
 
     @staticmethod
     def visit_node(visitor, node):
-        visitor.body.append(f"""<div id="{node["uid"]}" class="carousel slide" data-ride="carousel"><div class="carousel-inner">""")
+        visitor.body.append(f"""<div id="{node["uid"]}" class="carousel slide card " style=" align-items:center; " data-ride="carousel"><div id="{node["uid"]}_inner" class="carousel-inner" style="width:80%;">""")
 
     @staticmethod
     def depart_node(visitor, node):
@@ -37,7 +37,7 @@ class VnVSliderItemNode(docutils.nodes.General, docutils.nodes.Element):
 
     @staticmethod
     def visit_node(visitor, node):
-        visitor.body.append(f"""<div class="carousel-item">""")
+        visitor.body.append(f"""<div class="carousel-item {node["active"]}" style="text-align:center;">""")
 
     @staticmethod
     def depart_node(visitor, node):
@@ -58,6 +58,8 @@ class VnVSliderDirective(SphinxDirective):
     has_content = True
     option_spec = {}
 
+    slider_count = 0
+
     def run(self):
         uid = uuid.uuid4().hex
         target, target_id = get_target_node(self)
@@ -65,17 +67,21 @@ class VnVSliderDirective(SphinxDirective):
         nested_parse_with_titles(self.state, self.content, block)
         return [target, block]
 
+
+
 class VnVSliderItemDirective(SphinxDirective):
     required_arguments = 0
     optional_arguments = 0
     file_argument_whitespace = True
     has_content = True
-    option_spec = {}
+    option_spec = {
+        "active" : int
+    }
 
     def run(self):
         uid = uuid.uuid4().hex
         target, target_id = get_target_node(self)
-        block = VnVSliderItemNode(uid=uid)
+        block = VnVSliderItemNode(uid=uid, active=("active" if self.options.get("active",False) else ""))
         nested_parse_with_titles(self.state, self.content, block)
         return [target, block]
 

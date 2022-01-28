@@ -66,7 +66,7 @@ class VnVProcessDirective(SphinxDirective):
 
     def run(self):
         target, target_id = get_target_node(self)
-        block = VnVProcessNode();
+        block = VnVProcessNode()
         nested_parse_with_titles(self.state, self.content, block)
         return [target, block]
 
@@ -98,27 +98,32 @@ class JsonImageDirective(SphinxDirective):
     optional_arguments = 0
     file_argument_whitespace = True
     has_content = False
-    options_spec = {
-        "height": optional_int,
-        "width": optional_int,
+    option_spec = {
+        "height": str,
+        "width": str,
         "alt": directives.unchanged
     }
 
-    script_tempate = '''
-    <image  id="{id_} class="vnv_image" src="{src}" alt="{alt}" width="{width}" height="{height}"/>
+
+    def process_condition(self):
+        return re.sub('{{(.*?)}}', lambda x: jmes_jinja_query( x.group(1)), " ".join(self.arguments))
+
+
+    script_template = '''
+    <image  id="{id_}" class="vnv_image" src="{src}" alt="{alt}" style="width:{width}; height:{height};"/>
     '''
 
     def getHtml(self, id_, content):
         return self.script_template.format(
             id_=id_,
-            height=self.options.get("height", 400),
-            width=self.options.get("width", ),
+            height=self.options.get("height", "auto"),
+            width=self.options.get("width", "auto"),
             src=content,
             alt=self.options.get("alt", "")
         )
 
     def run(self):
-        j = jmes_jinja_query_str(" ".join(self.arguments))
+        j = self.process_condition()
         target, target_id = get_target_node(self)
         block = VnVChartNode(html=self.getHtml(target_id, j))
         return [target, block]

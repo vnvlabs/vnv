@@ -495,7 +495,6 @@ class InMemory {
     std::shared_ptr<CommInfoNode> commInfo;
     std::shared_ptr<WorkflowNode> workflowNode;
 
-    VisitorLock* visitorLocking = nullptr;
 
     std::map<long, std::list<IDN>> nodes;
     std::map<long, std::shared_ptr<DataBase>> idMap;
@@ -510,7 +509,6 @@ class InMemory {
 
     void setspec(const json& s) { spec->set(s); }
 
-    void setVisitorLock(VisitorLock* lock) { visitorLocking = lock; }
     void setProcessing(bool value) { _processing.store(value, std::memory_order_relaxed); }
 
     virtual std::shared_ptr<IMapNode> getPackages() override { INITMEMBER(packages, MapNode) return packages; }
@@ -524,17 +522,6 @@ class InMemory {
     }
 
     virtual bool processing() const override { return _processing.load(); }
-
-    void lock() override {
-      if (visitorLocking != NULL) {
-        visitorLocking->lock();
-      }
-    }
-    void release() override {
-      if (visitorLocking != NULL) {
-        visitorLocking->release();
-      }
-    }
 
     virtual std::shared_ptr<DataBase> findById_Internal(long id) override {
       auto it = idMap.find(id);
@@ -561,6 +548,7 @@ class InMemory {
     virtual const VnVSpec& getVnVSpec() { return *spec; }
   };
 };
+
 
 typedef StreamParserTemplate<InMemory> InMemoryParser;
 template <typename N> using InMemoryParserVisitor = InMemoryParser::ParserVisitor<N>;

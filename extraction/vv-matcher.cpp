@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "base/Utilities.h"
+#include "base/DistUtils.h"
 #include "base/exceptions.h"
 #include "json-schema.hpp"
 
@@ -74,6 +75,36 @@ static llvm::cl::opt<bool> force("force", llvm::cl::desc("force"),
                                  llvm::cl::value_desc("bool"),
                                  llvm::cl::init(false),
                                  llvm::cl::cat(VnVParserCatagory));
+
+
+static llvm::cl::list<std::string> ignoreDir("ignore-dir", llvm::cl::desc("ignore-dir"),
+                                 llvm::cl::value_desc("string"),
+                                 llvm::cl::cat(VnVParserCatagory));
+
+
+static llvm::cl::list<std::string> ignoreFiles("ignore-file", llvm::cl::desc("ignore-files"),
+                                 llvm::cl::value_desc("string"),
+                                 llvm::cl::cat(VnVParserCatagory));
+
+
+
+bool acceptFile(std::string filename) {
+
+
+  for (auto &it : ignoreDir) {
+     if (VnV::DistUtils::fileInDirectory(filename,it)) {
+       return false;
+     }
+  }
+  for (auto &it : ignoreFiles) {
+     if (VnV::DistUtils::fileEquals(filename,it)) {
+       return false;
+     }
+  }
+  
+  return true;
+
+}
 
 /**
  * Main Executable for VnV Processor.
@@ -130,13 +161,18 @@ try {
   for (auto it : OptionsParser.getCompilations().getAllCompileCommands()) {
     auto s = std::find(it.CommandLine.begin(), it.CommandLine.end(), search);
     if (s == it.CommandLine.end()) {
+      std::string f;
       if (it.Filename[0] != '/') {
-        theFiles.insert(it.Directory + "/" + it.Filename);
+        f = it.Directory + "/" + it.Filename;
       } else {
-        theFiles.insert(it.Filename);
+        f = it.Filename;
+      }   
+      if (acceptFile(f)) {
+          theFiles.insert(f);
       }
     }
   }
+
 
   // TODO This checks if any of the cpp files have changed and if any of the
   // headers included in that cpp file ON THE LAST RUN have changed. To get

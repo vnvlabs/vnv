@@ -1283,6 +1283,7 @@ template <class DB> class StreamParserTemplate {
 
     virtual std::shared_ptr<typename DB::WorkflowNode> visitWorkflowStartedNode(const T& j) {
        auto n = mks<typename DB::WorkflowNode>(j);
+       n->open(true);
        n->setpackage(j[JSD::package].template get<std::string>());
        n->setname(j[JSD::name].template get<std::string>());
        n->setinfo(j[JSD::info]);
@@ -1301,6 +1302,7 @@ template <class DB> class StreamParserTemplate {
        auto n = std::dynamic_pointer_cast<typename DB::WorkflowNode>(rootInternal()->getWorkflowNode());
        n->setinfo(j[JSD::info]);
        n->setstate("Done");
+       n->open(false);
        return n;
     }
     
@@ -1379,6 +1381,7 @@ template <class DB> class StreamParserTemplate {
     virtual std::shared_ptr<typename DB::TestNode> visitTestNodeEnded(const T& j, std::shared_ptr<DataBase> node) {
       auto n = std::dynamic_pointer_cast<typename DB::TestNode>(node);
       n->setresult(j[JSD::result].template get<bool>());
+      n->open(false);
       return n;
     };
 
@@ -1458,20 +1461,25 @@ template <class DB> class StreamParserTemplate {
     virtual void set(std::shared_ptr<Iterator<T>> jstream_, typename DB::RootNode* rootNode) {
       jstream = jstream_;
       _rootInternal = rootNode;
-      rootInternal()->setVisitorLock(this);
     }
 
-    virtual ~ParserVisitor() { rootInternal()->setVisitorLock(nullptr); }
+    virtual ~ParserVisitor() { 
+    }
 
     std::atomic_bool read_lock = ATOMIC_VAR_INIT(false);
     std::atomic_bool write_lock = ATOMIC_VAR_INIT(false);
+    std::atomic_bool kill_lock = ATOMIC_VAR_INIT(false);
+
+    void kill(){
+      kill_lock.store(true, std::memory_order_relaxed);
+    }
 
     virtual void process() {
       jstream->start_stream_reader();
       long i = 0;
       bool changed = false;
 
-      while (!jstream->isDone()) {
+      while (!jstream->isDone() && !kill_lock.load(std::memory_order_relaxed)) {
         i = ++i % 1000;
         if (changed && i == 999) {
           rootInternal()->persist();
@@ -1493,6 +1501,7 @@ template <class DB> class StreamParserTemplate {
       }
       rootInternal()->persist();
       rootInternal()->setProcessing(false);
+      rootInternal()->open(false);
       jstream->stop_stream_reader();
     }
 
@@ -1782,12 +1791,37 @@ template <class DB> class StreamParserTemplate {
     std::shared_ptr<T> stream;
 
     std::thread tworker;
+    bool running = false;
+
     void run(bool async) {
       if (async) {
+        running = true;
         tworker = std::thread(&ParserVisitor<V>::process, visitor.get());
       } else {
         visitor->process();
       }
+    }
+
+    void kill() override {
+       if (running ) {
+         visitor->kill();
+         tworker.join();
+         running=false;
+       }
+    }
+    virtual ~RootNodeWithThread() {
+       // We SHOULD be calling kill before destruction. The thread calls virtual methods on the IRootNode
+       // as part of the loop. If we don't kill this first, then the thread could call virtual methods 
+       // of a derived class that is already destroyed (or something ). In other words, this class is a topsy-turvy 
+       // mess :{}. Just in case, we kill here to (so it doesnt seg fault)
+       if (running) {kill();}
+    }
+
+    void lock() override {
+        visitor->lock();
+    }
+    void release() override {
+        visitor->release();
     }
 
     virtual void respond(long id, long jid, const std::string& response) override {
@@ -1800,6 +1834,7 @@ template <class DB> class StreamParserTemplate {
 
     static std::shared_ptr<IRootNode> parse(bool async, std::shared_ptr<T> stream,
                                             std::shared_ptr<ParserVisitor<V>> visitor = nullptr) {
+      
       std::shared_ptr<RootNodeWithThread> root = std::make_shared<RootNodeWithThread>();
       root->registerNode(root);
       root->setname("Root Node");
@@ -1812,6 +1847,9 @@ template <class DB> class StreamParserTemplate {
       root->run(async);
       return root;
     }
+    
+   
+
   };
 };
 

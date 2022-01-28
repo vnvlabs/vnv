@@ -161,7 +161,7 @@ def plotly_convert(keys, value, trace, data):
     return rendered
 
 
-def plotly_post_process(text, data):
+def plotly_post_process_raw(text, data, file, ext):
     # Extract all the trace definitions -- trace.x = scatter trace.y = line
     # Turn it into an object
     rdata = {}
@@ -177,7 +177,7 @@ def plotly_post_process(text, data):
 
     for k, v in options.items():
         a = k.split('.')
-        if a in PlotlyDirec.external or a[0] == "trace":
+        if k in ext or a[0] == "trace":
             pass
         else:
             a = k.split('.')
@@ -198,7 +198,7 @@ def plotly_post_process(text, data):
     # Raw data is in the correct format, but it is not
     rawdata = {
         "layout": {},
-        "config": {},
+        "config": {"responsive":True},
         "data": [],
         "errors" : errors
     }
@@ -212,8 +212,10 @@ def plotly_post_process(text, data):
             v.setdefault("type", traces.get(k,"scatter"))
             v.setdefault("name", k)
             rawdata["data"].append(v)
+    return rawdata
 
-    return json.dumps(rawdata)
+def plotly_post_process(text, data, file):
+    return json.dumps(plotly_post_process_raw(text,data,file, PlotlyDirec.external))
 
 
 class PlotlyOptionsDict(MutableMapping):
@@ -254,9 +256,8 @@ class PlotlyChartDirective(JsonChartDirective):
               Plotly.newPlot('{id_}',obj['data'],obj['layout']);
 
               url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-              update_soon(url, "{id_}", 1000, function(config) {{
+              update_now(url, "{id_}", 1000, function(config) {{
                 var xx = JSON.parse(config)
-                debugger;
                 Plotly.update('{id_}',xx['data'],xx['layout']);
               }})
 
@@ -272,24 +273,20 @@ class PlotlyDirec(PlotlyChartDirective):
     option_spec = PlotlyOptionsDict()
     external = ["width", "height", "defaultTrace"]
 
-
     postprocess = plotly_post_process
 
     script_template = '''
-                 <div id="{id_}" style="width:"100%"; height:"100%"></div>
+                 <div id="{uid}" style="width:"100%"; height:"100%"></div>
                  <script>
                  $(document).ready(function() {{
-                   url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}?plotly"
+                   url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}?context=plotly"
                    var load = [88,12]
-                   Plotly.newPlot('{id_}',[{{values: load, text:'Loading', textposition:'inside', hole: 0.5, labels: 
+                   Plotly.newPlot('{uid}',[{{values: load, text:'Loading', textposition:'inside', hole: 0.5, labels: 
                    ['Loaded','Remaining'], type: 'pie'}}],{{showlegend:false,
                    annotations: [{{font: {{size: 20}},showarrow: false, text: `${{load[0]}}%`,x: 0.5,y: 0.5}}] }},{{ }});
-                   update_now(url, "{id_}", 1000, function(config) {{
+                   update_now(url, "{uid}", 1000, function(config) {{
                      var xx = JSON.parse(config)
-                     console.log(xx)
-                     Plotly.react('{id_}',xx['data'],xx['layout'], xx['config']);
-                     console.log("DONE")
-                     
+                     Plotly.react('{uid}',xx['data'],xx['layout'], xx['config']);                     
                    }})
                  }})
                  </script>

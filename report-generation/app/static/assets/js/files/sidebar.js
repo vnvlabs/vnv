@@ -6,6 +6,7 @@ function loading() {
 function remove_file(id_, event, refresh) {
   event.preventDefault()
   act = refresh ? "Refresh" : "Remove"
+
   confirm_modal( act + " File", "Are you sure?" , "Yes","No", (e,m)=>{
 
      if (e) {
@@ -23,6 +24,9 @@ function remove_file(id_, event, refresh) {
                 window.location.href = data
             } else {
                 m.modal('hide')
+                if (VNV_FILE_ID == id_) {
+                    window.location.href = "/"
+                }
             }
         });
      }
@@ -86,7 +90,6 @@ function update_roles() {
      }
    )
    if (data.length) {
-     console.log(data)
 
      $.ajax({
         url: "/directives/roles" ,
@@ -172,6 +175,10 @@ function switch_unit(fileId, name, id, element) {
 
 }
 
+function logout() {
+    window.location.href = "/logout"
+}
+
 function show_file_reader(vnvfileid, filename, reader , type, options) {
        if (type.length == 0 ) {
          $('#file_viewer_modal').modal('show')
@@ -215,28 +222,35 @@ function scroll_to_bottom() {
     a.children[ a.children.length -1 ].scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"})
 }
 
+function update_chart(url, containerId, timeout, chartupdate, response) {
+        x = JSON.parse(response)
+        if (!x.more) {
+          $('#' + containerId ).removeClass("vnv-reloader")
+        }
+
+        chartupdate(x.config)
+
+        if (x.more && $('#' +containerId).parent(".vnv-reloader").length == 0 ) {
+            update_soon(url,  containerId, timeout,chartupdate)
+        }
+}
+
 function update_soon(url,  containerId, timeout, chartupdate) {
     if ($('#' + containerId).length) {
         setTimeout(function() {
             $.get(url, function(response) {
-               var x = JSON.parse(response)
-               chartupdate(x.config)
-               if (x.more) {
-                 update_soon(url,  containerId, timeout,chartupdate)
-               }
+               update_chart(url,containerId,timeout,chartupdate,response)
             })
         }, timeout)
     }
 }
+
 function update_now(url,  containerId, timeout, chartupdate) {
     if ($('#' + containerId).length) {
+        $('#' + containerId).addClass("vnv-reloader")
         $.get(url, function(response) {
-               var x = JSON.parse(response)
-               chartupdate(x.config)
-               if (x.more) {
-                 update_soon(url,  containerId, timeout,chartupdate)
-               }
-            })
+            update_chart(url,containerId,timeout,chartupdate,response);
+        })
     }
 }
 
@@ -325,5 +339,65 @@ $(window).on('load', function() {
           $(this).text(parseInt($(this).text())-1)
        })
     }, 1000)
+});
+
+
+function updateIpState(ipid, fileId) {
+
+   var url = '/files/viewers/ip/' + fileId + "?ipid=" + ipid
+
+   $.get(  url , function( data ) {
+     $('#injection-element').html(data)
+   });
+
+   xx = {}
+   x = localStorage.getItem("vnv_ip_state")
+   if (x){
+        xx = JSON.parse(x)
+   }
+   xx[fileId] = ipid
+   localStorage.setItem("vnv_ip_state", JSON.stringify(xx))
+}
+
+$(document).ready(function() {
+   $('a[data-toggle="pill"]').on('shown.bs.tab', function(e){
+          var navElm = $(e.target)
+          var target = navElm.attr("href") // activated tab
+          var state = navElm.attr("state")
+          var id = $(e.target).attr("id")
+
+          if (state) {
+            var x = localStorage.getItem("vnv_tab_state")
+            var xx = {}
+            if (x) {
+                xx = JSON.parse(x)
+            }
+            xx[state] = id
+
+            localStorage.setItem("vnv_tab_state", JSON.stringify(xx))
+          }
+          console.log(localStorage)
+    })
+
+    x = localStorage.getItem("vnv_tab_state")
+    if (x) {
+        xx = JSON.parse(x)
+        for (const [key, value] of Object.entries(JSON.parse(x))) {
+            $('#' + value).tab("show")
+        }
+    }
+
+    if (typeof VNV_FILE_ID !== 'undefined') {
+        x = localStorage.getItem("vnv_ip_state")
+        xx = {}
+        if (x) {
+            xx = JSON.parse(x)
+
+            if (xx[VNV_FILE_ID]) {
+                 updateIpState(xx[VNV_FILE_ID],VNV_FILE_ID);
+            }
+        }
+    }
+
 });
 

@@ -7,6 +7,7 @@
                 <a class="nav-link {% if loop.index == 1 %} active {%endif%}"
                    id="sbrow-{{loop.index}}"
                    data-toggle="pill"
+                   state="sourcemap"
                    role="tab"
                    href="#source-{{loop.index}}"
                    onclick="$('.tsb').hide(); $('#source-{{loop.index}}').show(); show_file_reader({{i.getVnVFileId()}},'{{i.url()}}','{{i.reader}}','source-browser',{'noload':true, 'highlightline':{{i.get_option('highlightline')|safe}}})"

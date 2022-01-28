@@ -6,7 +6,6 @@
 {% block title %} {{file.name}} {% endblock %}
 
 {% block stylesheets %}
-<link href="/static/assets/css/jsoneditor.css" rel="stylesheet" type="text/css">
 {% endblock stylesheets %}
 
 {% block content %}
@@ -27,7 +26,7 @@ tablist = {
     {% for tab in tablist %}
     <li class="nav-item">
         <a class="nav-link {% if loop.index ==  1 %} active {%endif %}" id="pills-{{tab}}-tab" data-toggle="pill"
-           href="#pills-{{tab}}" role="tab"
+           href="#pills-{{tab}}" role="tab" state="inputfiles"
            aria-controls="pills-{{tab}}" aria-selected="true">{{tablist[tab][0]}}</a>
     </li>
     {%endfor%}

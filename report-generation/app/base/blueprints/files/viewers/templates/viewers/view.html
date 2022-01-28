@@ -1,4 +1,4 @@
-{% with injection_element = "injection-element", view = request.args.get("viewer","processor") %}
+{% with view = request.args.get("viewer","processor") %}
 
 <div id="view-header" class=""
     style="display:flex; align-items:center;  ">
@@ -30,7 +30,7 @@
     </div>
 
 
-    <div id="{{injection_element |safe }}">
+    <div id="injection-element">
         {%with introRender = file.get_introduction() %}
         {%include "viewers/introduction.html" %}
         {%endwith%}
@@ -39,3 +39,6 @@
 </div>
 
 {%endwith%}
+
+<script>
+</script>

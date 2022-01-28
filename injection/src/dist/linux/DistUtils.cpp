@@ -22,8 +22,7 @@
 
 #include "base/Utilities.h"
 #include "base/exceptions.h"
-#include "c-interfaces/Logging.h"
-#include "c-interfaces/RunTime.h"
+
 using nlohmann::json;
 namespace VnV {
 namespace DistUtils {
@@ -62,6 +61,18 @@ std::string getAbsolutePath(std::string filename) {
   }
   return filename;
 }
+
+bool fileEquals(std::string f1, std::string f2) {
+  return getAbsolutePath(f1).compare(getAbsolutePath(f2)) == 0;
+}
+
+
+bool fileInDirectory(std::string file, std::string directory) {
+   auto ap = getAbsolutePath(file);
+   auto ad = getAbsolutePath(directory);
+   return ap.rfind(ad, 0) == 0;
+}
+
 
 bool makedir(std::string filename, mode_t mode) { return mkdir(filename.c_str(), mode) == 0; }
 
@@ -310,51 +321,22 @@ void* loadLibrary(std::string name) {
 }
 
 registrationCallBack searchLibrary(void* dylib, std::string packageName) {
-  bool ret = false;
-  std::string s = VNV_GET_REGISTRATION + packageName;
-
-  void* callback = dlsym(dylib, s.c_str());
+  
+  void* callback = dlsym(dylib, packageName.c_str());
   if (callback != nullptr) {
     return ((registrationCallBack)callback);
   }
   throw INJECTION_EXCEPTION("Library Registration symbol not found for package %s", packageName.c_str());
 }
 
-bool searchLibrary(std::string name, std::set<std::string>& packageNames) {
-  void* dylib = loadLibrary(name);
-  for (auto it : packageNames) {
-    if (searchLibrary(dylib, it)) {
-      dlclose(dylib);
-      return true;
-    }
-  }
-  dlclose(dylib);
-  return false;
-}
 
-int load_callback(struct dl_phdr_info* info, size_t /*size*/, void* data) {
-  std::string name(info->dlpi_name);  // Library name
-  try {
-    searchLibrary(name, *((std::set<std::string>*)data));
-  } catch (...) {
-    // VnV_Error("Could not load Shared Library %s", name.c_str());
-  }
-  return 0;
-}
 
 bool fileExists(std::string filename) {
   struct stat info;
   return stat(filename.c_str(), &info) == 0;
 }
 
-// packageName -> filename.
-void callAllLibraryRegistrationFunctions(std::map<std::string, std::string> packageNames) {
-  std::set<std::string> linked;
-  for (auto it : packageNames) {
-    linked.insert(it.first);
-  }
-  dl_iterate_phdr(load_callback, &linked);
-}
+
 
 std::string getEnvironmentVariable(std::string name, std::string def  ) {
   const char* val = std::getenv(name.c_str());

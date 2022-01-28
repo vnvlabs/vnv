@@ -413,9 +413,10 @@ class MongoPersistance {
 
    public:
     DataBaseImpl() : T() {}
+    virtual ~DataBaseImpl() {}
 
     Mongo_getter_setter(streamId, long, -1) Mongo_getter_setter(name, std::string, "")
-        Mongo_getter_setter(open_, bool, "")
+        Mongo_getter_setter(open_, bool, false)
 
             void setmetadata(MetaDataWrapper& meta) {
       getDocument()->update("metadata", meta.asJson());
@@ -926,7 +927,6 @@ class MongoPersistance {
   class RootNode : public DataBaseImpl<IRootNode> {
     Collection_ptr collection;
     Database_ptr database;
-    VisitorLock* visitorLocking = nullptr;
     std::atomic<bool> _processing = ATOMIC_VAR_INIT(true);
 
     Mongo_docuemnt_ref(children, Array) Mongo_docuemnt_ref(unitTests, Array) Mongo_docuemnt_ref(actions, Map)
@@ -960,10 +960,14 @@ class MongoPersistance {
       autop = true;  // Root Node should autopersist because it might not get deleted.
     }
 
+    virtual ~RootNode() {
+        std::cout << "Also made it here RootNode" << std::endl;
+    }
+
     void setinfoNode(std::shared_ptr<IInfoNode> node) { setinfoNodeId(node->getId()); }
     void setworkflowNode(std::shared_ptr<IWorkflowNode> node) { setworkflowNodeId(node->getId()); }
 
-    void setVisitorLock(VisitorLock* lock) { visitorLocking = lock; }
+
     void setProcessing(bool value) { _processing.store(value, std::memory_order_relaxed); }
 
     virtual void respond(long id, long jid, const std::string& response) override {}
@@ -993,17 +997,6 @@ class MongoPersistance {
     }
 
     virtual bool processing() const override { return _processing.load(); }
-
-    void lock() override {
-      if (visitorLocking != NULL) {
-        visitorLocking->lock();
-      }
-    }
-    void release() override {
-      if (visitorLocking != NULL) {
-        visitorLocking->release();
-      }
-    }
 
     virtual std::shared_ptr<DataBase> findById_Internal(long id) override {
       try {
@@ -1079,6 +1072,7 @@ class MongoRootNodeWithThread : public StreamParserTemplate<MongoPersistance>::R
   static std::shared_ptr<IRootNode> parse(
       bool async, std::string uri, std::string dbname, std::string collname, std::shared_ptr<T> stream,
       std::shared_ptr<StreamParserTemplate<MongoPersistance>::ParserVisitor<V>> visitor = nullptr) {
+    
     auto root = std::make_shared<MongoRootNodeWithThread>(uri, dbname, collname);
 
     root->stream = stream;
@@ -1091,6 +1085,37 @@ class MongoRootNodeWithThread : public StreamParserTemplate<MongoPersistance>::R
     root->run(async);
     return root;
   }
+
+  virtual ~MongoRootNodeWithThread() {
+     std::cout <<"Made it Here I Guess" << std::endl;
+  }
+
+};
+
+class MongoRootNode : public MongoPersistance::RootNode {
+
+ public:
+
+  MongoRootNode() {}
+
+  void lock() override {}
+  void release() override {}
+  virtual void respond(long id, long jid, const std::string& response) override {}
+
+  static std::shared_ptr<IRootNode> load(Database_ptr db, Collection_ptr collection ) {
+    auto root = std::make_shared<MongoRootNode>();
+    root->setMainCollection(db,collection);
+    root->registerNode(root);
+    return root;
+  }
+
+  static std::shared_ptr<IRootNode> load(std::string uri, std::string dbname, std::string collname) {
+    auto client = std::make_shared<Client>(uri);
+    auto db = std::make_shared<Database>(dbname, client);
+    auto collection = Collection::Initialize(collname,db);
+    return load(db,collection);
+  }
+
 };
 
 typedef StreamParserTemplate<MongoPersistance> MongoParser;

@@ -2,7 +2,7 @@ import json
 import re
 
 import jsonschema
-from flask import Blueprint, request, render_template, jsonify, make_response
+from flask import Blueprint, request, render_template, jsonify, make_response, render_template_string
 
 from app.base.utils.utils import render_error
 from app.models import VnVFile
@@ -144,9 +144,8 @@ def rst():
 
         with VnVFile.VnVFile.find(id_) as file:
             data = file.getById(dataId).cast() if dataId is not None else file.root
-            templateName = file.render_temp_string(content)
-
-            config = render_template(templateName, data=DataClass(data, data.getId(), id_))
+            templateName = file.render_to_string(content)
+            config = render_template_string(templateName, data=DataClass(data, data.getId(), id_))
             return render_template("viewers/rst_render.html", content=config);
 
     except Exception as e:
@@ -445,7 +444,7 @@ def query():
         with VnVFile.VnVFile.find(id_) as file:
             d = file.query_str(dataid, quer)
             return make_response(d, 200)
-    except:
+    except Exception as e:
         return make_response(jsonify("error"), 200)
 
 

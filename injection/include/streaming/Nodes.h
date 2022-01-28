@@ -298,6 +298,14 @@ class IArrayNode : public DataBase {
     oss << "]";
     return oss.str();
   }
+
+  void open(bool value) override {
+    DataBase::open(value);
+    for (int i = 0; i < size(); i++ ) {
+        get(i)->open(value);
+    } 
+  }
+  
 };
 
 class IMapNode : public DataBase {
@@ -340,6 +348,14 @@ class IMapNode : public DataBase {
     return oss.str();
   }
 
+  void open(bool value) override {
+    DataBase::open(value);
+    for (auto &it : fetchkeys() ) {
+        get(it)->open(value);
+    } 
+  }
+
+
   virtual ~IMapNode();
 };
 
@@ -365,7 +381,11 @@ class IDataNode : public DataBase {
     return getData()->toString();
   }
 
-  virtual void open(bool value) override;
+  virtual void open(bool value) {
+    DataBase::open(value);
+    getLogs()->open(value);
+    getData()->open(value);
+  }
 };
 
 
@@ -545,7 +565,13 @@ public:
     return j;
   }
 
-  virtual void open(bool value) override;
+ virtual void open(bool value) {
+    DataBase::open(value);
+    getLogs()->open(value);
+    getData()->open(value);
+  }
+ 
+ 
 };
 
 class IWorkflowNode : public DataBase {
@@ -569,6 +595,7 @@ public:
    virtual std::vector<std::string> listReports() = 0; 
    virtual int getReportFileId(std::string reportName) = 0 ;
 
+ 
 
 };
 
@@ -599,8 +626,13 @@ class IInjectionPointNode : public DataBase {
 
     return j;
   }
-
-  virtual void open(bool value) override;
+ virtual void open(bool value) {
+    DataBase::open(value);
+    getLogs()->open(value);
+    getData()->open(value);
+    getTests()->open(value);
+  }
+ 
 };
 
 class ILogNode : public DataBase {
@@ -654,6 +686,15 @@ class IUnitTestResultsNode : public DataBase {
     }
     return j;
   }
+
+  void open(bool value) override {
+    DataBase::open(value);
+    for (auto &it : fetchkeys() ) {
+        get(it)->open(value);
+    } 
+  }
+ 
+
 };
 
 class IUnitTestNode : public DataBase {
@@ -674,7 +715,13 @@ class IUnitTestNode : public DataBase {
     return j;
   }
 
-  virtual void open(bool value) override;
+  void open(bool value) override {
+    DataBase::open(value);
+    getData()->open(value);
+    getLogs()->open(value);
+    getResults()->open(value); 
+  }
+
 };
 
 class VnVSpec {
@@ -876,6 +923,8 @@ class IRootNode : public DataBase {
   virtual void respond(long id, long jid, const std::string& response) = 0;
 
   virtual void persist() {};
+
+  virtual void kill() {};
 
   virtual ~IRootNode();
 };

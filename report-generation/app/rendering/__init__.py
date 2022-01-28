@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import textwrap
 import uuid
 
@@ -103,6 +104,24 @@ class TemplateBuild:
         params = ["-M", "html", temp_dir, os.path.join(temp_dir, "_build")]
         sphinx.cmd.build.make_main(params)
         return os.path.join("renders", self.src_dir, "temp", "_build", "html", "index.html")
+
+    def render_to_string(self, content):
+
+        temp_dir = os.path.join(self.root_dir, uuid.uuid4().hex)
+        setup_build_directory(temp_dir, self.file)
+
+        with open(os.path.join(temp_dir, "index.rst"), 'w') as w:
+            w.write(content)
+
+        params = ["-M", "html", temp_dir, os.path.join(temp_dir, "_build")]
+        sphinx.cmd.build.make_main(params)
+
+        with open(os.path.join(temp_dir, "_build","html","index.html"), 'r') as w:
+            va = w.read()
+
+        shutil.rmtree(temp_dir)
+        return va
+
 
     def get_raw_rst(self, data):
         usage = data.getUsageType()

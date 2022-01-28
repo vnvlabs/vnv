@@ -3,7 +3,7 @@
     <ul class="nav nav-pills mb-3" id="pills-packages-tab" role="tablist">
         {% for package in file.getPackages() %}
             <li class="nav-item">
-                <a class="nav-link {% if loop.index == 1 %} active {%endif%} "  id="pills-package{{package.name}}-tab" data-toggle="pill" href="#pills-package-{{package.name}}" role="tab"
+                <a class="nav-link {% if loop.index == 1 %} active {%endif%} " state="ip_packages" id="pills-package{{package.name}}-tab" data-toggle="pill" href="#pills-package-{{package.name}}" role="tab"
                    aria-controls="pills-package-{{package.name}}" aria-selected="true">{{package.name}}</a>
             </li>
         {%endfor%}

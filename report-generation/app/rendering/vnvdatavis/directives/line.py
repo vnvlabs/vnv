@@ -2,9 +2,10 @@ import json
 
 from sphinx.errors import ExtensionError
 
-from app.rendering.vnvdatavis.directives.charts import JsonChartDirective, VnVChartNode, ApexChartDirective
+from app.rendering.vnvdatavis.directives.charts import JsonChartDirective, VnVChartNode
 from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query, get_target_node, jmes_jinja_query_json, \
     jmes_check, jmes_jinja_zip, jmes_jinja_query_join, jmes_jinja_query_str_array
+from app.rendering.vnvdatavis.directives.apex import ApexChartDirective
 
 
 def jmes_expression(x):

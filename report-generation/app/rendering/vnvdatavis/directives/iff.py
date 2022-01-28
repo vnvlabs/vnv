@@ -1,9 +1,11 @@
 import hashlib
+import json
 import os
 import re
 import uuid
 
 import docutils
+import flask
 from docutils.nodes import SkipNode
 from sphinx.directives import optional_int
 from sphinx.util import nested_parse_with_titles
@@ -21,28 +23,25 @@ class VnVIfNode(docutils.nodes.General, docutils.nodes.Element):
 
     @staticmethod
     def visit_node(visitor, node):
-        visitor.body.append(f'''<div id="{node["uid"]}">''')
-        node["start"] = len(visitor.body)
-        visitor.body.append(f'''{jmes_jinja_if_query(node["query"])}''')
+        visitor.body.append(f'''
+            <div id="{node["uid"]}_start" hidden ></div>
+            <div id="{node["uid"]}_end" hidden ></div>
+            <script>
+                $(document).ready(function(){{
+                    url = "/directives/updates/{node["uid"]}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}?context=if"
+                    update_now(url, "{node["uid"]}_start", 1000, function(config) {{
+                        var nodes = $('#{node["uid"]}_start')
+                        var nodee = $('#{node["uid"]}_end')[0]
+                        while (nodes.next()[0] != nodee) {{nodes.next().remove();}}
+                        nodes.after(config)
+                    }})
+                }})
+            </script>
+        ''')
 
     @staticmethod
     def depart_node(visitor, node):
-       visitor.body.append( f'''{{% endif %}}''')
-
-       #Write the update html file.
-       r = "".join(visitor.body[node["start"]:])
-       with open(os.path.join(Directory.UPDATE_DIR, node["uid"] + ".html"), 'w') as f:
-          f.write(r)
-
-       visitor.body.append(f'''
-                  </div>
-                  <script>
-                    url = "/directives/updates/{node["uid"]}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-                    update_soon(url, "{node["uid"]}", 1000, function(config) {{
-                        $('#{node["uid"]}).html(config)
-                    }})
-                  </script>
-       ''')
+        pass
 
 
 VnVIfNode.NODE_VISITORS = {
@@ -55,13 +54,27 @@ class VnVIfDirective(SphinxDirective):
     optional_arguments = 0
     file_argument_whitespace = True
     has_content = True
-    option_spec = {}
+
+    def get_json(self):
+        return { "condition" : " ".join(self.arguments), "content" : "\n".join(self.content) }
+
+    @staticmethod
+    def post_process(cont, data, file):
+        j = json.loads(cont)
+
+        if data.query(j["condition"]):
+            tname = file.render_to_string(j["content"])
+            return flask.render_template_string(tname, data=data, file=file)
+        return ""
 
     def run(self):
-        uid = uuid.uuid4().hex
+        cont = json.dumps(self.get_json())
+        uid = hashlib.md5(cont.encode()).hexdigest()
+        with open(os.path.join(Directory.UPDATE_DIR, uid),'w') as f:
+            f.write(cont)
+
         target, target_id = get_target_node(self)
-        block = VnVIfNode(query=" ".join(self.arguments), uid=uid, start=0)
-        nested_parse_with_titles(self.state, self.content, block)
+        block = VnVIfNode(uid=uid)
         return [target, block]
 
 

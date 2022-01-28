@@ -1,5 +1,5 @@
-from app.rendering.vnvdatavis.directives import basic, line,charts,jmes,dashboard,gauge,table, psip, issues, plotly,iff, slider
-
+from app.rendering.vnvdatavis.directives import basic, line, charts, jmes, dashboard, gauge, table, psip, issues, \
+    plotly, iff, slider, forr, plotly_animation, apex, chartsjs
 
 def setup(sapp):
     jmes.setup(sapp)
@@ -14,3 +14,7 @@ def setup(sapp):
     plotly.setup(sapp)
     iff.setup(sapp)
     slider.setup(sapp)
+    forr.setup(sapp)
+    plotly_animation.setup(sapp)
+    apex.setup(sapp)
+    chartsjs.setup(sapp)

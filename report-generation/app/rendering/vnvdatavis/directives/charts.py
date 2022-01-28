@@ -79,7 +79,7 @@ class JsonChartDirective(SphinxDirective):
         if r is not None:
             uid = hashlib.md5(r.encode()).hexdigest()
             if not os.path.exists(uid):
-                with open(os.path.join(self.get_update_dir(), uid + ".html"), 'w') as f:
+                with open(os.path.join(self.get_update_dir(), uid), 'w') as f:
                     f.write(r)
             return uid
         return -1
@@ -96,82 +96,6 @@ class JsonChartDirective(SphinxDirective):
         return self.getContent()
 
 
-class ApexChartDirective(JsonChartDirective):
-    script_template = '''
-          <div id="{id_}" class='vnv-table'></div>
-          <script>
-          $(document).ready(function() {{
-            const obj = JSON.parse(`{config}`)
-            var chart = new ApexCharts(document.querySelector("#{id_}"), obj);
-            chart.render();
-            
-            url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-            update_soon(url, "{id_}_container", 1000, function(config) {{
-                chart.updateOptions(JSON.parse(config)) 
-            }})
-            
-          }})
-          </script>
-        '''
-
-    def register(self):
-        return self.getContent()
-
-
-class GChartChartDirective(JsonChartDirective):
-    script_template = '''
-            <div id="{id_}" style="width:"100%"; height:"100%"></div>
-            <script>
-              $(document).ready(function() {{
-              const json = `{config}`
-              const obj = JSON.parse(`{config}`)
-              obj['containerId'] = '{id_}'
-
-              google.charts.load('current');
-              
-              google.charts.setOnLoadCallback(drawVisualization);
-              function drawVisualization() {{
-               var wrapper = new google.visualization.ChartWrapper(obj);
-               wrapper.draw();
-              
-               url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-               update_soon(url, "{id_}", 1000, function(config) {{
-                 var xx = JSON.parse(config)
-                 wrapper.setOptions(xx);
-                 wrapper.draw()
-               }})
-            }})
-            </script>
-        '''
-
-    def register(self):
-        return self.getContent()
-
-
-class ChartJsChartDirective(JsonChartDirective):
-    script_template = '''
-           <div id="{id_}_container" width="100%" height="100%">
-              <canvas id="{id_}"></canvas>
-           </div>
-           <script>
-             $(document).ready(function() {{
-             const obj = JSON.parse(`{config}`)
-             var ctx = document.getElementById('{id_}');
-             var myChart = new Chart(ctx, obj);
-             
-             url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-             update_soon(url, "{id_}_container", 1000, function(config) {{
-                myChart.config = JSON.parse(config)
-                myChart.update()  
-             }})
-           }})
-           </script>
-           '''
-
-    def register(self):
-        return self.getContent()
-
-
 class TableChartDirective(JsonChartDirective):
     script_template = '''
          <div id="{id_}" class='vnv-table' width="100%" height="100%"></div>
@@ -182,7 +106,7 @@ class TableChartDirective(JsonChartDirective):
              var table = new Tabulator("#{id_}", obj);
          
             url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-            update_soon(url, "{id_}", 3000, function(config) {{
+            update_now(url, "{id_}", 3000, function(config) {{
 .               var table = new Tabulator("#{id_}", JSON.parse(config));
             }})
          }});
@@ -281,9 +205,6 @@ class TerminalDirective(JsonChartDirective):
         return self.getContent()
 
 
-vnv_directives["vnv-apex"] = ApexChartDirective
-vnv_directives["vnv-gchart"] = GChartChartDirective
-vnv_directives["vnv-chart"] = ChartJsChartDirective
 vnv_directives["vnv-table"] = TableChartDirective
 vnv_directives["vnv-tree"] = TreeChartDirective
 vnv_directives["vnv-terminal"] = TerminalDirective

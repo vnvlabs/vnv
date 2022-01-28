@@ -136,31 +136,6 @@ WalkerWrapper IRootNode::getWalker(std::string package, std::string name, std::s
   return WalkerWrapper(a, rootNode());
 }
 
-void IDataNode::open(bool value) {
-  DataBase::open(value);
-  getData()->open(value);
-  getLogs()->open(value);
-}
-void ITestNode::open(bool value) {
-  
-  DataBase::open(value);
-  getData()->open(value);
-  getLogs()->open(value);
-}
-
-void IInjectionPointNode::open(bool value)
-
-{
-  DataBase::open(value);
-  getTests()->open(value);
-  getLogs()->open(value);
-}
-
-void IUnitTestNode::open(bool value) {
-  DataBase::open(value);
-  getData()->open(value);
-  getLogs()->open(value);
-}
 
 
  json IWorkflowNode::getDataChildren_(int fileId, int level) {

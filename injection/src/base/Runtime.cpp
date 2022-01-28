@@ -34,6 +34,13 @@
 
 using namespace VnV;
 
+/**
+ * 
+ * WELCOME THE THE VNV TOOLKIT
+ * ---------------------------
+ * 
+ * 
+ */
 INJECTION_OPTIONS(VNVPACKAGENAME, getBaseOptionsSchema().dump().c_str()) {
   RunTime::instance().getRunTimeOptions()->fromJson(config);
 }
@@ -51,7 +58,8 @@ void RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
     if (it == plugins.end()) {
       void* dllib = DistUtils::loadLibrary(libraryPath);
       if (dllib != nullptr) {
-        registrationCallBack reg = DistUtils::searchLibrary(dllib, packageName);
+
+        registrationCallBack reg = DistUtils::searchLibrary(dllib, VNV_GET_REGISTRATION + packageName);
         if (reg != nullptr) {
           runTimePackageRegistration(packageName, reg);
         }

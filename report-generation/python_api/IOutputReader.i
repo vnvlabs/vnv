@@ -275,6 +275,19 @@ def castDataBase(obj) :
       def __str__(self):
            return str(self.getValue())
 
+      def __json__(self):
+         a = {}
+         for i in self.keys():
+            it = self.__getitem__(i)
+            if hasattr(it,"__json__"):
+               a[i] = self.__getitem__(i).__json__()
+            else:
+               try:
+                  json.dumps(it)
+                  a[i] = it
+               except:
+                  pass
+
       def __getitem__(self,key):
          
          if key == "metaData" or key == "MetaData":
@@ -585,11 +598,9 @@ PY_GETATTRWORK(VnV::Nodes::IWorkflowNode)
         raise KeyError("not a valid key")
 
       def __len__(self):
-         shape = json.loads(self.getShapeJson());
-         if (len(shape) == 0) :
-            raise TypeError("Scalar Object has no length")
-         
-         return shape[-1]
+         if self.getValue():
+            return True
+         return False 
 
       def __iter__(self):
         return shapeclassIterator(self)

@@ -12,8 +12,13 @@ from jinja2 import FileSystemLoader
 
 import Directory
 from app.models.VnVFile import VnVFile
+from app.rendering.vnvdatavis.directives.chartsjs import chartsjs_post_process
 from app.rendering.vnvdatavis.directives.dataclass import DataClass
+from app.rendering.vnvdatavis.directives.forr import VnVForDirective
+from app.rendering.vnvdatavis.directives.iff import VnVIfDirective
 from app.rendering.vnvdatavis.directives.plotly import plotly_post_process
+from app.rendering.vnvdatavis.directives.plotly_animation import PlotlyAnimation
+from app.rendering.vnvdatavis.directives.apex import apex_post_process
 from ...utils.utils import render_error
 import os
 
@@ -23,20 +28,29 @@ blueprint = Blueprint(
     template_folder='templates'
 )
 
-
+context_map = {
+    "plotly" : plotly_post_process,
+    "for" : VnVForDirective.post_process,
+    "if" : VnVIfDirective.post_process,
+    "animation" : PlotlyAnimation.post_process,
+    "apex": apex_post_process,
+    "jscharts" : chartsjs_post_process
+}
 
 @blueprint.route('/updates/<updateId>/<int:fileid>/<int:dataid>', methods=["GET"])
 def chartupdates(updateId, fileid, dataid):
     try:
         with VnVFile.find(fileid) as file:
             data = file.getById(dataid).cast()
-            with open(os.path.join(Directory.UPDATE_DIR, updateId + ".html"), 'r') as w:
-                if "plotly" in request.args:
-                    config = plotly_post_process(w.read(), data=DataClass(data, dataid, fileid))
+            with open(os.path.join(Directory.UPDATE_DIR, updateId), 'r') as w:
+                context = request.args.get("context","")
+                if context in context_map:
+                    config = context_map[context](w.read(), DataClass(data, dataid, fileid), file )
                 else:
                     config = render_template_string(w.read(), data=DataClass(data, dataid, fileid))
 
             d = {"more": data.getopen(), "config": config}
+            print(data.getopen())
             return make_response(json.dumps(d), 200)
 
     except Exception as e:

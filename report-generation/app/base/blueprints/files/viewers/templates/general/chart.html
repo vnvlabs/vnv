@@ -162,13 +162,7 @@
                     id : "chart2",
                     events: {
                          dataPointSelection: function(event, chartContext, config) {
-                               var url = '{{url_for('base.files.viewers.ip', id_=file.id_)}}'
-                               url += "?ipid=" + data[config.dataPointIndex].id
-
-                               $.get(  url , function( data ) {
-                                  $('#{{injection_element}}').html(data)
-                               });
-
+                               updateIpState(data[config.dataPointIndex].id , {{file.id_}} )
                                selectedNode = config.dataPointIndex;
                                chart.updateOptions({})
                          }

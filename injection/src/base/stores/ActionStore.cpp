@@ -31,7 +31,7 @@ nlohmann::json ActionStore::schema() {
 ActionStore& ActionStore::instance() { return RunTime::instance().store<ActionStore>(); }
 
 
-void VnV::registerAction(std::string packageName, std::string name, std::string schema, action_ptr m) {
+void VnV::registerVnVAction(std::string packageName, std::string name, std::string schema, action_ptr m) {
   try {
     json j = json::parse(schema);
     ActionStore::instance().registerAction(packageName, name, j, m);

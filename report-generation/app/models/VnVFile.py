@@ -640,6 +640,10 @@ class VnVFile:
         if self.setupNow():
             return self.templates.render_temp_string(content)
 
+    def render_to_string(self, content):
+        if self.setupNow():
+            return self.templates.render_to_string(content)
+
     def get_raw_rst(self, data):
         if self.setupNow():
             return self.templates.get_raw_rst(data)

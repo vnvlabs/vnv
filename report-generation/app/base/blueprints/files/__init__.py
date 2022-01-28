@@ -112,7 +112,7 @@ def new():
 @blueprint.route('/delete/<int:id_>', methods=["POST"])
 def delete(id_):
     refresh = bool(request.args.get("refresh"))
-    VnVFile.removeById(id_, refresh is not None)
+    VnVFile.removeById(id_, refresh)
     if (refresh):
         return make_response(url_for('base.files.view', id_=id_))
     return "success", 200
@@ -285,11 +285,13 @@ def template_globals(globs):
     globs["uniquefiles"] = unique_files
 
 files = [
-    [True, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output", "json_file",{"persist": True}],
-    [True, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-workflow-output", "json_file", {"persist":True}],
+    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output", "json_file",{"persist": True}],
+    [True, "/home/ben/source/vv/applications/MOOSE/examples/ex01_inputfile/vv-output", "json_file",{"persist":True}],
+    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-workflow-output", "json_file", {"persist":True}],
     [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/adios-output-live", "adios", True, {}],
     [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live", "json_file",{"persist": True}],
-    [True, "/home/ben/source/vv/applications/asgard/build/vv-output", "json_file",{"persist": True}],
+
+    [False, "/home/ben/source/vv/applications/asgard/build/vv-output", "json_file",{"persist": True}],
 ]
 
 def faker():

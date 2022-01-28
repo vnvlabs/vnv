@@ -1,4 +1,4 @@
-<li class="nav-item pcoded-hasmenu">
+<li class="nav-item pcoded-hasmenu" >
 
     <a href="#!" class="nav-link "><span class="pcoded-micon"><i class="feather icon-file"></i></span><span
             class="pcoded-mtext">VnV Reports</span>
@@ -10,19 +10,19 @@
 
         {% for file in uniquefiles() %}
         <li id="file-{{file.id_ | safe}}">
-          <a onclick="markAsLoading(true)" href="{{url_for('base.files.view',id_=file.id_)}}">
-            <div style="display:flex;">
-                <span style="flex:1;">{{file.name}}</span>
-                <span onclick='remove_file({{file.id_ | safe }}, event, true)' class="pcoded-micon"
-                      style="padding-right:10px;">
+            <a onclick="markAsLoading(true)" href="{{url_for('base.files.view',id_=file.id_)}}">
+                <div style="display:flex;">
+                    <span style="flex:1;">{{file.name}}</span>
+                    <span onclick='remove_file({{file.id_ | safe }}, event, true)' class="pcoded-micon"
+                          style="padding-right:10px;">
 									<i class="feather icon-refresh-ccw"></i>
 					</span>
-                <span onclick='remove_file({{file.id_ | safe }}, event, false)' class="pcoded-micon"
-                      style="padding-right:10px;">
+                    <span onclick='remove_file({{file.id_ | safe }}, event, false)' class="pcoded-micon"
+                          style="padding-right:10px;">
 									<i class="feather icon-delete"></i>
 								</span>
-            </div>
-          </a>
+                </div>
+            </a>
         </li>
         {% endfor %}
     </ul>

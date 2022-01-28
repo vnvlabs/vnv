@@ -80,11 +80,7 @@ std::shared_ptr<IRootNode> Mongo::MongoPersistance::WorkflowNode::getReport(std:
     std::string collectionName = a[reportName]["collection"].get<std::string>();
     auto collection = Collection::Initialize(collectionName, root->getMainDatabase());
     
-    std::shared_ptr<MongoPersistance::RootNode> r;
-    r.reset(new MongoPersistance::RootNode());
-    r->setMainCollection(root->getMainDatabase(),collection);
-    r->registerNode(r);
-        return r;  
+    return MongoRootNode::load(root->getMainDatabase(),collection);
   }
   return nullptr;
 }
