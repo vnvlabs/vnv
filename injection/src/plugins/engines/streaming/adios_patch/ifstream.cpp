@@ -18,7 +18,7 @@ template <class T> void StreamPatch::SetBlockSelectionCommon(Variable<T>& variab
     variable.SetBlockSelection(blockID);
   } else {
     if (blockID != 0) {
-      throw std::exception("ERROR: in variable " + variable.Name() +
+      throw std::invalid_argument("ERROR: in variable " + variable.Name() +
                                   " only set blockID > 0 for variables "
                                   "with ShapeID::LocalArray, in call to read\n");
     }
@@ -53,7 +53,8 @@ StreamPatch::StreamPatch(const std::string& name, MPI_Comm comm) :
  m_ADIOS(comm), m_IO(m_ADIOS.DeclareIO(name)) {
      CheckOpen();
  }
-
+ 
+ 
 #endif
 
 size_t StreamPatch::CurrentStep() const noexcept {
