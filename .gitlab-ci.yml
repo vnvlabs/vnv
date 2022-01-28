@@ -1,3 +1,13 @@
+
+before_script:
+    - curl https://code.ornl.gov/rse-deployment/rse-sharables/raw/master/rse-bash-modules.sh -O
+    - source rse-bash-modules.sh
+    - func_rse_docker_cleanup
+
+after_script:
+    - source rse-bash-modules.sh
+    - func_rse_docker_cleanup
+
 stages:
   - build
   - docs

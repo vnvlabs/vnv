@@ -381,7 +381,7 @@ class IDataNode : public DataBase {
     return getData()->toString();
   }
 
-  virtual void open(bool value) {
+  virtual void open(bool value) override {
     DataBase::open(value);
     getLogs()->open(value);
     getData()->open(value);
@@ -565,7 +565,7 @@ public:
     return j;
   }
 
- virtual void open(bool value) {
+ virtual void open(bool value)  override {
     DataBase::open(value);
     getLogs()->open(value);
     getData()->open(value);
@@ -626,7 +626,7 @@ class IInjectionPointNode : public DataBase {
 
     return j;
   }
- virtual void open(bool value) {
+ virtual void open(bool value) override {
     DataBase::open(value);
     getLogs()->open(value);
     getData()->open(value);

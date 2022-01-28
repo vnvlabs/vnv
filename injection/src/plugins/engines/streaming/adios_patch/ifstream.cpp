@@ -18,7 +18,7 @@ template <class T> void StreamPatch::SetBlockSelectionCommon(Variable<T>& variab
     variable.SetBlockSelection(blockID);
   } else {
     if (blockID != 0) {
-      throw std::invalid_argument("ERROR: in variable " + variable.Name() +
+      throw std::exception("ERROR: in variable " + variable.Name() +
                                   " only set blockID > 0 for variables "
                                   "with ShapeID::LocalArray, in call to read\n");
     }
