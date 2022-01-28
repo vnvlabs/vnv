@@ -462,6 +462,7 @@ template <typename T> class PortStreamWriter : public StreamWriter<T> {
   }
 
   virtual std::string autostart(const json& config) {
+
 #ifdef WITH_LIBCURL
 
     std::string readerUrl = config.value("url", "localhost:5000");
@@ -491,9 +492,11 @@ template <typename T> class PortStreamWriter : public StreamWriter<T> {
       std::cout << "Auto Start Successfull" << std::endl;
       return w.getData();
     }
-#endif
+ #endif
+
     throw INJECTION_EXCEPTION_("Could not autostart the engine reader.");
-  }
+  
+ }
 
  public:
   static std::string getSchema() {
@@ -529,8 +532,11 @@ template <typename T> class PortStreamWriter : public StreamWriter<T> {
     } else {
       newFileStub = config["filename"].get<std::string>();
     }
-
+    
+    #ifdef WITH_LIBCURL
     VnV::Curl::CurlWrapper::instance().addBasic(username, password);
+    #endif
+    
     return newFileStub;
   }
 
