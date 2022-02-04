@@ -15,10 +15,8 @@ class PlugPoint : public InjectionPoint {
   bool started = false;
 
  public:
-  PlugPoint(std::string packageName, std::string name, std::map<std::string,std::string> registrationJson,
-            NTV& in_args, const NTV& out_args)
-      : InjectionPoint(packageName, name, registrationJson, in_args,
-                       out_args){};
+  PlugPoint(std::string packageName, std::string name, std::map<std::string, std::string> registrationJson, NTV& args)
+      : InjectionPoint(packageName, name, registrationJson, args){};
 
   virtual void setPlug(PlugConfig& config);
   virtual bool plug(std::string function, int line);

@@ -82,37 +82,30 @@ void VnV_CJson_is_null(c_json json, bool* result, int* err) {
 }
 
 void VnV_CJson_is_array(c_json json, bool* result, int* err) {
-  if (VnV_CJson_check(json, err))
-    *result = VnV_CJson_castJson(json)->is_array();
+  if (VnV_CJson_check(json, err)) *result = VnV_CJson_castJson(json)->is_array();
 }
 
 void VnV_CJson_is_number(c_json json, bool* result, int* err) {
-  if (VnV_CJson_check(json, err))
-    *result = VnV_CJson_castJson(json)->is_number();
+  if (VnV_CJson_check(json, err)) *result = VnV_CJson_castJson(json)->is_number();
 }
 void VnV_CJson_is_string(c_json json, bool* result, int* err) {
-  if (VnV_CJson_check(json, err))
-    *result = VnV_CJson_castJson(json)->is_string();
+  if (VnV_CJson_check(json, err)) *result = VnV_CJson_castJson(json)->is_string();
 }
 
 void VnV_CJson_is_boolean(c_json json, bool* result, int* err) {
-  if (VnV_CJson_check(json, err))
-    *result = VnV_CJson_castJson(json)->is_boolean();
+  if (VnV_CJson_check(json, err)) *result = VnV_CJson_castJson(json)->is_boolean();
 }
 
 void VnV_CJson_is_number_float(c_json json, bool* result, int* err) {
-  if (VnV_CJson_check(json, err))
-    *result = VnV_CJson_castJson(json)->is_number_float();
+  if (VnV_CJson_check(json, err)) *result = VnV_CJson_castJson(json)->is_number_float();
 }
 
 void VnV_CJson_is_number_unsigned(c_json json, bool* result, int* err) {
-  if (VnV_CJson_check(json, err))
-    *result = VnV_CJson_castJson(json)->is_number_unsigned();
+  if (VnV_CJson_check(json, err)) *result = VnV_CJson_castJson(json)->is_number_unsigned();
 }
 
 void VnV_CJson_is_number_integer(c_json json, bool* result, int* err) {
-  if (VnV_CJson_check(json, err))
-    *result = VnV_CJson_castJson(json)->is_number_integer();
+  if (VnV_CJson_check(json, err)) *result = VnV_CJson_castJson(json)->is_number_integer();
 }
 
 void VnV_CJson_getArraySize(c_json json, unsigned long* result, int* err) {
@@ -127,8 +120,7 @@ void VnV_CJson_getArraySize(c_json json, unsigned long* result, int* err) {
   }
 }
 
-void VnV_CJson_getArrayIndex(c_json json, unsigned int index, c_json* result,
-                             int* err) {
+void VnV_CJson_getArrayIndex(c_json json, unsigned int index, c_json* result, int* err) {
   unsigned long size;
   VnV_CJson_getArraySize(json, &size, err);
   if (*err == CJSON_OK) {
@@ -165,8 +157,7 @@ void VnV_CJson_getKeyValue(c_json json, char* key, c_json* result, int* err) {
   }
 }
 
-void VnV_CJson_getAllKeys(c_json json, char*** keys, unsigned long* size,
-                          int* err) {
+void VnV_CJson_getAllKeys(c_json json, char*** keys, unsigned long* size, int* err) {
   bool yes;
   VnV_CJson_is_object(json, &yes, err);
   if (*err == CJSON_OK) {
@@ -268,37 +259,30 @@ void VnV_CJson_printJson(c_json json, int* err) {
   }
 }
 
-void _VnV_registerOptions(const char* name, const char* s,
-                          options_callback_ptr v) {
+void _VnV_registerOptions(const char* name, const char* s, options_callback_ptr v) {
   try {
     json k = json::parse(s);
     VnV::OptionsParserStore::instance().add(name, k, v);
   } catch (...) {
-    VnV_Error(VNVPACKAGENAME,"Error Registering Options");  
+    VnV_Error(VNVPACKAGENAME, "Error Registering Options");
   }
 }
 
-void VnV::RegisterOptions(std::string packageName, std::string schema,
-                          options_cpp_callback_ptr callback) {
-  
+void VnV::RegisterOptions(std::string packageName, std::string schema, options_cpp_callback_ptr callback) {
   try {
     json j = json::parse(schema);
     VnV::RegisterOptions_Json(packageName, j, callback);
   } catch (...) {
-    VnV_Error(VNVPACKAGENAME,"Error Registering Options");  
+    VnV_Error(VNVPACKAGENAME, "Error Registering Options");
   }
-
 }
 
-void VnV::RegisterOptions_Json(std::string name, json& schema,
-                               options_cpp_callback_ptr callback) {
-
+void VnV::RegisterOptions_Json(std::string name, json& schema, options_cpp_callback_ptr callback) {
   try {
     VnV::OptionsParserStore::instance().add(name, schema, callback);
   } catch (...) {
-    VnV_Error(VNVPACKAGENAME,"Error Registering Options");  
+    VnV_Error(VNVPACKAGENAME, "Error Registering Options");
   }
-
 }
 
 json* VnV::asJson(c_json json) { return VnV_CJson_castJson(json); }

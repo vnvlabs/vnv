@@ -5,6 +5,7 @@ add_subdirectory(plugins)
 add_subdirectory(dist)
 add_subdirectory(streaming)
 add_subdirectory(python)
+add_subdirectory(fortran-interfaces)
 
 target_link_libraries(injection PRIVATE dl)
 target_link_libraries(injection PUBLIC jsv::jsv)

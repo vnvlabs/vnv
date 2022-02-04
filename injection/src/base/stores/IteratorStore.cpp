@@ -18,8 +18,7 @@ using namespace VnV;
 IteratorStore::IteratorStore() {}
 
 std::shared_ptr<IterationPoint> IteratorStore::newIterator(std::string packageName, std::string name,
-                                                           struct VnV_Function_Sig pretty, int once_, NTV& in_args,
-                                                           NTV& out_args) {
+                                                           struct VnV_Function_Sig pretty, int once_, NTV& args) {
   std::string key = packageName + ":" + name;
   auto it = iterators.find(key);
   auto reg = registeredIterators.find(key);
@@ -52,7 +51,7 @@ std::shared_ptr<IterationPoint> IteratorStore::newIterator(std::string packageNa
       // Construct and reset because InjectionPoint ctor is only accessible in
       // InjectionPointStore.
       std::shared_ptr<IterationPoint> injectionPoint;
-      injectionPoint.reset(new IterationPoint(packageName, name, spec_map, once_, in_args, out_args));
+      injectionPoint.reset(new IterationPoint(packageName, name, spec_map, once_, args));
       for (auto& test : it->second.tests) {
         if (sig.match(test.getRunConfig())) {
           injectionPoint->addTest(test);
@@ -128,14 +127,13 @@ json IteratorStore::schema() {
 }
 
 std::shared_ptr<IterationPoint> IteratorStore::getNewIterator(std::string package, std::string name,
-                                                              struct VnV_Function_Sig pretty, int once, NTV& in_args,
-                                                              NTV& out_args) {
+                                                              struct VnV_Function_Sig pretty, int once, NTV& args) {
   std::string key = package + ":" + name;
   if (iterators.find(key) == iterators.end()) {
     return nullptr;  // Not configured
   }
 
-  return newIterator(package, name, pretty, once, in_args, out_args);
+  return newIterator(package, name, pretty, once, args);
 }
 
 void IteratorStore::addIterator(std::string package, std::string name, bool runInternal, json& templateName,

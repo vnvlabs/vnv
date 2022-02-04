@@ -141,11 +141,10 @@ class InjectionPointBase {
    * @param packageName The name of the package (unique across pacakges)
    * @param name  The name of the injection point (unique within a package)
    * @param registrationJson The registration information for the injection point
-   * @param in_args The parameters passed as "input" arguments
-   * @param out_args The parameters passed as output arguments.
+   * @param args The parameters passed as "input" arguments
    */
   InjectionPointBase(std::string packageName, std::string name, std::map<std::string, std::string> registrationJson,
-                     const NTV& in_args, const NTV& out_args);
+                     const NTV& args);
 
   /**
    * @brief Set the Injection Point Type object
@@ -172,7 +171,6 @@ class InjectionPointBase {
 
  public:
   bool runInternal = false; /**< should we run the internal injection point test. */
-
 
   std::string getName() const { return name; }
 
@@ -224,35 +222,18 @@ class InjectionPointBase {
  *
  */
 class InjectionPoint : public InjectionPointBase {
- protected:
-  /**
-   * @brief Construct a new Injection Point object
-   *
-   * @param packageName The name of the package (unique across pacakges)
-   * @param name  The name of the injection point (unique within a package)
-   * @param registrationJson The registration information for the injection point
-   * @param in_args The parameters passed as "input" arguments
-   * @param out_args The parameters passed as output arguments.
-   */
-  InjectionPoint(std::string packageName, std::string name, std::map<std::string, std::string> registrationJson,
-                 const NTV& in_args, const NTV& out_args)
-      : InjectionPointBase(packageName, name, registrationJson, in_args, out_args){};
-
  public:
   /**
    * @brief Construct a new Injection Point object
    *
-   * Injection points (single and looped) do not have out_args. This constructor
-   * hides that option from the API.
-   *
    * @param packageName The name of the package (unique across pacakges)
    * @param name  The name of the injection point (unique within a package)
    * @param registrationJson The registration information for the injection point
-   * @param in_args The parameters passed as "input" arguments
+   * @param args The parameters passed as "input" arguments
    */
   InjectionPoint(std::string packageName, std::string name, std::map<std::string, std::string> registrationJson,
-                 NTV& in_args)
-      : InjectionPointBase(packageName, name, registrationJson, in_args, {}){};
+                 const NTV& args)
+      : InjectionPointBase(packageName, name, registrationJson, args){};
 
   /**
    * @copydoc VnV::InjectionPointBase::run

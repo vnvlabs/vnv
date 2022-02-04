@@ -19,7 +19,7 @@ BaseStoreInstance(PlugStore) BaseStoreInstance(PlugsStore)
     PlugStore::PlugStore() {}
 
 std::shared_ptr<PlugPoint> PlugStore::newPlug(std::string packageName, std::string name, struct VnV_Function_Sig pretty,
-                                              NTV& in_args, NTV& out_args) {
+                                              NTV& args) {
   std::string key = packageName + ":" + name;
   auto it = plugs.find(key);
   auto reg = registeredPlugs.find(key);
@@ -51,7 +51,7 @@ std::shared_ptr<PlugPoint> PlugStore::newPlug(std::string packageName, std::stri
       // Construct and reset because InjectionPoint ctor is only accessible in
       // InjectionPointStore.
       std::shared_ptr<PlugPoint> injectionPoint;
-      injectionPoint.reset(new PlugPoint(packageName, name, spec_map, in_args, out_args));
+      injectionPoint.reset(new PlugPoint(packageName, name, spec_map, args));
       for (auto& test : it->second.tests) {
         if (sig.match(test.getRunConfig())) {
           injectionPoint->addTest(test);
@@ -130,12 +130,12 @@ void PlugStore::registerPlug(std::string packageName, std::string id,
 
 std::shared_ptr<PlugPoint> PlugStore::getNewPlug(std::string package, std::string name, struct VnV_Function_Sig pretty,
 
-                                                 NTV& in_args, NTV& out_args) {
+                                                 NTV& args) {
   std::string key = package + ":" + name;
   if (plugs.find(key) == plugs.end()) {
     return nullptr;  // Not configured
   }
-  return newPlug(package, name, pretty, in_args, out_args);
+  return newPlug(package, name, pretty, args);
 }
 
 void PlugStore::addPlug(std::string package, std::string name, bool runInternal, json& templateName,

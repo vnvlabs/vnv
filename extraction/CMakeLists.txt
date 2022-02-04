@@ -55,7 +55,7 @@ if(Clang_FOUND)
 
   add_executable(
     vnv-matcher
-    vv-matcher.cpp  Printer.cpp Writer.cpp Preprocessor.cpp
+    vv-matcher.cpp  Printer.cpp Writer.cpp Preprocessor.cpp FortranProcessor.cpp
     ${CMAKE_CURRENT_LIST_DIR}/../injection/src/base/Utilities.cpp
     ${CMAKE_CURRENT_LIST_DIR}/../injection/src/base/exceptions.cpp)
   add_executable(Injection::Extraction ALIAS vnv-matcher)

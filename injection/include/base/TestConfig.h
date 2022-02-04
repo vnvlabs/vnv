@@ -38,7 +38,6 @@ class OutputEngineManager;
 class VnVParameter {
   void* ptr;
   std::string type;
-  bool input = true;
 
   std::shared_ptr<Transformer> trans = nullptr;
   std::string transType = "";
@@ -46,36 +45,29 @@ class VnVParameter {
  public:
   VnVParameter() { ptr = nullptr; }
 
-  VnVParameter(void* obj, std::string type_, bool input_) {
+  VnVParameter(void* obj, std::string type_) {
     type = type_;
     ptr = obj;
-    input = input_;
   }
 
   VnVParameter(const VnVParameter& copy) {
     ptr = copy.getRawPtr();
     type = copy.getType();
-    input = copy.isInput();
   }
 
   void setType(std::string type) { this->type = type; }
-
-  void setInput(bool input) { this->input = input; }
 
   void* getRawPtr() const { return ptr; }
 
   std::string getType() const { return type; }
 
-  bool isInput() const { return input; };
-
-  template <typename T> T* getPtr(std::string requestedType, bool throwOnError = true ) {
-    
+  template <typename T> T* getPtr(std::string requestedType, bool throwOnError = true) {
     StringUtils::squash(type);
-    
-    if (requestedType.empty()) { // Type checking turned off.
+
+    if (requestedType.empty()) {  // Type checking turned off.
       return (T*)(ptr);
     }
-    
+
     if (trans == nullptr || type.compare(transType) != 0) {
       trans = TransformStore::instance().getTransformer(type, requestedType);
       transType = requestedType;
@@ -84,13 +76,12 @@ class VnVParameter {
     if (trans != nullptr && type.compare(transType) == 0) {
       return static_cast<T*>(trans->Transform(ptr));
     }
-    
+
     if (throwOnError) {
-       HTHROW INJECTION_EXCEPTION("Bad Transform Requested -- Cannot transform from %s -> %s", type.c_str(),
-                           requestedType.c_str());
+      HTHROW INJECTION_EXCEPTION("Bad Transform Requested -- Cannot transform from %s -> %s", type.c_str(),
+                                 requestedType.c_str());
     }
     return NULL;
-
   }
 
   template <typename T> T& getRef(std::string type) { return *getPtr<T>(type, true); }
@@ -98,37 +89,11 @@ class VnVParameter {
 
 class VnVParameterSet : public std::map<std::string, VnVParameter> {
  public:
-  template <typename T> T* getInputPtr(std::string name, std::string type) { return getPtr<T>(name, type, true); }
-
-  template <typename T> T* getOutputPtr(std::string name, std::string type) { return getPtr<T>(name, type, false); }
-
-  template <typename T> T& getInputRef(std::string name, std::string type) { return getRef<T>(name, type, true); }
-
-  template <typename T> T& getOutputRef(std::string name, std::string type) { return getRef<T>(name, type, false); }
-
-  template <typename T> T* getPtr(std::string name, std::string type) { return getPtr<T>(name, type, true); }
-  
-  template <typename T> T& getRef(std::string name, std::string type) { return getRef<T>(name, type, true); }
-
-  template <typename T> T* getPtr(std::string name, std::string type, bool input, bool throwOnError = true ) {
-    
+  template <typename T> T* getPtr(std::string name, std::string type, bool throwOnError = true) {
     StringUtils::squash(type);
-    
+
     auto it = find(name);
     if (it != end()) {
-    
-      if (it->second.isInput() != input) {
-        if (input ) {
-          if (throwOnError) {
-            HTHROW INJECTION_EXCEPTION("Requested an input parameter called %s but it is an output parameter ", name.c_str());
-          }
-          return NULL;
-        }
-        if (throwOnError) {
-          HTHROW INJECTION_EXCEPTION("Requested an output parameter called %s but it is an input parameter", name.c_str());
-        }
-        return NULL;
-      }
       return it->second.getPtr<T>(type, throwOnError);
     }
     if (throwOnError) {
@@ -137,20 +102,13 @@ class VnVParameterSet : public std::map<std::string, VnVParameter> {
     return NULL;
   }
 
-  template <typename T> T& getRef(std::string name, std::string type, bool input) {
+  template <typename T> T& getRef(std::string name, std::string type) {
     StringUtils::squash(type);
     auto it = find(name);
     if (it != end()) {
-      if (it->second.isInput() != input) {
-        if (input) {
-         HTHROW INJECTION_EXCEPTION("Requested an input parameter called %s but got an output parameter", name.c_str());
-        }
-        HTHROW INJECTION_EXCEPTION("Requested an output parameter called %s but got an input parameter", name.c_str());
-      }
       return it->second.getRef<T>(type);
     }
-    
-    HTHROW INJECTION_EXCEPTION("Parameter Mapping Error: No parameter named %s exists. ", name.c_str() );
+    HTHROW INJECTION_EXCEPTION("Parameter Mapping Error: No parameter named %s exists. ", name.c_str());
   }
 };
 
