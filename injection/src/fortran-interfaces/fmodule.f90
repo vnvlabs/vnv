@@ -344,16 +344,16 @@ contains ! Implementation of the functions. We just wrap the C function here.
         implicit none
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
-        real(kind=c_float), intent(in) :: value
-        call vnv_declare_float_parameter_c(ctx,convert(name), value)
+        real, intent(in) :: value
+        call vnv_declare_float_parameter_c(ctx,convert(name), real(value, kind=c_float))
     end subroutine
     
     subroutine vnv_declare_double_parameter(ctx,name,value)
         implicit none
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
-        real(kind=c_double), intent(in) :: value
-        call vnv_declare_double_parameter_c(ctx,convert(name), value)
+        real, intent(in) :: value
+        call vnv_declare_double_parameter_c(ctx,convert(name), real(value, kind=c_double))
     end subroutine
     
     subroutine vnv_declare_string_parameter(ctx,name,value)
@@ -369,10 +369,10 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
         integer, dimension(*), intent(inout) :: value
-        integer(c_size_t), value, intent(in) :: n
+        integer, value, intent(in) :: n
         character(len=1, kind=C_CHAR) :: name_c_str(len_trim(name) + 1)
         name_c_str = convert(name)        
-        call vnv_declare_integer_array_c(ctx,name_c_str, value, n)
+        call vnv_declare_integer_array_c(ctx,name_c_str, value, int(n, kind=c_size_t))
     end subroutine
     
 
@@ -435,14 +435,14 @@ contains ! Implementation of the functions. We just wrap the C function here.
 
     TYPE(C_PTR) function vnv_point_init(world,package,fname)
         implicit none
-        INTEGER(C_INT), intent(in) :: world
+        INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: fname
         character(len=1, kind=C_CHAR) :: package_c_str(len_trim(package) + 1)
         character(len=1, kind=C_CHAR) :: fname_c_str(len_trim(fname) + 1)
         package_c_str = convert(package)        
         fname_c_str = convert(fname)        
-        vnv_point_init = vnv_point_init_c(world, package_c_str,fname_c_str)
+        vnv_point_init = vnv_point_init_c(int(world,kind=c_int), package_c_str,fname_c_str)
     end function
 
     subroutine vnv_point_run(ctx)
@@ -453,15 +453,11 @@ contains ! Implementation of the functions. We just wrap the C function here.
     
     function vnv_loop_init(world,package,fname) result(ptr)
         implicit none
-        INTEGER(C_INT), intent(in) :: world
+        INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: fname
-        character(len=1, kind=C_CHAR) :: package_c_str(len_trim(package) + 1)
-        character(len=1, kind=C_CHAR) :: fname_c_str(len_trim(fname) + 1)
         TYPE(C_PTR) :: ptr
-        package_c_str = convert(package)        
-        fname_c_str = convert(fname)        
-        ptr = vnv_loop_init_c(world,package_c_str,fname_c_str)
+        ptr = vnv_loop_init_c(int(world,kind=c_int),convert(package),convert(fname))
         print *, ptr
     end function
 
@@ -475,9 +471,7 @@ contains ! Implementation of the functions. We just wrap the C function here.
         implicit none
         TYPE(C_PTR), intent(in) :: ctx
         character(len=*), intent(in) :: iter        
-        character(len=1, kind=C_CHAR) :: iter_c_str(len_trim(iter) + 1)
-        iter_c_str = convert(iter)        
-        call vnv_loop_iter_c(ctx,iter_c_str)
+        call vnv_loop_iter_c(ctx,convert(iter))
     end subroutine
 
     subroutine vnv_loop_end(ctx)
@@ -516,14 +510,10 @@ contains ! Implementation of the functions. We just wrap the C function here.
 
      TYPE(C_PTR) function vnv_plug_init(world,package,fname)
         implicit none
-        INTEGER(C_INT), intent(in) :: world
+        INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: fname
-        character(len=1, kind=C_CHAR) :: package_c_str(len_trim(package) + 1)
-        character(len=1, kind=C_CHAR) :: fname_c_str(len_trim(fname) + 1)
-        package_c_str = convert(package)        
-        fname_c_str = convert(fname)        
-        vnv_plug_init = vnv_point_init_c(world, package_c_str,fname_c_str)
+        vnv_plug_init = vnv_plug_init_c(int(world,kind=c_int),convert(package),convert(fname))
     end function
 
     INTEGER(C_INT) function vnv_plug_run(ctx) 
@@ -535,11 +525,11 @@ contains ! Implementation of the functions. We just wrap the C function here.
      
     TYPE(C_PTR) function vnv_iterator_init(world,package,fname, once)
         implicit none
-        INTEGER(C_INT), intent(in) :: world
+        INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: fname
-        INTEGER(C_INT), intent(in) :: once       
-        vnv_iterator_init = vnv_iterator_init_c(world,convert(package),convert(fname),once)
+        INTEGER, intent(in) :: once       
+        vnv_iterator_init = vnv_iterator_init_c(int(world,kind=c_int),convert(package),convert(fname),INT(once,kind=C_INT))
     end function
 
     INTEGER(C_INT) function vnv_iterator_run(ctx) 
@@ -611,52 +601,52 @@ contains ! Implementation of the functions. We just wrap the C function here.
        
     subroutine vnv_debug(world, package, message) 
         implicit none
-        INTEGER(C_INT), intent(in) :: world
+        INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: message
-        call vnv_log_c(world, "debug", convert(package),convert(message))
+        call vnv_log_c(int(world,kind=c_int), "debug", convert(package),convert(message))
     end subroutine
 
     subroutine vnv_error(world, package, message) 
         implicit none
-        INTEGER(C_INT), intent(in) :: world
+        INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: message
-        call vnv_log_c(world, convert("error"), convert(package),convert(message))
+        call vnv_log_c(int(world,kind=c_int), convert("error"), convert(package),convert(message))
     end subroutine
 
     subroutine vnv_info(world, package, message) 
         implicit none
-        INTEGER(C_INT), intent(in) :: world
+        INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: message
-        call vnv_log_c(world, convert("info"), convert(package),convert(message))
+        call vnv_log_c(int(world,kind=c_int), convert("info"), convert(package),convert(message))
     end subroutine
 
     subroutine vnv_warning(world, package, message) 
         implicit none
-        INTEGER(C_INT), intent(in) :: world
+        INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: message
-        call vnv_log_c(world, convert("warning"), convert(package),convert(message))
+        call vnv_log_c(int(world,kind=c_int), convert("warning"), convert(package),convert(message))
     end subroutine
 
     subroutine vnv_input_file(world,package,name, filename,reader)
-        INTEGER(C_INT), intent(in) :: world
+        INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: name
         character(len=*), intent(in) :: filename
         character(len=*), intent(in) :: reader
-        call vnv_file_c(world,INT(1,kind=C_INT),convert(package),convert(name),convert(filename),convert(reader))        
+        call vnv_file_c(int(world,kind=c_int),INT(1,kind=C_INT),convert(package),convert(name),convert(filename),convert(reader))        
     end subroutine
 
     subroutine vnv_output_file(world,package,name,filename,reader)
-        INTEGER(C_INT), intent(in) :: world
+        INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: name
         character(len=*), intent(in) :: filename
         character(len=*), intent(in) :: reader
-        call vnv_file_c(world,INT(0,kind=C_INT),convert(package),convert(name),convert(filename),convert(reader))        
+        call vnv_file_c(int(world,kind=c_int),INT(0,kind=C_INT),convert(package),convert(name),convert(filename),convert(reader))        
     end subroutine
     
 end module

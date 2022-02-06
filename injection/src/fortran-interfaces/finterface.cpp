@@ -13,9 +13,9 @@ namespace {
 
 class InitCtx {
  public:
-  const char* package;
-  const char* filename;
-  std::vector<char*> args;
+  std::string package;
+  std::string filename;
+  std::vector<std::string> args;
   registrationCallBack callback;
   InitCtx(const char* p, const char* f, registrationCallBack c) : package(p), filename(f), callback(c) {}
 };
@@ -32,15 +32,16 @@ class PlugCtx : public PointCtx {
  public:
   VnV_Iterator iterator;
   int once = 1;
-  PlugCtx(int w, std::string p, std::string n, int o = 1) : PointCtx(w, p, n), once(o) {}
+  PlugCtx(int w, std::string p, std::string n, int o = 1) : PointCtx(w, p, n), once(o) { iterator.data = NULL; }
 };
 
 }  // namespace
 
 extern "C" {
 
-void* vnv_init_start_x(const char* package, const char* fname, registrationCallBack callback) {
-  return (void*)new InitCtx(package, fname, callback);
+void* vnv_init_start_x(const char* package, const char* fname, registrationCallBack* callback) {
+  InitCtx* a = new InitCtx(package, fname, *callback);
+  return a;
 }
 
 void vnv_add_arg_x(void** ctx, char* s) {
@@ -49,10 +50,16 @@ void vnv_add_arg_x(void** ctx, char* s) {
 }
 
 void vnv_init_end_x(void** ctx) {
-  InitCtx* c = (InitCtx*)ctx;
-  char** argv = c->args.data();
+  InitCtx* c = (InitCtx*)(*ctx);
+
+  std::vector<char*> cstrings;
+  cstrings.reserve(c->args.size());
+
+  for (auto& s : c->args) cstrings.push_back(&s[0]);
+
   int argc = c->args.size();
-  VnV_init(c->package, &argc, &argv, c->filename, c->callback);
+  char** argv = cstrings.data();
+  VnV_init(c->package.c_str(), &argc, &argv, c->filename.c_str(), c->callback);
   delete (c);
 }
 
@@ -136,7 +143,8 @@ void vnv_loop_end_x(void** ctx) {
 }
 
 void* vnv_point_init_x(int world, const char* package, const char* fname) {
-  return (void*)new PointCtx(world, package, fname);
+  PointCtx* a = new PointCtx(world, package, fname);
+  return a;
 }
 
 void vnv_point_run_x(void** ctx) {
@@ -146,7 +154,8 @@ void vnv_point_run_x(void** ctx) {
 }
 
 void* vnv_plug_init_x(int world, const char* package, const char* fname) {
-  return (void*)new PlugCtx(world, package, fname);
+  PlugCtx* a = new PlugCtx(world, package, fname);
+  return a;
 }
 
 int vnv_plug_run_x(void** ctx) {
@@ -165,8 +174,9 @@ int vnv_plug_run_x(void** ctx) {
   return res;
 }
 
-void* vnv_iterator_init_x(int world, const char* package, const char* fname, int once) {
-  return (void*)new PlugCtx(world, package, fname, once);
+void* vnv_iterator_init_x(int world, const char* package, const char* fname, int* once) {
+  PlugCtx* a = new PlugCtx(world, package, fname, *once);
+  return a;
 }
 
 int vnv_iterator_run_x(void** ctx) {
