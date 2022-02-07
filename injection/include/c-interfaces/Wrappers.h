@@ -15,14 +15,12 @@ struct IOutputEngineWrapper {
 };
 
 #define OUTPUTENGINESUPPORTEDTYPES X(double) X(int) X(long)
-#define X(type)                                                               \
-  VNVEXTERNC void VnV_Output_Put_##type(struct IOutputEngineWrapper* wrapper, \
-                                        const char* name, type* value);
+#define X(type) \
+  VNVEXTERNC void VnV_Output_Put_##type(struct IOutputEngineWrapper* wrapper, const char* name, type* value);
 OUTPUTENGINESUPPORTEDTYPES
 #undef X
 
-VNVEXTERNC void VnV_Output_Put_String(struct IOutputEngineWrapper* wrapper,
-                                      const char* name, const char* value);
+VNVEXTERNC void VnV_Output_Put_String(struct IOutputEngineWrapper* wrapper, const char* name, const char* value);
 
 struct ParameterDTO {
   const char* type;
@@ -39,14 +37,10 @@ struct ParameterSetWrapper {
 #define InjectionPointType_Iter 2
 #define InjectionPointType_End 3
 
-VNVEXTERNC struct ParameterDTO VnV_Parameter_Get(
-    struct ParameterSetWrapper* wrapper, const char* name);
+VNVEXTERNC struct ParameterDTO VnV_Parameter_Get(struct ParameterSetWrapper* wrapper, const char* name);
 
 // Define a callback that can be used to write injection point data
-typedef void (*injectionDataCallback)(VnV_Comm comm,
-                                      struct ParameterSetWrapper* wrapper,
-                                      struct IOutputEngineWrapper* engine,
-                                      int injectionPointType,
-                                      const char* stageId);
+typedef void (*injectionDataCallback)(VnV_Comm comm, struct ParameterSetWrapper* wrapper,
+                                      struct IOutputEngineWrapper* engine, int injectionPointType, const char* stageId);
 
 #endif  // WRAPPERS_H

@@ -136,7 +136,6 @@ class VnVForDirective(SphinxDirective):
 
 
 vnv_directives["vnv-for"] = VnVForDirective
-
 try:
     the_app
 except NameError:

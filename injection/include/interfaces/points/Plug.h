@@ -24,22 +24,21 @@ namespace CppPlug {
 void Register(const char* package, const char* id, std::string json);
 
 VnV_Iterator BeginPlug(VnV_Comm comm, const char* package, const char* id, struct VnV_Function_Sig pretty,
-                       const char* fname, int line, DataCallback callback, NTV& inputs, NTV& outputs);
+                       const char* fname, int line, DataCallback callback, NTV& parameters);
 
 int Iterate(VnV_Iterator* iterator);
 
 template <typename A, typename... Args>
 VnV_Iterator PlugPack(A comm, const char* package, const char* id, struct VnV_Function_Sig pretty, const char* fname,
-                      int line, const DataCallback& callback, int inputs, Args&&... args) {
+                      int line, const DataCallback& callback, Args&&... args) {
   try {
-    std::map<std::string, std::pair<std::string, void*>> minputs;
-    std::map<std::string, std::pair<std::string, void*>> moutputs;
-    CppIteration::UnwrapParameterPack(inputs, minputs, moutputs, std::forward<Args>(args)...);
+    std::map<std::string, std::pair<std::string, void*>> parameters;
+    CppIteration::UnwrapParameterPack(parameters, std::forward<Args>(args)...);
 
-    return BeginPlug(comm, package, id, pretty, fname, line, callback, minputs, moutputs);
+    return BeginPlug(comm, package, id, pretty, fname, line, callback, parameters);
 
   } catch (...) {
-    assert(false && "cant happen as we cant handle once parameter from here" );
+    assert(false && "cant happen as we cant handle once parameter from here");
     return {NULL};
   }
 }
@@ -48,13 +47,13 @@ VnV_Iterator PlugPack(A comm, const char* package, const char* id, struct VnV_Fu
 }  // namespace VnV
 
 // Macro for an iterative vnv injection point.
-#  define INJECTION_FUNCTION_PLUG_C(VAR, PNAME, COMM, NAME, INPUTS, callback, ...)                               \
-    VnV_Iterator VAR = VnV::CppPlug::PlugPack(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, \
-                                              INPUTS EVERYONE(__VA_ARGS__));                                     \
+#  define INJECTION_FUNCTION_PLUG_C(VAR, PNAME, COMM, NAME, callback, ...)                             \
+    VnV_Iterator VAR = VnV::CppPlug::PlugPack(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, \
+                                              callback EVERYONE(__VA_ARGS__));                         \
     while (VnV::CppPlug::Iterate(&VAR))
 
-#  define INJECTION_FUNCTION_PLUG(VAR, PNAME, COMM, NAME, INPUTS, ...) \
-    INJECTION_FUNCTION_PLUG_C(VAR, PNAME, COMM, NAME, INPUTS, &VnV::defaultCallBack, __VA_ARGS__)
+#  define INJECTION_FUNCTION_PLUG(VAR, PNAME, COMM, NAME, ...) \
+    INJECTION_FUNCTION_PLUG_C(VAR, PNAME, COMM, NAME, &VnV::defaultCallBack, __VA_ARGS__)
 
 #  define Register_Injection_Plug(PNAME, NAME, PARAMETERS) VnV::CppPlug::Register(PNAME, NAME, PARAMETERS);
 

@@ -17,7 +17,7 @@ using namespace VnV;
 InjectionPointStore::InjectionPointStore() {}
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(std::string packageName, std::string name,
-                                                                       struct VnV_Function_Sig pretty, NTV& in_args) {
+                                                                       struct VnV_Function_Sig pretty, NTV& args) {
   std::string key = packageName + ":" + name;
   auto it = injectionPoints.find(key);
   auto reg = registeredInjectionPoints.find(key);
@@ -54,7 +54,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(std::stri
       // Construct and reset because InjectionPoint ctor is only accessible in
       // InjectionPointStore.
       std::shared_ptr<InjectionPoint> injectionPoint;
-      injectionPoint.reset(new InjectionPoint(packageName, name, spec_map, in_args));
+      injectionPoint.reset(new InjectionPoint(packageName, name, spec_map, args));
       for (auto& test : it->second.tests) {
         if (sig.run(test.getRunConfig())) {
           injectionPoint->addTest(test);
@@ -122,16 +122,16 @@ void InjectionPointStore::registerInjectionPoint(std::string packageName, std::s
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::getNewInjectionPoint(std::string package, std::string name,
                                                                           struct VnV_Function_Sig pretty,
-                                                                          InjectionPointType type, NTV& in_args) {
+                                                                          InjectionPointType type, NTV& args) {
   std::string key = package + ":" + name;
   std::shared_ptr<InjectionPoint> ptr;
   if (injectionPoints.find(key) == injectionPoints.end()) {
     return nullptr;  // Not configured
   } else if (type == InjectionPointType::Single) {
-    ptr = newInjectionPoint(package, name, pretty, in_args);
-  } else if (type == InjectionPointType::Begin) {            /* New staged injection point.
-                                                             -- Add it to the stack */
-    ptr = newInjectionPoint(package, name, pretty, in_args); /*Not nullptr because we checked above*/
+    ptr = newInjectionPoint(package, name, pretty, args);
+  } else if (type == InjectionPointType::Begin) {         /* New staged injection point.
+                                                          -- Add it to the stack */
+    ptr = newInjectionPoint(package, name, pretty, args); /*Not nullptr because we checked above*/
     registerLoopedInjectionPoint(package, name, ptr);
   } else {
     // Should never happen.

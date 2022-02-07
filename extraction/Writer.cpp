@@ -255,11 +255,11 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string cacheFil
     json finalJson = json::object();
     for (auto it : cacheInfo["data"].items()) {
       for (std::string type :
-           {"InjectionPoints", "SubPackages",  "LogLevels",     "Files",      "Tests",        "Iterators",
-            "Plugs",           "Engines",      "EngineReaders", "Comms",      "Reducers",     "Samplers",
-            "Walkers",         "DataTypes",    "Serializers",   "Transforms", "UnitTests",    "Actions",
-            "Options",         "Introduction", "Conclusion",    "Package",    "Communicator", 
-            "Schedulers",      "Validators",   "JobCreators",   "ScriptGenerators" }) {
+           {"InjectionPoints", "SubPackages",  "LogLevels",       "Files",      "Tests",        "Iterators",
+            "Plugs",           "Engines",      "EngineReaders",   "Comms",      "Reducers",     "Samplers",
+            "Walkers",         "DataTypes",    "Serializers",     "Transforms", "UnitTests",    "Actions",
+            "Options",         "Introduction", "Conclusion",      "Package",    "Communicator", "Schedulers",
+            "Validators",      "JobCreators",  "ScriptGenerators"}) {
         json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);
         for (auto it : VnV::JsonUtilities::getOrCreate(it.value(), type).items()) {
           to[it.key()] = it.value();
@@ -342,14 +342,50 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string cacheFil
   cacheStream.close();
 }
 
+void removeNonModified(std::set<std::string>& files, json& cacheFiles, std::map<std::string, bool>& fModMap,
+                       std::string mess) {
+  std::set<std::string> nonModFiles;
+  for (auto& it : files) {  // all files to be compiled. (strings)
+    if (cacheFiles.contains(it)) {
+      bool mods = false;
+      for (auto f : cacheFiles[it].items()) {
+        // list of ids included in this file.
+        std::string id = f.value().get<std::string>();
+        if (fModMap[id]) {
+          mods = true;
+          break;
+        }
+      }
+      if (!mods) {
+        nonModFiles.insert(it);
+      }
+    }
+  }
+
+  for (auto it : nonModFiles) {
+    files.erase(it);
+  }
+
+  if (files.size() > 0) {
+    std::ostringstream os;
+    os << "----> The following " << mess << " files will be reparsed:" << std::endl;
+
+    for (auto it : files) {
+      os << "--------> " << it << std::endl;
+    }
+    std::cout << os.str() << std::endl;
+    ;
+  }
+}
+
 // Returns a list of files that have changed since the cache last ran.
-std::set<std::string> checkCache(json& cacheInfo, std::set<std::string>& files) {
+void checkCache(json& cacheInfo, std::set<std::string>& files, std::set<std::string>& ffiles) {
   json& cacheMap = VnV::JsonUtilities::getOrCreate(cacheInfo, "map");
   json& cacheFiles = VnV::JsonUtilities::getOrCreate(cacheInfo, "files");
 
   bool hasCache = (cacheInfo.contains(LAST_RUN_TIME));
 
-  std::set<std::string> modFiles;
+  std::set<std::string> nonModFiles;
 
   if (hasCache) {
     std::string lastRunTime = cacheInfo[LAST_RUN_TIME].get<std::string>();
@@ -370,37 +406,8 @@ std::set<std::string> checkCache(json& cacheInfo, std::set<std::string>& files) 
     }
     if (write) {
       std::cout << oss.str() << std::endl;
-      ;
     }
-
-    for (auto& it : files) {  // all files to be compiled. (strings)
-      if (cacheFiles.contains(it)) {
-        for (auto f : cacheFiles[it].items()) {
-          // list of ids included in this file.
-          std::string id = f.value().get<std::string>();
-          if (fModMap[id]) {
-            modFiles.insert(it);
-            break;
-          }
-        }
-      } else {
-        modFiles.insert(it);  // New File not prev in cache.
-      }
-    }
-
-    if (modFiles.size() > 0) {
-      std::ostringstream os;
-      os << "----> The following files will be reparsed:" << std::endl;
-
-      for (auto it : modFiles) {
-        os << "--------> " << it << std::endl;
-      }
-      std::cout << os.str() << std::endl;
-      ;
-    }
-
-    return modFiles;
-  } else {
-    return files;
+    removeNonModified(files, cacheFiles, fModMap, "C/C++");
+    removeNonModified(ffiles, cacheFiles, fModMap, "Fortran");
   }
 }

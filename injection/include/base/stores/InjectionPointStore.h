@@ -42,7 +42,7 @@ class InjectionPointStore : public BaseStore {
    */
 
   std::shared_ptr<InjectionPoint> newInjectionPoint(std::string packageName, std::string name,
-                                                    struct VnV_Function_Sig pretty, NTV& in_args);
+                                                    struct VnV_Function_Sig pretty, NTV& args);
 
   std::shared_ptr<InjectionPoint> fetchFromQueue(std::string packageName, std::string name, InjectionPointType stage);
 
@@ -80,7 +80,7 @@ class InjectionPointStore : public BaseStore {
    */
   std::shared_ptr<InjectionPoint> getNewInjectionPoint(std::string package, std::string name,
                                                        struct VnV_Function_Sig pretty, InjectionPointType type,
-                                                       NTV& in_args);
+                                                       NTV& args);
 
   std::shared_ptr<InjectionPoint> getExistingInjectionPoint(std::string package, std::string name,
                                                             InjectionPointType type);
@@ -109,7 +109,7 @@ class InjectionPointStore : public BaseStore {
 
   bool registered(std::string package, std::string name);
   bool registeredTest(std::string package, std::string name);
-  
+
   static InjectionPointStore& instance();
 
   nlohmann::json schema();

@@ -38,12 +38,11 @@ class IterationPoint : public InjectionPoint {
    * @param name  The name of the iteration point
    * @param registrationJson The Json describing the parameters
    * @param once_ The minimum number of times to "iterate"
-   * @param in_args The parameters that can be modified
-   * @param out_args Therparameters to be "evaluated"
+   * @param args The parameters that can be modified
    */
-  IterationPoint(std::string packageName, std::string name, std::map<std::string,std::string> registrationJson, int once_, NTV& in_args,
-                 const NTV& out_args)
-      : InjectionPoint(packageName, name, registrationJson, in_args, out_args), once(once_){};
+  IterationPoint(std::string packageName, std::string name, std::map<std::string, std::string> registrationJson,
+                 int once_, NTV& args)
+      : InjectionPoint(packageName, name, registrationJson, args), once(once_){};
 
   /**
    * @brief Add an iterator to the list of iterators that will be executed at this iteration point.
@@ -66,4 +65,3 @@ class IterationPoint : public InjectionPoint {
 }  // namespace VnV
 
 #endif  // include gaurd.
-

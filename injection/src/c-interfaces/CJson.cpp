@@ -12,7 +12,7 @@ void _VnV_registerOptions(const char* name, const char* s,
     json k = json::parse(s);
     VnV::OptionsParserStore::instance().add(name, k, v);
   } catch (...) {
-    VnV_Error(VNVPACKAGENAME,"Error Registering Options");  
+    VnV_Error(VNVPACKAGENAME, "Error Registering Options");
   }
 }
 

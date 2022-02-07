@@ -59,8 +59,7 @@ int main(int argc, char** argv) {
    * be rendered with each instance of the injection point in the final report.
    * That is to say, this text will appear in the final report.
    */
-  INJECTION_POINT("ADD_INJECTION_POINT", VSELF, "MY_FIRST_INJECTION_POINT",
-                  argc);
+  INJECTION_POINT("ADD_INJECTION_POINT", VSELF, "MY_FIRST_INJECTION_POINT", argc);
 
   /**
    * My Second Injection Point
@@ -93,7 +92,7 @@ int main(int argc, char** argv) {
   INJECTION_POINT_C(
       "Samples", VSELF, "MY_FIRST_INJECTION_POINT_CALLBACK",
       IPCALLBACK {
-        int a = ntv.GetRef("argc",int); 
+        int a = ntv.GetRef("argc", int);
         engine->Put("argc", a);
       },
       argc);
@@ -135,9 +134,7 @@ int main(int argc, char** argv) {
    *  has "1" input parameter (x) and expects 1 output parameter z.
    *
    */
-  INJECTION_FUNCTION_PLUG(a, "Samples", VSELF, "squareme", 1, x, z) {
-    z = x * x;
-  }
+  INJECTION_FUNCTION_PLUG(a, "Samples", VSELF, "squareme", x, z) { z = x * x; }
 
   /**
    *  Iterators let you define a region of code that can be iterated over by
@@ -167,7 +164,7 @@ int main(int argc, char** argv) {
    * be executed one time.
    *
    */
-  INJECTION_ITERATION(b, "Samples", VSELF, "equal", 1, 1, x, z) { z = x; }
+  INJECTION_ITERATION(b, "Samples", VSELF, "equal", 1, x, z) { z = x; }
 
   // Finalize the VnV Library
   INJECTION_FINALIZE(ADD_INJECTION_POINT)

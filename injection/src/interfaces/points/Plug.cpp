@@ -13,9 +13,9 @@ void VnV::CppPlug::Register(const char* package, const char* id, std::string jso
 }
 
 VnV_Iterator VnV::CppPlug::BeginPlug(VnV_Comm comm, const char* package, const char* id, struct VnV_Function_Sig pretty,
-                                     const char* fname, int line, DataCallback callback, NTV& inputs, NTV& outputs) {
+                                     const char* fname, int line, DataCallback callback, NTV& parameters) {
   try {
-    return VnV::RunTime::instance().injectionPlug(comm, package, id, pretty, fname, line, callback, inputs, outputs);
+    return VnV::RunTime::instance().injectionPlug(comm, package, id, pretty, fname, line, callback, parameters);
 
   } catch (...) {
     VnV_Error(VNVPACKAGENAME, "Error Running Loop %s:%s", package, id);
