@@ -43,6 +43,7 @@ using namespace VnV;
  */
 INJECTION_OPTIONS(VNVPACKAGENAME, getBaseOptionsSchema().dump().c_str()) {
   RunTime::instance().getRunTimeOptions()->fromJson(config);
+  return NULL;
 }
 
 void RunTime::resetStore() { stores.clear(); }

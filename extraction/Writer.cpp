@@ -177,9 +177,11 @@ class RegistrationWriter {
     std::vector<std::string> cc = {"Introduction", "Conclusion", "Package"};
     for (std::string i : cc) {
       if (j.contains(i)) {
+        
         for (auto it : j[i].items()) {
           std::string pname = it.key();
-          if (packageName.empty() || pname == packageName) {
+          if (packageName.empty() || pname.compare(packageName) == 0 ) {
+            createPackageOss(packageName);
             pjson[pname][i] = it.value();
           }
         }
@@ -192,6 +194,7 @@ class RegistrationWriter {
       for (auto it : j["InjectionPoints"].items()) {
         std::string pname = it.value()["packageName"];
         if (packageName.empty() || pname == packageName) {
+          
           std::string name = it.value()["name"].get<std::string>();
 
           json& params = it.value()["parameters"];
@@ -202,9 +205,12 @@ class RegistrationWriter {
           } else if (it.value().value("loop", false) && !s.contains("End")) {
             HTHROW INJECTION_EXCEPTION("Injection Loop %s:%s has no End Stage", pname.c_str(), name.c_str());
           }
-
+          
+          
           createPackageOss(pname);
+          
           VnV::JsonUtilities::getOrCreate(pjson[pname], "InjectionPoints")[name] = it.value();
+
 
           bool iterator = it.value().value("/iterator"_json_pointer, false);
           bool plug = it.value().value("/plug"_json_pointer, false);

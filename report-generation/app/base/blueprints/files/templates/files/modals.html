@@ -41,17 +41,6 @@
                         <input type="password" class="form-control" id="password" name="password" placeholder="Reader Password (may not be required)">
                     </div>
 
-                    <div id="persist-group" class="form-group" style="display:flex; {%if not mongo_configured() %} display:none {%endif%}">
-                        <input name="persist"
-                               style="width:20px; margin-right:15px;"
-                               type="checkbox"
-                               title="If true, data structure will persist to the DB. Set false for faster performance in smaller applications."
-                               class="form-control"
-                               id="persist"
-                               checked>
-                        <label for="persist" class="col-form-label">Persist to Database</label>
-                    </div>
-
                     <script>
                         $( document ).ready(function() {
 
@@ -59,11 +48,9 @@
                                 $('.fdesc').hide();
                                 $('#reader_message_' + $(this).val()).show();
                                 if ($(this).val() === "saved") {
-                                    $('#persist-group').hide()
                                     $('#name-group').hide()
 
                                 } else {
-                                    $('#persist-group').show()
                                     $('#name-group').show()
                                 }
                                 if ($(this).val() === "json_socket" || $(this).val() === "json_http") {

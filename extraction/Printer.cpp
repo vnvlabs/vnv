@@ -1,6 +1,7 @@
 ﻿#include <clang/AST/Expr.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
+#include <clang/Frontend/CompilerInstance.h>
 #include <clang/Basic/Version.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/Tooling.h>
@@ -494,12 +495,55 @@ class VnVFinder : public MatchFinder {
   json& get() { return Printer.get(); }
 };
 
+class VnVFinderAction : public ASTFrontendAction {
+  VnVFinder &finder;  
+  public:
+  
+      VnVFinderAction(VnVFinder& f) : finder(f) {}
+
+      std::unique_ptr<ASTConsumer>
+      CreateASTConsumer(CompilerInstance &, StringRef) override {
+        return finder.newASTConsumer();
+      }
+
+ 
+      bool BeginInvocation(CompilerInstance &CI) override {
+        //Weird bug in Clang -- When we change directories, the file manager seems to end up in  
+        //the wrong directory. Resetting the file manager here means a new one will be created. This 
+        //new one is created in the correct directory, so we can continue. 
+        CI.setFileManager(nullptr);
+        CI.setSourceManager(nullptr);
+        return true;
+      }
+
+      bool BeginSourceFileAction(CompilerInstance &CI) override {
+        if (!ASTFrontendAction::BeginSourceFileAction(CI))
+          return false;
+        return true;
+      }
+
+      void EndSourceFileAction() override {
+        ASTFrontendAction::EndSourceFileAction();
+      }
+};  
+
+
+class VnVFinderActionFactory : public tooling::FrontendActionFactory {
+  VnVFinder& finder;
+ public:
+  VnVFinderActionFactory(VnVFinder &f) :finder(f) {}
+  std::unique_ptr<FrontendAction> create() override { return std::make_unique<VnVFinderAction>(finder); }
+};
+
 json runFinder(clang::tooling::CompilationDatabase& db, std::vector<std::string>& files) {
   // Search the AST to extract information about injection points. In
   // particular,
   // we search the AST to extract the parameter types.
   VnVFinder Finder;
   clang::tooling::ClangTool Tool(db, files);
-  Tool.run(clang::tooling::newFrontendActionFactory(&Finder).get());
+  Tool.setRestoreWorkingDir(true);
+
+  VnVFinderActionFactory factory(Finder);
+  Tool.run(&factory);
   return Finder.get();
 }

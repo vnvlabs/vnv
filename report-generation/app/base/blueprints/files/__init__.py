@@ -60,7 +60,6 @@ def autostart():
                 str(port),
                 request.form["reader"],
                 get_file_template_root(),
-                persist=request.form.get("persist"),
                 username=request.form.get("username"),
                 password=request.form.get("password"),
                 workflowJob = request.form.get("workflowJob",""),
@@ -91,14 +90,13 @@ def new():
                 fname,
                 fname,
                 "mongo",
-                get_file_template_root(), persist=True, reload=True)
+                get_file_template_root(),reload=True)
         else:
             file = VnVFile.add(
                 request.form["name"],
                 fname,
                 reader,
                 get_file_template_root(),
-                persist=request.form.get("persist"),
                 username=request.form.get("username"),
                 password=request.form.get("password")
             )
@@ -284,14 +282,19 @@ def template_globals(globs):
     globs["files"] = VnVFile.FILES
     globs["uniquefiles"] = unique_files
 
-files = [
-    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output", "json_file",{"persist": True}],
-    [True, "/home/ben/source/vv/applications/MOOSE/examples/ex01_inputfile/vv-output", "json_file",{"persist":True}],
-    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-workflow-output", "json_file", {"persist":True}],
-    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/adios-output-live", "adios", True, {}],
-    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live", "json_file",{"persist": True}],
 
-    [False, "/home/ben/source/vv/applications/asgard/build/vv-output", "json_file",{"persist": True}],
+
+files = [
+    [True, "../build/examples/cpp/outputs/injectionPoint/out", "json_file",{}],
+    [True, "../build/examples/cpp/outputs/iterator/out", "json_file", {}],
+    [True, "../build/examples/cpp/outputs/live/out", "json_file", {}],
+    [True, "../../applications/miniamr/ref/outputs/run", "json_file", {}],
+
+    [True, "../../home/ben/source/vv/applications/MOOSE/examples/ex01_inputfile/vv-output", "json_file",{}],
+    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-workflow-output", "json_file", {}],
+    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/adios-output-live", "adios", {}],
+    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live", "json_file",{}],
+    [False, "/home/ben/source/vv/applications/asgard/build/vv-output", "json_file",{}],
 ]
 
 def faker():

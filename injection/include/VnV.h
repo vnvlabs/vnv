@@ -17,8 +17,6 @@
 // C Interface for the Logging components of VnV
 #include "c-interfaces/Logging.h"
 
-// C Interfaces for the options api.
-#include "c-interfaces/CJson.h"
 
 #ifdef __cplusplus
 
@@ -35,6 +33,7 @@
 #  include "interfaces/IUnitTest.h"
 #  include "interfaces/IWalker.h"
 #  include "interfaces/IWorkflow.h"
+#  include "interfaces/IOptions.h"
 #  include "interfaces/argType.h"
 #  include "interfaces/points/Injection.h"
 #  include "interfaces/points/Iteration.h"
@@ -45,6 +44,7 @@
 #  include "c-interfaces/points/Injection.h"
 #  include "c-interfaces/points/Iteration.h"
 #  include "c-interfaces/points/Plug.h"
+#  include "c-interfaces/CJson.h"
 
 #endif
 

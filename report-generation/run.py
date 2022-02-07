@@ -10,7 +10,7 @@ class Config:
     DEBUG = True
     LOCAL = False
     basedir = os.path.abspath(os.path.dirname(__file__))
-
+    EXPLAIN_TEMPLATE_LOADING = True
 
 app_config = Config()
 app = create_app(app_config)

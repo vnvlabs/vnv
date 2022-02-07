@@ -15,7 +15,7 @@ using nlohmann::json;
 
 #include "base/stores/BaseStore.h"
 #include "c-interfaces/CJson.h"
-
+#include "interfaces/IOptions.h"
 namespace VnV {
 
 class OptionsParserStore : public BaseStore {
@@ -28,12 +28,22 @@ class OptionsParserStore : public BaseStore {
            std::less<std::string>>
       factory;
 
+  
+  std::map<std::string, void*> optionResult;
+
  public:
   OptionsParserStore();
 
   void add(std::string name, json& m, options_callback_ptr v);
   void add(std::string name, json& m, options_cpp_callback_ptr v);
   void callBack(std::string name, json info, ICommunicator_ptr world);
+
+  void* getResult(std::string name) {
+    if ( optionResult.find(name) != optionResult.end()) {
+        return optionResult[name];
+    }
+    return nullptr;
+  }
 
   void parse(json info, json& cmdline, ICommunicator_ptr world);
 

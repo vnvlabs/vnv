@@ -2,7 +2,7 @@
   "runTests": true,
   "outputEngine": {
     "json_file" : {
-       "filename" : "vv-output-live"
+       "filename" : "outputs/live/out"
     }
   },
   "injectionPoints": {
@@ -14,7 +14,7 @@
      "Live::Loop" : {
         "tests" : {
             "VNV:cputime" : {},
-            "Live:interupt" : { "wait" : 10 }
+            "Live:interupt" : { "config" : {"wait" : 10} }
         }
      }	     
   }

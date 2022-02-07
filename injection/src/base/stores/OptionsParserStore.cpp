@@ -56,10 +56,10 @@ void OptionsParserStore::callBack(std::string name, json info,
     engine->packageOptionsStartedCallBack(world, name);
 
     if (it->second.second.first != nullptr) {
-      c_json j = {&info};
-      (*it->second.second.first)(j);
+      cjson j = {&info};
+      optionResult[name] = (*it->second.second.first)(j);
     } else if (it->second.second.second != nullptr) {
-      (*it->second.second.second)(info, engine->getOutputEngine(), world);
+      optionResult[name] = (*it->second.second.second)(info, engine->getOutputEngine(), world);
     }
 
     engine->packageOptionsEndedCallBack(name);

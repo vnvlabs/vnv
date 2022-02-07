@@ -264,7 +264,18 @@ void permissions(std::string filename, bool read, bool write, bool execute ) {
   chmod(filename.c_str(), mode);
 }
 
-std::string join(std::vector<std::string> vec, mode_t i, bool makeDir) {
+std::string join(std::vector<std::string> vec_i, mode_t i, bool makeDir) {
+  
+  std::vector<std::string> vec; 
+  
+  for (auto &it : vec_i) {
+     std::vector<std::string> r;
+     VnV::StringUtils::StringSplit(it,"/",r);
+     for (auto &itt : r ) {
+       vec.push_back(itt);
+     }
+  }
+  
   if (vec.size() > 0) {
     std::string s = "";
     for (auto it = vec.begin(); it != vec.end(); ++it) {
@@ -314,9 +325,6 @@ void* loadLibrary(std::string name) {
   }
   void* dllib = dlopen(name.c_str(), RTLD_NOW);
 
-  if (dllib == nullptr) {
-    throw INJECTION_EXCEPTION("Could not open shared library %s", name.c_str());
-  }
   return dllib;
 }
 

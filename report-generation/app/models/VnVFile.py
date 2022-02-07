@@ -11,7 +11,7 @@ import jsonschema
 import pygments.formatters.html
 from pygments.lexers import guess_lexer, guess_lexer_for_filename
 
-from app.base.utils.mongo import validate_name
+from app.base.utils.mongo import validate_name, Configured
 from app.models.VnVConnection import VnVConnection, VnVLocalConnection
 from python_api.VnVReader import node_type_START, node_type_POINT, node_type_DONE, node_type_ITER, node_type_ROOT, \
     node_type_LOG, \
@@ -90,7 +90,9 @@ class ProvWrapper:
         return self.prov.commandLine
 
     def get_libraries(self):
-        return [ProvFileWrapper(self.vnvfileid, self.prov.get(a, 2), "") for a in range(0, self.prov.size(2))]
+        a =  [ProvFileWrapper(self.vnvfileid, self.prov.get(a, 2), "") for a in range(0, self.prov.size(2))]
+        a.sort(key=lambda x: x.modified(), reverse=True)
+        return a
 
     def get_outputs(self):
         r = []
@@ -330,14 +332,13 @@ class IntroductionRender:
 
 class WorkflowRender:
 
-    def __init__(self, workflowNode, template_root, root, templates, persist):
+    def __init__(self, workflowNode, template_root, root, templates):
         self.workflowNode = workflowNode
         self.root = root
         self.name = workflowNode.getName()
         self.template_root = template_root
         self.templates = templates
         self.package = workflowNode.getPackage()
-        self.persist = persist
         self.creators = []
         self.codeNameMap = {}
         self.infoStr = '{"nodes":[],"links":[]}'
@@ -370,7 +371,7 @@ class WorkflowRender:
                return v
 
         # make a new one.
-        ff = VnVFile.add(name, engineInfo["filename"], engineInfo["reader"], self.template_root, self.persist, False,
+        ff = VnVFile.add(name, engineInfo["filename"], engineInfo["reader"], self.template_root, False,
                          **engineInfo)
         return ff
 
@@ -574,8 +575,8 @@ class VnVFile:
 
     FILES = VnV.FILES
 
-    def getReaderConfig(self, persist, username, password):
-        if not persist:
+    def getReaderConfig(self, username, password):
+        if not Configured():
             a = {"persist": "memory"}
         else:
             a = {
@@ -590,14 +591,13 @@ class VnVFile:
 
         return a
 
-    def __init__(self, name, filename, reader, template_root, icon="icon-box", _cid=None, persist=False, reload=False,
+    def __init__(self, name, filename, reader, template_root, icon="icon-box", _cid=None, reload=False,
                  **kwargs):
 
         self.filename = filename
         self.reader = reader
         self.icon = icon
         self.options = kwargs
-        self.persist = persist
         self.template_root = template_root
         self.id_ = VnVFile.get_id() if _cid is None else _cid
         self.notifications = []
@@ -609,7 +609,7 @@ class VnVFile:
         else:
             self.name = name
 
-        self.wrapper = VnV.Read(filename, reader, self.getReaderConfig(self.persist, self.options.get("username"),
+        self.wrapper = VnV.Read(filename, reader, self.getReaderConfig(self.options.get("username"),
                                                                        self.options.get("password")))
 
         self.root = self.wrapper.get()
@@ -674,8 +674,7 @@ class VnVFile:
         return None
 
     def clone(self):
-        return VnVFile(self.name, self.filename, self.reader, self.template_root, self.icon, _cid=self.id_,
-                       persist=self.persist)
+        return VnVFile(self.name, self.filename, self.reader, self.template_root, self.icon, _cid=self.id_)
 
     def getDataRoot(self):
         return self.getDataChildren("#")
@@ -777,7 +776,7 @@ class VnVFile:
 
         if self.workflowRender is None:
             n = self.root.getWorkflowNode()
-            self.workflowRender = WorkflowRender(n, self.template_root, self.root, self.templates, self.persist)
+            self.workflowRender = WorkflowRender(n, self.template_root, self.root, self.templates)
 
         return self.workflowRender
 
@@ -1083,9 +1082,9 @@ class VnVFile:
         return VnVFile.COUNTER
 
     @staticmethod
-    def add(name, filename, reader, template_root, persist=False, reload=False, **kwargs):
+    def add(name, filename, reader, template_root, reload=False, **kwargs):
 
-        f = VnVFile(name, filename, reader, template_root, persist=persist, reload=reload, **kwargs)
+        f = VnVFile(name, filename, reader, template_root, reload=reload, **kwargs)
         VnVFile.FILES[f.id_] = f
         return f
 

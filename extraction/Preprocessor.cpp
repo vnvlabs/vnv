@@ -269,7 +269,10 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
 
   void FileChanged(SourceLocation Loc, FileChangeReason Reason, SrcMgr::CharacteristicKind FileType,
                    FileID PrevFID) override {
+    
+    
     std::string fname = pp.getSourceManager().getFilename(Loc).str();
+
     if (!fname.empty()) {
       auto f = pp.getSourceManager().getFileManager().getFile(fname);
       if (f && active) {
@@ -493,7 +496,17 @@ class PreProcessVnV : public PreprocessorFrontendAction {
   PreProcessVnV(json& m) : mainJson(m) {}
   ~PreProcessVnV() {}
 
+  bool BeginInvocation(CompilerInstance &CI) override {
+      //Weird bug in Clang -- When we change directories, the file manager seems to end up in  
+      //the wrong directory. Resetting the file manager here means a new one will be created. This 
+      //new one is created in the correct directory, so we can continue. 
+      CI.setFileManager(nullptr);
+      CI.setSourceManager(nullptr);
+      return true;
+  }
+
   void ExecuteAction() {
+    
     Preprocessor& PP = getCompilerInstance().getPreprocessor();
     SourceManager& SRC = PP.getSourceManager();
 
@@ -501,6 +514,8 @@ class PreProcessVnV : public PreprocessorFrontendAction {
     subJson = json::object();
     PP.addPPCallbacks(std::make_unique<PreprocessCallback>(subJson, includes, PP));
     PP.IgnorePragmas();
+    
+    std::cout << "Processing " << filename << "  " << &PP.getHeaderSearchInfo() <<  std::endl; 
 
     Token Tok;
     // Start parsing the specified input file.
@@ -554,9 +569,14 @@ class VnVPackageFinderFrontendActionFactory : public tooling::FrontendActionFact
 json runPreprocessor(CompilationDatabase& comps, std::set<std::string>& files) {
   // Generate the main VnV Declares object.
   std::vector<std::string> files_vec(files.begin(), files.end());
+  for (auto &it : files_vec) {
+    std::cout << it << std::endl;
+  }
+  
   ClangTool VnVTool(comps, files_vec);
   json j = json::object();
   VnVPackageFinderFrontendActionFactory factory(j);
+  VnVTool.setRestoreWorkingDir(true);
   VnVTool.run(&factory);
   factory.finalize();
   return j;

@@ -1,5 +1,24 @@
 
 {% with filelist = file.get_prov().get_libraries() %}
-{% include 'files/prov/filelist.html' %}
-{%endwith%}
+<div class="" >
+    <div class="card-body">
+        <div style="flex" class="form-group">
+            <input type="text" class="form-control"  placeholder="Search by filename" value="" id="libfilefilter">
+        </div>
+        {%if filelist | length > 0 %}
+             {%for file in filelist %}
+                <div class="libfile" modified="{{file.modified()}}" name="{{file.getName()}}" style="margin:10px;">{%include "files/prov/file.html" %}</div>
+             {%endfor%}
+        {% else %}
+        <div style="margin:10px;">No files Detected.</div>
+        {%endif%}
+    </div>
 
+</div>{%endwith%}
+
+<script>
+$(document).ready(function(){
+    $('#libfilefilter').on('input', function() { $(".libfile").each((k,v)=>{ $(v).toggle ( $(v).attr("name").startsWith($('#libfilefilter').val()) )}) })
+    $(".libfile").each((k,v)=>{ $(v).toggle ( $(v).attr("name").startsWith($('#libfilefilter').val()) )})
+})
+</script>

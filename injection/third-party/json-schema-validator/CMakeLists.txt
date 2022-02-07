@@ -1,5 +1,5 @@
 add_library(jsv SHARED src/json-schema-draft7.json.cpp src/json-uri.cpp
-                       src/json-validator.cpp)
+                       src/json-validator.cpp src/json-c-interface.cpp)
 
 add_library(jsv::jsv ALIAS jsv)
 

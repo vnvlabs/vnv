@@ -68,15 +68,18 @@ if(Clang_FOUND)
     message(FATAL_ERROR "Dist is not MACOS or Linux")
   endif()
  
-
+  add_executable(mwe mwe.cpp)
   
   add_executable(Injection::Extraction ALIAS vnv-matcher)
 
   target_include_directories(vnv-matcher SYSTEM PRIVATE ${CLANG_INCLUDE_DIRS})
-  target_include_directories(
-    vnv-matcher PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../injection/include)
+  target_include_directories( vnv-matcher PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../injection/include)
+
+  target_include_directories(mwe SYSTEM PRIVATE ${CLANG_INCLUDE_DIRS})
+  
 
   target_compile_definitions(vnv-matcher PRIVATE -DPACKAGENAME=VnVProcessor)
+  
   target_link_libraries(
     vnv-matcher
     PRIVATE clangAST
@@ -87,6 +90,18 @@ if(Clang_FOUND)
             clangToolingRefactoring
             jsv::jsv
             dl)
+
+  target_link_libraries(
+              mwe
+              PRIVATE clangAST
+                      clangASTMatchers
+                      clangBasic
+                      clangFrontend
+                      clangTooling
+                      clangToolingRefactoring
+                      jsv::jsv
+                      dl)
+          
 
   install(
     TARGETS vnv-matcher

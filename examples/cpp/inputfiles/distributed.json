@@ -2,7 +2,7 @@
   "runTests": true,
   "outputEngine": {
     "json_file" : {
-       "filename" : "vv-dist-output"
+       "filename" : "outputs/distributed/out"
     }
   },
   "injectionPoints": {

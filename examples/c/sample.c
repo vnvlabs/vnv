@@ -26,7 +26,7 @@ a.signiture = "";
 static const char* schemaCallback = "{\"type\": \"object\", \"required\":[]}";
 
 INJECTION_OPTIONS(PNAME,schemaCallback){
-
+  return NULL;
 }
 
 INJECTION_EXECUTABLE(PNAME)

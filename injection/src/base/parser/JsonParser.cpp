@@ -446,15 +446,17 @@ RunInfo JsonParser::parse(std::ifstream& fstream, int* argc, char** argv) {
   }
   return parse(mainJson, argc, argv);
 }
-
 #include <iostream>
 RunInfo JsonParser::parse(const json& _json, int* argc, char** argv) {
   json_validator validator;
   validator.set_root_schema(getVVSchema());
   try {
     validator.validate(_json);
-  } catch (std::exception e) {
+  } catch (std::exception &e) {
+    std::cout << e.what();
+    std::cout << getVVSchema().dump(4);
     throw INJECTION_EXCEPTION("Input File Parsing Failed.\n Reason : %s", e.what());
+
   }
   return _parse(_json, argc, argv);
 }

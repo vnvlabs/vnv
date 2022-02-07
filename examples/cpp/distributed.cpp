@@ -181,6 +181,7 @@ INJECTION_OPTIONS(SPNAME, R"(
   if (config.contains("vsize")) {
     options.gsize = config["vsize"].get<int>();
   }
+  return NULL;
 }
 
 int main(int argc, char** argv) {

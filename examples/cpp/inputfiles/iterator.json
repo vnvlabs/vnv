@@ -5,7 +5,7 @@
   },
   "outputEngine": {
     "json_file" : {
-       "filename" : "vv-output"
+       "filename" : "outputs/iterator/out"
     }
   },
   "injectionPoints": {
