@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
-project(vnv LANGUAGES CXX C)
+enable_language(Fortran)
+project(vnv LANGUAGES CXX C Fortran)
 
 set(PROJECT_VERSION 1.0.0)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -59,13 +60,14 @@ endif()
 add_subdirectory(docs)
 
 install(
-  TARGETS injection
+  TARGETS injection finjection
   EXPORT injection-targets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin)
 
 set_target_properties(injection PROPERTIES EXPORT_NAME Injection)
+set_target_properties(finjection PROPERTIES EXPORT_NAME FInjection)
 
 install(
   EXPORT injection-targets

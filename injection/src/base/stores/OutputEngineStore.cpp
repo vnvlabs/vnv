@@ -22,7 +22,7 @@ void OutputEngineStore::setEngineManager(ICommunicator_ptr world, std::string ty
       manager.reset((*it->second)());
     } catch (std::exception& e) {
       HTHROW INJECTION_EXCEPTION("Engine init failed:  %s", e.what());
-    } catch (...) {
+    } catch (std::exception &e) {
       HTHROW INJECTION_EXCEPTION_("Unknown third party exception occured during engine init:");
     }
 
@@ -41,7 +41,7 @@ void OutputEngineStore::setEngineManager(ICommunicator_ptr world, std::string ty
         engineName = type;
       }
       return;
-    } catch (...) {
+    } catch (std::exception &e) {
       HTHROW INJECTION_EXCEPTION_("Invalid Engine Schema");
     }
   }
@@ -113,7 +113,7 @@ std::shared_ptr<Nodes::IRootNode> OutputEngineStore::readFile(std::string filena
         validator.set_root_schema(schema);
         validator.validate(config);
       }
-    } catch (...) {
+    } catch (std::exception &e) {
       throw INJECTION_EXCEPTION("Invalid Engine Reader Configuration: %s", engineType.c_str());
     }
 

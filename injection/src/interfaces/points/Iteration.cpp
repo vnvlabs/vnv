@@ -15,7 +15,7 @@ VnV_Iterator VnV::CppIteration::BeginIteration(VnV_Comm comm, const char* packag
   try {
     return VnV::RunTime::instance().injectionIteration(comm, package, id, pretty, fname, line, callback, parameters,
                                                        once);
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Error Running Loop %s:%s", package, id);
     return {NULL};
   }
@@ -24,7 +24,7 @@ VnV_Iterator VnV::CppIteration::BeginIteration(VnV_Comm comm, const char* packag
 int VnV::CppIteration::Iterate(VnV_Iterator* iterator) {
   try {
     return VnV::RunTime::instance().injectionIterationRun(iterator);
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Error Running Iteration");
     return 0;
   }

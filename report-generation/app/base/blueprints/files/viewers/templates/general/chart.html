@@ -27,6 +27,7 @@
             var lastDx = -1
             var overall = -1;
             var time = []
+            var dtime = []
             var selectedNode = 0
             barH = 50
 
@@ -140,8 +141,17 @@
                               return 0;
                          });
 
+                         time.forEach(function(value,index) {
+                            if (index==0) {
+                               dtime.push({x : value.x , y : 0})
+                            } else {
+                               dtime.push({x : value.x , y : value.y - time[index-1].y})
+                            }
+                         });
+
+
                         chart.updateSeries([{name: "Injection Point", data:data}])
-                        chart1.updateSeries([{type:'area', name: "depth", data:ddata}, {type: 'line', "name" : "time" , data: time}])
+                        chart1.updateSeries([{type:'area', name: "depth", data:ddata}, {type: 'line', "name" : "time" , data: time} ])
                         updateBrush(ddata[0].x, ddata[ddata.length -1].x, lastDx )
                     }
                     if ( ( r.length == 0 || !("done" in r[r.length -1]) ) ){
@@ -162,9 +172,13 @@
                     id : "chart2",
                     events: {
                          dataPointSelection: function(event, chartContext, config) {
-                               updateIpState(data[config.dataPointIndex].id , {{file.id_}} )
-                               selectedNode = config.dataPointIndex;
-                               chart.updateOptions({})
+                               try {
+                                updateIpState(data[config.dataPointIndex].id , {{file.id_}} )
+                                selectedNode = config.dataPointIndex;
+                                chart.updateOptions({})
+                               } catch (error) {
+                                    console.log("error")
+                               }
                          }
                     },
                     height : totalHeight(3)
@@ -229,7 +243,7 @@
 
 
             var optionsLine = {
-                       series: [ { name: "depth" , data: ddata, type: 'area' }, { type: 'line', name: "time" , data: [] } ],
+                       series: [ { name: "depth" , data: ddata, type: 'area' }, { type: 'line', name: "time" , data: [] }, { type: 'line', name: "dt" , data: [] }],
                        chart: {
                                       id: 'chart1',
                                       height: 200,
@@ -243,7 +257,7 @@
                                        }
                                 },
 
-                       colors: ['#008FFB','#FF0000'],
+                       colors: ['#008FFB','#FF0000','#FF0000'],
                        fill: {
                                   type: 'gradient',
                                     gradient: {
@@ -252,9 +266,22 @@
                                     }
                                 },
                         stroke: {
-                             curve: ['stepline','smooth'],
-                             width: [2, 5]
+                             curve: ['stepline','straight','straight'],
+                             width: [2, 5,5]
                         },
+                        markers: {
+                            size: [0 , 4 , 4],
+                            colors: ['#008FFB','#FF0000', '#FF0000']
+                       },
+                       tooltip : {
+                        enabled: true,
+                        x : {
+                            formatter : function (e) { return " Injection Point Info " }
+                        },
+                        y : {
+
+                        }
+                       },
                        xaxis: {
                                         type: 'datetime',
                                         tooltip: { enabled: true }
@@ -276,6 +303,20 @@
                                     max : function(e) {
                                         if (time.length == 0 ) return 1;
                                         return time[time.length-1].y;
+                                    }
+                                },
+                                {
+                                    show: false,
+                                    opposite: true,
+                                    seriesName : "dt",
+                                    tickAmount: 2,
+                                    min : function(e) {
+                                      if (dtime.length == 0 ) return 0;
+                                      return dtime[0].y  ;
+                                    },
+                                    max : function(e) {
+                                        if (dtime.length == 0 ) return 1;
+                                        return dtime[dtime.length-1].y;
                                     }
                                 }]
 

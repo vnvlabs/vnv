@@ -134,7 +134,9 @@ def plotly_data_array(**kwargs):
             a = json.loads(t)
             if isinstance(a, list):
                 for i in a:
-                    if isinstance(i, dict) or isinstance(i, list):
+                    if isinstance(i,list):
+                        plotly_data_array()(json.dumps(i))
+                    elif isinstance(i, dict) :
                         raise ExtensionError("Not a data array")
                 return a
         except:
@@ -249,7 +251,7 @@ class PlotlyOptionsDict(MutableMapping):
 
 class PlotlyChartDirective(JsonChartDirective):
     script_template = '''
-            <div id="{id_}" style="width:"100%"; height:"100%"></div>
+            <div id="{id_}" style="width:100%; height:100%;"></div>
             <script>
             $(document).ready(function() {{
               const obj = {config}
@@ -276,7 +278,7 @@ class PlotlyDirec(PlotlyChartDirective):
     postprocess = plotly_post_process
 
     script_template = '''
-                 <div id="{uid}" style="width:"100%"; height:"100%"></div>
+                 <div id="{uid}" style="width:100%; height:100%; min-height:450px"></div>
                  <script>
                  $(document).ready(function() {{
                    url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}?context=plotly"
@@ -286,7 +288,8 @@ class PlotlyDirec(PlotlyChartDirective):
                    annotations: [{{font: {{size: 20}},showarrow: false, text: `${{load[0]}}%`,x: 0.5,y: 0.5}}] }},{{ }});
                    update_now(url, "{uid}", 1000, function(config) {{
                      var xx = JSON.parse(config)
-                     Plotly.react('{uid}',xx['data'],xx['layout'], xx['config']);                     
+                     Plotly.react('{uid}',xx);     
+                     Plotly.relayout('{uid}',{{}});                
                    }})
                  }})
                  </script>

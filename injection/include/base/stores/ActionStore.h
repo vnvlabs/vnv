@@ -50,7 +50,7 @@ class ActionStore : public BaseStore {
         action->initialize();
         action->popComm();
         getEngine()->actionEndedCallBack(ActionStage::init);
-      } catch (...) {
+      } catch(std::exception &e) {
         VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage Initialization", action->getPackage().c_str(),
                   action->getName().c_str());
       }
@@ -64,7 +64,7 @@ class ActionStore : public BaseStore {
         action->setComm(comm);
         action->injectionPointStart(packageName, id);
         getEngine()->actionEndedCallBack(ActionStage::start);
-      } catch (...) {
+      } catch(std::exception &e) {
         VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage IP %s:%s", action->getPackage().c_str(),
                   action->getName().c_str(), packageName.c_str(), id.c_str());
       }
@@ -78,7 +78,7 @@ class ActionStore : public BaseStore {
                                            ActionStage::iter);
         action->injectionPointIteration(id);
         getEngine()->actionEndedCallBack(ActionStage::iter);
-      } catch (...) {
+      } catch(std::exception &e) {
         VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage IP iteration %s", action->getPackage().c_str(),
                   action->getName().c_str(), id.c_str());
       }
@@ -93,7 +93,7 @@ class ActionStore : public BaseStore {
         action->injectionPointEnd();
         action->popComm();
         getEngine()->actionEndedCallBack(ActionStage::end);
-      } catch (...) {
+      } catch(std::exception &e) {
         VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage IP end  ", action->getPackage().c_str(),
                   action->getName().c_str());
       }
@@ -108,7 +108,7 @@ class ActionStore : public BaseStore {
         action->finalize();
         action->popComm();
         getEngine()->actionEndedCallBack(ActionStage::final);
-      } catch (...) {
+      } catch(std::exception &e) {
         VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage finalize", action->getPackage().c_str(),
                   action->getName().c_str());
       }
@@ -134,7 +134,7 @@ class ActionStore : public BaseStore {
         act->setNameAndPackageAndEngine(packageName, name, getEngine());
         actions.push_back(act);
         return;
-      } catch (...) {
+      } catch(std::exception &e) {
 
       }
     } 

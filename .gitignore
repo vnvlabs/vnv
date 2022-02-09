@@ -6,7 +6,7 @@
 *.bak
 *.removed
 *.idea 
-
+*.mod
 .vscode
 
 __pycache__
@@ -20,4 +20,4 @@ injection/build
 tests/build
 build/
 report-generation/python_api/VnVReader.py
-report-generation/temp
+report-generation/app/temp

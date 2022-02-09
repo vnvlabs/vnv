@@ -50,21 +50,15 @@ void OptionsParserStore::callBack(std::string name, json info, ICommunicator_ptr
     OutputEngineManager* engine = OutputEngineStore::instance().getEngineManager();
 
     engine->packageOptionsStartedCallBack(world, name);
-
     if (it->second.second.first != nullptr) {
       cjson j = {&info};
       optionResult[name] = (*it->second.second.first)(j);
     } else if (it->second.second.second != nullptr) {
       optionResult[name] = (*it->second.second.second)(info, engine->getOutputEngine(), world);
     } else {
-      // It was a "raw" options. so -- We copy j and store it
-      // objects[pcakge] = jj (or something)
-      // MERGE ON MONDAY -- I Updated the options parser so we can return an object. I just
-      // forgot to push it i guess.
+      optionResult[name] = new RawJsonObject(info);
     }
-
     engine->packageOptionsEndedCallBack(name);
-
   } else {
     VnV_Warn(VNVPACKAGENAME, "Unknown Options Configuration Name %s", name.c_str());
   }

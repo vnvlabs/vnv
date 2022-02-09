@@ -278,15 +278,18 @@ def castDataBase(obj) :
       def __json__(self):
          a = {}
          for i in self.keys():
-            it = self.__getitem__(i)
-            if hasattr(it,"__json__"):
-               a[i] = self.__getitem__(i).__json__()
-            else:
-               try:
-                  json.dumps(it)
-                  a[i] = it
-               except:
-                  pass
+            try:
+               it = self.__getitem__(i)
+               if hasattr(it,"cast"):
+                  a[i] = it.cast().__json__()
+               else:
+                  try:
+                     json.dumps(it)
+                     a[i] = it
+                  except:
+                     pass
+            except:
+                  pass 
 
       def __getitem__(self,key):
          
@@ -538,7 +541,7 @@ PY_GETATTRWORK(VnV::Nodes::IWorkflowNode)
             res = []
             for i in range(0,t):
                res.append(self.valueIsJson(self.getValueByIndex(i)))
-            return np.asarray(res).reshape(s)     
+            return np.asarray(res).reshape(s).tolist()   
 
       def shape(self):
          if not hasattr(self, "shapeval"):
@@ -609,15 +612,28 @@ PY_GETATTRWORK(VnV::Nodes::IWorkflowNode)
         return "array"
 
       def __str__(self):
-          return str(self.valueIsJson(self.getValue()))
+          return str(self.__json__())
 
       
       def __json__(self):
-         return self.getValue()
-
+   
+         s,t,nps = self.shape()
+         if len(s) == 0:
+            return self.valueIsJson(self.getScalarValue())
+         else:
+            res = []
+            for i in range(0,t):
+               a = self.valueIsJson(self.getValueByIndex(i))
+               if hasattr(a,"cast") and hasattr(a.cast(),"__json__"):
+                  res.append(a.cast().__json__())
+               else:
+                  res.append(a)
+            return np.asarray(res).reshape(s).tolist()   
    %}
 }
 %enddef
+
+
 
 PY_GETATTRSHAPE(VnV::Nodes::IDoubleNode)
 PY_GETATTRSHAPE(VnV::Nodes::IIntegerNode)

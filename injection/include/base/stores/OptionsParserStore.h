@@ -18,6 +18,12 @@ using nlohmann::json;
 #include "interfaces/IOptions.h"
 namespace VnV {
 
+class RawJsonObject {
+public:
+   RawJsonObject(json& j) : data(j) {}
+   json data;
+};
+
 class OptionsParserStore : public BaseStore {
   friend class Runtime;
 

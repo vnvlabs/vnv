@@ -192,7 +192,7 @@ class MultiFileStreamIterator : public MultiStreamIterator<JsonFileIterator, jso
             std::string fname = VnV::DistUtils::join({filestub, it}, 0777, false);
             add(std::make_shared<JsonFileIterator>(id, fname));
           }
-        } catch (...) {
+        } catch (std::exception &e) {
         }
       }
     }

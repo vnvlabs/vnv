@@ -18,38 +18,22 @@ set(VNV_MPI_CXX_VERSION @MPI_CXX_VERSION@)
 
 if(WITH_EXTRACTION AND TARGET Injection::Extraction)
 
-macro(checkcompiler type vnv cm)
-  if ( NOT ${vnv} STREQUAL ${cm} )
-    message(WARNING "Project ${type} (${cm}) does not match VnV ${type} (${vnv}). ")
-  endif()
-endmacro()
 
-function( verify_compiler_and_mpi) 
-   checkcompiler("C compiler" ${VNV_C_COMPILER} ${CMAKE_C_COMPILER})
-   checkcompiler("C compiler version" ${VNV_C_COMPILER_VERSION} ${CMAKE_C_COMPILER_VERSION})
-   checkcompiler("CXX compiler" ${VNV_CXX_COMPILER} ${CMAKE_CXX_COMPILER})
-   checkcompiler("CXX compiler version" ${VNV_CXX_COMPILER_VERSION} ${CMAKE_CXX_COMPILER_VERSION})
-   checkcompiler("MPI C compiler" ${VNV_MPI_C_COMPILER} ${MPI_C_COMPILER})
-   checkcompiler("MPI C compiler version" ${VNV_MPI_C_VERSION} ${MPI_C_VERSION})
-   checkcompiler("MPI CXX compiler" ${VNV_MPI_CXX_COMPILER} ${MPI_CXX_COMPILER})
-   checkcompiler("MPI CXX compiler version" ${VNV_MPI_CXX_VERSION} ${MPI_CXX_VERSION})
-endfunction()
-
-
-function( add_vnv_generation_target packageName filename cac deps) 
+function( add_vnv_generation_target packageName filename cacheFileName) 
     
-   if (deps) 
-     set(depfiles ${cac} ${filename})
-   else()
-     set(depfiles ${cac})  
+   set(depfiles ${cacheFileName} ${filename} ${ARGN})         
+   
+   if (${ARGC} GREATER 3 ) 
+      set(fortranFiles --fortran ${ARGN})
    endif()
 
    add_custom_target(
         vnv_gen_${packageName}
         COMMAND Injection::Extraction 
                --output ${filename} 
-               --cache ${cac} 
+               --cache ${cacheFileName} 
                --package ${packageName} 
+               ${fortranFiles}
                ${CMAKE_BINARY_DIR}/compile_commands.json
                
         BYPRODUCTS ${depfiles}       
@@ -59,9 +43,10 @@ function( add_vnv_generation_target packageName filename cac deps)
         vnv_force_${packageName}
         COMMAND Injection::Extraction 
                --output ${filename} 
-               --cache ${cac} 
+               --cache ${cacheFileName} 
                --force 
                --package ${packageName} 
+               ${fortranFiles}
                {CMAKE_BINARY_DIR}/compile_commands.json
           BYPRODUCTS ${depfiles}
                )
@@ -69,9 +54,10 @@ function( add_vnv_generation_target packageName filename cac deps)
    add_custom_target(
         vnv_reset_${packageName}
         COMMAND Injection::Extraction 
-               --output ${filename} 
-               --cache ${cac} 
+               --output ${filename}
+               --cache ${cacheFileName} 
                --reset 
+               ${fortranFiles}
                --package ${packageName} 
                {CMAKE_BINARY_DIR}/compile_commands.json
           BYPRODUCTS ${depfiles}
@@ -81,9 +67,10 @@ function( add_vnv_generation_target packageName filename cac deps)
         vnv_reset_force_${packageName}
         COMMAND Injection::Extraction 
                --output ${filename} 
-               --cache ${cac} 
+               --cache ${cacheFileName} 
                --force 
                --reset
+               ${fortranFiles}
                --package ${packageName} 
                {CMAKE_BINARY_DIR}/compile_commands.json
           BYPRODUCTS ${depfiles}
@@ -93,42 +80,56 @@ endfunction()
 
 
 # This one adds all the targets but makes it up to you 
-function(link_vnv_file_root targetName packageName filename deps )
+function(link_vnv_file_root targetName packageName filename )
 
    #Link the vnv library
-   target_link_libraries(${targetName} PRIVATE Injection::Injection)
-
-   #Add all the custom vnv code generation targets. 
-   add_vnv_generation_target( ${packageName} ${filename} ${CMAKE_BINARY_DIR}/vnv_cache.__cache__ deps )
+   if (${ARGC} GREATER 3 )
+      target_link_libraries(${targetName} PRIVATE Injection::FInjection)
+      add_vnv_generation_target( ${packageName} ${filename} ${CMAKE_BINARY_DIR}/vnv_cache.__cache__  ${ARGN} )
    
+   else() 
+   
+     if (NOT ${targetName}  MATCHES "^injection$" )
+      target_link_libraries(${targetName} PRIVATE Injection::Injection)
+     endif()
+
+     message("Adding Generation Targets for ${packageName}" )
+     add_vnv_generation_target( ${packageName} ${filename} ${CMAKE_BINARY_DIR}/vnv_cache.__cache__  )
+      
+   endif()
+
 endfunction()
 
 
 # This one adds all the targets but makes it up to you to add the source. 
-function(link_vnv_file_semi targetName packageName filename)
+function(link_vnv_file_semi targetName packageName filename )
    
-   link_vnv_file_root(${targetName} ${packageName} ${filename} true)
-   
+   link_vnv_file_root(${ARGV})
+
    #Add the file as a source
    target_sources( ${targetName} PRIVATE ${filename} )
+   set_source_files_properties( ${filename} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
+  
+   if (${ARGC} GREATER 3)
+       target_sources( ${targetName} PRIVATE ${ARGN} )
+       set_source_files_properties( ${ARGN} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
+   endif()
    
-   #Ignore the generated file when processing vnv stuff. We need this because other wise
-   # the parser tries to find these files which dont exist yet. 
-   set_source_files_properties( ${filename} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0
-   )
-
 endfunction()
+
+
+function(link_vnv_file_fortran targetName packageName extension)
+   link_vnv_file_semi(${targetName} ${packageName} ${CMAKE_BINARY_DIR}/vnv_registration_${packageName}.${extension} ${CMAKE_BINARY_DIR}/vnv_registration_${packageName}.f90)
+   add_dependencies(${targetName} vnv_gen_${packageName})   
+endfunction()
+
+
 
 
 function(link_vnv_file targetName packageName extension)
-   
-   link_vnv_file_semi(${targetName} ${packageName} ${CMAKE_BINARY_DIR}/vnv_registration_${packageName}.${extension})
-      
-   add_dependencies(${targetName} vnv_gen_${packageName})
-   
+  link_vnv_file_semi(${targetName} ${packageName} ${CMAKE_BINARY_DIR}/vnv_registration_${packageName}.${extension})
+  add_dependencies(${targetName} vnv_gen_${packageName})      
 endfunction()
-
-
 
 
 endif()

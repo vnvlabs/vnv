@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "base/Runtime.h"
-
+#include "base/stores/OptionsParserStore.h"
 // Initialize the thing
 namespace {
 
@@ -96,29 +96,68 @@ SCALARS
 #undef X
 
 // Get parameters of a certain type from the options object -- this is in leiu of a processing
-// VnV::RawJsonObject* rj = (VnV::RawJsonObject*)VnV::RunTime::instance().getOptionsObject(package); \
-// return rj.value(json::json_pointer(parameter), *def);                                             \
-
-#define X(NAME, TYPE) \
-  TYPE vnv_get_##NAME##_parameter_x(const char* package, const char* parameter, TYPE* def) { return *def; }
-SCALARS
+#define ASCALARS X(integer, int) X(float, float) X(double, double)
+#define X(NAME, TYPE)                                                                                     \
+  TYPE vnv_get_##NAME##_parameter_x(const char* package, const char* parameter, TYPE* def) {              \
+    VnV::RawJsonObject* rj = (VnV::RawJsonObject*)VnV::OptionsParserStore::instance().getResult(package); \
+    if (rj == nullptr) {                                                                                  \
+      return *def;                                                                                        \
+    }                                                                                                     \
+                                                                                                          \
+    TYPE t = *def;                                                                                        \
+    return rj->data.value(json::json_pointer(parameter), t);                                              \
+  }
+ASCALARS
 #undef X
+#undef ASCALARS
 
 const char* vnv_get_str_parameter_x(const char* package, const char* parameter) {
-  // VnV::RawJsonObject* rj = (VnV::RawJsonObject*)VnV::RunTime::instance().getOptionsObject(package);
-  // std::string v = rj->j.value(json::json_pointer(parameter), "__not_found__");
-  // if (v.compare("__not_found__") == 0) {
-  //  return nullptr;
-  //}
+  VnV::RawJsonObject* rj = (VnV::RawJsonObject*)VnV::OptionsParserStore::instance().getResult(package);
+  if (rj == nullptr) {
+    return nullptr;
+  }
+
+  std::string v = rj->data.value(json::json_pointer(parameter), "__not_found__");
+  if (v.compare("__not_found__") == 0) {
+    return nullptr;
+  }
 
   // They need to free this once they are done with it.
-  // char* res = (char*)malloc((v.size() + 1) * sizeof(char));
-  // strcpy(res, v.c_str());
-  // return res;
-  return "GGGG";  // uncomment once I merge the new options interface.
+  char* res = (char*)malloc((v.size() + 1) * sizeof(char));
+  strcpy(res, v.c_str());
+  return res;
 }
 
 #undef SCALARS
+
+int vnv_get_parameter_type_x(const char* package, const char* pointer) {
+  VnV::RawJsonObject* rj = (VnV::RawJsonObject*)VnV::OptionsParserStore::instance().getResult(package);
+  if (rj == nullptr) {
+    return 10;
+  }
+
+  json v = rj->data.at(json::json_pointer(pointer));
+  if (v.is_null()) return 0;
+  if (v.is_object()) return 1;
+  if (v.is_array()) return 2;
+  if (v.is_boolean()) return 3;
+  if (v.is_number_integer()) return 4;
+  if (v.is_number_float()) return 5;
+  if (v.is_string()) return 6;
+  return 10;
+}
+
+int vnv_get_parameter_size_x(const char* package, const char* pointer) {
+  VnV::RawJsonObject* rj = (VnV::RawJsonObject*)VnV::OptionsParserStore::instance().getResult(package);
+  if (rj == nullptr) {
+    return -1;
+  }
+  json v = rj->data.at(json::json_pointer(pointer));
+  if (v.is_object()) return v.size();
+  if (v.is_array()) return v.size();
+  if (v.is_string()) return v.size();
+  return -1;
+}
 
 void* vnv_loop_init_x(int world, const char* package, const char* fname) {
   return (void*)new PointCtx(world, package, fname);

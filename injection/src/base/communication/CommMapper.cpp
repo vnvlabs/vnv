@@ -317,7 +317,7 @@ INJECTION_UNITTEST(VNVPACKAGENAME, CommMapTester, 1) {
   try {
     p.reset(new CommMapper());
     tryTest1 = true;
-  } catch (...) {
+  } catch (std::exception &e) {
   };
   /**
    * Does Constructor work

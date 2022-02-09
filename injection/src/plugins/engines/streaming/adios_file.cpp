@@ -413,7 +413,7 @@ class MultiAdiosStreamIterator : public MultiStreamIterator<AdiosFileIterator, j
             std::string fname = VnV::DistUtils::join({filestub, it}, 0777, false);
             add(std::make_shared<AdiosFileIterator>(id, fname));
           }
-        } catch (...) {
+        } catch (std::exception &e) {
         }
       }
     }

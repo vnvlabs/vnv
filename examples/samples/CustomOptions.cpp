@@ -22,4 +22,5 @@ const char* oschema = R"({
 INJECTION_OPTIONS(Samples, oschema) {
   double value = config["value"].get<double>();
   // ... configure the package ....
+  return NULL;
 }

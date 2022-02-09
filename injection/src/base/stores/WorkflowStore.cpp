@@ -32,16 +32,15 @@ void registerScheduler(std::string packageName, std::string name, const std::str
 void JobManager::run(ICommunicator_ptr ptr, bool before) {
   bool complete = false;
 
-  if (ptr->Size() > 1) {
-    VnV_Warn(VNVPACKAGENAME_S,
-             "Workflows are executed using a single process. All additional processes will hang until the workflow is "
-             "finished!%s",
-             "");
-  }
+
+ 
 
   if (ptr->Rank() == 0) {
+    
+    auto selfComm = ptr->self();
+    
     if (before) {
-      OutputEngineStore::instance().getEngineManager()->workflowStartedCallback(ptr, package, name, getWorkflowFile());
+      OutputEngineStore::instance().getEngineManager()->workflowStartedCallback(selfComm, package, name, getWorkflowFile());
     }
 
     auto delay = 30;       // 30 seconds between updates.
@@ -50,6 +49,13 @@ void JobManager::run(ICommunicator_ptr ptr, bool before) {
 
     while (!complete) {
       complete = true;
+
+       if (ptr->Size() > 1 && jobs.size() > 0 ) {
+           VnV_Warn(VNVPACKAGENAME_S,
+             "Workflows are executed using a single process. All additional processes will hang until the workflow is "
+             "finished!%s",
+             "");
+      }
 
       for (auto& it : jobs) {
         if (it.second->runBeforeApplication() == before) {
@@ -72,7 +78,7 @@ void JobManager::run(ICommunicator_ptr ptr, bool before) {
         if (delay <
             std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start_time)
                 .count()) {
-          OutputEngineStore::instance().getEngineManager()->workflowUpdatedCallback(ptr, package, name,
+          OutputEngineStore::instance().getEngineManager()->workflowUpdatedCallback(selfComm, package, name,
                                                                                     getWorkflowFile());
           start_time = std::chrono::high_resolution_clock::now();
         }
@@ -80,7 +86,7 @@ void JobManager::run(ICommunicator_ptr ptr, bool before) {
     }
 
     if (!before) {
-      OutputEngineStore::instance().getEngineManager()->workflowEndedCallback(ptr, package, name, getWorkflowFile());
+      OutputEngineStore::instance().getEngineManager()->workflowEndedCallback(selfComm, package, name, getWorkflowFile());
     }
   }
   // Wait for workflow to finish.
@@ -90,7 +96,7 @@ void JobManager::run(ICommunicator_ptr ptr, bool before) {
 std::string IScriptGenerator::render(std::string templ, const json& data) {
   try {
     return inja::render(templ, data);
-  } catch (std::exception e) {
+  } catch (std::exception &e) {
     throw INJECTION_EXCEPTION("Template Render failed: %s", e.what());
   }
 }

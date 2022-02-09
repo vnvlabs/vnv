@@ -237,31 +237,6 @@ class DataBase {
       a.push_back("Shape: " + getShapeJson());                                                  \
       if (getShape().size() == 0) {                                                             \
         a.push_back("Value:" + valueToString(getScalarValue()));                                \
-      } else {                                                                                  \
-        json shapes = json::array();                                                            \
-                                                                                                \
-        auto shape = getShape();                                                                \
-        std::vector<std::size_t> counters(shape.size(), 0);                                     \
-                                                                                                \
-        bool done = false;                                                                      \
-        while (!done) {                                                                         \
-          json countersj = counters;                                                            \
-          shapes.push_back(countersj.dump() + ": " + valueToString(getValueByShape(counters))); \
-          for (int i = counters.size() - 1; i > -1; i--) {                                      \
-            counters[i] = counters[i] + 1;                                                      \
-            if (counters[i] == shape[i]) {                                                      \
-              if (i == 0) {                                                                     \
-                done = true;                                                                    \
-              }                                                                                 \
-              counters[i] = 0;                                                                  \
-            } else {                                                                            \
-              break;                                                                            \
-            }                                                                                   \
-          }                                                                                     \
-        }                                                                                       \
-        json vals = json::object();                                                             \
-        vals["text"] = "Values";                                                                \
-        vals["children"] = shapes;                                                              \
       }                                                                                         \
       return a;                                                                                 \
     }                                                                                           \
@@ -730,7 +705,7 @@ class VnVSpec {
   std::string getter(std::string r, std::string key) const {
     try {
       return spec[r][key]["docs"]["template"].get<std::string>();
-    } catch (...) {
+    } catch (std::exception &e) {
       throw INJECTION_EXCEPTION("Template Specification Error: %s:%s/docs does not exist or is not a string ", r.c_str(), key.c_str());
     }
   }
@@ -749,7 +724,7 @@ class VnVSpec {
   std::string intro() {
     try {
       return spec["Introduction"]["docs"]["template"].get<std::string>();
-    } catch (...) {
+    } catch (std::exception &e) {
       throw INJECTION_EXCEPTION_("No introduction available");
     }
   }
@@ -757,7 +732,7 @@ class VnVSpec {
   std::string conclusion() {
     try {
       return spec["Conclusion"]["docs"]["template"].get<std::string>();
-    } catch (...) {
+    } catch (std::exception &e) {
       throw INJECTION_EXCEPTION_("No conclusion available");
     }
   }

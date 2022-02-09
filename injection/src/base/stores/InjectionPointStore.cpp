@@ -115,7 +115,7 @@ void InjectionPointStore::registerInjectionPoint(std::string packageName, std::s
   try {
     json x = json::parse(parameters_str);
     registerInjectionPoint(packageName, id, x);
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Warn(VNVPACKAGENAME, "Could not register Injection Point. Invalid Json. %s", parameters_str.c_str());
   }
 }

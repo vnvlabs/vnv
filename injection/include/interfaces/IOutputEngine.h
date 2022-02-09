@@ -121,6 +121,7 @@ class IOutputEngine {
   template <typename T>
   void Write(std::string variableName, long long key, T* data, const BaseAction& action,
              const MetaData& m = MetaData()) {
+    
     int total = action.count(comm, getRoot());
 
     try {

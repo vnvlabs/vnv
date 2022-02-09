@@ -68,7 +68,7 @@ void RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
         VnV_Warn(VNVPACKAGENAME, "Library not found");
       }
     }
-  } catch (...) {
+  } catch (std::exception &e) {
     throw INJECTION_EXCEPTION("Error Loading Plugin: Library not found: %s", libraryPath.c_str());
   }
 }
@@ -260,7 +260,7 @@ VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::
 
     VnV_Iterator_Info* info = new VnV_Iterator_Info(id, pname, once, fname, line, it);
     return {(void*)info};
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Injection iteration failed %s:%s", pname.c_str(), id.c_str());
     std::shared_ptr<VnV::IterationPoint> s;
     VnV_Iterator_Info* info = new VnV_Iterator_Info(id, pname, once, fname, line, s);
@@ -285,7 +285,7 @@ VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::
 
     return {(void*)info};
 
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Injection iteration failed %s:%s", pname.c_str(), id.c_str());
     std::shared_ptr<VnV::IterationPoint> s;
     VnV_Iterator_Info* info = new VnV_Iterator_Info(id, pname, once, fname, line, s);
@@ -308,9 +308,7 @@ int RunTime::injectionIterationRun(VnV_Iterator* iterator) {
       return a;
     } catch (std::exception& e) {
       VnV_Error(VNVPACKAGENAME, "Error Occured during iteration : %s", e.what());
-    } catch (...) {
-      VnV_Error(VNVPACKAGENAME, "Error Occured during iteration : <unknown reason>");
-    }
+    } 
   }
 
   if (info->count < info->once) {
@@ -364,7 +362,7 @@ VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname, std::strin
       it->setComm(getComm(comm));
       it->setCallBack(callback);
     }
-  } catch (...) {
+  } catch (std::exception &e) {
     it = nullptr;
   }
 
@@ -383,7 +381,7 @@ VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname, std::strin
       it->setComm(getComm(comm));
       it->setCallBack(callback);
     }
-  } catch (...) {
+  } catch (std::exception &e) {
     it = nullptr;
   }
 
@@ -792,18 +790,15 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
   VnV_Comm comm = CommunicationStore::instance().world();
 
   /**
-   * VnV Application Profiling Loop.
-   * ===============================
+   * @title VnV Application Profiling Loop.
+   * @description Initialization of the VnV Loop    *
+   * @instructions Use this to track updates for the entire application.
+   * @param runTests A bool indicating if run Tests is turned on
    *
    * This injection point is called at the end of the VnVInit function. This is a
    * looped injection point with no interesting parameters passed in. This
    * injection point exists soley as a mechanism for profiling the given
    * application between the VnVInit and VnVFinalize functions.
-   *
-   * @title VnV Initialization
-   * @description Initialization of the VnV Loop    *
-   * @instructions Use this to track updates for the entire application.
-   * @param runTests A bool indicating if run Tests is turned on
    *
    */
   INJECTION_LOOP_BEGIN(VNV_STR(VNVPACKAGENAME), comm, "initialization", runTests);

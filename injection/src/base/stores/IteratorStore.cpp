@@ -85,7 +85,7 @@ void IteratorStore::registerIterator(std::string packageName, std::string id,
   try {
     json x = json::parse(parameters_str);
     registerIterator(packageName, id, x);
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Warn(VNVPACKAGENAME, "Could not register Injection Point. Invalid Json. %s", parameters_str.c_str());
   }
 }

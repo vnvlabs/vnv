@@ -41,11 +41,24 @@
 #  define INJECTION_REGISTRATION(PNAME)                    \
     extern "C" void __attribute__((visibility("default"))) \
     VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
+
+#  define FORTRAN_INJECTION_REGISTRATION(PNAME) \
+    extern "C" registrationCallBack __attribute__((visibility("default"))) \
+    vnv_fort_##PNAME##_x(){return INJECTION_REGISTRATION_PTR(PNAME);}   
+
 #else
+
 #  define INJECTION_REGISTRATION(PNAME)         \
     void __attribute__((visibility("default"))) \
     VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
+
+#  define FORTRAN_INJECTION_REGISTRATION(PNAME) \
+    registrationCallBack __attribute__((visibility("default"))) \
+    vnv_fort_##PNAME##_x(){return INJECTION_REGISTRATION_PTR(PNAME);}   
+
 #endif
+
+
 
 #define INJECTION_REGISTRATION_CALL(PNAME) VNV_REGISTRATION_CALLBACK_NAME(PNAME)
 #define INJECTION_REGISTRATION_PTR(PNAME) &VNV_REGISTRATION_CALLBACK_NAME(PNAME)

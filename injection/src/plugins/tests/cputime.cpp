@@ -73,8 +73,7 @@ cpuRunner::~cpuRunner() {}
 }  // namespace
 
 /**
- * Injection Point Timing Results
- * ==============================
+ * @title Injection Point Timing Results
  *
  * The overall time was :vnv:`TotalTime[0]` :vnv:`units[0]`
  * 

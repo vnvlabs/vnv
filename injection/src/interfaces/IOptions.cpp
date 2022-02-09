@@ -13,7 +13,7 @@ void VnV::RegisterOptions(std::string packageName, std::string schema,
   try {
     json j = json::parse(schema);
     VnV::RegisterOptions_Json(packageName, j, callback);
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME,"Error Registering Options");  
   }
 
@@ -24,7 +24,7 @@ void VnV::RegisterOptions_Json(std::string name, json& schema,
 
   try {
     VnV::OptionsParserStore::instance().add(name, schema, callback);
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME,"Error Registering Options");  
   }
 

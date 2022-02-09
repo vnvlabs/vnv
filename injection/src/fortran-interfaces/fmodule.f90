@@ -37,7 +37,14 @@ module libvnv
     public :: vnv_input_file
     public :: vnv_output_file
     
-
+    integer, parameter, public :: VNV_JSON_NULL = 0
+    integer, parameter, public :: VNV_JSON_OBJECT = 1
+    integer, parameter, public :: VNV_JSON_ARRAY = 2
+    integer, parameter, public :: VNV_JSON_BOOLEAN = 3
+    integer, parameter, public :: VNV_JSON_INTEGER = 4
+    integer, parameter, public :: VNV_JSON_FLOAT = 5
+    integer, parameter, public :: VNV_JSON_STRING = 6
+ 
     interface
         
   ! void functions maps to subroutines
@@ -273,6 +280,21 @@ module libvnv
         character(len=1, kind=C_CHAR), intent(in) :: parameter(*)
     end function
 
+    INTEGER(C_INT) function  vnv_get_parameter_type_c(package,parameter) bind(C, name="vnv_get_parameter_type_x")
+        use iso_c_binding
+        implicit none
+        character(len=1, kind=C_CHAR), intent(in) :: package(*)
+        character(len=1, kind=C_CHAR), intent(in) :: parameter(*)
+    end function
+
+
+    INTEGER(C_INT) function  vnv_get_parameter_size_c(package,parameter) bind(C, name="vnv_get_parameter_size_x")
+        use iso_c_binding
+        implicit none
+        character(len=1, kind=C_CHAR), intent(in) :: package(*)
+        character(len=1, kind=C_CHAR), intent(in) :: parameter(*)
+    end function
+
     subroutine vnv_log_c(world,level,package,message) bind(C, name="vnv_log_x")
         use iso_c_binding
         implicit none
@@ -283,7 +305,7 @@ module libvnv
     end subroutine
 
    
-    subroutine vnv_file_c(world, input, package, name, filename,reader) bind(C, name="vnv_log_x")
+    subroutine vnv_file_c(world, input, package, name, filename,reader) bind(C, name="vnv_file_x")
         use iso_c_binding
         implicit none
         INTEGER(C_INT), intent(in) :: world
@@ -352,7 +374,7 @@ contains ! Implementation of the functions. We just wrap the C function here.
         implicit none
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
-        real, intent(in) :: value
+        real(8), intent(in) :: value
         call vnv_declare_double_parameter_c(ctx,convert(name), real(value, kind=c_double))
     end subroutine
     
@@ -381,10 +403,10 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
         real(kind=c_float), dimension(*), intent(inout) :: value
-        integer(c_size_t), value, intent(in) :: n
+        integer, value, intent(in) :: n
         character(len=1, kind=C_CHAR) :: name_c_str(len_trim(name) + 1)
         name_c_str = convert(name)        
-        call vnv_declare_float_array_c(ctx,name_c_str, value, n)
+        call vnv_declare_float_array_c(ctx,name_c_str, value, int(n, kind=c_size_t))
     end subroutine
 
 
@@ -393,10 +415,10 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
         real(kind=c_double), dimension(*), intent(inout) :: value
-        integer(c_size_t), value, intent(in) :: n
+        integer, value, intent(in) :: n
         character(len=1, kind=C_CHAR) :: name_c_str(len_trim(name) + 1)
         name_c_str = convert(name)        
-        call vnv_declare_double_array_c(ctx,name_c_str, value, n)
+        call vnv_declare_double_array_c(ctx,name_c_str, value, int(n, kind=c_size_t))
     end subroutine
 
     subroutine vnv_declare_integer_matrix(ctx,name,value,d0,d1)
@@ -404,10 +426,10 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
         integer(kind=c_int), dimension(:,:), intent(inout) :: value
-        integer(c_size_t), value, intent(in) :: d0,d1
+        integer, value, intent(in) :: d0,d1
         character(len=1, kind=C_CHAR) :: name_c_str(len_trim(name) + 1)
         name_c_str = convert(name)        
-        call vnv_declare_integer_matrix_c(ctx,name_c_str, value, d0,d1)
+        call vnv_declare_integer_matrix_c(ctx,name_c_str, value,int(d0, kind=c_size_t),int(d1, kind=c_size_t))
     end subroutine
 
     subroutine vnv_declare_float_matrix(ctx,name,value,d0,d1)
@@ -415,10 +437,10 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
         real(kind=c_float), dimension(:,:), intent(inout) :: value
-        integer(c_size_t), value, intent(in) :: d0,d1
+        integer, value, intent(in) :: d0,d1
         character(len=1, kind=C_CHAR) :: name_c_str(len_trim(name) + 1)
         name_c_str = convert(name)        
-        call vnv_declare_float_matrix_c(ctx,name_c_str, value, d0,d1)
+        call vnv_declare_float_matrix_c(ctx,name_c_str, value, int(d0, kind=c_size_t),int(d1, kind=c_size_t))
     end subroutine
 
     subroutine vnv_declare_double_matrix(ctx,name,value,d0,d1)
@@ -426,10 +448,10 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
         real(kind=c_double), dimension(:,:), intent(inout) :: value
-        integer(c_size_t), value, intent(in) :: d0,d1
+        integer, value, intent(in) :: d0,d1
         character(len=1, kind=C_CHAR) :: name_c_str(len_trim(name) + 1)
         name_c_str = convert(name)        
-        call vnv_declare_double_matrix_c(ctx,name_c_str, value, d0,d1)
+        call vnv_declare_double_matrix_c(ctx,name_c_str, value, int(d0, kind=c_size_t),int(d1, kind=c_size_t))
     end subroutine
 
 
@@ -458,7 +480,6 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: fname
         TYPE(C_PTR) :: ptr
         ptr = vnv_loop_init_c(int(world,kind=c_int),convert(package),convert(fname))
-        print *, ptr
     end function
 
     subroutine vnv_loop_begin(ctx)
@@ -491,7 +512,7 @@ contains ! Implementation of the functions. We just wrap the C function here.
        
        ctx = vnv_init_start_c(convert(package), convert(fname), regis)
 
-       DO i = 1, iargc()
+       DO i = 0, iargc()
             CALL getarg(i,arg)
             CALL vnv_add_arg(ctx,arg)
        END DO
@@ -567,6 +588,8 @@ contains ! Implementation of the functions. We just wrap the C function here.
         return;
     end function
 
+
+
     function vnv_get_string_parameter(package,parameter, def) result(f_string)
         use, intrinsic :: iso_c_binding, only: c_ptr,c_f_pointer,c_char,c_null_char
         character(len=*), intent(in) :: package
@@ -598,13 +621,27 @@ contains ! Implementation of the functions. We just wrap the C function here.
         allocate(character(len=length)::f_string)
         f_string=aux_string(1:length)
     end function vnv_get_string_parameter
-       
+
+    INTEGER(C_INT) function vnv_get_parameter_type(package,parameter) 
+        implicit none
+        character(len=*), intent(in) :: package
+        character(len=*), intent(in) :: parameter
+        vnv_get_parameter_type = vnv_get_parameter_type_c(convert(package),convert(parameter))
+    end function
+
+    INTEGER(C_INT) function vnv_get_parameter_size(package,parameter) 
+        implicit none
+        character(len=*), intent(in) :: package
+        character(len=*), intent(in) :: parameter
+        vnv_get_parameter_size = vnv_get_parameter_size_c(convert(package),convert(parameter))
+    end function
+
     subroutine vnv_debug(world, package, message) 
         implicit none
         INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: message
-        call vnv_log_c(int(world,kind=c_int), "debug", convert(package),convert(message))
+        call vnv_log_c(int(world,kind=c_int), convert("debug"), convert(package),convert(message))
     end subroutine
 
     subroutine vnv_error(world, package, message) 

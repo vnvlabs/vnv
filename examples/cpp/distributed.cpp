@@ -101,7 +101,7 @@ INJECTION_TEST(SPNAME, put_matrix) {
 
   // First one passed in data + cols where cols in the number of columns in
   // the global output matrix. This function will take and [x,y] local matrix
-  // and map it to a block matrix with "cols" rows. For a rowwise matrix we
+  // and map it to a block matrix with "cols" columns. For a rowwise matrix we
   // use cols = x[0].size() to represet the length of row 0.
   engine->Put_Matrix("Matrix1", x, x[0].size());
 

@@ -93,7 +93,7 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level,
 
       auto c = CommunicationStore::instance().getCommunicator(comm);
       eng->Log(c, pname.c_str(), stage, level, format);
-    } catch (...) {
+    } catch (std::exception &e) {
       // Logging statements that occur prior to the engine being configured at
       // written to std::out.
       if (savedLogs.size() > MAXSAVED_LOGS) {

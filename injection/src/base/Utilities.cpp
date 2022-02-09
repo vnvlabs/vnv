@@ -247,7 +247,7 @@ bool VnV::JsonUtilities::validate(const nlohmann::json& obj, const nlohmann::jso
     validator.set_root_schema(schema);
     validator.validate(obj);
     return true;
-  } catch (std::exception e) {
+  } catch (std::exception &e) {
     std::cout << e.what() << std::endl;
     return false;
   }

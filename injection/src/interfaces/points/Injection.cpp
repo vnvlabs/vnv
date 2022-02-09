@@ -12,7 +12,7 @@ void VnV::CppInjection::BeginLoop(VnV_Comm comm, const char* package, const char
                                   const char* fname, int line, const DataCallback& callback, NTV& map) {
   try {
     VnV::RunTime::instance().injectionPoint_begin(comm, package, id, pretty, fname, line, callback, map);
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Error Running Loop %s:%s", package, id);
   }
 }
@@ -21,7 +21,7 @@ void VnV::CppInjection::BeginPoint(VnV_Comm comm, const char* package, const cha
                                    const char* fname, int line, const DataCallback& callback, NTV& map) {
   try {
     VnV::RunTime::instance().injectionPoint(comm, package, id, pretty, fname, line, callback, map);
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Error Running Loop %s:%s", package, id);
   }
 }
@@ -30,7 +30,7 @@ bool VnV::CppInjection::EndLoop(const char* package, const char* id, const char*
   try {
     VnV::RunTime::instance().injectionPoint_end(package, id, fname, line);
     return true;
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Error Running Loop %s:%s", package, id);
     return true;
   }
@@ -38,7 +38,7 @@ bool VnV::CppInjection::EndLoop(const char* package, const char* id, const char*
 void VnV::CppInjection::IterLoop(const char* package, const char* id, std::string iterId, const char* fname, int line) {
   try {
     VnV::RunTime::instance().injectionPoint_iter(package, id, iterId, fname, line);
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Error Running Loop %s:%s", package, id);
   }
 }
@@ -46,7 +46,7 @@ void VnV::CppInjection::IterLoop(const char* package, const char* id, std::strin
 void VnV::CppInjection::RegisterInjectionPoint(const char* package, const char* id, std::string json) {
   try {
     VnV::InjectionPointStore::instance().registerInjectionPoint(package, id, json);
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Error Running Loop %s:%s", package, id);
   }
 }

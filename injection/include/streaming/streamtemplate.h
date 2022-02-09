@@ -304,8 +304,6 @@ class JsonPortStreamIterator : public MultiStreamIterator<JsonSingleStreamIterat
     return a;
   }
 
-
-
   bool authorize(std::string username, std::string password) {
     return (username.compare(uname) == 0 && password.compare(pass) == 0);
   }
@@ -350,81 +348,81 @@ template <typename T> T WriteDataJson(IDataType_vec gather) {
   T main = T::array();
   for (int i = 0; i < gather.size(); i++) {
     IDataType_ptr d = gather[i];
-
     T cj = T::array();
+    if (d != nullptr) {
+      std::map<std::string, PutData> types = d->getLocalPutData();
+      for (auto& it : types) {
+        T childJson = T::object();
 
-    std::map<std::string, PutData> types = d->getLocalPutData();
-    for (auto& it : types) {
-      T childJson = T::object();
-
-      PutData& p = it.second;
-      try {
-        outdata = d->getPutData(it.first);  // TODO_THROWS
-      } catch (VnV::VnVExceptionBase& e) {
-        HTHROW INJECTION_EXCEPTION(
-            "DataType is not configured Correctly %s is listed as a type in"
-            "get local put data, but getPutData throws when it is passed to it.",
-            it.first.c_str());
-      }
-      childJson[JSD::node] = JSN::shape;
-      childJson[JSD::name] = p.name;
-      childJson[JSD::shape] = p.shape;
-      int count = std::accumulate(p.shape.begin(), p.shape.end(), 1, std::multiplies<>());
-
-      switch (p.datatype) {
-      case SupportedDataType::DOUBLE: {
-        double* dd = (double*)outdata;
-        if (p.shape.size() > 0) {
-          std::vector<double> da(dd, dd + count);
-          childJson[JSD::value] = da;
-        } else {
-          childJson[JSD::value] = *dd;
+        PutData& p = it.second;
+        try {
+          outdata = d->getPutData(it.first);  // TODO_THROWS
+        } catch (VnV::VnVExceptionBase& e) {
+          HTHROW INJECTION_EXCEPTION(
+              "DataType is not configured Correctly %s is listed as a type in"
+              "get local put data, but getPutData throws when it is passed to it.",
+              it.first.c_str());
         }
-        childJson[JSD::dtype] = JST::Double;
+        childJson[JSD::node] = JSN::shape;
+        childJson[JSD::name] = p.name;
+        childJson[JSD::shape] = p.shape;
+        int count = std::accumulate(p.shape.begin(), p.shape.end(), 1, std::multiplies<>());
 
-        break;
-      }
+        switch (p.datatype) {
+        case SupportedDataType::DOUBLE: {
+          double* dd = (double*)outdata;
+          if (p.shape.size() > 0) {
+            std::vector<double> da(dd, dd + count);
+            childJson[JSD::value] = da;
+          } else {
+            childJson[JSD::value] = *dd;
+          }
+          childJson[JSD::dtype] = JST::Double;
 
-      case SupportedDataType::LONG: {
-        long* dd = (long*)outdata;
-        if (p.shape.size() > 0) {
-          std::vector<long> da(dd, dd + count);
-          childJson[JSD::value] = da;
-        } else {
-          childJson[JSD::value] = *dd;
+          break;
         }
-        childJson[JSD::dtype] = JST::Long;
 
-        break;
-      }
+        case SupportedDataType::LONG: {
+          long* dd = (long*)outdata;
+          if (p.shape.size() > 0) {
+            std::vector<long> da(dd, dd + count);
+            childJson[JSD::value] = da;
+          } else {
+            childJson[JSD::value] = *dd;
+          }
+          childJson[JSD::dtype] = JST::Long;
 
-      case SupportedDataType::STRING: {
-        std::string* dd = (std::string*)outdata;
-        if (p.shape.size() > 0) {
-          std::vector<std::string> da(dd, dd + count);
-          childJson[JSD::value] = da;
-        } else {
-          childJson[JSD::value] = *dd;
+          break;
         }
-        childJson[JSD::dtype] = JST::String;
 
-        break;
-      }
+        case SupportedDataType::STRING: {
+          std::string* dd = (std::string*)outdata;
+          if (p.shape.size() > 0) {
+            std::vector<std::string> da(dd, dd + count);
+            childJson[JSD::value] = da;
+          } else {
+            childJson[JSD::value] = *dd;
+          }
+          childJson[JSD::dtype] = JST::String;
 
-      case SupportedDataType::JSON: {
-        json* dd = (json*)outdata;
-        if (p.shape.size() > 0) {
-          std::vector<json> da(dd, dd + count);
-          childJson[JSD::value] = da;
-        } else {
-          childJson[JSD::value] = *dd;
+          break;
         }
-        childJson[JSD::sdt] = JST::Json;
 
-        break;
+        case SupportedDataType::JSON: {
+          json* dd = (json*)outdata;
+          if (p.shape.size() > 0) {
+            std::vector<json> da(dd, dd + count);
+            childJson[JSD::value] = da;
+          } else {
+            childJson[JSD::value] = *dd;
+          }
+          childJson[JSD::sdt] = JST::Json;
+
+          break;
+        }
+        }
+        cj.push_back(childJson);
       }
-      }
-      cj.push_back(childJson);
     }
     main.push_back(cj);
   }
@@ -454,15 +452,14 @@ template <typename T> class PortStreamWriter : public StreamWriter<T> {
   std::string reader;
 
   json getRunInfo() override {
-     json j = json::object();
-     j["reader"] = reader;
-     j["password"] = password;
-     j["username"] = username;  
-     return j;
+    json j = json::object();
+    j["reader"] = reader;
+    j["password"] = password;
+    j["username"] = username;
+    return j;
   }
 
   virtual std::string autostart(const json& config) {
-
 #ifdef WITH_LIBCURL
 
     std::string readerUrl = config.value("url", "localhost:5000");
@@ -475,7 +472,6 @@ template <typename T> class PortStreamWriter : public StreamWriter<T> {
         << "&workflowJob=" << RunTime::instance().workflowJob() << ""
         << "&workflowName=" << RunTime::instance().workflowName() << ""
         << "&__token__=" << config.value("vnvpass", "password") << "";
-
 
     if (config.value("persist", true)) {
       oss << "&persist=on";
@@ -492,11 +488,10 @@ template <typename T> class PortStreamWriter : public StreamWriter<T> {
       std::cout << "Auto Start Successfull" << std::endl;
       return w.getData();
     }
- #endif
+#endif
 
     throw INJECTION_EXCEPTION_("Could not autostart the engine reader.");
-  
- }
+  }
 
  public:
   static std::string getSchema() {
@@ -532,11 +527,11 @@ template <typename T> class PortStreamWriter : public StreamWriter<T> {
     } else {
       newFileStub = config["filename"].get<std::string>();
     }
-    
-    #ifdef WITH_LIBCURL
+
+#ifdef WITH_LIBCURL
     VnV::Curl::CurlWrapper::instance().addBasic(username, password);
-    #endif
-    
+#endif
+
     return newFileStub;
   }
 
@@ -657,9 +652,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
     return false;
   }
 
-  json getRunInfo() override{
-    return stream->getRunInfo(); 
-  }
+  json getRunInfo() override { return stream->getRunInfo(); }
 
   bool Fetch(std::string message, const json& schema, long timeoutInSeconds, json& response) override {
     std::string line = response.dump();
@@ -729,22 +722,92 @@ template <typename T> class StreamManager : public OutputEngineManager {
                       std::vector<int> sizes, std::vector<int> offset, const MetaData& m) {
     VnV::DataTypeCommunication d(comm);
 
+    IDataType_ptr mainDT = DataTypeStore::instance().getDataType(dtype);
+
     // Gather all on the root processor
     IDataType_vec gather = d.GatherV(data, dtype, getRoot(), gsizes, sizes, offset, false);
 
     if (gather.size() > 0 && comm->Rank() == getRoot()) {
-      try {
-        json j;
+      IDataType_ptr mainDT = DataTypeStore::instance().getDataType(dtype);
+      std::map<std::string, PutData> types = mainDT->getLocalPutData();
+      if (types.size() == 0) {
+        return;
+      }
+
+      if (types.size() != 1 || (*types.begin()).second.shape.size() > 1) {
+        try {
+          json j;
+          j[JSD::name] = variableName;
+          j[JSD::node] = JSN::shape;
+          j[JSD::shape] = gsizes;
+          j[JSD::dtype] = JST::GlobalArray;
+          j[JSD::key] = dtype;
+          j[JSD::meta] = m;
+          j[JSD::children] = WriteDataJson<json>(gather);
+          write(j);
+        } catch (VnV::VnVExceptionBase& e) {
+          VnV_Error(VNVPACKAGENAME, "Could not Write Global Array: %s", e.what());
+        }
+      } else {
+        // Just one value -- so lets just make this a param array -- saves space and all.  array
+
+        std::string param = (*types.begin()).first;
+        PutData& pdata = (*types.begin()).second;
+
+        auto sdt = pdata.datatype;
+        std::string typeF = "";
+        T vals = T::array();
+
+        if (sdt == SupportedDataType::DOUBLE) {
+          typeF = JST::Double;
+          for (auto it : gather) {
+            if (it != nullptr) {
+              double* aa = (double*)it->getPutData(param);
+              vals.push_back(*aa);
+            } else {
+              vals.push_back(0.0);
+            }
+          }
+        } else if (sdt == SupportedDataType::STRING) {
+          typeF = JST::String;
+          for (auto it : gather) {
+            if (it != nullptr) {
+              std::string* aa = (std::string*)it->getPutData(param);
+              vals.push_back(*aa);
+            } else {
+              vals.push_back("");
+            }
+          }
+        } else if (sdt == SupportedDataType::JSON) {
+          typeF = JST::Json;
+          for (auto it : gather) {
+            if (it != nullptr) {
+              json* aa = (json*)it->getPutData(param);
+              vals.push_back(*aa);
+            } else {
+              vals.push_back(json::object());
+            }
+          }
+        } else if (sdt == SupportedDataType::LONG) {
+          typeF = JST::Long;
+          for (auto it : gather) {
+            if (it != nullptr) {
+              long* aa = (long*)it->getPutData(param);
+              vals.push_back(*aa);
+            } else {
+              vals.push_back(0);
+            }
+          }
+        }
+
+        T j = T::object();
         j[JSD::name] = variableName;
-        j[JSD::node] = JSN::shape;
+        j[JSD::dtype] = typeF;
+        j[JSD::value] = vals;
         j[JSD::shape] = gsizes;
-        j[JSD::dtype] = JST::GlobalArray;
-        j[JSD::key] = dtype;
+        j[JSD::node] = JSN::shape;
         j[JSD::meta] = m;
-        j[JSD::children] = WriteDataJson<json>(gather);
         write(j);
-      } catch (VnV::VnVExceptionBase& e) {
-        VnV_Error(VNVPACKAGENAME, "Could not Write Global Array: %s", e.what());
       }
     }
   }
@@ -932,8 +995,9 @@ template <typename T> class StreamManager : public OutputEngineManager {
       write(j);
     }
   };
-  
-  void workflowCallback(std::string stage, ICommunicator_ptr comm, std::string package, std::string name, const json&info) {
+
+  void workflowCallback(std::string stage, ICommunicator_ptr comm, std::string package, std::string name,
+                        const json& info) {
     if (comm->Rank() == getRoot()) {
       T j = T::object();
       j[JSD::node] = stage;
@@ -944,20 +1008,18 @@ template <typename T> class StreamManager : public OutputEngineManager {
     }
   }
 
- 
-
-  void workflowStartedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json&info) override {
+  void workflowStartedCallback(ICommunicator_ptr comm, std::string package, std::string name,
+                               const json& info) override {
     setComm(comm, true);
-    workflowCallback(JSN::workflowStarted, comm,package,name,info);
+    workflowCallback(JSN::workflowStarted, comm, package, name, info);
   };
-  void workflowEndedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json&info){
-    workflowCallback(JSN::workflowFinished, comm,package,name,info);
-  };
-  
-  void workflowUpdatedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json&info){
-     workflowCallback(JSN::workflowUpdated, comm,package,name,info);
+  void workflowEndedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json& info) {
+    workflowCallback(JSN::workflowFinished, comm, package, name, info);
   };
 
+  void workflowUpdatedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json& info) {
+    workflowCallback(JSN::workflowUpdated, comm, package, name, info);
+  };
 
   void unitTestStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string unitTestName) override {
     setComm(comm, true);
@@ -1024,10 +1086,10 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
   }
 
   json getRunInfo() override {
-     json j = json::object();
-     j["reader"] = "json_file";
-     j["filename"] = DistUtils::getAbsolutePath(filestub);
-     return j;
+    json j = json::object();
+    j["reader"] = "json_file";
+    j["filename"] = DistUtils::getAbsolutePath(filestub);
+    return j;
   }
 
   std::string getFileName_(std::string root, std::vector<std::string> fname, bool mkdir) {
@@ -1041,16 +1103,16 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
  public:
   virtual void initialize(json& config) override {
     std::string s = config["filename"].template get<std::string>();
-    
+
     if (DistUtils::fileExists(s)) {
       do {
         filestub = s + "_" + StringUtils::random(4);
       } while (DistUtils::fileExists(filestub));
-      VnV_Warn(VNVPACKAGENAME, "Directory %s already exists: This report will be written to %s instead", s.c_str(),filestub.c_str());
+      VnV_Warn(VNVPACKAGENAME, "Directory %s already exists: This report will be written to %s instead", s.c_str(),
+               filestub.c_str());
     } else {
       filestub = s;
-    }  
-
+    }
   }
 
   static std::string getSchema() {
@@ -1198,6 +1260,7 @@ template <class DB> class StreamParserTemplate {
 
       int count = 0;
       value.reserve(j[JSD::children].size());
+
       for (auto& it : j[JSD::children].items()) {
         auto elm = mks_str<typename DB::DataNode>(std::to_string(count++));
         elm->setlocal(true);
@@ -1288,31 +1351,29 @@ template <class DB> class StreamParserTemplate {
     };
 
     virtual std::shared_ptr<typename DB::WorkflowNode> visitWorkflowStartedNode(const T& j) {
-       auto n = mks<typename DB::WorkflowNode>(j);
-       n->open(true);
-       n->setpackage(j[JSD::package].template get<std::string>());
-       n->setname(j[JSD::name].template get<std::string>());
-       n->setinfo(j[JSD::info]);
-       n->setstate("Started");
-       return n;
+      auto n = mks<typename DB::WorkflowNode>(j);
+      n->open(true);
+      n->setpackage(j[JSD::package].template get<std::string>());
+      n->setname(j[JSD::name].template get<std::string>());
+      n->setinfo(j[JSD::info]);
+      n->setstate("Started");
+      return n;
     }
-    
+
     virtual std::shared_ptr<typename DB::WorkflowNode> visitWorkflowUpdatedNode(const T& j) {
-       auto n = std::dynamic_pointer_cast<typename DB::WorkflowNode>(rootInternal()->getWorkflowNode());
-       n->setinfo(j[JSD::info]);
-       n->setstate("Updated");
-       return n;
+      auto n = std::dynamic_pointer_cast<typename DB::WorkflowNode>(rootInternal()->getWorkflowNode());
+      n->setinfo(j[JSD::info]);
+      n->setstate("Updated");
+      return n;
     }
-    
+
     virtual std::shared_ptr<typename DB::WorkflowNode> visitWorkflowEndedNode(const T& j) {
-       auto n = std::dynamic_pointer_cast<typename DB::WorkflowNode>(rootInternal()->getWorkflowNode());
-       n->setinfo(j[JSD::info]);
-       n->setstate("Done");
-       n->open(false);
-       return n;
+      auto n = std::dynamic_pointer_cast<typename DB::WorkflowNode>(rootInternal()->getWorkflowNode());
+      n->setinfo(j[JSD::info]);
+      n->setstate("Done");
+      n->open(false);
+      return n;
     }
-    
-    
 
     virtual std::shared_ptr<typename DB::TestNode> visitPackageNodeStarted(const T& j) {
       auto n = mks_str<typename DB::TestNode>("Information");
@@ -1469,16 +1530,13 @@ template <class DB> class StreamParserTemplate {
       _rootInternal = rootNode;
     }
 
-    virtual ~ParserVisitor() { 
-    }
+    virtual ~ParserVisitor() {}
 
     std::atomic_bool read_lock = ATOMIC_VAR_INIT(false);
     std::atomic_bool write_lock = ATOMIC_VAR_INIT(false);
     std::atomic_bool kill_lock = ATOMIC_VAR_INIT(false);
 
-    void kill(){
-      kill_lock.store(true, std::memory_order_relaxed);
-    }
+    void kill() { kill_lock.store(true, std::memory_order_relaxed); }
 
     virtual void process() {
       jstream->start_stream_reader();
@@ -1497,7 +1555,7 @@ template <class DB> class StreamParserTemplate {
           try {
             auto p = jstream->next();
             visit(p.first, p.second);
-          } catch (std::exception e) {
+          } catch (std::exception& e) {
             throw INJECTION_EXCEPTION("Unknown Exception Found: %s", e.what());
           }
 
@@ -1594,9 +1652,10 @@ template <class DB> class StreamParserTemplate {
     void visit(const T& j, long elementId) {
       std::string node = j[JSD::node].template get<std::string>();
 
-      std::cout << "VISIT" << j.dump() << std::endl;
-
-      long currentTime = j[JSD::time].template get<long>();
+      long currentTime = -1;
+      if (j.contains(JSD::time)) {
+        currentTime = j[JSD::time].template get<long>();
+      }
 
       if (node == JSN::finalTime) {
         auto i = rootInternal()->getInfoNode();
@@ -1620,9 +1679,9 @@ template <class DB> class StreamParserTemplate {
       } else if (node == JSN::workflowStarted) {
         rootInternal()->setworkflowNode(visitWorkflowStartedNode(j));
       } else if (node == JSN::workflowUpdated) {
-         visitWorkflowUpdatedNode(j);
+        visitWorkflowUpdatedNode(j);
       } else if (node == JSN::workflowFinished) {
-          visitWorkflowEndedNode(j);
+        visitWorkflowEndedNode(j);
       } else if (node == JSN::info) {
         rootInternal()->setinfoNode(visitInfoNode(j));
       } else if (node == JSN::fetch) {
@@ -1809,26 +1868,24 @@ template <class DB> class StreamParserTemplate {
     }
 
     void kill() override {
-       if (running ) {
-         visitor->kill();
-         tworker.join();
-         running=false;
-       }
+      if (running) {
+        visitor->kill();
+        tworker.join();
+        running = false;
+      }
     }
     virtual ~RootNodeWithThread() {
-       // We SHOULD be calling kill before destruction. The thread calls virtual methods on the IRootNode
-       // as part of the loop. If we don't kill this first, then the thread could call virtual methods 
-       // of a derived class that is already destroyed (or something ). In other words, this class is a topsy-turvy 
-       // mess :{}. Just in case, we kill here to (so it doesnt seg fault)
-       if (running) {kill();}
+      // We SHOULD be calling kill before destruction. The thread calls virtual methods on the IRootNode
+      // as part of the loop. If we don't kill this first, then the thread could call virtual methods
+      // of a derived class that is already destroyed (or something ). In other words, this class is a topsy-turvy
+      // mess :{}. Just in case, we kill here to (so it doesnt seg fault)
+      if (running) {
+        kill();
+      }
     }
 
-    void lock() override {
-        visitor->lock();
-    }
-    void release() override {
-        visitor->release();
-    }
+    void lock() override { visitor->lock(); }
+    void release() override { visitor->release(); }
 
     virtual void respond(long id, long jid, const std::string& response) override {
       if (stream != nullptr) {
@@ -1840,7 +1897,6 @@ template <class DB> class StreamParserTemplate {
 
     static std::shared_ptr<IRootNode> parse(bool async, std::shared_ptr<T> stream,
                                             std::shared_ptr<ParserVisitor<V>> visitor = nullptr) {
-      
       std::shared_ptr<RootNodeWithThread> root = std::make_shared<RootNodeWithThread>();
       root->registerNode(root);
       root->setname("Root Node");
@@ -1853,9 +1909,6 @@ template <class DB> class StreamParserTemplate {
       root->run(async);
       return root;
     }
-    
-   
-
   };
 };
 

@@ -1001,7 +1001,7 @@ class MongoPersistance {
     virtual std::shared_ptr<DataBase> findById_Internal(long id) override {
       try {
         return LoadNode(rootNode(), id);
-      } catch (...) {
+      } catch (std::exception &e) {
         throw INJECTION_EXCEPTION("Error Loading Internal Node: Invalid Id %s", id);
       }
     }

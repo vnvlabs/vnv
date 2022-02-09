@@ -90,7 +90,7 @@ std::shared_ptr<Transformer> TransformStore::getTransformer(std::string from,
       m.push_back({it.first, (*trans_factory.find(it.second)->second)()});
     }
     return std::make_shared<Transformer>(from, m);
-  } catch (...) {
+  } catch (std::exception &e) {
     return nullptr;
   }
 }

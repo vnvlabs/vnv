@@ -24,4 +24,5 @@ addexecutable(injectionPoint SampleExecutable)
 addexecutable(iterator SimpleExecutable)
 addexecutable(distributed Distributed)
 addexecutable(live Live )
+addexecutable(contour ContourExample)
   

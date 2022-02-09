@@ -56,8 +56,8 @@ void BeginLoopPack(A comm, const char* package, const char* id, struct VnV_Funct
   std::map<std::string, std::pair<std::string, void*>> m;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
   BeginLoop(comm, package, id, pretty, fname, line, callback, m);
- } catch(...) {
-      VnV_Error(VNVPACKAGENAME, "Error Packing Injection Point");
+ } catch(std::exception &e) {
+      VnV_Error(VNVPACKAGENAME, "Error Packing Injection Point: %s", e.what());
   }
 }
 
@@ -68,8 +68,8 @@ void BeginPack(A comm, const char* package, const char* id, struct VnV_Function_
   std::map<std::string, std::pair<std::string, void*>> m;
   UnwrapParameterPack(m, std::forward<Args>(args)...);
   BeginPoint(comm, package, id, pretty, fname, line, callback, m);
-  } catch(...) {
-      VnV_Error(VNVPACKAGENAME, "Error Packing Injection Point");
+  } catch(std::exception &e) {
+      VnV_Error(VNVPACKAGENAME, "Error Packing Injection Point: %s", e.what() );
   }
 }
 

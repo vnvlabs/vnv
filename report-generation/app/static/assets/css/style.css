@@ -100,7 +100,12 @@ File: style.css
     -ms-touch-action: auto;
 }
 
-
+.vnvh {
+margin:10px;
+}
+.vnvhg {
+margin:10px;
+}
 
 /*
  * Scrollbar rail styles

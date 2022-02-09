@@ -45,7 +45,7 @@ VnV_Iterator IterationPack(A comm, const char* package, const char* id, struct V
 
     return BeginIteration(comm, package, id, pretty, fname, line, callback, once, parameters);
 
-  } catch (...) {
+  } catch(std::exception &e) {
     assert(false && "cant happen as we cant handle once parameter from here");
     return {NULL};
   }

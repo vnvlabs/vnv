@@ -61,7 +61,7 @@ template <typename Inter, typename Maker, typename Config> class TestStoreTempla
       try {
         validator.validate(opts);
         return true;
-      } catch (std::exception e) {
+      } catch (std::exception &e) {
         return false;
       }
     }

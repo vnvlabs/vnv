@@ -37,7 +37,7 @@ VnV_Iterator PlugPack(A comm, const char* package, const char* id, struct VnV_Fu
 
     return BeginPlug(comm, package, id, pretty, fname, line, callback, parameters);
 
-  } catch (...) {
+  } catch(std::exception &e) {
     assert(false && "cant happen as we cant handle once parameter from here");
     return {NULL};
   }

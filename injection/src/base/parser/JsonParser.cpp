@@ -237,11 +237,11 @@ nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile, int* arg
               } else {
                 throw INJECTION_EXCEPTION_("Adding new values is not supported: ");
               }
-            } catch (...) {
+            } catch (std::exception &e) {
               throw INJECTION_EXCEPTION("Invalid Json Pointer: %s", point.c_str());
             }
 
-          } catch (...) {
+          } catch (std::exception &e) {
             throw INJECTION_EXCEPTION("Invalid Json %s", ans.c_str());
           }
 

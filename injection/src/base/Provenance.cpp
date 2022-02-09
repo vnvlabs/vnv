@@ -14,7 +14,7 @@ ProvFile::ProvFile(std::string filename, std::string reader, std::string text) {
 
   try {
     info = DistUtils::getLibInfo(filename, 0);
-  } catch (...) {
+  } catch (std::exception &e) {
   }
 }
 
@@ -52,7 +52,7 @@ bool ProvFile::modified() const {
   try {
     DistUtils::libInfo l = DistUtils::getLibInfo(filename, 0);
     return l.timestamp != info.timestamp;
-  } catch (...) {
+  } catch (std::exception &e) {
     return true;
   }
 }

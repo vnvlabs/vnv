@@ -14,7 +14,10 @@ int main(int argc, char** argv) {
 
   INJECTION_INITIALIZE(RPNAME, &argc, &argv, VNV_DEFAULT_INPUT_FILE);
   
-  auto a = VnV::Python::ReaderWrapper(argv[2], argv[1], "{}", false);
+  json j = json::object();
+  j["collection"] = VnV::StringUtils::random(4);
+
+  auto a = VnV::Python::ReaderWrapper(argv[2], argv[1], j.dump(), false);
   
   INJECTION_FINALIZE(RPNAME)
 }

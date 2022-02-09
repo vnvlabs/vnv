@@ -76,7 +76,7 @@ bool validateSchema(const json& config, const json& schema, bool throwOnInvalid)
   try {
     validator.validate(config);
     return true;
-  } catch (std::exception e) {
+  } catch (std::exception &e) {
     if (throwOnInvalid) {
       throw INJECTION_EXCEPTION("Schema validation failed: %s", e.what());
     } else {

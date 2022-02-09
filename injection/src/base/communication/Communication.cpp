@@ -272,7 +272,8 @@ IDataType_vec DataTypeCommunication::GatherV(
   // A_{ijk...} = vec[i*xs + j*ys + ...]
   // Result = [ [total, xsize, xoff, ysize, yoff, zsize, zoff...] repeat]
 
-  IDataType_vec results(total);
+  auto gsize = std::accumulate(gsizes.begin(), gsizes.end(), 1, std::multiplies<int>());
+  IDataType_vec results(gsize);
 
   if (comm->Rank() == root || allGather) {
     // Get the multipliers for the flatter operation.

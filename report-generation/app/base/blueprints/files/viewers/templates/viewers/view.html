@@ -1,11 +1,11 @@
 {% with view = request.args.get("viewer","processor") %}
 
-<div id="view-header" class=""
-    style="display:flex; align-items:center;  ">
+<div id="view-header" class="" style="position:relative; ">
 
-    <h2 class="fchild">{%include view + "/title.html" %}</h2>
+    <h2 style="text-decoration:underline; text-align:center; margin:20px; width:100% ">{%include view + "/title.html"
+        %}</h2>
 
-    <div class="" style="display:flex; flex-direction:row; ">
+    <div class="" style="position:absolute; top:calc(50% - 16px); right:0px; display:flex; flex-direction:row; ">
         <div class="btn-group mb-2 mr-2">
             <button class="btn  btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown"
                     aria-haspopup="true" aria-expanded="false">{{view}}
@@ -22,23 +22,19 @@
     </div>
 </div>
 
-<div id="view-view" style="position:relative">
-
+<div id="view-view" style="">
 
     <div id="view-chart">
         {%include view + "/chart.html" %}
     </div>
 
+</div>
 
-    <div id="injection-element">
-        {%with introRender = file.get_introduction() %}
-        {%include "viewers/introduction.html" %}
-        {%endwith%}
-    </div>
-
+<div id="injection-element">
+    {%with introRender = file.get_introduction() %}
+    {%include "viewers/introduction.html" %}
+    {%endwith%}
 </div>
 
 {%endwith%}
 
-<script>
-</script>

@@ -9,6 +9,7 @@
 #include <clang/Tooling/Tooling.h>
 
 #include <iostream>
+#include <regex>
 #include <set>
 
 #include "base/Utilities.h"
@@ -269,8 +270,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
 
   void FileChanged(SourceLocation Loc, FileChangeReason Reason, SrcMgr::CharacteristicKind FileType,
                    FileID PrevFID) override {
-    
-    
     std::string fname = pp.getSourceManager().getFilename(Loc).str();
 
     if (!fname.empty()) {
@@ -294,8 +293,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
 
     // TODOO CATCH THE TEST ASSERT EQUALS CALLS FOR GETTING DOCS FOR INDIVIDUAL
     // UNIT TESTS
-     
-  
 
     if ((nae == "TEST_ASSERT_EQUALS" || nae == "TEST_ASSERT_NOT_EQUALS") && lastTestJson != nullptr) {
       std::string name = VnV::StringUtils::trim_copy(pp.getSpelling(*Args->getUnexpArgument(0)));
@@ -316,17 +313,15 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
         j[name] = t.value().get<std::string>() + docs;
       }
       return;
-    } else if (nae == "INJECTION_CREATE_JOB" &&  lastWorkflowJson != nullptr )  {
-
-         std::string name = VnV::StringUtils::trim_copy(pp.getSpelling(*Args->getUnexpArgument(1)));
-         if (name[0] == '\"' && name[name.size() - 1] == '\"') {
-             name = name.substr(1, name.size() - 2);
-         }
-         json &j = (*lastWorkflowJson)["jobs"];
-         j[name] = getDocs(Range).toJson();
-         return;
+    } else if (nae == "INJECTION_CREATE_JOB" && lastWorkflowJson != nullptr) {
+      std::string name = VnV::StringUtils::trim_copy(pp.getSpelling(*Args->getUnexpArgument(1)));
+      if (name[0] == '\"' && name[name.size() - 1] == '\"') {
+        name = name.substr(1, name.size() - 2);
+      }
+      json& j = (*lastWorkflowJson)["jobs"];
+      j[name] = getDocs(Range).toJson();
+      return;
     }
-
 
     if (nae.substr(0, 10).compare("INJECTION_") != 0) return;
 
@@ -416,7 +411,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     } else if (nae == "INJECTION_SCRIPTGENERATOR") {
       json& jj = getDef("ScriptGenerators", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    }  else if (nae == "INJECTION_SAMPLER_RS") {
+    } else if (nae == "INJECTION_SAMPLER_RS") {
       json& jj = getDef("Samplers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
     } else if (nae == "INJECTION_WALKER_S") {
@@ -461,14 +456,13 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj["docs"] = getDocs(Range).toJson();
       jj["plug"] = true;
       thisStage["docs"] = ProcessedComment().toJson();
-     
+
     } else if (nae == "INJECTION_LOOP_ITER") {
-      
-      //json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
-      //json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
-      //json& thisStage = VnV::JsonUtilities::getOrCreate(stages, getPackageName(Args, 2, true));
-      //thisStage["docs"] = getDocs(Range).toJson();
-    
+      // json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
+      // json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
+      // json& thisStage = VnV::JsonUtilities::getOrCreate(stages, getPackageName(Args, 2, true));
+      // thisStage["docs"] = getDocs(Range).toJson();
+
     } else if (nae == "INJECTION_LOOP_END") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
@@ -496,17 +490,16 @@ class PreProcessVnV : public PreprocessorFrontendAction {
   PreProcessVnV(json& m) : mainJson(m) {}
   ~PreProcessVnV() {}
 
-  bool BeginInvocation(CompilerInstance &CI) override {
-      //Weird bug in Clang -- When we change directories, the file manager seems to end up in  
-      //the wrong directory. Resetting the file manager here means a new one will be created. This 
-      //new one is created in the correct directory, so we can continue. 
-      CI.setFileManager(nullptr);
-      CI.setSourceManager(nullptr);
-      return true;
+  bool BeginInvocation(CompilerInstance& CI) override {
+    // Weird bug in Clang -- When we change directories, the file manager seems to end up in
+    // the wrong directory. Resetting the file manager here means a new one will be created. This
+    // new one is created in the correct directory, so we can continue.
+    CI.setFileManager(nullptr);
+    CI.setSourceManager(nullptr);
+    return true;
   }
 
   void ExecuteAction() {
-    
     Preprocessor& PP = getCompilerInstance().getPreprocessor();
     SourceManager& SRC = PP.getSourceManager();
 
@@ -514,8 +507,6 @@ class PreProcessVnV : public PreprocessorFrontendAction {
     subJson = json::object();
     PP.addPPCallbacks(std::make_unique<PreprocessCallback>(subJson, includes, PP));
     PP.IgnorePragmas();
-    
-    std::cout << "Processing " << filename << "  " << &PP.getHeaderSearchInfo() <<  std::endl; 
 
     Token Tok;
     // Start parsing the specified input file.
@@ -569,10 +560,7 @@ class VnVPackageFinderFrontendActionFactory : public tooling::FrontendActionFact
 json runPreprocessor(CompilationDatabase& comps, std::set<std::string>& files) {
   // Generate the main VnV Declares object.
   std::vector<std::string> files_vec(files.begin(), files.end());
-  for (auto &it : files_vec) {
-    std::cout << it << std::endl;
-  }
-  
+
   ClangTool VnVTool(comps, files_vec);
   json j = json::object();
   VnVPackageFinderFrontendActionFactory factory(j);
@@ -580,4 +568,171 @@ json runPreprocessor(CompilationDatabase& comps, std::set<std::string>& files) {
   VnVTool.run(&factory);
   factory.finalize();
   return j;
+}
+
+std::istream& vnv_getline(std::ifstream& ifs, std::string& line, int& lineno) {
+  lineno++;
+  return std::getline(ifs, line);
+}
+
+json runFortranPreprocessor(clang::tooling::CompilationDatabase& comps, std::set<std::string>& files) {
+  std::regex initialize("vnv_initialize\\(\\\"(.*?)\\\"");
+  std::regex finalize(R"(vnv_finalize\(\"(.*?)\")");
+  std::regex loop_init(R"(vnv_(point|plug|loop|iterator)_init\(\s*[0,1]\s*,\s*"(.*?)\"\s*,\s*"(.*?)\")");
+  std::regex parameter(
+      R"(vnv_declare_(float|integer|string|double)_(parameter|array|matrix)\(\s*(.*?)\s*,\s*"(.*?)\"\s*)");
+  std::regex run(R"(vnv_(point|plug|iterator|loop)_run\()");
+  std::regex filesearch(R"(vnv_(input|output)_file\(\s*[0,1]\s*,\s*"(.*?)\"\s*,\s*"(.*?)\")");
+  std::regex options(R"(!\s+@vnv_options_schema\((.*?)\))");
+  std::regex subpackage(R"(!\s+@vnv_subpackage\((.*?),(.*?)\))");
+
+  // Fortran processor is pretty junky at the moment -- We dont support the preprocessor -- so includes are not
+  // included. For now we just assume all files compiled are the files we need to look at.
+
+  json info = json::object();
+
+  for (auto it : files) {
+    json fileInfo = json::object();
+
+    std::ifstream ifs(it);
+    if (ifs.good()) {
+      int lineNo = -1;
+      std::string line;
+      std::string comments;
+      std::smatch match;
+
+      json fileInfo = json::object();
+
+      while (vnv_getline(ifs, line, lineNo)) {
+        VnV::StringUtils::trim(line);
+
+        if (std::regex_search(line,match,options)) {
+           std::string opt_schema = "";
+           auto package = match[1].str();
+           while(vnv_getline(ifs,line,lineNo)) {
+              auto lt = VnV::StringUtils::trim_copy(line);
+              if (line.substr(0,1).compare("!")==0) {
+                  opt_schema += line.substr(1);
+              } else {
+                break;
+              }
+           } 
+           try {
+             auto scheme = json::parse(opt_schema);
+             json& options = VnV::JsonUtilities::getOrCreate(fileInfo, "Options");
+             options[package] = json::object();
+             options[package]["docs"] = processComment(comments).toJson();
+             options[package]["schema"] = scheme;
+             
+             //Clear the comments since we used them. 
+             comments.clear(); 
+        
+           } catch(std::exception &e) {
+             std::cout << e.what() << std::endl;
+             std::cout << "Invalid Options schema -- not real json: \n\n " <<  opt_schema << std::endl; 
+           }
+
+
+           //We only checked that the last line was not a comment -- so, we still need 
+           //to process it. 
+        }
+
+        if (std::regex_search(line,match,subpackage)) {
+            std::string package = match[1].str();
+            std::string subs = match[2].str();
+            json& options = VnV::JsonUtilities::getOrCreate(fileInfo, "SubPackages");
+            
+            json j = json::object();
+            j["packageName"] = package; 
+            j["name"] = subs;
+            j["docs"] = processComment(comments).toJson();
+            comments.clear();
+            continue;
+        }
+
+        if (line.size() > 1 && line.substr(0, 1).compare("!") == 0) {
+          // Line is a comment so store it.          
+          comments += line.substr(1) + "\n";
+          continue;
+        
+        } else {
+          if (std::regex_search(line, match, initialize)) {
+            std::string package = match[1].str();
+
+            json& intro = VnV::JsonUtilities::getOrCreate(fileInfo, "Introduction");
+            intro[package] = processComment(comments).toJson();
+
+          } else if (std::regex_search(line, match, loop_init)) {
+            std::string type = match[1].str();
+            std::string package = match[2].str();
+            std::string name = match[3].str();
+
+
+            json j = json::object();
+            j["name"] = name;
+            j["packageName"] = package;
+
+            // Comment
+            j["docs"] = processComment(comments).toJson();
+
+            // Type
+            if (type.compare("plug")==0) {
+              j["plug"] = true;
+            } else if (type.compare("iterator") == 0) {
+              j["iterator"] = true;
+            }
+
+            // Parameters
+            json parameters = json::object();
+            while (vnv_getline(ifs, line, lineNo) && !std::regex_search(line, match, run)) {
+              if (std::regex_search(line, match, parameter)) {
+                parameters[match[4].str()] = match[1].str();
+              }
+            }
+            j["parameters"] = json::object();
+            j["parameters"][""] = parameters;
+
+            // Stages (just fake em as we cant extract them yet):
+            j["stages"] =
+                R"({"Begin":{"docs":{"description":"","instructions":"","params":{},"template":"","title":""}}})"_json;
+            if (type.compare("loop") == 0) {
+              j["stages"]["End"] =
+                  R"({"docs":{"description":"","instructions":"","params":{},"template":"","title":""}})"_json;
+            }
+
+            json in = json::object();
+            in["Calling Function"] = "Unknown";
+            in["Calling Function Column"] = 0;
+            in["filename"] = it;
+            in["lineNumber"] = lineNo;
+            in["lineColumn"] = 0;
+            
+            j["info"] = in;
+
+            json& typeJson = VnV::JsonUtilities::getOrCreate(fileInfo, "InjectionPoints");
+            typeJson[package + ":" + name] = j;
+
+          } else if (std::regex_search(line, match, filesearch)) {
+            std::string type = match[1].str();
+            std::string package = match[2].str();
+            std::string name = match[3].str();
+
+            json j = json::object();
+            j["name"] = name;
+            j["packageName"] = package;
+            j["docs"] = processComment(comments).toJson();
+            json& typeJson = VnV::JsonUtilities::getOrCreate(fileInfo, "Files");
+            typeJson[package + ":" + name ] = j;
+          } else {
+             //Normal line. 
+          }
+          comments.clear();
+        }
+      }
+      info[it] = fileInfo;
+    }
+
+  }
+  return info;
+  ;
 }

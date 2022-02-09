@@ -288,9 +288,10 @@ files = [
     [True, "../build/examples/cpp/outputs/injectionPoint/out", "json_file",{}],
     [True, "../build/examples/cpp/outputs/iterator/out", "json_file", {}],
     [True, "../build/examples/cpp/outputs/live/out", "json_file", {}],
-    [True, "../../applications/miniamr/ref/outputs/run", "json_file", {}],
+    [True, "../build/examples/cpp/outputs/contour/out", "json_file", {}],
+    [False, "../../applications/miniamr/ref/outputs/run", "json_file", {}],
 
-    [True, "../../home/ben/source/vv/applications/MOOSE/examples/ex01_inputfile/vv-output", "json_file",{}],
+    [False, "../../home/ben/source/vv/applications/MOOSE/examples/ex01_inputfile/vv-output", "json_file",{}],
     [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-workflow-output", "json_file", {}],
     [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/adios-output-live", "adios", {}],
     [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live", "json_file",{}],

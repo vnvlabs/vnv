@@ -51,7 +51,7 @@ bool isFortranFile(std::string fname) {
   return false;
 }
 
-void writeFile(json& cacheInfo, std::string outputFileName, std::string cacheFile, std::string packageName, bool force);
+void writeFile(json& cacheInfo, std::string outputFileName, std::string cacheFile, std::string packageName, bool force, std::string fortran = "");
 
 void checkCache(json& cacheInfo, std::set<std::string>& cfiles, std::set<std::string>& ffiles);
 
@@ -74,12 +74,14 @@ static llvm::cl::opt<std::string> cacheFile("cache", llvm::cl::desc("The cache f
 static llvm::cl::opt<std::string> packageName("package", llvm::cl::desc("PackageName"), llvm::cl::value_desc("string"),
                                               llvm::cl::cat(VnVParserCatagory));
 
+static llvm::cl::opt<std::string> fortranPackage("fortran", llvm::cl::desc("FortranModuleFileName"), llvm::cl::value_desc("string"),
+                                              llvm::cl::cat(VnVParserCatagory));
+
 static llvm::cl::opt<bool> resetCache("reset", llvm::cl::desc("resetCache"), llvm::cl::value_desc("bool"),
                                       llvm::cl::init(false), llvm::cl::cat(VnVParserCatagory));
 
 static llvm::cl::opt<bool> force("force", llvm::cl::desc("force"), llvm::cl::value_desc("bool"), llvm::cl::init(false),
                                  llvm::cl::cat(VnVParserCatagory));
-
 
 static llvm::cl::list<std::string> ignoreDir("ignore-dir", llvm::cl::desc("ignore-dir"),
                                  llvm::cl::value_desc("string"),
@@ -142,12 +144,16 @@ int main(int argc, const char** argv) {
       if (cache.good()) {
         try {
           cacheInfo = json::parse(cache);
-        } catch (...) {
-          std::cerr << "Invalid Cache file" << std::endl;
+        } catch (std::exception &e) {
+          std::cerr << "Invalid Cache file: " << e.what() << std::endl;
           cacheInfo = json::object();
         }
       }
     }
+
+    json& cacheMap = VnV::JsonUtilities::getOrCreate(cacheInfo, "map");
+    json& cacheFiles = VnV::JsonUtilities::getOrCreate(cacheInfo, "files");
+    json& cacheData = VnV::JsonUtilities::getOrCreate(cacheInfo, "data");
 
 
     // Quick loop through the compile commands to remove any command that has
@@ -235,17 +241,29 @@ int main(int argc, const char** argv) {
     if (fortranFiles.size() == 0) {
       std::cout << "---->No FORTRAN file changes detected" << std::endl;
     } else {
+      
+
       json fortranInfo = runFortranPreprocessor(OptionsParser.getCompilations(), fortranFiles);
+      //Update the fortran cache information. 
+      for (auto itt : fortranFiles) {
+          std::string s = std::to_string(hasher(itt));  // Hash the filename
+          if (!cacheMap.contains(s)) {
+            cacheMap[s] = itt;
+          }
+          cacheFiles[itt] = {s};
+          cacheData[itt] = fortranInfo[itt];
+      }
+    
     }
 
-    writeFile(cacheInfo, outputFileName, cacheFile_, packageName_, force.getValue());
+    writeFile(cacheInfo, outputFileName, cacheFile_, packageName_, force.getValue(), fortranPackage.getValue());
 
     std::cout << "-->Finished VnV Extraction for " << packageName << "\n"
               << "********************************************************\n\n";
 
     return 0;
 
-  } catch (std::exception e) {
+  } catch (std::exception& e) {
     std::cout << "An Error Occurred: " << e.what() << std::endl;
     std::abort();
   }

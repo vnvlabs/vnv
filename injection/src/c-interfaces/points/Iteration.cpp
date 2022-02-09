@@ -23,7 +23,7 @@ VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName, con
                                                                  parameters, once);
     va_end(argp);
     return v;
-  } catch (...) {
+  } catch (std::exception &e) {
     assert(false && "This should never happen");
   }
 }
@@ -31,7 +31,7 @@ VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName, con
 int _VnV_injectionIterate(VnV_Iterator* iterator) {
   try {
     return VnV::RunTime::instance().injectionIterationRun(iterator);
-  } catch (...) {
+  } catch (std::exception &e) {
     assert(false && "This should never happen");
   }
 }
@@ -39,7 +39,7 @@ int _VnV_injectionIterate(VnV_Iterator* iterator) {
 void _VnV_registerInjectionIterator(const char* package, const char* id, const char* parameters) {
   try {
     VnV::IteratorStore::instance().registerIterator(package, id, parameters);
-  } catch (...) {
+  } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Failed to register iterator %s:%s", package, id);
   }
 }

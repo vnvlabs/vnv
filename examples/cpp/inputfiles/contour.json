@@ -1,0 +1,26 @@
+{
+  "runTests": true,
+  "additionalPlugins": {
+    "DummyTestLibOne" : "../tests/libdummyTestLibOne.so"
+  },
+  "outputEngine": {
+    "json_file" : {
+       "filename" : "outputs/contour/out"
+    }
+  },
+  "injectionPoints": {
+     "VNV:initialization" : {
+        "tests" : {
+          "VNV:cputime" : {}
+	      }
+     },
+     "ContourExample:mainpoint" : {
+         "tests" : {
+             "ContourExample:contour" : {}
+         }
+     },
+     "ContourExample:mainloop" : {
+         
+     }	     
+  }
+}
