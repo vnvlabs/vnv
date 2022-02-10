@@ -1080,9 +1080,8 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
   std::string filestub;
   virtual ~FileStream() {}
 
-  std::string getFileName(long id, bool makedir = true) {
-    std::vector<std::string> fname = {std::to_string(id)};
-    return getFileName_(filestub, {std::to_string(id) + extension}, true);
+  std::string getFileName(long id) {
+    return getFileName_(filestub, std::to_string(id) + extension);
   }
 
   json getRunInfo() override {
@@ -1092,12 +1091,8 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
     return j;
   }
 
-  std::string getFileName_(std::string root, std::vector<std::string> fname, bool mkdir) {
-    fname.insert(fname.begin(), root);
-    std::string filename = fname.back();
-    fname.pop_back();
-    std::string fullname = VnV::DistUtils::join(fname, 0777, mkdir);
-    return VnV::DistUtils::join({fullname, filename}, 0777, false);
+  std::string getFileName_(std::string root, std::string  fname) {
+    return VnV::DistUtils::join({root, fname}, 0777, true, true);
   }
 
  public:
@@ -1536,39 +1531,44 @@ template <class DB> class StreamParserTemplate {
     std::atomic_bool write_lock = ATOMIC_VAR_INIT(false);
     std::atomic_bool kill_lock = ATOMIC_VAR_INIT(false);
 
-    void kill() { kill_lock.store(true, std::memory_order_relaxed); }
+    void kill() {
+      kill_lock.store(true, std::memory_order_relaxed);
+    }
 
     virtual void process() {
       jstream->start_stream_reader();
       long i = 0;
       bool changed = false;
-
-      while (!jstream->isDone() && !kill_lock.load(std::memory_order_relaxed)) {
-        i = ++i % 1000;
-        if (changed && i == 999) {
-          rootInternal()->persist();
-          changed = false;
-        }
-
-        if (jstream->hasNext()) {
-          setWriteLock();
-          try {
-            auto p = jstream->next();
-            visit(p.first, p.second);
-          } catch (std::exception& e) {
-            throw INJECTION_EXCEPTION("Unknown Exception Found: %s", e.what());
+      try {
+        while (!jstream->isDone() && !kill_lock.load(std::memory_order_relaxed)) {
+          i = ++i % 1000;
+          if (changed && i == 999) {
+            rootInternal()->persist();
+            changed = false;
           }
 
-          releaseWriteLock();
-          changed = true;
-        }
-      }
-      rootInternal()->persist();
-      rootInternal()->setProcessing(false);
-      rootInternal()->open(false);
-      jstream->stop_stream_reader();
-    }
+          if (jstream->hasNext()) {
+            setWriteLock();
+            try {
 
+              auto p = jstream->next();
+              visit(p.first, p.second);
+            } catch (std::exception& e) {
+              throw INJECTION_EXCEPTION("Unknown Exception Found: %s", e.what());
+            }
+
+            releaseWriteLock();
+            changed = true;
+          }
+        }
+
+        rootInternal()->persist();
+        rootInternal()->setProcessing(false);
+        rootInternal()->open(false);
+        jstream->stop_stream_reader();
+      } catch (...) {
+      }
+    }
     virtual void setWriteLock() {
       while (read_lock.load(std::memory_order_relaxed)) {
       }
@@ -1879,6 +1879,7 @@ template <class DB> class StreamParserTemplate {
       // as part of the loop. If we don't kill this first, then the thread could call virtual methods
       // of a derived class that is already destroyed (or something ). In other words, this class is a topsy-turvy
       // mess :{}. Just in case, we kill here to (so it doesnt seg fault)
+
       if (running) {
         kill();
       }

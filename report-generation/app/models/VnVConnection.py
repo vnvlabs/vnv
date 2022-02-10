@@ -242,9 +242,15 @@ class VnVLocalConnection:
         abspath = os.path.abspath(path)
         dir = os.path.dirname(abspath)
         name = os.path.basename(abspath)
-        size = os.lstat(abspath).st_size if len(abspath) else 0
-        lastMod = os.lstat(abspath).st_mtime if len(abspath) else 0
-        lastModStr = (datetime.fromtimestamp(lastMod).strftime('%Y-%m-%d %H:%M:%S')) if len(abspath) else ""
+        if os.path.exists(abspath):
+            size = os.lstat(abspath).st_size if len(abspath) else 0
+            lastMod = os.lstat(abspath).st_mtime if len(abspath) else 0
+            lastModStr = (datetime.fromtimestamp(lastMod).strftime('%Y-%m-%d %H:%M:%S')) if len(abspath) else ""
+        else:
+            size = 0
+            lastMod = 0
+            lastModStr = ""
+
         ext = "directory" if os.path.exists(abspath) and Path(abspath).is_dir() else os.path.splitext(abspath)[1]
         return abspath, dir, name, ext, size, lastMod, lastModStr
 

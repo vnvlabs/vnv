@@ -119,7 +119,7 @@ void permissions(std::string fname, bool read, bool write, bool execute );
  * @param mode
  * @return
  */
-std::string join(std::vector<std::string> vector, mode_t i, bool makeDirs);
+std::string join(std::vector<std::string> vector, mode_t i, bool makeDirs, bool isFile = true);
 
 /**
  * List Files in Directory

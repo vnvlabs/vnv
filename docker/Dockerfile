@@ -15,4 +15,6 @@ RUN cd vv-neams/build/test/ && ./test-runner
 
 # Run the examples. 
 RUN cd vv-neams/build/examples/c && ./csample.a && cd ../cpp && ./injectionPoint && ./iterator && ./distributed && cd ../usage && ./App && ./Noclang
+RUN cd vv-neams/build/report-generation && virtualenv virt && virt/bin/pip install -r ./requirements.txt
 
+CMD ["./vv-neams/build/report-generation/launch.sh" , "5001" ]

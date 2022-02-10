@@ -284,18 +284,15 @@ def template_globals(globs):
 
 
 
-files = [
-    [True, "../build/examples/cpp/outputs/injectionPoint/out", "json_file",{}],
-    [True, "../build/examples/cpp/outputs/iterator/out", "json_file", {}],
-    [True, "../build/examples/cpp/outputs/live/out", "json_file", {}],
-    [True, "../build/examples/cpp/outputs/contour/out", "json_file", {}],
-    [False, "../../applications/miniamr/ref/outputs/run", "json_file", {}],
 
-    [False, "../../home/ben/source/vv/applications/MOOSE/examples/ex01_inputfile/vv-output", "json_file",{}],
-    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-workflow-output", "json_file", {}],
-    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/adios-output-live", "adios", {}],
-    [False, "/home/ben/source/vv/vv-neams/build/examples/dummy/executables/vv-output-live", "json_file",{}],
-    [False, "/home/ben/source/vv/applications/asgard/build/vv-output", "json_file",{}],
+files = [
+    [True, "../examples/cpp/outputs/injectionPoint/out", "json_file",{}],
+
+    [True, "../examples/cpp/outputs/iterator/out", "json_file", {}],
+    [True, "../examples/cpp/outputs/live/out", "json_file", {}],
+    [True, "../build/examples/cpp/outputs/contour/out", "json_file", {}],
+    [True, "../build/examples/cpp/outputs/contour/out", "json_file", {}]
+
 ]
 
 def faker():
@@ -304,5 +301,6 @@ def faker():
   for f in files:
     if f[0] and os.path.exists(f[1]):
         VnVFile.add("faker", f[1], f[2], get_file_template_root(), **f[3])
-
+    else:
+        print("Could not demo file ", f[1], "File does not exist") 
 

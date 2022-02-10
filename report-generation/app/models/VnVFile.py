@@ -748,7 +748,7 @@ class VnVFile:
         return self.root.getInfoNode().getProv().currentWorkingDirectory
 
     def browse(self):
-        return LocalFile(self.get_cwd(), self.id_, self.connection, reader="directory")
+           return LocalFile(self.get_cwd(), self.id_, self.connection, reader="directory")
 
     def getFirstPackage(self):
         a = self.getPackages()

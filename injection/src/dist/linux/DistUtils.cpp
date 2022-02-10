@@ -62,17 +62,13 @@ std::string getAbsolutePath(std::string filename) {
   return filename;
 }
 
-bool fileEquals(std::string f1, std::string f2) {
-  return getAbsolutePath(f1).compare(getAbsolutePath(f2)) == 0;
-}
-
+bool fileEquals(std::string f1, std::string f2) { return getAbsolutePath(f1).compare(getAbsolutePath(f2)) == 0; }
 
 bool fileInDirectory(std::string file, std::string directory) {
-   auto ap = getAbsolutePath(file);
-   auto ad = getAbsolutePath(directory);
-   return ap.rfind(ad, 0) == 0;
+  auto ap = getAbsolutePath(file);
+  auto ad = getAbsolutePath(directory);
+  return ap.rfind(ad, 0) == 0;
 }
-
 
 bool makedir(std::string filename, mode_t mode) { return mkdir(filename.c_str(), mode) == 0; }
 
@@ -121,16 +117,16 @@ class ActualProcess {
     /* child process */
     if (child_pid == 0) {
       setpgid(child_pid, child_pid);  // Needed so negative PIDs can kill children of /bin/sh
-      
-      // Write the command to file as a temporary file. 
+
+      // Write the command to file as a temporary file.
       std::string s = getTempFile();
       std::ofstream ofs(s);
       ofs << "#!/bin/env bash \n\n" << command << "\n\n";
       ofs.close();
-      permissions(s,true,true,true); // Not sure if needed. 
+      permissions(s, true, true, true);  // Not sure if needed.
       execl(s.c_str(), s.c_str(), (char*)NULL);
       _exit(0);
-    
+
     } else {
     }
 
@@ -152,7 +148,7 @@ class ActualProcess {
   }
 
   void cancel() {
-    kill(pid,9);
+    kill(pid, 9);
     pid = -1;
   }
 
@@ -160,9 +156,8 @@ class ActualProcess {
 };
 
 std::string getTempFile(std::string code, std::string ext) {
-    return  join({getTempFolder(), "vnv_" + code + ext},077, false);
+  return join({getTempFolder(), "vnv_" + code + ext}, 077, false);
 }
-
 
 class LinuxProcess : public VnVProcess {
   int exitStatus = 0;
@@ -171,34 +166,30 @@ class LinuxProcess : public VnVProcess {
   std::string cfile = StringUtils::random(10);
   std::unique_ptr<ActualProcess> process;
 
-
-
  public:
-
   LinuxProcess(std::string cmd) {
     // Put it all in a script -- All stdout will be piped through
     // to a file. The exit status is piped to another file.
-    
- 
-    //Get a unique file name
+
+    // Get a unique file name
     while (fileExists(getTempFile(cfile))) {
       cfile = StringUtils::random(10);
     }
- 
-    //Write the users command into a new script file. 
+
+    // Write the users command into a new script file.
     std::string cfn = getTempFile(cfile);
     std::ofstream cf(cfn);
     cf << cmd;
     cf.close();
 
     // Make it executable
-    permissions(cfn, true,true,true);
-    
+    permissions(cfn, true, true, true);
+
     // Execute it, mapping stdout, stderr and the exit status to cfile.stderr, cfile.stdout and cfile.stdexit
     std::ostringstream oss;
-    oss << cfn  << " 1>" << getTempFile(cfile,".stdout") << " 2>" << getTempFile(cfile,".stderr") << "; echo $? > " << getTempFile(cfile, ".exit");
+    oss << cfn << " 1>" << getTempFile(cfile, ".stdout") << " 2>" << getTempFile(cfile, ".stderr") << "; echo $? > "
+        << getTempFile(cfile, ".exit");
     process.reset(new ActualProcess(oss.str()));
-
   }
 
   int getExitStatus() override {
@@ -218,24 +209,22 @@ class LinuxProcess : public VnVProcess {
   virtual void wait() override {
     if (process != nullptr) {
       process->wait();  // Calls destructor which waits for process to end.
-      stdo = rfile( getTempFile(cfile, ".stdout"));
-      stde = rfile( getTempFile(cfile, ".stderr"));
-      exitStatus = std::atoi(rfile(getTempFile(cfile,".exit")).c_str());
+      stdo = rfile(getTempFile(cfile, ".stdout"));
+      stde = rfile(getTempFile(cfile, ".stderr"));
+      exitStatus = std::atoi(rfile(getTempFile(cfile, ".exit")).c_str());
     }
   }
 
   std::string rfile(std::string filename) {
-
-      std::ifstream inFile;
-      inFile.open(filename.c_str());  // open the input file
-      std::stringstream strStream1;
-      strStream1 << inFile.rdbuf();  // read the file
-      return strStream1.str();       // str holds the content of the file
-    
+    std::ifstream inFile;
+    inFile.open(filename.c_str());  // open the input file
+    std::stringstream strStream1;
+    strStream1 << inFile.rdbuf();  // read the file
+    return strStream1.str();       // str holds the content of the file
   }
- 
+
   virtual void cancel() override {
-    if (process != nullptr ) {
+    if (process != nullptr) {
       process->cancel();
     }
   }
@@ -256,7 +245,7 @@ class LinuxProcess : public VnVProcess {
 
 std::shared_ptr<VnVProcess> exec(std::string cmd) { return std::make_shared<LinuxProcess>(cmd); }
 
-void permissions(std::string filename, bool read, bool write, bool execute ) {
+void permissions(std::string filename, bool read, bool write, bool execute) {
   mode_t mode;
   if (read) mode = mode | S_IRUSR;
   if (write) mode = mode | S_IWUSR;
@@ -264,44 +253,43 @@ void permissions(std::string filename, bool read, bool write, bool execute ) {
   chmod(filename.c_str(), mode);
 }
 
-std::string join(std::vector<std::string> vec_i, mode_t i, bool makeDir) {
-  
-  std::vector<std::string> vec; 
-  
-  for (auto &it : vec_i) {
-     std::vector<std::string> r;
-     VnV::StringUtils::StringSplit(it,"/",r);
-     for (auto &itt : r ) {
-       vec.push_back(itt);
-     }
-  }
-  
-  if (vec.size() > 0) {
+void makedirs(std::string path, bool make_last = false, mode_t mode = 0777) {
+    std::vector<std::string> dirs;
+    StringUtils::StringSplit(path,"/",dirs, true);
+    
     std::string s = "";
-    for (auto it = vec.begin(); it != vec.end(); ++it) {
+
+    int end = (make_last) ? dirs.size() : dirs.size() - 1; 
+    for (int i = 0 ; i < end; i++) {
+       s +=  dirs[i] + "/";
+       try { 
+         makedir(s,mode);
+       } catch (...) {}
+    }
+}
+
+
+std::string join(std::vector<std::string> vec_i, mode_t i, bool makeDir, bool isFile) {
+
+  if (vec_i.size() > 0) {
+    std::string s = "";
+    for (auto it = vec_i.begin(); it != vec_i.end(); ++it) {
       if (it->size() == 0)
         continue;
-      else if (it->substr(0, 1) == "/") {
-        s = *it;
+      else if (it->substr(0, 1).compare("/") == 0) {
+        s = *it;  // If it starts with a "/" then its a root path.
       } else {
-        s = s + *it; 
+        s = s + *it;  // It gets appended.
       }
-      if ((it + 1) != vec.end()) {
-        s += "/";
-      } 
 
-      if (makeDir) {
-        struct stat sb;
-        if (stat(s.c_str(), &sb) == 0) {
-          if (S_ISDIR(sb.st_mode)) {
-            continue;
-          } else {
-            throw INJECTION_EXCEPTION("Cannot create directory as file with that name exists (%s)", s.c_str());
-          }
-        } else if (!makedir(s, i)) {
-          throw INJECTION_EXCEPTION("Cannot make directory %s", s.c_str());
-        }
+      // If we are not at the end, then add a slash.
+      if ((it + 1) != vec_i.end()) {
+        s += "/";
       }
+    }
+
+    if (makeDir) {
+      makedirs(s, !isFile, i);
     }
     return s;
   }
@@ -329,7 +317,6 @@ void* loadLibrary(std::string name) {
 }
 
 registrationCallBack searchLibrary(void* dylib, std::string packageName) {
-  
   void* callback = dlsym(dylib, packageName.c_str());
   if (callback != nullptr) {
     return ((registrationCallBack)callback);
@@ -337,46 +324,36 @@ registrationCallBack searchLibrary(void* dylib, std::string packageName) {
   throw INJECTION_EXCEPTION("Library Registration symbol not found for package %s", packageName.c_str());
 }
 
-
-
 bool fileExists(std::string filename) {
   struct stat info;
   return stat(filename.c_str(), &info) == 0;
 }
 
-
-
-std::string getEnvironmentVariable(std::string name, std::string def  ) {
+std::string getEnvironmentVariable(std::string name, std::string def) {
   const char* val = std::getenv(name.c_str());
   if (val) {
-    return val; 
+    return val;
   }
   return def;
 }
 
 // Really trying to not need boost -- can get rid of this in C++17 (14
 // is we use std::experimental and replace with std::filesystem. )
-  std::vector<std::string> listFilesInDirectory(std::string directory) {
+std::vector<std::string> listFilesInDirectory(std::string directory) {
   std::vector<std::string> res;
 
   DIR* dir;
   struct dirent* ent;
   if ((dir = opendir(directory.c_str())) != NULL) {
-  
-
     while ((ent = readdir(dir)) != NULL) {
       res.push_back(ent->d_name);
     }
     closedir(dir);
     return res;
-  
 
   } else {
-  
     throw INJECTION_EXCEPTION("Error Listing files in %s: Could not open directory", directory.c_str());
-  
   }
-
 }
 
 }  // namespace DistUtils

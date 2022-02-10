@@ -850,12 +850,9 @@ class IRootNode : public DataBase {
     j.push_back(getActions()->getAsDataChild(fileId, level - 1));
     j.push_back(getUnitTests()->getAsDataChild(fileId, level - 1));
     j.push_back(getInfoNode()->getAsDataChild(fileId, level - 1));
-    j.push_back(getChildren()->getAsDataChild(fileId, level - 1));
-    
-    std::cout << "SDFSDFSDF" << std::endl;
+    j.push_back(getChildren()->getAsDataChild(fileId, level - 1));    
     j.push_back(getWorkflowNode()->getAsDataChild(fileId, level - 1));
-    std::cout << "11SDFSDFSDF" << std::endl;
-
+  
     json jj = json::object();
     jj["text"] = "Injection Points and Log Messages";
 

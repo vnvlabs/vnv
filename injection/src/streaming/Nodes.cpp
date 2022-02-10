@@ -84,7 +84,7 @@ SDTYPES
 
 
 #define X(x)                                                        \
-  I##x##Node::I##x##Node() : DataBase(DataBase::DataType::x) {std::cout << "Creating " << getTypeStr() << std::endl; }     \
+  I##x##Node::I##x##Node() : DataBase(DataBase::DataType::x) {}     \
   I##x##Node::~I##x##Node() {}                                      \
   std::shared_ptr<I##x##Node> DataBase::getAs##x##Node(std::shared_ptr<DataBase> ptr) {                          \
     if (check(DataType::x)) return std::dynamic_pointer_cast<I##x##Node>(ptr); \

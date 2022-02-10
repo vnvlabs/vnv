@@ -1,5 +1,6 @@
 <div style="width:100%" >
 
+{%if file.exists() %}
 
 <div style="position:relative">
 
@@ -20,6 +21,9 @@ padding: 3px;"></i></a>
 </ul>
 
 </div>
+
+
+
 {% if error %}
  <div class="alert alert-danger" role="alert">
 	{{error}}
@@ -29,3 +33,11 @@ padding: 3px;"></i></a>
 {{file.render(modal=modal) | safe }}
 
 </div>
+
+{% else %}
+<script>
+    $(document).ready(function(){
+        show_file_reader({{file.getVnVFileId()}},"{{file.url()}}","connection","{{modal}}")
+    });
+</script>
+{% endif %}

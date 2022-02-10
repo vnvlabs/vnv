@@ -116,7 +116,7 @@ class JsonFileStream : public FileStream<JsonFileIterator, json> {
   virtual bool supportsFetch() override { return true; }
 
   static std::string getResponseFileName(std::string stub, long id, long jid) {
-    return VnV::DistUtils::join({stub, "__response__", std::to_string(jid) + "_" + std::to_string(id)}, 0777, true);
+    return VnV::DistUtils::join({stub, "__response__", std::to_string(jid) + "_" + std::to_string(id)}, 0777, true,true);
   }
 
   virtual bool fetch(long id, long jid, json& response) override {
@@ -182,16 +182,23 @@ class MultiFileStreamIterator : public MultiStreamIterator<JsonFileIterator, jso
 
   void updateStreams() override {
     std::vector<std::string> files = VnV::DistUtils::listFilesInDirectory(filestub);
+    std::string ext = extension;
     for (auto& it : files) {
       if (loadedFiles.find(it) == loadedFiles.end()) {
         loadedFiles.insert(it);
-        std::size_t dot = it.find_first_of(".");
         try {
-          if (it.substr(dot).compare(extension) == 0) {
-            long id = std::atol(it.substr(0, dot).c_str());
-            std::string fname = VnV::DistUtils::join({filestub, it}, 0777, false);
-            add(std::make_shared<JsonFileIterator>(id, fname));
+          
+          if ( it.compare(".")==0 || it.compare("..")==0 || it.size() <= ext.size() ) {
+            continue;
           }
+          if (it.substr( it.size()- ext.size()).compare(ext) != 0 ) {
+            continue;
+          }
+
+          long id = std::atol(it.substr(0, it.size() - ext.size() ).c_str());
+          std::string fname = VnV::DistUtils::join({filestub, it}, 0777, false);
+          add(std::make_shared<JsonFileIterator>(id, fname));
+          
         } catch (std::exception &e) {
         }
       }

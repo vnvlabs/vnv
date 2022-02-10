@@ -22,9 +22,7 @@ void OutputEngineStore::setEngineManager(ICommunicator_ptr world, std::string ty
       manager.reset((*it->second)());
     } catch (std::exception& e) {
       HTHROW INJECTION_EXCEPTION("Engine init failed:  %s", e.what());
-    } catch (std::exception &e) {
-      HTHROW INJECTION_EXCEPTION_("Unknown third party exception occured during engine init:");
-    }
+    } 
 
     if (manager == nullptr) {
       std::abort();

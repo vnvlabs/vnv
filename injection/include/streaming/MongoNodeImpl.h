@@ -620,7 +620,7 @@ class MongoPersistance {
       setprov(provStruct->toJson());
     }
 
-    virtual ~InfoNode() { std::cout << "Destroying info node" << std::endl; }
+    virtual ~InfoNode() {}
   };
 
   class CommInfoNode : public DataBaseImpl<ICommInfoNode> {
@@ -961,7 +961,6 @@ class MongoPersistance {
     }
 
     virtual ~RootNode() {
-        std::cout << "Also made it here RootNode" << std::endl;
     }
 
     void setinfoNode(std::shared_ptr<IInfoNode> node) { setinfoNodeId(node->getId()); }
@@ -1087,7 +1086,6 @@ class MongoRootNodeWithThread : public StreamParserTemplate<MongoPersistance>::R
   }
 
   virtual ~MongoRootNodeWithThread() {
-     std::cout <<"Made it Here I Guess" << std::endl;
   }
 
 };

@@ -85,7 +85,7 @@ class RegistrationWriter {
                                << "\t return " << VnV::StringUtils::escapeQuotes(pjson[it->first].dump(), true)
                                << ";}\n\n"
                                << it->second.str() << "\n\n"
-                               << "FORTRAN_INJECTION_REGISTRATION(" << packageName << ");\n\n"; 
+                               << "FORTRAN_INJECTION_REGISTRATION(" << packageName << ")\n\n"; 
     }
 
   }

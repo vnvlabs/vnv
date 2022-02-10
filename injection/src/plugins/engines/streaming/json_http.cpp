@@ -86,7 +86,6 @@ class JsonHttpStreamIterator : public JsonPortStreamIterator {
   }
 
   void stop_stream_reader() override {
-    std::cout << "SHUTTING DOWN THE DAEMON" << std::endl;
     if (daemon != NULL) {
       MHD_stop_daemon(daemon);
       daemon == NULL;

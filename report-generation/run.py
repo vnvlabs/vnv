@@ -4,7 +4,7 @@
 import os
 from app import create_app
 from app.sockets import create_socket_app
-
+import sys
 
 class Config:
     DEBUG = True
@@ -18,4 +18,5 @@ app = create_app(app_config)
 socketio = create_socket_app(app)
 
 if __name__ == "__main__":
-    socketio.run(app,use_reloader=False, port=5001)
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 5001
+    socketio.run(app,use_reloader=False, host="0.0.0.0", port=port)

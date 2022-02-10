@@ -109,7 +109,6 @@ VnVProv::VnVProv() {}
 
 VnVProv::VnVProv(const json& j) {
   
-  std::cout << j.dump() << std::endl;
   currentWorkingDirectory = j["cwd"].get<std::string>();
   time_in_seconds_since_epoch = j["time"].get<long>();
   commandLine = j["cmd"].get<std::string>();

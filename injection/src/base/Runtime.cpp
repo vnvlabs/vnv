@@ -557,7 +557,7 @@ void RunTime::writeRunInfoFile() {
 
   std::string f = "vnv_" + workflowName() + "_" + workflowJob() + ".runInfo";
 
-  std::string filename = DistUtils::join({workflowDir_, f}, 077, false);
+  std::string filename = DistUtils::join({workflowDir_, f}, 0777, false);
   std::ofstream ofs(filename);
   if (ofs.good()) {
     json rinfo = json::object();

@@ -27,7 +27,7 @@ int VnV_init_raw(const char* packageName, int* argc, char*** argv, const char* i
     json j = json::parse(inputjson);
     return VnV::RunTime::instance().InitFromJson(packageName, argc, argv, j, callback);
   } catch (std::exception &e) {
-    std::cout << "Error Initializing VnV" << std::endl;
+    std::cout << "Error Initializing VnV: " << e.what() << std::endl;
     std::abort();
   }
 }
