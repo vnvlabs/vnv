@@ -36,8 +36,8 @@ using namespace VnV;
 
 /**
  * 
- * WELCOME THE THE VNV TOOLKIT
- * ---------------------------
+ * WELCOME TO THE VNV TOOLKIT
+ * --------------------------
  * 
  * 
  */

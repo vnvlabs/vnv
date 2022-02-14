@@ -63,10 +63,10 @@ class VnVCallBack {
    * @brief Call the callback
    *
    * @param comm The communicator defined at the injection point
-   * @param wrapper  The output engine manager
+   * @param wrapper The output engine manager
    * @param parameterMap The parameter map for the injection point
    * @param type The type of the current injection point
-   * @param stageId The stage id for the the current injection point.
+   * @param stageId The stage id for the current injection point
    */
   void call(ICommunicator_ptr comm, OutputEngineManager* wrapper, VnV::VnVParameterSet& parameterMap,
             InjectionPointType type, std::string stageId) {
@@ -96,7 +96,7 @@ typedef std::function<void(std::string&, std::size_t&, std::list<std::string, st
  * execute (as specified in the input file).
  *
  * A new injection point is created for each INJECTION_POINT call in the source
- * code. The injection points are set up based on the user supplied input
+ * code. The injection points are set up based on the user-supplied input
  * configurations stored in the injection point store.
  *
  */
