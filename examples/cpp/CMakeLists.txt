@@ -25,4 +25,6 @@ addexecutable(iterator SimpleExecutable)
 addexecutable(distributed Distributed)
 addexecutable(live Live )
 addexecutable(contour ContourExample)
+addexecutable(line LineExample)
+
   

@@ -1006,7 +1006,7 @@ class VnVFile:
             return r.getRequest() is not None
         return False
 
-    def proc_iter_next(self, count=10):
+    def proc_iter_next(self, count=None):
 
         res = []
         if self.currX == -1:
@@ -1023,7 +1023,7 @@ class VnVFile:
             self.currY = 0
 
         i = 0
-        while i < count:
+        while True:
 
             n = self.proc_iter.next()
             if n is not None:

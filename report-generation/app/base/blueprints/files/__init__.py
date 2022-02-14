@@ -291,7 +291,8 @@ files = [
     [True, "../examples/cpp/outputs/iterator/out", "json_file", {}],
     [True, "../examples/cpp/outputs/live/out", "json_file", {}],
     [True, "../build/examples/cpp/outputs/contour/out", "json_file", {}],
-    [True, "../build/examples/cpp/outputs/contour/out", "json_file", {}]
+    [True, "../build/examples/cpp/outputs/line/out", "json_file", {}],
+    [True, "/home/ben/source/vv/applications/asgard/build/vv-output", "json_file", {}]
 
 ]
 
