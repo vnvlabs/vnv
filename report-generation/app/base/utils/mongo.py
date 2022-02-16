@@ -47,3 +47,12 @@ def persistInputFile(file):
     if Configured():
         input_collection.update_one({"name": file.name}, {"$set": file.toJson()}, True)
 
+
+def list_input_files():
+    if Configured():
+        return input_collection.find()
+    return []
+
+
+def deleteInputFile(name):
+    input_collection.delete_one({"name": name})

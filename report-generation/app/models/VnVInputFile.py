@@ -359,6 +359,7 @@ class VnVInputFile:
 
         a = mongo.loadInputFile(name)
         if a is not None:
+            raise Exception("Name is taken")
             f = VnVInputFile.fromJson(a)
         else:
             f = VnVInputFile(name,path=path)
@@ -367,8 +368,23 @@ class VnVInputFile:
         return f
 
     @staticmethod
+    def load(name):
+        a = mongo.loadInputFile(name)
+        if a is not None:
+            f = VnVInputFile.fromJson(a)
+            VnVInputFile.FILES[f.id_] = f
+            return f
+
+    @staticmethod
+    def loadAll():
+        for a in mongo.list_input_files():
+            f = VnVInputFile.fromJson(a)
+            VnVInputFile.FILES[f.id_] = f
+
+    @staticmethod
     def removeById(fileId):
-        VnVInputFile.FILES.pop(fileId)
+        a = VnVInputFile.FILES.pop(fileId)
+        mongo.deleteInputFile(a.name)
 
     @staticmethod
     def find(id_):

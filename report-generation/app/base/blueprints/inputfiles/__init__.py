@@ -9,6 +9,7 @@ from flask import Blueprint, make_response, jsonify
 from flask import render_template, redirect, url_for, request
 
 from app.models.VnVInputFile import VnVInputFile
+from ...utils import mongo
 from ...utils.utils import render_error
 
 blueprint = Blueprint(
@@ -252,4 +253,4 @@ def template_globals(globs):
 
 
 def faker():
-    VnVInputFile.add("example")
+    VnVInputFile.loadAll()
