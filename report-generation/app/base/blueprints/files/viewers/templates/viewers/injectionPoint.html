@@ -1,16 +1,12 @@
-<h2 style="text-decoration:underline; text-align:center; margin:20px; "> Injection Point {{iprender.getName()}} from
-    Package {{iprender.getPackage()}} </h2>
 
-<div class="card" style="padding:20px;">
+<div class="card" style="padding:20px; height:100%">
 
     <div style="position:relative; align-items:center; margin-bottom:30px;">
         <h2 style="flex:1">{{iprender.getTitle()}}</h2>
         <div class="card" style="display:flex; flex-direction:row;  position:absolute; top:calc(50% - 16px); right:10px;">
             {% if iprender.getLogs() | length %}
-            <button class="vnvh btn  btn-icon btn-outline-primary " type="button" style="margin-right:10px;display:none"
-                    onclick="$('#log-modal').modal('toggle')" aria-haspopup="true" aria-expanded="false"><i
-                    class="feather icon-activity"></i>
-            </button>
+            <a href="#!" onclick="$('#log-modal').modal('toggle')" class="vnvh badge badge-success"
+               style="margin-left:10px; display:none">Logs</a>
             {%endif%}
             <a id='ipprocessing-{{iprender.getId()}}' href="#!" onclick="" class="vnvh badge badge-success"
                style="margin-left:10px;display:none"
@@ -66,6 +62,12 @@
                 <h3 style="flex:1; margin-bottom:30px;"> {{ testrender.getTitle()}} </h3>
                 <div class="card" style="display:flex; flex-direction:row;  position:absolute; top:calc(50% - 16px); right:10px;">
 
+                {% if testrender.getLogs() | length %}
+                <a href="#!"
+                   onclick="$('#test-log-modal-{{testrender.getId()}}').modal('toggle')"
+                   class="vnvhg badge badge-success" style="margin-left:10px; display:none;">Logs</a>
+                {%endif%}
+
                 <a href="#!"
                    onclick="show_ip_rst_editor({{iprender.getFile()}}, {{testrender.getId()}} , {{testrender.getData().getId()}} )"
                    class="vnvhg badge badge-success" style="margin-left:10px; display:none;">RST</a>
@@ -73,6 +75,7 @@
                    class="vnvhg badge badge-info" style="margin-left:10px; display:none;" ;>Data Explorer</a>
                 <a href="#!" onclick="$('#render-{{loop.index}}').toggle(300)" class="vnvhg badge badge-info"
                    style="margin-left:10px; display:none;" ;>+/-</a>
+
 
                  <a href="#!" onclick="$('.vnvhg').toggle(300)" class="badge badge-info" style="margin:10px;"><</a>
 
@@ -101,8 +104,8 @@
                 </button>
             </div>
             <div class="modal-body" id="log-modal-body">
-                {% for logrender in iprender.getLogs() %}
-                {%include 'viewers/logs.html' %}
+                {% for logRender in iprender.getLogs() %}
+                    {%include "files/log.html"%}
                 {% endfor%}
             </div>
         </div>

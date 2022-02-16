@@ -90,7 +90,7 @@ class ProvWrapper:
         return self.prov.commandLine
 
     def get_libraries(self):
-        a =  [ProvFileWrapper(self.vnvfileid, self.prov.get(a, 2), "") for a in range(0, self.prov.size(2))]
+        a = [ProvFileWrapper(self.vnvfileid, self.prov.get(a, 2), "") for a in range(0, self.prov.size(2))]
         a.sort(key=lambda x: x.modified(), reverse=True)
         return a
 
@@ -179,8 +179,14 @@ class LogRender:
     def getMessage(self):
         return self.data.getMessage()
 
+    def getPackage(self):
+        return self.data.getPackage()
+
     def getTime(self):
         return self.data.getTime()
+
+    def getLevel(self):
+        return self.data.getLevel()
 
     def getStage(self):
         return self.data.getStage()
@@ -368,7 +374,7 @@ class WorkflowRender:
         # if the engine name matches and the reader matches then its prob that one.
         for k, v in VnVFile.FILES.items():
             if v.filename == engineInfo["filename"] and v.reader == engineInfo["reader"]:
-               return v
+                return v
 
         # make a new one.
         ff = VnVFile.add(name, engineInfo["filename"], engineInfo["reader"], self.template_root, False,
@@ -388,19 +394,19 @@ class WorkflowRender:
                     codeNameMap[i["value"]["code"]] = i["value"]["name"]
                     c = i["value"]["creator"]
                     cc = c.split(":")
-                    jobH = self.render_job_html(cc[0],cc[1],i["value"]["name"])
+                    jobH = self.render_job_html(cc[0], cc[1], i["value"]["name"])
                     if c not in creators:
                         ht = render_vnv_template(self.templates.get_job_creator(cc[0], cc[1]), data=self.workflowNode,
                                                  file=self.templates.file)
-                        creators[c] = {"name": c, "html": ht, "jobs": [{"name": i["value"]["name"] ,"html" : jobH} ] }
+                        creators[c] = {"name": c, "html": ht, "jobs": [{"name": i["value"]["name"], "html": jobH}]}
                     else:
-                        creators[c]["jobs"].append({"name": i["value"]["name"] ,"html" : jobH})
+                        creators[c]["jobs"].append({"name": i["value"]["name"], "html": jobH})
                 elif i["type"] == "VnVReport":
                     val = i["value"]
                     if not self.workflowNode.hasReport(val["alias"]):
                         ff = self.getVnVFile(val["name"], val["engine"])
                         self.reports[val["alias"]] = ff
-                        self.workflowNode.setReport(val["alias"], ff.id_,  ff.root)
+                        self.workflowNode.setReport(val["alias"], ff.id_, ff.root)
 
             self.creators = [v for k, v in creators.items()]
             self.codeNameMap = codeNameMap
@@ -420,7 +426,6 @@ class WorkflowRender:
     def getWorkflowCreators(self):
         self.loadWorkflow()
         return self.creators
-
 
     def getRawRST(self, package, name, jobName=None):
         if jobName is not None:
@@ -603,7 +608,6 @@ class VnVFile:
         self.notifications = []
         self.workflowRender = None
 
-
         if not reload:
             self.name = validate_name(name)
         else:
@@ -648,8 +652,6 @@ class VnVFile:
         if self.setupNow():
             return self.templates.get_raw_rst(data)
 
-
-
     def setConnection(self, hostname, username, password, port):
         self.connection = VnVConnection(hostname, username, password, port)
 
@@ -666,7 +668,6 @@ class VnVFile:
 
     def render_workflow_rst(self, package, name, jobName=None):
         return self.getWorkflowRender().getRawRST(package, name, jobName)
-
 
     def getJobName(self):
         if self.setupNow():
@@ -748,7 +749,7 @@ class VnVFile:
         return self.root.getInfoNode().getProv().currentWorkingDirectory
 
     def browse(self):
-           return LocalFile(self.get_cwd(), self.id_, self.connection, reader="directory")
+        return LocalFile(self.get_cwd(), self.id_, self.connection, reader="directory")
 
     def getFirstPackage(self):
         a = self.getPackages()
@@ -779,7 +780,6 @@ class VnVFile:
             self.workflowRender = WorkflowRender(n, self.template_root, self.root, self.templates)
 
         return self.workflowRender
-
 
     def hasComm(self):
         return self.root.getCommInfoNode().getWorldSize() > 1
@@ -844,6 +844,13 @@ class VnVFile:
 
     def hasUnitTests(self):
         return len(self.root.getUnitTests())
+
+
+    def getLogs(self):
+        return [ LogRender(a, self.getCommObj(), self.templates)    for a in self.root.getLogs()]
+
+    def hasLogs(self):
+        return len(self.root.getLogs())
 
     def unit_test_table(self):
         data = {}
@@ -974,6 +981,7 @@ class VnVFile:
                 self.proc_iter_config))
         self.currX = -1
         self.currY = -1
+        self.parents = []
         return True
 
     def set_comm_iter(self, comm, only=None):
@@ -981,21 +989,14 @@ class VnVFile:
             "id": int(comm),
             "only": True if only else False,
             "comm": True}
-        self.proc_iter = self.root.getWalker(
-            "VNV", "proc", json.dumps(
-                self.proc_iter_config))
-        self.currX = -1
-        self.currY = -1
+        self.proc_iter = self.root.getWalker("VNV", "proc", json.dumps(self.proc_iter_config))
+        self.parents = None
         return True
 
     node_type_map = {
-        node_type_POINT: [1, -1, 1],
-        node_type_START: [1, 0, 0],
-        node_type_DONE: [0, 0, 0],
-        node_type_ITER: [1, -1, 0],
-        node_type_ROOT: [1, 0, 0],
-        node_type_LOG: [0, 0, 0],
-        node_type_END: [0, -1, 0]
+        node_type_POINT: "point",
+        node_type_START: "start",
+        node_type_END: "end"
     }
     INJECTION_INTRO = -100
     INJECTION_CONC = -101
@@ -1011,62 +1012,40 @@ class VnVFile:
         res = []
         if self.currX == -1:
             res.append(
-                {"x": 0,
-                 "y": 0,
-                 "id": VnVFile.INJECTION_INTRO,
-                 "starttime": self.root.getInfoNode().getStartTime(),
-                 "endtime": self.root.getInfoNode().getEndTime(),
-                 "wait": False,
-                 "title": "Application"}
+                {
+                    "id": VnVFile.INJECTION_INTRO,
+                    "title": "Application",
+                    "type" : "start",
+                    "package" : "Root"
+                }
             )
-            self.currX = 0
-            self.currY = 0
 
-        i = 0
         while True:
 
             n = self.proc_iter.next()
             if n is not None:
 
-                if n.type == node_type_ITER:
-                    i += 1
-                    continue
+                if n.type == node_type_DONE:
+                    res.append({
+
+                                "id": VnVFile.INJECTION_INTRO,
+                                "type" : "end",
+                                "title" : "Application",
+                                "package" : "VnV",
+                                "done" : True
+                                })
+                    break
 
                 elif n.type == node_type_WAITING:
                     break
 
-                self.currX += 1
-                self.currY += VnVFile.node_type_map[n.type][0]
-
-                if n.type == node_type_DONE:
-                    res.append({"x": self.currX,
-                                "y": self.currY,
-                                "id": VnVFile.INJECTION_CONC,
-                                "done": True,
-                                "wait": False,
-                                "title": "",
-                                "starttime": self.root.getInfoNode().getStartTime(),
-                                "endtime": self.root.getInfoNode().getEndTime()
-                                })
-                    break
-                else:
-
+                elif n.type in [node_type_POINT,node_type_END,node_type_START]:
                     ip = self.get_injection_point(n.item.getId()).cast()
-
-                    res.append({"x": self.currX,
-                                "y": self.currY,
-                                "id": n.item.getId(),
-                                "starttime": ip.getStartTime(),
-                                "endtime": ip.getEndTime(),
-                                "title": ip.getPackage() + ":" + ip.getName(),
-                                "wait": self.waiting(n.item.getId())
-                                })
-
-                self.currY += VnVFile.node_type_map[n.type][1]
-                self.currX += VnVFile.node_type_map[n.type][2]
-                i += 1
-            else:
-                break
+                    res.append({
+                        "title":  ip.getName(),
+                        "id": n.item.getId(),
+                        "package": ip.getPackage(),
+                        "type" : VnVFile.node_type_map[n.type]})
 
         return res
 

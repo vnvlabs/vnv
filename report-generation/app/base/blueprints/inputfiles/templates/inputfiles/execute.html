@@ -1,12 +1,43 @@
 {%with NAME = "Execution", VALUE= "exec" , TEXT=file.exec, DEFAULTFILE=file.execFile, LABEL="Path to Execution Template",
-EXTBTN = [["execute_file" ,"Execute"]] %}
+EXTBTN = [["execute_file" ,"Execute"],["view_script","Script"],["format_exec_file", "Format"],["shrink_exec_file", "Minify"]] %}
 {%include "inputfiles/input_edit_template.html" %}
 {%endwith%}
 
 <script>
 function execute_file(fileid) {
    $('.input-save-button').click();
-   alert("Execution Is Not Implemented Yet")
+   $.get(`/inputfiles/execute/${fileid}?val=${encodeURIComponent(ace.edit("execfile").getValue())}`, function(data) {
+           refresh_jobs_list(fileid)
+           alert("Job Executed with ID " + data)
+           $('#pills-jobs-tab').click()
+   });
 }
+
+function view_script(fileid) {
+   $.get(`/inputfiles/execute/{{file.id_}}?dryrun=1&val=${encodeURIComponent(ace.edit("execfile").getValue())}`, function(data) {
+           alert(data)
+   });
+}
+
+function format_exec_file(fileid) {
+   s = ace.edit("execfile")
+   try {
+      ace.edit("execfile").setValue(JSON.stringify(JSON.parse(ace.edit("execfile").getValue()),null,5))
+   } catch {
+      addToast("Format Failed","We can only format valid json at this time",4000)
+   }
+}
+
+function shrink_exec_file(fileid) {
+   s = ace.edit("execfile")
+   try {
+      ace.edit("execfile").setValue(JSON.stringify(JSON.parse(ace.edit("execfile").getValue())))
+   } catch {
+      addToast("Format Failed","We can only format valid json at this time",4000)
+   }
+}
+
+
+</script>
 
 </script>

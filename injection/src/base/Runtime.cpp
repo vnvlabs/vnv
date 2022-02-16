@@ -577,7 +577,10 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
     // Set up the logger. This occurs as early as possible to allow log messages
     // to be caught int the registration objects.
     if (info.logInfo.on) {
-      logger.setLog(info.logInfo.filename);
+      
+      logger.setLog(info.logInfo.engine,info.logInfo.type,info.logInfo.filename);
+      
+
       for (auto it : info.logInfo.logs) {
         logger.setLogLevel(it.first, it.second);
       }

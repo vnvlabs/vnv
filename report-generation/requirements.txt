@@ -12,4 +12,5 @@ flask-socketio~=5.1.1
 jsonschema~=3.2.0
 paramiko==2.8.0
 pymongo==4.0.1
-
+Jinja2~=3.0.3
+ansi2html~=1.7.0

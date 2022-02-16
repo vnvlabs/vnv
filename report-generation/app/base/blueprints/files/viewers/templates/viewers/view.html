@@ -1,40 +1,39 @@
 {% with view = request.args.get("viewer","processor") %}
 
-<div id="view-header" class="" style="position:relative; ">
 
-    <h2 style="text-decoration:underline; text-align:center; margin:20px; width:100% ">{%include view + "/title.html"
-        %}</h2>
-
-    <div class="" style="position:absolute; top:calc(50% - 16px); right:0px; display:flex; flex-direction:row; ">
-        <div class="btn-group mb-2 mr-2">
-            <button class="btn  btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="false">{{view}}
-            </button>
-            <div class="dropdown-menu">
-                {%for v in viewers%}
-                <a class="dropdown-item" href="{{url_for('base.files.view', id_=file.id_, viewer=v)}}">
-                    {%if v == view%} <i class="feather icon-check"></i> {%endif%} {{v}}
-                </a>
-                {%endfor%}
-            </div>
+<div class="" style="position:absolute; top:57px; z-index:4000; right:10px; display:flex; flex-direction:row; ">
+    <div class="btn-group mb-2 mr-2">
+        <button class="btn  btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">{{view}}
+        </button>
+        <div class="dropdown-menu">
+            {%for v in viewers%}
+            <a class="dropdown-item" href="{{url_for('base.files.view', id_=file.id_, viewer=v)}}">
+                {%if v == view%} <i class="feather icon-check"></i> {%endif%} {{v}}
+            </a>
+            {%endfor%}
         </div>
-        {%include view + "/menu.html" %}
     </div>
+    {%include view + "/menu.html" %}
 </div>
 
-<div id="view-view" style="">
 
-    <div id="view-chart">
-        {%include view + "/chart.html" %}
+<div style="display:flex;">
+    <div id="view-view" class="card"
+         style="height:100%; min-height:100vh;  max-width:40%; padding-right:20px; padding-left:20px; padding-top:20px; margin-right:10px;">
+
+        <div id="view-chart">
+            {%include view + "/chart.html" %}
+        </div>
+
+    </div>
+
+    <div id="injection-element" style="flex:1; min-height:100vh; ">
+        {%with introRender = file.get_introduction() %}
+        {%include "viewers/introduction.html" %}
+        {%endwith%}
     </div>
 
 </div>
-
-<div id="injection-element">
-    {%with introRender = file.get_introduction() %}
-    {%include "viewers/introduction.html" %}
-    {%endwith%}
-</div>
-
 {%endwith%}
 

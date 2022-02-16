@@ -1,16 +1,6 @@
 <div>
     <div class="" style="position:relative">
         <div class="">
-
-            {% if testrender.getLogs() | length %}
-
-            <div style="display:flex; position:absolute; right:20px ">
-                <button class="btn  btn-icon btn-outline-primary " type="button" style="margin-right:10px"
-                        onclick="$('#test-log-modal-{{testrender.getId()}}').modal('toggle')" aria-haspopup="true" aria-expanded="false"><i
-                        class="feather icon-activity"></i>
-                </button>
-            </div>
-            {%endif%}
             {{ testrender.getHtml() | safe }}
         </div>
     </div>
@@ -27,8 +17,8 @@
                 </button>
             </div>
             <div class="modal-body" id="log-modal-body">
-                {% for logrender in testrender.getLogs() %}
-                {%include 'viewers/logs.html' %}
+                {% for logRender in testrender.getLogs() %}
+                   {%include "files/log.html"%}
                 {% endfor%}
             </div>
         </div>

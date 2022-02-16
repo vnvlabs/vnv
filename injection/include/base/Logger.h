@@ -15,7 +15,7 @@
 
 #include "c-interfaces/Communication.h"
 #include "c-interfaces/PackageName.h"
-
+#include "base/parser/JsonParser.h"
 #define MAXSAVED_LOGS 1024
 
 #define MAX_LOG_SIZE 2048
@@ -62,8 +62,11 @@ class Logger {
   std::queue<std::tuple<std::string, int, std::string, std::string, VnV_Comm>>
       savedLogs; /** logging statements that occur before engine config. **/
   Logger();
-  bool engine = false; /**< True if this logger writes to the output engine. */
   
+  bool engine = false; /**< True if this logger writes to the output engine. */
+  LogWriteType ltype;
+
+
   int stage = 0;
 
   bool on = true; /**< Is the logger on */
@@ -96,7 +99,8 @@ class Logger {
    * the logs based on the users input information. There should be
    * not need to call this anywhere else.
    */
-  void setLog(const std::string& outputType);
+
+  void setLog(bool engine, LogWriteType t, const std::string& outputType = "");
 
   /**
    * @brief addToBlackList

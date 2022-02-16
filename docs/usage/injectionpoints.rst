@@ -504,11 +504,13 @@ One important parameter of the logger configuration is the logger::filename para
         "type" : "object",
         "properties" : {
             "on" : { "type" : "boolean" } ,
+            "engine" : { "type" : "boolean" } ,
+            "type" : { "type" : "boolean", "enum" : ["stdout","stderr","file","none"] } ,
             "filename" : { "type " : "string" },
             "logs" : { "type" : "object" },
             "blackList" : { "type" : "array", "items" : { "type" : "string" } }
         },
-        "required" : ["on","filename","logs"]
+        "required" : []
     },
 
 
@@ -517,7 +519,8 @@ One important parameter of the logger configuration is the logger::filename para
 
    "logging": {
     "on" : true,
-    "filename" : "stdout",
+    "type" : "stdout",
+    "engine" : true
     "logs" : {
         "Info" : false
     }

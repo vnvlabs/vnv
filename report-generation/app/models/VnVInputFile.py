@@ -1,5 +1,6 @@
 import json
 import os
+import textwrap
 import uuid
 
 import jsonschema
@@ -69,11 +70,11 @@ class VnVInputFile:
 
         self.loadfile = ""
         self.additionalPlugins = {}
-        self.spec = json.dumps(VnVInputFile.DEFAULT_SPEC)
-        self.specLoad = VnVInputFile.DEFAULT_SPEC.copy()
+        self.spec = "{}"
+        self.specLoad = {}
         self.specDump = "${application} ${inputfile}"
         self.specAuto = True
-        self.exec = "{}"
+        self.exec = json.dumps(self.defaultExecution, indent=4)
         self.execFile = ""
 
         self.plugs = None
@@ -126,7 +127,7 @@ class VnVInputFile:
     def setConnection(self):
         self.connection = VnVLocalConnection()
 
-    def setFilename(self,fname):
+    def setFilename(self, fname):
         self.filename = fname
         self.updateSpec()
 
@@ -237,18 +238,84 @@ class VnVInputFile:
         return self.exec
 
     # TODO Implement this.
-    EXECUTION_SCHEMA = {
+    CONFIG_SCHEMA = {
         "type": "object",
         "properties": {
-            "run": {"type": "boolean"}
+            "name" : {"type" : "string"},
+            "shell": {"type": "string", "enum": ["bash"]},
+            "shebang": {"type": "string"},
+            "working-directory": {"type": "string"},
+            "load-vnv": {"type": "boolean"},
+            "environment": {
+                "type": "object"
+            },
+            "input-file-name": {"type": "string"},
+            "command-line": {"type": "string",
+                             "description": "Command to submit with input file called '${inputfilename}'"},
+            "input-staging": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "action": {"type": "string", "enum": ["cp", "mv", "slink", "hlink"]},
+                        "source": {"type": "string"},
+                        "dest": {"type": "string"}
+                    },
+                    "required": ["action", "source", "dest"]
+                }
+            },
+            "output-staging": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "action": {"type": "string", "enum": ["cp", "cp -r", "mv", "ln", "ln -s"]},
+                        "source": {"type": "string"},
+                        "dest": {"type": "string"}
+                    },
+                    "required": ["action", "source", "dest"]
+                }
+            }
+
         },
         "additionalProperties": False
+    }
+
+    EXECUTION_SCHEMA = None
+    @staticmethod
+    def getExecutionSchema():
+        if VnVInputFile.EXECUTION_SCHEMA is None:
+            VnVInputFile.EXECUTION_SCHEMA = json.loads(json.dumps(VnVInputFile.CONFIG_SCHEMA))
+            VnVInputFile.EXECUTION_SCHEMA["properties"]["active_overrides"] = {"type": "array", "items": {"type" : "string"} }
+            VnVInputFile.EXECUTION_SCHEMA["properties"]["overrides"] = {
+                "type": "object",
+                "additionalProperties": json.loads(json.dumps(VnVInputFile.CONFIG_SCHEMA))
+            }
+
+        return VnVInputFile.EXECUTION_SCHEMA
+
+    defaultExecution = {
+        "shell": "bash",
+        "load-vnv": True,
+        "working-directory": "${application_dir}",
+        "environment": {},
+        "input-file-name": "./vv-input.json",
+        "input-staging": [],
+        "output-staging": [],
+        "active_overrides": ["run"],
+        "overrides": {
+            "run": {
+                "command-line": "${application} ${inputfile}",
+                "name" : "Hello"
+            }
+        }
     }
 
     def validateExecution(self, newVal):
         try:
             a = json.loads(newVal)
-            errs = jsonschema.validate(a, schema=VnVInputFile.EXECUTION_SCHEMA)
+            print(a)
+            errs = jsonschema.validate(a, schema=VnVInputFile.getExecutionSchema())
             return []
         except ValidationError as v:
             r, c = get_row_and_column(v.path, newVal, a)
@@ -257,13 +324,30 @@ class VnVInputFile:
             return [{"row": 1, "column": 1, "text": str(e), "type": 'warning', "source": 'vnv'}]
 
     def autocomplete_input(self, row, col, pre, val):
-        return autocomplete(val,self.specLoad, int(row), int(col))
+        return autocomplete(val, self.specLoad, int(row), int(col))
 
     def autocomplete_exec(self, row, col, pre, val):
-        return []
+        return autocomplete(val, VnVInputFile.getExecutionSchema(), int(row), int(col))
 
     def autocomplete_spec(self, row, col, pre, val):
         return []
+
+    def get_jobs(self):
+        return [ a for a in self.connection.get_jobs()]
+
+    def execute(self, val, name=None):
+        script, name = self.script(val)
+        return self.connection.execute_script(script, name=name)
+
+    def script(self, val):
+        data = json.loads(val)
+        for i in data.get("active_overrides",[]):
+            if i in data.get("overrides",{}):
+                over = data["overrides"][i]
+                for k,v in over.items():
+                    data[k] = v
+
+        return bash_script(self.filename,self.value, data), data.get("name")
 
     @staticmethod
     def get_id():
@@ -301,3 +385,26 @@ class VnVInputFile:
 
         def __exit__(self, type, value, traceback):
             mongo.persistInputFile(self.file)
+
+def njoin(array):
+    return "\n".join(array)
+
+def bash_script(application_path, inputfile, data):
+    return textwrap.dedent(f"""
+{data.get("shebang", "#!/usr/bin/bash")}
+
+export application={application_path}
+export application_dir=$(dirname {application_path})
+export inputfile={data.get("input-file-name",".vv-input.json")}
+
+cd {data.get("working-directory", "${application_dir}")}
+
+cat << EOF > ${{inputfile}}
+    {inputfile}
+EOF
+
+{njoin(["export " + k + "=" + v for k, v in data.get("environment", {})])}
+{njoin([a["action"] + " " + a["source"] + " " + a["dest"]] for a in data.get("input-staging", {}))}
+{data.get("command-line", "")}
+{njoin([a["action"] + " " + a["source"] + " " + a["dest"]] for a in data.get("output-staging", {}))} 
+""")

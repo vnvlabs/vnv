@@ -1633,7 +1633,6 @@ template <class DB> class StreamParserTemplate {
 
         } else if (ctype == DataBase::DataType::Log) {
           p->getLogs()->add(child);
-          rootInternal()->addIDN(child->getId(), child->getStreamId(), node_type::LOG, elementId, "Log");
         } else {
           INJECTION_EXCEPTION(
               "This should not happen -- Valid children for an injection point are types Test or Log, but this is type "
@@ -1643,7 +1642,7 @@ template <class DB> class StreamParserTemplate {
 
       } else if (ctype == DataBase::DataType::InjectionPoint) {
       } else if (ctype == DataBase::DataType::Log) {
-        rootInternal()->addIDN(child->getId(), child->getStreamId(), node_type::LOG, elementId, "Log");
+        rootInternal()->getLogs()->add(child);
       } else {
         throw INJECTION_EXCEPTION("Unsupported Parent element type %s", parent->getTypeStr().c_str());
       }

@@ -1,0 +1,27 @@
+
+{% for job in file.get_jobs() %}
+<div class="card" style="padding:10px;">
+    <div style="display:flex; align-items:center;">
+        <h5 style="flex:1"> {{job.getName()}} ({{job.getId()[0:5]}}) -- {%if job.running()%} Running... {%else%} Job Completed with exit code {{job.exitcode()}} {%endif%} </h5>
+    <button class="btn btn-primary" style="margin-right:10px;" onclick='$("#script_{{job.getId()|safe}}").toggle("show")'>Script</button>
+
+        {%if job.running() %}
+            <button class="btn btn-primary" style="margin-right:10px;" onclick='alert("Not implemented")'>Cancel</button>
+        {%else%}
+            <button class="btn btn-primary" style="margin-right:10px;" onclick='$("#stdout_{{job.getId()|safe}}").toggle("show")'>Stdout</button>
+            <button class="btn btn-primary" style="margin-right:10px;" onclick='alert("Not implemented")'>Open VnV Report</button>
+            <button class="btn btn-primary" style="margin-right:10px;" onclick='alert("Not implemented")'>Delete</button>
+
+        {%endif%}
+    </div>
+    <div id="script_{{job.getId()|safe}}" style="display:none">
+        <h3>Execution Script</h3>
+        {{job.script()|safe}}
+    </div>
+    <div id="stdout_{{job.getId()|safe}}" style="display:none">
+        <h3>Standard Output</h3>
+        {{job.stdout()|safe}}
+    </div>
+
+</div>
+{% endfor %}

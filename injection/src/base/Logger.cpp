@@ -22,27 +22,20 @@ constexpr const char* cyan = "\033[36m";
 constexpr const char* reset = "\033[0m";
 }  // namespace
 
-std::string VnV::Logger::logLevelToColor(std::string level,
-                                         std::string message) {
-  
+std::string VnV::Logger::logLevelToColor(std::string level, std::string message) {
   if (!RunTime::instance().useAsciiColors()) return message;
 
-  
   auto it = logLevelsToColor.find(level);
   if (it != logLevelsToColor.end()) {
     std::ostringstream oss;
     oss << it->second << message << reset;
     return oss.str();
   }
-   return message;
+  return message;
 };
 
-void Logger::up() {
-  stage++;
-}
-void Logger::down() {
-  stage--;
-}
+void Logger::up() { stage++; }
+void Logger::down() { stage--; }
 
 Logger::Logger() {
   registerLogLevel(VNVPACKAGENAME_S, "INFO", green);
@@ -51,8 +44,7 @@ Logger::Logger() {
   registerLogLevel(VNVPACKAGENAME_S, "ERROR", red);
 };
 
-void Logger::registerLogLevel(std::string packageName, std::string name,
-                              std::string color) {
+void Logger::registerLogLevel(std::string packageName, std::string name, std::string color) {
   logLevelsToColor[packageName + ":" + name] = color;
 }
 
@@ -62,12 +54,9 @@ std::string Logger::getIndent(int stages) {
   return s;
 }
 
-void Logger::setLogLevel(std::string level, bool on) {
-  logs.insert(std::make_pair(level, on));
-}
+void Logger::setLogLevel(std::string level, bool on) { logs.insert(std::make_pair(level, on)); }
 
-void Logger::log(VnV_Comm comm, std::string pname, std::string level,
-                 std::string format) {
+void Logger::log(VnV_Comm comm, std::string pname, std::string level, std::string format) {
   if (!locked) return;
   if (packageBlackList.find(pname) != packageBlackList.end()) {
     return;
@@ -77,45 +66,30 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level,
 
   if (engine) {
     try {
-
-      OutputEngineManager* eng =
-          OutputEngineStore::instance().getEngineManager();
+      OutputEngineManager* eng = OutputEngineStore::instance().getEngineManager();
 
       // Clear any saved logs.
       while (savedLogs.size() > 0) {
         auto& t = savedLogs.front();
         VnV_Comm cc = std::get<4>(t);
         auto c = CommunicationStore::instance().getCommunicator(cc);
-        eng->Log(c, std::get<0>(t).c_str(), std::get<1>(t), std::get<2>(t),
-                 std::get<3>(t));
+        eng->Log(c, std::get<0>(t).c_str(), std::get<1>(t), std::get<2>(t), std::get<3>(t));
         savedLogs.pop();
       }
 
       auto c = CommunicationStore::instance().getCommunicator(comm);
       eng->Log(c, pname.c_str(), stage, level, format);
-    } catch (std::exception &e) {
-      // Logging statements that occur prior to the engine being configured at
-      // written to std::out.
-      if (savedLogs.size() > MAXSAVED_LOGS) {
-        std::cout << "Too Many Logs before engine configuration: Dumping to "
-                     "stdout instead"
-                  << std::endl;
-        auto& t = savedLogs.front();
-        std::ostringstream oss;
-        std::string pkey = std::get<0>(t) + ":" + std::get<2>(t);
-        oss << getIndent(std::get<1>(t)) << "[" << pkey << "](Rank: " << rank << ") " << std::get<3>(t);
-
-        std::cout << logLevelToColor(pkey, oss.str()) << std::endl;
-        savedLogs.pop();
-      }
+    } catch (std::exception& e) {
       savedLogs.push(std::make_tuple(pname, stage, level, format, comm));
     }
-  } else {
+  }
+
+  if (ltype != LogWriteType::NONE) {
     std::ostringstream oss;
     std::string pkey = pname + ":" + level;
-    oss << getIndent(stage) << "[" << pkey << "](Rank: " << rank << ") " <<  format ;
+    oss << getIndent(stage) << "[" << pkey << "](Rank: " << rank << ") " << format;
 
-    if (outFileName.compare("stdout") == 0) {
+    if (ltype != LogWriteType::FILE) {
       (*fileptr) << logLevelToColor(pkey, oss.str()) << std::endl;
     } else {
       (*fileptr) << oss.str() << std::endl;
@@ -123,25 +97,21 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level,
   }
 }
 
-void Logger::log_c(VnV_Comm comm, std::string pname, std::string level,
-                   std::string format, va_list args) {
+void Logger::log_c(VnV_Comm comm, std::string pname, std::string level, std::string format, va_list args) {
   char buff[MAX_LOG_SIZE];
   int j = vsnprintf(buff, MAX_LOG_SIZE, format.c_str(), args);
 
   std::string message(buff);
 
   if (j > MAX_LOG_SIZE) {
-    log(comm, pname, level,
-        "Following message has been truncated due to buffer overflow");
+    log(comm, pname, level, "Following message has been truncated due to buffer overflow");
   }
   log(comm, pname, level, message);
 }
 
-void Logger::addToBlackList(std::string packageName) {
-  packageBlackList.insert(packageName);
-}
+void Logger::addToBlackList(std::string packageName) { packageBlackList.insert(packageName); }
 
-void Logger::setLog(const std::string& filename) {
+void Logger::setLog(bool useEngine, LogWriteType t, const std::string& filename) {
   outFileName = filename;
   if (locked) {
     if (fileptr != nullptr && fileptr != &std::cout && fileptr != &std::cerr) {
@@ -149,20 +119,18 @@ void Logger::setLog(const std::string& filename) {
     }
   }
   locked = true;
-  if (filename.compare("stdout") == 0) {
+  this->ltype = t;
+  this->engine = useEngine;
+  if (t == LogWriteType::STDOUT) {
     fileptr = &std::cout;
-  } else if (filename.compare("stderr") == 0) {
+  } else if (t == LogWriteType::STDERR) {
     fileptr = &std::cerr;
-  } else if (filename.compare("engine") == 0) {
-    fileptr = &std::cerr;  // Log to stderr until engine is configured
-    engine = true;
-  } else {
+  } else if (t == LogWriteType::FILE) {
     std::ofstream fp;
     fp.open(filename, std::ofstream::out | std::ofstream::app);
     fileptr = &fp;
+  } else {
   }
 }
 
-void Logger::print() {
-  VnV_Info(VNVPACKAGENAME, "Outfile Name: %s", outFileName.c_str());
-}
+void Logger::print() { VnV_Info(VNVPACKAGENAME, "Outfile Name: %s", outFileName.c_str()); }

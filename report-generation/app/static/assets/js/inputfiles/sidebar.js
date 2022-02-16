@@ -23,7 +23,6 @@ function add_input_file(event) {
 
 
 function save_input_config(fileid, elm) {
-    debugger;
     $.post("/inputfiles/configure/" + fileid, elm.serialize(), function(data) {
         $('#config_content_config').html(data)
         $.get("/inputfiles/update_main_header/" + fileid, function(data) {

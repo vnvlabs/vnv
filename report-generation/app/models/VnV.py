@@ -11,11 +11,6 @@ THISDIR = os.path.dirname(os.path.abspath(__file__))
 def getVnVConfigFile():
     return {
         "runTests": True,
-        "logging": {
-            "on": True,
-            "filename": "stdout",
-            "logs": {}
-        },
         "outputEngine": {
             "null" : {}
         }

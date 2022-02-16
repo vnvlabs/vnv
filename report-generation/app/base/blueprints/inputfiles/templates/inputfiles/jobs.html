@@ -1,0 +1,15 @@
+<div style="display:flex; align-items:center; ">
+    <h2 style="flex:1">Active Jobs for this File</h2>
+    <button class="btn btn-primary" style="margin-right:10px;" onclick='refresh_jobs_list({{file.id_}})'>Refresh</button>
+</div>
+<div class="card" id="input-file-job-list" style="padding:20px;">
+    {% include "inputfiles/joblist.html" %}
+</div>
+
+<script>
+    function refresh_jobs_list(fileId) {
+        $.get("/inputfiles/joblist/" + fileId, function(data) {
+            $('#input-file-job-list').html(data)
+        })
+    }
+</script>

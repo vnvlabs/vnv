@@ -160,8 +160,14 @@ R"(
           "on": {
             "type": "boolean"
           },
-          "filename": {
-            "type ": "string"
+          "engine": {
+            "type": "boolean"
+          },
+          "type": {
+            "type ": "string", "enum" : ["stdout","stderr","file","none"]
+          },
+          "filename" : {
+            "type" : "string"
           },
           "logs": {
             "$ref": "#/definitions/logTypes"
@@ -173,11 +179,7 @@ R"(
             }
           }
         },
-        "required": [
-          "on",
-          "filename",
-          "logs"
-        ],
+        "required": [],
         "default": {
           "on": true,
           "filename": ".vnv-logs",

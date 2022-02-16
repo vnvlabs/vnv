@@ -6,6 +6,7 @@ tablist = {
     "packages": ["Packages" , "files/packages.html", True],
     "prov": ["Provenance","files/provenance.html", True],
     "unit": ["Unit Tests","files/unit_testing.html", file.hasUnitTests() ],
+    "logs": ["Logs" , "files/logs.html", file.hasLogs() ],
     "data": ["Data Explorer" , "files/data.html", True],
     "browser" : ["File Browser", "files/file_browser.html", True]
 }
@@ -13,7 +14,7 @@ tablist = {
 
 {%with active_tab = request.args.get("atab", "home") %}
 
-<div id="tab-view-content">
+<div id="tab-view-content" style="position:relative; max-width:1400px;">
 {%if file.setupNow() %}
 {% with actionFiles = file.getActions() %}
 

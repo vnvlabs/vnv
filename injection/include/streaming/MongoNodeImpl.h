@@ -929,11 +929,15 @@ class MongoPersistance {
     Database_ptr database;
     std::atomic<bool> _processing = ATOMIC_VAR_INIT(true);
 
-    Mongo_docuemnt_ref(children, Array) Mongo_docuemnt_ref(unitTests, Array) Mongo_docuemnt_ref(actions, Map)
-        Mongo_docuemnt_ref(packages, Map)
+    Mongo_docuemnt_ref(children, Array) 
+    Mongo_docuemnt_ref(logs, Array) 
+    Mongo_docuemnt_ref(unitTests, Array)
+    Mongo_docuemnt_ref(actions, Map)
+    Mongo_docuemnt_ref(packages, Map)
 
-            Mongo_docuemnt_ref(infoNode, Info) Mongo_docuemnt_ref(commInfoNode, CommInfo)
-                Mongo_docuemnt_ref(workflowNode, Workflow)
+    Mongo_docuemnt_ref(infoNode, Info)
+    Mongo_docuemnt_ref(commInfoNode, CommInfo)
+    Mongo_docuemnt_ref(workflowNode, Workflow)
 
                     std::shared_ptr<VnVSpec> spec;
     Mongo_getter_setter_json(specdata, json::object());
@@ -980,6 +984,8 @@ class MongoPersistance {
     virtual std::shared_ptr<IArrayNode> getUnitTests() override { return getInternal_unitTests(); }
 
     virtual std::shared_ptr<IInfoNode> getInfoNode() override { return getInternal_infoNode(); }
+
+    virtual std::shared_ptr<IArrayNode> getLogs() override { return getInternal_logs(); }
 
     virtual std::shared_ptr<ICommInfoNode> getCommInfoNode() override { return getInternal_commInfoNode(); }
 

@@ -57,14 +57,17 @@ $( document ).ready(function() {
     editor.setOptions({
         enableBasicAutocompletion: true
     });
+
     var staticWordCompleter = {
         getCompletions: function(editor, session, pos, prefix, callback) {
+          if (ace.edit("rst_content") == editor ) {
 
             var f = $('#rst_fileId').val()
             var d = $('#rst_dataId').val()
             $.get(`/files/viewers/rst/auto/${f}/${d}?row=${pos.row}&col=${pos.column}&prefix=${prefix}&val=${encodeURIComponent(editor.getValue())}`, function(data) {
                 callback(null, data );
             });
+          }
         }
     }
     langTools.setCompleters([staticWordCompleter])

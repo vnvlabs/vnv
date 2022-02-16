@@ -828,7 +828,8 @@ class IRootNode : public DataBase {
   virtual std::shared_ptr<ICommInfoNode> getCommInfoNode() = 0;
   virtual std::shared_ptr<IMapNode> getPackages() = 0;
   virtual std::shared_ptr<IWorkflowNode> getWorkflowNode() = 0;
-  
+  virtual std::shared_ptr<IArrayNode> getLogs() = 0;
+
   
   virtual long getEndTime() {
     auto a = getInfoNode();
@@ -851,6 +852,7 @@ class IRootNode : public DataBase {
     j.push_back(getUnitTests()->getAsDataChild(fileId, level - 1));
     j.push_back(getInfoNode()->getAsDataChild(fileId, level - 1));
     j.push_back(getChildren()->getAsDataChild(fileId, level - 1));    
+    j.push_back(getLogs()->getAsDataChild(fileId, level - 1));    
     j.push_back(getWorkflowNode()->getAsDataChild(fileId, level - 1));
   
     json jj = json::object();

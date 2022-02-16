@@ -205,6 +205,29 @@ def view(id_):
         print(e)
         return render_error(501, "Error Loading File")
 
+@blueprint.route('/joblist/<int:id_>')
+def joblist(id_):
+    try:
+        with VnVInputFile.find(id_) as file:
+            return render_template("inputfiles/joblist.html", file=file)
+    except Exception as e:
+        return render_error(501, "Error Loading File")
+
+
+@blueprint.route('/execute/<int:id_>')
+def execute(id_):
+    try:
+        with VnVInputFile.find(id_) as file:
+            if "dryrun" in request.args:
+                script,name = file.script(request.args.get("val", ""))
+                return make_response(f'''Job Name: {name}\n\n{script}''',200)
+            else:
+                return make_response(file.execute(request.args.get("val", "")), 200)
+
+    except Exception as e:
+        print(e)
+        return render_error(501, "Error Loading File")
+
 
 def template_globals(globs):
     globs["inputfiles"] = VnVInputFile.FILES

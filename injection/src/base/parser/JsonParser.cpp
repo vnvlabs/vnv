@@ -148,12 +148,30 @@ void JsonParser::addTestLibrary(const json& lib, std::map<std::string, std::stri
 
 LoggerInfo JsonParser::getLoggerInfo(const json& logging) {
   LoggerInfo info;
-  info.on = logging["on"].get<bool>();
+  info.on = logging.value("on",true);
+  
   if (info.on) {
-    info.filename = logging["filename"].get<std::string>();
-    for (auto& it : logging["logs"].items()) {
-      info.logs.insert(std::make_pair(it.key(), it.value().get<bool>()));
+    info.engine = logging.value("engine",true);
+
+    info.filename = logging.value("filename","vnv-logs.out");
+    std::string t = logging.value("type", "stdout");
+    if (t.compare("stdout") == 0 ) {
+      info.type = LogWriteType::STDOUT;
+    } else if (t.compare("stderr") == 0 ) {
+      info.type = LogWriteType::STDERR;
+    } else if (t.compare("file") == 0) {
+      info.type == LogWriteType::FILE;
+    } else {
+      info.type == LogWriteType::NONE;
     }
+    
+    if ( logging.contains("logs")) {
+      for (auto& it : logging["logs"].items()) {
+        info.logs.insert(std::make_pair(it.key(), it.value().get<bool>()));
+      }
+    }
+
+    
     auto it = logging.find("blackList");
     if (it != logging.end()) {
       for (auto itt : logging["blackList"].items()) {

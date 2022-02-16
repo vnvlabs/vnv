@@ -31,7 +31,8 @@ namespace VnV {
 enum class LogWriteType {
   STDOUT,  //< All logging statements are written to stdout
   FILE,    //< All logging statements are written to file
-  ENGINE   //< All logging statements are forwarded to output engine.
+  NONE,
+  STDERR
 };
 struct LoggerInfo {
   /**
@@ -42,6 +43,8 @@ struct LoggerInfo {
    *
    */
   bool on;
+
+  bool engine;
 
   /**
    * @brief Where should we write logging statements.

@@ -11591,6 +11591,127 @@ li.cross::marker {
     content: "\e844";
 }
 
+.letter-A:before {
+    content: "A"
+}
+.letter-B:before {
+    content: "B"
+}
+.letter-C:before {
+    content: "C"
+}
+.letter-D:before {
+    content: "D"
+}
+.letter-E:before {
+    content: "E"
+}
+.letter-F:before {
+    content: "F"
+}
+.letter-G:before {
+    content: "G"
+}
+.letter-H:before {
+    content: "H"
+}
+.letter-I:before {
+    content: "I"
+}
+.letter-J:before {
+    content: "J"
+}
+.letter-K:before {
+    content: "K"
+}
+.letter-L:before {
+    content: "L"
+}
+.letter-M:before {
+    content: "M"
+}
+.letter-N:before {
+    content: "N"
+}
+.letter-O:before {
+    content: "O"
+}
+.letter-P:before {
+    content: "P"
+}
+.letter-Q:before {
+    content: "Q"
+}
+.letter-R:before {
+    content: "R"
+}
+.letter-S:before {
+    content: "S"
+}
+.letter-T:before {
+    content: "T"
+}
+.letter-U:before {
+    content: "U"
+}
+.letter-V:before {
+    content: "V"
+}
+.letter-W:before {
+    content: "W"
+}
+.letter-X:before {
+    content: "X"
+}
+.letter-Y:before {
+    content: "Y"
+}
+.letter-Z:before {
+    content: "Z"
+}
+
+.vnv-log {
+    padding:20px;
+    font-size:15px;
+    margin-bottom:5px;
+}
+
+.vnv-log.DEBUG {
+    background: #00800047;
+}
+.vnv-log.ERROR {
+    background: #ff000021;
+}
+.vnv-log.WARN {
+    background: #0000ff36;
+}
+.vnv-log.INFO {
+    color: #ffff0026;
+}
+
+
+
+
+.letter:before {
+display: inline-block;
+font-size: 10px;
+font-family: monospace;
+width: 20px;
+height: 20px;
+line-height: 15px;
+text-align: center;
+border-radius: 50%;
+background: white;
+vertical-align: middle;
+margin-right: 1em;
+color: #12355f;
+border: 3px solid #12355f;
+font-weight: 900;
+padding: 0px 3px 0px 2px;
+
+}
+
+
 .icon-chevron-up:before {
     content: "\e845";
 }

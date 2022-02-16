@@ -1,11 +1,5 @@
 ﻿{
   "runTests": true,
-  "logging": {
-
-    "on" : true,
-    "filename" : "stdout",
-    "logs" : {}
-  },
   "additionalPlugins": {
     "DummyTestLibOne" : "../tests/dummyTestLibOne/libdummyTestLibOne.so"
   },

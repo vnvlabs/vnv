@@ -494,6 +494,7 @@ class InMemory {
     std::shared_ptr<InfoNode> infoNode;
     std::shared_ptr<CommInfoNode> commInfo;
     std::shared_ptr<WorkflowNode> workflowNode;
+    std::shared_ptr<ArrayNode> logs;
 
 
     std::map<long, std::list<IDN>> nodes;
@@ -515,6 +516,7 @@ class InMemory {
     virtual std::shared_ptr<IMapNode> getActions() override { INITMEMBER(actions, MapNode) return actions; }
     virtual std::shared_ptr<IArrayNode> getChildren() override { INITMEMBER(children, ArrayNode) return children; }
     virtual std::shared_ptr<IArrayNode> getUnitTests() override { INITMEMBER(unitTests, ArrayNode) return unitTests; }
+    virtual std::shared_ptr<IArrayNode> getLogs() override { INITMEMBER(logs, ArrayNode) return logs; }
     virtual std::shared_ptr<IInfoNode> getInfoNode() override { INITMEMBER(infoNode, InfoNode) return infoNode; }
     virtual std::shared_ptr<IWorkflowNode> getWorkflowNode() override { INITMEMBER(workflowNode, WorkflowNode) return workflowNode; }
     virtual std::shared_ptr<ICommInfoNode> getCommInfoNode() override {

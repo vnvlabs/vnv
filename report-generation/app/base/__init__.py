@@ -3,7 +3,7 @@ import glob
 import json
 import uuid
 
-from flask import Blueprint, render_template, request, make_response, jsonify
+from flask import Blueprint, render_template, request, make_response, jsonify, send_file
 from werkzeug.utils import redirect
 
 from . import blueprints
@@ -87,6 +87,10 @@ def logout():
     response.set_cookie('vnv-login', "", expires=0)
     return response
 
+@blueprint.route("icon")
+def icon():
+    p = request.args.get("package")
+    return send_file("static/assets/images/close.png")
 
 @blueprint.route("/")
 def home():

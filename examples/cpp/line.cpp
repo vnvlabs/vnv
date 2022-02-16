@@ -142,6 +142,7 @@ INJECTION_TEST(LineExample, line) {
   engine->Put_Vector("y", y);
   engine->Put_Vector("z", z);
 
+  VnV_Debug(LineExample, "GEEEERER %s", "sdfsdf");
 
   return SUCCESS;
 }

@@ -3,14 +3,42 @@ import os
 import shutil
 import subprocess
 import tempfile
-import urllib
+import stat
 import uuid
 from datetime import datetime
 from pathlib import Path
-
+import shlex
 import paramiko
-
+from ansi2html import Ansi2HTMLConverter
 from app.models.RemoteFileInfo import get_file_name
+
+class VnVJob:
+    def __init__(self, id, name, script,  ctx):
+        self.id = id
+        self.name = name
+        self.ctx = ctx
+        self.script_ = script
+
+    def getName(self):
+        return self.name if self.name is not None else self.id
+
+    def getId(self):
+        return self.id
+
+    def getCtx(self):
+        return self.ctx
+
+    def running(self):
+        return self.getCtx().running()
+
+    def script(self):
+        return self.script_
+
+    def stdout(self):
+        return Ansi2HTMLConverter().convert(self.getCtx().stdout())
+
+    def exitcode(self):
+        return self.getCtx().exitcode()
 
 
 class VnVConnection:
@@ -24,6 +52,7 @@ class VnVConnection:
         self.port_ = port
         self.pythonpath = "python3"
         self.cache = {}
+        self.running_sessions = {}
 
     def toJson(self):
         return {
@@ -91,7 +120,35 @@ class VnVConnection:
     def sftp(self):
         return paramiko.SFTPClient.from_transport(self.transport)
 
-    def execute(self, command):
+    class SessionContext:
+        nbytes = 4096
+
+
+        def __init__(self, session):
+            self.session = session
+            self.stdout_data = None
+
+
+        def running(self):
+            return not self.session.exit_status_ready()
+
+        def stdout(self):
+            if not self.running():
+                if self.stdout_data is None:
+                    self.stdout_data = []
+
+                    while self.session.recv_ready():
+                        self.stdoutdata.append(self.session.recv(self.nbytes).decode("utf-8"))
+
+                return "".join(self.stdoutdata)
+            return ""
+
+        def exitcode(self):
+            if not self.running():
+                return self.session.recv_exit_status()
+            return -1
+
+    def execute(self, command, asy=False, name=None, fullscript=None):
         nbytes = 4096
         stdout_data = []
         stderr_data = []
@@ -99,14 +156,27 @@ class VnVConnection:
         session.exec_command(command)
 
         # Block until finished
-        while not session.exit_status_ready():
-          pass
+        if not asy:
+            while not session.exit_status_ready():
+                pass
 
-        while session.recv_ready():
-           stdout_data.append(session.recv(nbytes).decode("utf-8"))
+            while session.recv_ready():
+                stdout_data.append(session.recv(nbytes).decode("utf-8"))
 
-        session.recv_exit_status()
-        return "".join(stdout_data)
+            session.recv_exit_status()
+            return "".join(stdout_data)
+        else:
+            uid = uuid.uuid4().hex
+            self.running_sessions[uid] = VnVJob(uid,name, command if fullscript is None else fullscript, VnVConnection.SessionContext(session))
+            return uid
+
+    def get_jobs(self):
+        return [v for k,v in self.running_sessions.items()]
+
+    def execute_script(self, script, asy=True, name=None):
+        path = self.write(script,None)
+        self.execute("chmod u+x " + path)
+        self.execute(path, asy, name=name, fullscript=Ansi2HTMLConverter().convert(script))
 
 
     def getInfo(self, path):
@@ -196,6 +266,7 @@ class VnVLocalConnection:
 
     def __init__(self):
         self.connected_ = True
+        self.running_procs = {}
 
     def toJson(self):
         return {}
@@ -225,12 +296,47 @@ class VnVLocalConnection:
     def connected(self):
         return self.connected_
 
-    def execute(self, command):
+    class SessionContext:
+
+        def __init__(self, session):
+            self.session = session
+            self.stdout_data = None
+
+        def running(self):
+            return self.session.poll() is None
+
+        def stdout(self):
+            if not self.running():
+                if self.stdout_data is None:
+                    self.stdout_data = self.session.communicate()[0].decode("utf-8")
+                return self.stdout_data
+            return ""
+
+        def exitcode(self):
+            if not self.running():
+                return self.session.returncode
+            return -1
+
+    def execute(self, command, asy = False, name=None, fullscript=None):
         try:
-            result = subprocess.run(command.split(" "), stdout=subprocess.PIPE)
-            return result.stdout.decode("utf-8")
+            result = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
+            if not asy:
+                return result.communicate()[0].decode("utf-8")
+            else:
+                uid = uuid.uuid4().hex
+                self.running_procs[uid] = VnVJob(uid,name, command if fullscript is None else fullscript, VnVLocalConnection.SessionContext(result))
+                return uid
         except Exception as e:
             raise Exception("Failed to execute command: " + str(e) )
+
+    def execute_script(self, script, asy=True, name=None):
+        path = self.write(script,None)
+        st = os.stat(path)
+        os.chmod(path, st.st_mode | stat.S_IEXEC)
+        return self.execute("sh " + path, asy, name=name, fullscript=Ansi2HTMLConverter().convert(script))
+
+    def get_jobs(self):
+        return [ v for k,v in self.running_procs.items() ]
 
     def exists(self, path):
         return os.path.exists(os.path.abspath(path))
