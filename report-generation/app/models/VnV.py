@@ -16,6 +16,14 @@ def getVnVConfigFile():
         }
     }
 
+def getVnVConfigFile_1():
+    return {
+        "outputEngine": {
+            "json_file" : {
+                "filename" : "outputs"
+            }
+        }
+    }
 
 initialized = False
 

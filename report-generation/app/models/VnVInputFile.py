@@ -80,7 +80,7 @@ class VnVInputFile:
         self.plugs = None
 
         # Set the default Input file.
-        self.saveInput(json.dumps(VnV.getVnVConfigFile(), indent=4))
+        self.saveInput(json.dumps(VnV.getVnVConfigFile_1(), indent=4))
 
     def toJson(self):
         a = {}
