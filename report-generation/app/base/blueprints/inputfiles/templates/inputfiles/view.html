@@ -22,6 +22,7 @@ tablist = {
 {%include "inputfiles/main_header_content.html" %}
 </div>
 
+<div id="inputfile-view-content" style="position:relative; max-width:1400px;">
 
 <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
     {% for tab in tablist %}
@@ -42,6 +43,8 @@ tablist = {
         {% include tablist[tab][1] %}
     </div>
     {%endfor%}
+</div>
+
 </div>
 
 {% with modal_content = "inputfiles/connection_content.html" %}

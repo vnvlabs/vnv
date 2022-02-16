@@ -60,9 +60,9 @@ class VnVInputFile:
 
     DEFAULT_SPEC = {}
 
-    def __init__(self, name):
+    def __init__(self, name, path=None):
         self.name = name
-        self.filename = "path/to/application"
+        self.filename = path if path is not None else "path/to/application"
         self.icon = "icon-box"
         self.id_ = VnVInputFile.get_id()
         self.notifications = []
@@ -335,9 +335,9 @@ class VnVInputFile:
     def get_jobs(self):
         return [ a for a in self.connection.get_jobs()]
 
-    def execute(self, val, name=None):
+    def execute(self, val, ):
         script, name = self.script(val)
-        return self.connection.execute_script(script, name=name)
+        return self.connection.execute_script(script, name=name, vnv_input=self.value)
 
     def script(self, val):
         data = json.loads(val)
@@ -355,13 +355,13 @@ class VnVInputFile:
         return VnVInputFile.COUNTER
 
     @staticmethod
-    def add(name):
+    def add(name, path=None):
 
         a = mongo.loadInputFile(name)
         if a is not None:
             f = VnVInputFile.fromJson(a)
         else:
-            f = VnVInputFile(name)
+            f = VnVInputFile(name,path=path)
 
         VnVInputFile.FILES[f.id_] = f
         return f

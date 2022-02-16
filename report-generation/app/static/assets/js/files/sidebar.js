@@ -376,7 +376,6 @@ $(document).ready(function() {
 
             localStorage.setItem("vnv_tab_state", JSON.stringify(xx))
           }
-          console.log(localStorage)
     })
 
     x = localStorage.getItem("vnv_tab_state")

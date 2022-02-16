@@ -1,13 +1,8 @@
-<div style="flex:1 ">
+<div style="flex:1; cursor:pointer" title="click to configure" onclick='$("#config_config").modal("show")'>
    <h3> VnV Input File Name: {{file.name}}  </h3>
-   <h5> Application Path: {{file.filename}} </h5>
+   <h5 > Application Path: {{file.filename}} </h5>
    <h5> Connection Information: {{file.connection.describe()}}  </h5>
    <h5> File Status: <span style="color:{{file.getFileStatus()[0]}};"> {{file.getFileStatus()[1]}} </span> </h5>
 </div>
 
-<button class="btn btn-primary" style="margin-left:15px;" onclick='$("#config_config").modal("show")'>
-   Configure
-</button>
-<button class="btn btn-primary" style="margin-left:15px;" onclick='$(".input-save-button").click()'>Save All
-</button>
 

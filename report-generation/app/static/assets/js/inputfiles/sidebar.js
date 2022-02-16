@@ -135,4 +135,22 @@ function get_ace_editor(fileid, elmId, mode, live, autocompl) {
     return input_editor
 }
 
+function refresh_jobs_list(fileId) {
+        $.get("/inputfiles/joblist/" + fileId, function(data) {
+            $('#input-file-job-list').html(data)
+        })
+}
 
+function delete_exe_job(fileId, jobId) {
+    $.post("/inputfiles/delete_job/" + fileId + "/" + jobId, function(data) {
+            $('#input-file-job-list').html(data)
+    })
+
+}
+
+function cancel_exe_job(fileId, jobId) {
+    $.post("/inputfiles/cancel_job/" + fileId + "/" + jobId, function(data) {
+            $('#input-file-job-list').html(data)
+    })
+
+}

@@ -13,11 +13,12 @@ from ansi2html import Ansi2HTMLConverter
 from app.models.RemoteFileInfo import get_file_name
 
 class VnVJob:
-    def __init__(self, id, name, script,  ctx):
+    def __init__(self, id, name, script, vnv_input, ctx):
         self.id = id
         self.name = name
         self.ctx = ctx
         self.script_ = script
+        self.vnv_input_ = vnv_input
 
     def getName(self):
         return self.name if self.name is not None else self.id
@@ -29,10 +30,15 @@ class VnVJob:
         return self.ctx
 
     def running(self):
-        return self.getCtx().running()
+       a =  self.getCtx().running()
+       return a
+
 
     def script(self):
         return self.script_
+
+    def vnv_input(self):
+        return self.vnv_input_
 
     def stdout(self):
         return Ansi2HTMLConverter().convert(self.getCtx().stdout())
@@ -148,7 +154,11 @@ class VnVConnection:
                 return self.session.recv_exit_status()
             return -1
 
-    def execute(self, command, asy=False, name=None, fullscript=None):
+        def cancel(self):
+            self.session.close()
+
+
+    def execute(self, command, asy=False, name=None, fullscript=None, vnv_input=None):
         nbytes = 4096
         stdout_data = []
         stderr_data = []
@@ -167,16 +177,25 @@ class VnVConnection:
             return "".join(stdout_data)
         else:
             uid = uuid.uuid4().hex
-            self.running_sessions[uid] = VnVJob(uid,name, command if fullscript is None else fullscript, VnVConnection.SessionContext(session))
+            self.running_sessions[uid] = VnVJob(uid,name, command if fullscript is None else fullscript,
+                                         vnv_input if vnv_input is not None else "", VnVConnection.SessionContext(session))
             return uid
 
     def get_jobs(self):
         return [v for k,v in self.running_sessions.items()]
 
-    def execute_script(self, script, asy=True, name=None):
+    def delete_job(self,jobId):
+        self.running_sessions.pop(jobId)
+
+    def cancel_job(self,jobId):
+        self.running_sessions[jobId].getCtx().cancel()
+
+
+    def execute_script(self, script, asy=True, name=None,vnv_input=None):
         path = self.write(script,None)
         self.execute("chmod u+x " + path)
-        self.execute(path, asy, name=name, fullscript=Ansi2HTMLConverter().convert(script))
+        vv=Ansi2HTMLConverter().convert(vnv_input) if vnv_input is not None else ""
+        self.execute(path, asy, name=name, fullscript=Ansi2HTMLConverter().convert(script), vnv_input=vv )
 
 
     def getInfo(self, path):
@@ -305,6 +324,10 @@ class VnVLocalConnection:
         def running(self):
             return self.session.poll() is None
 
+        def cancel(self):
+            self.session.kill()
+
+
         def stdout(self):
             if not self.running():
                 if self.stdout_data is None:
@@ -317,26 +340,36 @@ class VnVLocalConnection:
                 return self.session.returncode
             return -1
 
-    def execute(self, command, asy = False, name=None, fullscript=None):
+    def execute(self, command, asy = False, name=None, fullscript=None, vnv_input=None):
         try:
             result = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
             if not asy:
                 return result.communicate()[0].decode("utf-8")
             else:
                 uid = uuid.uuid4().hex
-                self.running_procs[uid] = VnVJob(uid,name, command if fullscript is None else fullscript, VnVLocalConnection.SessionContext(result))
+                self.running_procs[uid] = VnVJob(uid,name, command if fullscript is None else fullscript,
+                                                 vnv_input if vnv_input is not None else "",
+                VnVLocalConnection.SessionContext(result))
                 return uid
         except Exception as e:
             raise Exception("Failed to execute command: " + str(e) )
 
-    def execute_script(self, script, asy=True, name=None):
+    def execute_script(self, script, asy=True, name=None, vnv_input=None):
         path = self.write(script,None)
         st = os.stat(path)
         os.chmod(path, st.st_mode | stat.S_IEXEC)
-        return self.execute("sh " + path, asy, name=name, fullscript=Ansi2HTMLConverter().convert(script))
+        vv=Ansi2HTMLConverter().convert(vnv_input) if vnv_input is not None else ""
+        return self.execute("sh " + path, asy, name=name, fullscript=Ansi2HTMLConverter().convert(script), vnv_input=vv)
 
     def get_jobs(self):
         return [ v for k,v in self.running_procs.items() ]
+
+    def delete_job(self,jobId):
+        self.running_procs.pop(jobId)
+
+    def cancel_job(self,jobId):
+        self.running_procs[jobId].getCtx().cancel()
+
 
     def exists(self, path):
         return os.path.exists(os.path.abspath(path))

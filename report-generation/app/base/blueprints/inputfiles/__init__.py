@@ -23,7 +23,8 @@ def new():
     try:
 
         file = VnVInputFile.add(
-            request.form["name"]
+            request.form["name"],
+            request.form["path"]
         )
         return redirect(url_for("base.inputfiles.view", id_=file.id_))
     except Exception as e:
@@ -34,7 +35,6 @@ def new():
 def delete(id_):
     VnVInputFile.removeById(id_)
     return "success", 200
-
 
 
 @blueprint.route('/disconnect/<int:id_>', methods=["POST"])
@@ -212,6 +212,24 @@ def joblist(id_):
             return render_template("inputfiles/joblist.html", file=file)
     except Exception as e:
         return render_error(501, "Error Loading File")
+
+
+@blueprint.route('/delete_job/<int:id_>/<jobid>' , methods=["POST"])
+def delete_job(id_, jobid):
+    with VnVInputFile.find(id_) as file:
+        file.connection.delete_job(jobid);
+        return render_template("inputfiles/joblist.html", file=file)
+    return render_error(401,"Huh")
+
+@blueprint.route('/cancel_job/<int:id_>/<jobid>' , methods=["POST"])
+def cancel_job(id_, jobid):
+    with VnVInputFile.find(id_) as file:
+        file.connection.cancel_job(jobid);
+        res = render_template("inputfiles/joblist.html", file=file)
+        return res
+    return render_error(401,"Huh")
+
+
 
 
 @blueprint.route('/execute/<int:id_>')
