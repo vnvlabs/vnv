@@ -151,6 +151,41 @@ INJECTION_TEST(LineExample, line) {
 // Register the executable with VNV
 INJECTION_EXECUTABLE(LineExample)
 
+/**
+ * VnV Examples: Line Charts
+ * -------------------------
+ * 
+ * This application demonstrates how to render Line charts using the VnV 
+ * report generation support.
+ * 
+ * In this example we plot a simple line plot using the Plotly interface. A number of different
+ * line chart options are presented. 
+ * 
+ * The vnv plotly interface is a thin RST wrapper around the plotly javascript/json api. We support 
+ * a large majority of the options available within that api. Function type parameters are not supported
+ * at this time.
+ * 
+ * The Plotly Javascript API uses **traces** to allow users to define multiple series within a single chart. Each
+ * **trace** is a json object containing the data and configuration parameters that should be applied to that 
+ * particular data series.
+ * 
+ *  In the VnV API you define **traces** using the *:trace.<name>: <chart-type>* option. For example, 
+ * in the following plot, the user has defined a trace called main that will be rendered as a scatter chart. You can then set options 
+ * within that trace using options of the form *:<name>.<option>: <value>*. In second and third options of the chart below, we use the 
+ * *main.x* and *main.y* options to set the **x** and **y** data for the scatter plot. Layout options are set using the layout.* set of options.
+ * Layout options represent global options applied to the chart as a whole, independent of the options set for each individual trace.   
+ * 
+ * 
+ * Users can use the VnV specific <vnv-jmes-path> command to inject into the traces and layout configuration. The VnV report generation
+ * software uses regular expressions to replace all commands matching this pattern prior to rendering the chart. JMES Path is feature rich
+ * JSON query language designed to allow users to quickly and efficiently query json objects. VnV uses a (very slightly) modified implementation
+ * of the python jmespath reference implementation to enable jmespath queries to be used to query the VnV simulation data object. 
+ * 
+ */
+INJECTION_OPTIONS(LineExample,"{}") {
+  return NULL;
+}
+
 int main(int argc, char** argv) {
 
   MPI_Init(&argc,&argv);

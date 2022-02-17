@@ -16,6 +16,7 @@ from app.rendering.vnvdatavis.directives.chartsjs import chartsjs_post_process
 from app.rendering.vnvdatavis.directives.dataclass import DataClass
 from app.rendering.vnvdatavis.directives.forr import VnVForDirective
 from app.rendering.vnvdatavis.directives.iff import VnVIfDirective
+from app.rendering.vnvdatavis.directives.include import post_process_include
 from app.rendering.vnvdatavis.directives.plotly import plotly_post_process
 from app.rendering.vnvdatavis.directives.plotly_animation import PlotlyAnimation
 from app.rendering.vnvdatavis.directives.apex import apex_post_process
@@ -34,7 +35,8 @@ context_map = {
     "if" : VnVIfDirective.post_process,
     "animation" : PlotlyAnimation.post_process,
     "apex": apex_post_process,
-    "jscharts" : chartsjs_post_process
+    "jscharts" : chartsjs_post_process,
+    "include" : post_process_include
 }
 
 @blueprint.route('/updates/<updateId>/<int:fileid>/<int:dataid>', methods=["GET"])
@@ -72,7 +74,6 @@ def roleupdates():
         return make_response(jsonify(resp), 200)
     except Exception as e:
         return render_error(501, "Error Loading File")
-
 
 def template_globals(globs):
     pass

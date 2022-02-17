@@ -159,6 +159,33 @@ def reader(id_):
     except Exception as e:
         return render_error(501, "Error Loading File")
 
+@blueprint.route("/render_file/<int:id_>")
+def render_file(id_):
+    try:
+        reader = request.args.get("reader")
+        filename = request.args.get("filename", "")
+        connection = VnVFile.FILES[id_].connection
+
+        if not connection.connected():
+            return "Open Connection To View File",200
+
+        if len(filename) == 0:
+            return "No filename"
+
+        if not connection.exists(filename):
+            return "File Does Not Exist"
+
+        try:
+            file = LocalFile(filename, id_, connection, reader=reader)
+            return file.render(),200
+        except Exception as e:
+            return "File Render Failed"
+
+    except Exception as e:
+        return render_error(501, "Error Loading File")
+
+
+
 
 
 @blueprint.route('/close_connection/<int:id_>')

@@ -100,8 +100,7 @@ class JsonImageDirective(SphinxDirective):
     has_content = False
     option_spec = {
         "height": str,
-        "width": str,
-        "alt": directives.unchanged
+        "width": str
     }
 
 
@@ -110,7 +109,14 @@ class JsonImageDirective(SphinxDirective):
 
 
     script_template = '''
-    <image  id="{id_}" class="vnv_image" src="{src}" alt="{alt}" style="width:{width}; height:{height};"/>
+    <div id="{id_}" class="vnv_image" style="width:{width}; height:{height}; margin-left:auto; margin-right:auto;"></div>
+    <script>
+        $(document).ready(function(){{
+            $.get("/files/render_file/{file}?filename={src}", function(data) {{
+                $('#{id_}').html(data)
+            }})
+        }});
+    </script>
     '''
 
     def getHtml(self, id_, content):
@@ -119,7 +125,7 @@ class JsonImageDirective(SphinxDirective):
             height=self.options.get("height", "auto"),
             width=self.options.get("width", "auto"),
             src=content,
-            alt=self.options.get("alt", "")
+            file="{{data.file}}"
         )
 
     def run(self):

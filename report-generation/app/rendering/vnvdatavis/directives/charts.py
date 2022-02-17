@@ -91,7 +91,6 @@ class JsonChartDirective(SphinxDirective):
         return [target, block]
 
 
-
     def register(self):
         return self.getContent()
 
