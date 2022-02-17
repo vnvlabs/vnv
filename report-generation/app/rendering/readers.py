@@ -51,7 +51,7 @@ def render_pdf(filename, **kwargs):
 
 def render_glvis(filename, **kwargs):
     path = urllib.request.pathname2url(f"/temp/files/{getUID(filename)}")
-    return f"<iframe class='card' src='/temp/glvis/index.html?stream={path}' style='width: 100%;height:80vh;'>"
+    return f"<iframe class='card' src='/static/glvis/index.html?stream={path}' style='width: 100%;height:80vh;'>"
 
 
 def render_vti(filename, **kwargs):

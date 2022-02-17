@@ -21191,7 +21191,7 @@ pre[class*=language-]:before {
 }
 
 .pcoded-header .m-header {
-    width: 235px;
+    width: 350px;
     position: relative;
     height: 56px;
     display: -webkit-inline-box;
@@ -21699,7 +21699,7 @@ pre[class*=language-]:before {
     box-shadow: 2px 0 2.94px 0.06px rgba(4, 26, 55, 0.16);
     -webkit-transition: all 0.05s ease-in-out;
     transition: all 0.05s ease-in-out;
-    width: 235px;
+    width: 350px;
     height: calc(100% - 56px);
     margin-top: 56px;
     top: 0;
@@ -21727,7 +21727,7 @@ pre[class*=language-]:before {
     background: #3b4650;
     height: 56px;
     text-align: center;
-    width: 235px;
+    width: 350px;
     margin-right: 0;
     padding: 10px 25px;
     -webkit-transition: all 0.15s ease-in-out;
@@ -22106,11 +22106,11 @@ pre[class*=language-]:before {
 }
 
 .pcoded-navbar.navbar-collapsed:hover {
-    width: 235px !important;
+    width: 350px !important;
 }
 
 .pcoded-navbar.navbar-collapsed:hover .header-logo {
-    width: 235px;
+    width: 350px;
 }
 
 .pcoded-navbar.navbar-collapsed:hover .header-logo img {
@@ -22619,7 +22619,7 @@ pre[class*=language-]:before {
     float: unset;
     right: 0;
     top: 0;
-    margin-left: 235px;
+    margin-left: 350px;
     min-height: 100vh;
     -webkit-transition: all 0.15s ease-in-out;
     transition: all 0.15s ease-in-out;
@@ -22722,7 +22722,7 @@ pre[class*=language-]:before {
     }
 
     .pcoded-navbar {
-        margin-left: -235px;
+        margin-left: -350px;
         position: absolute;
         height: 100%;
         box-shadow: none;

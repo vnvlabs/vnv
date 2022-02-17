@@ -849,6 +849,19 @@ class VnVFile:
     def getLogs(self):
         return [ LogRender(a, self.getCommObj(), self.templates)    for a in self.root.getLogs()]
 
+    def getLogFilters(self):
+
+        a = set()
+        for i in self.root.getLogs():
+            a.add(i.getLevel())
+        return a
+
+    def getLogPackages(self):
+        a = set()
+        for i in self.root.getLogs():
+            a.add(i.getPackage())
+        return a
+
     def hasLogs(self):
         return len(self.root.getLogs())
 

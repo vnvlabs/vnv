@@ -181,6 +181,15 @@ INJECTION_EXECUTABLE(LineExample)
  * JSON query language designed to allow users to quickly and efficiently query json objects. VnV uses a (very slightly) modified implementation
  * of the python jmespath reference implementation to enable jmespath queries to be used to query the VnV simulation data object. 
  * 
+ * Some Bonus Content
+ * ------------------
+ * 
+ * You can include GLVIS saved files directly like this (although you should probably use 
+ * absolute paths -- This example makes use of a file that is shipped in the static folder.)
+ * 
+ * .. vnv-image:: app/static/assets/images/laghos.saved
+ *    :reader: glvis
+ * 
  */
 INJECTION_OPTIONS(LineExample,"{}") {
   return NULL;

@@ -100,7 +100,8 @@ class JsonImageDirective(SphinxDirective):
     has_content = False
     option_spec = {
         "height": str,
-        "width": str
+        "width": str,
+        "reader" : str
     }
 
 
@@ -109,30 +110,39 @@ class JsonImageDirective(SphinxDirective):
 
 
     script_template = '''
-    <div id="{id_}" class="vnv_image" style="width:{width}; height:{height}; margin-left:auto; margin-right:auto;"></div>
+    <div id="{uid}" class="vnv_image" style="width:{width}; height:{height}; margin-left:auto; margin-right:auto;"></div>
     <script>
         $(document).ready(function(){{
-            $.get("/files/render_file/{file}?filename={src}", function(data) {{
-                $('#{id_}').html(data)
+            $.get("/files/render_file/{file}?filename={src}{reader}", function(data) {{
+                $('#{uid}').html(data)
             }})
         }});
     </script>
     '''
 
+    def getReader(self):
+        r = self.options.get("reader")
+        if r is not None:
+            return "&reader=" + r
+        return ""
+
     def getHtml(self, id_, content):
         return self.script_template.format(
             id_=id_,
+            uid = uuid.uuid4().hex,
             height=self.options.get("height", "auto"),
             width=self.options.get("width", "auto"),
             src=content,
+            reader=self.getReader(),
             file="{{data.file}}"
         )
 
     def run(self):
         j = self.process_condition()
         target, target_id = get_target_node(self)
-        block = VnVChartNode(html=self.getHtml(target_id, j))
+        block = VnVChartNode(html=self.getHtml(target_id,  j))
         return [target, block]
+
 
 vnv_directives["vnv-image"] = JsonImageDirective
 vnv_directives["vnv-code"] = JsonCodeBlockDirective

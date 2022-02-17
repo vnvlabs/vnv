@@ -17,8 +17,7 @@ blueprint = Blueprint(
 
 
 def template_globals(globs):
-    globs["viewers"] = ["processor", "communicator", "graph"]
-
+    globs["viewers"] = ["processor", "communicator"]
 
 @blueprint.route('/render/<int:id_>')
 def render(id_):

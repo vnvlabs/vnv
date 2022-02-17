@@ -1,5 +1,62 @@
-
+<div class="card" style="padding:10px;">
+    <div style="display:flex; align-items:center; ">
+        <h5 style="margin-right:10px; margin-bottom:0px; ">Log Levels:</h5>
+        {% for filter in file.getLogFilters() %}
+        <div class="form-check" style="margin-left:10px;">
+            <input checked class="vnv-filter form-check-input" vnv-filter="{{filter}}" type="checkbox"
+                   id="filter-{{loop.index}}">
+            <label class="form-check-label" for="filter-{{loop.index}}">{{filter}}</label>
+        </div>
+        {%endfor%}
+    </div>
+    <div style="display:flex; align-items:center; ">
+        <h5 style="margin-right:10px; margin-bottom:0px; ">Packages:</h5>
+        {% for filter in file.getLogPackages() %}
+        <div class="form-check" style="margin-left:10px;">
+            <input checked class="vnv-filter form-check-input" vnv-filter="{{filter}}" type="checkbox"
+                   id="filterp-{{loop.index}}">
+            <label class="form-check-label" for="filterp-{{loop.index}}">{{filter}}</label>
+        </div>
+        {%endfor%}
+    </div>
+</div>
 
 {% for logRender in file.getLogs() %}
-    {%include "files/log.html"%}
+{%include "files/log.html"%}
 {% endfor %}
+
+
+<script>
+  $('.vnv-filter').change(function(ev) {
+
+    filter = $(this).attr("vnv-filter")
+
+    checked = 1
+    if ($(this).is(":checked")) {
+        checked = -1
+    }
+
+    function process_filters(e, checked) {
+         curr_hide = parseInt(e.attr("vnv-hide")) + checked
+        if (curr_hide < 0 ) curr_hide = 0;
+        e.attr("vnv-hide", curr_hide)
+        if ( curr_hide > 0 ) {
+           e.hide()
+        } else {
+           e.show()
+        }
+    }
+
+    $('.vnv-log[vnv-level="' + filter + '"]').each(function(e){
+        process_filters($(this),checked)
+    })
+
+    $('.vnv-log[vnv-package="' + filter + '"]').each(function(e){
+        process_filters($(this),checked)
+    })
+
+  })
+
+
+
+</script>
