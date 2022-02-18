@@ -11,6 +11,7 @@ import jsonschema
 import pygments.formatters.html
 from pygments.lexers import guess_lexer, guess_lexer_for_filename
 
+from app.base.utils import mongo
 from app.base.utils.mongo import validate_name, Configured
 from app.models.VnVConnection import VnVConnection, VnVLocalConnection
 from python_api.VnVReader import node_type_START, node_type_POINT, node_type_DONE, node_type_ITER, node_type_ROOT, \
@@ -1090,6 +1091,7 @@ class VnVFile:
     @staticmethod
     def removeById(fileId, refresh):
         p = VnVFile.FILES.pop(fileId)
+        mongo.removeFile(p.name)
         if refresh:
             VnVFile.FILES[p.id_] = p.clone()
 

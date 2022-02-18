@@ -4,11 +4,21 @@
 
 using namespace VnV::Nodes;
 
+mongoc_client_pool_t* Mongo::Mongo::pool;
+mongoc_uri_t* Mongo::Mongo::muri;
+bson_error_t Mongo::Mongo::error;
+
+  // Every thread has its own database
+thread_local Mongo::MongoClientWrapper Mongo::Client::clientWrapper;
+thread_local Mongo::MongoDatabaseWrapper Mongo::Database::database;
+thread_local Mongo::MongoCollectionWrapper Mongo::Collection::thcollection;
+
 std::shared_ptr<DataBase> VnV::Nodes::Mongo::LoadNode(IRootNode* root, long id) {
   
   auto collection = dynamic_cast<MongoPersistance::RootNode*>(root)->getMainCollection();
 
   auto d = collection->getDocument(id, "");
+
   std::string type = d->get("type").get<std::string>();
 
   DataBase::DataType t = DataBase::getDataTypeFromString(type);
@@ -44,20 +54,6 @@ template <typename ContainerT, typename PredicateT> void erase_if(ContainerT& it
   }
 }
 
-bool Mongo::Collection::persistAll() {
-  // This persists all valid cache items and removes any that are
-  // no longer valid.
-  std::lock_guard<std::mutex> hold(m);
-  erase_if(cache, [](std::pair<const long, std::weak_ptr<Document>>& item) {
-    if (item.second.expired()) {
-      return true;
-    } else {
-      item.second.lock()->persist();
-      return false;
-    }
-  });
-  return true;
-}
 
 void Mongo::MongoPersistance::WorkflowNode::setReport(std::string reportName, int fileId,
                                                       std::shared_ptr<IRootNode> rootNode) {
@@ -86,31 +82,7 @@ std::shared_ptr<IRootNode> Mongo::MongoPersistance::WorkflowNode::getReport(std:
 }
 
 std::shared_ptr<Mongo::Document> Mongo::Collection::pullDocument(long id, std::string type, bool clearCache) {
-  // This is just a basic cache storing shared pointers. A shared pointer exists in memeory until
-  // it is removed from the cache and everyone is done with it.
-  class SimpleCache {
-    int max_size;
-    std::queue<std::shared_ptr<VnV::Nodes::Mongo::Document>> q;
-
-   public:
-    SimpleCache(std::size_t msize) : max_size(msize) {}
-    std::shared_ptr<VnV::Nodes::Mongo::Document> add(std::shared_ptr<VnV::Nodes::Mongo::Document> d) {
-      // q.push(d);
-      // if (q.size() > max_size) q.pop();
-      return d;
-    }
-
-    void clear() { std::queue<std::shared_ptr<VnV::Nodes::Mongo::Document>>().swap(q); }
-  };
-
-  static SimpleCache s(VNV_READER_CACHE_SIZE);
-
-  if (clearCache) {
-    s.clear();
-    return nullptr;
-  }
-
-  return s.add(std::make_shared<Document>(id, loadOrCreate(id, type), selfAsShared.lock()));
+  return std::make_shared<Document>(id, loadOrCreate(id, type), selfAsShared.lock());
 }
 
 #define DSTYPES \

@@ -114,7 +114,7 @@ std::shared_ptr<Nodes::IRootNode> OutputEngineStore::readFile(std::string filena
     } catch (std::exception &e) {
       throw INJECTION_EXCEPTION("Invalid Engine Reader Configuration: %s", engineType.c_str());
     }
-
+    std::cout << "READING THE FILE" << " " << filename << std::endl;
     return (*it->second)(filename, idCounter, config, async);
   }
   throw INJECTION_EXCEPTION("Invalid Engine Reader %s ", engineType.c_str());

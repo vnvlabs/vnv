@@ -1575,7 +1575,9 @@ template <class DB> class StreamParserTemplate {
       write_lock.store(true, std::memory_order_relaxed);
     }
 
-    virtual void releaseWriteLock() { write_lock.store(false, std::memory_order_relaxed); }
+    virtual void releaseWriteLock() { 
+      write_lock.store(false, std::memory_order_relaxed);
+    }
 
     void lock() override {
       read_lock.store(true, std::memory_order_relaxed);
