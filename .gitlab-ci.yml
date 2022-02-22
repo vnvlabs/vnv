@@ -17,7 +17,7 @@ stages:
 build_code:
   stage: build
   tags: 
-    - dev
+    - rse-multi-builder
   script:
     - ./docker.sh
 
