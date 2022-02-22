@@ -21,7 +21,7 @@
     ]%}
     {%for r in buttons %}
     <div class="index-container">
-        <i class="index-icon icon {{r[1]}}" ></i>
+        <i class="index-icon icon {{r[1]}}" onclick="{{r[2]}}"></i>
         <div class="index-content" onclick="{{r[2]}}">{{r[0]}}</div>
     </div>
     {%endfor%}
