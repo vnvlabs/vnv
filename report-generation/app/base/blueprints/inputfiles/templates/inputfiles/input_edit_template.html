@@ -8,9 +8,15 @@
       </button>
      {%endfor%}
     {%endif%}
+    <button  id="autocomp_{{VALUE}}" class="btn btn-primary" onclick='toggle_autocomplete_{{VALUE}}()' title="Toggle Live Autocomplete. With live autocomplete off,
+     you can still access the autocomplete menu by typeing ctrl-space." style="margin-right:10px" >
+        Autocomplete
+    </button>
+
     <button class="btn btn-primary" onclick='show_load_{{VALUE}}({{file.id_}})'>
         Load
     </button>
+
     <button id="exec_save" class="btn btn-primary input-save-button" style="margin-left:10px"
             onclick='save_{{VALUE}}_file({{file.id_}})'>Save
     </button>
@@ -27,6 +33,15 @@ function load_{{VALUE}}_file(fileid,elm) {
    })
 }
 
+function toggle_autocomplete_{{VALUE}}() {
+    e = ace.edit("{{VALUE}}file")
+    live = !e.getOption("enableLiveAutocompletion")
+    e.setOptions({
+       enableLiveAutocompletion : live
+    });
+
+}
+
 function show_load_{{VALUE}}(fileid) {
    show_input_modal(fileid,"#config_{{VALUE}}_load")
 }
@@ -37,7 +52,7 @@ function save_{{VALUE}}_file(fileid) {
 
 $( document ).ready(function(){
 
-    get_ace_editor({{file.id_}}, "{{VALUE}}file","json", false, function(editor, session, pos, prefix, callback) {
+    get_ace_editor({{file.id_}}, "{{VALUE}}file","json", true, function(editor, session, pos, prefix, callback) {
             $.get(`/inputfiles/autocomplete/{{VALUE}}/{{file.id_}}?row=${pos.row}&col=${pos.column}&pre=${prefix}&val=${encodeURIComponent(editor.getValue())}`, function(data) {
                 callback(null, data );
             });
