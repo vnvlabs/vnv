@@ -1,0 +1,82 @@
+{%with connection = file.connection %}
+
+
+<div style="display:flex; align-items:center; margin-bottom:15px;">
+    <h2 style="flex:1">Application Configuration</h2>
+    <button id="exec_help" class="btn btn-primary input-save-button" style="margin-left:10px"
+            onclick='show_help_modal("inputconfig")'>Help
+    </button>
+    <button id="exec_save" class="btn btn-primary input-save-button" style="margin-left:10px"
+            onclick="save_input_config({{file.id_}}, $('#input-configuration-form'))">Save
+    </button>
+
+</div>
+
+<form id="input-configuration-form" method="post" action="/inputfiles/configure/{{file.id_}}">
+
+    <div class="form-group">
+        <label for="application">Application</label>
+        <input name="application" type="text" class="form-control" id="application"
+               placeholder="Enter Path to application" value="{{file.filename}}">
+    </div>
+
+    <div id="connection_information">
+
+        <div class="form-group form-check">
+            <input name="local" type="checkbox" class="form-check-input" id="localhost" {%if
+                   connection.local()
+                   %}checked {%endif%}>
+            <label class="form-check-label" for="localhost">Files are accessible from the web
+                server.</label>
+        </div>
+        <div class="form-group">
+            <label for="connectionusername">Username</label>
+            <input {%if connection.local() %}readonly{%endif%} name="username" type="text"
+                   class="form-control"
+                   id="connectionusername" placeholder="Enter Username"
+                   value="{{connection.username()}}">
+        </div>
+        <div class="form-group">
+            <label for="connectiondomain">Domain</label>
+            <input {%if connection.local() %}readonly{%endif%} name="domain" type="text"
+                   class="form-control"
+                   id="connectiondomain" placeholder="Enter Domain name"
+                   value="{{connection.domain()}}">
+        </div>
+        <div class="form-group">
+            <label for="connectionport">Port</label>
+            <input {%if connection.local() %}readonly{%endif%} name="port" type="number" min="0"
+                   class="form-control" id="connectionport" placeholder="Enter SSH Port Number"
+                   value="{{connection.port()}}">
+        </div>
+
+        <div class="form-group">
+            <label for="connectionpassword">Password</label>
+            <input {%if connection.local() %}readonly{%endif%} name="password" type="password"
+                   class="form-control"
+                   id="connectionpassword" placeholder="Enter your password" value="">
+        </div>
+
+    </div>
+</form>
+
+{%endwith%}
+
+<script>
+
+$(document).ready(function() {
+
+    $('#localhost').change(function(){
+            $('#connectionusername').attr('readonly',this.checked)
+            $('#connectiondomain').attr('readonly',this.checked)
+            $('#connectionport').attr('readonly',this.checked)
+            $('#connectionpassword').attr('readonly',this.checked)
+    });
+
+
+});
+
+
+
+
+</script>

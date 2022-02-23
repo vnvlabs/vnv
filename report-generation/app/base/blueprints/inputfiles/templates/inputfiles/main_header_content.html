@@ -1,8 +1,6 @@
-<div style="flex:1; cursor:pointer" title="click to configure" onclick='$("#config_config").modal("show")'>
-   <h3> VnV Input File Name: {{file.name}}  </h3>
-   <h5 > Application Path: {{file.filename}} </h5>
-   <h5> Connection Information: {{file.connection.describe()}}  </h5>
-   <h5> File Status: <span style="color:{{file.getFileStatus()[0]}};"> {{file.getFileStatus()[1]}} </span> </h5>
+<div style="flex:1;" >
+   <h3> VnV Executable: {{file.name}}  </h3>
+   <h5 title="File Status: {{file.getFileStatus()[1]}}"> VnV Executable Path: <span style="color:{{file.getFileStatus()[0]}};"> {{file.connection.describe()}}:/{{file.filename}}  </span>  </h5>
 </div>
 
 

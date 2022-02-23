@@ -1,5 +1,5 @@
 {%with NAME = "Input File", VALUE= "input" , TEXT=file.value, DEFAULTFILE=file.loadfile, LABEL="Path to Input File",
-EXTBTN = [["format_input_file", "Format"],["shrink_input_file", "Minify"]] %}
+EXTBTN = [["help_input_file","Help"],["format_input_file", "Format"],["shrink_input_file", "Minify"]] %}
 {%include "inputfiles/input_edit_template.html" %}
 {%endwith%}
 
@@ -11,6 +11,10 @@ function format_input_file(fileid) {
    } catch {
       addToast("Format Failed","We can only format valid json at this time",4000)
    }
+}
+
+function help_input_file(fileid) {
+   show_help_modal("input")
 }
 
 function shrink_input_file(fileid) {

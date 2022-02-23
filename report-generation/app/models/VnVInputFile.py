@@ -122,9 +122,13 @@ class VnVInputFile:
         return r
 
     def setConnection(self, hostname, username, password, port):
-        self.connection = VnVConnection(hostname, username, password, port)
+        if isinstance(self.connection,VnVConnection):
+            self.connection.connect(username,hostname,port,password)
+        else:
+            self.connection = VnVConnection()
+            self.connection.connect(username, hostname, int(port),  password)
 
-    def setConnection(self):
+    def setConnectionLocal(self):
         self.connection = VnVLocalConnection()
 
     def setFilename(self, fname):

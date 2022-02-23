@@ -44,12 +44,10 @@ def check_valid_login():
         return render_template('login.html', next=request.url)
 
 
-blueprint.register_blueprint(
-    blueprints.plugins.blueprint,
-    url_prefix="/plugins")
 blueprint.register_blueprint(blueprints.files.blueprint, url_prefix="/files")
 
 blueprint.register_blueprint(blueprints.tempfiles.blueprint, url_prefix="/temp")
+blueprint.register_blueprint(blueprints.help.blueprint, url_prefix="/help")
 
 blueprint.register_blueprint(
     blueprints.inputfiles.blueprint,
@@ -130,7 +128,6 @@ def autocomplete():
 
 def template_globals(d):
     blueprints.files.template_globals(d)
-    blueprints.plugins.template_globals(d)
     blueprints.notifications.template_globals(d)
     blueprints.inputfiles.template_globals(d)
     blueprints.directives.template_globals(d)

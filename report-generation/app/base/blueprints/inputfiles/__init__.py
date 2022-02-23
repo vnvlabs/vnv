@@ -45,14 +45,13 @@ def disconnect(id_):
         return render_template("inputfiles/connection_content.html", file=file)
 
 
-
-
 @blueprint.route('/save_input/<int:id_>', methods=["POST"])
 def save_input_file(id_):
     with VnVInputFile.find(id_) as file:
         form = request.get_json()
         file.saveInput(form["value"])
         return make_response("", 200)
+
 
 @blueprint.route('/save_spec/<int:id_>', methods=["POST"])
 def save_spec(id_):
@@ -61,12 +60,14 @@ def save_spec(id_):
         s = file.saveSpec(form["auto"], form.get("dump"), form.get("value"))
         return make_response(s, 200)
 
+
 @blueprint.route('/save_exec/<int:id_>', methods=["POST"])
 def save_exec(id_):
     with VnVInputFile.find(id_) as file:
         form = request.get_json()
         file.exec = form["value"]
         return make_response("", 200)
+
 
 @blueprint.route('/validate/<string:comp>/<int:id_>', methods=["POST"])
 def validate_input(comp, id_):
@@ -81,9 +82,7 @@ def validate_input(comp, id_):
         else:
             r = []
 
-        return make_response(jsonify(r),  200 if len(r) == 0 else 201 )
-
-
+        return make_response(jsonify(r), 200 if len(r) == 0 else 201)
 
 
 @blueprint.route('/load_input/<int:id_>', methods=["POST"])
@@ -111,7 +110,6 @@ def load_input(id_):
 
 @blueprint.route('/load_spec/<int:id_>', methods=["POST"])
 def load_spec(id_):
-
     with VnVInputFile.find(id_) as file:
         path = request.form["filename"]
         file.specDump = path
@@ -124,8 +122,6 @@ def load_spec(id_):
             return make_response(file.spec, 200)
         except Exception as e:
             return make_response(f"Something went wrong ({e}", 202)
-
-
 
 
 @blueprint.route('/load_exec/<int:id_>', methods=["POST"])
@@ -160,15 +156,14 @@ def connected(id_):
 
 @blueprint.route('/autocomplete/<string:comp>/<int:id_>', methods=["GET"])
 def input_autocomplete(comp, id_):
-
     row = request.args["row"]
     col = request.args["col"]
     pre = request.args["pre"]
     val = request.args["val"].split("\n")
     with VnVInputFile.find(id_) as file:
         if hasattr(file, "autocomplete_" + comp):
-           r = getattr(file,"autocomplete_" + comp)(row,col,pre,val)
-           return make_response(jsonify(r), 200 )
+            r = getattr(file, "autocomplete_" + comp)(row, col, pre, val)
+            return make_response(jsonify(r), 200)
 
     return make_response(jsonify([]), 200)
 
@@ -183,15 +178,14 @@ def main_header(id_):
 def configure(id_):
     with VnVInputFile.find(id_) as file:
 
-        if not file.connection.connected():
-            if "local" in request.form:
-                file.setConnection()
-            else:
-                username = request.form["username"]
-                port = request.form["port"]
-                domain = request.form["domain"]
-                password = request.form["password"]
-                file.setConnection(domain, username, password, port)
+        if "local" in request.form:
+            file.setConnectionLocal()
+        else:
+            username = request.form["username"]
+            port = request.form["port"]
+            domain = request.form["domain"]
+            password = request.form["password"]
+            file.setConnection(domain, username, password, port)
 
         file.setFilename(request.form.get("application", file.filename))
         return render_template("inputfiles/connection_content.html", file=file)
@@ -206,6 +200,7 @@ def view(id_):
         print(e)
         return render_error(501, "Error Loading File")
 
+
 @blueprint.route('/joblist/<int:id_>')
 def joblist(id_):
     try:
@@ -215,22 +210,21 @@ def joblist(id_):
         return render_error(501, "Error Loading File")
 
 
-@blueprint.route('/delete_job/<int:id_>/<jobid>' , methods=["POST"])
+@blueprint.route('/delete_job/<int:id_>/<jobid>', methods=["POST"])
 def delete_job(id_, jobid):
     with VnVInputFile.find(id_) as file:
         file.connection.delete_job(jobid);
         return render_template("inputfiles/joblist.html", file=file)
-    return render_error(401,"Huh")
+    return render_error(401, "Huh")
 
-@blueprint.route('/cancel_job/<int:id_>/<jobid>' , methods=["POST"])
+
+@blueprint.route('/cancel_job/<int:id_>/<jobid>', methods=["POST"])
 def cancel_job(id_, jobid):
     with VnVInputFile.find(id_) as file:
         file.connection.cancel_job(jobid);
         res = render_template("inputfiles/joblist.html", file=file)
         return res
-    return render_error(401,"Huh")
-
-
+    return render_error(401, "Huh")
 
 
 @blueprint.route('/execute/<int:id_>')
@@ -238,8 +232,8 @@ def execute(id_):
     try:
         with VnVInputFile.find(id_) as file:
             if "dryrun" in request.args:
-                script,name = file.script(request.args.get("val", ""))
-                return make_response(f'''Job Name: {name}\n\n{script}''',200)
+                script, name = file.script(request.args.get("val", ""))
+                return make_response(f'''Job Name: {name}\n\n{script}''', 200)
             else:
                 return make_response(file.execute(request.args.get("val", "")), 200)
 

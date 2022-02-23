@@ -14,15 +14,14 @@
     {% with buttons = [
     ["Load A New VnV Report","fa fa-play-circle","$('#new_file_modal').modal()"],
     ["Create a New Input File","feather icon-file-plus","$('#new_inputfile_modal').modal()"],
-    ["Load A Plugin","feather icon-zap","$('#new_plugin_modal').modal()"],
     ["Start a Terminal Session","fa fa-terminal", "$('#terminal-modal').modal('toggle')"],
     ["Open the File Browser","fa fa-folder", "show_file_reader(1000,'','directory','')"],
     ["Logout","fa fa-sign-out-alt", "logout()"]
     ]%}
     {%for r in buttons %}
-    <div class="index-container">
+    <div class="index-container" onclick="{{r[2]}}">
         <i class="index-icon icon {{r[1]}}" ></i>
-        <div class="index-content" onclick="{{r[2]}}">{{r[0]}}</div>
+        <div class="index-content" >{{r[0]}}</div>
     </div>
     {%endfor%}
     {% endwith %}

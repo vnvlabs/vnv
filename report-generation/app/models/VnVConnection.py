@@ -84,19 +84,27 @@ class VnVConnection:
         return False
 
     def connect(self, username, domain, port, password):
-        self.username_ = username
-        self.domain_ = domain
-        self.port_ = port
-        try:
-            self.transport = paramiko.Transport((domain, port))
-            self.transport.connect(None, username, password)
-            self.sftp().put(VnVConnection.INFO_FILE, VnVConnection.INFO_FILE_PATH)
-        except Exception as e:
-            print(e)
-            self.transport = None
+        connect = not self.connected()
+        if self.username_ != username:
+            self.username_ = username
+            connect = True
+        if self.domain_ != domain:
+            self.domain_ = domain
+            connect = True
+        if self.port != port:
+            self.port_ = port
+            connect = True
+
+        if connect:
+            try:
+                self.transport = paramiko.Transport((domain, port))
+                self.transport.connect(None, username, password)
+                self.sftp().put(VnVConnection.INFO_FILE, VnVConnection.INFO_FILE_PATH)
+            except Exception as e:
+                print(e)
+                self.transport = None
 
         if self.connected():
-
             return True
         return False
 
@@ -446,7 +454,7 @@ def SetMainConnection(local, username, domain, password, port):
     else:
         MainConnection.MAIN_CONNECTION = VnVConnection()
 
-    return MainConnection.MAIN_CONNECTION.connect(username, domain, port, password)
+    return MainConnection.MAIN_CONNECTION.connect(username, domain, int(port), password)
 
 
 def SetFileConnection(file, local, username, domain, password, port):
@@ -457,7 +465,7 @@ def SetFileConnection(file, local, username, domain, password, port):
     else:
         file.connection = VnVConnection()
 
-    return file.connection.connect(username, domain, port, password)
+    return file.connection.connect(username, domain, int(port), password)
 
 
 def MAIN_CONNECTION():

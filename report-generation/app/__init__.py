@@ -8,6 +8,7 @@ from logging import basicConfig, DEBUG, getLogger, StreamHandler
 import app.base
 from .base.utils.mongo import Configured
 from .models.VnV import DumpReaders
+from flaskext.markdown import Markdown
 
 global_template_variables = {
     "list_vnv_readers": DumpReaders,
@@ -44,6 +45,8 @@ def configure_error_handlers(app):
 
 def create_app(config):
     app = Flask(__name__, static_folder='static')
+    Markdown(app)
+
     app.config.from_object(config)
     register_blueprints(app)
     configure_error_handlers(app)
