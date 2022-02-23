@@ -3,7 +3,7 @@
 
 <div style="display:flex; align-items:center; margin-bottom:15px;">
     <h2 style="flex:1">Application Configuration</h2>
-    <button id="exec_help" class="btn btn-primary input-save-button" style="margin-left:10px"
+    <button id="exec_help" class="btn btn-primary" style="margin-left:10px"
             onclick='show_help_modal("inputconfig")'>Help
     </button>
     <button id="exec_save" class="btn btn-primary input-save-button" style="margin-left:10px"
@@ -20,63 +20,77 @@
                placeholder="Enter Path to application" value="{{file.filename}}">
     </div>
 
+    <div class="form-group">
+        <label for="specDump">Command required to extract application schema.</label>
+        <input name="specDump" type="text" class="form-control" id="specDump" value="{{file.specDump}}">
+        <small>This should be the command required to run the application with an input file called ${inputfile}. We
+            will substitute the value
+            of ${application} with the file path configured above. The value %{inputfile} will be substituted with a
+            path to a temporary file that
+            we upload to the remote machine (the temp file path is created using the bash "mktemp" command)
+        </small>
+    </div>
+
     <div id="connection_information">
 
         <div class="form-group form-check">
-            <input name="local" type="checkbox" class="form-check-input" id="localhost" {%if
+            <input name="local" type="checkbox" class="form-check-input" id="clh" {%if
                    connection.local()
                    %}checked {%endif%}>
-            <label class="form-check-label" for="localhost">Files are accessible from the web
+            <label class="form-check-label" for="clh">Files are accessible from the web
                 server.</label>
         </div>
-        <div class="form-group">
-            <label for="connectionusername">Username</label>
-            <input {%if connection.local() %}readonly{%endif%} name="username" type="text"
-                   class="form-control"
-                   id="connectionusername" placeholder="Enter Username"
-                   value="{{connection.username()}}">
-        </div>
-        <div class="form-group">
-            <label for="connectiondomain">Domain</label>
-            <input {%if connection.local() %}readonly{%endif%} name="domain" type="text"
-                   class="form-control"
-                   id="connectiondomain" placeholder="Enter Domain name"
-                   value="{{connection.domain()}}">
-        </div>
-        <div class="form-group">
-            <label for="connectionport">Port</label>
-            <input {%if connection.local() %}readonly{%endif%} name="port" type="number" min="0"
-                   class="form-control" id="connectionport" placeholder="Enter SSH Port Number"
-                   value="{{connection.port()}}">
-        </div>
+        <div id="remote_conn_info" style="{%if connection.local()%} display:none; {%endif%}">
+            <div class="form-group">
+                <label for="cun">Username</label>
+                <input name="username" type="text"
+                       class="form-control"
+                       id="cun" placeholder="Enter Username"
+                       value="{{connection.username()}}">
+            </div>
+            <div class="form-group">
+                <label for="cd">Domain</label>
+                <input  name="domain" type="text"
+                       class="form-control"
+                       id="cd" placeholder="Enter Domain name"
+                       value="{{connection.domain()}}">
+            </div>
+            <div class="form-group">
+                <label for="cp">Port</label>
+                <input name="port" type="number" min="0"
+                       class="form-control" id="cp" placeholder="Enter SSH Port Number"
+                       value="{{connection.port()}}">
+            </div>
 
-        <div class="form-group">
-            <label for="connectionpassword">Password</label>
-            <input {%if connection.local() %}readonly{%endif%} name="password" type="password"
-                   class="form-control"
-                   id="connectionpassword" placeholder="Enter your password" value="">
+            <div class="form-group">
+                <label for="cpa">Password</label>
+                <input  name="password" type="password"
+                       class="form-control"
+                       id="cpa" placeholder="Enter your password" value="">
+            </div>
         </div>
-
     </div>
 </form>
 
 {%endwith%}
 
+<h4>Current Application Schema (read only)</h4>
+<div id="specFile" style="font-size:20px; height:1050px; width:100%; ">{{file.spec}}</div>
+
 <script>
+
+$( document ).ready(function(){
+    get_ace_editor({{file.id_}}, "specFile","json", false)
+    ace.edit("specFile").setReadOnly(true)
+});
 
 $(document).ready(function() {
 
-    $('#localhost').change(function(){
-            $('#connectionusername').attr('readonly',this.checked)
-            $('#connectiondomain').attr('readonly',this.checked)
-            $('#connectionport').attr('readonly',this.checked)
-            $('#connectionpassword').attr('readonly',this.checked)
+    $('#clh').change(function(){
+            $('#remote_conn_info').toggle(800)
     });
 
-
 });
-
-
 
 
 </script>

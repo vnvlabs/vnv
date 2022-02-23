@@ -52,15 +52,6 @@ def save_input_file(id_):
         file.saveInput(form["value"])
         return make_response("", 200)
 
-
-@blueprint.route('/save_spec/<int:id_>', methods=["POST"])
-def save_spec(id_):
-    with VnVInputFile.find(id_) as file:
-        form = request.get_json()
-        s = file.saveSpec(form["auto"], form.get("dump"), form.get("value"))
-        return make_response(s, 200)
-
-
 @blueprint.route('/save_exec/<int:id_>', methods=["POST"])
 def save_exec(id_):
     with VnVInputFile.find(id_) as file:
@@ -77,8 +68,6 @@ def validate_input(comp, id_):
             r = file.validateInput(form["value"]);
         elif comp == "execfile":
             r = file.validateExecution(form["value"])
-        elif comp == "specfile":
-            r = file.validateSpec(form["value"])
         else:
             r = []
 
@@ -87,7 +76,6 @@ def validate_input(comp, id_):
 
 @blueprint.route('/load_input/<int:id_>', methods=["POST"])
 def load_input(id_):
-    return make_response("sdfsdf", 200)
     path = request.form["filename"]
     with VnVInputFile.find(id_) as file:
         file.loadfile = path
@@ -108,26 +96,8 @@ def load_input(id_):
             return make_response("File does not exist", 200)
 
 
-@blueprint.route('/load_spec/<int:id_>', methods=["POST"])
-def load_spec(id_):
-    with VnVInputFile.find(id_) as file:
-        path = request.form["filename"]
-        file.specDump = path
-
-        if not file.connection.connected():
-            return make_response("Please open a connection before continuing", 201)
-
-        try:
-            file.loadSpec()
-            return make_response(file.spec, 200)
-        except Exception as e:
-            return make_response(f"Something went wrong ({e}", 202)
-
-
 @blueprint.route('/load_exec/<int:id_>', methods=["POST"])
 def load_exec(id_):
-    return make_response("sadfsdf", 200)
-
     path = request.form["filename"]
     with VnVInputFile.find(id_) as file:
         file.execFile = path
@@ -173,6 +143,12 @@ def main_header(id_):
     with VnVInputFile.find(id_) as file:
         return render_template("inputfiles/main_header_content.html", file=file)
 
+@blueprint.route('/get_spec/<int:id_>')
+def get_spec(id_):
+    with VnVInputFile.find(id_) as file:
+        return make_response(file.spec,200)
+
+
 
 @blueprint.route('/configure/<int:id_>', methods=["POST"])
 def configure(id_):
@@ -187,7 +163,9 @@ def configure(id_):
             password = request.form["password"]
             file.setConnection(domain, username, password, port)
 
-        file.setFilename(request.form.get("application", file.filename))
+        file.setFilename(request.form.get("application", file.filename), request.form.get("specDump",file.specDump))
+
+
         return render_template("inputfiles/connection_content.html", file=file)
 
 

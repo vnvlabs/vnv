@@ -28,6 +28,9 @@ function save_input_config(fileid, elm) {
         $.get("/inputfiles/update_main_header/" + fileid, function(data) {
             $("#main_header").html(data);
         })
+        $.get("/inputfiles/get_spec/" + fileid, function(data) {
+            ace.edit("specFile").getSession().setValue(data);
+        })
     })
 }
 

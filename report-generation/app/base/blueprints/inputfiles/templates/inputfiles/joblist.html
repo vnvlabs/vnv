@@ -1,3 +1,8 @@
+{%with jobs = file.get_jobs() %}
+
+{% if jobs | length == 0 %}
+<div>No Jobs Found</div>
+{%else%}
 
 {% for job in file.get_jobs() %}
 <div class="card" style="padding:10px;">
@@ -29,3 +34,5 @@
     </div>
 </div>
 {% endfor %}
+{%endif%}
+{%endwith%}
