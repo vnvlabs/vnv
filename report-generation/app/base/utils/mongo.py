@@ -69,3 +69,4 @@ def deleteInputFile(name):
 
 def removeFile(name):
     pymongo_database.drop_collection(name)
+

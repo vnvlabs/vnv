@@ -86,6 +86,7 @@ def new():
         # No jobname so we should load a new file.
         reader = request.form["reader"]
         fname = request.form["filename"]
+
         if reader == "saved":
             file = VnVFile.add(
                 fname,
@@ -325,6 +326,9 @@ files = [
 LOAD_OLD=True
 
 def faker():
+
+  for f in mongo.list_all_files():
+      VnVFile.add(f,f, "mongo", get_file_template_root(), reload=True)
 
   # Development stuff -- this loads some files by default on my computer. Feel free to add your own
   for f in files:
