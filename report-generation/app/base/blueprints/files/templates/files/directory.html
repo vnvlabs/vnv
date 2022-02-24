@@ -1,8 +1,9 @@
 
 <ul class="card" style="padding:15px;">
 {% for i in file.children() %}
-<div class='card' onclick="show_file_reader({{i.getVnVFileId()}}, '{{i.url()}}', '{{i.reader}}','{{modal}}')" style="margin-bottom:5px; padding:15px; font-size:16px; align-items:center; cursor:pointer; display:flex; flex-direction:row;">
+<div class='' onclick="show_file_reader({{i.getVnVFileId()}}, '{{i.url()}}', '{{i.reader}}','{{modal}}')" style="margin-bottom:5px; font-size:15px; align-items:center; cursor:pointer; display:flex; flex-direction:row;">
     <i class="feather icon-{{i.icon()}}" style="margin-right:10px;"> </i> <span style="flex:1">{{i.name}}</span> <span>{{i.size}} Bytes</span>  <span style="margin-left:20px;">{{i.lastModStr}}</span>
 </div>
+<hr class="logrule">
 {%endfor%}
 </ul>
