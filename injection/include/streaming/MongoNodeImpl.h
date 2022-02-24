@@ -1216,6 +1216,8 @@ class MongoRootNode : public MongoPersistance::RootNode {
     auto root = std::make_shared<MongoRootNode>();
     root->setMainCollection(db,collection);
     root->registerNode(root);
+    root->setProcessing(false);
+    root->open(false);
     return root;
   }
 

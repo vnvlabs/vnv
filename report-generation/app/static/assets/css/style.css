@@ -11670,27 +11670,16 @@ li.cross::marker {
     content: "Z"
 }
 
+.logrule{
+border: 1px solid #e0e0e3;
+width: 95%;
+margin: 5px;
+}
+
+
 .vnv-log {
-    padding:20px;
     font-size:15px;
-    margin-bottom:5px;
 }
-
-.vnv-log.DEBUG {
-    background: #00800047;
-}
-.vnv-log.ERROR {
-    background: #ff000021;
-}
-.vnv-log.WARN {
-    background: #0000ff36;
-}
-.vnv-log.INFO {
-    color: #ffff0026;
-}
-
-
-
 
 .letter:before {
 display: inline-block;

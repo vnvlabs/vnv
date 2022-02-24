@@ -195,6 +195,15 @@ class LogRender:
     def getLevel(self):
         return self.data.getLevel()
 
+    badges = {
+        "DEBUG": "success",
+        "INFO": "info",
+        "WARN": "warning",
+        "ERROR": "danger"
+    }
+    def getBadge(self):
+        return self.badges.get(self.getLevel(),"secondary")
+
     def getStage(self):
         return self.data.getStage()
 

@@ -23,17 +23,19 @@ tablist = {
 
         <div class="page-header-title">
             <div style="display:flex; align-items:center;">
-                <h1 class="fchild" >{{file.name}}</h1>
+                <h1 class="fchild" >
                 {%if file.isProcessing() %}
-                <div id="processing_{{file.id_}}" class="badge badge-warning">Processing</div>
+                <span id="processing_{{file.id_}}" class="badge badge-warning">Live</span>
                 <script>
                     $(window).on('load', function() {
-                       update_processing({{file.id_}}, "#processing_{{file.id_}}")
+                        update_processing({{file.id_}}, "#processing_{{file.id_}}")
                     });
-                </script>
-                {%endif%}
+                    </script>
+                {%endif%}{{file.name}}
+                </h1>
             </div>
         </div>
+
 
 
         <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">

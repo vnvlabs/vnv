@@ -1,4 +1,4 @@
-<div class="card" style="padding:10px;">
+<div class="card" style="padding:10px; margin-bottom:4px;">
     <div style="display:flex; align-items:center; ">
         <h5 style="margin-right:10px; margin-bottom:0px; ">Log Levels:</h5>
         {% for filter in file.getLogFilters() %}
@@ -20,7 +20,6 @@
         {%endfor%}
     </div>
 </div>
-
 {% for logRender in file.getLogs() %}
 {%include "files/log.html"%}
 {% endfor %}
