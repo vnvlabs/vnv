@@ -56,10 +56,10 @@ def DumpReaders():
 
     #### TODO get this info from the a above.
     a = [
-        ["json_file", "Enter the directory used to initialize the json file engine.", "file"],
-        ["adios_file", "Enter the directory name used when initializing the adios file engine.", "file"],
-        ["json_socket", "Enter the port to launch the socket server on on.", "integer"],
-        ["json_http", "Enter the port to launch the http server on", "integer"]
+        ["json_file", "Enter the directory used to initialize the json file engine.", "file", "Output File Directory"],
+        ["adios_file", "Enter the directory name used when initializing the adios file engine.", "file", "Output File Directory"],
+        ["json_socket", "Enter the port to launch the socket server on on.", "integer", "UPD Port to listen on"],
+        ["json_http", "Enter the port to launch the http server on", "integer", "HTTP Port to listen on"]
     ]
     if mongo.Configured():
         a.append(["saved", "Enter the name of the collection to load", "collection"])

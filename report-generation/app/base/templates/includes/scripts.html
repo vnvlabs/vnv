@@ -31,7 +31,6 @@
     </script>
 
     {% include 'notifications/scripts.html'%}
-    {% include 'plugins/scripts.html'%}
     {% include 'files/scripts.html'%}
     {% include 'inputfiles/scripts.html'%}
 
@@ -41,7 +40,18 @@
                 let grid = GridStack.init({});
             }
         });
-        </script>
+
+        function show_help_modal(key) {
+            $.get('/help/topic?key=' + key, function(data) {
+                $('#help_content').html(data)
+                $('#help_modal').modal('show')
+            })
+        }
+
+
+    </script>
+
+
 
     <script>
         $(document).ready(function() {

@@ -2,66 +2,78 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="new_file_modal_label">New File</h5>
+                <h5 class="modal-title" id="new_file_modal_label">Load A New VnV Report</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
             </div>
+
+            <div style="padding:20px;">
+                Enter the required information below to load an existing VnV Report. The information
+                required will change based on the reader you select, so please be sure to select the
+                reader first!
+            </div>
+
             <div class="modal-body">
                 <form id="new_file_form" action="/files/new" method="post">
+                     <div id="name-group" class="form-group">
+                        <label for="name" class="col-form-label">Name</label>
+                        <input type="text" class="form-control" name="name" id="name">
+                        <small>This unique name will be used to identify the report in menus and titles.</small>
+
+                    </div>
 
                     <div class="form-group">
                         <label for="reader" class="col-form-label">Reader</label>
                         <select type="text" class="form-control" id="reader" name="reader">
                             {%for r in list_vnv_readers() %}
-                            <option value="{{r[0]}}" {%if loop.index0 == 0 %} selected {%endif%} >{{r[0]}}</option>
+                            <option value="{{r[0]}}" {%if loop.index0 == 0 %} selected {%endif%} data-name="{{r[3]}}" data-message="{{r[1]}}">{{r[0]}}</option>
                             {%endfor%}
                         </select>
+                        <small> What reader should be used to read the input file. </small>
                     </div>
 
-                    <div id="name-group" class="form-group">
-                        <label for="name" class="col-form-label">Name</label>
-                        <input type="text" class="form-control" name="name" id="name">
-                    </div>
+
 
                     <div class="autocomplete form-group" style="width:100%" >
-                        {% for r in list_vnv_readers() %}
-                        <div id="reader_message_{{r[0]}}" class="fdesc {{r[2]}}"  style="{%if loop.index0 > 0 %} display:none {%endif%}" >
-                            {{r[1]}}
-                        </div>
-                        {%endfor%}
-                        <input type="text" class="form-control" id="filename" name="filename" autocomplete="off" placeholder="">
+                        <label id="reader_label" for="inputfilename" class="col-form-label">{{list_vnv_readers()[0][3]}}</label>
+                        <input id="inputfilename" type="text" class="form-control" id="filename" name="filename" autocomplete="off" placeholder="">
+                        <small id="reader_message">{{list_vnv_readers()[0][1]}}</small>
                     </div>
 
                     <div id="username-group" class="form-group" style="display:none">
                         <label for="name" class="col-form-label">User Name</label>
                         <input type="text" class="form-control" id="username" name="username", value="" placeholder="Reader Username (may not be required)">
+                        <small>A username may be required to authenticate with the reader. If one is required it should be in the input file </small>
                     </div>
+
                     <div id="password-group" class="form-group" style="display:none">
                         <label for="name" class="col-form-label">Password</label>
                         <input type="password" class="form-control" id="password" name="password" placeholder="Reader Password (may not be required)">
+                        <small> A password may be required to authenticate with the reader. If one is required it should be in the input file</small>
                     </div>
 
                     <script>
                         $( document ).ready(function() {
 
                             $('#reader').on('change', function() {
-                                $('.fdesc').hide();
-                                $('#reader_message_' + $(this).val()).show();
+                               
+                                $('#reader_message').html($(this).find(":selected").data("message"));
+                                $('#reader_label').html($(this).find(":selected").data("name"));
+
                                 if ($(this).val() === "saved") {
                                     $('#name-group').hide()
-
                                 } else {
                                     $('#name-group').show()
                                 }
+
                                 if ($(this).val() === "json_socket" || $(this).val() === "json_http") {
                                        $('#username-group').show()
                                        $('#password-group').show()
                                 } else {
+
                                        $('#username-group').hide()
                                        $('#password-group').hide()
-
                                 }
-
                             });
                             autocomplete(document.getElementById('filename'), function() {
                                 return "&context=" + $('#reader').val();

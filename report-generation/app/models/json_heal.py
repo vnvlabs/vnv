@@ -351,7 +351,8 @@ def getSchema(bail, schema, main_schema):
             return getSchema(bail.child,getObjectSchema(bail,schema, main_schema), main_schema)
         else:
             s = getObjectSchema(bail,schema, main_schema)
-            return [["default", buildDefault(s,main_schema), "Default"]]
+            d = buildDefault(s,main_schema)
+            return [[ ( d[0:9]+"..." if len(d) > 10 else d )  , d, "The default value"]]
 
     if bail.type == "object-colon":
         return [[":", ":", "Colon Seperator"]]

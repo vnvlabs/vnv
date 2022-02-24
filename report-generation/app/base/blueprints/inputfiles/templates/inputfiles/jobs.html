@@ -1,6 +1,8 @@
 <div style="display:flex; align-items:center; ">
     <h2 style="flex:1">Active Jobs for this File</h2>
+    <button class="btn btn-primary" style="margin-right:10px;" onclick='show_help_modal("inputjobs")'>Help</button>
     <button class="btn btn-primary" style="margin-right:10px;" onclick='refresh_jobs_list({{file.id_}})'>Refresh</button>
+
 </div>
 <div class="card" id="input-file-job-list" style="padding:20px;">
     {% include "inputfiles/joblist.html" %}

@@ -1,1 +1,1 @@
-from . import plugins, notifications, files, inputfiles, directives, tempfiles
+from . import notifications, files, inputfiles, directives, tempfiles, help

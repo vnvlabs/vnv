@@ -1,5 +1,5 @@
 {%with NAME = "Execution", VALUE= "exec" , TEXT=file.exec, DEFAULTFILE=file.execFile, LABEL="Path to Execution Template",
-EXTBTN = [["execute_file" ,"Execute"],["view_script","Script"],["format_exec_file", "Format"],["shrink_exec_file", "Minify"]] %}
+EXTBTN = [["help_exec_file","Help"],["execute_file" ,"Execute"],["view_script","Script"],["format_exec_file", "Format"],["shrink_exec_file", "Minify"]] %}
 {%include "inputfiles/input_edit_template.html" %}
 {%endwith%}
 
@@ -11,6 +11,10 @@ function execute_file(fileid) {
            alert("Job Executed with ID " + data)
            $('#pills-jobs-tab').click()
    });
+}
+function help_exec_file(fileid) {
+   show_help_modal("exectemplate")
+   debugger;
 }
 
 function view_script(fileid) {

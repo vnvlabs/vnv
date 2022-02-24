@@ -69,74 +69,148 @@ class bson_wrap {
 typedef std::shared_ptr<bson_wrap> bson_shared;
 
 class Mongo {
-  Mongo() { mongoc_init(); }
+  
+  // A singleton is used to manage the client pool. Each thread should 
+  // in theory request only a single client. A Client is returned when 
+  // the count reaches zero for the client. 
+  static mongoc_client_pool_t* pool;
+  static mongoc_uri_t* muri;
+  static bson_error_t error;
 
-  virtual ~Mongo() { mongoc_cleanup(); }
+  Mongo(std::string uri, std::string name="VnV") { 
+    mongoc_init();
+    muri = mongoc_uri_new_with_error(uri.c_str(), &error);
+    Mongo::pool = mongoc_client_pool_new(muri);
+    mongoc_client_pool_set_appname(pool, name.c_str());
+  }
+
+  virtual ~Mongo() { 
+    mongoc_uri_destroy(muri);
+    mongoc_client_pool_destroy(pool);
+    mongoc_cleanup(); }
 
  public:
-  static Mongo& instance() {
-    static Mongo mongo;
+
+  static Mongo& instance(std::string uri) {
+    static Mongo mongo(uri);
     return mongo;
   }
+
+  mongoc_client_t* getClient() {
+    auto c = mongoc_client_pool_pop(pool);
+    if (!c) {
+      throw INJECTION_EXCEPTION_("Error Creating Mongo Client");
+    }
+    return c;
+  }
+
+  void returnClient(mongoc_client_t* client) {
+      mongoc_client_pool_push(pool,client);
+  }
+
 };
 
 class Collection;
 class Database;
 class Document;
 
+class MongoClientWrapper {
+private:
+
+  mongoc_client_t* client = NULL;
+  std::string uri;
+public:  
+  void set(std::string nuri) {
+    if (client) {
+      Mongo::instance(uri).returnClient(client);
+    }
+    uri = nuri;
+    client = Mongo::instance(uri).getClient();
+  }
+
+  MongoClientWrapper()  {}
+  
+  mongoc_client_t* get() {
+    return client;
+  }
+
+  ~MongoClientWrapper(){
+    if (client) {
+      Mongo::instance(uri).returnClient(client);
+    }
+  }
+};
+
 class Client {
-  mongoc_uri_t* uri;
-  mongoc_client_t* client;
-  bson_error_t error;
+
+  // Every thread has its own client
+  static thread_local MongoClientWrapper clientWrapper;  
+  std::string uri;
+
+  mongoc_client_t* get_client() {
+    if (clientWrapper.get() == NULL ) {
+      clientWrapper.set(uri);
+    }
+    return clientWrapper.get();
+  }
 
  public:
   Client(std::string uri, std::string clientName = "VnV") {
     // Launch mongo (no-op except the first time.)
-    Mongo::Mongo::instance();
-
-    // Create the uri
-    this->uri = mongoc_uri_new_with_error(uri.c_str(), &error);
-    if (!this->uri) {
-      throw INJECTION_EXCEPTION("Error Creating Mongo URI (%s) %s", uri.c_str(), error.message);
-    }
-
-    // Create the client
-    client = mongoc_client_new_from_uri(this->uri);
-    if (!client) {
-      throw INJECTION_EXCEPTION_("Error Creating Mongo Client");
-    }
-
-    // Set the app name
-    mongoc_client_set_appname(client, clientName.c_str());
+    this->uri = uri;
   }
 
-  mongoc_database_t* getDatabase(std::string db) { return mongoc_client_get_database(client, db.c_str()); }
+  mongoc_database_t* getDatabase(std::string db) { 
+    return mongoc_client_get_database(get_client(), db.c_str());
+  }
 
-  virtual ~Client() {
-    mongoc_uri_destroy(uri);
-    mongoc_client_destroy(client);
+  virtual ~Client() {}
+
+};
+
+class MongoDatabaseWrapper {
+public:
+
+  mongoc_database_t* database = NULL;
+
+  MongoDatabaseWrapper()  {}
+  ~MongoDatabaseWrapper(){
+    if (database) {
+      mongoc_database_destroy(database);
+    }
   }
 };
+
 
 class Database {
   std::string name;
   std::shared_ptr<Client> client;
-  mongoc_database_t* database;
-  bson_error_t error;
 
+  // Every thread has its own database
+  static thread_local MongoDatabaseWrapper database;
+
+  mongoc_database_t* get_database() {
+     if (database.database == NULL) {
+        database.database = client->getDatabase(name);
+     }
+     return database.database;
+  }
+  
  protected:
  public:
   Database(std::string name, std::shared_ptr<Client> c) {
     this->client = c;
     this->name = name;
-    this->database = client->getDatabase(name);
   }
 
   auto getClient() { return client; }
 
-  auto getCollection(std::string collection) { return mongoc_database_get_collection(database, collection.c_str()); }
+  auto getCollection(std::string collection) { 
+    return mongoc_database_get_collection(get_database(), collection.c_str());
+  }
 
-  virtual ~Database() { mongoc_database_destroy(database); }
+  virtual ~Database() { 
+  }
 };
 
 class Cursor {
@@ -206,26 +280,58 @@ class Cursor {
 class Mongo_Does_Not_Exist : public std::exception {};
 class Mongo_Insert_Failed : public std::exception {};
 
+class MongoCollectionWrapper {
+public:
+
+  mongoc_collection_t* collection = NULL;
+
+  MongoCollectionWrapper()  {}
+  ~MongoCollectionWrapper(){
+    if (collection) {
+      mongoc_collection_destroy(collection);
+    }
+  }
+};
+
 class Collection {
+  
+  static thread_local MongoCollectionWrapper thcollection;
+
   std::string collectionName;
-  mongoc_collection_t* collection;
   std::shared_ptr<Database> db;
   bson_error_t error;
+  
+  mongoc_collection_t* collection_main;
+  std::thread::id main_thread_id;
+
+  mongoc_collection_t* collection() {
+    
+    if (std::this_thread::get_id() == main_thread_id) {
+      return collection_main;
+    }
+
+    if (thcollection.collection == nullptr) {
+      thcollection.collection = db->getCollection(collectionName)
+      ;
+    } 
+    return thcollection.collection;
+  }
+
 
   void insert(std::shared_ptr<bson_wrap> value) {
-    if (!mongoc_collection_insert_one(collection, value->get(), NULL, NULL, &error)) {
+    if (!mongoc_collection_insert_one(collection(), value->get(), NULL, NULL, &error)) {
       throw Mongo_Insert_Failed();
     }
   }
   auto count(std::shared_ptr<bson_wrap> filter) {
-    return mongoc_collection_count_documents(collection, filter->get(), NULL, NULL, NULL, &error);
+    return mongoc_collection_count_documents(collection(), filter->get(), NULL, NULL, NULL, &error);
   }
   auto remove_one(std::shared_ptr<bson_wrap> filter) {
-    return mongoc_collection_delete_one(collection, filter->get(), NULL, NULL, &error);
+    return mongoc_collection_delete_one(collection(), filter->get(), NULL, NULL, &error);
   }
   json get_one(std::shared_ptr<bson_wrap> filter, std::shared_ptr<bson_wrap> projection) {
     auto c =
-        std::make_shared<Cursor>(mongoc_collection_find_with_opts(collection, filter->get(), projection->get(), NULL));
+        std::make_shared<Cursor>(mongoc_collection_find_with_opts(collection(), filter->get(), projection->get(), NULL));
 
     if (c->begin() != c->end()) {
       return c->asJson();
@@ -233,10 +339,10 @@ class Collection {
     throw Mongo_Does_Not_Exist();
   }
   void update_one(std::shared_ptr<bson_wrap> filter, std::shared_ptr<bson_wrap> update) {
-    mongoc_collection_update_one(collection, filter->get(), update->get(), NULL, NULL, &error);
+    mongoc_collection_update_one(collection(), filter->get(), update->get(), NULL, NULL, &error);
   }
   void update_many(std::shared_ptr<bson_wrap> filter, std::shared_ptr<bson_wrap> update) {
-    mongoc_collection_update_many(collection, filter->get(), update->get(), NULL, NULL, &error);
+    mongoc_collection_update_many(collection(), filter->get(), update->get(), NULL, NULL, &error);
   }
 
   static auto bwrap(json& j) { return std::make_shared<bson_wrap>(j); }
@@ -245,11 +351,15 @@ class Collection {
 
   Collection(std::string collection, std::shared_ptr<Database> db) {
     this->db = db;
-    this->collection = db->getCollection(collection);
     this->collectionName = collection;
+    collection_main = db->getCollection(collection);
+    main_thread_id = std::this_thread::get_id();
+
   }
 
  public:
+
+
   static std::shared_ptr<Collection> Initialize(std::string collection, std::shared_ptr<Database> db) {
     std::shared_ptr<Collection> p;
     p.reset(new Collection(collection, db));
@@ -263,7 +373,7 @@ class Collection {
   std::shared_ptr<Cursor> find(json& selector, json& opts) {
     auto sel = std::make_shared<bson_wrap>(selector);
     auto b = std::make_shared<bson_wrap>(opts);
-    return std::make_shared<Cursor>(mongoc_collection_find_with_opts(collection, sel->get(), b->get(), NULL));
+    return std::make_shared<Cursor>(mongoc_collection_find_with_opts(collection(), sel->get(), b->get(), NULL));
   }
   auto count(const json& filter) { return count(std::make_shared<bson_wrap>(filter)); }
 
@@ -276,7 +386,11 @@ class Collection {
       h.erase("_id");
       return h;
     } catch (Mongo_Does_Not_Exist e) {
-      assert(!type.empty());
+      if (type.empty()) {
+
+        std::cout << "Thread " << id << "  " <<  std::this_thread::get_id() << " " << collectionName << " " << collection() << " " << collection_main <<  std::endl;
+        throw INJECTION_EXCEPTION_("Type empty when does not exist");
+      }
       json filter = json::object();
       filter["_id"] = id;
       filter["type"] = type;
@@ -292,7 +406,6 @@ class Collection {
 
   // Not really a cache -- This keeps the Document around as long
   // as someone else is using it -- Pretty cool.
-  std::map<long, std::weak_ptr<Document>> cache;
 
   std::mutex m;
 
@@ -300,27 +413,10 @@ class Collection {
 
   std::shared_ptr<Document> getDocument(long id, std::string type) {
     assert(id > -1 && "The ID has not been set ");
+    return pullDocument(id, type);
 
-    std::lock_guard<std::mutex> hold(m);
-    std::shared_ptr<Document> sp;
-
-    // TODO clean up....
-
-    auto it = cache.find(id);
-
-    if (it == cache.end()) {
-      cache[id] = sp = pullDocument(id, type);
-    } else {
-      sp = cache[id].lock();
-      if (!sp) {
-        cache[id] = sp = pullDocument(id, type);
-      } else {
-      }
-    }
-    return sp;
   }
 
-  bool persistAll();
   bool persist(long id, json update) {
     json filter = json::object();
     filter["_id"] = id;
@@ -338,8 +434,8 @@ class Collection {
   }
 
   virtual ~Collection() {
-    pullDocument(-1, "", true);  // Clears the cache
-    mongoc_collection_destroy(collection);
+    
+    mongoc_collection_destroy(collection_main);
   }
 };
 
@@ -394,7 +490,8 @@ class MongoPersistance {
  public:
   template <typename T> class DataBaseImpl : public T {
    private:
-    std::shared_ptr<Document> doc = nullptr;
+    
+    std::shared_ptr<Document> doc;
 
    protected:
     bool autop = false;
@@ -405,7 +502,6 @@ class MongoPersistance {
 
     Document* getDocument() {
       if (doc == nullptr) {
-        auto coll = getCollection();
         doc = getCollection()->getDocument(T::getId(), T::getTypeStr());
       }
       return doc.get();
@@ -483,7 +579,9 @@ class MongoPersistance {
     Mongo_getter_setter_json(map, json::object());
 
     virtual void insert(std::string key, std::shared_ptr<DataBase> val) {
+      
       auto& m = getmap();
+      
       if (m.contains(key)) {
         auto edb = nodes.find(key);
         if (edb == nodes.end()) {
@@ -491,6 +589,7 @@ class MongoPersistance {
           auto an = edbn->getAsArrayNode(edbn);
           an->add(val);
           nodes[key] = an;
+
         } else {
           edb->second->add(val);
         }
@@ -993,7 +1092,6 @@ class MongoPersistance {
 
     virtual void persist() override {
       getDocument()->persist();
-      getCollection()->persistAll();
     }
 
     void setspec(const json& s) {
@@ -1062,15 +1160,19 @@ class MongoRootNodeWithThread : public StreamParserTemplate<MongoPersistance>::R
   Collection_ptr collection;
 
   MongoRootNodeWithThread(std::string uri, std::string dbname, std::string collname, bool allowExisting = false) {
+    
+    
     client.reset(new Client(uri));
     db.reset(new Database(dbname, client));
-
     collection = Collection::Initialize(collname, db);
 
     if (!allowExisting && collection->size() > 0) {
+      
       throw INJECTION_EXCEPTION("Cannot Load into an existing collection %s. Please provide a unique collection name.",
                                 collname.c_str());
     }
+
+
     MongoPersistance::RootNode::setMainCollection(db, collection);
   }
 
@@ -1080,13 +1182,17 @@ class MongoRootNodeWithThread : public StreamParserTemplate<MongoPersistance>::R
     
     auto root = std::make_shared<MongoRootNodeWithThread>(uri, dbname, collname);
 
+
     root->stream = stream;
     root->registerNode(root);
     root->setname("Root Node");
+    
+    
     root->visitor =
         (visitor == nullptr) ? std::make_shared<StreamParserTemplate<MongoPersistance>::ParserVisitor<V>>() : visitor;
     root->visitor->set(stream, root.get());
     root->open(true);
+    
     root->run(async);
     return root;
   }

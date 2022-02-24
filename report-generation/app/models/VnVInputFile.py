@@ -73,10 +73,9 @@ class VnVInputFile:
         self.spec = "{}"
         self.specLoad = {}
         self.specDump = "${application} ${inputfile}"
-        self.specAuto = True
         self.exec = json.dumps(self.defaultExecution, indent=4)
         self.execFile = ""
-
+        self.specValid = False
         self.plugs = None
 
         # Set the default Input file.
@@ -91,7 +90,6 @@ class VnVInputFile:
         a["loadfile"] = self.loadfile
         a["value"] = self.value
         a["spec"] = self.spec
-        a["specAuto"] = self.specAuto
         a["specDump"] = self.specDump
         a["exec"] = self.exec
         a["execFile"] = self.execFile
@@ -109,7 +107,6 @@ class VnVInputFile:
         r.value = a["value"]
 
         r.spec = a["spec"]
-        r.specAuto = a.get("specAuto", True)
         r.specDump = a["specDump"]
         r.exec = a["exec"]
         r.execFile = a["execFile"]
@@ -122,19 +119,29 @@ class VnVInputFile:
         return r
 
     def setConnection(self, hostname, username, password, port):
-        self.connection = VnVConnection(hostname, username, password, port)
+        if isinstance(self.connection, VnVConnection):
+            self.connection.connect(username, hostname, port, password)
+        else:
+            self.connection = VnVConnection()
+            self.connection.connect(username, hostname, int(port), password)
 
-    def setConnection(self):
-        self.connection = VnVLocalConnection()
+    def setConnectionLocal(self):
+        if not isinstance(self.connection,VnVLocalConnection):
+            self.connection = VnVLocalConnection()
+        self.connection.connect("","","","")
 
-    def setFilename(self, fname):
+    def setFilename(self, fname, specDump):
         self.filename = fname
+        self.specDump = specDump
         self.updateSpec()
 
     def getFileStatus(self):
         if self.connection.connected():
             if self.connection.exists(self.filename):
-                return ["green", "Valid"]
+                if (self.specValid):
+                    return ["green", "Valid"]
+                else:
+                    return ["blue", "Could not extract schema. Is this the path to a valid VnV executable?"]
             else:
                 return ["#d54287", "Application does not exist"]
         else:
@@ -173,19 +180,7 @@ class VnVInputFile:
     def schema(self):
         return self.spec
 
-    def saveSpec(self, auto, dump, value):
-        self.specAuto = auto
-        if auto:
-            self.specDump = dump
-            self.updateSpec()
-        else:
-            self.spec = value
-            try:
-                self.specLoad = json.loads(self.spec)
-            except:
-                self.specLoad = VnVInputFile.DEFAULT_SPEC.copy()
 
-        return self.spec
 
     def updateSpec(self):
 
@@ -194,31 +189,33 @@ class VnVInputFile:
             main = main.replace("${inputfile}", inputfilename)
             return main
 
-        if self.specAuto:
-            try:
-                aa = json.loads(self.value)
-                s = {"additionalPlugins": aa.get("additionalPlugins", {})}
-            except:
-                s = {"additionalPlugins": {}}
+        try:
+            aa = json.loads(self.value)
+            s = {"additionalPlugins": aa.get("additionalPlugins", {})}
+        except:
+            s = {"additionalPlugins": {}}
 
-            s["schema"] = {"dump": True, "quit": True}
-            path = self.connection.write(json.dumps(s), None)
+        s["schema"] = {"dump": True, "quit": True}
+        path = self.connection.write(json.dumps(s), None)
+        a = getSpecDumpCommand(path)
+        try:
+            res = self.connection.execute(a)
+            a = res.find("===START SCHEMA DUMP===") + len("===START SCHEMA DUMP===")
+            b = res.find("===END SCHEMA_DUMP===")
+            if a > 0 and b > 0 and b > a:
+                self.spec = res[a:b]
+                try:
+                    self.specLoad = json.loads(self.spec)
+                    self.specValid = True
+                except:
+                    self.specLoad = VnVInputFile.DEFAULT_SPEC.copy()
+                    self.specValid = False
+            else:
+                self.specValid = False
 
-            a = getSpecDumpCommand(path)
-            try:
-                res = self.connection.execute(a)
-                a = res.find("===START SCHEMA DUMP===") + len("===START SCHEMA DUMP===")
-                b = res.find("===END SCHEMA_DUMP===")
-                if a > 0 and b > 0 and b > a:
-                    self.spec = res[a:b]
-                    try:
-                        self.specLoad = json.loads(self.spec)
-                    except:
-                        self.specLoad = VnVInputFile.DEFAULT_SPEC.copy()
-            except Exception as e:
-                # Cant update spec unless the input file is at least valid json.
-                # It also won't update if the input file is invalid.
-                print(e)
+        except Exception as e:
+            self.schemaValid = False
+
 
     def validateSpec(self, newVal):
         try:
@@ -241,7 +238,7 @@ class VnVInputFile:
     CONFIG_SCHEMA = {
         "type": "object",
         "properties": {
-            "name" : {"type" : "string"},
+            "name": {"type": "string"},
             "shell": {"type": "string", "enum": ["bash"]},
             "shebang": {"type": "string"},
             "working-directory": {"type": "string"},
@@ -282,11 +279,13 @@ class VnVInputFile:
     }
 
     EXECUTION_SCHEMA = None
+
     @staticmethod
     def getExecutionSchema():
         if VnVInputFile.EXECUTION_SCHEMA is None:
             VnVInputFile.EXECUTION_SCHEMA = json.loads(json.dumps(VnVInputFile.CONFIG_SCHEMA))
-            VnVInputFile.EXECUTION_SCHEMA["properties"]["active_overrides"] = {"type": "array", "items": {"type" : "string"} }
+            VnVInputFile.EXECUTION_SCHEMA["properties"]["active_overrides"] = {"type": "array",
+                                                                               "items": {"type": "string"}}
             VnVInputFile.EXECUTION_SCHEMA["properties"]["overrides"] = {
                 "type": "object",
                 "additionalProperties": json.loads(json.dumps(VnVInputFile.CONFIG_SCHEMA))
@@ -306,7 +305,7 @@ class VnVInputFile:
         "overrides": {
             "run": {
                 "command-line": "${application} ${inputfile}",
-                "name" : "Hello"
+                "name": "Hello"
             }
         }
     }
@@ -333,7 +332,7 @@ class VnVInputFile:
         return []
 
     def get_jobs(self):
-        return [ a for a in self.connection.get_jobs()]
+        return [a for a in self.connection.get_jobs()]
 
     def execute(self, val, ):
         script, name = self.script(val)
@@ -341,13 +340,13 @@ class VnVInputFile:
 
     def script(self, val):
         data = json.loads(val)
-        for i in data.get("active_overrides",[]):
-            if i in data.get("overrides",{}):
+        for i in data.get("active_overrides", []):
+            if i in data.get("overrides", {}):
                 over = data["overrides"][i]
-                for k,v in over.items():
+                for k, v in over.items():
                     data[k] = v
 
-        return bash_script(self.filename,self.value, data), data.get("name")
+        return bash_script(self.filename, self.value, data), data.get("name")
 
     @staticmethod
     def get_id():
@@ -362,7 +361,7 @@ class VnVInputFile:
             raise Exception("Name is taken")
             f = VnVInputFile.fromJson(a)
         else:
-            f = VnVInputFile(name,path=path)
+            f = VnVInputFile(name, path=path)
 
         VnVInputFile.FILES[f.id_] = f
         return f
@@ -402,8 +401,10 @@ class VnVInputFile:
         def __exit__(self, type, value, traceback):
             mongo.persistInputFile(self.file)
 
+
 def njoin(array):
     return "\n".join(array)
+
 
 def bash_script(application_path, inputfile, data):
     return textwrap.dedent(f"""
@@ -411,7 +412,7 @@ def bash_script(application_path, inputfile, data):
 
 export application={application_path}
 export application_dir=$(dirname {application_path})
-export inputfile={data.get("input-file-name",".vv-input.json")}
+export inputfile={data.get("input-file-name", ".vv-input.json")}
 
 cd {data.get("working-directory", "${application_dir}")}
 

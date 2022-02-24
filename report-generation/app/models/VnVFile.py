@@ -11,6 +11,7 @@ import jsonschema
 import pygments.formatters.html
 from pygments.lexers import guess_lexer, guess_lexer_for_filename
 
+from app.base.utils import mongo
 from app.base.utils.mongo import validate_name, Configured
 from app.models.VnVConnection import VnVConnection, VnVLocalConnection
 from python_api.VnVReader import node_type_START, node_type_POINT, node_type_DONE, node_type_ITER, node_type_ROOT, \
@@ -107,6 +108,12 @@ class ProvWrapper:
             a = self.prov.get(i, 0)
             r.append(ProvFileWrapper(self.vnvfileid, a, self.getD(a)))
         return r
+
+    def has_inputs(self):
+        return self.prov.size(0) > 0
+
+    def has_outputs(self):
+        return self.prov.size(1) > 0
 
     def get_input(self):
         return ProvFileWrapper(self.vnvfileid, self.prov.inputFile, "")
@@ -619,7 +626,7 @@ class VnVFile:
         self.root = self.wrapper.get()
         self.template_dir = os.path.join(template_root, str(self.id_))
         # By default we have a localhost connection.
-        self.setConnection()
+        self.setConnectionLocal()
 
         shutil.rmtree(self.template_dir, ignore_errors=True)
 
@@ -653,9 +660,10 @@ class VnVFile:
             return self.templates.get_raw_rst(data)
 
     def setConnection(self, hostname, username, password, port):
-        self.connection = VnVConnection(hostname, username, password, port)
+        self.connection = VnVConnection()
+        self.connection.connect(username, hostname, int(port), password)
 
-    def setConnection(self):
+    def setConnectionLocal(self):
         self.connection = VnVLocalConnection()
 
     def getWorkflow(self):
@@ -931,6 +939,8 @@ class VnVFile:
     def get_prov(self):
         return ProvWrapper(self.id_, self.root.getInfoNode().getProv(), self.templates)
 
+
+
     def get_node_map(self):
         x = self.root.getCommInfoNode().getNodeMap()
         return json.loads(x)
@@ -1090,6 +1100,7 @@ class VnVFile:
     @staticmethod
     def removeById(fileId, refresh):
         p = VnVFile.FILES.pop(fileId)
+        mongo.removeFile(p.name)
         if refresh:
             VnVFile.FILES[p.id_] = p.clone()
 

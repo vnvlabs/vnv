@@ -31,12 +31,21 @@ def Configured():
 
 def validate_name(name):
     if Configured():
+        if not collection_exists(name):
+            return name
+
         i = 0
         while collection_exists(f'{name}_{i}'):
             i = i + 1
         return f'{name}_{i}'
     return name
 
+
+
+def list_all_files():
+    a = pymongo_database.list_collection_names()
+    a.remove("__vnv_reader_input_files__")
+    return a
 
 def loadInputFile(name):
     if Configured():
@@ -56,3 +65,7 @@ def list_input_files():
 
 def deleteInputFile(name):
     input_collection.delete_one({"name": name})
+
+
+def removeFile(name):
+    pymongo_database.drop_collection(name)

@@ -15,6 +15,7 @@ from app.models.VnVConnection import VnVLocalConnection, VnVConnection, MAIN_CON
 from app.rendering.readers import LocalFile
 from . import viewers
 from app.models.VnVFile import VnVFile
+from ...utils import mongo
 from ...utils.mongo import collection_exists
 from ...utils.utils import render_error
 
@@ -313,20 +314,21 @@ def template_globals(globs):
 PREFIX="../build/"   #### PREFIX SHOULD GET YOU BACK TO the BUILD DIRECTORY FROM THE REPORT GEN DIRECTORY.
 
 files = [
-    [True, "Injection Points", PREFIX + "examples/cpp/outputs/injectionPoint/out", "json_file",{}],
-    [True, "Iterators", PREFIX + "examples/cpp/outputs/iterator/out", "json_file", {}],
-    [True, "Live Results", PREFIX + "examples/cpp/outputs/live/out", "json_file", {}],
+    [False, "Injection Points", PREFIX + "examples/cpp/outputs/injectionPoint/out", "json_file",{}],
+    [False, "Iterators", PREFIX + "examples/cpp/outputs/iterator/out", "json_file", {}],
+    [False, "Live Results", PREFIX + "examples/cpp/outputs/live/out", "json_file", {}],
     [True, "Contour Plots", PREFIX + "examples/cpp/outputs/contour/out", "json_file", {}],
     [True, "Line Charts", PREFIX + "examples/cpp/outputs/line/out", "json_file", {}],
-    [True, "Asgard", PREFIX + "../../applications/asgard/build/vv-output", "json_file", {}]
+    [False, "Asgard", PREFIX + "../../applications/asgard/build/vv-output", "json_file", {}]
 ]
 
+LOAD_OLD=True
+
 def faker():
-    # Development stuff -- this loads some files by default on my computer. Feel free to add your
-    # own
+
+  # Development stuff -- this loads some files by default on my computer. Feel free to add your own
   for f in files:
     if f[0] and os.path.exists(f[2]):
         VnVFile.add(f[1], f[2], f[3], get_file_template_root(), **f[4])
     else:
         print("Could not demo file ", os.path.abspath(f[2]), "File does not exist")
-
