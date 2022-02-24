@@ -632,7 +632,7 @@ class VnVFile:
 
         self.th = None
         self.templates = None
-        self.setupNow()
+        #self.setupNow()
 
     # Try and setup the templates once we can.
     def setupNow(self):

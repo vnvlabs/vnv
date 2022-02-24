@@ -2,9 +2,10 @@ import pymongo
 
 
 def list_mongo_collections():
-    a = pymongo_database.list_collection_names()
-    return a
-
+    if Configured():
+        a = pymongo_database.list_collection_names()
+        return a
+    return []
 
 def collection_exists(name):
     return name in list_mongo_collections()
@@ -43,9 +44,11 @@ def validate_name(name):
 
 
 def list_all_files():
-    a = pymongo_database.list_collection_names()
-    a.remove("__vnv_reader_input_files__")
-    return a
+    if Configured():
+        a = pymongo_database.list_collection_names()
+        a.remove("__vnv_reader_input_files__")
+        return a
+    return []
 
 def loadInputFile(name):
     if Configured():
@@ -69,3 +72,4 @@ def deleteInputFile(name):
 
 def removeFile(name):
     pymongo_database.drop_collection(name)
+

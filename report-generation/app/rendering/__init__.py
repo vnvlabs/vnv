@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import subprocess
 import textwrap
 import uuid
 
@@ -245,7 +246,10 @@ def build(src_dir, templates, id_):
     with open(os.path.join(src_dir, "descriptions.json"), 'w') as w:
         json.dump(descriptions,w)
 
-    params = ["-M", "html", src_dir, os.path.join(src_dir, "_build")]
-    sphinx.cmd.build.make_main(params)
-
+    with open(os.path.join(src_dir, "runv.py"), 'w') as w:
+        w.write(f'''import os\nimport sphinx.cmd.build\nsphinx.cmd.build.make_main(["-M","html","{src_dir}",os.path.join("{src_dir}","_build")])''')
+    try:
+        a = subprocess.run(["python",os.path.join(src_dir, "runv.py")])
+    except Exception as e:
+        print (e)
     return TemplateBuild(src_dir, id_,descrip=descriptions)
