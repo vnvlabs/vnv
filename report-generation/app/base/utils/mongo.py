@@ -1,6 +1,9 @@
 import pymongo
 
 
+def Configured():
+    return MONGO_AVAILABLE
+
 def list_mongo_collections():
     if Configured():
         a = pymongo_database.list_collection_names()
@@ -14,20 +17,18 @@ def collection_exists(name):
 try:
     MONGO_URL = 'mongodb://localhost:27017/'
     MONGO_DB = "vnv"
-    pymongo_client = pymongo.MongoClient(MONGO_URL)
+    pymongo_client = pymongo.MongoClient(MONGO_URL, serverSelectionTimeoutMS = 2000)
     pymongo_database = pymongo_client.get_database(MONGO_DB)
+    MONGO_AVAILABLE = True
 
     if not collection_exists("__vnv_reader_input_files__"):
         pymongo_database.create_collection("__vnv_reader_input_files__")
     input_collection = pymongo_database.get_collection("__vnv_reader_input_files__")
-    MONGO_AVAILABLE = True
-except:
+except Exception as e:
     MONGO_AVAILABLE = False
     print("MONGO NOT RUNNING -- CANNOT PERSIST TO DB")
 
 
-def Configured():
-    return MONGO_AVAILABLE
 
 
 def validate_name(name):
