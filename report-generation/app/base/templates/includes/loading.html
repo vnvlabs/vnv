@@ -28,14 +28,18 @@ function loading_timeout() {
     },1000)
 }
 
-function markAsLoading(val){
+function markAsLoading(val, message){
   if (val) {
     var a = $('#loading')
-    a.html(" <span>&#183;</span>  <span>&#183;</span>  <span>&#183;</span> Loading <span>&#183;</span>  <span>&#183;</span>  <span>&#183;</span> ")
+    a.html(" <span>&#183;</span>  <span>&#183;</span>  <span>&#183;</span>" + message + " <span>&#183;</span>  <span>&#183;</span>  <span>&#183;</span> ")
     a.css("display","flex")
     loading_timeout();
   } else {
-    $('#loading').css("display","none")
+    var a = $('#loading')
+    a.html(message)
+    setTimeout(function() {
+         $('#loading').css("display","none")
+    },1000)
   }
 }
 

@@ -23,14 +23,17 @@ function add_input_file(event) {
 
 
 function save_input_config(fileid, elm) {
+    markAsLoading(true,"Updating Input File Configuration");
     $.post("/inputfiles/configure/" + fileid, elm.serialize(), function(data) {
         $('#config_content_config').html(data)
+
         $.get("/inputfiles/update_main_header/" + fileid, function(data) {
-            $("#main_header").html(data);
+            $("#main_header").html(data["header"]);
+            ace.edit("specFile").getSession().setValue(data["spec"]);
+            $('#main_desc').html(data["desc"])
+            markAsLoading(false,"Input File Updated Successfully")
         })
-        $.get("/inputfiles/get_spec/" + fileid, function(data) {
-            ace.edit("specFile").getSession().setValue(data);
-        })
+
     })
 }
 

@@ -63,9 +63,6 @@
 #define INJECTION_REGISTRATION_CALL(PNAME) VNV_REGISTRATION_CALLBACK_NAME(PNAME)
 #define INJECTION_REGISTRATION_PTR(PNAME) &VNV_REGISTRATION_CALLBACK_NAME(PNAME)
 
-// This macro allows the user to enter some documentation about the package to
-// be picked up by the clang parser.
-#define INJECTION_PACKAGEDOCS(PNAME)
 
 // Allows the user to define a comment for any vnv injection object at some
 // other place. Comments will be inserted based on the IMPORTANCE rating. The

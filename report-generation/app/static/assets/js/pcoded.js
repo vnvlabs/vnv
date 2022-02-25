@@ -853,9 +853,11 @@ $(".pcoded-navbar .pcoded-inner-navbar a").each(function() {
     }
 });
 
-function autocomplete(inp, context) {
+function autocomplete(inp, context, pre) {
 
   var currentFocus;
+
+  if (pre === undefined)  pre = ""
 
   inp.addEventListener("input", function(e) {
 
@@ -863,10 +865,12 @@ function autocomplete(inp, context) {
       closeAllLists();
       if (!val) { return false;}
       currentFocus = -1;
-      var url = "/autocomplete?prefix=" + val
+
+      var url = pre + "/autocomplete?prefix=" + val
       if (context) {
         url = url + context()
       }
+      console.log(url)
       $.get(url, function(data) {
           updateAutoComplete(inp,data);
       });

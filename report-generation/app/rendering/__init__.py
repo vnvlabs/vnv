@@ -7,6 +7,8 @@ import uuid
 
 import sphinx.cmd.build
 
+from app import Directory
+
 conf_template = '''
 import sys
 sys.path.append("{path}")
@@ -48,12 +50,11 @@ def setup_build_directory(src_dir, fileId):
 
 
 class TemplateBuild:
-    def __init__(self, src_dir, id_, descrip = None):
+    def __init__(self, src_dir, id_, descrip=None):
         self.src_dir = os.path.basename(src_dir)
         self.root_dir = src_dir
         self.file = id_
         self.descrip = descrip
-
 
     def read(self, f):
         with open(os.path.join(self.root_dir, f), 'r') as ff:
@@ -62,9 +63,9 @@ class TemplateBuild:
 
     def get_type_description(self, type, package, name):
         if self.descrip is None:
-            with open(os.path.join(self.root_dir,"descriptions.json"),'r') as w:
+            with open(os.path.join(self.root_dir, "descriptions.json"), 'r') as w:
                 self.descrip = json.load(w)
-        return self.descrip.get(type,{}).get(package + ":" + name )
+        return self.descrip.get(type, {}).get(package + ":" + name)
 
     def get_html_file_name(self, type, package, name):
         return os.path.join(
@@ -77,18 +78,18 @@ class TemplateBuild:
     def get_action(self, package, name):
         return self.get_html_file_name("Actions", package, name)
 
-    def get_job_creator(self,package,name):
-        return self.get_html_file_name("JobCreators",package,name)
+    def get_job_creator(self, package, name):
+        return self.get_html_file_name("JobCreators", package, name)
 
-    def get_job_creator_job(self,package,name, jobName):
-        return os.path.join("renders", self.src_dir, "_build", "html", f"JobCreator_Job_{package}_{name}_{jobName}.html")
+    def get_job_creator_job(self, package, name, jobName):
+        return os.path.join("renders", self.src_dir, "_build", "html",
+                            f"JobCreator_Job_{package}_{name}_{jobName}.html")
 
-    def get_raw_job_creator_job(self,package,name, jobName):
-        return self.read( f"JobCreator_Job_{package}_{name}_{jobName}.rst")
+    def get_raw_job_creator_job(self, package, name, jobName):
+        return self.read(f"JobCreator_Job_{package}_{name}_{jobName}.rst")
 
-
-    def get_raw_job_creator(self,package,name):
-        return self.read( f"JobCreators_{package}_{name}.rst")
+    def get_raw_job_creator(self, package, name):
+        return self.read(f"JobCreators_{package}_{name}.rst")
 
     def get_unit_test_test_content(self, package, name, test):
         return os.path.join("renders", self.src_dir, "_build", "html", f"UnitTest_Test_{package}_{name}_{test}.html")
@@ -117,12 +118,11 @@ class TemplateBuild:
         params = ["-M", "html", temp_dir, os.path.join(temp_dir, "_build")]
         sphinx.cmd.build.make_main(params)
 
-        with open(os.path.join(temp_dir, "_build","html","index.html"), 'r') as w:
+        with open(os.path.join(temp_dir, "_build", "html", "index.html"), 'r') as w:
             va = w.read()
 
         shutil.rmtree(temp_dir)
         return va
-
 
     def get_raw_rst(self, data):
         usage = data.getUsageType()
@@ -137,7 +137,6 @@ class TemplateBuild:
 
         return self.read(fname)
 
-
     def get_unit_test_test_raw(self, package, name, test):
         return os.path.join("renders", self.src_dir, "_build", "html", f"UnitTest_Test_{package}_{name}_{test}.html")
 
@@ -146,7 +145,6 @@ class TemplateBuild:
 
     def get_raw_conclusion(self):
         return self.read("Conclusion.rst")
-
 
     def get_raw_package(self, package):
         return self.read(f"Options_{package}.rst")
@@ -215,9 +213,7 @@ def build(src_dir, templates, id_):
                     else:
                         w.write(f"\n{textwrap.dedent(point['docs']['template'])}\n\n")
 
-
                 descriptions.setdefault(type_, {})[name_package[0] + ":" + name_package[1]] = point["docs"]
-
 
                 if type_ == "UnitTests":
                     tests = point["tests"]
@@ -244,12 +240,31 @@ def build(src_dir, templates, id_):
         w.write(index)
 
     with open(os.path.join(src_dir, "descriptions.json"), 'w') as w:
-        json.dump(descriptions,w)
+        json.dump(descriptions, w)
 
     with open(os.path.join(src_dir, "runv.py"), 'w') as w:
-        w.write(f'''import os\nimport sphinx.cmd.build\nsphinx.cmd.build.make_main(["-M","html","{src_dir}",os.path.join("{src_dir}","_build")])''')
+        w.write(
+            f'''import os\nimport sphinx.cmd.build\nsphinx.cmd.build.make_main(["-M","html","{src_dir}",os.path.join("{src_dir}","_build")])''')
     try:
-        a = subprocess.run(["python",os.path.join(src_dir, "runv.py")])
+        a = subprocess.run(["python", os.path.join(src_dir, "runv.py")])
     except Exception as e:
-        print (e)
-    return TemplateBuild(src_dir, id_,descrip=descriptions)
+        print(e)
+    return TemplateBuild(src_dir, id_, descrip=descriptions)
+
+
+def render_rst_to_string(content):
+
+    temp_dir = os.path.join(Directory.VNV_TEMP_TEMP_PATH, uuid.uuid4().hex)
+    setup_build_directory(temp_dir, -1)
+
+    with open(os.path.join(temp_dir, "index.rst"), 'w') as w:
+        w.write(content)
+
+    params = ["-M", "html", temp_dir, os.path.join(temp_dir, "_build")]
+    sphinx.cmd.build.make_main(params)
+
+    with open(os.path.join(temp_dir, "_build", "html", "index.html"), 'r') as w:
+        va = w.read()
+
+    shutil.rmtree(temp_dir)
+    return va

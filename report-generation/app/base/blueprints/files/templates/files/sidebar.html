@@ -10,7 +10,7 @@
 
         {% for file in uniquefiles() %}
         <li id="file-{{file.id_ | safe}}">
-            <a onclick="markAsLoading(true)" href="{{url_for('base.files.view',id_=file.id_)}}">
+            <a onclick="markAsLoading(true,'Loading')" href="{{url_for('base.files.view',id_=file.id_)}}">
                 <div style="display:flex;">
                     <span style="flex:1;">{{file.name}}</span>
                     <span onclick='remove_file({{file.id_ | safe }}, event, true)' class="pcoded-micon"

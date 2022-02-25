@@ -14,11 +14,21 @@
 
 <form id="input-configuration-form" method="post" action="/inputfiles/configure/{{file.id_}}">
 
-    <div class="form-group">
-        <label for="application">Application</label>
-        <input name="application" type="text" class="form-control" id="application"
+    <div class="form-group" style="position:relative">
+        <label for="inputfile_application">Application</label>
+        <input name="application" type="text" class="autocomplete form-control" id="inputfile_application"
                placeholder="Enter Path to application" value="{{file.filename}}">
+
+        <script>
+            $(document).ready(function(){
+               autocomplete(document.getElementById('inputfile_application'), function() {
+                        return "&file={{file.id_}}&context=inputfile";
+               },"/inputfiles")
+            })
+        </script>
+
     </div>
+
 
     <div class="form-group">
         <label for="specDump">Command required to extract application schema.</label>
@@ -50,7 +60,7 @@
             </div>
             <div class="form-group">
                 <label for="cd">Domain</label>
-                <input  name="domain" type="text"
+                <input name="domain" type="text"
                        class="form-control"
                        id="cd" placeholder="Enter Domain name"
                        value="{{connection.domain()}}">
@@ -64,7 +74,7 @@
 
             <div class="form-group">
                 <label for="cpa">Password</label>
-                <input  name="password" type="password"
+                <input name="password" type="password"
                        class="form-control"
                        id="cpa" placeholder="Enter your password" value="">
             </div>
@@ -74,9 +84,39 @@
 
 {%endwith%}
 
-<h4>Current Application Schema (read only)</h4>
-<div id="specFile" style="font-size:20px; height:1050px; width:100%; ">{{file.spec}}</div>
+<h2>Application Information</h2>
+<div class="card" style="padding:20px;">
 
+    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+
+        <li class="nav-item">
+            <a class="nav-link active" state="main-tab" id="config-desc-tab"
+               data-toggle="pill" href="#config-desc" role="tab"
+               aria-controls="config-desc" aria-selected="true">Description</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="config-spec-tab"
+               data-toggle="pill" href="#config-spec" role="tab"
+               aria-controls="config-spec" aria-selected="true">Specification</a>
+        </li>
+
+    </ul>
+
+    <div class="tab-content fcolumn fchild " id="config-tabContent">
+
+        <div class="tab-pane fade show active finlinecolumn fchild" id="config-desc"
+             role="tabpanel" aria-labelledby="config-desc-tab">
+
+            <div id="main_desc">{{file.get_executable_description()|safe}}</div>
+
+        </div>
+        <div class="tab-pane fade finlinecolumn fchild" id="config-spec"
+             role="tabpanel" aria-labelledby="config-spec-tab">
+            <div id="specFile" style="font-size:20px; height:1050px; width:100%; ">{{file.spec}}</div>
+        </div>
+
+    </div>
+</div>
 <script>
 
 $( document ).ready(function(){
@@ -91,6 +131,11 @@ $(document).ready(function() {
     });
 
 });
+
+
+
+
+
 
 
 </script>
