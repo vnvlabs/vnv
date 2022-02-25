@@ -43,7 +43,14 @@ INJECTION_TEST(ContourExample, contour) {
 }
 
 
-// Register the executable with VNV
+/**
+ * @brief 
+ * 
+ * HELLO 
+ * =====
+ * 
+ * What does this application do. 
+ */
 INJECTION_EXECUTABLE(ContourExample)
 
 int main(int argc, char** argv) {

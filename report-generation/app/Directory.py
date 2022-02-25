@@ -5,6 +5,11 @@ VNV_TEMP_PATH = os.path.join(VNV_DIR_PATH,"temp")
 if not os.path.exists(VNV_TEMP_PATH):
     os.mkdir(VNV_TEMP_PATH)
 
+VNV_TEMP_TEMP_PATH = os.path.join(VNV_TEMP_PATH,"temp")
+if not os.path.exists(VNV_TEMP_TEMP_PATH):
+    os.mkdir(VNV_TEMP_TEMP_PATH)
+
+
 UPDATE_DIR = os.path.join(VNV_TEMP_PATH, "updates")
 if not os.path.exists(UPDATE_DIR):
     os.mkdir(UPDATE_DIR)

@@ -2,6 +2,7 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
+import glob
 import json
 from pathlib import Path
 
@@ -141,12 +142,34 @@ def input_autocomplete(comp, id_):
 @blueprint.route('/update_main_header/<int:id_>')
 def main_header(id_):
     with VnVInputFile.find(id_) as file:
-        return render_template("inputfiles/main_header_content.html", file=file)
+        data = {
+            "header" : render_template("inputfiles/main_header_content.html", file=file),
+            "spec" : file.spec,
+            "desc" : file.get_executable_description()
+        }
+        return make_response(jsonify(data),200)
+    return make_response("Error",500)
 
 @blueprint.route('/get_spec/<int:id_>')
 def get_spec(id_):
     with VnVInputFile.find(id_) as file:
         return make_response(file.spec,200)
+
+@blueprint.route('/autocomplete')
+def autocomplete():
+    pref = request.args.get('prefix', '')
+    file = request.args.get("file")
+    try:
+        with VnVInputFile.find(int(file)) as f:
+            return make_response(jsonify(f.connection.autocomplete(pref)), 200)
+    except:
+        make_response(jsonify(glob.glob(pref + "*")), 200)
+
+
+@blueprint.route('/get_desc/<int:id_>')
+def get_desc(id_):
+    with VnVInputFile.find(id_) as file:
+       return make_response(file.get_executable_description(),200)
 
 
 
@@ -164,8 +187,6 @@ def configure(id_):
             file.setConnection(domain, username, password, port)
 
         file.setFilename(request.form.get("application", file.filename), request.form.get("specDump",file.specDump))
-
-
         return render_template("inputfiles/connection_content.html", file=file)
 
 

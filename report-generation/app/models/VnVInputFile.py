@@ -3,6 +3,7 @@ import os
 import textwrap
 import uuid
 
+import flask
 import jsonschema
 from jsonschema.exceptions import ErrorTree, ValidationError, SchemaError
 
@@ -10,6 +11,7 @@ from app.base.utils import mongo
 from app.models import VnV
 from app.models.VnVConnection import VnVLocalConnection, VnVConnection, connectionFromJson
 from app.models.json_heal import autocomplete
+from app.rendering import render_rst_to_string
 
 
 def get_current_path(newVal, row, col):
@@ -76,10 +78,14 @@ class VnVInputFile:
         self.exec = json.dumps(self.defaultExecution, indent=4)
         self.execFile = ""
         self.specValid = False
+        self.desc = None
+        self.rendered = None
         self.plugs = None
 
         # Set the default Input file.
-        self.saveInput(json.dumps(VnV.getVnVConfigFile_1(), indent=4))
+        self.value = json.dumps(VnV.getVnVConfigFile_1(), indent=4)
+        self.plugs = self.getPlugins()
+        self.updateSpec()
 
     def toJson(self):
         a = {}
@@ -91,8 +97,10 @@ class VnVInputFile:
         a["value"] = self.value
         a["spec"] = self.spec
         a["specDump"] = self.specDump
+        a["specValid"] = self.specValid
         a["exec"] = self.exec
         a["execFile"] = self.execFile
+        a["rendered"] = self.rendered
         return a
 
     @staticmethod
@@ -108,6 +116,8 @@ class VnVInputFile:
 
         r.spec = a["spec"]
         r.specDump = a["specDump"]
+        r.specValid = a["specValid"]
+        r.rendered = a["rendered"]
         r.exec = a["exec"]
         r.execFile = a["execFile"]
 
@@ -115,6 +125,8 @@ class VnVInputFile:
             r.specLoad = json.loads(r.spec)
         except:
             r.specLoad = VnVInputFile.DEFAULT_SPEC.copy()
+
+        r.plugs = r.getPlugins()
 
         return r
 
@@ -161,10 +173,19 @@ class VnVInputFile:
     # if auto is on, we should also update the specification.
     def saveInput(self, newValue):
 
-        self.value = newValue
-        # if the plugins are different, try to reload the specification.
-        if self.plugs is None or self.plugs != self.getPlugins(newValue):
+        # If the plugins have changed then we need to update the spec.
+        newPlugs = self.getPlugins(newValue)
+        if (newPlugs != self.get_current_plugins()):
+            self.plugs = newPlugs
             self.updateSpec()
+
+        #update the value
+        self.value = newValue
+
+    def get_current_plugins(self):
+        if self.plugs is None:
+            self.plugs = self.getPlugins()
+        return self.plugs
 
     def validateInput(self, newVal):
         try:
@@ -183,6 +204,13 @@ class VnVInputFile:
 
 
     def updateSpec(self):
+        self.specValid = False
+        self.rendered = None
+        self.specLoad = {"error":"No specification available"}
+        self.spec = json.dumps(self.specLoad)
+
+        if not self.connection.connected():
+            return
 
         def getSpecDumpCommand(inputfilename):
             main = self.specDump.replace("${application}", self.filename)
@@ -190,32 +218,37 @@ class VnVInputFile:
             return main
 
         try:
-            aa = json.loads(self.value)
-            s = {"additionalPlugins": aa.get("additionalPlugins", {})}
-        except:
-            s = {"additionalPlugins": {}}
+            s = {"additionalPlugins": self.get_current_plugins()}
+            s["schema"] = {"dump": True, "quit": True}
+            path = self.connection.write(json.dumps(s), None)
+            a = getSpecDumpCommand(path)
 
-        s["schema"] = {"dump": True, "quit": True}
-        path = self.connection.write(json.dumps(s), None)
-        a = getSpecDumpCommand(path)
-        try:
             res = self.connection.execute(a)
             a = res.find("===START SCHEMA DUMP===") + len("===START SCHEMA DUMP===")
             b = res.find("===END SCHEMA_DUMP===")
             if a > 0 and b > 0 and b > a:
                 self.spec = res[a:b]
-                try:
-                    self.specLoad = json.loads(self.spec)
-                    self.specValid = True
-                except:
-                    self.specLoad = VnVInputFile.DEFAULT_SPEC.copy()
-                    self.specValid = False
-            else:
-                self.specValid = False
+                self.specLoad = json.loads(self.spec)
+                self.specValid = True
+                self.rendered = self.get_executable_description()
 
         except Exception as e:
-            self.schemaValid = False
+            pass
 
+
+    NO_INFO = "No Application Information Available\n===================================="
+    def get_executable_description_(self):
+        if self.specLoad is not None:
+            desc = self.specLoad.get("definitions", {}).get("executable",{}).get("template",self.NO_INFO)
+            return desc
+        else:
+            return self.NO_INFO
+
+
+    def get_executable_description(self):
+        if self.rendered is None:
+            self.rendered = flask.render_template_string(render_rst_to_string(self.get_executable_description_()),file=self)
+        return self.rendered
 
     def validateSpec(self, newVal):
         try:

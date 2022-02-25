@@ -160,6 +160,7 @@ class RegistrationWriter {
     registerHelper(j, "Walkers", "WALKER", packageName);
     registerHelper(j, "DataTypes", "DATATYPE", packageName);
 
+
     if (j.contains("LogLevels")) {
       for (auto it : j["LogLevels"].items()) {
         std::string pname = it.value()["packageName"].get<std::string>();
@@ -222,7 +223,7 @@ class RegistrationWriter {
     }
 
     // Add the intro and the conclusion.
-    std::vector<std::string> cc = {"Introduction", "Conclusion", "Package"};
+    std::vector<std::string> cc = {"Introduction", "Conclusion", "Executables"};
     for (std::string i : cc) {
       if (j.contains(i)) {
         for (auto it : j[i].items()) {
@@ -277,6 +278,7 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string cacheFil
 
   // First we load the existing file in that directory.
   bool cacheChanged = true;
+  
   if (!force) {
     std::ifstream efile(outputFileName);
     if (efile.good()) {
@@ -302,7 +304,7 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string cacheFil
            {"InjectionPoints", "SubPackages",  "LogLevels",       "Files",      "Tests",        "Iterators",
             "Plugs",           "Engines",      "EngineReaders",   "Comms",      "Reducers",     "Samplers",
             "Walkers",         "DataTypes",    "Serializers",     "Transforms", "UnitTests",    "Actions",
-            "Options",         "Introduction", "Conclusion",      "Package",    "Communicator", "Schedulers",
+            "Options",         "Introduction", "Conclusion",      "Executables",    "Communicator", "Schedulers",
             "Validators",      "JobCreators",  "ScriptGenerators"}) {
         json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);
         for (auto it : VnV::JsonUtilities::getOrCreate(it.value(), type).items()) {

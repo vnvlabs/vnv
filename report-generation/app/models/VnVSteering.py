@@ -4,7 +4,7 @@ import os
 import time
 
 import jsonschema
-from flask import render_template, make_response
+from flask import parse__template, make_response
 
 from app.models import VnV
 

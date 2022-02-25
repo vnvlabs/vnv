@@ -208,6 +208,10 @@ nlohmann::json RunTime::getFullJsonSchema() {
   defs["unittest"] = UnitTestStore::instance().schema();
   defs["transform"] = TransformStore::instance().schema();
   defs["workflows"] = WorkflowStore::instance().schema();
+  
+
+  json j = json::parse(jsonCallbacks[mainPackageName]());
+  defs["executable"] = j["Executables"];
   return main;
 }
 

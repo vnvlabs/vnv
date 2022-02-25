@@ -36,7 +36,7 @@
 
                     <div class="autocomplete form-group" style="width:100%" >
                         <label id="reader_label" for="inputfilename" class="col-form-label">{{list_vnv_readers()[0][3]}}</label>
-                        <input id="inputfilename" type="text" class="form-control" id="filename" name="filename" autocomplete="off" placeholder="">
+                        <input id="inputfilename" type="text" class="form-control" name="filename" autocomplete="off" placeholder="">
                         <small id="reader_message">{{list_vnv_readers()[0][1]}}</small>
                     </div>
 
@@ -75,7 +75,7 @@
                                        $('#password-group').hide()
                                 }
                             });
-                            autocomplete(document.getElementById('filename'), function() {
+                            autocomplete(document.getElementById('inputfilename'), function() {
                                 return "&context=" + $('#reader').val();
                             })
                         });

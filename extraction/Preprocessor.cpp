@@ -426,8 +426,8 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     } else if (nae == "INJECTION_FINALIZE") {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Conclusion");
       jj[getPackageName(Args, 0)] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_PACKAGEDOCS") {
-      json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Package");
+    } else if (nae == "INJECTION_EXECUTABLE") {
+      json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Executables");
       std::string pname = pp.getSpelling(*Args->getUnexpArgument(0));
       jj[pname] = getDocs(Range).toJson();
     } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {

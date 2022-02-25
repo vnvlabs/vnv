@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import shutil
@@ -116,6 +117,8 @@ class VnVConnection:
     def port(self):
         return self.port_
 
+
+
     def username(self):
         return self.username_
 
@@ -165,6 +168,12 @@ class VnVConnection:
         def cancel(self):
             self.session.close()
 
+    GLOBY = """python -c 'import glob; import json; print(json.dumps(glob.glob("{path}")))'"""
+    def autocomplete(self, pref):
+       try:
+            return json.loads(self.execute(self.GLOBY.format(path=pref))) # Not implemented yet
+       except:
+           return []
 
     def execute(self, command, asy=False, name=None, fullscript=None, vnv_input=None):
         nbytes = 4096
@@ -204,6 +213,7 @@ class VnVConnection:
         self.execute("chmod u+x " + path)
         vv=Ansi2HTMLConverter().convert(vnv_input) if vnv_input is not None else ""
         self.execute(path, asy, name=name, fullscript=Ansi2HTMLConverter().convert(script), vnv_input=vv )
+
 
 
     def getInfo(self, path):
@@ -322,6 +332,9 @@ class VnVLocalConnection:
 
     def connected(self):
         return self.connected_
+
+    def autocomplete(self,pref):
+        return glob.glob(pref + "*")
 
     class SessionContext:
 

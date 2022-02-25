@@ -148,7 +148,12 @@ INJECTION_TEST(LineExample, line) {
 }
 
 
-// Register the executable with VNV
+
+/**
+ * @brief 
+ * 
+ * @return * Register 
+ */
 INJECTION_EXECUTABLE(LineExample)
 
 /**
@@ -205,6 +210,7 @@ int main(int argc, char** argv) {
   
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
   MPI_Comm_size(MPI_COMM_WORLD,&world);
+
 
   std::vector<double> x,y,z;
   std::vector<std::vector<double>> w;
