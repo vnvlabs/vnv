@@ -15,3 +15,5 @@ pymongo~=4.0.1
 Jinja2~=3.0.3
 ansi2html~=1.7.0
 Flask-Markdown~=0.3
+docker
+python-socketio[Client]

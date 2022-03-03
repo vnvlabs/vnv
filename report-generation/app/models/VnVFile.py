@@ -625,12 +625,16 @@ class VnVFile:
         self.workflowRender = None
 
         if not reload:
+            self.dispName = name
             self.name = validate_name(name)
+            mongo.update_display_name(self.name, self.dispName)
         else:
             self.name = name
+            self.dispName = mongo.get_display_name(self.name)
 
         self.wrapper = VnV.Read(filename, reader, self.getReaderConfig(self.options.get("username"),
                                                                        self.options.get("password")))
+
 
         self.root = self.wrapper.get()
         self.template_dir = os.path.join(template_root, str(self.id_))
@@ -652,9 +656,17 @@ class VnVFile:
                 self.th.start()
         return self.templates is not None
 
+    def nospec(self):
+        return self.vnvspec is None or len(self.vnvspec) == 0
+
     def setup_thread(self):
         self.templates = r.build(self.template_dir, self.vnvspec, self.id_)
         self.vnvspec = None
+
+    def update_dispName(self, newName):
+        self.dispName = newName
+        mongo.update_display_name(self.name, newName)
+
 
     def render_temp_string(self, content):
         if self.setupNow():
@@ -1113,6 +1125,14 @@ class VnVFile:
         if refresh:
             VnVFile.FILES[p.id_] = p.clone()
 
+    @staticmethod
+    def delete_all():
+
+        for k,v in VnVFile.FILES.items():
+            mongo.removeFile(v.name)
+        VnVFile.FILES.clear()
+
+
     class FileLockWrapper:
         def __init__(self, file):
             self.file = file
@@ -1129,3 +1149,4 @@ class VnVFile:
         if id_ in VnVFile.FILES:
             return VnVFile.FileLockWrapper(VnVFile.FILES[id_])
         raise FileNotFoundError
+

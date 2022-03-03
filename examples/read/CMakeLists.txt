@@ -14,7 +14,7 @@ function(addExecutable name packageName file)
     target_compile_definitions(${name} PUBLIC -DWITH_MPI=1)
   endif()
 
-  install(TARGETS ${name} DESTINATION examples/dummy/executables)
+  install(TARGETS ${name} DESTINATION examples/read)
 endfunction()
 
 

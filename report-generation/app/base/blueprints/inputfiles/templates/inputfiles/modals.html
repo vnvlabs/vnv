@@ -20,12 +20,33 @@
                         <input type="text" class="form-control" name="name" id="name">
                         <small>The executable name is used to identify this executable in the user interface.</small>
                     </div>
-                     <div class="form-group">
+                    <div class="form-group">
+                        <label for="existing" class="col-form-label">Select A VnV Executable:</label>
+                        <select type="text" class="form-control" id="existing" name="executable">
+                            {%for r in list_vnv_executables() %}
+                            <option value="{{r[0]}}" {%if loop.index0 == 0 %} selected {%endif%}  data-message="{{r[1]}}" >{{r[0]}}</option>
+                            {%endfor%}
+                        </select>
+                        <small id="application_description"> {{list_vnv_executables()[0][1]}} </small>
+                    </div>
+                     <div class="form-group" id="inputfile_custom">
                         <label for="name" class="col-form-label">VnV Application Path</label>
                         <input type="text" class="form-control" name="path" id="path">
                         <small>Enter the filename for the VnV Executable (e.g. ~/vnv-applications/application.exe)</small>
                     </div>
+
+                       <script>
+                        $( document ).ready(function() {
+
+                            $('#existing').on('change', function() {
+                                $('#inputfile_custom').toggle($(this).val() === "Custom")
+                                $('#application_description').html($(this).find(":selected").data("message"));
+                            })
+                            $('#inputfile_custom').toggle($('#existing').val() === "Custom")
+                        });
+                    </script>
                 </form>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn  btn-secondary" data-dismiss="modal">Close</button>

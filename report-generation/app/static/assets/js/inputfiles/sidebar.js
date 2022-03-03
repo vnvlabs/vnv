@@ -21,6 +21,22 @@ function add_input_file(event) {
 }
 
 
+function delete_all_inputfiles(event) {
+  event.preventDefault()
+  event.stopPropagation()
+
+  confirm_modal("This will delete all files. This cannot be undone", "Are you sure?" , "Yes","No", (e,m)=>{
+
+     if (e) {
+
+        url = "/inputfiles/delete-all"
+        $.post(url, function( data ) {
+            window.location.href = "/"
+        });
+     }
+  })
+
+  }
 
 function save_input_config(fileid, elm) {
     markAsLoading(true,"Updating Input File Configuration");

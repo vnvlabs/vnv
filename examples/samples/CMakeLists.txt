@@ -17,3 +17,5 @@ target_sources(
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/input.json ${CMAKE_CURRENT_BINARY_DIR}/input.json COPYONLY)
         
+install(TARGETS samples DESTINATION examples/samples)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/input.json DESTINATION examples/samples/input.json )

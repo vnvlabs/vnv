@@ -72,6 +72,8 @@ def autostart():
         return make_response("error",501)
 
 
+
+
 @blueprint.route('/new', methods=["POST"])
 def new():
     try:
@@ -86,6 +88,16 @@ def new():
         # No jobname so we should load a new file.
         reader = request.form["reader"]
         fname = request.form["filename"]
+
+        # Just add some checks in here to make sure its a directory at least. These should
+        # really happen in the reader itself (and they probably do) but there are some wierd
+        # tecnicalities -- For instance, the directory should contain a .fs file, but it might
+        # not have been calculated yet.
+        if reader == "json_file" or reader == "adios_file":
+            if not os.path.exists(fname):
+                return render_error(501, "Error Loading File - Path does not exist")
+            elif not os.path.isdir(fname):
+                return render_error(501, "Error Loading File - Path is not a directory")
 
         if reader == "saved":
             file = VnVFile.add(
@@ -105,8 +117,37 @@ def new():
 
         return redirect(url_for("base.files.view", id_=file.id_))
     except Exception as e:
-        return render_error(501, "Error Loading File")
+        return render_error(501, "Error Loading File"+ str(e) )
 
+
+@blueprint.route('/update_display_name/<int:id_>', methods=["POST"])
+def update_display_name(id_):
+    with VnVFile.find(id_) as file:
+        file.update_dispName(request.args.get("new",file.dispName))
+        return make_response(file.dispName,200)
+
+@blueprint.route('/delete-all', methods=["POST"])
+def delete_all():
+   VnVFile.delete_all()
+   return make_response("Complete",200)
+
+
+def get_file_from_runinfo(runinfo):
+    # if the job name matches then its that one
+    f = VnVFile.findByJobName(runinfo["name"])
+    if f is not None:
+        return f
+    engineInfo = runinfo["engine"]
+    # if the engine name matches and the read er matches then its prob that one.
+    for k, v in VnVFile.FILES.items():
+        if v.filename == engineInfo["filename"] and v.reader == engineInfo["reader"]:
+            return v
+
+    # make a new one.
+    fname = engineInfo.pop("filename")
+    reader = engineInfo.pop("reader")
+    ff = VnVFile.add(runinfo["name"], fname,reader, get_file_template_root(), False, **engineInfo)
+    return ff
 
 
 @blueprint.route('/delete/<int:id_>', methods=["POST"])
@@ -312,27 +353,26 @@ def template_globals(globs):
     globs["uniquefiles"] = unique_files
 
 
-PREFIX="../build/"   #### PREFIX SHOULD GET YOU BACK TO the BUILD DIRECTORY FROM THE REPORT GEN DIRECTORY.
-
 files = [
-    [False, "Injection Points", PREFIX + "examples/cpp/outputs/injectionPoint/out", "json_file",{}],
-    [False, "Iterators", PREFIX + "examples/cpp/outputs/iterator/out", "json_file", {}],
-    [False, "Live Results", PREFIX + "examples/cpp/outputs/live/out", "json_file", {}],
-    [True, "Contour Plots", PREFIX + "examples/cpp/outputs/contour/out", "json_file", {}],
-    [True, "Line Charts", PREFIX + "examples/cpp/outputs/line/out", "json_file", {}],
-    [False, "Asgard", PREFIX + "../../applications/asgard/build/vv-output", "json_file", {}]
+    [True, "Injection Points", "cpp/outputs/injectionPoint/out", "json_file",{}],
+    [True, "Iterators",  "cpp/outputs/iterator/out", "json_file", {}],
+    [True, "Live Results", "cpp/outputs/live/out", "json_file", {}],
+    [True, "Contour Plots", "cpp/outputs/contour/out", "json_file", {}],
+    [True, "Line Charts", "cpp/outputs/line/out", "json_file", {}]
 ]
 
-LOAD_OLD=True
+LOAD_OLD=False
 
-def faker():
+def faker(PREFIX="../build"):
 
-  for f in mongo.list_all_files():
-      VnVFile.add(f,f, "mongo", get_file_template_root(), reload=True)
-
-  # Development stuff -- this loads some files by default on my computer. Feel free to add your own
-  for f in files:
-    if f[0] and os.path.exists(f[2]):
-        VnVFile.add(f[1], f[2], f[3], get_file_template_root(), **f[4])
-    else:
-        print("Could not demo file ", os.path.abspath(f[2]), "File does not exist")
+  mfiles = mongo.list_all_files()
+  if len(files) > 0:
+     for f in mfiles:
+        VnVFile.add(f,f, "mongo", get_file_template_root(), reload=True)
+  else:
+    for f in files:
+        path = os.path.join(PREFIX , f[2])
+        if f[0] and os.path.exists(path):
+            VnVFile.add(f[1], path, f[3], get_file_template_root(), **f[4])
+        else:
+            print("Could not demo file ", path , "File does not exist")

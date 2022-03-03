@@ -9,7 +9,7 @@ from sphinx.directives import optional_int
 from sphinx.util import nodes, nested_parse_with_titles
 from sphinx.util.docutils import SphinxDirective
 
-from app.rendering.vnvdatavis.directives.jmes import get_target_node
+from .jmes import get_target_node
 
 class VnVDashBoardNode(docutils.nodes.General, docutils.nodes.Element):
 

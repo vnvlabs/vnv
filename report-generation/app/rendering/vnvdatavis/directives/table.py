@@ -2,8 +2,8 @@ import json
 
 from sphinx.directives import optional_int
 
-from app.rendering.vnvdatavis.directives.charts import TableChartDirective
-from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query_json
+from .charts import TableChartDirective
+from .jmes import jmes_jinja_query_json
 
 
 def jmes_query(x):

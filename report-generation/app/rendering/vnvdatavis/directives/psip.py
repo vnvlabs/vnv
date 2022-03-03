@@ -1,7 +1,7 @@
 from sphinx.util.docutils import SphinxDirective
 
-from app.rendering.vnvdatavis.directives.charts import VnVChartNode
-from app.rendering.vnvdatavis.directives.jmes import get_target_node
+from .charts import VnVChartNode
+from .jmes import get_target_node
 
 
 class PSIPDirective(SphinxDirective):

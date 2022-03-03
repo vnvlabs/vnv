@@ -6,8 +6,8 @@ import pygments
 from pygments.lexers.data import JsonLexer
 from pygments.formatters.html import HtmlFormatter
 
-# Fake jmes
-import app.rendering.fakejmes as jmespath
+# Fake jme
+from . import fakejmes as jmespath
 
 def render_vnv_template(template, data, file, id=None):
     if id is None:

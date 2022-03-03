@@ -13,13 +13,14 @@ import paramiko
 from ansi2html import Ansi2HTMLConverter
 from app.models.RemoteFileInfo import get_file_name
 
+
 class VnVJob:
-    def __init__(self, id, name, script, vnv_input, ctx):
+    def __init__(self, id, name, script, metadata, ctx):
         self.id = id
         self.name = name
         self.ctx = ctx
         self.script_ = script
-        self.vnv_input_ = vnv_input
+        self.metadata = metadata
 
     def getName(self):
         return self.name if self.name is not None else self.id
@@ -31,15 +32,14 @@ class VnVJob:
         return self.ctx
 
     def running(self):
-       a =  self.getCtx().running()
-       return a
-
+        a = self.getCtx().running()
+        return a
 
     def script(self):
         return self.script_
 
-    def vnv_input(self):
-        return self.vnv_input_
+    def metadata(self):
+        return self.metadata
 
     def stdout(self):
         return Ansi2HTMLConverter().convert(self.getCtx().stdout())
@@ -52,7 +52,7 @@ class VnVConnection:
     INFO_FILE = get_file_name()
     INFO_FILE_PATH = "__vnv_fetch__.py"
 
-    def __init__(self, domain=None,port=None,username=None):
+    def __init__(self, domain=None, port=None, username=None):
         self.transport = None
         self.username_ = username
         self.domain_ = domain
@@ -63,11 +63,10 @@ class VnVConnection:
 
     def toJson(self):
         return {
-            "username" : self.username_,
-            "domain" : self.domain_,
-            "port" : self.port_,
+            "username": self.username_,
+            "domain": self.domain_,
+            "port": self.port_,
         }
-
 
     def getPath(self, filename, exten=None):
         t = tempfile.gettempdir()
@@ -117,8 +116,6 @@ class VnVConnection:
     def port(self):
         return self.port_
 
-
-
     def username(self):
         return self.username_
 
@@ -140,11 +137,9 @@ class VnVConnection:
     class SessionContext:
         nbytes = 4096
 
-
         def __init__(self, session):
             self.session = session
             self.stdout_data = None
-
 
         def running(self):
             return not self.session.exit_status_ready()
@@ -169,13 +164,14 @@ class VnVConnection:
             self.session.close()
 
     GLOBY = """python -c 'import glob; import json; print(json.dumps(glob.glob("{path}")))'"""
-    def autocomplete(self, pref):
-       try:
-            return json.loads(self.execute(self.GLOBY.format(path=pref))) # Not implemented yet
-       except:
-           return []
 
-    def execute(self, command, asy=False, name=None, fullscript=None, vnv_input=None):
+    def autocomplete(self, pref):
+        try:
+            return json.loads(self.execute(self.GLOBY.format(path=pref)))  # Not implemented yet
+        except:
+            return []
+
+    def execute(self, command, asy=False, name=None, fullscript=None, metadata=None):
         nbytes = 4096
         stdout_data = []
         stderr_data = []
@@ -194,27 +190,24 @@ class VnVConnection:
             return "".join(stdout_data)
         else:
             uid = uuid.uuid4().hex
-            self.running_sessions[uid] = VnVJob(uid,name, command if fullscript is None else fullscript,
-                                         vnv_input if vnv_input is not None else "", VnVConnection.SessionContext(session))
+            self.running_sessions[uid] = VnVJob(uid, name, command if fullscript is None else fullscript,
+                                                metadata=metadata, ctx=VnVConnection.SessionContext(session))
             return uid
 
     def get_jobs(self):
-        return [v for k,v in self.running_sessions.items()]
+        return [v for k, v in self.running_sessions.items()]
 
-    def delete_job(self,jobId):
+    def delete_job(self, jobId):
         self.running_sessions.pop(jobId)
 
-    def cancel_job(self,jobId):
+    def cancel_job(self, jobId):
         self.running_sessions[jobId].getCtx().cancel()
 
+    def execute_script(self, script, asy=True, name=None, metadata=None):
 
-    def execute_script(self, script, asy=True, name=None,vnv_input=None):
-        path = self.write(script,None)
+        path = self.write(script, None)
         self.execute("chmod u+x " + path)
-        vv=Ansi2HTMLConverter().convert(vnv_input) if vnv_input is not None else ""
-        self.execute(path, asy, name=name, fullscript=Ansi2HTMLConverter().convert(script), vnv_input=vv )
-
-
+        self.execute(path, asy, name=name, fullscript=Ansi2HTMLConverter().convert(script), meta=metadata)
 
     def getInfo(self, path):
 
@@ -227,13 +220,12 @@ class VnVConnection:
         session = self.transport.open_channel(kind='session')
         session.exec_command(f"{self.pythonpath} {VnVConnection.INFO_FILE_PATH} {path}")
 
-
-        #Block until finished
+        # Block until finished
         while not session.exit_status_ready():
             pass
 
         while session.recv_ready():
-           stdout_data.append(session.recv(nbytes).decode("utf-8"))
+            stdout_data.append(session.recv(nbytes).decode("utf-8"))
 
         session.recv_exit_status()
 
@@ -265,7 +257,7 @@ class VnVConnection:
             path = self.execute("mktemp")
 
         sf = self.sftp()
-        f = sf.file(path,'w',-1)
+        f = sf.file(path, 'w', -1)
         f.write(txt)
         f.flush()
         sf.close()
@@ -293,7 +285,6 @@ class VnVConnection:
 
     def home(self):
         return self.getInfo("~")["home"]
-
 
     def crumb(self, path):
         return self.getInfo(path)["crumb"]
@@ -333,7 +324,7 @@ class VnVLocalConnection:
     def connected(self):
         return self.connected_
 
-    def autocomplete(self,pref):
+    def autocomplete(self, pref):
         return glob.glob(pref + "*")
 
     class SessionContext:
@@ -348,7 +339,6 @@ class VnVLocalConnection:
         def cancel(self):
             self.session.kill()
 
-
         def stdout(self):
             if not self.running():
                 if self.stdout_data is None:
@@ -361,36 +351,33 @@ class VnVLocalConnection:
                 return self.session.returncode
             return -1
 
-    def execute(self, command, asy = False, name=None, fullscript=None, vnv_input=None):
+    def execute(self, command, asy=False, name=None, fullscript=None, metadata=None):
         try:
             result = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
             if not asy:
                 return result.communicate()[0].decode("utf-8")
             else:
                 uid = uuid.uuid4().hex
-                self.running_procs[uid] = VnVJob(uid,name, command if fullscript is None else fullscript,
-                                                 vnv_input if vnv_input is not None else "",
-                VnVLocalConnection.SessionContext(result))
+                self.running_procs[uid] = VnVJob(uid, name, command if fullscript is None else fullscript,
+                                                 metadata, VnVLocalConnection.SessionContext(result))
                 return uid
         except Exception as e:
-            raise Exception("Failed to execute command: " + str(e) )
+            raise Exception("Failed to execute command: " + str(e))
 
-    def execute_script(self, script, asy=True, name=None, vnv_input=None):
-        path = self.write(script,None)
+    def execute_script(self, script, asy=True, name=None, metadata=None):
+        path = self.write(script, None)
         st = os.stat(path)
         os.chmod(path, st.st_mode | stat.S_IEXEC)
-        vv=Ansi2HTMLConverter().convert(vnv_input) if vnv_input is not None else ""
-        return self.execute("sh " + path, asy, name=name, fullscript=Ansi2HTMLConverter().convert(script), vnv_input=vv)
+        return self.execute("sh " + path, asy, name=name, fullscript=Ansi2HTMLConverter().convert(script), metadata=metadata)
 
     def get_jobs(self):
-        return [ v for k,v in self.running_procs.items() ]
+        return [v for k, v in self.running_procs.items()]
 
-    def delete_job(self,jobId):
+    def delete_job(self, jobId):
         self.running_procs.pop(jobId)
 
-    def cancel_job(self,jobId):
+    def cancel_job(self, jobId):
         self.running_procs[jobId].getCtx().cancel()
-
 
     def exists(self, path):
         return os.path.exists(os.path.abspath(path))
@@ -418,11 +405,10 @@ class VnVLocalConnection:
         if path is None:
             path = self.execute("mktemp").rstrip().lstrip()
 
-        with open(path,'w') as f:
+        with open(path, 'w') as f:
             f.write(txt)
 
         return path
-
 
     def home(self):
         return os.path.expanduser("~")
@@ -437,7 +423,7 @@ class VnVLocalConnection:
         return remote
 
     def upload(self, remote, local):
-        shutil.copy(local,remote)
+        shutil.copy(local, remote)
 
     def crumb(self, dir):
         c = os.path.normpath(dir).split(os.path.sep)
@@ -452,8 +438,9 @@ class VnVLocalConnection:
 
 def connectionFromJson(j):
     if j:
-        return VnVConnection(domain=j["domain"],username=j["username"],port=j["port"])
+        return VnVConnection(domain=j["domain"], username=j["username"], port=j["port"])
     return VnVLocalConnection()
+
 
 class MainConnection:
     MAIN_CONNECTION = VnVLocalConnection()

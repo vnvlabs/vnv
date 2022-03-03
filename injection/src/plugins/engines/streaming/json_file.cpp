@@ -102,7 +102,6 @@ class JsonFileStream : public FileStream<JsonFileIterator, json> {
     }
   }
 
-  
   virtual void newComm(long id, const json& obj, ICommunicator_ptr comm) override {
     if (streams.find(id) == streams.end()) {
       std::ofstream off(getFileName(id));
@@ -116,7 +115,8 @@ class JsonFileStream : public FileStream<JsonFileIterator, json> {
   virtual bool supportsFetch() override { return true; }
 
   static std::string getResponseFileName(std::string stub, long id, long jid) {
-    return VnV::DistUtils::join({stub, "__response__", std::to_string(jid) + "_" + std::to_string(id)}, 0777, true,true);
+    return VnV::DistUtils::join({stub, "__response__", std::to_string(jid) + "_" + std::to_string(id)}, 0777, true,
+                                true);
   }
 
   virtual bool fetch(long id, long jid, json& response) override {
@@ -168,7 +168,7 @@ class MultiFileStreamIterator : public MultiStreamIterator<JsonFileIterator, jso
   std::string response_stub = "";
 
  public:
-  MultiFileStreamIterator(std::string fstub) : MultiStreamIterator<JsonFileIterator, json>(), filestub(fstub) { }
+  MultiFileStreamIterator(std::string fstub) : MultiStreamIterator<JsonFileIterator, json>(), filestub(fstub) {}
 
   virtual void respond(long id, long jid, const json& response) override {
     // Respond to a file request in a format that will be understood by rhe Json Stream that is
@@ -181,27 +181,30 @@ class MultiFileStreamIterator : public MultiStreamIterator<JsonFileIterator, jso
   }
 
   void updateStreams() override {
-    std::vector<std::string> files = VnV::DistUtils::listFilesInDirectory(filestub);
-    std::string ext = extension;
-    for (auto& it : files) {
-      if (loadedFiles.find(it) == loadedFiles.end()) {
-        loadedFiles.insert(it);
-        try {
-          
-          if ( it.compare(".")==0 || it.compare("..")==0 || it.size() <= ext.size() ) {
-            continue;
-          }
-          if (it.substr( it.size()- ext.size()).compare(ext) != 0 ) {
-            continue;
-          }
+    try {
+      std::vector<std::string> files = VnV::DistUtils::listFilesInDirectory(filestub);
+      std::string ext = extension;
+      for (auto& it : files) {
+        if (loadedFiles.find(it) == loadedFiles.end()) {
+          loadedFiles.insert(it);
+          try {
+            if (it.compare(".") == 0 || it.compare("..") == 0 || it.size() <= ext.size()) {
+              continue;
+            }
+            if (it.substr(it.size() - ext.size()).compare(ext) != 0) {
+              continue;
+            }
 
-          long id = std::atol(it.substr(0, it.size() - ext.size() ).c_str());
-          std::string fname = VnV::DistUtils::join({filestub, it}, 0777, false);
-          add(std::make_shared<JsonFileIterator>(id, fname));
-          
-        } catch (std::exception &e) {
+            long id = std::atol(it.substr(0, it.size() - ext.size()).c_str());
+            std::string fname = VnV::DistUtils::join({filestub, it}, 0777, false);
+            add(std::make_shared<JsonFileIterator>(id, fname));
+
+          } catch (std::exception& e) {
+          }
         }
       }
+    } catch (std::exception& e) {
+      throw INJECTION_EXCEPTION_("Not A Directory");
     }
   }
 };

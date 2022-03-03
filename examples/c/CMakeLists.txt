@@ -10,6 +10,6 @@ link_vnv_file(csample.a SampleCExecutable c)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/sample.json
                ${CMAKE_CURRENT_BINARY_DIR}/sample.json COPYONLY)
 
-install(TARGETS csample.a DESTINATION examples/c_executables)
+install(TARGETS csample.a DESTINATION examples/c)
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/sample.json
-        DESTINATION examples/c_executables)
+        DESTINATION examples/c)

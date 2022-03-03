@@ -4,7 +4,7 @@ import os.path
 from flask import render_template_string
 from sphinx.errors import ExtensionError
 
-from app.rendering.vnvdatavis.directives.charts import JsonChartDirective
+from .charts import JsonChartDirective
 from collections.abc import MutableMapping
 
 try:

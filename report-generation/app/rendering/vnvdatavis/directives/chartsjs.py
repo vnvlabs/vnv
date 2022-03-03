@@ -1,13 +1,6 @@
 import json
-import os.path
 
-import jsonschema
-from flask import render_template_string
-from sphinx.errors import ExtensionError
-
-from app.rendering.vnvdatavis.directives.apex import apex_post_process, ApexChartDirective, ApexOptionsDict
-from app.rendering.vnvdatavis.directives.charts import JsonChartDirective
-from collections.abc import MutableMapping
+from .apex import apex_post_process, ApexChartDirective, ApexOptionsDict
 
 
 

@@ -3,6 +3,23 @@ function loading() {
 
 }
 
+function delete_all_files(event) {
+  event.preventDefault()
+
+  confirm_modal("This will delete all files. This cannot be undone (files can be reloaded if you still have the raw vnv output)", "Are you sure?" , "Yes","No", (e,m)=>{
+
+     if (e) {
+
+        url = "/files/delete-all"
+        $.post(url, function( data ) {
+            window.location.href = "/"
+        });
+     }
+  })
+
+  }
+
+
 function remove_file(id_, event, refresh) {
   event.preventDefault()
   act = refresh ? "Refresh" : "Remove"
@@ -38,6 +55,11 @@ function add_file(event) {
    $('#new_file_modal').modal()
    event.stopPropagation()
    event.preventDefault();
+}
+
+function update_file_display_name(id,current){
+
+    alert("Not implemented " + id + " " + current )
 }
 
 function show_ip_rst_editor(fileId, testId, atestId ) {

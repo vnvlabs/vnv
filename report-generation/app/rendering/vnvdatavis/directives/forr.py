@@ -11,10 +11,8 @@ from sphinx.directives import optional_int
 from sphinx.util import nested_parse_with_titles
 from sphinx.util.docutils import SphinxDirective
 
-from app import Directory
-from app.base.blueprints import files as dddd
 
-from app.rendering.vnvdatavis.directives.jmes import get_target_node, jmes_jinja_query, jmes_jinja_if_query
+from .jmes import get_target_node, jmes_jinja_query, jmes_jinja_if_query
 
 vnv_directives = {}
 
@@ -127,7 +125,7 @@ class VnVForDirective(SphinxDirective):
     def run(self):
         cont = json.dumps(self.get_json())
         uid = hashlib.md5(cont.encode()).hexdigest()
-        with open(os.path.join(Directory.UPDATE_DIR, uid),'w') as f:
+        with open(os.path.join(the_app.config.update_dir, uid),'w') as f:
             f.write(cont)
 
         target, target_id = get_target_node(self)
@@ -140,6 +138,7 @@ try:
     the_app
 except NameError:
     the_app = None
+
 
 
 def setup(sapp):

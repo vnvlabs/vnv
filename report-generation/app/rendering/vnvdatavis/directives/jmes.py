@@ -3,20 +3,12 @@ import os
 import re
 
 import docutils.nodes
-from docutils.nodes import SkipNode
-from docutils.parsers.rst import directives
-from flask import render_template
-from sphinx.directives import optional_int
-from sphinx.directives.code import CodeBlock
+
 from sphinx.errors import ExtensionError
-from sphinx.util import nodes
-from sphinx.util.docutils import SphinxDirective
-import pygments
-from pygments.lexers.data import JsonLexer
-from pygments.formatters.html import HtmlFormatter
 
 # Fake jmes
-import app.rendering.fakejmes as jmespath
+from . import fakejmes as jmespath
+
 
 
 def get_target_node(directive):

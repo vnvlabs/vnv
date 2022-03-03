@@ -23,19 +23,28 @@ tablist = {
 
         <div class="page-header-title">
             <div style="display:flex; align-items:center;">
-                <h1 class="fchild" >
                 {%if file.isProcessing() %}
                 <span id="processing_{{file.id_}}" class="badge badge-warning">Live</span>
                 <script>
                     $(window).on('load', function() {
                         update_processing({{file.id_}}, "#processing_{{file.id_}}")
                     });
-                    </script>
-                {%endif%}{{file.name}}
-                </h1>
+                </script>
+                {%endif%}
+               <h1 contenteditable=true id="file_display_name" >{{file.dispName}}</h1>
+
             </div>
         </div>
+        <script>
 
+            document.getElementById("file_display_name").addEventListener("input", function() {
+
+                $.post('/files/update_display_name/{{file.id_}}?new=' + encodeURIComponent($(this).html()), function(data) {
+                    $('#file-display-name-side-{{file.id_}}').html(data)
+                });
+            }, false);
+
+        </script>
 
 
         <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
@@ -89,8 +98,25 @@ tablist = {
     ]%}
     <div style="width:100%; height:90vh; display:flex; flex-direction:column; justify-content:center; align-items:center;">
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
-        <h1 style="color:#12355f;">{{listOptions[count % ( listOptions | length )] }}</h1>
+
+        {%if file.nospec() %}
+            <h1 style="color:#12355f;">Searching for VnV Output Files in: {{file.filename}} </h1>
+        {%else %}
+            <h1 style="color:#12355f;">{{listOptions[count % ( listOptions | length )] }}</h1>
+        {%endif%}
+
+        {%if file.nospec() and count > 10 %}
+        <ul style="float:left;width:100%; margin-top:40px; color:#12355f;"><h4>No Files Found.</h4>
+                     <li style="margin-left:40px;"> <h6>Are you sure you entered the correct path?</h6>
+                     <li style="margin-left:40px;"> <h6>Did you start the application?</h6> </li>
+        </ul>
+
+    {% endif %}
+
     </div>
+
+
+
     {%endwith%}
 
     <script>

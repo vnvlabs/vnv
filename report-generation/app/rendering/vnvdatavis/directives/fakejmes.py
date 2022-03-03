@@ -4,8 +4,6 @@ from jmespath.visitor import Options, TreeInterpreter
 from jmespath import parser, functions
 from jmespath.functions import TYPES_MAP, REVERSE_TYPES_MAP, Functions
 
-from app.models import VnV
-
 VnVMap = ['IBoolNode',
           'ICommInfoNode',
           'ICommMap',
@@ -173,18 +171,6 @@ class CustomVnVFunctions(functions.Functions):
                 ss += str(i)
             return ss
         return sep.join(obj)
-
-    @functions.signature()
-    def _func_vnv_root(self):
-        return {a: b.root for a, b in VnV.FILES.items()}
-
-    @functions.signature({"types": ["number"]})
-    def _func_vnv_file(self, fileId):
-        return VnV.FILES.get([int(fileId)]).root
-
-    @functions.signature({"types": ["number"]},{"types": ["number"]})
-    def _func_vnv_ip(self, fileId, ipid):
-       return VnV.FILES.get(int(fileId)).getById(int(ipid))
 
 class VnVExpression:
     def __init__(self, parse):

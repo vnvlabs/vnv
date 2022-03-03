@@ -1,10 +1,17 @@
-<li class="nav-item pcoded-hasmenu" >
+<li class="nav-item pcoded-hasmenu">
 
     <a href="#!" class="nav-link "><span class="pcoded-micon"><i class="feather icon-file"></i></span><span
             class="pcoded-mtext">VnV Reports</span>
-        <span onclick='add_file(event)' class="pcoded-micon pcoded-mtext" style="float:right; padding-right:10px;">
+
+        <span title="Load New File" onclick='add_file(event)' class="pcoded-micon pcoded-mtext"
+              style="float:right; padding-right:10px;">
 							    <i class="feather icon-file-plus"></i>
 							 </span>
+        <span title="delete all" onclick='delete_all_files(event)' class="pcoded-micon pcoded-mtext"
+              style="float:right; padding-right:10px;">
+              <i class="feather icon-delete"></i>
+          </span>
+
     </a>
     <ul class="pcoded-submenu" id="files_list">
 
@@ -12,12 +19,12 @@
         <li id="file-{{file.id_ | safe}}">
             <a onclick="markAsLoading(true,'Loading')" href="{{url_for('base.files.view',id_=file.id_)}}">
                 <div style="display:flex;">
-                    <span style="flex:1;">{{file.name}}</span>
-                    <span onclick='remove_file({{file.id_ | safe }}, event, true)' class="pcoded-micon"
+                    <span id="file-display-name-side-{{file.id_}}" style="flex:1;">{{file.dispName}}</span>
+                    <span title="reload" onclick='remove_file({{file.id_ | safe }}, event, true)' class="pcoded-micon"
                           style="padding-right:10px;">
 									<i class="feather icon-refresh-ccw"></i>
 					</span>
-                    <span onclick='remove_file({{file.id_ | safe }}, event, false)' class="pcoded-micon"
+                    <span title="delete" onclick='remove_file({{file.id_ | safe }}, event, false)' class="pcoded-micon"
                           style="padding-right:10px;">
 									<i class="feather icon-delete"></i>
 								</span>

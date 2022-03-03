@@ -1,6 +1,16 @@
 <div style="flex:1;" >
-   <h3> VnV Executable: {{file.name}}  </h3>
-   <h5 title="File Status: {{file.getFileStatus()[1]}}"> VnV Executable Path: <span style="color:{{file.getFileStatus()[0]}};"> {{file.connection.describe()}}:/{{file.filename}}  </span>  </h5>
+   <h1 contenteditable=true id="inputfile_display_name" >{{file.displayName}}</h1>
+   <h5 title="File Status: {{file.getFileStatus()[1]}}"> Executable Path: <span style="color:{{file.getFileStatus()[0]}};"> {{file.connection.describe()}}:/{{file.filename}}  </span>  </h5>
 </div>
 
+<script>
+
+            document.getElementById("inputfile_display_name").addEventListener("input", function() {
+
+                $.post('/inputfiles/update_display_name/{{file.id_}}?new=' + encodeURIComponent($(this).html()), function(data) {
+                    $('#inputfile-display-name-side-{{file.id_}}').html(data)
+                });
+            }, false);
+
+</script>
 

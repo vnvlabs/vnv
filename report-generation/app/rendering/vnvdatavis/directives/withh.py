@@ -10,11 +10,7 @@ from sphinx.directives import optional_int
 from sphinx.util import nested_parse_with_titles
 from sphinx.util.docutils import SphinxDirective
 
-import Directory
-from app.base.blueprints import files as dddd
-
-from app.rendering.vnvdatavis.directives.jmes import get_target_node, jmes_jinja_query, jmes_jinja_if_query, \
-    jmes_jinja_query_raw
+from .jmes import get_target_node
 
 vnv_directives = {}
 
@@ -33,7 +29,7 @@ class VnVForNode(docutils.nodes.General, docutils.nodes.Element):
 
        #Write the update html file.
        r = "".join(visitor.body[node["start"]:])
-       with open(os.path.join(Directory.UPDATE_DIR, node["uid"] + ".html"), 'w') as f:
+       with open(os.path.join(the_app.config.update_dir, node["uid"] + ".html"), 'w') as f:
           f.write(r)
 
        visitor.body.append(f'''

@@ -7,12 +7,12 @@ from flask import render_template_string
 from sphinx.errors import ExtensionError
 from sphinx.util import nested_parse_with_titles, docutils
 
-from app.rendering.vnvdatavis.directives.charts import JsonChartDirective, VnVChartNode
+from .charts import JsonChartDirective, VnVChartNode
 from collections.abc import MutableMapping
 
-from app.rendering.vnvdatavis.directives.forr import VnVForDirective
-from app.rendering.vnvdatavis.directives.jmes import get_target_node
-from app.rendering.vnvdatavis.directives.plotly import PlotlyDirec, PlotlyOptionsDict, plotly_post_process, \
+from .forr import VnVForDirective
+from .jmes import get_target_node
+from .plotly import PlotlyDirec, PlotlyOptionsDict, plotly_post_process, \
     plotly_post_process_raw
 
 updatemenus = [{

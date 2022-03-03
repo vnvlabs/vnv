@@ -1,0 +1,36 @@
+{% extends "base-fullscreen.html" %}
+
+{% block title %} VnV - Login{% endblock %}
+
+{% block content %}
+{% with count = 0 %}
+
+<div>
+<div id="loading_content">
+    <div style="width:100%; height:90vh; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+        <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+        <h1 style="color:#12355f;">Launching Docker Container: <span id="loading_count">{{count}}</span>%</h1>
+    </div>
+</div>
+<a class="btn btn-primary" style="position: absolute; top: 10px; right: 10px; color: white;" href="/logout">Cancel</a>
+</div>
+<script>
+	setInterval(function(){
+		$.get('/?count={{count+1}}', function(data, ts, xhr) {
+		        if (xhr.status == 205) {
+		           a =  $('#loading_count')
+		           b = parseInt(a.html())
+		           c = b + 10
+		           a.html(c)
+		        } else {
+		            window.location.reload();
+		        }
+		})
+	}, 1000)
+</script>
+
+
+{%endwith%}
+
+{% endblock content %}
+

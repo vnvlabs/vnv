@@ -4,14 +4,25 @@ Copyright (c) 2019 - present AppSeed.us
 """
 import glob
 import json
+import os
 from pathlib import Path
 
 from flask import Blueprint, make_response, jsonify
 from flask import render_template, redirect, url_for, request
 
+from app.models import VnVFile
 from app.models.VnVInputFile import VnVInputFile
+from ..files import get_file_from_runinfo
 from ...utils import mongo
 from ...utils.utils import render_error
+
+vnv_executables = {
+    "VnV Line Application" : [ "examples/cpp/line", "An example that runs a line. "],
+    "VnV Iterator Application": ["examples/cpp/iterator", "An example that runs a iterator. "],
+    "VnV Contour Application": ["examples/cpp/contour","An example that runs a contour plot. "],
+    "Custom" : ["","Custom Application"]
+}
+
 
 blueprint = Blueprint(
     'inputfiles',
@@ -24,10 +35,14 @@ blueprint = Blueprint(
 def new():
     try:
 
-        file = VnVInputFile.add(
-            request.form["name"],
-            request.form["path"]
-        )
+        c = request.form.get("executable")
+        if c == "custom":
+            path = request.form["path"]
+        else:
+            path = os.path.join(VnVInputFile.VNV_PREFIX, vnv_executables.get(c)[0])
+
+        file = VnVInputFile.add(request.form["name"],path)
+
         return redirect(url_for("base.inputfiles.view", id_=file.id_))
     except Exception as e:
         return render_error(501, "Error Loading File")
@@ -52,6 +67,7 @@ def save_input_file(id_):
         form = request.get_json()
         file.saveInput(form["value"])
         return make_response("", 200)
+
 
 @blueprint.route('/save_exec/<int:id_>', methods=["POST"])
 def save_exec(id_):
@@ -143,17 +159,19 @@ def input_autocomplete(comp, id_):
 def main_header(id_):
     with VnVInputFile.find(id_) as file:
         data = {
-            "header" : render_template("inputfiles/main_header_content.html", file=file),
-            "spec" : file.spec,
-            "desc" : file.get_executable_description()
+            "header": render_template("inputfiles/main_header_content.html", file=file),
+            "spec": file.spec,
+            "desc": file.get_executable_description()
         }
-        return make_response(jsonify(data),200)
-    return make_response("Error",500)
+        return make_response(jsonify(data), 200)
+    return make_response("Error", 500)
+
 
 @blueprint.route('/get_spec/<int:id_>')
 def get_spec(id_):
     with VnVInputFile.find(id_) as file:
-        return make_response(file.spec,200)
+        return make_response(file.spec, 200)
+
 
 @blueprint.route('/autocomplete')
 def autocomplete():
@@ -169,8 +187,7 @@ def autocomplete():
 @blueprint.route('/get_desc/<int:id_>')
 def get_desc(id_):
     with VnVInputFile.find(id_) as file:
-       return make_response(file.get_executable_description(),200)
-
+        return make_response(file.get_executable_description(), 200)
 
 
 @blueprint.route('/configure/<int:id_>', methods=["POST"])
@@ -186,7 +203,7 @@ def configure(id_):
             password = request.form["password"]
             file.setConnection(domain, username, password, port)
 
-        file.setFilename(request.form.get("application", file.filename), request.form.get("specDump",file.specDump))
+        file.setFilename(request.form.get("application", file.filename), request.form.get("specDump", file.specDump))
         return render_template("inputfiles/connection_content.html", file=file)
 
 
@@ -226,6 +243,42 @@ def cancel_job(id_, jobid):
     return render_error(401, "Huh")
 
 
+
+
+
+@blueprint.route('/openreport/<int:id_>')
+def openreport(id_):
+   try:
+    with VnVInputFile.find(id_) as file:
+        pref = os.path.join(request.args["dir"], "vnv_" + request.args["id"] + "_")
+        reports = file.connection.autocomplete(pref)
+
+        if "confirmed" in request.args:
+            for i in reports:
+                with open(file.connection.download(i), 'r') as ff:
+                    ff = get_file_from_runinfo(json.load(ff))
+                    return url_for('base.files.view', id_=ff.id_)
+        else:
+            data = {}
+            return make_response(str(len(reports)), 200)
+
+   except Exception as e:
+       print(e)
+       return make_response("Error",201)
+
+
+@blueprint.route('/delete-all', methods=["POST"])
+def delete_all():
+   VnVInputFile.delete_all()
+   return make_response("Complete",200)
+
+@blueprint.route('/update_display_name/<int:id_>', methods=["POST"])
+def update_display_name(id_):
+    with VnVInputFile.find(id_) as file:
+        file.displayName = request.args.get("new",file.displayName)
+        return make_response(file.displayName,200)
+
+
 @blueprint.route('/execute/<int:id_>')
 def execute(id_):
     try:
@@ -241,9 +294,13 @@ def execute(id_):
         return render_error(501, "Error Loading File")
 
 
+def list_vnv_executables():
+    return [ [k,v[1] ] for k,v in vnv_executables.items()]
+
 def template_globals(globs):
     globs["inputfiles"] = VnVInputFile.FILES
+    globs["list_vnv_executables"] = list_vnv_executables
 
-
-def faker():
+def faker(PREFIX):
     VnVInputFile.loadAll()
+    VnVInputFile.VNV_PREFIX = PREFIX

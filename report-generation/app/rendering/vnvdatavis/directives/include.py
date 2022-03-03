@@ -2,7 +2,7 @@ import os
 
 from flask import render_template_string, render_template
 
-from app.rendering.vnvdatavis.directives.charts import JsonChartDirective
+from .charts import JsonChartDirective
 
 
 def post_process_include(text, data, file ):

@@ -9,3 +9,7 @@ add_executable(App "app.cpp")
 target_link_libraries(App PRIVATE dummyLibOne)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/input.json ${CMAKE_CURRENT_BINARY_DIR}/input.json COPYONLY)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/input.json DESTINATION examples/usage/input.json )
+
+install(TARGETS App DESTINATION examples/usage)
+install(TARGETS Noclang DESTINATION examples/usage)

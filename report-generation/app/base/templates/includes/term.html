@@ -39,6 +39,7 @@
       fit.fit();
       term.resize(15, 50);
       fit.fit();
+
       term.onData((data) => {
         socket.emit("{{pty}}-input", { input: data });
       });
@@ -48,7 +49,9 @@
       const socket = io.connect("/{{pty}}");
       const status = document.getElementById("status");
 
+      socket.removeAllListeners("{{pty}}-output");
       socket.on("{{pty}}-output", function (data) {
+        console.log("HERE")
         term.write(data.output);
       });
 

@@ -11,11 +11,7 @@ from sphinx.errors import ExtensionError
 from sphinx.util import nested_parse_with_titles
 from sphinx.util.docutils import SphinxDirective
 
-import Directory
-from app.base.blueprints import files as dddd
-
-from app.rendering.vnvdatavis.directives.jmes import get_target_node, jmes_jinja_query, jmes_jinja_if_query, \
-    jmes_jinja_query_raw
+from .jmes import get_target_node
 
 vnv_directives = {}
 

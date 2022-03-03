@@ -1,17 +1,12 @@
 import hashlib
 import os
 import re
-import uuid
 
 import docutils
 from docutils.nodes import SkipNode
-from sphinx.directives import optional_int
 from sphinx.util.docutils import SphinxDirective
 
-from app import Directory
-from app.base.blueprints import files as dddd
-
-from app.rendering.vnvdatavis.directives.jmes import get_target_node, jmes_jinja_query
+from .jmes import get_target_node, jmes_jinja_query
 
 vnv_directives = {}
 
@@ -71,7 +66,7 @@ class JsonChartDirective(SphinxDirective):
         '''
 
     def get_update_dir(self):
-       return Directory.UPDATE_DIR
+       return the_app.config.update_dir
 
 
     def updateRegistration(self):
@@ -217,6 +212,8 @@ except NameError:
 def setup(sapp):
     global the_app
     the_app = sapp
+
+
 
     sapp.add_node(VnVChartNode, **VnVChartNode.NODE_VISITORS)
 

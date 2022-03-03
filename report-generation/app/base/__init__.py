@@ -22,6 +22,12 @@ AUTHENTICATE = False
 PASSWORD = generate_password_hash("password")
 COOKIE_PASS = uuid.uuid4().hex
 
+def config(conf):
+    global PASSWORD
+    PASSWORD = generate_password_hash(conf.passw)
+    global AUTHENTICATE
+    AUTHENTICATE = conf.auth
+
 def GET_COOKIE_TOKEN():
     return COOKIE_PASS
 
@@ -83,6 +89,7 @@ def logout():
     COOKIE_PASS = uuid.uuid4().hex
     response = make_response(redirect("/"))
     response.set_cookie('vnv-login', "", expires=0)
+
     return response
 
 @blueprint.route("icon")
@@ -133,6 +140,6 @@ def template_globals(d):
     blueprints.directives.template_globals(d)
 
 
-def faker():
-    blueprints.files.faker()
-    blueprints.inputfiles.faker()
+def faker(PREFIX):
+    blueprints.files.faker(PREFIX=PREFIX)
+    blueprints.inputfiles.faker(PREFIX=PREFIX)

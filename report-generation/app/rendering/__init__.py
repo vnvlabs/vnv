@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import textwrap
 import uuid
 
@@ -22,6 +23,8 @@ extensions = [
     "vnvdatavis"
 ]
 vnv_file={fileId}
+update_dir="{updateDir}"
+
 html_theme = "faketheme"
 html_theme_path = ["{path}"]
 exclude_patterns = ['_build']
@@ -31,7 +34,7 @@ html_static_path = ['_static']
 
 
 def get_conf_template(fileId):
-    return conf_template.format(fileId=fileId, path=os.path.abspath(os.path.join('app', 'rendering')))
+    return conf_template.format(fileId=fileId, updateDir=Directory.UPDATE_DIR, path=os.path.abspath(os.path.join('app', 'rendering')))
 
 
 def setup_build_directory(src_dir, fileId):
@@ -246,7 +249,8 @@ def build(src_dir, templates, id_):
         w.write(
             f'''import os\nimport sphinx.cmd.build\nsphinx.cmd.build.make_main(["-M","html","{src_dir}",os.path.join("{src_dir}","_build")])''')
     try:
-        a = subprocess.run(["python", os.path.join(src_dir, "runv.py")])
+
+        a = subprocess.run([sys.executable, os.path.join(src_dir, "runv.py")])
     except Exception as e:
         print(e)
     return TemplateBuild(src_dir, id_, descrip=descriptions)

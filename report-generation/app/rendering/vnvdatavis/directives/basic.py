@@ -5,16 +5,13 @@ import re
 import uuid
 
 import docutils.nodes
-from docutils.nodes import SkipNode
-from docutils.parsers.rst import directives
-from flask import render_template
-from sphinx.directives import optional_int
+
 from sphinx.util import nested_parse_with_titles
 from sphinx.util.docutils import SphinxDirective
 
-from app.rendering.vnvdatavis.directives.charts import VnVChartNode
-from app.rendering.vnvdatavis.directives.dataclass import DataClass
-from app.rendering.vnvdatavis.directives.jmes import jmes_jinja_query_str, jmes_jinga_stat,\
+from .charts import VnVChartNode
+from .dataclass import DataClass
+from .jmes import jmes_jinja_query_str, jmes_jinga_stat,\
     jmes_jinja_codeblock, jmes_jinja_query, get_target_node, jmes_jinja_query_json
 
 vnv_directives = {}

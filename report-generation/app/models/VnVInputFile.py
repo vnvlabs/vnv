@@ -5,6 +5,7 @@ import uuid
 
 import flask
 import jsonschema
+from ansi2html import Ansi2HTMLConverter
 from jsonschema.exceptions import ErrorTree, ValidationError, SchemaError
 
 from app.base.utils import mongo
@@ -64,6 +65,8 @@ class VnVInputFile:
 
     def __init__(self, name, path=None):
         self.name = name
+        self.displayName = name
+
         self.filename = path if path is not None else "path/to/application"
         self.icon = "icon-box"
         self.id_ = VnVInputFile.get_id()
@@ -90,6 +93,7 @@ class VnVInputFile:
     def toJson(self):
         a = {}
         a["name"] = self.name
+        a["displayName"] = self.displayName
         a["filename"] = self.filename
         a["icon"] = self.icon
         a["connection"] = self.connection.toJson()
@@ -108,7 +112,7 @@ class VnVInputFile:
         r = VnVInputFile(a["name"])
         r.filename = a["filename"]
         r.icon = a["icon"]
-
+        r.displayName = a.get("displayName",r.name) #backwards compat
         r.connection = connectionFromJson(a["connection"])
 
         r.loadfile = a["loadfile"]
@@ -313,6 +317,8 @@ class VnVInputFile:
 
     EXECUTION_SCHEMA = None
 
+    VNV_PREFIX = ""
+
     @staticmethod
     def getExecutionSchema():
         if VnVInputFile.EXECUTION_SCHEMA is None:
@@ -367,11 +373,22 @@ class VnVInputFile:
     def get_jobs(self):
         return [a for a in self.connection.get_jobs()]
 
-    def execute(self, val, ):
-        script, name = self.script(val)
-        return self.connection.execute_script(script, name=name, vnv_input=self.value)
+    def execute(self, val ):
+       inp_dir = json.loads(self.value).get("job",{}).get("dir","/tmp")
 
-    def script(self, val):
+       workflow_id = uuid.uuid4().hex
+       script, name = self.script(val, workflow_id)
+
+       meta = {
+           "vnv_input": Ansi2HTMLConverter().convert(self.value),
+           "workflow_id" : workflow_id,
+           "workflow_dir" : inp_dir
+       }
+
+       return self.connection.execute_script(script, name=name, metadata=meta)
+
+
+    def script(self, val, workflowId):
         data = json.loads(val)
         for i in data.get("active_overrides", []):
             if i in data.get("overrides", {}):
@@ -379,7 +396,7 @@ class VnVInputFile:
                 for k, v in over.items():
                     data[k] = v
 
-        return bash_script(self.filename, self.value, data), data.get("name")
+        return bash_script(self.filename, self.value, data, workflowName=workflowId  ), data.get("name")
 
     @staticmethod
     def get_id():
@@ -419,6 +436,12 @@ class VnVInputFile:
         mongo.deleteInputFile(a.name)
 
     @staticmethod
+    def delete_all():
+        for k, v in VnVInputFile.FILES.items():
+            mongo.deleteInputFile(v.name)
+        VnVInputFile.FILES.clear()
+
+    @staticmethod
     def find(id_):
         if id_ in VnVInputFile.FILES:
             return VnVInputFile.FileLockWrapper(VnVInputFile.FILES[id_])
@@ -439,13 +462,15 @@ def njoin(array):
     return "\n".join(array)
 
 
-def bash_script(application_path, inputfile, data):
+def bash_script(application_path, inputfile, data, workflowName):
     return textwrap.dedent(f"""
 {data.get("shebang", "#!/usr/bin/bash")}
 
 export application={application_path}
 export application_dir=$(dirname {application_path})
 export inputfile={data.get("input-file-name", ".vv-input.json")}
+
+export VNV_WORKFLOW_ID={workflowName}
 
 cd {data.get("working-directory", "${application_dir}")}
 

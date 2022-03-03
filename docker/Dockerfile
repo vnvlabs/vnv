@@ -10,11 +10,13 @@ ENV VNV_MATCHER=${VNV_DIR}/bin/vnv-matcher
 ENV LD_LIBRARY_PATH=${VNV_DIR}/lib
 RUN cd vv-neams  && mkdir -p build && cd build && cmake -DCMAKE_INSTALL_PREFIX=${VNV_DIR} -DLLVM_DIR=${LLVM_DIR} -DADIOS2_DIR=${ADIOS_DIR}/lib/cmake/adios2 .. && make && make install
 
+RUN rm -r /vv-neams
+
 # Run the tests
-RUN cd vv-neams/build/test/ && ./test-runner 
+RUN cd ${VNV_DIR}/test/ && ./test-runner 
 
 # Run the examples. 
-RUN cd vv-neams/build/examples/c && ./csample.a && cd ../cpp && ./injectionPoint && ./iterator && ./distributed && cd ../usage && ./App && ./Noclang
-RUN cd vv-neams/build/report-generation && virtualenv virt && virt/bin/pip install -r ./requirements.txt
+RUN cd ${VNV_DIR}/examples/c && ./csample.a && cd ../cpp && ./injectionPoint && ./iterator && ./line && ./distributed   
 
-CMD ["./vv-neams/build/report-generation/launch.sh" , "5001" ]
+# Create the virtual environment for the report generation.
+RUN cd ${VNV_DIR}/gui/report-generation && virtualenv virt && virt/bin/pip install -r ./requirements.txt

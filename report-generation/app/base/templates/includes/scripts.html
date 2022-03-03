@@ -48,6 +48,12 @@
             })
         }
 
+        function show_terminal(name, ext) {
+            if ($('#' + name + '-iframe').attr("src") === undefined ) {
+                $('#' + name + '-iframe').attr("src","/terminal" + ext)
+            }
+            $('#' + name + '-modal').modal('toggle')
+        }
 
     </script>
 
