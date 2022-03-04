@@ -82,6 +82,11 @@ void VnV_readFile(const char* reader, const char* filename) {
   }
 }
 
+void* VnV_getOptionsObject(const char* package) {
+  return VnV::RunTime::instance().getOptionsObject(package);
+}
+
+
 void VnV_readFileAndWalk(const char* reader, const char* filename, const char* package, const char* walker,
                          const char* config) {
   try {

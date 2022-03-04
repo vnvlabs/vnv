@@ -1025,4 +1025,10 @@ void RunTime::printRunTimeInformation() {
   TestStore::instance().print();
   InjectionPointStore::instance().print();
 }
+
 std::string RunTime::getPackageName() { return mainPackageName; }
+
+void* RunTime::getOptionsObject(std::string package) {
+  return OptionsParserStore::instance().getResult(package);
+}
+  

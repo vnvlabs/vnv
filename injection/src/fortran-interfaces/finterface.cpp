@@ -148,7 +148,7 @@ int vnv_get_parameter_type_x(const char* package, const char* pointer) {
 }
 
 int vnv_get_parameter_size_x(const char* package, const char* pointer) {
-  VnV::RawJsonObject* rj = (VnV::RawJsonObject*)VnV::OptionsParserStore::instance().getResult(package);
+  VnV::RawJsonObject* rj = (VnV::RawJsonObject*) VnV::OptionsParserStore::instance().getResult(package);
   if (rj == nullptr) {
     return -1;
   }

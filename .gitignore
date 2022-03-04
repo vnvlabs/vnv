@@ -19,5 +19,6 @@ xml/.xplus.schema*
 injection/build
 tests/build
 build/
+b/
 report-generation/python_api/VnVReader.py
 report-generation/app/temp

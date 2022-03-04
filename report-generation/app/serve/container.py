@@ -30,14 +30,14 @@ def launch_docker_container(uname, password):
     except NotFound as e:
         #Container not found for user -- so create one.
         try:
-            comm = "./launch.sh " + password
+            comm = "./launch.sh " + uname
 
             try:
                 volume = docker_client.volumes.get("vnv-" + uname)
             except Exception as e:
                 volume = docker_client.volumes.create("vnv-"+uname)
 
-            volumes = {'vnv-'+uname : {'bind': '/home/'+uname, 'mode': 'rw'} }
+            volumes = {'vnv-'+uname : {'bind': '/container, 'mode': 'rw'} }
             container = docker_client.containers.run("vnv_serve:latest", volumes=volumes, command=comm, ports={5001:None}, name="vnv-" + uname, detach=True)
             print(container)
         except Exception as e:

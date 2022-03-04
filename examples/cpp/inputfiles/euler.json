@@ -1,0 +1,16 @@
+{
+  "runTests": true,
+  "outputEngine": {
+    "json_file": {
+      "filename": "outputs/euler/out"
+    }
+  },
+  "injectionPoints": {
+    "Euler:Eulers": {},
+    "Euler:StepSize": {
+      "tests": {
+        "VNV:cputime": {}
+      }
+    }
+  }
+}

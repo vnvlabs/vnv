@@ -41,4 +41,5 @@ namespace VnV {
 #define REGISTERRAWOPTIONS(PNAME,SCHEMA) VnV::RegisterOptions(VNV_STR(PNAME), SCHEMA, nullptr);
 
 
+
 #  endif  // JSONINTERFACE_H

@@ -1538,13 +1538,19 @@ template <class DB> class StreamParserTemplate {
     virtual void process() {
       jstream->start_stream_reader();
       long i = 0;
+               std::cout << "Still working " << i << std::endl;
+
       bool changed = false;
       try {
         while (!jstream->isDone() && !kill_lock.load(std::memory_order_relaxed)) {
           i = ++i % 1000;
-          if (changed && i == 999) {
+          std::cout << "Still working " << i << std::endl;
+
+          if (i == 999) {
+
             rootInternal()->persist();
             changed = false;
+            std::cout << "Still working " << i << std::endl;
           }
 
           if (jstream->hasNext()) {
@@ -1567,7 +1573,10 @@ template <class DB> class StreamParserTemplate {
         rootInternal()->open(false);
         jstream->stop_stream_reader();
       } catch (...) {
+          std::cout << "GDDSFSDFS" << std::endl;
       }
+      std::cout << "DONE" << std::endl;
+      
     }
     virtual void setWriteLock() {
       while (read_lock.load(std::memory_order_relaxed)) {

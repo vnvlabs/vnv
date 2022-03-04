@@ -105,6 +105,10 @@ VNVEXTERNC void VnV_readFileAndWalk(const char* reader, const char* filename,
                                     const char* config);
 
 
+VNVEXTERNC void* VnV_getOptionsObject(const char* package);
+
+#define INJECTION_GET_CONFIG(PNAME) VnV_getOptionsObject(VNV_STR(PNAME));
+
 #else  // WITHOUT_VNV
 #  define VnV_init(...)
 #  define VnV_finalize(...)

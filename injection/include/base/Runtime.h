@@ -324,6 +324,10 @@ class RunTime {
   VnVProv getProv();
 
   std::string getPackageName();
+
+  void* getOptionsObject(std::string package);
+  
+
 };
 }  // namespace VnV
 
