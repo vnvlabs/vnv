@@ -9,5 +9,4 @@ add_subdirectory(samples)
 add_subdirectory(tests)
 add_subdirectory(usage)
 
-### DONT PUSH THIS JUST DEBUGGING
-#add_subdirectory(fortran)
+add_subdirectory(fortran)

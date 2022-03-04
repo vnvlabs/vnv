@@ -391,7 +391,7 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
         integer, dimension(*), intent(inout) :: value
-        integer, value, intent(in) :: n
+        integer(kind=c_int), value, intent(in) :: n
         character(len=1, kind=C_CHAR) :: name_c_str(len_trim(name) + 1)
         name_c_str = convert(name)        
         call vnv_declare_integer_array_c(ctx,name_c_str, value, int(n, kind=c_size_t))
