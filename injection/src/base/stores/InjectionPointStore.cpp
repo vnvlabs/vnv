@@ -73,7 +73,7 @@ void InjectionPointStore::registerInjectionPoint(std::string packageName, std::s
       std::make_pair(packageName + ":" + id, InjectionPointSpec(packageName, id, jsonObject)));
 }
 
-json InjectionPointStore::schema() {
+json InjectionPointStore::schema(json& packageJson) {
   nlohmann::json temp = R"({
       "description": "An injection Point defined somewhere in the code",
       "type": "object",
@@ -101,7 +101,9 @@ json InjectionPointStore::schema() {
   json props = json::object();
   for (auto& it : registeredInjectionPoints) {
     json j = temp;
+    j["description"] = packageJson[it.second.package]["InjectionPoints"][it.second.name]["docs"]["description"];    
     j["vnvprops"] = it.second.specJson;
+    j["vnvparam"] = packageJson[it.second.package]["InjectionPoints"][it.second.name]["docs"]["params"];
     props[it.second.package + ":" + it.second.name] = j;
   }
   ipo["properties"] = props;

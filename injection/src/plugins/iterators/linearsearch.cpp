@@ -48,8 +48,7 @@ template class SingleVariableMinimization<double>;
    VnV Linear parameter search
    ===========================
 
-   The optimal values for this function are [:vnv:`data.xopt` , :vnv:`data.yopt`
-].
+   The optimal values for this function are [:vnv:`data.xopt` , :vnv:`data.yopt`].
 
 **/
 INJECTION_ITERATOR_R(VNVPACKAGENAME, singleParameterMinimization,

@@ -403,10 +403,10 @@ PY_GETATTR(VnV::Nodes::ICommInfoNode)
         return "array"
 
       def __str__(self):
-          return json.dumps(self.__json__())
+          return self.toString()
    
       def __json__(self):
-         return [ self.__getitem__(i).__json__() for i in range(0,self.size())]
+         return json.loads(self.toString())
 
 
    %}
@@ -458,11 +458,10 @@ PY_GETATTRLIST(VnV::Nodes::IArrayNode)
              return self.contains(item)
 
         def __str__(self):
-            return str({ a : str(self.__getitem__(a)) for a in self.fetchkeys() })
-
+            return self.toString() 
     
         def __json__(self):
-         return { a : self.__getitem__(a).__json__() for a in self.fetchkeys()}
+         return json.loads(self.toString())
           
    %}
 }
@@ -618,7 +617,7 @@ PY_GETATTRWORK(VnV::Nodes::IWorkflowNode)
    
          s,t,nps = self.shape()
          if len(s) == 0:
-            return self.valueIsJson(self.getScalarValue())
+            return json.loads(self.toString()) 
          else:
             res = []
             for i in range(0,t):

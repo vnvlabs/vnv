@@ -27,10 +27,11 @@ void OptionsParserStore::add(std::string name, json& schema, options_cpp_callbac
   factory[name] = {schema, x};
 }
 
-nlohmann::json OptionsParserStore::schema() {
+nlohmann::json OptionsParserStore::schema(json& packageJson) {
   json p = json::object();
   for (auto& it : factory) {
     p[it.first] = it.second.first;
+    p[it.first]["description"] = packageJson[it.first]["Options"]["description"];
   }
   json j = json::object();
   j["type"] = "object";

@@ -72,6 +72,6 @@ const char* schema = R"(
 )";
 
 /**
- * .. vnv-psip:: psip[0]
+ * .. vnv-psip:: psip
  */
 INJECTION_ACTION(PSIP, psip, schema) { return new PSIPAction(config); }

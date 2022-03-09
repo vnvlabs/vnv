@@ -6,7 +6,7 @@
  * My Custom Test
  * --------------
  *
- * The value of x was :vnv:`x[0]`
+ * The value of x was :vnv:`x`
  *
  */
 INJECTION_TEST_RS(fortran, plot_something, int, R"({

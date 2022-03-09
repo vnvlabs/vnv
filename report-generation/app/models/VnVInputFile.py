@@ -243,8 +243,9 @@ class VnVInputFile:
     NO_INFO = "No Application Information Available\n===================================="
     def get_executable_description_(self):
         if self.specLoad is not None:
-            desc = self.specLoad.get("definitions", {}).get("executable",{}).get("template",self.NO_INFO)
-            return desc
+            desc = self.specLoad.get("definitions", {}).get("executable",{})
+            return desc.get("template",self.NO_INFO) if desc is not None else self.NO_INFO
+
         else:
             return self.NO_INFO
 

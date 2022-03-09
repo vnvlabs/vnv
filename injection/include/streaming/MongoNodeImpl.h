@@ -10,18 +10,15 @@
 #  include "streaming/common.h"
 #  include "streaming/streamtemplate.h"
 
-#  define Mongo_getter_setter(name, type, def)                                         \
-    type get##name() { return getDocument()->getOr(#name, def).template get<type>(); } \
+#  define Mongo_getter_setter(name, type, def)                                  \
+    type get##name(bool willmodify = false) {                                   \
+      return getDocument()->getOr(#name, def, willmodify).template get<type>(); \
+    }                                                                           \
     void set##name(const type& value) { getDocument()->update(#name, value); }
 
-#  define Mongo_getter_setter_json(name, def)                      \
-    json& get##name() { return getDocument()->getOr(#name, def); } \
-    void set##name(const json& value) {                            \
-      getDocument()->update(#name, value);                         \
-      if (autop) {                                                 \
-        persist();                                                 \
-      }                                                            \
-    }
+#  define Mongo_getter_setter_json(name, def)                                                         \
+    json& get##name(bool willmodify = false) { return getDocument()->getOr(#name, def, willmodify); } \
+    void set##name(const json& value) { getDocument()->update(#name, value); }
 
 #  define Mongo_docuemnt_ref(NAME, TYPE)                                                       \
     Mongo_getter_setter(NAME##Id, long, -1) std::shared_ptr<TYPE##Node> getInternal_##NAME() { \
@@ -32,7 +29,6 @@
         rootNode()->registerNode(ptr);                                                         \
         ptr->setname(#NAME);                                                                   \
         set##NAME##Id(ptr->getId());                                                           \
-        persist();                                                                             \
       } else {                                                                                 \
         ptr->setRootNode(idv, (rootNode()));                                                   \
       }                                                                                        \
@@ -69,28 +65,27 @@ class bson_wrap {
 typedef std::shared_ptr<bson_wrap> bson_shared;
 
 class Mongo {
-  
-  // A singleton is used to manage the client pool. Each thread should 
-  // in theory request only a single client. A Client is returned when 
-  // the count reaches zero for the client. 
+  // A singleton is used to manage the client pool. Each thread should
+  // in theory request only a single client. A Client is returned when
+  // the count reaches zero for the client.
   static mongoc_client_pool_t* pool;
   static mongoc_uri_t* muri;
   static bson_error_t error;
 
-  Mongo(std::string uri, std::string name="VnV") { 
+  Mongo(std::string uri, std::string name = "VnV") {
     mongoc_init();
     muri = mongoc_uri_new_with_error(uri.c_str(), &error);
     Mongo::pool = mongoc_client_pool_new(muri);
     mongoc_client_pool_set_appname(pool, name.c_str());
   }
 
-  virtual ~Mongo() { 
+  virtual ~Mongo() {
     mongoc_uri_destroy(muri);
     mongoc_client_pool_destroy(pool);
-    mongoc_cleanup(); }
+    mongoc_cleanup();
+  }
 
  public:
-
   static Mongo& instance(std::string uri) {
     static Mongo mongo(uri);
     return mongo;
@@ -104,10 +99,7 @@ class Mongo {
     return c;
   }
 
-  void returnClient(mongoc_client_t* client) {
-      mongoc_client_pool_push(pool,client);
-  }
-
+  void returnClient(mongoc_client_t* client) { mongoc_client_pool_push(pool, client); }
 };
 
 class Collection;
@@ -115,11 +107,11 @@ class Database;
 class Document;
 
 class MongoClientWrapper {
-private:
-
+ private:
   mongoc_client_t* client = NULL;
   std::string uri;
-public:  
+
+ public:
   void set(std::string nuri) {
     if (client) {
       Mongo::instance(uri).returnClient(client);
@@ -128,13 +120,11 @@ public:
     client = Mongo::instance(uri).getClient();
   }
 
-  MongoClientWrapper()  {}
-  
-  mongoc_client_t* get() {
-    return client;
-  }
+  MongoClientWrapper() {}
 
-  ~MongoClientWrapper(){
+  mongoc_client_t* get() { return client; }
+
+  ~MongoClientWrapper() {
     if (client) {
       Mongo::instance(uri).returnClient(client);
     }
@@ -142,13 +132,12 @@ public:
 };
 
 class Client {
-
   // Every thread has its own client
-  static thread_local MongoClientWrapper clientWrapper;  
+  static thread_local MongoClientWrapper clientWrapper;
   std::string uri;
 
   mongoc_client_t* get_client() {
-    if (clientWrapper.get() == NULL ) {
+    if (clientWrapper.get() == NULL) {
       clientWrapper.set(uri);
     }
     return clientWrapper.get();
@@ -160,27 +149,22 @@ class Client {
     this->uri = uri;
   }
 
-  mongoc_database_t* getDatabase(std::string db) { 
-    return mongoc_client_get_database(get_client(), db.c_str());
-  }
+  mongoc_database_t* getDatabase(std::string db) { return mongoc_client_get_database(get_client(), db.c_str()); }
 
   virtual ~Client() {}
-
 };
 
 class MongoDatabaseWrapper {
-public:
-
+ public:
   mongoc_database_t* database = NULL;
 
-  MongoDatabaseWrapper()  {}
-  ~MongoDatabaseWrapper(){
+  MongoDatabaseWrapper() {}
+  ~MongoDatabaseWrapper() {
     if (database) {
       mongoc_database_destroy(database);
     }
   }
 };
-
 
 class Database {
   std::string name;
@@ -190,12 +174,12 @@ class Database {
   static thread_local MongoDatabaseWrapper database;
 
   mongoc_database_t* get_database() {
-     if (database.database == NULL) {
-        database.database = client->getDatabase(name);
-     }
-     return database.database;
+    if (database.database == NULL) {
+      database.database = client->getDatabase(name);
+    }
+    return database.database;
   }
-  
+
  protected:
  public:
   Database(std::string name, std::shared_ptr<Client> c) {
@@ -205,12 +189,11 @@ class Database {
 
   auto getClient() { return client; }
 
-  auto getCollection(std::string collection) { 
+  auto getCollection(std::string collection) {
     return mongoc_database_get_collection(get_database(), collection.c_str());
   }
 
-  virtual ~Database() { 
-  }
+  virtual ~Database() {}
 };
 
 class Cursor {
@@ -281,12 +264,11 @@ class Mongo_Does_Not_Exist : public std::exception {};
 class Mongo_Insert_Failed : public std::exception {};
 
 class MongoCollectionWrapper {
-public:
-
+ public:
   mongoc_collection_t* collection = NULL;
 
-  MongoCollectionWrapper()  {}
-  ~MongoCollectionWrapper(){
+  MongoCollectionWrapper() {}
+  ~MongoCollectionWrapper() {
     if (collection) {
       mongoc_collection_destroy(collection);
     }
@@ -294,29 +276,30 @@ public:
 };
 
 class Collection {
-  
   static thread_local MongoCollectionWrapper thcollection;
 
   std::string collectionName;
   std::shared_ptr<Database> db;
   bson_error_t error;
-  
+
   mongoc_collection_t* collection_main;
   std::thread::id main_thread_id;
+  std::thread::id reader_thread_id;
+
+  bson_t* update_opts;
+
+  std::size_t cacheSize = 1000;
 
   mongoc_collection_t* collection() {
-    
     if (std::this_thread::get_id() == main_thread_id) {
       return collection_main;
     }
 
     if (thcollection.collection == nullptr) {
-      thcollection.collection = db->getCollection(collectionName)
-      ;
-    } 
+      thcollection.collection = db->getCollection(collectionName);
+    }
     return thcollection.collection;
   }
-
 
   void insert(std::shared_ptr<bson_wrap> value) {
     if (!mongoc_collection_insert_one(collection(), value->get(), NULL, NULL, &error)) {
@@ -329,23 +312,38 @@ class Collection {
   auto remove_one(std::shared_ptr<bson_wrap> filter) {
     return mongoc_collection_delete_one(collection(), filter->get(), NULL, NULL, &error);
   }
-  json get_one(std::shared_ptr<bson_wrap> filter, std::shared_ptr<bson_wrap> projection) {
-    auto c =
-        std::make_shared<Cursor>(mongoc_collection_find_with_opts(collection(), filter->get(), projection->get(), NULL));
+
+  static auto bwrap(json& j) { return std::make_shared<bson_wrap>(j); }
+
+
+  json get_one(long id) {
+
+    json j = json::object();
+    j["id_"] = id;
+
+    auto c = std::make_shared<Cursor>(
+        mongoc_collection_find_with_opts(collection(), bwrap(j)->get(), NULL, NULL));
 
     if (c->begin() != c->end()) {
       return c->asJson();
     }
     throw Mongo_Does_Not_Exist();
   }
-  void update_one(std::shared_ptr<bson_wrap> filter, std::shared_ptr<bson_wrap> update) {
-    mongoc_collection_update_one(collection(), filter->get(), update->get(), NULL, NULL, &error);
-  }
-  void update_many(std::shared_ptr<bson_wrap> filter, std::shared_ptr<bson_wrap> update) {
-    mongoc_collection_update_many(collection(), filter->get(), update->get(), NULL, NULL, &error);
+
+
+
+  void update_one(long id, std::shared_ptr<bson_wrap> update) {  
+    json j = json::object();
+    j["id_"] = id;
+
+    mongoc_collection_update_one(collection(), bwrap(j)->get(), update->get(), update_opts, NULL, &error);
+  
   }
 
-  static auto bwrap(json& j) { return std::make_shared<bson_wrap>(j); }
+  void update_many(std::shared_ptr<bson_wrap> filter, std::shared_ptr<bson_wrap> update) {
+    mongoc_collection_update_many(collection(), filter->get(), update->get(), update_opts, NULL, &error);
+  }
+
 
   std::weak_ptr<Collection> selfAsShared;
 
@@ -355,11 +353,70 @@ class Collection {
     collection_main = db->getCollection(collection);
     main_thread_id = std::this_thread::get_id();
 
+    std::string o = R"({"upsert" : true } )";
+    update_opts = bson_new_from_json((const uint8_t*)o.c_str(), -1, &error);
+
+  }
+
+  std::size_t getCacheSize() {
+    if (readerThread()) {
+      return 10000;
+    }
+    return 0;  // No cache in reader threads -- always update from database.
+  }
+
+  std::map<long, std::shared_ptr<Document>> docCache;
+  std::map<long, std::weak_ptr<Document>> weakCache;
+
+  std::shared_ptr<Document> addToCache(long id, std::shared_ptr<Document> doc) {
+    if (getCacheSize() <= 0) {
+      return doc;
+    }
+
+    // When the cache is full, we persist everything
+    // and clear it out. This makes it batch persists
+    // instead of lots of one-offs.
+    if (docCache.size() == getCacheSize()) {
+      clearCache();
+    }
+
+    auto it = docCache.find(id);
+    if (it == docCache.end()) {
+      docCache[id] = doc;
+      weakCache[id] = std::weak_ptr<Document>(doc);
+    }
+    return doc;
+  }
+
+  std::shared_ptr<Document> fetchFromCache(long id, std::string type) {
+    if (getCacheSize() > 0) {
+      auto it = docCache.find(id);
+      if (it != docCache.end()) {
+        return it->second;
+      } else {
+        // Search the weak cache for the object (in case someone else already checked it out)
+        auto wit = weakCache.find(id);
+        if (wit != weakCache.end()) {
+          auto a = wit->second.lock();
+          if (a != nullptr) {
+            // It was in the weak cache so pass that one through
+            return a;
+          } else {
+            // It was in the cache but the shared obj was deleted.
+            // This should not happen ?
+            weakCache.erase(wit);
+          }
+        }
+      }
+    }
+
+    std::cout << "G#RTGSDG" << std::endl;
+    auto doca = pullDocument(id, type);
+    std::cout << "G#RTGSDG" << std::endl;
+    return addToCache(id, doca);
   }
 
  public:
-
-
   static std::shared_ptr<Collection> Initialize(std::string collection, std::shared_ptr<Database> db) {
     std::shared_ptr<Collection> p;
     p.reset(new Collection(collection, db));
@@ -369,35 +426,51 @@ class Collection {
 
   std::string getCollectionName() { return collectionName; }
 
-  void update_one(json& filter, json& update) { update_one(bwrap(filter), bwrap(update)); }
-  std::shared_ptr<Cursor> find(json& selector, json& opts) {
+  void clearCache();
+
+  void set_reader_thread() { reader_thread_id = std::this_thread::get_id(); }
+
+  bool mainThread() { return std::this_thread::get_id() == main_thread_id; }
+  bool readerThread() { return reader_thread_id == std::this_thread::get_id(); }
+
+  void removeFromWeakCache(long id) {
+    if (readerThread()) {
+      weakCache.erase(id);
+    }
+  }
+
+  void update_one(long id, json& update) { update_one(id, bwrap(update)); }
+
+    std::shared_ptr<Cursor> find(json& selector, json& opts) {
     auto sel = std::make_shared<bson_wrap>(selector);
     auto b = std::make_shared<bson_wrap>(opts);
     return std::make_shared<Cursor>(mongoc_collection_find_with_opts(collection(), sel->get(), b->get(), NULL));
   }
+
+
   auto count(const json& filter) { return count(std::make_shared<bson_wrap>(filter)); }
 
-  json loadOrCreate(long id, std::string type = "") {
-    json projection = json::object();
+  json loadOrCreate(long id,  bool &isNew, std::string type = "") {
     try {
       json filter = json::object();
       filter["_id"] = id;
-      auto h = get_one(bwrap(filter), bwrap(projection));
-      h.erase("_id");
+      auto h = get_one(id);
+      isNew = false;
       return h;
     } catch (Mongo_Does_Not_Exist e) {
       if (type.empty()) {
-
-        std::cout << "Thread " << id << "  " <<  std::this_thread::get_id() << " " << collectionName << " " << collection() << " " << collection_main <<  std::endl;
+        std::cout << "SSSSSSSSSSSSSSSSSS" << std::endl;
         throw INJECTION_EXCEPTION_("Type empty when does not exist");
       }
       json filter = json::object();
-      filter["_id"] = id;
+      filter["id_"] = id;
       filter["type"] = type;
       filter["metadata"] = "{}";
-      filter["lastUpdate"] = "$$NOW";
-      insert(bwrap(filter));
-      return loadOrCreate(id, type);
+      isNew = true;
+      if (id == 142 ) {
+        std::cout << "Creating 142" << std::endl;
+      }
+      return filter;
     }
   }
 
@@ -413,18 +486,10 @@ class Collection {
 
   std::shared_ptr<Document> getDocument(long id, std::string type) {
     assert(id > -1 && "The ID has not been set ");
-    return pullDocument(id, type);
-
+    return fetchFromCache(id, type);
   }
 
-  bool persist(long id, json update) {
-    json filter = json::object();
-    filter["_id"] = id;
-    json set = json::object();
-    set["$set"] = update;
-    update_one(filter, set);
-    return true;
-  }
+  bool persist(long id, json update);
 
   bool remove(long id) {
     json filter = json::object();
@@ -433,8 +498,8 @@ class Collection {
     return true;
   }
 
-  virtual ~Collection() {
-    
+  virtual ~Collection() { 
+    bson_destroy(update_opts);
     mongoc_collection_destroy(collection_main);
   }
 };
@@ -444,7 +509,9 @@ typedef std::shared_ptr<Collection> Collection_ptr;
 class Document {
   long id;
   json doc;
-
+  bool updated = false;
+  bool isNew = false;
+  bool deleted = false;
  public:
   std::shared_ptr<Collection> collection;
 
@@ -455,30 +522,86 @@ class Document {
     this->doc = doc;
   }
 
-  ~Document() { persist(); }
+  void markNew() { isNew = true; }
+  void markUpdated() { updated = true; }
+  void markDeleted() { 
+    deleted = true;
+    if (!isNew && collection->readerThread()) {
+        collection->remove(id);
+    }  
+  }
+  
+  bool needsPersisted() { 
+    // If marked deleted then we return false. 
+    if (deleted) {
+      return false;
+    }
+    return updated || isNew ;
+  }
+  
+  void markPersisted() { updated = false; isNew = false; }
+  
+  ~Document() {
+    
+    if (collection->readerThread()) {
+      collection->removeFromWeakCache(id);
+      persist();
+
+    } else {
+      // Auto persist on reader thread only. If the gui threads want to persist
+      // they should do so explicitly
+    }
+  }
 
   long getId() { return id; }
 
   json& get() { return doc; }
 
-  bool persist() { return collection->persist(id, doc); }
+  bool persist(bool hard = false) {
+    if (needsPersisted()) {
+      collection->persist(id, doc);
+      markPersisted();
+      return true;
+    }
+    return false;
+  }
 
-  json& get(std::string field) {
+  json& get(std::string field, bool willModify = false) {
     if (doc.contains(field)) {
+      if (willModify) {
+        updated = true;
+      }
+
       return doc[field];
     }
+
     throw INJECTION_EXCEPTION("Field %s does not exist:", field.c_str());
   }
 
-  json& getOr(std::string field, const json& value) {
+  json& getOr(std::string field, const json& value, bool willModify = false) {
+    if (willModify) {
+      updated = true;
+    }
+
     if (doc.contains(field)) {
       return doc[field];
     }
+
     doc[field] = value;
     return doc[field];
   }
 
-  void update(std::string field, const json& value) { doc[field] = value; }
+  void update(std::string field, const json& value) {
+
+    markUpdated();
+    try {
+      doc[field] = value;
+    }catch (std::exception &e) {
+      std::cout << doc.dump(4) << std::endl;
+      std::cout << value.dump(4) << std::endl;
+      std::cout << "Update failed: " << e.what();  
+    }
+  }
 };
 
 typedef std::shared_ptr<Database> Database_ptr;
@@ -490,7 +613,6 @@ class MongoPersistance {
  public:
   template <typename T> class DataBaseImpl : public T {
    private:
-    
     std::shared_ptr<Document> doc;
 
    protected:
@@ -518,7 +640,11 @@ class MongoPersistance {
       getDocument()->update("metadata", meta.asJson());
     }
 
+    void markReaderThread() { getCollection()->set_reader_thread(); }
+
     void persist() { getDocument()->persist(); }
+
+    void throwAway() { getDocument()->markDeleted(); }
 
     MetaDataWrapper w;
     const MetaDataWrapper& getmetadata() {
@@ -549,13 +675,7 @@ class MongoPersistance {
       if (idx < a.size()) {
         long nid = a[idx].get<long>();
         auto it = nodes.find(nid);
-        if (it != nodes.end()) {
-          return it->second;
-        } else {
-          auto l = LoadNode(rootNode(), a[idx].get<long>());
-          nodes[nid] = l;
-          return l;
-        }
+        return LoadNode(rootNode(), a[idx].get<long>());
       }
       return nullptr;
     }
@@ -563,14 +683,12 @@ class MongoPersistance {
     virtual std::size_t size() override { return getvec().size(); };
 
     virtual void add(std::shared_ptr<DataBase> data) override {
-      auto& a = getvec();
+      auto& a = getvec(true);
       a.push_back(data->getId());
     }
   };
 
   class MapNode : public DataBaseImpl<IMapNode> {
-    std::map<std::string, std::shared_ptr<IArrayNode>> nodes;
-
    public:
     MapNode()
         : DataBaseImpl<IMapNode>(){}
@@ -578,44 +696,78 @@ class MongoPersistance {
           ;
     Mongo_getter_setter_json(map, json::object());
 
-    virtual void insert(std::string key, std::shared_ptr<DataBase> val) {
-      
-      auto& m = getmap();
-      
-      if (m.contains(key)) {
-        auto edb = nodes.find(key);
-        if (edb == nodes.end()) {
-          auto edbn = LoadNode(rootNode(), m[key].get<long>());
-          auto an = edbn->getAsArrayNode(edbn);
-          an->add(val);
-          nodes[key] = an;
+    template<typename T> 
+    bool _convertToShapeNode(std::shared_ptr<DataBase> parent, std::shared_ptr<DataBase> child) {
+      if (convertToShapeNode<T>(parent,child)) {
+          auto a = std::dynamic_pointer_cast<T>(child);
+          a->throwAway();
+          return true;
+      }
+      return false;
+    }
 
+    virtual void insert(std::string key, std::shared_ptr<DataBase> val) {
+      auto& m = getmap(true);
+
+      if (m.contains(key)) {
+        auto edbn = LoadNode(rootNode(), m[key].get<long>());
+        auto metadata = val->getMetaData();
+        std::string collate = metadata.has("collate") ? metadata.get("collate") : "shape";
+
+        // If replace then we just override it.
+        if (collate.compare("replace") == 0) {
+          m[key] = val->getId();
+          return;
+          // TODO Delete old node from repo?
+        }
+
+        // If shape, then we try and turn it into a shape node. (default)
+        auto t = edbn->getType();
+        if (t == val->getType() && collate.compare("shape") == 0) {
+          bool sucess = false;
+          if (t == DataType::Double) {
+            if (_convertToShapeNode<DoubleNode>(edbn, val)) return;
+          } else if (t == DataType::Float) {
+            if (_convertToShapeNode<FloatNode>(edbn, val)) return;
+          } else if (t == DataType::Shape) {
+            if (_convertToShapeNode<ShapeNode>(edbn, val)) return;
+          } else if (t == DataType::Integer) {
+            if (_convertToShapeNode<IntegerNode>(edbn, val)) return;
+          } else if (t == DataType::Long) {
+            if (_convertToShapeNode<LongNode>(edbn, val)) return;
+          } else if (t == DataType::Json) {
+            if (_convertToShapeNode<FloatNode>(edbn, val)) return;
+          } else if (t == DataType::Bool) {
+            if (_convertToShapeNode<BoolNode>(edbn, val)) return;
+          } else if (t == DataType::String) {
+            if (_convertToShapeNode<StringNode>(edbn, val)) return;
+          }
+        }
+
+        // Else collate -- combine it into a single array. (default action)
+        if (edbn->getType() != DataType::Array) {
+          // Not an array -- so convert it (we collate ids of same type.)
+          auto a = std::make_shared<ArrayNode>();
+          rootNode()->registerNode(a);
+          a->setname(key);
+          a->add(edbn);
+          a->add(val);
+          m[key] = a->getId();
         } else {
-          edb->second->add(val);
+          // Add it to the array.
+          auto an = edbn->getAsArrayNode(edbn);
+          auto last = an->get(an->size() - 1);
+          an->add(val);
         }
       } else {
-        auto a = std::make_shared<ArrayNode>();
-        rootNode()->registerNode(a);
-        a->setname(key);
-        a->add(val);
-        nodes[key] = a;
-        m[key] = a->getId();
-        setmap(m);
+        m[key] = val->getId();
       }
     }
 
-    virtual std::shared_ptr<IArrayNode> get(std::string key) override {
+    virtual std::shared_ptr<DataBase> get(std::string key) override {
       auto& m = getmap();
       if (m.contains(key)) {
-        auto it = nodes.find(key);
-        if (it == nodes.end()) {
-          auto edbn = LoadNode(rootNode(), m[key].get<long>());
-          auto an = edbn->getAsArrayNode(edbn);
-          nodes[key] = an;
-          return an;
-        } else {
-          return it->second;
-        }
+        return LoadNode(rootNode(), m[key].get<long>());
       }
       throw INJECTION_EXCEPTION("Key %s does not exist in the map:", key.c_str());
     }
@@ -637,7 +789,6 @@ class MongoPersistance {
 
 #  define X(x, y)                                                                                   \
     class x##Node : public DataBaseImpl<I##x##Node> {                                               \
-      std::map<std::size_t, y> nodes;                                                               \
       Mongo_getter_setter_json(shape, json::array()) Mongo_getter_setter_json(vals, json::array())  \
                                                                                                     \
           public : x##Node()                                                                        \
@@ -655,10 +806,11 @@ class MongoPersistance {
       y getValueByIndex(const size_t ind) override;                                                 \
                                                                                                     \
       y getScalarValue() override {                                                                 \
-        if (getshape().size() == 0)                                                                 \
-          return getValueByIndex(0);                                                                \
-        else                                                                                        \
+        if (getshape().size() == 0) {                                                                \
+           return getValueByIndex(0); }                              \
+        else  {                                                                                     \
           throw INJECTION_EXCEPTION("%s: No shape provided to non scalar shape tensor object", #x); \
+        }                                                                                           \
       }                                                                                             \
                                                                                                     \
       int getNumElements() override { return calculateNumElements<std::size_t>(getshape()); }       \
@@ -675,8 +827,6 @@ class MongoPersistance {
 #  undef X
 
   class InfoNode : public DataBaseImpl<IInfoNode> {
-    std::shared_ptr<VnVProv> provStruct;
-
    public:
     InfoNode() : DataBaseImpl<IInfoNode>() {}
 
@@ -694,29 +844,23 @@ class MongoPersistance {
 
     virtual std::string getJobName() override { return getjobName(); }
 
-    void setprov(std::shared_ptr<VnVProv> p) {
-      provStruct = p;
-      setprov(provStruct->toJson());
-    }
+    void setprov(std::shared_ptr<VnVProv> p) { setprov(p->toJson()); }
 
     virtual long getStartTime() override { return getstart(); }
     virtual long getEndTime() override { return getend(); }
 
-    virtual std::shared_ptr<VnVProv> getProvInternal() override {
-      if (provStruct == nullptr) {
-        provStruct.reset(new VnV::VnVProv(getprov()));
-      }
-      return provStruct;
-    }
+    virtual std::shared_ptr<VnVProv> getProvInternal() override { return std::make_shared<VnVProv>(getprov()); }
 
     virtual void addInputFile(std::shared_ptr<VnV::ProvFile> pv) override {
-      getProvInternal()->addInputFile(pv);
-      setprov(provStruct->toJson());
+      auto a = getProvInternal();
+      a->addInputFile(pv);
+      setprov(a->toJson());
     }
 
     virtual void addOutputFile(std::shared_ptr<VnV::ProvFile> pv) override {
-      getProvInternal()->addOutputFile(pv);
-      setprov(provStruct->toJson());
+      auto a = getProvInternal();
+      a->addOutputFile(pv);
+      setprov(a->toJson());
     }
 
     virtual ~InfoNode() {}
@@ -911,6 +1055,7 @@ class MongoPersistance {
 
     std::shared_ptr<TestNode> getTestByUID(long uid) {
       auto a = getTests();
+      
       for (int i = 0; i < a->size(); i++) {
         auto ba = a->get(i);
         assert(ba->getType() == DataBase::DataType::Test);
@@ -919,6 +1064,10 @@ class MongoPersistance {
           return t;
         }
       }
+      
+
+      std::cout << "Could not find one " << a->size() << " " << uid << std::endl;
+
       return nullptr;
     }
 
@@ -942,9 +1091,6 @@ class MongoPersistance {
   };
 
   class DataNode : public DataBaseImpl<IDataNode> {
-    std::shared_ptr<ArrayNode> logs;
-    std::shared_ptr<MapNode> children;
-
     Mongo_docuemnt_ref(logs, Array) Mongo_docuemnt_ref(children, Map)
 
         public : Mongo_getter_setter(local, bool, false) Mongo_getter_setter(key, long long, -1)
@@ -964,10 +1110,6 @@ class MongoPersistance {
   };
 
   class UnitTestResultNode : public DataBaseImpl<IUnitTestResultNode> {
-    std::string desc;
-    std::string value;
-    bool result;
-
    public:
     Mongo_getter_setter(desc, std::string, "") Mongo_getter_setter(result, bool, false)
 
@@ -989,8 +1131,7 @@ class MongoPersistance {
     virtual std::shared_ptr<IUnitTestResultNode> get(std::string key) {
       if (getM()->contains(key)) {
         auto a = getM()->get(key);
-        auto b = a->get(0);
-        return b->getAsUnitTestResultNode(b);
+        return a->getAsUnitTestResultNode(a);
       }
       throw INJECTION_EXCEPTION("Unit Tests Results Node: Key %s does not exist:", key.c_str());
     };
@@ -1028,15 +1169,11 @@ class MongoPersistance {
     Database_ptr database;
     std::atomic<bool> _processing = ATOMIC_VAR_INIT(true);
 
-    Mongo_docuemnt_ref(children, Array) 
-    Mongo_docuemnt_ref(logs, Array) 
-    Mongo_docuemnt_ref(unitTests, Array)
-    Mongo_docuemnt_ref(actions, Map)
-    Mongo_docuemnt_ref(packages, Map)
+    Mongo_docuemnt_ref(children, Array) Mongo_docuemnt_ref(logs, Array) Mongo_docuemnt_ref(unitTests, Array)
+        Mongo_docuemnt_ref(actions, Map) Mongo_docuemnt_ref(packages, Map)
 
-    Mongo_docuemnt_ref(infoNode, Info)
-    Mongo_docuemnt_ref(commInfoNode, CommInfo)
-    Mongo_docuemnt_ref(workflowNode, Workflow)
+            Mongo_docuemnt_ref(infoNode, Info) Mongo_docuemnt_ref(commInfoNode, CommInfo)
+                Mongo_docuemnt_ref(workflowNode, Workflow)
 
                     std::shared_ptr<VnVSpec> spec;
     Mongo_getter_setter_json(specdata, json::object());
@@ -1057,18 +1194,18 @@ class MongoPersistance {
     Collection_ptr getMainCollection() { return collection; }
     Database_ptr getMainDatabase() { return database; }
 
-    void setMainCollection(Database_ptr db, Collection_ptr c ) { database=db, collection = c; }
+    void setMainCollection(Database_ptr db, Collection_ptr c) { database = db, collection = c; }
 
     RootNode() : DataBaseImpl<IRootNode>() {
       autop = true;  // Root Node should autopersist because it might not get deleted.
     }
 
-    virtual ~RootNode() {
-    }
+    virtual ~RootNode() {}
+
+    void cache_persist(bool clearCache) { collection->clearCache(); }
 
     void setinfoNode(std::shared_ptr<IInfoNode> node) { setinfoNodeId(node->getId()); }
     void setworkflowNode(std::shared_ptr<IWorkflowNode> node) { setworkflowNodeId(node->getId()); }
-
 
     void setProcessing(bool value) { _processing.store(value, std::memory_order_relaxed); }
 
@@ -1090,9 +1227,7 @@ class MongoPersistance {
 
     virtual std::shared_ptr<IWorkflowNode> getWorkflowNode() override { return getInternal_workflowNode(); }
 
-    virtual void persist() override {
-      getDocument()->persist();
-    }
+    virtual void persist() override { getDocument()->persist(true); }
 
     void setspec(const json& s) {
       getSpecInternal()->set(s);
@@ -1104,7 +1239,7 @@ class MongoPersistance {
     virtual std::shared_ptr<DataBase> findById_Internal(long id) override {
       try {
         return LoadNode(rootNode(), id);
-      } catch (std::exception &e) {
+      } catch (std::exception& e) {
         throw INJECTION_EXCEPTION("Error Loading Internal Node: Invalid Id %s", id);
       }
     }
@@ -1160,61 +1295,51 @@ class MongoRootNodeWithThread : public StreamParserTemplate<MongoPersistance>::R
   Collection_ptr collection;
 
   MongoRootNodeWithThread(std::string uri, std::string dbname, std::string collname, bool allowExisting = false) {
-    
-    
     client.reset(new Client(uri));
     db.reset(new Database(dbname, client));
     collection = Collection::Initialize(collname, db);
 
     if (!allowExisting && collection->size() > 0) {
-      
       throw INJECTION_EXCEPTION("Cannot Load into an existing collection %s. Please provide a unique collection name.",
                                 collname.c_str());
     }
 
-
+    // collection->setCacheSize(1000);
     MongoPersistance::RootNode::setMainCollection(db, collection);
   }
 
   static std::shared_ptr<IRootNode> parse(
       bool async, std::string uri, std::string dbname, std::string collname, std::shared_ptr<T> stream,
       std::shared_ptr<StreamParserTemplate<MongoPersistance>::ParserVisitor<V>> visitor = nullptr) {
-    
     auto root = std::make_shared<MongoRootNodeWithThread>(uri, dbname, collname);
-
 
     root->stream = stream;
     root->registerNode(root);
     root->setname("Root Node");
-    
-    
+
     root->visitor =
         (visitor == nullptr) ? std::make_shared<StreamParserTemplate<MongoPersistance>::ParserVisitor<V>>() : visitor;
     root->visitor->set(stream, root.get());
     root->open(true);
-    
+
     root->run(async);
     return root;
   }
 
-  virtual ~MongoRootNodeWithThread() {
-  }
-
+  virtual ~MongoRootNodeWithThread() {}
 };
 
 class MongoRootNode : public MongoPersistance::RootNode {
-
  public:
-
   MongoRootNode() {}
 
   void lock() override {}
   void release() override {}
   virtual void respond(long id, long jid, const std::string& response) override {}
 
-  static std::shared_ptr<IRootNode> load(Database_ptr db, Collection_ptr collection ) {
+  static std::shared_ptr<IRootNode> load(Database_ptr db, Collection_ptr collection) {
     auto root = std::make_shared<MongoRootNode>();
-    root->setMainCollection(db,collection);
+    root->setMainCollection(db, collection);
     root->registerNode(root);
     root->setProcessing(false);
     root->open(false);
@@ -1224,10 +1349,9 @@ class MongoRootNode : public MongoPersistance::RootNode {
   static std::shared_ptr<IRootNode> load(std::string uri, std::string dbname, std::string collname) {
     auto client = std::make_shared<Client>(uri);
     auto db = std::make_shared<Database>(dbname, client);
-    auto collection = Collection::Initialize(collname,db);
-    return load(db,collection);
+    auto collection = Collection::Initialize(collname, db);
+    return load(db, collection);
   }
-
 };
 
 typedef StreamParserTemplate<MongoPersistance> MongoParser;

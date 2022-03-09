@@ -75,7 +75,7 @@ json OutputEngineStore::getRunInfo() {
   return json::object();
 }
 
-json OutputEngineStore::schema() {
+json OutputEngineStore::schema(json& packageJson) {
   nlohmann::json m = R"({"type":"object"})"_json;
   nlohmann::json properties = json::object();
 

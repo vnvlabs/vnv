@@ -57,7 +57,7 @@ class OptionsParserStore : public BaseStore {
 
   static OptionsParserStore& instance();
 
-  json schema();
+  json schema(json& packageJson);
 };
 
 }  // namespace VnV

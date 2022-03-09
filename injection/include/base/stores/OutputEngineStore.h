@@ -83,7 +83,7 @@ class OutputEngineStore : public BaseStore {
 
   json listReaders();
 
-  json schema();
+  json schema(json& packageJson);
   /**
    * @brief getEngineManager
    * @return The currently active engine manager. nullptr if not yet configured.

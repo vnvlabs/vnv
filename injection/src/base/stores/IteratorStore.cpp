@@ -90,7 +90,7 @@ void IteratorStore::registerIterator(std::string packageName, std::string id,
   }
 }
 
-json IteratorStore::schema() {
+json IteratorStore::schema(json& packageJson) {
   nlohmann::json temp = R"({
       "description": "An injection iterator defined somewhere in the code",
       "type": "object",
@@ -117,6 +117,8 @@ json IteratorStore::schema() {
   for (auto& it : registeredIterators) {
     json j = temp;
     j["vnvprops"] = it.second.specJson;
+    j["description"] = packageJson[it.second.package]["InjectionPoints"][it.second.name]["docs"]["description"];
+
     props[it.second.package + ":" + it.second.name] = j;
   }
   json j = json::object();

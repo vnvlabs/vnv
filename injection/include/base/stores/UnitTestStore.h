@@ -45,7 +45,7 @@ class UnitTestStore : public BaseStore {
 
   void print();
 
-  json schema();
+  json schema(json& packageJson);
 
   static UnitTestStore& instance();
 };

@@ -52,7 +52,6 @@ def chartupdates(updateId, fileid, dataid):
                     config = render_template_string(w.read(), data=DataClass(data, dataid, fileid))
 
             d = {"more": data.getopen(), "config": config}
-            print(data.getopen())
             return make_response(json.dumps(d), 200)
 
     except Exception as e:

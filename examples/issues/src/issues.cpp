@@ -57,7 +57,7 @@ class IssuesAction : public VnV::IAction {
 
 
 /**
- * .. vnv-issues:: conf[0] 
+ * .. vnv-issues:: conf
  *   :host: github
  * 
  */
@@ -65,7 +65,7 @@ INJECTION_ACTION(ISSUES, github, github_schema) { return new IssuesAction(config
 
 
 /**
- * .. vnv-issues:: conf[0] 
+ * .. vnv-issues:: conf 
  *   :host: gitlab
  * 
  */
@@ -73,7 +73,7 @@ INJECTION_ACTION(ISSUES, gitlab, gitlab_schema) { return new IssuesAction(config
 
 
 /**
- * .. vnv-issues:: conf[0] 
+ * .. vnv-issues:: conf 
  *   :host: local
  */
 INJECTION_ACTION(ISSUES, local, local_schema ) { return new IssuesAction(config); }

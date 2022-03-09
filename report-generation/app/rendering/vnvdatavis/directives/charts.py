@@ -1,6 +1,7 @@
 import hashlib
 import os
 import re
+import uuid
 
 import docutils
 from docutils.nodes import SkipNode
@@ -82,7 +83,7 @@ class JsonChartDirective(SphinxDirective):
     def run(self):
         uid = self.updateRegistration()
         target, target_id = get_target_node(self)
-        block = VnVChartNode(html=self.getHtml(target_id, uid))
+        block = VnVChartNode(html=self.getHtml(uuid.uuid4().hex[0:5], uid))
         return [target, block]
 
 

@@ -1333,7 +1333,7 @@ template <class DB> class StreamParserTemplate {
         rootInternal()->getActions()->insert(pn, n);
         return n;
       }
-      return std::dynamic_pointer_cast<typename DB::TestNode>(rootInternal()->getActions()->get(pn)->get(0));
+      return std::dynamic_pointer_cast<typename DB::TestNode>(rootInternal()->getActions()->get(pn));
     };
 
     virtual std::shared_ptr<typename DB::TestNode> visitActionNodeEnded(const T& j, std::shared_ptr<DataBase> node) {
@@ -1537,45 +1537,43 @@ template <class DB> class StreamParserTemplate {
 
     virtual void process() {
       jstream->start_stream_reader();
+      
+      rootInternal()->markReaderThread();
+
+
       long i = 0;
-               std::cout << "Still working " << i << std::endl;
-
+      long j = 0;
       bool changed = false;
-      try {
-        while (!jstream->isDone() && !kill_lock.load(std::memory_order_relaxed)) {
-          i = ++i % 1000;
-          std::cout << "Still working " << i << std::endl;
-
-          if (i == 999) {
-
-            rootInternal()->persist();
-            changed = false;
-            std::cout << "Still working " << i << std::endl;
+        while (!jstream->isDone()) {
+          
+          if (kill_lock.load(std::memory_order_relaxed)) {
+              break;
           }
-
-          if (jstream->hasNext()) {
-            setWriteLock();
-            try {
-
-              auto p = jstream->next();
-              visit(p.first, p.second);
-            } catch (std::exception& e) {
-              throw INJECTION_EXCEPTION("Unknown Exception Found: %s", e.what());
+          
+          i = 0;
+          changed = false;
+          // Lets grab the write lock for 10000 lines -- see if that speeds it up a little. 
+          setWriteLock();  
+          while (i++ < 10000) {
+            if (jstream->hasNext()) {
+                auto p = jstream->next();
+                visit(p.first, p.second);
+                changed = true;
             }
-
-            releaseWriteLock();
-            changed = true;
           }
+          
+          if (changed) {
+            rootInternal()->cache_persist(false);
+            std::cout << "Done 10000" << std::endl;
+          }
+          releaseWriteLock();
         }
 
-        rootInternal()->persist();
+        rootInternal()->cache_persist(true);
         rootInternal()->setProcessing(false);
         rootInternal()->open(false);
         jstream->stop_stream_reader();
-      } catch (...) {
-          std::cout << "GDDSFSDFS" << std::endl;
-      }
-      std::cout << "DONE" << std::endl;
+        std::cout << "DONE" << std::endl;
       
     }
     virtual void setWriteLock() {
@@ -1640,6 +1638,8 @@ template <class DB> class StreamParserTemplate {
             p->setinternal(a);
           } else {
             p->getTests()->add(child);
+            std::cout << "Adding test to tests" << p->getTests()->size() <<  std::endl;
+            p->getTestByUID(0);
           }
 
         } else if (ctype == DataBase::DataType::Log) {
@@ -1790,6 +1790,7 @@ template <class DB> class StreamParserTemplate {
             jstream->push(t);
           } else {
             bool found = false;
+          
             auto t = pp->getTestByUID(uid);
             if (t != nullptr) {
               visitTestNodeIterStarted(j, t);
@@ -1880,7 +1881,11 @@ template <class DB> class StreamParserTemplate {
     void kill() override {
       if (running) {
         visitor->kill();
-        tworker.join();
+        std::cout << "TTTTTTTTTTTT" << std::endl;
+        if (tworker.joinable()) {
+            tworker.join();
+        }
+        std::cout << "FEEFEFEFEFEFEFEF" << std::endl;
         running = false;
       }
     }

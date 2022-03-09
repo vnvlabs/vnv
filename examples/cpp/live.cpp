@@ -33,7 +33,7 @@ INJECTION_EXECUTABLE(SPNAME)
  * The timeout waits for 500 seconds (parameter 2 of the Fetch function. ).
  * Fetch returns a boolean indicating if the fetch was successful. 
  * 
- * YOU RESPONDED WITH THE VALUE: :vnv:`response[0]`
+ * YOU RESPONDED WITH THE VALUE: :vnv:`response`
  * 
  */
 INJECTION_TEST(SPNAME, interupt) {

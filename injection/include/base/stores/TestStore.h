@@ -18,6 +18,7 @@
 #include "base/parser/JsonSchema.h"
 #include "base/stores/BaseStore.h"
 #include "interfaces/ITest.h"
+#include "base/Utilities.h"
 
 namespace VnV {
 
@@ -163,9 +164,13 @@ template <typename Inter, typename Maker, typename Config> class TestStoreTempla
     }
   }
 
-  nlohmann::json schema() {
+  nlohmann::json schema_(json& packageJson, std::string store) {
     nlohmann::json props = json::object();
     for (auto& it : test_factory) {
+      
+      std::vector<std::string> a;
+      StringUtils::StringSplit(it.first,":",a);
+      
       nlohmann::json properties = json::object();
       properties["config"] = it.second.schema;
 
@@ -173,6 +178,7 @@ template <typename Inter, typename Maker, typename Config> class TestStoreTempla
       p["type"] = "object";
       p["properties"] = properties;
       p["additionalProperties"] = false;
+      p["description"] = packageJson[a[0]][store][a[1]]["docs"]["description"];
       props[it.first] = p;
     }
 
@@ -182,6 +188,8 @@ template <typename Inter, typename Maker, typename Config> class TestStoreTempla
     r["additionalProperties"] = false;
     return r;
   }
+
+ 
 
   /**
    * @brief print out test store configuration information.
@@ -196,6 +204,12 @@ class TestStore : public TestStoreTemplate<ITest, maker_ptr, TestConfig>, public
  public:
   TestStore() : TestStoreTemplate<ITest, maker_ptr, TestConfig>() {}
   static TestStore& instance();
+  
+  nlohmann::json schema(json& packageJson) {
+    return schema_(packageJson,"Tests");
+  }
+
+
 };
 
 }  // namespace VnV

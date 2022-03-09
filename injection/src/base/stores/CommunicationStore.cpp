@@ -40,7 +40,7 @@ CommunicationStore::CommunicationStore() {
 #undef X
 }
 
-nlohmann::json CommunicationStore::schema() {
+nlohmann::json CommunicationStore::schema(json& packageJson) {
   json j = R"({"type" : "string", "enum" : []})"_json;
   for (auto& it : communicator_factory) {
     j["enum"].push_back(it.first);

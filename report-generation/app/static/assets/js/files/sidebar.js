@@ -364,13 +364,29 @@ $(window).on('load', function() {
 });
 
 
+IPSTATE_CACHE = {}
+
 function updateIpState(ipid, fileId) {
 
-   var url = '/files/viewers/ip/' + fileId + "?ipid=" + ipid
+   eid = "injection-element-" + ipid;
+   elmid = "#" + eid
 
-   $.get(  url , function( data ) {
-     $('#injection-element').html(data)
-   });
+
+   $('.injection-element-page').toggle(false)
+
+   // If we have it already then show it.
+   if ( $(elmid).length == 1 ) {
+      $(elmid).toggle(true)
+   } else {
+      // Append to it a new element.
+      $('#injection-element').append("<div id='" + eid + "' class='injection-element-page'> Loading .... </div>")
+      var url = '/files/viewers/ip/' + fileId + "?ipid=" + ipid
+
+      // Populate the element with the data
+      $.get(  url , function( data ) {
+         $(elmid).html(data)
+      });
+   }
 
    xx = {}
    x = localStorage.getItem("vnv_ip_state")

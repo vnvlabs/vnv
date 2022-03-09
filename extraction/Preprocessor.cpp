@@ -24,13 +24,14 @@ class ProcessedComment {
  public:
   std::string templ = "";
   std::string title = "";
+  std::string treeTitle = "";
   std::string description = "";
   std::string instructions = "";
   std::map<std::string, std::string> params;
   ProcessedComment(){};
-  ProcessedComment(std::string templ_, std::string title_, std::string desc, std::string inst,
+  ProcessedComment(std::string templ_, std::string title_, std::string desc, std::string inst, std::string tree,
                    const std::map<std::string, std::string>& m)
-      : templ(templ_), title(title_), description(desc), instructions(inst), params(m) {}
+      : templ(templ_), title(title_), description(desc), instructions(inst), treeTitle(tree), params(m) {}
 
   json toJson() {
     json j = json ::object();
@@ -38,6 +39,7 @@ class ProcessedComment {
     j["title"] = title;
     j["description"] = description;
     j["instructions"] = instructions;
+    j["shortTitle"] = treeTitle;
     j["params"] = params;
     return j;
   }
@@ -82,6 +84,14 @@ ProcessedComment processComment(std::string comment) {
       if (t != std::string::npos) {
         c.instructions = VnV::StringUtils::trim_copy(it.substr(t + 13));
         curr = &(c.instructions);
+        continue;
+      }
+    }
+    if (c.treeTitle.empty()) {
+      auto t = it.find("@shortTitle");
+      if (t != std::string::npos) {
+        c.treeTitle = VnV::StringUtils::trim_copy(it.substr(t + 11));
+        curr = &(c.treeTitle);
         continue;
       }
     }

@@ -14,7 +14,8 @@ defined in base/PlugStore.h.
 
 using namespace VnV;
 
-BaseStoreInstance(PlugStore) BaseStoreInstance(PlugsStore)
+BaseStoreInstance(PlugStore)
+BaseStoreInstance(PlugsStore)
 
     PlugStore::PlugStore() {}
 
@@ -78,7 +79,7 @@ bool PlugStore::registeredPlug(std::string package, std::string name) {
   return plugs.find(package + ":" + name) != plugs.end();
 }
 
-json PlugStore::schema() {
+json PlugStore::schema(json& packageJson) {
   nlohmann::json temp = R"({
       "description": "An injection plug defined somewhere in the code",
       "type": "object",
@@ -104,6 +105,7 @@ json PlugStore::schema() {
   nlohmann::json props = json::object();
   for (auto& it : registeredPlugs) {
     json j = temp;
+    j["description"] = packageJson[it.second.package]["InjectionPoints"][it.second.name]["docs"]["description"];
     j["vnvprops"] = it.second.specJson;
     props[it.second.package + ":" + it.second.name] = j;
   }

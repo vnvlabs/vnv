@@ -1,4 +1,4 @@
-#define VNV_READER_CACHE_SIZE 25
+#define VNV_READER_CACHE_SIZE 100
 
 #include "streaming/MongoNodeImpl.h"
 
@@ -17,7 +17,9 @@ std::shared_ptr<DataBase> VnV::Nodes::Mongo::LoadNode(IRootNode* root, long id) 
   
   auto collection = dynamic_cast<MongoPersistance::RootNode*>(root)->getMainCollection();
 
-  auto d = collection->getDocument(id, "");
+  try {
+    auto d = collection->getDocument(id, "");
+ 
 
   std::string type = d->get("type").get<std::string>();
 
@@ -42,6 +44,11 @@ std::shared_ptr<DataBase> VnV::Nodes::Mongo::LoadNode(IRootNode* root, long id) 
 
   ptr->setRootNode(id, root);
   return ptr;
+
+ } catch (...) {
+    std::cout << "SDFSDF" << std::endl;
+    return nullptr;
+ }
 }
 
 
@@ -53,6 +60,36 @@ template <typename ContainerT, typename PredicateT> void erase_if(ContainerT& it
       ++it;
   }
 }
+
+bool Mongo::Collection::persist(long id, json update) {
+    
+    json set = json::object();
+    set["$set"] = update;
+    update_one(id, set);
+    return true;
+
+}
+
+void Mongo::Collection::clearCache() { 
+    auto bulk = mongoc_collection_create_bulk_operation_with_opts(collection(),NULL);
+    for(auto &it : docCache ) {
+        if (it.second->needsPersisted()) {
+          it.second->markPersisted();
+          auto d = it.second->get();
+          json filter = json::object();
+          filter["_id"] = it.second->getId();
+                    
+          json set = json::object();
+          set["$set"] = d;
+
+          mongoc_bulk_operation_update_one_with_opts(bulk, bwrap(filter)->get(), bwrap(set)->get(), update_opts, NULL );
+
+        }   
+    }
+    mongoc_bulk_operation_execute(bulk,NULL, &error);
+    mongoc_bulk_operation_destroy(bulk);
+    docCache.clear(); // TODO;
+  }
 
 
 void Mongo::MongoPersistance::WorkflowNode::setReport(std::string reportName, int fileId,
@@ -82,7 +119,13 @@ std::shared_ptr<IRootNode> Mongo::MongoPersistance::WorkflowNode::getReport(std:
 }
 
 std::shared_ptr<Mongo::Document> Mongo::Collection::pullDocument(long id, std::string type, bool clearCache) {
-  return std::make_shared<Document>(id, loadOrCreate(id, type), selfAsShared.lock());
+  
+  bool isNew = false;
+  auto doc = std::make_shared<Document>(id, loadOrCreate(id, isNew, type), selfAsShared.lock());
+  if (isNew) {
+    doc->markNew();
+  }
+  return doc;
 }
 
 #define DSTYPES \
@@ -91,28 +134,21 @@ std::shared_ptr<Mongo::Document> Mongo::Collection::pullDocument(long id, std::s
 #define X(x, y)                                                                                                  \
   y Mongo::MongoPersistance::x##Node::getValueByIndex(const std::size_t ind) { return getvals()[ind].get<y>(); } \
   void Mongo::MongoPersistance::x##Node::add(const y& val) {                                                     \
-    auto s = getvals();                                                                                          \
+    auto &s = getvals(true);                                                                                          \
     s.push_back(val);                                                                                            \
-    setvals(s);                                                                                                  \
   }
 DSTYPES
 #undef X
 #undef DSTYPES
 
 std::shared_ptr<DataBase> Mongo::MongoPersistance::ShapeNode::getValueByIndex(const std::size_t ind) {
-  auto it = nodes.find(ind);
-  if (it == nodes.end()) {
-    auto a = getvals()[ind].get<long>();
+   auto a = getvals()[ind].get<long>();
     auto aa = LoadNode(rootNode(), a);
-    nodes[ind] = aa;
     return aa;
-  }
-  return it->second;
 }
 
 void Mongo::MongoPersistance::ShapeNode::add(const std::shared_ptr<DataBase>& s) {
   auto ss = getvals();
-  nodes[ss.size()] = s;
   ss.push_back(s->getId());
   setvals(ss);
 }

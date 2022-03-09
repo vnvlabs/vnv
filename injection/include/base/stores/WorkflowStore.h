@@ -92,7 +92,7 @@ class WorkflowStore : public BaseStore {
     job_factory[packageName + ":" + name] = std::make_pair(schema, m);
   }
 
-  json schema() {
+  json schema(json& packageJson) {
     nlohmann::json m = R"({"type":"object"})"_json;
     nlohmann::json properties = json::object();
 

@@ -22,6 +22,11 @@ class IteratorsStore
       : TestStoreTemplate<IIterator, iterator_maker_ptr, IteratorConfig>() {}
 
   static IteratorsStore& instance();
+
+  nlohmann::json schema(json& packageJson) {
+    return schema_(packageJson,"Iterators");
+  }
+
 };
 
 }  // namespace VnV

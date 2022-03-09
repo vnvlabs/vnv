@@ -22,7 +22,7 @@ ISampler_ptr SamplerStore::getSamplerForInjectionPoint(std::string ipPackage, st
   return nullptr;
 }
 
-nlohmann::json SamplerStore::schema() {
+nlohmann::json SamplerStore::schema(json& packageJson) {
   nlohmann::json samples = json::object();
   samples["type"] = "object";
   samples["properties"] = json::object();

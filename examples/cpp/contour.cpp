@@ -22,9 +22,9 @@ using namespace VnV;
    * 
    * .. vnv-plotly::
    *    :trace.main: contour
-   *    :main.x: {{as_json(x[0])}}
-   *    :main.y: {{as_json(y[0])}}
-   *    :main.z: {{as_json(z[0])}}
+   *    :main.x: {{as_json(x)}}
+   *    :main.y: {{as_json(y)}}
+   *    :main.z: {{as_json(z)}}
    *    :layout.title.text: Basic contour plot
    * 
    **/
@@ -83,9 +83,9 @@ int main(int argc, char** argv) {
    * 
    * .. vnv-plotly::
    *    :trace.main: contour
-   *    :main.x: {{as_json(xx[0])}}
-   *    :main.y: {{as_json(yy[0])}}
-   *    :main.z: {{as_json(zz[0])}}
+   *    :main.x: {{as_json(xx)}}
+   *    :main.y: {{as_json(yy)}}
+   *    :main.z: {{as_json(zz)}}
    *    :layout.title.text: Basic contour plot
    * 
    **/

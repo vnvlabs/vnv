@@ -141,7 +141,7 @@ class ActionStore : public BaseStore {
     HTHROW INJECTION_EXCEPTION("Error adding Action", packageName.c_str(), name.c_str());
   }
 
-  nlohmann::json schema();
+  nlohmann::json schema(json& packageJson);
 
   static ActionStore& instance();
 };

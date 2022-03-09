@@ -22,6 +22,7 @@ class DataClass:
         self.data = data
         self.id_ = id_
         self.file = file
+        self.query_cache = {}
 
     def _compile(self, expr):
         try:
@@ -43,9 +44,14 @@ class DataClass:
 
     def query(self, text):
         """Return the jmes query result"""
+        if text in self.query_cache:
+            return self.query_cache[text]
 
         try:
-            return self._compile(text).search(self.data)
+            res = self._compile(text).search(self.data)
+            self.query_cache[text] = res
+            return res
+
         except Exception as e:
             print(e)
             return ""

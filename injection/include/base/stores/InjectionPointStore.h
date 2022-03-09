@@ -112,7 +112,7 @@ class InjectionPointStore : public BaseStore {
 
   static InjectionPointStore& instance();
 
-  nlohmann::json schema();
+  nlohmann::json schema(json& packageJson);
 
 };  // end InjectionPointStore
 

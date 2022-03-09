@@ -71,7 +71,7 @@ class TransformStore : public BaseStore {
 
   static TransformStore& instance();
 
-  nlohmann::json schema();
+  nlohmann::json schema(json& packageJson);
 };
 
 }  // namespace VnV

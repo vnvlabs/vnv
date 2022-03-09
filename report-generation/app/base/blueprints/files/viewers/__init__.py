@@ -91,6 +91,9 @@ def validateResponse(id_, ipid):
     try:
         with VnVFile.VnVFile.find(id_) as file:
             iprender = file.render_ip(ipid)
+            if iprender is None:
+                return make_response("Invalid", 201)
+
             r = iprender.getRequest()
             req = json.loads(request.get_json().get('data'))
             sch = r.getSchema()
@@ -106,6 +109,9 @@ def iprequest(id_, ipid):
         with VnVFile.VnVFile.find(id_) as file:
 
             iprender = file.render_ip(ipid)
+            if iprender is None:
+                make_response("Error", 200)
+
             r = iprender.getRequest()
             if r is None:
                 s = iprender.getStatus()
@@ -122,6 +128,9 @@ def processing(id_, ipid):
         with VnVFile.VnVFile.find(id_) as file:
 
             iprender = file.render_ip(ipid)
+            if iprender is None:
+                make_response("Error", 200)
+
             r = iprender.getStatus()
             return make_response(r, 201 if r == "Complete" else 200)
 
@@ -387,7 +396,8 @@ def ip(id_):
 
 
             iprender = file.render_ip(injection)
-
+            if iprender is None:
+                return render_template("viewers/introduction.html", introRender=file.get_introduction())
             if isinstance(iprender, str):
                 return iprender
 

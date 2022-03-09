@@ -27,6 +27,29 @@ class JsonFileIterator : public Iterator<json> {
 
   std::string currJson;
 
+  //What do we want to do--
+  //We want to prefetch json. 
+  std::queue<json> jsonQueue;
+
+  void fetchThread () {
+    while (true) {
+      ifs.seekg(p);
+      std::string currline;
+      lockfile.lock();
+
+      while (std::getline(ifs, currline)) {
+        jsonQueue.push(json::parse(currline));
+      }
+
+      if (ifs.tellg() == -1) {
+        p += currline.size();
+      } else {
+        p = ifs.tellg();
+      }
+
+    }
+  }
+
   void getLine_() {
     lockfile.lock();
 
@@ -34,6 +57,11 @@ class JsonFileIterator : public Iterator<json> {
     ifs.seekg(p);
 
     if (std::getline(ifs, currline)) {
+      
+      // This is slow -- 22% of runtime when reading Euler.out is spent parsing 
+      // the json files -- We do parse 89000 lines -- so it makes sence, but if we 
+      // can remove the wait, we can probably speed things up quite a lot. 
+      // So, we should use threads to prefetch the json. 
       json t = json::parse(currline);
       nextCurr = t["object"];
       nextValue = t["id"].get<long>();
@@ -49,9 +77,11 @@ class JsonFileIterator : public Iterator<json> {
       nextCurr = json::object();
       ifs.clear();  // Clear the stream so we can try and read again.
     }
-
     lockfile.unlock();
+
   }
+
+
 
   void getLine(json& current, long& currentValue) override {
     current = nextCurr;

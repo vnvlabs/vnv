@@ -1,0 +1,39 @@
+<div>
+<h4>{{title}}</h4>
+{{content}}
+{%if hasparams  %}
+<h6 style="margin-top:10px;">Available Injection Parameters:</h6>
+    <ul>
+        {% for k,v in params.items() %}
+        <li><span>{{k}}: {{v}}</span></li>
+        {%endfor%}
+    </ul>
+{%endif%}
+{%if hasprops == 1 %}
+
+<h6 style="margin-top:10px;">Parameter Types:</h6>
+{% for k,v in props.items() %}
+    <ul>
+       {%for kk,vv in v.items() %}
+         <li><span>{{kk}}: {{vv}}</span>
+       {%endfor%}
+    </ul>
+{% endfor %}
+
+{% elif hasprops > 1 %}
+<h6 style="margin-top:10px;">Parameter Types:</h6>
+This injection point is defined in a template function, and as such, may be
+called with multiple parameter contexts. The possible calling contexts are:
+<ul>
+{% for k,v in props.items() %}
+    <li><span>{{k}}:</span>
+        <ul>
+           {%for kk,vv in v.items() %}
+            <li><span>{{kk}}: {{vv}}</span>
+            {%endfor%}
+        </ul>
+    </li>
+{% endfor %}
+</ul>
+{%endif%}
+</div>

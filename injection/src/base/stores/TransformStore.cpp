@@ -56,7 +56,7 @@ void* Transformer::Transform(void* ptr) {
 
 TransformStore::TransformStore() {}
 
-nlohmann::json TransformStore::schema() {
+nlohmann::json TransformStore::schema(json& packageJson) {
   std::set<std::string> nodes;
   nlohmann::json edges = json::array();
   for (auto& it : trans_map) {

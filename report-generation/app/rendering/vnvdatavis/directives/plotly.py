@@ -277,20 +277,43 @@ class PlotlyDirec(PlotlyChartDirective):
 
     postprocess = plotly_post_process
 
+    ## We tag all the ids with the dataId because we only really generate the html once per test. So, if
+    ## you have a test multiple times, we need to have the dataId different so they dont interfere.
     script_template = '''
-                 <div id="{uid}" style="width:100%; height:100%; min-height:450px"></div>
+                 <div id="{{{{data.getAAId()}}}}-{uid}" style="width:100%; height:100%; min-height:450px"></div>
                  <script>
                  $(document).ready(function() {{
                    url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}?context=plotly"
                    var load = [88,12]
-                   Plotly.newPlot('{uid}',[{{values: load, text:'Loading', textposition:'inside', hole: 0.5, labels: 
-                   ['Loaded','Remaining'], type: 'pie'}}],{{showlegend:false,
-                   annotations: [{{font: {{size: 20}},showarrow: false, text: `${{load[0]}}%`,x: 0.5,y: 0.5}}] }},{{ }});
-                   update_now(url, "{uid}", 1000, function(config) {{
+                   
+                   Plotly.newPlot('{{{{data.getAAId()}}}}-{uid}',[
+                       {{values: load, 
+                         text:'Loading', 
+                         textposition:'inside', 
+                         hole: 0.5, 
+                         labels: ['Loaded','Remaining'],
+                         type: 'pie'}}
+                      ],
+                      {{showlegend:false,
+                        annotations: [
+                           {{ 
+                              font: {{ size: 20 }},
+                              showarrow: false,
+                              text: `${{load[0]}}%`,
+                              x: 0.5,
+                              y: 0.5
+                           }}
+                        ] 
+                       }},
+                       {{ }}
+                   );
+                   
+                   update_now(url, "{{{{data.getAAId()}}}}-{uid}", 1000, function(config) {{
                      var xx = JSON.parse(config)
-                     Plotly.react('{uid}',xx);     
-                     Plotly.relayout('{uid}',{{}});                
+                     Plotly.react('{{{{data.getAAId()}}}}-{uid}',xx);     
+                     Plotly.relayout('{{{{data.getAAId()}}}}-{uid}',{{}});                
                    }})
+                   
                  }})
                  </script>
                  '''

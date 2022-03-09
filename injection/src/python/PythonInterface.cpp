@@ -30,7 +30,7 @@ ReaderWrapper::ReaderWrapper(std::string filename, std::string reader, std::stri
     json conf = json::parse(config);
     rootNode = VnV::OutputEngineStore::instance().readFile(filename, reader, conf, async);
   } catch (std::exception &e) {
-    throw INJECTION_EXCEPTION("Engine Detection Failed: %s", filename.c_str(), e.what());
+    throw INJECTION_EXCEPTION("Engine Detection Failed: %s %s ", filename.c_str(), e.what());
   }
 }
 

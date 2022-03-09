@@ -77,20 +77,20 @@ using namespace VnV;
    * 
    * .. vnv-plotly::
    *    :trace.main: scatter
-   *    :main.x: {{as_json(x[0])}}
-   *    :main.y: {{as_json(y[0])}}
-   *    :layout.title.text: The Time Was {{time[0]}} 
+   *    :main.x: {{as_json(x)}}
+   *    :main.y: {{as_json(y)}}
+   *    :layout.title.text: The Time Was {{time}} 
    * 
    * You can add two data series to the same chart by adding another trace
    * 
    * .. vnv-plotly::
    *    :trace.main: scatter
    *    :trace.second: scatter
-   *    :main.x: {{as_json(x[0])}}
-   *    :main.y: {{as_json(y[0])}}
-   *    :second.x: {{as_json(x[0])}}
-   *    :second.y: {{as_json(z[0])}}
-   *    :layout.title.text: The time was {{time[0]}}
+   *    :main.x: {{as_json(x)}}
+   *    :main.y: {{as_json(y)}}
+   *    :second.x: {{as_json(x)}}
+   *    :second.y: {{as_json(z)}}
+   *    :layout.title.text: The time was {{time}}
    * 
    * You can also remove the lines on a series and/or add a custom name to the series. Nested parameters
    * can also be set. Basically, you can add as much or as little information to the plots as you like. 
@@ -99,14 +99,14 @@ using namespace VnV;
    * .. vnv-plotly::
    *    :trace.main: scatter
    *    :trace.second: scatter
-   *    :main.x: {{as_json(x[0])}}
-   *    :main.y: {{as_json(y[0])}}
-   *    :second.x: {{as_json(x[0])}}
-   *    :second.y: {{as_json(z[0])}}
+   *    :main.x: {{as_json(x)}}
+   *    :main.y: {{as_json(y)}}
+   *    :second.x: {{as_json(x)}}
+   *    :second.y: {{as_json(z)}}
    *    :second.mode: markers
    *    :second.name: second series
    *    :second.marker.size: 10
-   *    :layout.title.text: The time was {{time[0]}}
+   *    :layout.title.text: The time was {{time}}
    *
    * 
    *  
@@ -227,6 +227,7 @@ int main(int argc, char** argv) {
  /**
    * 
    * @title Simple VnV Injection point
+   * @description Wow a simple description. 
    * 
    * This is a simple VnV Injection point. There is not much more to say. 
    * 

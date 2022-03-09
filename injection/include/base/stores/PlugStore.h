@@ -45,7 +45,7 @@ class PlugStore : public BaseStore {
   std::shared_ptr<PlugPoint> getNewPlug(std::string package, std::string name, struct VnV_Function_Sig pretty,
                                         NTV& args);
 
-  nlohmann::json schema();
+  nlohmann::json schema(json& packageJson);
 
   bool registeredPlug(std::string package, std::string name);
 

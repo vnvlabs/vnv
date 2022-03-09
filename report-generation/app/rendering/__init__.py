@@ -64,6 +64,12 @@ class TemplateBuild:
             r = ff.readlines()
             return "".join(r)
 
+    def get_title(self,type, package, name, short=False):
+        tt = "short" if short else "title"
+        return os.path.join("renders",self.src_dir, "_build", "html",
+               f"{type}_{package}_{name}_{tt}.html")
+
+
     def get_type_description(self, type, package, name):
         if self.descrip is None:
             with open(os.path.join(self.root_dir, "descriptions.json"), 'r') as w:
@@ -176,6 +182,15 @@ class TemplateBuild:
             "html",
             "Introduction.html")
 
+    def get_intro_title(self, short = False):
+        t = "short" if short else "title"
+        return os.path.join(
+            "renders",
+            self.src_dir,
+            "_build",
+            "html",
+            f"Introduction_{t}.html")
+
     def get_conclusion(self):
         return os.path.join(
             "renders",
@@ -197,6 +212,14 @@ def build(src_dir, templates, id_):
             fnames.append(f"{type_}.rst")
             with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
                 w.write(f'{textwrap.dedent(packages["docs"]["template"])}\n\n')
+            fnames.append(f"{type_}_short.rst")
+
+            with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
+                w.write(f'{textwrap.dedent(packages["docs"].get("shortTitle",""))}\n\n')
+            fnames.append(f"{type_}_title.rst")
+
+            with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
+                w.write(f'{textwrap.dedent(packages["docs"].get("title",""))}\n\n')
 
         elif type_ in ["Options"]:
             for package, docinfo in packages.items():
@@ -207,14 +230,31 @@ def build(src_dir, templates, id_):
         else:
             for package, point in packages.items():
                 name_package = package.split(":")
-                fnames.append(
-                    f"{type_}_{name_package[0]}_{name_package[1]}.rst")
+
+                #Write the template file
+                fnames.append(f"{type_}_{name_package[0]}_{name_package[1]}.rst")
 
                 with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
-                    if len(point["docs"]) == 0:
+                    if len(point["docs"]) == 0 or len(point["docs"]["template"]) == 0 :
                         w.write(f"\n\n<No information available>\n\n")
                     else:
                         w.write(f"\n{textwrap.dedent(point['docs']['template'])}\n\n")
+
+                #Write the title file
+                fnames.append(f"{type_}_{name_package[0]}_{name_package[1]}_title.rst")
+                with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
+                    if len(point["docs"]) == 0:
+                        w.write(f"")
+                    else:
+                        w.write(f"\n{textwrap.dedent(point['docs']['title'])}\n\n")
+
+                #Write the short title.
+                fnames.append(f"{type_}_{name_package[0]}_{name_package[1]}_short.rst")
+                with open(os.path.join(src_dir, fnames[-1]), 'w') as w:
+                    if len(point["docs"]) == 0:
+                        w.write(f"")
+                    else:
+                        w.write(f"\n{textwrap.dedent(point['docs'].get('shortTitle','Hello There :vnv:`Id`'))}\n\n")
 
                 descriptions.setdefault(type_, {})[name_package[0] + ":" + name_package[1]] = point["docs"]
 
@@ -227,6 +267,7 @@ def build(src_dir, templates, id_):
                                 w.write(f"\n\n<No information available>\n\n")
                             else:
                                 w.write(f"\n{textwrap.dedent(tests[test])}\n\n")
+
                 elif type_ == "JobCreators":
                     tests = point["jobs"]
                     for test in tests.keys():

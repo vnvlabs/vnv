@@ -2,7 +2,7 @@
 <div class="card" style="padding:20px; height:100%">
 
     <div style="position:relative; align-items:center; margin-bottom:30px;">
-        <h2 style="flex:1">{{iprender.getTitle()}}</h2>
+        <h2 style="flex:1">{{iprender.getTitle() | safe }}</h2>
         <div class="card" style="display:flex; flex-direction:row;  position:absolute; top:calc(50% - 16px); right:10px;">
             {% if iprender.getLogs() | length %}
             <a href="#!" onclick="$('#log-modal').modal('toggle')" class="vnvh badge badge-success"
@@ -59,7 +59,7 @@
         <div class="card injection_test" style="padding:20px;">
 
             <div style="position:relative; align-items:center ">
-                <h3 style="flex:1; margin-bottom:30px;"> {{ testrender.getTitle()}} </h3>
+                <h3 style="flex:1; margin-bottom:30px;"> {{ testrender.getTitle() | safe }} </h3>
                 <div class="card" style="display:flex; flex-direction:row;  position:absolute; top:calc(50% - 16px); right:10px;">
 
                 {% if testrender.getLogs() | length %}

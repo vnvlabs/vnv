@@ -16,8 +16,9 @@ int main(int argc, char** argv) {
   
   json j = json::object();
   j["collection"] = VnV::StringUtils::random(4);
-  j["persist"] = "memory";
-  auto a = VnV::Python::ReaderWrapper(argv[2], argv[1], j.dump(), false);
+  j["persist"] = "mongo";
+  auto a = VnV::Python::ReaderWrapper(argv[2], argv[1], j.dump(), true);
   
+  a.get()->getThread()->join();
   INJECTION_FINALIZE(RPNAME)
 }

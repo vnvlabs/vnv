@@ -36,7 +36,7 @@ class CommunicationStore : public BaseStore {
 
   void addCommunicator(std::string name, comm_register_ptr factory);
 
-  nlohmann::json schema();
+  nlohmann::json schema(nlohmann::json& packageJson);
 
   void set(std::string name);
 

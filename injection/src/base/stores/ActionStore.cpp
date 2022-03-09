@@ -17,11 +17,15 @@ using namespace VnV;
 
 ActionStore::ActionStore() {}
 
-nlohmann::json ActionStore::schema() {
+nlohmann::json ActionStore::schema(json& packageJson) {
   nlohmann::json m = R"({"type":"object"})"_json;
   nlohmann::json props = json::object();
   for (auto& it : action_factory) {
+    
+    std::vector<std::string> a;
+    StringUtils::StringSplit(it.first,":",a);
     props[it.first] = it.second.first;
+    props[it.first]["description"] = packageJson[a[0]]["Actions"][a[1]]["docs"]["description"];
   }
   m["properties"] = props;
   m["additionalProperties"] = false;

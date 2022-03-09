@@ -403,7 +403,7 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
         real(kind=c_float), dimension(*), intent(inout) :: value
-        integer, value, intent(in) :: n
+        integer(kind=c_int), value, intent(in) :: n
         character(len=1, kind=C_CHAR) :: name_c_str(len_trim(name) + 1)
         name_c_str = convert(name)        
         call vnv_declare_float_array_c(ctx,name_c_str, value, int(n, kind=c_size_t))
@@ -415,7 +415,7 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
         real(kind=c_double), dimension(*), intent(inout) :: value
-        integer, value, intent(in) :: n
+        integer(kind=c_int), value, intent(in) :: n
         character(len=1, kind=C_CHAR) :: name_c_str(len_trim(name) + 1)
         name_c_str = convert(name)        
         call vnv_declare_double_array_c(ctx,name_c_str, value, int(n, kind=c_size_t))
@@ -426,7 +426,7 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
         integer(kind=c_int), dimension(:,:), intent(inout) :: value
-        integer, value, intent(in) :: d0,d1
+        integer(kind=c_int), value, intent(in) :: d0,d1
         character(len=1, kind=C_CHAR) :: name_c_str(len_trim(name) + 1)
         name_c_str = convert(name)        
         call vnv_declare_integer_matrix_c(ctx,name_c_str, value,int(d0, kind=c_size_t),int(d1, kind=c_size_t))
@@ -437,7 +437,7 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
         real(kind=c_float), dimension(:,:), intent(inout) :: value
-        integer, value, intent(in) :: d0,d1
+        integer(kind=c_int), value, intent(in) :: d0,d1
         character(len=1, kind=C_CHAR) :: name_c_str(len_trim(name) + 1)
         name_c_str = convert(name)        
         call vnv_declare_float_matrix_c(ctx,name_c_str, value, int(d0, kind=c_size_t),int(d1, kind=c_size_t))
@@ -448,7 +448,7 @@ contains ! Implementation of the functions. We just wrap the C function here.
         character(len=*), intent(in) :: name
         TYPE(C_PTR), intent(in) :: ctx
         real(kind=c_double), dimension(:,:), intent(inout) :: value
-        integer, value, intent(in) :: d0,d1
+        integer(kind=c_int), value, intent(in) :: d0,d1
         character(len=1, kind=C_CHAR) :: name_c_str(len_trim(name) + 1)
         name_c_str = convert(name)        
         call vnv_declare_double_matrix_c(ctx,name_c_str, value, int(d0, kind=c_size_t),int(d1, kind=c_size_t))

@@ -163,7 +163,13 @@ margin:10px;
 	padding-right: 23px;
 	color: white;
 }
-
+.ace_tooltip.ace_doc-tooltip {
+  border-radius: 5px;
+  padding: 20px;
+  margin-left: 10px !important;
+  background: #dfe0e3;
+  white-space: unset;
+}
 .vnv-foot-spacer {
 	height: 10px;
 	width: 100%;

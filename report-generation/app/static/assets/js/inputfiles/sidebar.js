@@ -129,6 +129,11 @@ function get_ace_editor(fileid, elmId, mode, live, autocompl) {
                if (ace.edit(elmId) == editor ) {
                  autocompl(editor,session,pos,prefix,callback);
                }
+            },
+            getDocTooltip: function(item) {
+                if (item.desc.length > 0 ) {
+                    item.docHTML = item.desc
+                }
             }
         }
         langTools.addCompleter(inputWordCompleter)

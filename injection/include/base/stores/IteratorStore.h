@@ -50,7 +50,7 @@ class IteratorStore : public BaseStore {
 
   static IteratorStore& instance();
 
-  nlohmann::json schema();
+  nlohmann::json schema(json& packageJson);
 
 };  // end InjectionPointStore
 

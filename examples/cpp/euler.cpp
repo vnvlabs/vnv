@@ -76,8 +76,9 @@ double solve( double dt, double stop) {
     /**
      * 
      * @title Iterative Euler Solve Results:
+     * @shortTitle Eulers Method with dt = :vnv:`dt`
      * 
-     * In this section we solve the differential equation using Eulers method. The time step was dt = :vnv:`dt[0]`
+     * In this section we solve the differential equation using Eulers method. The time step was dt = :vnv:`dt`
      *  
      * .. vnv-plotly:: 
      *      :trace.approx: scatter
@@ -173,6 +174,7 @@ int main(int argc, char** argv) {
 
     /**
      * @title Whats step size got to do with it? 
+     * @shortTitle Changing the Step Size.
      * 
      * The step size plays a huge role in accuracy of the method. The error of the 
      * euler method grows by O(dt^2) at each step. Taking n steps means the error will

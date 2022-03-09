@@ -17,7 +17,7 @@ from app.models.VnVConnection import VnVConnection, VnVLocalConnection
 from python_api.VnVReader import node_type_START, node_type_POINT, node_type_DONE, node_type_ITER, node_type_ROOT, \
     node_type_LOG, \
     node_type_END, node_type_WAITING
-from flask import render_template, make_response
+from flask import render_template, make_response, render_template_string
 
 from app.models import VnV
 import app.rendering as r
@@ -201,8 +201,9 @@ class LogRender:
         "WARN": "warning",
         "ERROR": "danger"
     }
+
     def getBadge(self):
-        return self.badges.get(self.getLevel(),"secondary")
+        return self.badges.get(self.getLevel(), "secondary")
 
     def getStage(self):
         return self.data.getStage()
@@ -276,9 +277,13 @@ class TestRender:
         return self.data.getData()
 
     def getTitle(self):
-        d = self.templates.get_type_description("Tests", self.data.getPackage(), self.data.getName())
-        t = d["title"]
-        return t if len(t) > 0 else self.data.getPackage() + " - " + self.data.getName()
+        t = self.templates.get_title("Tests", self.data.getPackage(), self.data.getName(), short=False)
+        if len(t) > 0:
+            a = render_vnv_template(t, data=self.data.getData(), file=self.templates.file)
+            # Remove any paragraph tags that shpinx added --
+            return a.replace("<p>", "<span>").replace("</p>", "</span>")
+
+        return self.data.getPackage() + " - " + self.data.getName()
 
     def getHtml(self):
         if self.template_override is None:
@@ -333,7 +338,11 @@ class IntroductionRender:
         self.templates = templates
         self.package = package
 
-    def getTitle(self):
+    def getTitle(self, short=False):
+        t = self.templates.get_intro_title(short=short)
+        a = render_vnv_template(t, data=self.root, file=self.templates.file)
+        if len(a) > 0:
+            return a.replace("<p>", "<span>").replace("</p>", "</span>")
         return self.package
 
     def getFile(self):
@@ -525,14 +534,12 @@ class InjectionPointRender:
             return (time.time() * 1000) - self.ip.getStartTime()
         return a
 
-    def getDescription(self):
-        d = self.templates.get_type_description("InjectionPoints", self.ip.getPackage(), self.ip.getName())
-        return d["description"]
-
-    def getTitle(self):
-        d = self.templates.get_type_description("InjectionPoints", self.ip.getPackage(), self.ip.getName())
-        t = d["title"]
-        return t if len(t) > 0 else self.ip.getPackage() + ": " + self.ip.getName();
+    def getTitle(self, short=False):
+        t = self.templates.get_title("InjectionPoints", self.ip.getPackage(), self.ip.getName(), short=short)
+        a = render_vnv_template(t, data=self.ip.getData().getData(), file=self.templates.file)
+        if len(a) > 0:
+            return a.replace("<p>", "<span>").replace("</p>", "</span>")
+        return  self.ip.getName()
 
     def getFile(self):
         return self.templates.file
@@ -635,7 +642,6 @@ class VnVFile:
         self.wrapper = VnV.Read(filename, reader, self.getReaderConfig(self.options.get("username"),
                                                                        self.options.get("password")))
 
-
         self.root = self.wrapper.get()
         self.template_dir = os.path.join(template_root, str(self.id_))
         # By default we have a localhost connection.
@@ -645,7 +651,7 @@ class VnVFile:
 
         self.th = None
         self.templates = None
-        #self.setupNow()
+        # self.setupNow()
 
     # Try and setup the templates once we can.
     def setupNow(self):
@@ -666,7 +672,6 @@ class VnVFile:
     def update_dispName(self, newName):
         self.dispName = newName
         mongo.update_display_name(self.name, newName)
-
 
     def render_temp_string(self, content):
         if self.setupNow():
@@ -735,7 +740,7 @@ class VnVFile:
         return self.root.processing();
 
     def getById(self, dataid):
-        return self.root.findById(dataid)
+        return self.root.findById(dataid,False)
 
     def query(self, dataid, query):
         data = self.getById(dataid)
@@ -874,9 +879,8 @@ class VnVFile:
     def hasUnitTests(self):
         return len(self.root.getUnitTests())
 
-
     def getLogs(self):
-        return [ LogRender(a, self.getCommObj(), self.templates)    for a in self.root.getLogs()]
+        return [LogRender(a, self.getCommObj(), self.templates) for a in self.root.getLogs()]
 
     def getLogFilters(self):
 
@@ -960,8 +964,6 @@ class VnVFile:
     def get_prov(self):
         return ProvWrapper(self.id_, self.root.getInfoNode().getProv(), self.templates)
 
-
-
     def get_node_map(self):
         x = self.root.getCommInfoNode().getNodeMap()
         return json.loads(x)
@@ -978,7 +980,13 @@ class VnVFile:
         return self.getCommObj().keys()
 
     def get_injection_point(self, id):
-        return self.getById(id).cast()
+        if (id == 226 ) :
+            print ("GGGGGGGGGGGGGGGGGG")
+        a = self.getById(id)
+        if a is not None and a.getTypeStr() == "InjectionPoint":
+            return a.cast()
+        return None
+
 
     def list_injection_points(self, proc):
         """Return a nested heirarchy of injection points and logs for this comm."""
@@ -996,7 +1004,10 @@ class VnVFile:
         elif id == VnVFile.INJECTION_CONC:
             return self.get_conclusion()
         ip = self.get_injection_point(id)
-        return InjectionPointRender(ip, self.templates, self.getCommObj())
+        if ip is not None:
+            return InjectionPointRender(ip, self.templates, self.getCommObj())
+        return None
+
 
     def render_package(self, package):
         packageTestObject = self.root.getPackage(package)
@@ -1058,9 +1069,9 @@ class VnVFile:
             res.append(
                 {
                     "id": VnVFile.INJECTION_INTRO,
-                    "title": "Application",
-                    "type" : "start",
-                    "package" : "Root"
+                    "title": self.getTitle(None, short=True),
+                    "type": "start",
+                    "package": "Root"
                 }
             )
 
@@ -1072,26 +1083,32 @@ class VnVFile:
                 if n.type == node_type_DONE:
                     res.append({
 
-                                "id": VnVFile.INJECTION_INTRO,
-                                "type" : "end",
-                                "title" : "Application",
-                                "package" : "VnV",
-                                "done" : True
-                                })
+                        "id": VnVFile.INJECTION_INTRO,
+                        "type": "end",
+                        "title": self.getTitle(None, short=True),
+                        "package": "VnV",
+                        "done": True
+                    })
                     break
 
                 elif n.type == node_type_WAITING:
                     break
 
-                elif n.type in [node_type_POINT,node_type_END,node_type_START]:
-                    ip = self.get_injection_point(n.item.getId()).cast()
-                    res.append({
-                        "title":  ip.getName(),
+                elif n.type in [node_type_POINT, node_type_END, node_type_START]:
+                    ip = self.get_injection_point(n.item.getId())
+                    if ip is not None:
+                      res.append({
+                        "title": self.getTitle(ip, short=True),
                         "id": n.item.getId(),
                         "package": ip.getPackage(),
-                        "type" : VnVFile.node_type_map[n.type]})
+                        "type": VnVFile.node_type_map[n.type]})
 
         return res
+
+    def getTitle(self, ip, short=False):
+        if ip is not None:
+            return InjectionPointRender(ip, self.templates, self.getCommObj()).getTitle(short=short)
+        return self.get_introduction().getTitle()
 
     def lock(self):
         self.root.lock()
@@ -1128,10 +1145,9 @@ class VnVFile:
     @staticmethod
     def delete_all():
 
-        for k,v in VnVFile.FILES.items():
+        for k, v in VnVFile.FILES.items():
             mongo.removeFile(v.name)
         VnVFile.FILES.clear()
-
 
     class FileLockWrapper:
         def __init__(self, file):
@@ -1149,4 +1165,3 @@ class VnVFile:
         if id_ in VnVFile.FILES:
             return VnVFile.FileLockWrapper(VnVFile.FILES[id_])
         raise FileNotFoundError
-

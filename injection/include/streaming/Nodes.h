@@ -178,11 +178,13 @@ class DataBase {
     this->id = id;
   }
 
-  virtual std::string toString() {
-    std::ostringstream oss;
-    oss << "Node: " << getId() << "Name: " << getName() << "DataType: " << getTypeStr();
-    return oss.str();
+  virtual json toJson() {
+    return getId();
   }
+  virtual std::string toString() {
+    return toJson().dump();
+  }
+
 
   std::string getDataChildren(int fileId, int level) { return getDataChildren_(fileId, level).dump(); }
 
@@ -214,6 +216,7 @@ class DataBase {
   }
 };
 
+
 #define X(X, x)                                                                                 \
   class I##X##Node : public DataBase {                                                          \
    public:                                                                                      \
@@ -224,6 +227,7 @@ class DataBase {
     std::string valueToString(x ind);                                                           \
     virtual x getScalarValue() = 0;                                                             \
     virtual int getNumElements() = 0;                                                           \
+    json toJson() override;                                                                     \
     virtual ~I##X##Node();                                                                      \
     virtual std::string getShapeJson() {                                                        \
       nlohmann::json j = this->getShape();                                                      \
@@ -264,18 +268,26 @@ class IArrayNode : public DataBase {
     return j;
   }
 
-  virtual std::string toString() override {
-    std::ostringstream oss;
-    oss << "[" ;
-    for (int i = 0; i < size(); i++ ) {
-      oss << ((i==0) ? "":"," ) << get(i)->toString();
+  virtual json toJson() override {
+    std::cout << "Starting Array to Json " << size() << std::endl;
+    
+    json j = json::array();
+    j.get_ptr<json::array_t*>()->reserve(size());
+    
+    // This is really slow -- Could parallelize with openmp ? 
+    for (int i = 0; i < size(); i++ ){
+      j[i] = get(i)->toJson();
     }
-    oss << "]";
-    return oss.str();
+
+    std::cout << "Finished Array to Json " << size() << std::endl;
+    return j;
   }
+
 
   void open(bool value) override {
     DataBase::open(value);
+    
+    //Open MP parallel for 
     for (int i = 0; i < size(); i++ ) {
         get(i)->open(value);
     } 
@@ -284,9 +296,38 @@ class IArrayNode : public DataBase {
 };
 
 class IMapNode : public DataBase {
+ 
+ protected:
+    
+    template <typename T> bool convertToShapeNode(std::shared_ptr<DataBase> parent, std::shared_ptr<DataBase> child) {
+      // Right now we only support collate for scalar values.
+
+      std::shared_ptr<T> c = std::dynamic_pointer_cast<T>(child);
+
+  
+      if (c->getShape().size() > 0) return false;
+
+      c->getScalarValue();
+
+      // Right now we can only collate scalars.
+      auto p = std::dynamic_pointer_cast<T>(parent);
+      auto sh = p->getShape();
+
+      if (sh.size() == 0) {
+        p->setShape({2});
+        p->add(c->getScalarValue());
+        return true;
+      } else if (sh.size() == 1) {
+        p->setShape({sh[0] + 1});
+        p->add(c->getScalarValue());
+        return true;
+      }
+      return false;
+    }
+ 
  public:
   IMapNode();
-  virtual std::shared_ptr<IArrayNode> get(std::string key)= 0; 
+  virtual std::shared_ptr<DataBase> get(std::string key)= 0; 
   
   virtual void insert(std::string key, std::shared_ptr<DataBase> val) = 0;
 
@@ -294,34 +335,27 @@ class IMapNode : public DataBase {
   virtual std::vector<std::string> fetchkeys() = 0;
   virtual std::size_t size() = 0;
 
-  virtual std::shared_ptr<DataBase> get(std::string key, std::size_t index) {
-    auto a = get(key);
-    if (a == nullptr) {
-      throw INJECTION_EXCEPTION("Key %s does not exist in map", key.c_str());
-    } else if (index > a->size()) {
-      throw INJECTION_EXCEPTION("Index out of range error (index:%d, size: %d)", index, a->size());
-    }
-    return a->get(index);
-  }
-
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
+    
     for (auto it : fetchkeys()) {
       j.push_back(get(it)->getAsDataChild(fileId, level - 1));
     }
     return j;
   }
 
-  virtual std::string toString() override {
-    std::ostringstream oss;
-    oss << "{";
-    auto keys = fetchkeys();
-    for (int i = 0; i < keys.size(); i++) {
-      oss << ( (i==0)?"":",") << keys[i] << " : " <<  get(keys[i])->toString();
-    }
-    oss << "}";
-    return oss.str();
+
+  virtual json toJson() override {
+    
+     json j = json::object();
+     auto keys = fetchkeys();
+     for (int i = 0; i < keys.size(); i++) {
+         j[keys[i]] = get(keys[i])->toJson();
+     }
+     return j;
+
   }
+
 
   void open(bool value) override {
     DataBase::open(value);
@@ -793,11 +827,22 @@ class IRootNode : public DataBase {
  public:
   IRootNode();
 
-  virtual std::shared_ptr<DataBase> findById(long id) {
-    if (id == rootNode()->getId()) {
-      return rootNode_.lock();
-    }
-    return findById_Internal(id);
+  virtual std::shared_ptr<DataBase> findById(long id, bool throwOnNull = true) {
+    
+    try {
+
+      if (id == rootNode()->getId()) {
+        return rootNode_.lock();
+      }
+      
+      auto a =  findById_Internal(id);
+      if (a == nullptr && throwOnNull) {
+        throw INJECTION_EXCEPTION_("Could not find element with that id");
+      }
+      return a;
+    } catch (...) {
+      return nullptr;
+    } 
   }
 
 
@@ -873,12 +918,12 @@ class IRootNode : public DataBase {
   }
 
   virtual std::shared_ptr<ITestNode> getPackage(std::string package) { 
-    auto a = getPackages()->get(package, 0);
+    auto a = getPackages()->get(package);
     return a->getAsTestNode(a);
   }
 
   virtual std::shared_ptr<ITestNode> getAction(std::string package) { 
-    auto a = getActions()->get(package, 0);
+    auto a = getActions()->get(package);
     return a->getAsTestNode(a);
   }
 

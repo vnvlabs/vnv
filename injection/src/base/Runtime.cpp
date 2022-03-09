@@ -192,24 +192,35 @@ void dumpSpecification(bool quit) {
 }
 
 nlohmann::json RunTime::getFullJsonSchema() {
+  
+  json packageJson = json::object();
+  for (auto it : jsonCallbacks) {
+    packageJson[it.first] =  json::parse((it.second)());
+  }
+
   json main = json::parse(getVVSchema().dump());
   json& defs = main["definitions"];
-  defs["options"] = OptionsParserStore::instance().schema();
-  defs["injectionPoints"] = InjectionPointStore::instance().schema();
-  defs["iterator"] = IteratorStore::instance().schema();
-  defs["plug"] = PlugStore::instance().schema();
-  defs["test"] = TestStore::instance().schema();
-  defs["iteratorfunc"] = IteratorsStore::instance().schema();
-  defs["plugger"] = PlugsStore::instance().schema();
-  defs["sampler"] = SamplerStore::instance().schema();
-  defs["outputEngine"] = OutputEngineStore::instance().schema();
-  defs["communicator"] = CommunicationStore::instance().schema();
-  defs["action"] = ActionStore::instance().schema();
-  defs["unittest"] = UnitTestStore::instance().schema();
-  defs["transform"] = TransformStore::instance().schema();
-  defs["workflows"] = WorkflowStore::instance().schema();
-  
 
+  defs["options"] = OptionsParserStore::instance().schema(packageJson);
+
+  defs["injectionPoints"] = InjectionPointStore::instance().schema(packageJson);
+  defs["test"] = TestStore::instance().schema(packageJson);
+
+  defs["iterator"] = IteratorStore::instance().schema(packageJson);
+  defs["iteratorfunc"] = IteratorsStore::instance().schema(packageJson);
+
+  defs["plug"] = PlugStore::instance().schema(packageJson);
+  defs["plugger"] = PlugsStore::instance().schema(packageJson);
+
+  defs["sampler"] = SamplerStore::instance().schema(packageJson);
+  defs["transform"] = TransformStore::instance().schema(packageJson);
+
+  defs["outputEngine"] = OutputEngineStore::instance().schema(packageJson);
+  defs["communicator"] = CommunicationStore::instance().schema(packageJson);
+  defs["action"] = ActionStore::instance().schema(packageJson);
+  defs["unittest"] = UnitTestStore::instance().schema(packageJson);
+  defs["workflows"] = WorkflowStore::instance().schema(packageJson);
+  
   json j = json::parse(jsonCallbacks[mainPackageName]());
   defs["executable"] = j["Executables"];
   return main;
@@ -875,7 +886,7 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
 
   /**
    * @title VnV Application Profiling Loop.
-   * @description Initialization of the VnV Loop    *
+   * @description Initialization of the VnV Loop   
    * @instructions Use this to track updates for the entire application.
    * @param runTests A bool indicating if run Tests is turned on
    *

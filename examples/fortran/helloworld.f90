@@ -58,8 +58,8 @@ program hello
   ! sdfsdfsdfsdfsdfsdf
   ! sdfsdfsdfsdfsdf
   ctx = vnv_point_init(1, "fortran","hello1")
-  call vnv_declare_integer_array(ctx, "1sdfsdf", xx, size(xx, KIND=8))
-  call vnv_declare_float_matrix(ctx,"sdfsdf", xy, INT(3,kind=8), INT(3,kind=8))
+  call vnv_declare_integer_array(ctx, "1sdfsdf", xx, size(xx, KIND=c_int))
+  call vnv_declare_float_matrix(ctx,"sdfsdf", xy, INT(3,kind=c_int), INT(3,kind=c_int))
   call vnv_declare_float_parameter(ctx,"2sdfsdf", 1.4)
   call vnv_declare_double_parameter(ctx,"2sdfsdf", x)
   call vnv_declare_string_parameter(ctx,"2sdfsdf", "sdfsdfsdfsdf")

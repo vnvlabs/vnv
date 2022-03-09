@@ -36,7 +36,7 @@ ICommunicator_ptr UnitTestStore::dispatch(VnV_Comm comm, int cores) {
   return c;
 }
 
-nlohmann::json UnitTestStore::schema() {
+nlohmann::json UnitTestStore::schema(json& packageJson) {
   nlohmann::json m = R"({"type":"object"})"_json;
   nlohmann::json props = json::object();
   for (auto& it : tester_factory) {
@@ -46,6 +46,7 @@ nlohmann::json UnitTestStore::schema() {
     for (auto& itt : it.second) {
       props1[itt.first] = R"({"type" : "boolean"})"_json;
       props1[itt.first]["vnvprocs"] = tester_cores[it.first + ":" + itt.first];
+      props1[itt.first]["description"] = packageJson[it.first]["UnitTests"][itt.first]["docs"]["description"];
     }
     m1["properties"] = props1;
     props[it.first] = m1;

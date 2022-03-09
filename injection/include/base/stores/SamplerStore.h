@@ -31,7 +31,7 @@ class SamplerStore : public BaseStore {
 
   void print();
 
-  nlohmann::json schema();
+  nlohmann::json schema(json& packageJson);
 
   static SamplerStore& instance();
 };

@@ -65,25 +65,69 @@ class InMemory {
   };
 
   class MapNode : public DataBaseImpl<IMapNode> {
-    std::map<std::string, std::shared_ptr<ArrayNode>> map;
+    std::map<std::string, std::shared_ptr<DataBase>> map;
 
    public:
     MapNode() : DataBaseImpl<IMapNode>() {}
 
     virtual void insert(std::string key, std::shared_ptr<DataBase> val) {
-      auto it = map.find(key);
-      if (it != map.end()) {
-        it->second->add(val);
+      
+      
+      if (map.find(key) != map.end() ) {
+        
+        auto metadata = val->getMetaData();
+        std::string collate = metadata.has("collate") ? metadata.get("collate") : "shape";
+
+        // If replace then we just override it.
+        if (collate.compare("replace") == 0) {
+          map[key] = val;
+          return;
+          // TODO Delete old node from repo?
+        }
+
+        // If shape, then we try and turn it into a shape node. (default)
+        auto parent = map.find(key)->second;
+        auto t = parent->getType();
+        if (t == val->getType() && collate.compare("shape") == 0) {
+          if (t == DataType::Double) {
+            if (convertToShapeNode<DoubleNode>(parent, val)) return;
+          } else if (t == DataType::Float) {
+            if (convertToShapeNode<FloatNode>(parent, val)) return;
+          } else if (t == DataType::Shape) {
+            if (convertToShapeNode<ShapeNode>(parent, val)) return;
+          } else if (t == DataType::Integer) {
+            if (convertToShapeNode<IntegerNode>(parent, val)) return;
+          } else if (t == DataType::Long) {
+            if (convertToShapeNode<LongNode>(parent, val)) return;
+          } else if (t == DataType::Json) {
+            if (convertToShapeNode<FloatNode>(parent, val)) return;
+          } else if (t == DataType::Bool) {
+            if (convertToShapeNode<BoolNode>(parent, val)) return;
+          } else if (t == DataType::String) {
+            if (convertToShapeNode<StringNode>(parent, val)) return;
+          }
+        }
+
+        // Else collate -- combine it into a single array. (default action)
+        if (parent->getType() != DataType::Array) {
+          // Not an array -- so convert it (we collate ids of same type.)
+           auto a = std::make_shared<ArrayNode>();
+           rootNode()->registerNode(a);
+          a->setname(key);
+          a->add(parent);
+          a->add(val);
+          map[key] = a;
+        } else {
+          // Add it to the array.
+          auto an = parent->getAsArrayNode(parent);
+          an->add(val);
+        }
       } else {
-        auto a = std::make_shared<ArrayNode>();
-        rootNode()->registerNode(a);
-        a->setname(key);
-        a->add(val);
-        map[key] = a;
+        map[key] = val;
       }
     }
 
-    virtual std::shared_ptr<IArrayNode> get(std::string key) override {
+    virtual std::shared_ptr<DataBase> get(std::string key) override {
       auto it = map.find(key);
       return (it == map.end()) ? nullptr : (it->second);
     }
@@ -522,6 +566,10 @@ class InMemory {
     virtual std::shared_ptr<ICommInfoNode> getCommInfoNode() override {
       INITMEMBER(commInfo, CommInfoNode) return commInfo;
     }
+
+    void cache_persist(bool clearCache) {}
+
+    void markReaderThread(){}
 
     virtual bool processing() const override { return _processing.load(); }
 

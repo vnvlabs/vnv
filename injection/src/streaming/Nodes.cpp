@@ -64,6 +64,7 @@ std::string DataBase::getTypeStr() {
 DTYPES
 #undef X
 
+
 std::string IStringNode::valueToString(std::string ind) {
   return ind;
 }
@@ -75,9 +76,23 @@ std::string IShapeNode::valueToString(std::shared_ptr<DataBase> ind) {
   return ind->toString();
 }
 
+json IStringNode::toJson() {
+  if (getShape().size() == 0) return getScalarValue(); else return getId();
+}
+json IJsonNode::toJson() {
+  if (getShape().size() == 0) return json::parse(getScalarValue()); else return getId();
+}
+json IShapeNode::toJson() {
+  if (getShape().size() == 0) return getScalarValue()->toJson(); else return getId();
+}
+
+
+
 
 #define SDTYPES X(Bool, bool) X(Integer, int) X(Float, float) X(Double, double) X(Long, long)
-#define X(x,y) std::string I##x##Node::valueToString(y ind) { return std::to_string(ind);}
+#define X(x,y) \
+    std::string I##x##Node::valueToString(y ind) { return std::to_string(ind);}\
+    json I##x##Node::toJson() { if (getShape().size() == 0) return getScalarValue(); else return getId(); }
 SDTYPES
 #undef X 
 #undef SDTYPES
