@@ -410,9 +410,7 @@ class Collection {
       }
     }
 
-    std::cout << "G#RTGSDG" << std::endl;
     auto doca = pullDocument(id, type);
-    std::cout << "G#RTGSDG" << std::endl;
     return addToCache(id, doca);
   }
 
@@ -450,7 +448,31 @@ class Collection {
 
   auto count(const json& filter) { return count(std::make_shared<bson_wrap>(filter)); }
 
+  // The reader thread calls get_one to find out if the id exists -- But, 99.99% of the 
+  // time, it doesnt exist (cause we are adding a new node.) By keeping track of the largest
+  // id we have seen, and based on the fact that ids are mostly sequential, we can skip get_one
+  // in all these cases. 
+  long largest_seen = -1;
+
+  json createEntry(long id, bool& isNew, std::string type) {
+     if (type.empty()) {
+        throw INJECTION_EXCEPTION_("Type empty when does not exist");
+     }
+     json filter = json::object();
+     filter["id_"] = id;
+     filter["type"] = type;
+     filter["metadata"] = "{}";
+     isNew = true;
+     return filter;
+  }
+
   json loadOrCreate(long id,  bool &isNew, std::string type = "") {
+    
+    if (readerThread() && id > largest_seen ) {
+      largest_seen = id;
+      return createEntry(id,isNew,type);
+    }
+
     try {
       json filter = json::object();
       filter["_id"] = id;
@@ -458,19 +480,7 @@ class Collection {
       isNew = false;
       return h;
     } catch (Mongo_Does_Not_Exist e) {
-      if (type.empty()) {
-        std::cout << "SSSSSSSSSSSSSSSSSS" << std::endl;
-        throw INJECTION_EXCEPTION_("Type empty when does not exist");
-      }
-      json filter = json::object();
-      filter["id_"] = id;
-      filter["type"] = type;
-      filter["metadata"] = "{}";
-      isNew = true;
-      if (id == 142 ) {
-        std::cout << "Creating 142" << std::endl;
-      }
-      return filter;
+      return createEntry(id,isNew,type); 
     }
   }
 

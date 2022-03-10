@@ -1,5 +1,6 @@
 {% with strip = request.args.get("strip"), processor = request.args.get("processor","0")  %}
 <h3>Injection Points</h3>
+<div id="treeLoading">Loading...</div>
 <div id="treeview1" class="treeview"></div>
 
 <script>
@@ -23,6 +24,7 @@
 
                 var url = '{{url_for('base.files.viewers.next', id_=file.id_, count=10 )}}'
                 $.get(  url , function(dd) {
+                    $('#treeLoading').toggle(false);
                     var r = dd['data']
                     r.forEach(function (item, index) {
 

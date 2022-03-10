@@ -28,56 +28,70 @@ class JsonFileIterator : public Iterator<json> {
   std::string currJson;
 
   //What do we want to do--
-  //We want to prefetch json. 
-  std::queue<json> jsonQueue;
+  //We want to prefetch json.
+  #define QUEUESIZE 100
+  std::queue<json> jsonQueue;   
+  std::atomic<bool> _writing = ATOMIC_VAR_INIT(false);
+  std::atomic<bool> _fetching = ATOMIC_VAR_INIT(true);
+
+
+  std::thread fetcher;
+
 
   void fetchThread () {
-    while (true) {
+    while (_fetching.load()) {
       ifs.seekg(p);
       std::string currline;
       lockfile.lock();
 
       while (std::getline(ifs, currline)) {
+        
+        while (jsonQueue.size() > QUEUESIZE) {
+            std::this_thread::yield();  // System can go do something else if it wants. 
+        }
+        
+        json j = json::parse(currline);
+        _writing.store(true, std::memory_order_relaxed);
         jsonQueue.push(json::parse(currline));
-      }
+        _writing.store(false,  std::memory_order_relaxed);
 
-      if (ifs.tellg() == -1) {
-        p += currline.size();
-      } else {
-        p = ifs.tellg();
-      }
+        if (ifs.tellg() == -1) {
+          p += currline.size();
+        } else {
+          p = ifs.tellg();
+        }
 
+      }
+      ifs.clear();
+    }
+  }
+  void launchThread() {
+     fetcher = std::thread(&JsonFileIterator::fetchThread, this);
+  }
+  void killThread() {
+    _fetching.store(false);
+    if (fetcher.joinable()) {
+      fetcher.join();
     }
   }
 
   void getLine_() {
-    lockfile.lock();
 
-    std::string currline;
-    ifs.seekg(p);
-
-    if (std::getline(ifs, currline)) {
-      
-      // This is slow -- 22% of runtime when reading Euler.out is spent parsing 
-      // the json files -- We do parse 89000 lines -- so it makes sence, but if we 
-      // can remove the wait, we can probably speed things up quite a lot. 
-      // So, we should use threads to prefetch the json. 
-      json t = json::parse(currline);
-      nextCurr = t["object"];
-      nextValue = t["id"].get<long>();
-
-      if (ifs.tellg() == -1) {
-        p += currline.size();
-      } else {
-        p = ifs.tellg();
+    auto s = jsonQueue.size();
+    if (s == 1) {
+      while (_writing.load(std::memory_order_relaxed)){
+        s = jsonQueue.size();
       }
-
-    } else {
+    }
+    if (s == 0 || (s == 1 && _writing.load(std::memory_order_relaxed)) ) {
       nextValue = STREAM_READER_NO_MORE_VALUES;
       nextCurr = json::object();
-      ifs.clear();  // Clear the stream so we can try and read again.
+    } else {
+      auto j = jsonQueue.front();
+      jsonQueue.pop();
+      nextCurr = j["object"];
+      nextValue = j["id"].get<long>();
     }
-    lockfile.unlock();
 
   }
 
@@ -95,6 +109,7 @@ class JsonFileIterator : public Iterator<json> {
     if (!ifs.good()) {
       throw INJECTION_EXCEPTION("Could not open file %s", filename_.c_str());
     }
+    launchThread();
     getLine_();
   }
 
@@ -108,6 +123,7 @@ class JsonFileIterator : public Iterator<json> {
   long streamId() const override { return sId; }
 
   ~JsonFileIterator() {
+    killThread();
     ifs.close();
     lockfile.close();
   }
@@ -130,6 +146,8 @@ class JsonFileStream : public FileStream<JsonFileIterator, json> {
         it.second << "{ \"id\": " << -1204 << ", \"object\" : " << j.dump() << "}" << std::endl;
       }
     }
+    // Write a done file. (speeds up reading in static cases as we can stop waiting for new files. )
+    std::ofstream(getFileName_(filestub,"__done__"));
   }
 
   virtual void newComm(long id, const json& obj, ICommunicator_ptr comm) override {
@@ -140,6 +158,8 @@ class JsonFileStream : public FileStream<JsonFileIterator, json> {
       lockfiles.insert(std::make_pair(id, std::move(lock)));
       write(id, obj, -1);
     }
+
+
   };
 
   virtual bool supportsFetch() override { return true; }
@@ -210,14 +230,22 @@ class MultiFileStreamIterator : public MultiStreamIterator<JsonFileIterator, jso
     VnV::DistUtils::mv(s + ".responding", s + ".complete");
   }
 
+  bool allstreamsread = false;
   void updateStreams() override {
+    
+    if (allstreamsread) return;
+    
     try {
+
       std::vector<std::string> files = VnV::DistUtils::listFilesInDirectory(filestub);
       std::string ext = extension;
       for (auto& it : files) {
         if (loadedFiles.find(it) == loadedFiles.end()) {
           loadedFiles.insert(it);
           try {
+            if (it.compare("__done__") == 0 ) {
+               allstreamsread = true;
+            }
             if (it.compare(".") == 0 || it.compare("..") == 0 || it.size() <= ext.size()) {
               continue;
             }
