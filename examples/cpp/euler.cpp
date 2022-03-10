@@ -29,11 +29,13 @@ double df(double x, double y)
  * 
  * .. vnv-plotly:: 
  *      :trace.sol: scatter
- *      :sol.x: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0, 4.2, 4.4, 4.6, 4.8, 5.0]
- *      :sol.y: [0.0, 0.9299692608141624, 1.1106183851128328, 0.1904920858048083, -1.1290166537369088, -1.5809988486278084, -0.5091282323887432, 1.323008541941781, 2.2018572708018813, 1.013647908465914, -1.478802700028677, -3.0041366027987997, -1.7814848253353737, 1.5417175080714458, 4.017110915969929, 2.914387905805897, -1.4259944625329628, -5.2626392930871715, -4.5432080932387295, 1.0020632031098577, 6.745803672878749, 6.832272102593218, -0.07988318583356165, -8.440356708230206, -9.982350010891526, -1.6123743962546553]
- *      :layout.title.text: Plot of the equation
- *      :layout.xaxis.text: Time
- *      :layout.yaxis.text: y(t)
+ *      :sol.x: [0.0]
+ *      :sol.y: [0.0]
+ * 
+ *      {
+ *          "sol.x" : json.dumps(np.linspace(0,5,1000).tolist()),
+ *          "sol.y" : json.dumps( (np.exp(np.linspace(0,5,1000)/2) * np.sin(5*np.linspace(0,5,1000))).tolist() ) 
+ *      }
  * 
  * 
  * As you will see, Eulers method is not that great for solving problems where the function changes 
@@ -155,15 +157,19 @@ int main(int argc, char** argv) {
     *
     * .. vnv-plotly:: 
     *      :trace.sol: scatter
-    *      :sol.x: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4.0, 4.2, 4.4, 4.6, 4.8, 5.0]
-    *      :sol.y: [0.0, 0.9299692608141624, 1.1106183851128328, 0.1904920858048083, -1.1290166537369088, -1.5809988486278084, -0.5091282323887432, 1.323008541941781, 2.2018572708018813, 1.013647908465914, -1.478802700028677, -3.0041366027987997, -1.7814848253353737, 1.5417175080714458, 4.017110915969929, 2.914387905805897, -1.4259944625329628, -5.2626392930871715, -4.5432080932387295, 1.0020632031098577, 6.745803672878749, 6.832272102593218, -0.07988318583356165, -8.440356708230206, -9.982350010891526, -1.6123743962546553]
+    *      :sol.x: [0.0]
+    *      :sol.y: [0.0]
     * 
+    *      {
+    *          "sol.x" : json.dumps(np.linspace(0,5,1000).tolist()),
+    *          "sol.y" : json.dump( numpy.exp(numpy.linspace(0,5,1000)/2)*numpy.sin(5*numpy.linspace(0,5,1000)))
+    *      }
     * 
     * As you will see, Eulers method is not that great for solving problems where the function changes 
     * rapidly like this one. 
     * 
     */
-    INJECTION_INITIALIZE(Euler, &argc, &argv,"inputfiles/euler.json");
+    INJECTION_INITIALIZE(Euler, &argc, &argv, (argc > 1) ? argv[1] : "inputfiles/euler.json");
 
     auto config = (OptionsStruct*) INJECTION_GET_CONFIG(Euler);
     auto dt = config->dt;

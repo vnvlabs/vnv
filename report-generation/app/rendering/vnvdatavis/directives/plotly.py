@@ -7,6 +7,10 @@ from sphinx.errors import ExtensionError
 from .charts import JsonChartDirective
 from collections.abc import MutableMapping
 
+import math
+import numpy as np
+import json
+
 try:
     plotly_schema
 except:
@@ -167,7 +171,19 @@ def plotly_post_process_raw(text, data, file, ext):
     # Extract all the trace definitions -- trace.x = scatter trace.y = line
     # Turn it into an object
     rdata = {}
-    options = json.loads(text)
+    textj = json.loads(text)
+
+    options = textj["options"]
+
+    evalContent = textj["content"]
+    try:
+        extra_data=eval(evalContent,{"np":np,"math":math,"json":json});
+        if isinstance(extra_data,dict):
+            options.update(extra_data)
+    except:
+        pass
+
+
     t = "trace."
     traces = {"layout": "layout",
               "config": "config"}
@@ -271,7 +287,7 @@ class PlotlyDirec(PlotlyChartDirective):
     required_arguments = 0
     optional_arguments = 0
     file_argument_whitespace = False
-    has_content = False
+    has_content = True
     option_spec = PlotlyOptionsDict()
     external = ["width", "height", "defaultTrace"]
 
@@ -322,9 +338,25 @@ class PlotlyDirec(PlotlyChartDirective):
         return self.getContent()
 
     def getRawContent(self):
-        return json.dumps(self.options)
+        a = {"options" : self.options, "content" : "\n".join(self.content)}
+        return json.dumps(a)
 
 
 def setup(sapp):
     sapp.add_directive("vnv-plotly-raw", PlotlyChartDirective)
     sapp.add_directive("vnv-plotly", PlotlyDirec)
+
+
+
+'''
+
+.. vnv-plotly::
+   :trace.x: ......
+   :trace.y: .....
+   
+   {
+        "xd" : [ a for a in range(0,1000) ],
+        "yd" : [ sin(a) for a  in range(0,1000) ]
+   }
+
+'''

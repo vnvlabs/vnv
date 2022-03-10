@@ -17,6 +17,7 @@ from ...utils import mongo
 from ...utils.utils import render_error
 
 vnv_executables = {
+    "VnV Euler Application": ["examples/cpp/euler", "An example that runs a euler solve. "],
     "VnV Line Application" : [ "examples/cpp/line", "An example that runs a line. "],
     "VnV Iterator Application": ["examples/cpp/iterator", "An example that runs a iterator. "],
     "VnV Contour Application": ["examples/cpp/contour","An example that runs a contour plot. "],

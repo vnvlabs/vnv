@@ -1749,7 +1749,7 @@ template <class DB> class StreamParserTemplate {
         std::string stage = j[JSD::stageId].template get<std::string>();
         p->setisOpen(true);
         p->setisIter(true);
-        rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::ITER, elementId, stage);
+        //rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::ITER, elementId, stage);
 
       } else if (node == JSN::log) {
         std::shared_ptr<typename DB::LogNode> n = visitLogNode(j);
