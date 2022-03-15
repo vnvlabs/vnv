@@ -277,10 +277,10 @@ IDataType_vec DataTypeCommunication::GatherV(
 
   if (comm->Rank() == root || allGather) {
     // Get the multipliers for the flatter operation.
-    int cc = 0;
+    int cc = dim;
     std::vector<int> multipliers(dim);
     for (int i = dim; i > 0; i--) {
-      multipliers[i - 1] = (i == dim) ? 1 : multipliers[i] * gsizes[cc++];
+      multipliers[i - 1] = (i == dim) ? 1 : multipliers[i] * gsizes[--cc];
     }
 
     // Iterate over all communicators.

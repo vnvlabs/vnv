@@ -37,8 +37,9 @@ def plotly_array(ff, arrayOk=False):
 def plotly_enumerated(values, arrayOk=False, **kwargs):
     def enumerate(t):
         for i in values:
-            if isinstance(i, str) and t == i:
-                return i
+            if isinstance(i, str):
+                if t == i:
+                    return i
             elif isinstance(i, bool):
                 try:
                     a = plotly_boolean(False)(t)
@@ -61,8 +62,10 @@ def plotly_enumerated(values, arrayOk=False, **kwargs):
                 except:
                     pass
             else:
-                raise ExtensionError("Enum Value " + i.__class__ + " not supported")
-
+                pass
+        print("UNRECONIZED ENUM -- RETURNING ANYWAY BUT.... TODO make this an error")
+        return i
+    
     return plotly_array(enumerate, arrayOk)
 
 
@@ -171,7 +174,8 @@ def plotly_post_process_raw(text, data, file, ext):
     # Extract all the trace definitions -- trace.x = scatter trace.y = line
     # Turn it into an object
     rdata = {}
-    textj = json.loads(text)
+
+    textj = json.loads(text) if isinstance(text,str) else text
 
     options = textj["options"]
 

@@ -377,8 +377,9 @@ LOAD_OLD = False
 
 
 def faker(PREFIX="../build"):
-    VnVFile.add("s", "/home/ben/source/vv/vv-neams/build/examples/cpp/outputs/euler/out", "json_file",
-                get_file_template_root(), {})
+    VnVFile.add("Euler", "/home/ben/source/vv/vv-neams/build/examples/cpp/outputs/euler/out", "json_file",  get_file_template_root(), {})
+    VnVFile.add("Heat", "/home/ben/source/vv/applications/heat/build/outputs/out", "json_file", get_file_template_root(), {})
+
     return
 
 

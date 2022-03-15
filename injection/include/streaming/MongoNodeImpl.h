@@ -810,7 +810,8 @@ class MongoPersistance {
       }                                                                                             \
                                                                                                     \
       y getValueByShape(const std::vector<std::size_t>& rshape) override {                          \
-        return getValueByIndex(computeShapeIndex<std::size_t>(rshape, getshape()));                 \
+        auto a = getValueByIndex(computeShapeIndex<std::size_t>(rshape, getshape()));                 \
+        return a; \
       }                                                                                             \
       void add(const y& v);                                                                         \
       y getValueByIndex(const size_t ind) override;                                                 \

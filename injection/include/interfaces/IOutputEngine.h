@@ -45,11 +45,23 @@ class BaseAction {
   virtual int count(ICommunicator_ptr comm, int engineRoot) const = 0;
 
   template <typename T> std::vector<T> flatten(std::vector<std::vector<T>>& data) {
-    return std::accumulate(data.begin(), data.end(), std::vector<T>(), [](std::vector<T> a, std::vector<T> b) {
-      a.insert(a.end(), b.begin(), b.end());
-      return a;
-    });
+      if (data.size() == 0 ) return {};
+
+    int rows = data.size();
+    int cols = data[0].size();
+
+    std::vector<T> res;
+    res.reserve(rows*cols);
+
+    for (int i = 0; i < rows; i++) { 
+      auto &col = data[i];
+      for (int j = 0; j < col.size(); j++) {
+        res.push_back(col[j]);         
+      }
+    }
+    return res;
   }
+
 };
 
 class IOutputEngine {
@@ -221,6 +233,7 @@ class IOutputEngine {
   void Put_Matrix(std::string variableName, std::vector<std::vector<T>>& data, std::pair<int, int>& gsize,
                   std::pair<int, int>& offsets, const MetaData& m = MetaData());
 
+  // Flat version of above for matrices that are allready flat. 
   template <typename T>
   void Put_Matrix(std::string variableName, int xdim, std::vector<T>& data, std::pair<int, int>& gsize,
                   std::pair<int, int>& offsets, const MetaData& m = MetaData());
@@ -418,6 +431,7 @@ class GlobalArrayAction : public BaseAction {
   std::vector<int> gsize, lsize, offsets;
   GlobalArrayAction(std::vector<int>& gsizes, std::vector<int>& lsizes, std::vector<int>& offs)
       : gsize(gsizes), lsize(lsizes), offsets(offs) {}
+
   virtual void write(ICommunicator_ptr comm, long long dtype, std::string variableName, IDataType_vec data,
                      IOutputEngine* engine, const MetaData& m) const override {
     engine->PutGlobalArray(dtype, variableName, data, gsize, lsize, offsets, m);
@@ -470,7 +484,17 @@ template <typename T>
 void IOutputEngine::IOutputEngine::Put_Matrix(std::string variableName, int xdim, std::vector<T>& data,
                                               std::pair<int, int>& gsize, std::pair<int, int>& offsets,
                                               const MetaData& m) {
-  Put_Matrix(variableName, xdim, data.data(), data.size() / xdim, gsize, offsets, m);
+  if (data.size() == 0) {
+    return;
+  }
+  if (data.size() % xdim != 0 ) throw INJECTION_EXCEPTION_("Invalid Data Size passed to Put Matrix");
+
+  std::vector<int> gsizes = {gsize.first, gsize.second};
+  std::vector<int> offs = {offsets.first, offsets.second};
+  std::vector<int> lsizes = {xdim, data.size() / xdim };
+
+  GlobalArrayAction action(gsizes, lsizes, offs);
+  Write(variableName, data.data(), action, m);
 }
 
 // Take a generic matrix with offsets. You should pass in the global size and

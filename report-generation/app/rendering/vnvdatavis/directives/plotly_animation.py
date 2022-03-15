@@ -101,17 +101,17 @@ class PlotlyAnimation(PlotlyDirec):
     external = ["width", "height", "defaultTrace", "start", "end", "step", "values", "prefix", "labels"]
 
     script_template = '''
-                     <div id="{uid}" style="width:"100%"; height:"100%"></div>
+                     <div id="{{{{data.getAAId()}}}}-{uid}" style="width:100%; height:100%; min-height:500px"></div>
                      <script>
                      $(document).ready(function() {{
                        url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}?context=animation"
                        var load = [88,12]
-                       Plotly.newPlot('{uid}',[{{values: load, text:'Loading', textposition:'inside', hole: 0.5, labels: 
+                       Plotly.newPlot('{{{{data.getAAId()}}}}-{uid}',[{{values: load, text:'Loading', textposition:'inside', hole: 0.5, labels: 
                        ['Loaded','Remaining'], type: 'pie'}}],{{showlegend:false,
                        annotations: [{{font: {{size: 20}},showarrow: false, text: `${{load[0]}}%`,x: 0.5,y: 0.5}}] }},{{ }});
-                       update_now(url, "{uid}", 1000, function(config) {{
+                       update_now(url, "{{{{data.getAAId()}}}}-{uid}", 1000, function(config) {{
                          var xx = JSON.parse(config)
-                         Plotly.react('{uid}',xx);                     
+                         Plotly.react('{{{{data.getAAId()}}}}-{uid}',xx);                     
                        }})
                      }})
                      </script>
@@ -154,7 +154,8 @@ class PlotlyAnimation(PlotlyDirec):
             return str(labels[n]) if n < len(labels) else str(r[n])
 
 
-        processedContent = { get_label(n) : plotly_post_process_raw(i, data, file, PlotlyAnimation.external) for n, i in
+        processedContent = { get_label(n) : plotly_post_process_raw({"options" : json.loads(i), "content" : "{}"}, data, file, PlotlyAnimation.external) for n, i in
+
                             enumerate(pcontent)}
 
         first_pass = processedContent[get_label(0)]
@@ -180,7 +181,6 @@ class PlotlyAnimation(PlotlyDirec):
             return json.dumps({"text": json.dumps(self.options),
                                "range": {"prefix": self.options.get("prefix", "Index"),
                                          "labels": self.options.get("labels"),
-
                                          "values": self.options["values"]}})
         else:
             return json.dumps({"text": json.dumps(self.options), "range": {

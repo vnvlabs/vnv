@@ -54,6 +54,7 @@ std::string DataBase::getTypeStr() {
   throw INJECTION_BUG_REPORT_("Impossible");
 }
 
+
 #define X(x, y)                                                     \
   I##x##Node::I##x##Node() : DataBase(DataBase::DataType::x) {}     \
   I##x##Node::~I##x##Node() {}                                      \
@@ -76,23 +77,46 @@ std::string IShapeNode::valueToString(std::shared_ptr<DataBase> ind) {
   return ind->toString();
 }
 
-json IStringNode::toJson() {
-  if (getShape().size() == 0) return getScalarValue(); else return getId();
-}
-json IJsonNode::toJson() {
-  if (getShape().size() == 0) return json::parse(getScalarValue()); else return getId();
-}
-json IShapeNode::toJson() {
-  if (getShape().size() == 0) return getScalarValue()->toJson(); else return getId();
+
+template<typename T, typename V> 
+json toJ(std::vector<std::size_t> curr, V* cls, const std::function<json(T)>& func) {
+ 
+  auto &sh = cls->getShape();
+  if (sh.size() == 0 ) return func(cls->getScalarValue());
+  
+  json jj = json::array();
+      
+  curr.push_back(0);      
+  for (int i = 0; i < sh[curr.size()-1]; i++  ) {
+      curr.back() = i;
+      if ( curr.size() == sh.size() ) {
+        jj.push_back(func(cls->getValueByShape(curr)));
+      } else {
+        jj.push_back(toJ(curr,cls, func));
+      }
+  }
+
+  return jj;
 }
 
+
+json IStringNode::toJson() {
+   return toJ<std::string,IStringNode>({},this, [](std::string x){ return x;}); 
+}
+json IJsonNode::toJson() {
+  return toJ<std::string,IJsonNode>({},this, [](std::string x){ return json::parse(x);}); 
+}
+
+json IShapeNode::toJson() {
+  return toJ<std::shared_ptr<DataBase>,IShapeNode>({},this, [](std::shared_ptr<DataBase> x){ return x->toJson();}); 
+}
 
 
 
 #define SDTYPES X(Bool, bool) X(Integer, int) X(Float, float) X(Double, double) X(Long, long)
 #define X(x,y) \
     std::string I##x##Node::valueToString(y ind) { return std::to_string(ind);}\
-    json I##x##Node::toJson() { if (getShape().size() == 0) return getScalarValue(); else return getId(); }
+    json I##x##Node::toJson() { return toJ<y,I##x##Node>({},this, [](y op){return op;}); }
 SDTYPES
 #undef X 
 #undef SDTYPES
