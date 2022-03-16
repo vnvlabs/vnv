@@ -1559,12 +1559,13 @@ template <class DB> class StreamParserTemplate {
                 auto p = jstream->next();
                 visit(p.first, p.second);
                 changed = true;
+                j++;
             }
           }
-          
+          j++;
           if (changed) {
             rootInternal()->cache_persist(false);
-            std::cout << "Done 10000" << std::endl;
+            std::cout << rootInternal()->getId() << ": " << j << " lines processed" << std::endl;
           }
           releaseWriteLock();
         }
@@ -1573,7 +1574,7 @@ template <class DB> class StreamParserTemplate {
         rootInternal()->setProcessing(false);
         rootInternal()->open(false);
         jstream->stop_stream_reader();
-        std::cout << "DONE" << std::endl;
+        std::cout << rootInternal()->getId() << ": File Parsing Complete " << std::endl;
       
     }
     virtual void setWriteLock() {

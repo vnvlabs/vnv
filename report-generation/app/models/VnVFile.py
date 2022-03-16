@@ -999,6 +999,8 @@ class VnVFile:
         return render_template(self.templates.get_conclusion())
 
     def render_ip(self, id):
+        if self.templates is None:
+            return None
         if id == VnVFile.INJECTION_INTRO:
             return self.get_introduction()
         elif id == VnVFile.INJECTION_CONC:
@@ -1006,6 +1008,7 @@ class VnVFile:
         ip = self.get_injection_point(id)
         if ip is not None:
             return InjectionPointRender(ip, self.templates, self.getCommObj())
+
         return None
 
 

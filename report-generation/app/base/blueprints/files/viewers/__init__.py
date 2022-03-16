@@ -387,6 +387,7 @@ def workflowNode(id_):
 
 @blueprint.route('/ip/<int:id_>')
 def ip(id_):
+
     try:
         with VnVFile.VnVFile.find(id_) as file:
             injection = request.args.get('ipid', type=int)
@@ -398,6 +399,7 @@ def ip(id_):
             iprender = file.render_ip(injection)
             if iprender is None:
                 return render_template("viewers/introduction.html", introRender=file.get_introduction())
+
             if isinstance(iprender, str):
                 return iprender
 

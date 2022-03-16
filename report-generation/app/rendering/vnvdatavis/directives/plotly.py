@@ -1,6 +1,7 @@
 import json
 import os.path
 
+import flask
 from flask import render_template_string
 from sphinx.errors import ExtensionError
 
@@ -16,6 +17,8 @@ try:
 except:
     with open(os.path.join(os.path.dirname(__file__), "plot-schema.json")) as f:
         plotly_schema = json.load(f)["schema"]
+
+
 
 
 def plotly_array(ff, arrayOk=False):
@@ -65,7 +68,7 @@ def plotly_enumerated(values, arrayOk=False, **kwargs):
                 pass
         print("UNRECONIZED ENUM -- RETURNING ANYWAY BUT.... TODO make this an error")
         return i
-    
+
     return plotly_array(enumerate, arrayOk)
 
 
@@ -195,7 +198,7 @@ def plotly_post_process_raw(text, data, file, ext):
 
     for k, v in options.items():
         if k[0:len(t)] == t:
-            traces[k[len(t):]] = v
+            traces[k[len(t):]] = render_template_string(v,data=data)
 
     for k, v in options.items():
         a = k.split('.')

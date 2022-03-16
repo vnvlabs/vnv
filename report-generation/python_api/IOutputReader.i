@@ -558,45 +558,41 @@ PY_GETATTRWORK(VnV::Nodes::IWorkflowNode)
          
       def __getitem__(self,key):
         
-        if key.lower() == "metadata":
-            return json.loads(self.getMetaData().asJson()) 
-        
-        if isinstance(key,str) and key[0] == "_":
-            return str(self.getMetaData().get(key[1:]))
+        if isinstance(key,str):
+           if  key.lower() == "metadata":
+               return json.loads(self.getMetaData().asJson()) 
+           elif key.lower() == "value":
+               return self.getValue()
+           elif key[0] == "_":
+               return str(self.getMetaData().get(key[1:]))
+           else:
+               res = igetattr(self,"get"+key)
+               if res is not None:
+                  return res()
+               raise KeyError("Unknown String Key " + key + " in " + str(self.__class__))   
 
-
-        #Value gets the entire array as a scalar or as a np array. 
-        if key.lower() == "value":
-            return self.getValue()
-            
-        #Get any other ones (like name, TypeStr, etc. ) 
-        if isinstance(key,str) :
-            res = igetattr(self,"get"+key)
-            if res is not None:
-               return res()
-            raise KeyError("Unknown String Key " + key + " in " + str(self.__class__))   
 
         # Now we assume we have a slice of some kind.   
         try:
-         s,t,nps = self.shape()
         
-         if (nps is None) :
-            raise TypeError("Scalar Shape has no __getitem__ method. Call .value instead. ")
-         
-         # We apply the splice to the numpy array to get a list of lists 
-         # containing the indices we need to extract. 
-         b = nps[key].tolist() # Slice the array
+          s,t,nps = self.shape()
+        
+          if nps is None :
+            if key == 0:
+               return self.getValue();
+          else:
+            b = nps[key].tolist() # Slice the array
 
-         # If b is a list, we need to extract the values recursivly.
-         if (isinstance(b,list)):
-            return np.ndarray(self.recursive_pop(b))
-         else:
-             return self.valueIsJson(self.getValueByIndex(b))
+            # If b is a list, we need to extract the values recursivly.
+            if (isinstance(b,list)):
+               return np.ndarray(self.recursive_pop(b))
+            else:
+               return self.valueIsJson(self.getValueByIndex(b))
+        
         except:
              pass
 
-        print("Not a key {} {} ".format(key, self.__class__))
-        raise KeyError("not a valid key")
+        raise KeyError("not a valid key " + str(key))
 
       def __len__(self):
          if self.getValue():

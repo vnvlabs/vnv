@@ -45,12 +45,9 @@ template <typename T> T computeShapeIndex(const std::vector<T>& rshape, const st
 
   T index = 0;
   auto mults = multipliers(shape);
-  std::cout << shape.size() << " " << mults.size() << " " << rshape.size() << std::endl;
-
 
   for (int i = 0; i < mults.size(); i++) {
     index += rshape[i] * mults[i];
-    std::cout << rshape[i] << " " << shape[i] << " " << mults[i] << " " << i << std::endl;
   }
   
   return index;
