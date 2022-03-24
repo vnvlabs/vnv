@@ -25,39 +25,46 @@ namespace JSD {
 
 constexpr auto outputFile = "outputFile";
 
-#define NTYPES   \
-  X(id)          \
-  X(name)        \
-  X(package)     \
-  X(value)       \
-  X(shape)       \
-  X(node)        \
-  X(meta)        \
-  X(comm)        \
-  X(children)    \
-  X(prov)        \
-  X(time)        \
-  X(key)         \
-  X(stage)       \
-  X(info)        \
-  X(message)     \
-  X(internal)    \
-  X(description) \
-  X(result)      \
-  X(stageId)     \
-  X(mpiversion)  \
-  X(input)       \
-  X(reader)      \
-  X(level)       \
-  X(dtype)       \
-  X(workflow)    \
-  X(jobName)     \
-  X(endid)       \
-  X(line)        \
-  X(filename)    \
-  X(results)     \
-  X(spec) X(commList) X(testuid) X(sdt) X(title) X(nodeMap) X(worldSize) X(date)
-#define X(a) constexpr auto a = #a;
+#define NTYPES      \
+  X(id, a)          \
+  X(name, b)        \
+  X(package, c)     \
+  X(value, d)       \
+  X(shape, e)       \
+  X(node, f)        \
+  X(meta, g)        \
+  X(comm, h)        \
+  X(children, i)    \
+  X(prov, j)        \
+  X(time, k)        \
+  X(key, l)         \
+  X(stage, m)       \
+  X(info, n)        \
+  X(message, o)     \
+  X(internal, p)    \
+  X(description, q) \
+  X(result, r)      \
+  X(stageId, s)     \
+  X(mpiversion, t)  \
+  X(input, u)       \
+  X(reader, v)      \
+  X(level, w)       \
+  X(dtype, x)       \
+  X(workflow, y)    \
+  X(jobName, z)     \
+  X(endid, aa)      \
+  X(line, ab)       \
+  X(filename, ac)   \
+  X(results, ad)    \
+  X(spec, ae)       \
+  X(commList, af)   \
+  X(testuid, ag)    \
+  X(sdt, ah)        \
+  X(title, ai)      \
+  X(nodeMap, aj)    \
+  X(worldSize, ak)  \
+  X(date, al)
+#define X(A, b) constexpr auto A = #b;
 NTYPES
 #undef X
 #undef NTYPES
@@ -65,36 +72,44 @@ NTYPES
 }  // namespace JSD
 
 namespace JSN {
-#define NTYPES                 \
-  X(log)                       \
-  X(shape)                     \
-  X(dataTypeStarted)           \
-  X(dataTypeEnded)             \
-  X(injectionPointStarted)     \
-  X(injectionPointEnded)       \
-  X(injectionPointIterStarted) \
-  X(injectionPointIterEnded)   \
-  X(packageOptionsStarted)     \
-  X(packageOptionsFinished)    \
-  X(actionStarted)             \
-  X(actionFinished)            \
-  X(workflowStarted)           \
-  X(workflowFinished)          \
-  X(workflowUpdated)           \
-  X(fetch)                     \
-  X(fetchSuccess)              \
-  X(fetchFail)                 \
-  X(testStarted) X(file) X(done) X(finalTime) X(testFinished) X(unitTestStarted) X(unitTestFinished) X(commInfo) X(info)
+#define NTYPES                    \
+  X(log, a)                       \
+  X(shape, b)                     \
+  X(dataTypeStarted, c)           \
+  X(dataTypeEnded, d)             \
+  X(injectionPointStarted, e)     \
+  X(injectionPointEnded, f)       \
+  X(injectionPointIterStarted, g) \
+  X(injectionPointIterEnded, h)   \
+  X(packageOptionsStarted, i)     \
+  X(packageOptionsFinished, j)    \
+  X(actionStarted, k)             \
+  X(actionFinished, l)            \
+  X(workflowStarted, m)           \
+  X(workflowFinished, n)          \
+  X(workflowUpdated, o)           \
+  X(fetch, p)                     \
+  X(fetchSuccess, q)              \
+  X(fetchFail, r)                 \
+  X(testStarted, s)               \
+  X(file, t)                      \
+  X(done, u)                      \
+  X(finalTime, v)                 \
+  X(testFinished, w)              \
+  X(unitTestStarted, x)           \
+  X(unitTestFinished, y)          \
+  X(commInfo, z)                  \
+  X(info, aa)
 
-#define X(a) constexpr auto a = #a;
+#define X(A, b) constexpr auto A = #b;
 NTYPES
 #undef X
 #undef NTYPES
 }  // namespace JSN
 
 namespace JST {
-#define NTYPES X(Double) X(Long) X(String) X(Json) X(Bool) X(GlobalArray)
-#define X(a) constexpr auto a = #a;
+#define NTYPES X(Double, a) X(Long, b) X(String, c) X(Json, d) X(Bool, e) X(GlobalArray, f)
+#define X(A, b) constexpr auto A = #b;
 NTYPES
 #undef X
 #undef NTYPES
@@ -573,7 +588,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   std::string getId() { return std::to_string(StreamManager<T>::id++); }
 
   virtual void write(T& j) {
-    j[JSD::time] = VnV::RunTime::instance().currentTime();
+    //j[JSD::time] = VnV::RunTime::instance().currentTime();
     if (stream != nullptr) {
       stream->write(comm->uniqueId(), j, StreamManager<T>::id++);
     }
@@ -594,7 +609,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
         nJson[JSD::node] = JSN::commInfo;
         nJson[JSD::comm] = id;
         nJson[JSD::commList] = procList;
-        nJson[JSD::time] = VnV::RunTime::instance().currentTime();
+        //nJson[JSD::time] = VnV::RunTime::instance().currentTime();
 
         stream->newComm(id, nJson, comm);
       }
@@ -688,9 +703,8 @@ template <typename T> class StreamManager : public OutputEngineManager {
       j[JSD::name] = variableName;                                                     \
       j[JSD::dtype] = JST::typeb;                                                      \
       j[JSD::value] = value;                                                           \
-      j[JSD::shape] = json::object();                                                  \
       j[JSD::node] = JSN::shape;                                                       \
-      j[JSD::meta] = m;                                                                \
+      if (! m.empty() ) {j[JSD::meta] = m;}                                            \
       write(j);                                                                        \
     }                                                                                  \
   }
@@ -704,7 +718,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
       T j = T::object();
       j[JSD::node] = JSN::dataTypeStarted;
       j[JSD::name] = variableName;
-      j[JSD::meta] = m;
+      if (! m.empty() ) {j[JSD::meta] = m;}                                            
       j[JSD::dtype] = data->getKey();
       write(j);
     }
@@ -742,7 +756,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
           j[JSD::shape] = gsizes;
           j[JSD::dtype] = JST::GlobalArray;
           j[JSD::key] = dtype;
-          j[JSD::meta] = m;
+          if (! m.empty() ) {j[JSD::meta] = m;}                                
           j[JSD::children] = WriteDataJson<json>(gather);
           write(j);
         } catch (VnV::VnVExceptionBase& e) {
@@ -806,7 +820,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
         j[JSD::value] = vals;
         j[JSD::shape] = gsizes;
         j[JSD::node] = JSN::shape;
-        j[JSD::meta] = m;
+        if (! m.empty() ) {j[JSD::meta] = m;}                                            \
         write(j);
       }
     }
@@ -940,8 +954,6 @@ template <typename T> class StreamManager : public OutputEngineManager {
       j[JSD::name] = id;
       j[JSD::package] = packageName;
       j[JSD::comm] = comm->uniqueId();
-      j[JSD::filename] = filename;
-      j[JSD::line] = line;
       j[JSD::stageId] = stageVal;
 
       if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
@@ -1080,9 +1092,7 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
   std::string filestub;
   virtual ~FileStream() {}
 
-  std::string getFileName(long id) {
-    return getFileName_(filestub, std::to_string(id) + extension);
-  }
+  std::string getFileName(long id) { return getFileName_(filestub, std::to_string(id) + extension); }
 
   json getRunInfo() override {
     json j = json::object();
@@ -1091,7 +1101,7 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
     return j;
   }
 
-  std::string getFileName_(std::string root, std::string  fname) {
+  std::string getFileName_(std::string root, std::string fname) {
     return VnV::DistUtils::join({root, fname}, 0777, true, true);
   }
 
@@ -1172,13 +1182,15 @@ template <class DB> class StreamParserTemplate {
 
     template <typename A, typename V> std::shared_ptr<A> visitShapeNode(const T& j) {
       std::shared_ptr<A> n = mks<A>(j);
-      std::size_t shapeSize = j[JSD::shape].size();
+
+      auto shapej = j.contains(JSD::shape) ? j[JSD::shape] : json::object();
+      std::size_t shapeSize = shapej.size();
 
       std::vector<std::size_t> shape;
       std::vector<V> value;
 
       shape.reserve(shapeSize);
-      for (auto it : j[JSD::shape].items()) {
+      for (auto it : shapej.items()) {
         shape.push_back(it.value().template get<std::size_t>());
       }
 
@@ -1217,13 +1229,15 @@ template <class DB> class StreamParserTemplate {
       auto n = mks<typename DB::JsonNode>(j);
       n->open(true);
 
+      auto shapeJ = j.contains(JSD::shape) ? j[JSD::shape] : json::object();
+      std::size_t shapeSize = shapeJ.size();
+      
       std::vector<std::size_t> shape;
       std::vector<std::string> value;
-
-      std::size_t shapeSize = j[JSD::shape].size();
+    
       shape.reserve(shapeSize);
 
-      for (auto it : j[JSD::shape].items()) {
+      for (auto it : shapeJ.items()) {
         shape.push_back(it.value().template get<std::size_t>());
       }
       if (shapeSize == 0) {
@@ -1244,11 +1258,16 @@ template <class DB> class StreamParserTemplate {
       auto n = mks<typename DB::ShapeNode>(j);
       n->open(true);
       // Load the shape.
+      
+      auto shapeJ = j.contains(JSD::shape) ? j[JSD::shape] : json::object();
+      std::size_t shapeSize = shapeJ.size();
+      
 
       std::vector<std::size_t> shape;
       std::vector<std::shared_ptr<DataBase>> value;
 
-      for (auto it : j[JSD::shape].items()) {
+
+      for (auto it : shapeJ.items()) {
         shape.push_back(it.value().template get<std::size_t>());
       }
       long long key = j[JSD::key].template get<long long>();
@@ -1447,24 +1466,14 @@ template <class DB> class StreamParserTemplate {
       return n;
     };
 
-    void addSource(const json& j, std::shared_ptr<typename DB::InjectionPointNode> node) {
-      if (j.contains(JSD::filename)) {
-        std::string fname = j[JSD::filename].template get<std::string>();
-        long line = j[JSD::line].template get<long>();
-        std::string stage = j[JSD::stageId].template get<std::string>();
-        node->addToSourceMap(stage, fname, line);
-      }
-    }
-
-    virtual std::shared_ptr<typename DB::InjectionPointNode> visitInjectionPointStartedNode(const T& j, long elementId,
-                                                                                            long time) {
+ 
+    virtual std::shared_ptr<typename DB::InjectionPointNode> visitInjectionPointStartedNode(const T& j, long elementId) {
       auto n = mks<typename DB::InjectionPointNode>(j);
       n->setpackage(j[JSD::package].template get<std::string>());
       n->setcommId(j[JSD::comm].template get<long>());
       n->setstartIndex(elementId);
-      n->setstartTime(time);
+      //n->setstartTime(time);
       n->open(true);
-      addSource(j, n);
 
       return n;
     }
@@ -1496,10 +1505,10 @@ template <class DB> class StreamParserTemplate {
     }
 
     virtual std::shared_ptr<typename DB::InjectionPointNode> visitInjectionPointEndedNode(
-        const T& j, std::shared_ptr<DataBase> node, long elementId, long time) {
+        const T& j, std::shared_ptr<DataBase> node, long elementId) {
       auto n = std::dynamic_pointer_cast<typename DB::InjectionPointNode>(node);
       n->setendIndex(elementId);
-      n->setendTime(time);
+      //n->setendTime(time);
       n->open(false);
 
       return n;
@@ -1508,7 +1517,6 @@ template <class DB> class StreamParserTemplate {
     virtual std::shared_ptr<typename DB::InjectionPointNode> visitInjectionPointIterStartedNode(
         const T& j, std::shared_ptr<DataBase> node, long elementId) {
       auto n = std::dynamic_pointer_cast<typename DB::InjectionPointNode>(node);
-      addSource(j, n);
       return n;
     };
 
@@ -1531,51 +1539,46 @@ template <class DB> class StreamParserTemplate {
     std::atomic_bool write_lock = ATOMIC_VAR_INIT(false);
     std::atomic_bool kill_lock = ATOMIC_VAR_INIT(false);
 
-    void kill() {
-      kill_lock.store(true, std::memory_order_relaxed);
-    }
+    void kill() { kill_lock.store(true, std::memory_order_relaxed); }
 
     virtual void process() {
       jstream->start_stream_reader();
-      
-      rootInternal()->markReaderThread();
 
+      rootInternal()->markReaderThread();
 
       long i = 0;
       long j = 0;
       bool changed = false;
-        while (!jstream->isDone()) {
-          
-          if (kill_lock.load(std::memory_order_relaxed)) {
-              break;
-          }
-          
-          i = 0;
-          changed = false;
-          // Lets grab the write lock for 10000 lines -- see if that speeds it up a little. 
-          setWriteLock();  
-          while (i++ < 10000) {
-            if (jstream->hasNext()) {
-                auto p = jstream->next();
-                visit(p.first, p.second);
-                changed = true;
-                j++;
-            }
-          }
-          j++;
-          if (changed) {
-            rootInternal()->cache_persist(false);
-            std::cout << rootInternal()->getId() << ": " << j << " lines processed" << std::endl;
-          }
-          releaseWriteLock();
+      while (!jstream->isDone()) {
+        if (kill_lock.load(std::memory_order_relaxed)) {
+          break;
         }
 
-        rootInternal()->cache_persist(true);
-        rootInternal()->setProcessing(false);
-        rootInternal()->open(false);
-        jstream->stop_stream_reader();
-        std::cout << rootInternal()->getId() << ": File Parsing Complete " << std::endl;
-      
+        i = 0;
+        changed = false;
+        // Lets grab the write lock for 10000 lines -- see if that speeds it up a little.
+        setWriteLock();
+        while (i++ < 10000) {
+          if (jstream->hasNext()) {
+            auto p = jstream->next();
+            visit(p.first, p.second);
+            changed = true;
+            j++;
+          }
+        }
+        j++;
+        if (changed) {
+          rootInternal()->cache_persist(false);
+          std::cout << rootInternal()->getId() << ": " << j << " lines processed" << std::endl;
+        }
+        releaseWriteLock();
+      }
+
+      rootInternal()->cache_persist(true);
+      rootInternal()->setProcessing(false);
+      rootInternal()->open(false);
+      jstream->stop_stream_reader();
+      std::cout << rootInternal()->getId() << ": File Parsing Complete " << std::endl;
     }
     virtual void setWriteLock() {
       while (read_lock.load(std::memory_order_relaxed)) {
@@ -1583,9 +1586,7 @@ template <class DB> class StreamParserTemplate {
       write_lock.store(true, std::memory_order_relaxed);
     }
 
-    virtual void releaseWriteLock() { 
-      write_lock.store(false, std::memory_order_relaxed);
-    }
+    virtual void releaseWriteLock() { write_lock.store(false, std::memory_order_relaxed); }
 
     void lock() override {
       read_lock.store(true, std::memory_order_relaxed);
@@ -1595,7 +1596,7 @@ template <class DB> class StreamParserTemplate {
 
     void release() override { read_lock.store(false, std::memory_order_relaxed); }
 
-    void childNodeDispatcher(std::shared_ptr<DataBase> child, long elementId, long currentTime) {
+    void childNodeDispatcher(std::shared_ptr<DataBase> child) {
       std::shared_ptr<DataBase> parent = jstream->top();
 
       DataBase::DataType ptype = (parent == nullptr) ? DataBase::DataType::Root : parent->getType();
@@ -1639,7 +1640,7 @@ template <class DB> class StreamParserTemplate {
             p->setinternal(a);
           } else {
             p->getTests()->add(child);
-            std::cout << "Adding test to tests" << p->getTests()->size() <<  std::endl;
+            std::cout << "Adding test to tests" << p->getTests()->size() << std::endl;
             p->getTestByUID(0);
           }
 
@@ -1663,14 +1664,11 @@ template <class DB> class StreamParserTemplate {
     void visit(const T& j, long elementId) {
       std::string node = j[JSD::node].template get<std::string>();
 
-      long currentTime = -1;
-      if (j.contains(JSD::time)) {
-        currentTime = j[JSD::time].template get<long>();
-      }
+  
 
       if (node == JSN::finalTime) {
         auto i = rootInternal()->getInfoNode();
-        std::dynamic_pointer_cast<typename DB::InfoNode>(i)->setend(currentTime);
+        std::dynamic_pointer_cast<typename DB::InfoNode>(i)->setend(j[JSD::time].template get<long>());
 
       } else if (node == JSN::done) {
         // DONE
@@ -1685,7 +1683,7 @@ template <class DB> class StreamParserTemplate {
 
       } else if (node == JSN::dataTypeStarted) {
         auto n = visitDataNodeStarted(j);
-        childNodeDispatcher(n, elementId, currentTime);
+        childNodeDispatcher(n);
         jstream->push(n);
       } else if (node == JSN::workflowStarted) {
         rootInternal()->setworkflowNode(visitWorkflowStartedNode(j));
@@ -1715,7 +1713,7 @@ template <class DB> class StreamParserTemplate {
         std::shared_ptr<typename DB::InjectionPointNode> p =
             std::dynamic_pointer_cast<typename DB::InjectionPointNode>(jstream->pop());
         p->setisOpen(false);
-        visitInjectionPointEndedNode(j, p, elementId, currentTime);
+        visitInjectionPointEndedNode(j, p, elementId);
 
         // Close the tests
         auto tests = p->getTests();
@@ -1726,10 +1724,10 @@ template <class DB> class StreamParserTemplate {
         rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::END, elementId, "End");
 
       } else if (node == JSN::injectionPointStarted) {
-        std::shared_ptr<typename DB::InjectionPointNode> p = visitInjectionPointStartedNode(j, elementId, currentTime);
+        std::shared_ptr<typename DB::InjectionPointNode> p = visitInjectionPointStartedNode(j, elementId);
 
         p->setisOpen(true);
-        childNodeDispatcher(p, elementId, currentTime);
+        childNodeDispatcher(p);
         jstream->push(p);
 
         rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::START, elementId, "Begin");
@@ -1750,12 +1748,12 @@ template <class DB> class StreamParserTemplate {
         std::string stage = j[JSD::stageId].template get<std::string>();
         p->setisOpen(true);
         p->setisIter(true);
-        //rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::ITER, elementId, stage);
+        // rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::ITER, elementId, stage);
 
       } else if (node == JSN::log) {
         std::shared_ptr<typename DB::LogNode> n = visitLogNode(j);
         n->setidentity(elementId);
-        childNodeDispatcher(n, elementId, currentTime);
+        childNodeDispatcher(n);
 
       } else if (node == JSN::testFinished) {
         auto p = jstream->pop();
@@ -1791,7 +1789,7 @@ template <class DB> class StreamParserTemplate {
             jstream->push(t);
           } else {
             bool found = false;
-          
+
             auto t = pp->getTestByUID(uid);
             if (t != nullptr) {
               visitTestNodeIterStarted(j, t);
@@ -1802,7 +1800,7 @@ template <class DB> class StreamParserTemplate {
           }
         } else {
           std::shared_ptr<typename DB::TestNode> t = visitTestNodeStarted(j);
-          childNodeDispatcher(t, elementId, currentTime);
+          childNodeDispatcher(t);
           jstream->push(t);
         }
 
@@ -1829,22 +1827,22 @@ template <class DB> class StreamParserTemplate {
         std::string type = j[JSD::dtype].template get<std::string>();
 
         if (type == JST::String) {
-          childNodeDispatcher(visitShapeNode<typename DB::StringNode, std::string>(j), elementId, currentTime);
+          childNodeDispatcher(visitShapeNode<typename DB::StringNode, std::string>(j));
 
         } else if (type == JST::Bool) {
-          childNodeDispatcher(visitShapeNode<typename DB::BoolNode, bool>(j), elementId, currentTime);
+          childNodeDispatcher(visitShapeNode<typename DB::BoolNode, bool>(j));
 
         } else if (type == JST::Long) {
-          childNodeDispatcher(visitShapeNode<typename DB::LongNode, long>(j), elementId, currentTime);
+          childNodeDispatcher(visitShapeNode<typename DB::LongNode, long>(j));
 
         } else if (type == JST::Double) {
-          childNodeDispatcher(visitShapeNode<typename DB::DoubleNode, double>(j), elementId, currentTime);
+          childNodeDispatcher(visitShapeNode<typename DB::DoubleNode, double>(j));
 
         } else if (type == JST::Json) {
-          childNodeDispatcher(visitJsonNode(j), elementId, currentTime);
+          childNodeDispatcher(visitJsonNode(j));
 
         } else if (type == JST::GlobalArray) {
-          childNodeDispatcher(visitGlobalArrayNode(j), elementId, currentTime);
+          childNodeDispatcher(visitGlobalArrayNode(j));
 
         } else {
           throw INJECTION_EXCEPTION("Bad data type %s", type.c_str());
@@ -1882,11 +1880,9 @@ template <class DB> class StreamParserTemplate {
     void kill() override {
       if (running) {
         visitor->kill();
-        std::cout << "TTTTTTTTTTTT" << std::endl;
         if (tworker.joinable()) {
-            tworker.join();
+          tworker.join();
         }
-        std::cout << "FEEFEFEFEFEFEFEF" << std::endl;
         running = false;
       }
     }

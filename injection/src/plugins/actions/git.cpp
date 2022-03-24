@@ -58,10 +58,11 @@ class IssuesAction : public VnV::IAction {
 
 /**
  * .. vnv-issues:: conf
- *   :host: github
+ * 
+ *       
  * 
  */
-INJECTION_ACTION(ISSUES, github, github_schema) { return new IssuesAction(config); }
+INJECTION_ACTION(VNVPACKAGENAME, github, github_schema) { return new IssuesAction(config); }
 
 
 /**
@@ -69,13 +70,13 @@ INJECTION_ACTION(ISSUES, github, github_schema) { return new IssuesAction(config
  *   :host: gitlab
  * 
  */
-INJECTION_ACTION(ISSUES, gitlab, gitlab_schema) { return new IssuesAction(config); }
+INJECTION_ACTION(VNVPACKAGENAME, gitlab, gitlab_schema) { return new IssuesAction(config); }
 
 
 /**
  * .. vnv-issues:: conf 
  *   :host: local
  */
-INJECTION_ACTION(ISSUES, local, local_schema ) { return new IssuesAction(config); }
+INJECTION_ACTION(VNVPACKAGENAME, issues, local_schema ) { return new IssuesAction(config); }
 
 

@@ -7,7 +7,9 @@ from beon9273a/vnv:vnv_env
 COPY . ./vv-neams
 ENV VNV_DIR=/root/software/vnv
 ENV VNV_MATCHER=${VNV_DIR}/bin/vnv-matcher
+
 ENV LD_LIBRARY_PATH=${VNV_DIR}/lib
+
 RUN cd vv-neams  && mkdir -p build && cd build && cmake -DCMAKE_INSTALL_PREFIX=${VNV_DIR} -DLLVM_DIR=${LLVM_DIR} -DADIOS2_DIR=${ADIOS_DIR}/lib/cmake/adios2 .. && make && make install
 
 RUN rm -r /vv-neams
@@ -20,3 +22,6 @@ RUN cd ${VNV_DIR}/examples/c && ./csample.a && cd ../cpp && ./injectionPoint && 
 
 # Create the virtual environment for the report generation.
 RUN cd ${VNV_DIR}/gui/report-generation && virtualenv virt && virt/bin/pip install -r ./requirements.txt
+
+ENV VNV_DEFAULT_REPORTS=${VNV_DIR}/examples/reports.json
+

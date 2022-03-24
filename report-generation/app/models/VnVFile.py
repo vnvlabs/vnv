@@ -528,12 +528,6 @@ class InjectionPointRender:
     def getRawRST(self):
         return self.templates.get_raw_rst(self.ip)
 
-    def getDuration(self):
-        a = self.ip.getEndTime() - self.ip.getStartTime()
-        if a <= 0:
-            return (time.time() * 1000) - self.ip.getStartTime()
-        return a
-
     def getTitle(self, short=False):
         t = self.templates.get_title("InjectionPoints", self.ip.getPackage(), self.ip.getName(), short=short)
         a = render_vnv_template(t, data=self.ip.getData().getData(), file=self.templates.file)
@@ -594,8 +588,12 @@ class InjectionPointRender:
         conn = vnvfile.connection
 
         # map stageId -> [ filename, line]
-        source = json.loads(self.ip.getSourceMap())
-        return {a: LocalFile(b[0], self.getFile(), conn, highlightline=b[1]) for a, b in source.items()}
+        #source = json.loads(self.ip.getSourceMap())
+
+        ss = self.templates.getSourceMap(self.getPackage(),self.getName())
+        return { a: LocalFile(b["filename"],self.getFile(),conn) for a,b in ss.items()}
+
+        #return {a: LocalFile(b[0], self.getFile(), conn, highlightline=b[1]) for a, b in source.items()}
 
 
 class VnVFile:

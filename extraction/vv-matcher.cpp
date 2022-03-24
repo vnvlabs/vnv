@@ -92,6 +92,10 @@ static llvm::cl::list<std::string> ignoreFiles("ignore-file", llvm::cl::desc("ig
                                  llvm::cl::value_desc("string"),
                                  llvm::cl::cat(VnVParserCatagory));
 
+static llvm::cl::list<std::string> extraIncludes("extra-inc", llvm::cl::desc("extra-inc"),
+                                 llvm::cl::value_desc("string"),
+                                 llvm::cl::cat(VnVParserCatagory));
+
 
 
 bool acceptFile(std::string filename) {
@@ -163,6 +167,7 @@ int main(int argc, const char** argv) {
     // registration files and/or the swig interface files.
     std::set<std::string> theFiles, fortranFiles, allfiles;
     std::string search = "-DVNV_IGNORE=0";
+    
     for (auto it : OptionsParser.getCompilations().getAllCompileCommands()) {
       auto s = std::find(it.CommandLine.begin(), it.CommandLine.end(), search);
       if (s == it.CommandLine.end()) {
@@ -185,6 +190,8 @@ int main(int argc, const char** argv) {
     // This checks if any of the cpp files have changed and if any of the
     // headers included in that cpp file ON THE LAST RUN have changed.
     checkCache(cacheInfo, theFiles, fortranFiles);
+
+
 
     if (theFiles.size() == 0) {
       std::cout << "---->No C/C++ file changes detected" << std::endl;

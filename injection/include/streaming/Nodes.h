@@ -613,22 +613,18 @@ class IInjectionPointNode : public DataBase {
   IInjectionPointNode();
   virtual long getStartIndex() = 0;
   virtual long getEndIndex() = 0;
-  virtual long getStartTime() = 0;
-  virtual long getEndTime() = 0;
-
+  
   virtual std::string getComm() = 0;
   virtual std::string getPackage() = 0;
   virtual std::shared_ptr<IArrayNode> getTests() = 0;
   virtual std::shared_ptr<IArrayNode> getLogs() = 0;
   virtual std::shared_ptr<ITestNode> getData() = 0;
-  virtual std::string getSourceMap() = 0;
   virtual ~IInjectionPointNode();
 
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
     j.push_back("Package:" + getPackage());
     j.push_back("Comm:" + getComm());
-    j.push_back("SourceMap:" + getSourceMap());
     j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
     j.push_back(getData()->getAsDataChild(fileId, level - 1));
     j.push_back(getTests()->getAsDataChild(fileId, level - 1));

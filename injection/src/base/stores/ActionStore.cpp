@@ -40,6 +40,6 @@ void VnV::registerVnVAction(std::string packageName, std::string name, std::stri
     json j = json::parse(schema);
     ActionStore::instance().registerAction(packageName, name, j, m);
   } catch (std::exception &e) {
-    VnV_Error(VNVPACKAGENAME, "Could not register action %s:%s --> Invalid Schema", packageName.c_str(), name.c_str());
+    VnV_Error(VNVPACKAGENAME, "Could not register action %s:%s --> %s", packageName.c_str(), name.c_str(), e.what());
   }
 }

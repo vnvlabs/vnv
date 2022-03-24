@@ -315,14 +315,11 @@ class Collection {
 
   static auto bwrap(json& j) { return std::make_shared<bson_wrap>(j); }
 
-
   json get_one(long id) {
-
     json j = json::object();
     j["id_"] = id;
 
-    auto c = std::make_shared<Cursor>(
-        mongoc_collection_find_with_opts(collection(), bwrap(j)->get(), NULL, NULL));
+    auto c = std::make_shared<Cursor>(mongoc_collection_find_with_opts(collection(), bwrap(j)->get(), NULL, NULL));
 
     if (c->begin() != c->end()) {
       return c->asJson();
@@ -330,20 +327,16 @@ class Collection {
     throw Mongo_Does_Not_Exist();
   }
 
-
-
-  void update_one(long id, std::shared_ptr<bson_wrap> update) {  
+  void update_one(long id, std::shared_ptr<bson_wrap> update) {
     json j = json::object();
     j["id_"] = id;
 
     mongoc_collection_update_one(collection(), bwrap(j)->get(), update->get(), update_opts, NULL, &error);
-  
   }
 
   void update_many(std::shared_ptr<bson_wrap> filter, std::shared_ptr<bson_wrap> update) {
     mongoc_collection_update_many(collection(), filter->get(), update->get(), update_opts, NULL, &error);
   }
-
 
   std::weak_ptr<Collection> selfAsShared;
 
@@ -355,7 +348,6 @@ class Collection {
 
     std::string o = R"({"upsert" : true } )";
     update_opts = bson_new_from_json((const uint8_t*)o.c_str(), -1, &error);
-
   }
 
   std::size_t getCacheSize() {
@@ -439,38 +431,36 @@ class Collection {
 
   void update_one(long id, json& update) { update_one(id, bwrap(update)); }
 
-    std::shared_ptr<Cursor> find(json& selector, json& opts) {
+  std::shared_ptr<Cursor> find(json& selector, json& opts) {
     auto sel = std::make_shared<bson_wrap>(selector);
     auto b = std::make_shared<bson_wrap>(opts);
     return std::make_shared<Cursor>(mongoc_collection_find_with_opts(collection(), sel->get(), b->get(), NULL));
   }
 
-
   auto count(const json& filter) { return count(std::make_shared<bson_wrap>(filter)); }
 
-  // The reader thread calls get_one to find out if the id exists -- But, 99.99% of the 
+  // The reader thread calls get_one to find out if the id exists -- But, 99.99% of the
   // time, it doesnt exist (cause we are adding a new node.) By keeping track of the largest
   // id we have seen, and based on the fact that ids are mostly sequential, we can skip get_one
-  // in all these cases. 
+  // in all these cases.
   long largest_seen = -1;
 
   json createEntry(long id, bool& isNew, std::string type) {
-     if (type.empty()) {
-        throw INJECTION_EXCEPTION_("Type empty when does not exist");
-     }
-     json filter = json::object();
-     filter["id_"] = id;
-     filter["type"] = type;
-     filter["metadata"] = "{}";
-     isNew = true;
-     return filter;
+    if (type.empty()) {
+      throw INJECTION_EXCEPTION_("Type empty when does not exist");
+    }
+    json filter = json::object();
+    filter["id_"] = id;
+    filter["type"] = type;
+    filter["metadata"] = "{}";
+    isNew = true;
+    return filter;
   }
 
-  json loadOrCreate(long id,  bool &isNew, std::string type = "") {
-    
-    if (readerThread() && id > largest_seen ) {
+  json loadOrCreate(long id, bool& isNew, std::string type = "") {
+    if (readerThread() && id > largest_seen) {
       largest_seen = id;
-      return createEntry(id,isNew,type);
+      return createEntry(id, isNew, type);
     }
 
     try {
@@ -480,7 +470,7 @@ class Collection {
       isNew = false;
       return h;
     } catch (Mongo_Does_Not_Exist e) {
-      return createEntry(id,isNew,type); 
+      return createEntry(id, isNew, type);
     }
   }
 
@@ -508,7 +498,7 @@ class Collection {
     return true;
   }
 
-  virtual ~Collection() { 
+  virtual ~Collection() {
     bson_destroy(update_opts);
     mongoc_collection_destroy(collection_main);
   }
@@ -522,6 +512,7 @@ class Document {
   bool updated = false;
   bool isNew = false;
   bool deleted = false;
+
  public:
   std::shared_ptr<Collection> collection;
 
@@ -534,25 +525,27 @@ class Document {
 
   void markNew() { isNew = true; }
   void markUpdated() { updated = true; }
-  void markDeleted() { 
+  void markDeleted() {
     deleted = true;
     if (!isNew && collection->readerThread()) {
-        collection->remove(id);
-    }  
+      collection->remove(id);
+    }
   }
-  
-  bool needsPersisted() { 
-    // If marked deleted then we return false. 
+
+  bool needsPersisted() {
+    // If marked deleted then we return false.
     if (deleted) {
       return false;
     }
-    return updated || isNew ;
+    return updated || isNew;
   }
-  
-  void markPersisted() { updated = false; isNew = false; }
-  
+
+  void markPersisted() {
+    updated = false;
+    isNew = false;
+  }
+
   ~Document() {
-    
     if (collection->readerThread()) {
       collection->removeFromWeakCache(id);
       persist();
@@ -602,14 +595,13 @@ class Document {
   }
 
   void update(std::string field, const json& value) {
-
     markUpdated();
     try {
       doc[field] = value;
-    }catch (std::exception &e) {
+    } catch (std::exception& e) {
       std::cout << doc.dump(4) << std::endl;
       std::cout << value.dump(4) << std::endl;
-      std::cout << "Update failed: " << e.what();  
+      std::cout << "Update failed: " << e.what();
     }
   }
 };
@@ -706,12 +698,11 @@ class MongoPersistance {
           ;
     Mongo_getter_setter_json(map, json::object());
 
-    template<typename T> 
-    bool _convertToShapeNode(std::shared_ptr<DataBase> parent, std::shared_ptr<DataBase> child) {
-      if (convertToShapeNode<T>(parent,child)) {
-          auto a = std::dynamic_pointer_cast<T>(child);
-          a->throwAway();
-          return true;
+    template <typename T> bool _convertToShapeNode(std::shared_ptr<DataBase> parent, std::shared_ptr<DataBase> child) {
+      if (convertToShapeNode<T>(parent, child)) {
+        auto a = std::dynamic_pointer_cast<T>(child);
+        a->throwAway();
+        return true;
       }
       return false;
     }
@@ -810,16 +801,16 @@ class MongoPersistance {
       }                                                                                             \
                                                                                                     \
       y getValueByShape(const std::vector<std::size_t>& rshape) override {                          \
-        auto a = getValueByIndex(computeShapeIndex<std::size_t>(rshape, getshape()));                 \
-        return a; \
+        auto a = getValueByIndex(computeShapeIndex<std::size_t>(rshape, getshape()));               \
+        return a;                                                                                   \
       }                                                                                             \
       void add(const y& v);                                                                         \
       y getValueByIndex(const size_t ind) override;                                                 \
                                                                                                     \
       y getScalarValue() override {                                                                 \
-        if (getshape().size() == 0) {                                                                \
-           return getValueByIndex(0); }                              \
-        else  {                                                                                     \
+        if (getshape().size() == 0) {                                                               \
+          return getValueByIndex(0);                                                                \
+        } else {                                                                                    \
           throw INJECTION_EXCEPTION("%s: No shape provided to non scalar shape tensor object", #x); \
         }                                                                                           \
       }                                                                                             \
@@ -1022,25 +1013,17 @@ class MongoPersistance {
 
   class InjectionPointNode : public DataBaseImpl<IInjectionPointNode> {
    public:
-    Mongo_docuemnt_ref(logs, Array) Mongo_docuemnt_ref(tests, Array) Mongo_docuemnt_ref(internal, Test)
+    Mongo_docuemnt_ref(logs, Array);
+    Mongo_docuemnt_ref(tests, Array);
+    Mongo_docuemnt_ref(internal, Test);
 
-        Mongo_getter_setter(package, std::string, "") Mongo_getter_setter(commId, long long, -1)
-            Mongo_getter_setter(startIndex, long, -1) Mongo_getter_setter(startTime, long, -1)
-                Mongo_getter_setter(endTime, long, -1)
+    Mongo_getter_setter(package, std::string, "");
+    Mongo_getter_setter(commId, long long, -1);
+    Mongo_getter_setter(startIndex, long, -1);
 
-                    Mongo_getter_setter(endIndex, long, -1) Mongo_getter_setter(isIter, bool, false)
-                        Mongo_getter_setter(isOpen, bool, false)
-                            Mongo_getter_setter_json(sourceMap, nlohmann::json::object())
-
-                                void addToSourceMap(std::string stage, std::string function, int line) {
-      json& sm = getsourceMap();
-      if (!sm.contains(stage)) {
-        json j = json::array();
-        j.push_back(function);
-        j.push_back(line);
-        sm[stage] = j;
-      }
-    }
+    Mongo_getter_setter(endIndex, long, -1);
+    Mongo_getter_setter(isIter, bool, false);
+    Mongo_getter_setter(isOpen, bool, false);
 
     InjectionPointNode() : DataBaseImpl<IInjectionPointNode>() {}
 
@@ -1057,16 +1040,13 @@ class MongoPersistance {
     virtual std::shared_ptr<IArrayNode> getLogs() override { return getInternal_logs(); }
 
     virtual std::string getComm() override { return std::to_string(getcommId()); }
-    virtual std::string getSourceMap() override { return getsourceMap().dump(); }
 
     virtual long getStartIndex() override { return getstartIndex(); }
     virtual long getEndIndex() override { return getendIndex(); }
-    virtual long getStartTime() override { return getstartTime(); }
-    virtual long getEndTime() override { return getendTime(); }
 
     std::shared_ptr<TestNode> getTestByUID(long uid) {
       auto a = getTests();
-      
+
       for (int i = 0; i < a->size(); i++) {
         auto ba = a->get(i);
         assert(ba->getType() == DataBase::DataType::Test);
@@ -1075,7 +1055,6 @@ class MongoPersistance {
           return t;
         }
       }
-      
 
       std::cout << "Could not find one " << a->size() << " " << uid << std::endl;
 

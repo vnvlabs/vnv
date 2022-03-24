@@ -68,6 +68,9 @@
 {% block javascripts %}{% endblock javascripts %}
 
 <script>
+
+const MYNAME = "Ben"
+
 $("#formControlRange").on("input change",(e)=>{
    $('#formControlElm').css('max-width', e.target.value + "%")
 })

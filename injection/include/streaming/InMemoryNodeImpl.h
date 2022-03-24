@@ -331,12 +331,9 @@ class InMemory {
     std::shared_ptr<TestNode> internal;
     std::string package;
 
-    nlohmann::json sourceMap = json::object();
 
     long startIndex = -1;
     long endIndex = -1;
-    long startTime = -1;
-    long endTime = -1;
     long long commId;
 
     bool isIter = false;  // internal property to help with parsing.
@@ -344,25 +341,14 @@ class InMemory {
 
    public:
     GETTERSETTER(package, std::string)
-    GETTERSETTER(sourceMap, nlohmann::json)
     GETTERSETTER(commId, long long)
     GETTERSETTER(internal, std::shared_ptr<TestNode>)
-    GETTERSETTER(startTime, long);
-    GETTERSETTER(endTime, long);
-    GETTERSETTER(startIndex, long)
+   GETTERSETTER(startIndex, long)
     GETTERSETTER(endIndex, long)
     GETTERSETTER(isIter, bool)
     GETTERSETTER(isOpen, bool)
 
-    void addToSourceMap(std::string stage, std::string function, int line) {
-      if (!sourceMap.contains(stage)) {
-        json j = json::array();
-        j.push_back(function);
-        j.push_back(line);
-        sourceMap[stage] = j;
-      }
-    }
-
+  
     InjectionPointNode() : DataBaseImpl<IInjectionPointNode>() {}
 
     virtual std::string getPackage() override { return package; }
@@ -383,13 +369,10 @@ class InMemory {
     }
 
     virtual std::string getComm() override { return std::to_string(commId); }
-    virtual std::string getSourceMap() override { return sourceMap.dump(); }
 
     virtual long getStartIndex() override { return startIndex; }
     virtual long getEndIndex() override { return endIndex; }
-    virtual long getStartTime() override { return startTime; }
-    virtual long getEndTime() override { return endTime; }
-    std::shared_ptr<TestNode> getTestByUID(long uid) {
+     std::shared_ptr<TestNode> getTestByUID(long uid) {
       for (int i = 0; i < getTests()->size(); i++) {
         auto t = std::dynamic_pointer_cast<TestNode>(getTests()->get(i));
         if (t->getuid() == uid) {

@@ -6,6 +6,7 @@ import uuid
 import flask
 import jsonschema
 from ansi2html import Ansi2HTMLConverter
+from flask import jsonify
 from jsonschema.exceptions import ErrorTree, ValidationError, SchemaError
 
 from app.base.utils import mongo
@@ -14,6 +15,7 @@ from app.models.VnVConnection import VnVLocalConnection, VnVConnection, connecti
 from app.models.json_heal import autocomplete
 from app.rendering import render_rst_to_string
 from app.rendering.vnvdatavis.directives.dataclass import DataClass
+from app.rendering.vnvdatavis.directives.psip import GET_DEFAULT_PSIP
 
 
 def get_current_path(newVal, row, col):
@@ -85,6 +87,8 @@ class VnVInputFile:
         self.desc = None
         self.rendered = None
         self.plugs = None
+        self.psip = "{}"
+        self.issues = "[]"
 
         # Set the default Input file.
         self.value = json.dumps(VnV.getVnVConfigFile_1(), indent=4)
@@ -102,6 +106,8 @@ class VnVInputFile:
         a["value"] = self.value
         a["spec"] = self.spec
         a["specDump"] = self.specDump
+        a["psip"] = self.psip
+        a["issues"] = self.issues
         a["specValid"] = self.specValid
         a["exec"] = self.exec
         a["execFile"] = self.execFile
@@ -118,7 +124,8 @@ class VnVInputFile:
 
         r.loadfile = a["loadfile"]
         r.value = a["value"]
-
+        r.psip = a.get("psip","{}")
+        r.issues = a.get("issues","[]")
         r.spec = a["spec"]
         r.specDump = a["specDump"]
         r.specValid = a["specValid"]
@@ -378,6 +385,14 @@ class VnVInputFile:
     def get_jobs(self):
         return [a for a in self.connection.get_jobs()]
 
+    def fullInputFile(self):
+        j = json.loads(self.value)
+        if "actions" not in j:
+            j["actions"] = {}
+        j["actions"]["VNV:PSIP"] = json.loads(self.psip)
+        j["actions"]["VNV:issues"] = json.loads(self.issues)
+        return json.dumps(j,indent=4)
+
     def execute(self, val ):
        inp_dir = json.loads(self.value).get("job",{}).get("dir","/tmp")
 
@@ -385,13 +400,21 @@ class VnVInputFile:
        script, name = self.script(val, workflow_id)
 
        meta = {
-           "vnv_input": Ansi2HTMLConverter().convert(self.value),
+           "vnv_input": Ansi2HTMLConverter().convert(self.fullInputFile()),
            "workflow_id" : workflow_id,
            "workflow_dir" : inp_dir
        }
 
        return self.connection.execute_script(script, name=name, metadata=meta)
 
+    def get_psip(self):
+        if "sa" in self.psip and "ptc" in self.psip:
+            return self.psip
+        else:
+            return GET_DEFAULT_PSIP()
+
+    def get_issues(self):
+        return self.issues #.replace('\n', '\\\\n')
 
     def script(self, val, workflowId):
         data = json.loads(val)
@@ -401,7 +424,7 @@ class VnVInputFile:
                 for k, v in over.items():
                     data[k] = v
 
-        return bash_script(self.filename, self.value, data, workflowName=workflowId  ), data.get("name")
+        return bash_script(self.filename, self.fullInputFile(), data, workflowName=workflowId  ), data.get("name")
 
     @staticmethod
     def get_id():

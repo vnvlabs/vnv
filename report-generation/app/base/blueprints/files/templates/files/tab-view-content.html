@@ -26,7 +26,7 @@ tablist = {
                 {%if file.isProcessing() %}
                 <span id="processing_{{file.id_}}" class="badge badge-warning">Live</span>
                 <script>
-                    $(window).on('load', function() {
+                    $(document).ready( function() {
                         update_processing({{file.id_}}, "#processing_{{file.id_}}")
                     });
                 </script>

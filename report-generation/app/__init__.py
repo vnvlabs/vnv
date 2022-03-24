@@ -9,6 +9,8 @@ from logging import DEBUG
 from flask_socketio import SocketIO
 from flaskext.markdown import Markdown
 
+from app.base.utils.mongo import BrandNew
+
 global_template_variables = {
 
 }
@@ -28,8 +30,7 @@ def register_blueprints(apps, config):
     base.config(config)
     apps.register_blueprint(base.blueprint)
     base.template_globals(global_template_variables)
-
-    base.faker(config.DEFAULT_DATA_PREFIX)
+    base.load_default_data(not Configured() or BrandNew())
 
     @apps.context_processor
     def inject_stage_and_region():

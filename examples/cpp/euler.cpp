@@ -162,8 +162,9 @@ int main(int argc, char** argv) {
     * 
     *      {
     *          "sol.x" : json.dumps(np.linspace(0,5,1000).tolist()),
-    *          "sol.y" : json.dump( numpy.exp(numpy.linspace(0,5,1000)/2)*numpy.sin(5*numpy.linspace(0,5,1000)))
+    *          "sol.y" : json.dumps( (np.exp(np.linspace(0,5,1000)/2) * np.sin(5*np.linspace(0,5,1000))).tolist() ) 
     *      }
+    * 
     * 
     * As you will see, Eulers method is not that great for solving problems where the function changes 
     * rapidly like this one. 

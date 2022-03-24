@@ -1,15 +1,5 @@
 
-{%with
-tablist = {
-    "sa": ["Self Assessment","psip/selfaccess.html"],
-    "ptc": ["Progress Tracking Cards","psip/ptc.html"],
-},
-active_tab = request.args.get("atab", "sa")
-
-%}
-
 <div class="fcolumn fchild">
         {% include "psip/selfaccess.html"%}
 </div>
 
-{%endwith%}

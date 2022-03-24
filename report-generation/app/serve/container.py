@@ -37,7 +37,7 @@ def launch_docker_container(uname, password):
             except Exception as e:
                 volume = docker_client.volumes.create("vnv-"+uname)
 
-            volumes = {'vnv-'+uname : {'bind': '/container, 'mode': 'rw'} }
+            volumes = {'vnv-'+uname : {'bind': '/container', 'mode': 'rw'} }
             container = docker_client.containers.run("vnv_serve:latest", volumes=volumes, command=comm, ports={5001:None}, name="vnv-" + uname, detach=True)
             print(container)
         except Exception as e:

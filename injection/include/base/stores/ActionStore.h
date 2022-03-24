@@ -116,11 +116,13 @@ class ActionStore : public BaseStore {
   }
 
   void registerAction(std::string packageName, std::string name, const json& schema, action_ptr m) {
+    std::cout << "Registering action " << packageName << ":" << name << " " << action_factory.size() << std::endl;
     action_factory[packageName + ":" + name] = {schema, m};
   }
 
   bool registeredAction(std::string packageName, std::string name) {
-    return action_factory.find(packageName + ":" + name) == action_factory.end();
+    std::cout << "Looking for action " << packageName << ":" << name << " " << action_factory.size() << std::endl;
+    return action_factory.find(packageName + ":" + name) != action_factory.end();
     
   }
 
@@ -135,7 +137,7 @@ class ActionStore : public BaseStore {
         actions.push_back(act);
         return;
       } catch(std::exception &e) {
-
+        std::cout << "HERE " << e.what() << std::endl;
       }
     } 
     HTHROW INJECTION_EXCEPTION("Error adding Action", packageName.c_str(), name.c_str());

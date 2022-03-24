@@ -2,6 +2,7 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
+import json
 import os
 import threading
 
@@ -338,7 +339,7 @@ def view(id_):
             return render_template("files/tab-view.html", file=file)
     except Exception as e:
         print(e)
-        return render_error(501, "FIIIIIIIIIIIIIIIIIIIII")
+        return render_error(501, e.what())
 
 
 @blueprint.route('/processing/<int:id_>')

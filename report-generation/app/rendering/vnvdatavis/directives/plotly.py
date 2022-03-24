@@ -184,7 +184,7 @@ def plotly_post_process_raw(text, data, file, ext):
 
     evalContent = textj["content"]
     try:
-        extra_data=eval(evalContent,{"np":np,"math":math,"json":json});
+        extra_data=eval(evalContent,{"np":np,"math":math,"json":json, "numpy":np});
         if isinstance(extra_data,dict):
             options.update(extra_data)
     except:

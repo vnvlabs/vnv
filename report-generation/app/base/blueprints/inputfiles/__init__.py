@@ -16,14 +16,7 @@ from ..files import get_file_from_runinfo
 from ...utils import mongo
 from ...utils.utils import render_error
 
-vnv_executables = {
-    "VnV Euler Application": ["examples/cpp/euler", "An example that runs a euler solve. "],
-    "VnV Line Application" : [ "examples/cpp/line", "An example that runs a line. "],
-    "VnV Iterator Application": ["examples/cpp/iterator", "An example that runs a iterator. "],
-    "VnV Contour Application": ["examples/cpp/contour","An example that runs a contour plot. "],
-    "Custom" : ["","Custom Application"]
-}
-
+vnv_executables = {}
 
 blueprint = Blueprint(
     'inputfiles',
@@ -42,7 +35,7 @@ def new():
         else:
             path = os.path.join(VnVInputFile.VNV_PREFIX, vnv_executables.get(c)[0])
 
-        file = VnVInputFile.add(request.form["name"],path)
+        file = VnVInputFile.add(request.form["name"], path)
 
         return redirect(url_for("base.inputfiles.view", id_=file.id_))
     except Exception as e:
@@ -76,6 +69,37 @@ def save_exec(id_):
         form = request.get_json()
         file.exec = form["value"]
         return make_response("", 200)
+
+@blueprint.route('/save-issues/<int:id_>', methods=["POST"])
+def save_issues(id_):
+    try:
+        with VnVInputFile.find(id_) as file:
+            if "data" in request.args:
+                try:
+                    a = json.loads(request.args["data"])
+                    file.issues = json.dumps(a)
+                    return make_response("", 200)
+                except:
+                    return make_response("", 201)
+            return make_response("", 202)
+    except:
+        return make_response("", 203)
+
+
+@blueprint.route('/save_psip/<int:id_>', methods=["POST"])
+def save_psip(id_):
+    try:
+        with VnVInputFile.find(id_) as file:
+            if "data" in request.args:
+                try:
+                    a = json.loads(request.args["data"])
+                    file.psip = request.args["data"]
+                    return make_response("", 200)
+                except:
+                    return make_response("", 201)
+            return make_response("", 202)
+    except:
+        return make_response("", 203)
 
 
 @blueprint.route('/validate/<string:comp>/<int:id_>', methods=["POST"])
@@ -244,40 +268,38 @@ def cancel_job(id_, jobid):
     return render_error(401, "Huh")
 
 
-
-
-
 @blueprint.route('/openreport/<int:id_>')
 def openreport(id_):
-   try:
-    with VnVInputFile.find(id_) as file:
-        pref = os.path.join(request.args["dir"], "vnv_" + request.args["id"] + "_")
-        reports = file.connection.autocomplete(pref)
+    try:
+        with VnVInputFile.find(id_) as file:
+            pref = os.path.join(request.args["dir"], "vnv_" + request.args["id"] + "_")
+            reports = file.connection.autocomplete(pref)
 
-        if "confirmed" in request.args:
-            for i in reports:
-                with open(file.connection.download(i), 'r') as ff:
-                    ff = get_file_from_runinfo(json.load(ff))
-                    return url_for('base.files.view', id_=ff.id_)
-        else:
-            data = {}
-            return make_response(str(len(reports)), 200)
+            if "confirmed" in request.args:
+                for i in reports:
+                    with open(file.connection.download(i), 'r') as ff:
+                        ff = get_file_from_runinfo(json.load(ff))
+                        return url_for('base.files.view', id_=ff.id_)
+            else:
+                data = {}
+                return make_response(str(len(reports)), 200)
 
-   except Exception as e:
-       print(e)
-       return make_response("Error",201)
+    except Exception as e:
+        print(e)
+        return make_response("Error", 201)
 
 
 @blueprint.route('/delete-all', methods=["POST"])
 def delete_all():
-   VnVInputFile.delete_all()
-   return make_response("Complete",200)
+    VnVInputFile.delete_all()
+    return make_response("Complete", 200)
+
 
 @blueprint.route('/update_display_name/<int:id_>', methods=["POST"])
 def update_display_name(id_):
     with VnVInputFile.find(id_) as file:
-        file.displayName = request.args.get("new",file.displayName)
-        return make_response(file.displayName,200)
+        file.displayName = request.args.get("new", file.displayName)
+        return make_response(file.displayName, 200)
 
 
 @blueprint.route('/execute/<int:id_>')
@@ -296,11 +318,13 @@ def execute(id_):
 
 
 def list_vnv_executables():
-    return [ [k,v[1] ] for k,v in vnv_executables.items()]
+    return [[k, v[1]] for k, v in vnv_executables.items()]
+
 
 def template_globals(globs):
     globs["inputfiles"] = VnVInputFile.FILES
     globs["list_vnv_executables"] = list_vnv_executables
+
 
 def faker(PREFIX):
     VnVInputFile.loadAll()

@@ -29,7 +29,7 @@ class IssuesDirective(SphinxDirective):
 
         return f'''
           <div class="{self.options.get("class","")}" style="width:{self.options.get("width","100%")}; height:{self.options.get("height" , "100%")};">
-               {{%with vnv_data= data.query_json('{" ".join(self.arguments)}') %}}
+               {{%with vnv_data= data.query_json('{" ".join(self.arguments)}') , readonly=True %}}
                {{%include 'issues/{self.get_include()}.html' %}}
                {{%endwith%}} 
          </div>

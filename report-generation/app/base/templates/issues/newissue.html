@@ -1,0 +1,41 @@
+<div style="display:flex; margin-bottom:20px;">
+    <h4 style="flex:1"> Local Application Issues and Comments:</h4>
+    {% if not readonly %}
+    <button id="new_issue" class="btn btn-primary" style="margin-right:10px;">New</button>
+    {%endif%}
+</div>
+
+{% if not readonly %}
+<div id="new-issue-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="new-issue-modal-label"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Or Edit Issue</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="ptc-modal-body">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input name="name" , id="new-issue-name" type="text" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input title="name" , id="new-issue-title" type="text" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-issue-description">Description</label>
+                        <textarea class="form-control" name="description" , id="new-issue-description" rows="3"></textarea>
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button id="submit-new-issue" class="btn btn-primary event-btn m-2" type="button">
+                    <span class="btn-text" style="">Submit</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{%endif%}

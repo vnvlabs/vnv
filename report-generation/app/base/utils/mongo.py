@@ -4,6 +4,9 @@ import pymongo
 def Configured():
     return MONGO_AVAILABLE
 
+def BrandNew():
+    return MONGO_BRAND_NEW
+
 def list_mongo_collections():
     if Configured():
         a = pymongo_database.list_collection_names()
@@ -24,9 +27,11 @@ try:
 
     pymongo_database = pymongo_client.get_database(MONGO_DB)
     MONGO_AVAILABLE = True
+    MONGO_BRAND_NEW=False
 
     if not collection_exists("__vnv_reader_input_files__"):
         pymongo_database.create_collection("__vnv_reader_input_files__")
+        MONGO_BRAND_NEW = True
     if not collection_exists("__vnv_display_names__"):
         pymongo_database.create_collection("__vnv_display_names__")
 

@@ -53,16 +53,20 @@ def setup_build_directory(src_dir, fileId):
 
 
 class TemplateBuild:
-    def __init__(self, src_dir, id_, descrip=None):
+    def __init__(self, src_dir, id_, descrip=None, smap = {}):
         self.src_dir = os.path.basename(src_dir)
         self.root_dir = src_dir
         self.file = id_
         self.descrip = descrip
+        self.smap = smap
 
     def read(self, f):
         with open(os.path.join(self.root_dir, f), 'r') as ff:
             r = ff.readlines()
             return "".join(r)
+
+    def getSourceMap(self,package, name):
+        return self.smap.get(package + ":"+name,{})
 
     def get_title(self,type, package, name, short=False):
         tt = "short" if short else "title"
@@ -207,6 +211,9 @@ def build(src_dir, templates, id_):
     setup_build_directory(src_dir, id_)
     fnames = []
     descriptions = {}
+
+    sourcemap = {}
+
     for type_, packages in templates.items():
         if type_ in ["Introduction", "Conclusion"]:
             fnames.append(f"{type_}.rst")
@@ -278,6 +285,13 @@ def build(src_dir, templates, id_):
                             else:
                                 w.write(f"\n{textwrap.dedent(tests[test]['template'])}\n\n")
 
+                elif type_ == "InjectionPoints":
+
+                    smap = {}
+                    for stage,sinfo in point["stages"].items():
+                        smap[stage] = { "filename" : sinfo["info"]['filename'], "lineNumber" : sinfo["info"]["lineNumber"] }
+                    sourcemap[package] = smap
+
     index = '''.. toctree::\n\t:maxdepth: 22\n\t:caption: Contents:\n\n\t{files}\n\n'''.format(
         files="\n\t".join(fnames))
     with open(os.path.join(src_dir, "index.rst"), 'w') as w:
@@ -294,7 +308,7 @@ def build(src_dir, templates, id_):
         a = subprocess.run([sys.executable, os.path.join(src_dir, "runv.py")])
     except Exception as e:
         print(e)
-    return TemplateBuild(src_dir, id_, descrip=descriptions)
+    return TemplateBuild(src_dir, id_, descrip=descriptions, smap=sourcemap)
 
 
 def render_rst_to_string(content):
