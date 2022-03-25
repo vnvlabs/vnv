@@ -76,7 +76,7 @@ class IOutputEngine {
   virtual void Log(ICommunicator_ptr comm, const char* packageName, int stage, std::string level,
                    std::string message) = 0;
 
-  virtual bool Fetch(std::string message, const json& schema, long timeoutInSeconds, json& response) { return false; }
+  virtual bool Fetch(std::string /* message */, const json& /* schema */, long /* timeoutInSeconds */, json& /* response */) { return false; }
 
   virtual void Put(std::string variableName, const bool& value, const MetaData& m = MetaData()) = 0;
 
@@ -346,7 +346,7 @@ class VectorAction : public BaseAction {
                      IOutputEngine* engine, const MetaData& m) const override {
     engine->PutGlobalArray(dtype, variableName, data, {size * comm->Size()}, {size}, {size * comm->Rank()}, m);
   }
-  virtual int count(ICommunicator_ptr ptr, int engineRoot) const override { return size; };
+  virtual int count(ICommunicator_ptr /* ptr */, int /* engineRoot */) const override { return size; };
 };
 
 // Write a global vector. This assumes vector size is same on all procs. Values
@@ -398,7 +398,7 @@ class MatrixAction : public BaseAction {
     int yoff = (r * y) % ymax;
     engine->PutGlobalArray(dtype, variableName, data, {xs, ys}, {x, y}, {xoff, yoff}, m);
   }
-  virtual int count(ICommunicator_ptr ptr, int engineRoot) const override { return x * y; };
+  virtual int count(ICommunicator_ptr /* ptr */, int /* engineRoot */) const override { return x * y; };
 };
 
 template <typename T>
@@ -432,11 +432,11 @@ class GlobalArrayAction : public BaseAction {
   GlobalArrayAction(std::vector<int>& gsizes, std::vector<int>& lsizes, std::vector<int>& offs)
       : gsize(gsizes), lsize(lsizes), offsets(offs) {}
 
-  virtual void write(ICommunicator_ptr comm, long long dtype, std::string variableName, IDataType_vec data,
+  virtual void write(ICommunicator_ptr /* comm */, long long dtype, std::string variableName, IDataType_vec data,
                      IOutputEngine* engine, const MetaData& m) const override {
     engine->PutGlobalArray(dtype, variableName, data, gsize, lsize, offsets, m);
   }
-  virtual int count(ICommunicator_ptr ptr, int engineRoot) const override {
+  virtual int count(ICommunicator_ptr /* ptr */, int /* engineRoot */) const override {
     return std::accumulate(lsize.begin(), lsize.end(), 1, std::multiplies<int>());
   }
 };
@@ -535,7 +535,7 @@ class ReductionAction : public BaseAction {
       engine->PutGlobalArray(dtype, variableName, {}, {1}, {0}, {0}, m);
     }
   }
-  virtual int count(ICommunicator_ptr ptr, int engineRoot) const override { return size; };
+  virtual int count(ICommunicator_ptr /* ptr */, int /* engineRoot */) const override { return size; };
 };
 
 // Apply a reduction across a global reducer. Here reducer is the name of some
@@ -594,7 +594,7 @@ class ElementWiseReductionAction : public BaseAction {
       engine->PutGlobalArray(dtype, variableName, {}, {size}, {0}, {0}, m);
     }
   }
-  virtual int count(ICommunicator_ptr ptr, int engineRoot) const override { return size; };
+  virtual int count(ICommunicator_ptr /* ptr */, int /* engineRoot */) const override { return size; };
 };
 
 // Apply a reduction across a global reducer. Here reducer is the name of some
@@ -704,18 +704,18 @@ class IInternalOutputEngine : public IOutputEngine {
 
   virtual void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageId) = 0;
 
-  virtual void actionStartedCallBack(ICommunicator_ptr comm, std::string package, std::string name,
-                                     ActionStage::type stage){};
-  virtual void actionEndedCallBack(ActionStage::type stage){};
+  virtual void actionStartedCallBack(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */,
+                                     ActionStage::type /* stage */){};
+  virtual void actionEndedCallBack(ActionStage::type /* stage */){};
 
-  virtual void workflowStartedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json&info){
+  virtual void workflowStartedCallback(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */, const json&/* info */){
     throw VnVExceptionBase("Workflows not supported by this engine;");
   };
-  virtual void workflowEndedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json&info){
+  virtual void workflowEndedCallback(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */, const json&/* info */){
     throw VnVExceptionBase("Workflows not supported by this engine;");
   };
   
-  virtual void workflowUpdatedCallback(ICommunicator_ptr comm, std::string package, std::string name, const json&info){
+  virtual void workflowUpdatedCallback(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */, const json&/* info */){
     throw VnVExceptionBase("Workflows not supported by this engine;");
   };
   

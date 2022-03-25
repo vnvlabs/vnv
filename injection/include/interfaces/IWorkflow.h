@@ -78,12 +78,12 @@ class IValidator {
   enum class Status { VALID, INVALID, WAIT };
 
   IValidator() {}
-  virtual Status validate(const Job& job) { return Status::VALID; };
-  virtual std::string addNodesAndEdges(const Job& job, std::map<std::string, nlohmann::json>& nodes,
-                                       nlohmann::json& edges) {
+  virtual Status validate(const Job& /* job */) { return Status::VALID; };
+  virtual std::string addNodesAndEdges(const Job& /* job */, std::map<std::string, nlohmann::json>& /* nodes */,
+                                       nlohmann::json& /* edges */) {
     return "";
   }
-  virtual void cancel(const Job& job){};
+  virtual void cancel(const Job& /* job */){};
   virtual ~IValidator() {}
 };
 
@@ -197,7 +197,7 @@ class Job {
     return IValidator::Status::VALID;
   }
 
-  JobStatus cancel(bool cancel_sub_jobs) {
+  JobStatus cancel(bool /* cancel_sub_jobs */) {
     status.state = JobStatus::State::CANCELLED;
     if (jobId.compare("__") == 0) {
       scheduler->cancel(jobId);

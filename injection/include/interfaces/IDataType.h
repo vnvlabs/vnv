@@ -31,7 +31,7 @@ class IDataType {
   long long key;
 
  public:
-  virtual void setData(void* data) {
+  virtual void setData(void* /*data*/) {
     HTHROW INJECTION_EXCEPTION("DataType %d does not support function setData", key);
   }
   // set from a raw pointer to the data.
@@ -41,7 +41,7 @@ class IDataType {
   // collective on the Communicator used to type Put. So, this function
   // can output things like global vectors.
   // Put should call other Put actions
-  virtual void Put(VnV::IOutputEngine* engine) {}
+  virtual void Put(VnV::IOutputEngine* /*engine*/) {}
 
   // getLocalPutData is called when someone tries to write
   // a global vector containing objects of the this datatype
@@ -64,7 +64,7 @@ class IDataType {
   // contains this data structure. The parameter name will be one of the keys
   // returned in the getLocalPutData map. The function should return a pointer
   // to the data associated with this key.
-  virtual void* getPutData(std::string name) {
+  virtual void* getPutData(std::string /*name*/) {
      HTHROW INJECTION_EXCEPTION("DataType %d does not support function getPutData", key);
   }
 
@@ -73,24 +73,24 @@ class IDataType {
       throw INJECTION_EXCEPTION("DataType %d does not support function maxSize", key);
   }  // what is the maximum size of the buffer
   
-  virtual long long pack(void* buffer) {
+  virtual long long pack(void* /*buffer*/) {
      throw INJECTION_EXCEPTION("DataType %d does not support function pack", key);
   }  // pack the buffer
   
-  virtual void unpack(void* buffer) {
+  virtual void unpack(void* /*buffer*/) {
    throw INJECTION_EXCEPTION("DataType %d does not support function unpack", key);
   }  // unpack into a buffer
 
   // Needed if you want to use reduction operations.
-  virtual void axpy(double alpha, IDataType_ptr y) {
+  virtual void axpy(double /*alpha*/, IDataType_ptr /*y*/) {
       throw INJECTION_EXCEPTION("DataType %d does not support function axpy", key);
   }  // y = ax + y
   
-  virtual int compare(IDataType_ptr y) {
+  virtual int compare(IDataType_ptr /*y*/) {
      throw INJECTION_EXCEPTION("DataType %d does not support function compare", key);
   }  // -1 less, 0 == , 1 greater.
   
-  virtual void mult(IDataType_ptr y) {
+  virtual void mult(IDataType_ptr /*y*/) {
       throw INJECTION_EXCEPTION("DataType %d does not support function mult", key);
   }
 

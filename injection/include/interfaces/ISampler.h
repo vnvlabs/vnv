@@ -46,7 +46,7 @@ class ISampler {
   ISampler() {}
   virtual ~ISampler() {}
 
-  virtual bool sample(VnV::InjectionPointType stage, std::string stageId) {
+  virtual bool sample(VnV::InjectionPointType /* stage */, std::string /* stageId */) {
     return true;
   }
 };

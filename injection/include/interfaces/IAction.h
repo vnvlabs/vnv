@@ -43,9 +43,9 @@ class IAction {
 
   virtual void initialize(){};
 
-  virtual void injectionPointStart(std::string packageName, std::string id){};
+  virtual void injectionPointStart(std::string /* packageName */, std::string /* id */){};
 
-  virtual void injectionPointIteration(std::string stageId){};
+  virtual void injectionPointIteration(std::string /* stageId */){};
 
   virtual void injectionPointEnd(){};
 

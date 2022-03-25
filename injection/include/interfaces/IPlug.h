@@ -14,7 +14,7 @@ class IPlug : public IIterator {
  public:
   IPlug(TestConfig& config) : IIterator(config){};
 
-  virtual int iterate(ICommunicator_ptr comm, IOutputEngine* engine) {
+  virtual int iterate(ICommunicator_ptr /* comm */, IOutputEngine* /* engine */) {
     throw INJECTION_EXCEPTION("Called iterate on a plug %s:%s", m_config.getPackage().c_str(),m_config.getName().c_str());
   };
   virtual bool plug(ICommunicator_ptr comm, IOutputEngine* engine) = 0;

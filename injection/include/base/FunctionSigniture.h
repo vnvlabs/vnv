@@ -37,7 +37,7 @@ class FunctionSigniture {
     }
     return false;
   }
-  bool run(json& runConfig) { return true; }
+  bool run(json& /* runConfig */) { return true; }
 };
 
 }  // namespace VnV
