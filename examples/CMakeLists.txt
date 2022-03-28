@@ -9,4 +9,3 @@ add_subdirectory(usage)
 
 add_subdirectory(fortran)
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/reports.json ${CMAKE_CURRENT_BINARY_DIR}/reports.json COPYONLY)

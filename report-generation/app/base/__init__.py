@@ -2,6 +2,7 @@
 import glob
 import json
 import os
+import shutil
 import uuid
 
 from flask import Blueprint, render_template, request, make_response, jsonify, send_file
@@ -12,7 +13,9 @@ from .blueprints.files import get_file_template_root
 from .utils.mongo import list_mongo_collections
 
 from werkzeug.security import generate_password_hash, check_password_hash
+from app.Directory import VNV_DIR_PATH
 
+from .. import Directory
 from ..models.VnVFile import VnVFile
 from ..models.VnVInputFile import VnVInputFile
 
@@ -150,47 +153,49 @@ def autocomplete():
 
     return make_response(jsonify(glob.glob(pref + "*")), 200)
 
+LOGO_SMALL = os.path.join(VNV_DIR_PATH , "static/assets/images/logo.png")
+LOGO_LARGE = os.path.join(VNV_DIR_PATH ,"static/assets/images/logo_large.png")
+LOGO_ICON =  os.path.join(VNV_DIR_PATH, "static/assets/images/favicon.ico")
+COPYRIGHT_LINK="mailto:boneill@rnet-tech.com"
+COPYRIGHT_MESSAGE="RNET Technologies Inc. 2022"
 
 def template_globals(d):
+    d["COPYRIGHT_LINK"] = COPYRIGHT_LINK
+    d["COPYRIGHT_MESSAGE"] = COPYRIGHT_MESSAGE
+
     blueprints.files.template_globals(d)
     blueprints.notifications.template_globals(d)
     blueprints.inputfiles.template_globals(d)
     blueprints.directives.template_globals(d)
 
+def updateBranding(config, pd):
+    logo = config.get("logo",{})
+    if "small" in logo and os.path.exists(os.path.join(pd,logo["small"])):
+        shutil.copy(os.path.join(pd,logo["small"]),LOGO_SMALL )
+    if "large" in logo and os.path.exists(os.path.join(pd, logo["large"])):
+        shutil.copy(os.path.join(pd,logo["large"]),LOGO_LARGE )
+    if "icon" in logo and os.path.exists(os.path.join(pd, logo["icon"])):
+        shutil.copy(os.path.join(pd,logo["icon"]),LOGO_ICON )
 
-"""
-    VNV DEFAULT CONFIGURATION FILE.
-    
-    This is the file that sets the default configuration for the report generation when the user logs in.
-    VnV looks for an environment variable called VNV_DEFAULT_REPORTS. This should be a semicolon seperated 
-    list of json file names. The format of the json file name is:
-    
-    {
-        "executables" : {
-            "Name" : { "filename" : <path-relative-to-dir-of-file> , "description" : "short description"}
-        },
-        "plugins" : {
-            "Name" : "<path-to-shared-library>" ###### These are used to populate the additionalPlugins autocomplete"
-        },
-        "reports" : {
-            "Name" : { 
-                "reader" : "<file_reader>",
-                "filename" : "file to read", 
-                "config" : { dict containing any other config information needed (like username or password) }  
-            }
-        }
-        
-    }
+    copy = config.get("copyright",{})
+    if "message" in copy:
+        global COPYRIGHT_MESSAGE
+        COPYRIGHT_MESSAGE = copy["message"]
+        print("Update Copyright Message", COPYRIGHT_MESSAGE)
 
-"""
+    if "link" in copy:
+        global COPYRIGHT_LINK
+        COPYRIGHT_LINK = copy["link"]
+        print("Update Copyright Link", COPYRIGHT_LINK)
 
-def load_default_data():
+
+def load_default_data(loadIt):
+    if not loadIt: return
 
     a = os.getenv("VNV_DEFAULT_REPORTS")
-
     if a is not None:
 
-        for file in a.split(";"):
+        for file in a.split(":"):
             try:
                 with open(file, 'r') as w:
                     pd = os.path.dirname(file);
@@ -203,6 +208,8 @@ def load_default_data():
                         blueprints.inputfiles.vnv_plugins[key] = value
 
                     blueprints.files.load_defaults(config.get("reports",{}))
+
+                    updateBranding(config.get("branding",{}),pd)
 
             except Exception as e:
                 print(e)
