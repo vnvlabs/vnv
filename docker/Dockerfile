@@ -2,7 +2,8 @@
 
 
 #from vnv_env:latest
-from beon9273a/vnv:vnv_env
+ARG FROM_IMAGE=beon9273a/vnv:vnv_env
+from ${FROM_IMAGE}
 
 COPY . ./vv-neams
 ENV VNV_DIR=/root/software/vnv
