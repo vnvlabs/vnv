@@ -158,7 +158,33 @@ def template_globals(d):
     blueprints.directives.template_globals(d)
 
 
-def load_default_data(loadFile):
+"""
+    VNV DEFAULT CONFIGURATION FILE.
+    
+    This is the file that sets the default configuration for the report generation when the user logs in.
+    VnV looks for an environment variable called VNV_DEFAULT_REPORTS. This should be a semicolon seperated 
+    list of json file names. The format of the json file name is:
+    
+    {
+        "executables" : {
+            "Name" : { "filename" : <path-relative-to-dir-of-file> , "description" : "short description"}
+        },
+        "plugins" : {
+            "Name" : "<path-to-shared-library>" ###### These are used to populate the additionalPlugins autocomplete"
+        },
+        "reports" : {
+            "Name" : { 
+                "reader" : "<file_reader>",
+                "filename" : "file to read", 
+                "config" : { dict containing any other config information needed (like username or password) }  
+            }
+        }
+        
+    }
+
+"""
+
+def load_default_data():
 
     a = os.getenv("VNV_DEFAULT_REPORTS")
 
@@ -169,8 +195,15 @@ def load_default_data(loadFile):
                 with open(file, 'r') as w:
                     pd = os.path.dirname(file);
                     config = json.load(w)
-                    for key, value in config.items():
-                        blueprints.inputfiles.vnv_executables[key] = [ os.path.join(pd,value["filename"]), value.get("description", "")]
+
+                    for key, value in config.get("executables",{}).items():
+                        blueprints.inputfiles.vnv_executables[key] = [ os.path.join(pd,value["filename"]), value.get("description", "") ]
+
+                    for key,value in config.get("plugins",{}).items():
+                        blueprints.inputfiles.vnv_plugins[key] = value
+
+                    blueprints.files.load_defaults(config.get("reports",{}))
+
             except Exception as e:
                 print(e)
                 pass

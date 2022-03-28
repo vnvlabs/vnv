@@ -17,6 +17,7 @@ from ...utils import mongo
 from ...utils.utils import render_error
 
 vnv_executables = {}
+vnv_plugins = {}
 
 blueprint = Blueprint(
     'inputfiles',
@@ -174,7 +175,7 @@ def input_autocomplete(comp, id_):
     val = request.args["val"].split("\n")
     with VnVInputFile.find(id_) as file:
         if hasattr(file, "autocomplete_" + comp):
-            r = getattr(file, "autocomplete_" + comp)(row, col, pre, val)
+            r = getattr(file, "autocomplete_" + comp)(row, col, pre, val, plugins=vnv_plugins)
             return make_response(jsonify(r), 200)
 
     return make_response(jsonify([]), 200)

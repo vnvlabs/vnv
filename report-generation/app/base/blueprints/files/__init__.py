@@ -366,15 +366,9 @@ def template_globals(globs):
     globs["uniquefiles"] = unique_files
 
 
-files = [
-    [True, "Injection Points", "cpp/outputs/injectionPoint/out", "json_file", {}],
-    [True, "Iterators", "cpp/outputs/iterator/out", "json_file", {}],
-    [True, "Live Results", "cpp/outputs/live/out", "json_file", {}],
-    [True, "Contour Plots", "cpp/outputs/contour/out", "json_file", {}],
-    [True, "Line Charts", "cpp/outputs/line/out", "json_file", {}]
-]
-
-LOAD_OLD = False
+def load_defaults(CONFIG):
+    for key,value in CONFIG.items():
+        VnVFile.add(key, value["filename"], value["reader"],  get_file_template_root(), value.get("config",{}))
 
 
 def faker(PREFIX="../build"):
@@ -383,17 +377,3 @@ def faker(PREFIX="../build"):
 
     return
 
-
-'''
-    mfiles = mongo.list_all_files()
-  if len(files) > 0:
-     for f in mfiles:
-        VnVFile.add(f,f, "mongo", get_file_template_root(), reload=True)
-  else:
-        
-  for f in files:
-        path = os.path.join(PREFIX , f[2])
-        if f[0] and os.path.exists(path):
-        else:
-            print("Could not demo file ", path , "File does not exist")
-'''

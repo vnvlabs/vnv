@@ -393,7 +393,8 @@ def getSchema(bail, schema, main_schema):
         return [["true", "true", "true"], ["false", "false", "false"], ["null", "null", "null"]]
 
 
-def autocomplete(txt, schema, row, col):
+def autocomplete(txt, schema, row, col, plugins=None):
+    #TODO Autocomplete for "plugins"
     try:
         a = txt[0:row + 1]
         a[-1] = a[-1][0:col] + "   "  # add a little white space to catch some issues that might occur

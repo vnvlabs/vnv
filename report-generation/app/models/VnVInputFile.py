@@ -373,13 +373,13 @@ class VnVInputFile:
         except Exception as e:
             return [{"row": 1, "column": 1, "text": str(e), "type": 'warning', "source": 'vnv'}]
 
-    def autocomplete_input(self, row, col, pre, val):
-        return autocomplete(val, self.specLoad, int(row), int(col))
+    def autocomplete_input(self, row, col, pre, val,plugins=None):
+        return autocomplete(val, self.specLoad, int(row), int(col), plugins=plugins)
 
-    def autocomplete_exec(self, row, col, pre, val):
+    def autocomplete_exec(self, row, col, pre, val,plugins=None):
         return autocomplete(val, VnVInputFile.getExecutionSchema(), int(row), int(col))
 
-    def autocomplete_spec(self, row, col, pre, val):
+    def autocomplete_spec(self, row, col, pre, val,plugins=None):
         return []
 
     def get_jobs(self):
