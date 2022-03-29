@@ -153,11 +153,17 @@ def autocomplete():
 
     return make_response(jsonify(glob.glob(pref + "*")), 200)
 
-LOGO_SMALL = os.path.join(VNV_DIR_PATH , "static/assets/images/logo.png")
-LOGO_LARGE = os.path.join(VNV_DIR_PATH ,"static/assets/images/logo_large.png")
-LOGO_ICON =  os.path.join(VNV_DIR_PATH, "static/assets/images/favicon.ico")
-COPYRIGHT_LINK="mailto:boneill@rnet-tech.com"
-COPYRIGHT_MESSAGE="RNET Technologies Inc. 2022"
+
+FIRST_TIME = None
+if FIRST_TIME is None:
+    FIRST_TIME = False
+    LOGO_SMALL = os.path.join(VNV_DIR_PATH, "static/assets/images/logo.png")
+    LOGO_LARGE = os.path.join(VNV_DIR_PATH, "static/assets/images/logo_large.png")
+    LOGO_ICON = os.path.join(VNV_DIR_PATH, "static/assets/images/favicon.ico")
+    INTRO_TEMPLATE = os.path.join(VNV_DIR_PATH,"base/templates/includes/intro.html")
+    COPYRIGHT_LINK = "mailto:boneill@rnet-tech.com"
+    COPYRIGHT_MESSAGE = "RNET Technologies Inc. 2022"
+
 
 def template_globals(d):
     d["COPYRIGHT_LINK"] = COPYRIGHT_LINK
@@ -168,16 +174,17 @@ def template_globals(d):
     blueprints.inputfiles.template_globals(d)
     blueprints.directives.template_globals(d)
 
-def updateBranding(config, pd):
-    logo = config.get("logo",{})
-    if "small" in logo and os.path.exists(os.path.join(pd,logo["small"])):
-        shutil.copy(os.path.join(pd,logo["small"]),LOGO_SMALL )
-    if "large" in logo and os.path.exists(os.path.join(pd, logo["large"])):
-        shutil.copy(os.path.join(pd,logo["large"]),LOGO_LARGE )
-    if "icon" in logo and os.path.exists(os.path.join(pd, logo["icon"])):
-        shutil.copy(os.path.join(pd,logo["icon"]),LOGO_ICON )
 
-    copy = config.get("copyright",{})
+def updateBranding(config, pd):
+    logo = config.get("logo", {})
+    if "small" in logo and os.path.exists(os.path.join(pd, logo["small"])):
+        shutil.copy(os.path.join(pd, logo["small"]), LOGO_SMALL)
+    if "large" in logo and os.path.exists(os.path.join(pd, logo["large"])):
+        shutil.copy(os.path.join(pd, logo["large"]), LOGO_LARGE)
+    if "icon" in logo and os.path.exists(os.path.join(pd, logo["icon"])):
+        shutil.copy(os.path.join(pd, logo["icon"]), LOGO_ICON)
+
+    copy = config.get("copyright", {})
     if "message" in copy:
         global COPYRIGHT_MESSAGE
         COPYRIGHT_MESSAGE = copy["message"]
@@ -188,6 +195,10 @@ def updateBranding(config, pd):
         COPYRIGHT_LINK = copy["link"]
         print("Update Copyright Link", COPYRIGHT_LINK)
 
+    #Allow a custom introduction.
+    intro = config.get("intro")
+    if intro is not None:
+        shutil.copy(os.path.join(pd,intro),INTRO_TEMPLATE)
 
 def load_default_data(loadIt):
     if not loadIt: return
@@ -202,15 +213,16 @@ def load_default_data(loadIt):
                     pd = os.path.dirname(file);
                     config = json.load(w)
 
-                    for key, value in config.get("executables",{}).items():
-                        blueprints.inputfiles.vnv_executables[key] = [ os.path.join(pd,value["filename"]), value.get("description", "") ]
+                    for key, value in config.get("executables", {}).items():
+                        blueprints.inputfiles.vnv_executables[key] = [os.path.join(pd, value["filename"]),
+                                                                      value.get("description", "")]
 
-                    for key,value in config.get("plugins",{}).items():
-                        blueprints.inputfiles.vnv_plugins[key] = value
+                    for key, value in config.get("plugins", {}).items():
+                        blueprints.inputfiles.vnv_plugins[key] = os.path.join(pd, value)
 
-                    blueprints.files.load_defaults(config.get("reports",{}))
+                    blueprints.files.load_defaults(config.get("reports", {}))
 
-                    updateBranding(config.get("branding",{}),pd)
+                    updateBranding(config.get("branding", {}), pd)
 
             except Exception as e:
                 print(e)
