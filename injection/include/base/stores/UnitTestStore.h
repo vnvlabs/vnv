@@ -19,7 +19,7 @@ namespace VnV {
 class UnitTestStore : public BaseStore {
  private:
 
-  std::string junitreport = "";
+  //TODO OUTPUT JUNIT REPORT FORMAT SO IT CAN BE INCLUDED IN GITLAB CI PIPELINE
 
   std::map<std::string,
            std::map<std::string, tester_ptr, std::less<std::string>>>
@@ -40,7 +40,6 @@ class UnitTestStore : public BaseStore {
 
   IUnitTest* getUnitTester(std::string packageName, std::string name);
 
-  void UnitTestStore::writeToJUnitFormat(std::string packageName, std::string name, IUnitTest* test);
 
 
   void runTest(ICommunicator_ptr comm, std::string packageName,

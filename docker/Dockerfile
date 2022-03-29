@@ -5,6 +5,8 @@
 ARG FROM_IMAGE=beon9273a/vnv:vnv_env
 from ${FROM_IMAGE}
 
+
+
 COPY . ./vv-neams
 ENV VNV_DIR=/root/software/vnv
 ENV VNV_MATCHER=${VNV_DIR}/bin/vnv-matcher
@@ -26,3 +28,5 @@ RUN cd ${VNV_DIR}/gui/report-generation && virtualenv virt && virt/bin/pip insta
 
 ENV VNV_DEFAULT_REPORTS=${VNV_DIR}/examples/reports.json
 
+ARG COMMIT_TAG="unknown"
+LABEL vnv=${COMMIT_TAG}
