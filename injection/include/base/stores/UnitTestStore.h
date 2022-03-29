@@ -18,6 +18,9 @@ namespace VnV {
 
 class UnitTestStore : public BaseStore {
  private:
+
+  std::string junitreport = "";
+
   std::map<std::string,
            std::map<std::string, tester_ptr, std::less<std::string>>>
       tester_factory;
@@ -36,6 +39,9 @@ class UnitTestStore : public BaseStore {
                      int cores);
 
   IUnitTest* getUnitTester(std::string packageName, std::string name);
+
+  void UnitTestStore::writeToJUnitFormat(std::string packageName, std::string name, IUnitTest* test);
+
 
   void runTest(ICommunicator_ptr comm, std::string packageName,
                std::string testName);
