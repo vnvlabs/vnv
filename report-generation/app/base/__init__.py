@@ -222,7 +222,7 @@ def load_default_data(loadIt):
 
                     blueprints.files.load_defaults(config.get("reports", {}))
 
-                    updateBranding(config.get("branding", {}), pd)
+                    updateBranding(config, pd)
 
             except Exception as e:
                 print(e)

@@ -10,7 +10,7 @@ from ${FROM_IMAGE}
 COPY . ./vv-neams
 ENV VNV_DIR=/root/software/vnv
 ENV VNV_MATCHER=${VNV_DIR}/bin/vnv-matcher
-ENV VNV_CONFIG=${VNV_DIR}/.vnv-config.json
+ENV VNV_CONFIG=${VNV_DIR}/config/.vnv-config.json
 
 ENV LD_LIBRARY_PATH=${VNV_DIR}/lib
 
@@ -27,5 +27,5 @@ RUN cd ${VNV_DIR}/examples/c && ./csample.a && cd ../cpp && ./injectionPoint && 
 # Create the virtual environment for the report generation.
 RUN cd ${VNV_DIR}/gui/report-generation && virtualenv virt && virt/bin/pip install -r ./requirements.txt
 
-ARG COMMIT_TAG="unknown"
-LABEL vnv=${COMMIT_TAG}
+ARG COMMIT_HASH="unknown"
+LABEL vnv.version.vnv=${COMMIT_HASH}
