@@ -192,11 +192,12 @@ def updateBranding(config, pd):
 def load_default_data(loadIt):
     if not loadIt: return
 
-    a = os.getenv("VNV_DEFAULT_REPORTS")
+    a = os.getenv("VNV_CONFIG")
     if a is not None:
 
         for file in a.split(":"):
             try:
+                print("Loading configuration from: ", file)
                 with open(file, 'r') as w:
                     pd = os.path.dirname(file);
                     config = json.load(w)

@@ -80,6 +80,9 @@ install(FILES ${CMAKE_CURRENT_LIST_DIR}/injection/include/VnV.h
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/injection/include/
         DESTINATION include)
 
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/.vnv-config.json DESTINATION config)
+        
+
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
