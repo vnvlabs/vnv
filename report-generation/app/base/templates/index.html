@@ -8,15 +8,14 @@
 {% block content %}
 
 <div style="display:flex; justify-content: center; align-items:center; margin:40px;">
-    <img style="width:80%; max-width:800px; height:300px;" src="/static/assets/images/logo_large.png" alt="" >
     {% include "includes/intro.html" %}
 </div>
 
     {% with buttons = [
-    ["Load A New VnV Report","fa fa-play-circle","$('#new_file_modal').modal()"],
-    ["Create a New Input File","feather icon-file-plus","$('#new_inputfile_modal').modal()"],
-    ["Start a Terminal Session","fa fa-terminal", "$('#terminal-modal').modal('toggle')"],
-    ["Open the File Browser","fa fa-folder", "show_file_reader(1000,'','directory','')"],
+    ["Create a New Executable","feather icon-file-plus","$('#new_inputfile_modal').modal()"],
+    ["Load A Report","fa fa-play-circle","$('#new_file_modal').modal()"],
+    ["Open a Terminal" ,"fa fa-terminal", "$('#terminal-modal').modal('toggle')"],
+    ["View Files","fa fa-folder", "show_file_reader(1000,'','directory','')"],
     ["Logout","fa fa-sign-out-alt", "logout()"]
     ]%}
     {%for r in buttons %}

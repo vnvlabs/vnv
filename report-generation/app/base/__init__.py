@@ -158,16 +158,28 @@ FIRST_TIME = None
 if FIRST_TIME is None:
     FIRST_TIME = False
     LOGO_SMALL = os.path.join(VNV_DIR_PATH, "static/assets/images/logo.png")
-    LOGO_LARGE = os.path.join(VNV_DIR_PATH, "static/assets/images/logo_large.png")
     LOGO_ICON = os.path.join(VNV_DIR_PATH, "static/assets/images/favicon.ico")
     INTRO_TEMPLATE = os.path.join(VNV_DIR_PATH,"base/templates/includes/intro.html")
+    STATIC_DIR=os.path.join(VNV_DIR_PATH,"static","config")
     COPYRIGHT_LINK = "mailto:boneill@rnet-tech.com"
     COPYRIGHT_MESSAGE = "RNET Technologies Inc. 2022"
 
 
+
+
 def template_globals(d):
-    d["COPYRIGHT_LINK"] = COPYRIGHT_LINK
-    d["COPYRIGHT_MESSAGE"] = COPYRIGHT_MESSAGE
+
+    #Strings are not mutable -- This class just delays so we get the current value
+    class DelayCopyRightLink:
+        def __str__(self):
+            return COPYRIGHT_LINK
+
+    class DelayCopyRightMessage:
+        def __str__(self):
+            return COPYRIGHT_MESSAGE
+
+    d["COPYRIGHT_LINK"] = DelayCopyRightLink()
+    d["COPYRIGHT_MESSAGE"] = DelayCopyRightMessage()
 
     blueprints.files.template_globals(d)
     blueprints.notifications.template_globals(d)
@@ -179,8 +191,6 @@ def updateBranding(config, pd):
     logo = config.get("logo", {})
     if "small" in logo and os.path.exists(os.path.join(pd, logo["small"])):
         shutil.copy(os.path.join(pd, logo["small"]), LOGO_SMALL)
-    if "large" in logo and os.path.exists(os.path.join(pd, logo["large"])):
-        shutil.copy(os.path.join(pd, logo["large"]), LOGO_LARGE)
     if "icon" in logo and os.path.exists(os.path.join(pd, logo["icon"])):
         shutil.copy(os.path.join(pd, logo["icon"]), LOGO_ICON)
 
@@ -199,6 +209,12 @@ def updateBranding(config, pd):
     intro = config.get("intro")
     if intro is not None:
         shutil.copy(os.path.join(pd,intro),INTRO_TEMPLATE)
+
+    #Create a static directory -- These will be available at /static/config/...
+    #Usefull when including images in the intro.html file.
+    static = config.get("static")
+    if static is not None:
+        shutil.copytree(os.path.join(pd,static), STATIC_DIR, dirs_exist_ok=True)
 
 def load_default_data(loadIt):
     if not loadIt: return
