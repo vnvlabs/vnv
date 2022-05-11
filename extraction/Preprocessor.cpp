@@ -27,11 +27,9 @@ class ProcessedComment {
   std::string treeTitle = "";
   std::string description = "";
   std::string instructions = "";
+  std::string configuration = "";
   std::map<std::string, std::string> params;
   ProcessedComment(){};
-  ProcessedComment(std::string templ_, std::string title_, std::string desc, std::string inst, std::string tree,
-                   const std::map<std::string, std::string>& m)
-      : templ(templ_), title(title_), description(desc), instructions(inst), treeTitle(tree), params(m) {}
 
   json toJson() {
     json j = json ::object();
@@ -41,6 +39,19 @@ class ProcessedComment {
     j["instructions"] = instructions;
     j["shortTitle"] = treeTitle;
     j["params"] = params;
+
+    if (configuration.empty()) {
+      j["configuration"] = json::object();
+    } else {
+      try {
+        j["configuration"] = json::parse(configuration);
+      } catch (...) {
+        std::cout << "Could not pase configuration -- Invalid Json" << std::endl;
+        std::cout << j.dump(3);
+        std::cout << "Ignoring invalid configuration options..." << std::endl;
+      }
+    }
+
     return j;
   }
 };
@@ -51,6 +62,12 @@ ProcessedComment processComment(std::string comment) {
    * @description This is the description and it can be single lines.
    * @instructions These are the instructions.
    * @param x sdfsdfdsf
+   *
+   * @configuration {
+   *   "sdfsdf" : {
+   *       "no-blank-lines-aloud" : ""
+   *    }
+   * }
    *
    * sdfsdfs
    * sdfsdfsdfsdf
@@ -95,6 +112,15 @@ ProcessedComment processComment(std::string comment) {
         continue;
       }
     }
+    if (c.configuration.empty()) {
+      auto t = it.find("@configuration");
+      if (t != std::string::npos) {
+        c.configuration = VnV::StringUtils::trim_copy(it.substr(t + 14));
+        curr = &(c.configuration);
+        continue;
+      }
+    }
+
     auto t = it.find("@param");
     if (t != std::string::npos) {
       auto subs = VnV::StringUtils::ltrim_copy(it.substr(t + 6));
@@ -108,6 +134,7 @@ ProcessedComment processComment(std::string comment) {
       }
       continue;
     }
+
     if (curr != nullptr) {
       auto s = VnV::StringUtils::trim_copy(it);
       if (s.length() > 0) {
@@ -438,8 +465,13 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj[getPackageName(Args, 0)] = getDocs(Range).toJson();
     } else if (nae == "INJECTION_EXECUTABLE") {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Executables");
-      std::string pname = pp.getSpelling(*Args->getUnexpArgument(0));
+      std::string pname = getPackageName(Args, 0);
       jj[pname] = getDocs(Range).toJson();
+    } else if (nae == "INJECTION_LIBRARY") {
+      json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Executables");
+      std::string pname = getPackageName(Args, 0);
+      jj[pname] = getDocs(Range).toJson();
+      jj[pname]["lib"] = true;
     } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 2, true));
 
@@ -468,10 +500,10 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       thisStage["docs"] = ProcessedComment().toJson();
 
     } else if (nae == "INJECTION_LOOP_ITER") {
-       //json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
-       //json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
-       //json& thisStage = VnV::JsonUtilities::getOrCreate(stages, getPackageName(Args, 2, true));
-       //thisStage["docs"] = getDocs(Range).toJson();
+      // json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
+      // json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
+      // json& thisStage = VnV::JsonUtilities::getOrCreate(stages, getPackageName(Args, 2, true));
+      // thisStage["docs"] = getDocs(Range).toJson();
 
     } else if (nae == "INJECTION_LOOP_END") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
@@ -616,55 +648,54 @@ json runFortranPreprocessor(clang::tooling::CompilationDatabase& comps, std::set
       while (vnv_getline(ifs, line, lineNo)) {
         VnV::StringUtils::trim(line);
 
-        if (std::regex_search(line,match,options)) {
-           std::string opt_schema = "";
-           auto package = match[1].str();
-           while(vnv_getline(ifs,line,lineNo)) {
-              auto lt = VnV::StringUtils::trim_copy(line);
-              if (line.substr(0,1).compare("!")==0) {
-                  opt_schema += line.substr(1);
-              } else {
-                break;
-              }
-           } 
-           try {
-             auto scheme = json::parse(opt_schema);
-             json& options = VnV::JsonUtilities::getOrCreate(fileInfo, "Options");
-             options[package] = json::object();
-             options[package]["docs"] = processComment(comments).toJson();
-             options[package]["schema"] = scheme;
-             
-             //Clear the comments since we used them. 
-             comments.clear(); 
-        
-           } catch(std::exception &e) {
-             std::cout << e.what() << std::endl;
-             std::cout << "Invalid Options schema -- not real json: \n\n " <<  opt_schema << std::endl; 
-           }
+        if (std::regex_search(line, match, options)) {
+          std::string opt_schema = "";
+          auto package = match[1].str();
+          while (vnv_getline(ifs, line, lineNo)) {
+            auto lt = VnV::StringUtils::trim_copy(line);
+            if (line.substr(0, 1).compare("!") == 0) {
+              opt_schema += line.substr(1);
+            } else {
+              break;
+            }
+          }
+          try {
+            auto scheme = json::parse(opt_schema);
+            json& options = VnV::JsonUtilities::getOrCreate(fileInfo, "Options");
+            options[package] = json::object();
+            options[package]["docs"] = processComment(comments).toJson();
+            options[package]["schema"] = scheme;
 
+            // Clear the comments since we used them.
+            comments.clear();
 
-           //We only checked that the last line was not a comment -- so, we still need 
-           //to process it. 
+          } catch (std::exception& e) {
+            std::cout << e.what() << std::endl;
+            std::cout << "Invalid Options schema -- not real json: \n\n " << opt_schema << std::endl;
+          }
+
+          // We only checked that the last line was not a comment -- so, we still need
+          // to process it.
         }
 
-        if (std::regex_search(line,match,subpackage)) {
-            std::string package = match[1].str();
-            std::string subs = match[2].str();
-            json& options = VnV::JsonUtilities::getOrCreate(fileInfo, "SubPackages");
-            
-            json j = json::object();
-            j["packageName"] = package; 
-            j["name"] = subs;
-            j["docs"] = processComment(comments).toJson();
-            comments.clear();
-            continue;
+        if (std::regex_search(line, match, subpackage)) {
+          std::string package = match[1].str();
+          std::string subs = match[2].str();
+          json& options = VnV::JsonUtilities::getOrCreate(fileInfo, "SubPackages");
+
+          json j = json::object();
+          j["packageName"] = package;
+          j["name"] = subs;
+          j["docs"] = processComment(comments).toJson();
+          comments.clear();
+          continue;
         }
 
         if (line.size() > 1 && line.substr(0, 1).compare("!") == 0) {
-          // Line is a comment so store it.          
+          // Line is a comment so store it.
           comments += line.substr(1) + "\n";
           continue;
-        
+
         } else {
           if (std::regex_search(line, match, initialize)) {
             std::string package = match[1].str();
@@ -677,7 +708,6 @@ json runFortranPreprocessor(clang::tooling::CompilationDatabase& comps, std::set
             std::string package = match[2].str();
             std::string name = match[3].str();
 
-
             json j = json::object();
             j["name"] = name;
             j["packageName"] = package;
@@ -686,7 +716,7 @@ json runFortranPreprocessor(clang::tooling::CompilationDatabase& comps, std::set
             j["docs"] = processComment(comments).toJson();
 
             // Type
-            if (type.compare("plug")==0) {
+            if (type.compare("plug") == 0) {
               j["plug"] = true;
             } else if (type.compare("iterator") == 0) {
               j["iterator"] = true;
@@ -716,7 +746,7 @@ json runFortranPreprocessor(clang::tooling::CompilationDatabase& comps, std::set
             in["filename"] = it;
             in["lineNumber"] = lineNo;
             in["lineColumn"] = 0;
-            
+
             j["info"] = in;
 
             json& typeJson = VnV::JsonUtilities::getOrCreate(fileInfo, "InjectionPoints");
@@ -732,16 +762,15 @@ json runFortranPreprocessor(clang::tooling::CompilationDatabase& comps, std::set
             j["packageName"] = package;
             j["docs"] = processComment(comments).toJson();
             json& typeJson = VnV::JsonUtilities::getOrCreate(fileInfo, "Files");
-            typeJson[package + ":" + name ] = j;
+            typeJson[package + ":" + name] = j;
           } else {
-             //Normal line. 
+            // Normal line.
           }
           comments.clear();
         }
       }
       info[it] = fileInfo;
     }
-
   }
   return info;
   ;

@@ -49,7 +49,10 @@ class IssuesAction : public VnV::IAction {
   json conf;
 
  public:
-  IssuesAction(const json &config) { conf = config; }
+  IssuesAction(const json &config) { 
+      conf = config;
+  }
+  
   virtual void initialize() override { 
       getEngine()->Put("conf", conf );
   }

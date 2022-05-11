@@ -8,6 +8,7 @@
 
 
 class StdoutAction : public VnV::IAction {
+  
   int pipefd[2];
   int stdout_bk; 
   char buf[101];
@@ -24,6 +25,11 @@ class StdoutAction : public VnV::IAction {
 
 public:
 
+  StdoutAction() {
+    implements_injectionPointEnd = true;
+    implements_injectionPointIter = true;
+    implements_injectionPointStart = true;
+  }
 
   void initialize() override {
       pipe2(pipefd,O_NONBLOCK);

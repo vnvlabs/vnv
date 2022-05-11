@@ -15,12 +15,12 @@
 // add transforms to that list using the "transform" api
 
 // Transform from a double to an int.
-INJECTION_TRANSFORM_R(Samples, doubleToInt, int, double, int) {
+INJECTION_TRANSFORM_R(VnVPlugin, doubleToInt, int, double, int) {
   *runner = *ptr;
   return runner.get();
 }
 // Transform from an int to a double.
-INJECTION_TRANSFORM_R(Samples, intToDouble, double, int, double) {
+INJECTION_TRANSFORM_R(VnVPlugin, intToDouble, double, int, double) {
   *runner = *ptr;
   return runner.get();
 }
@@ -32,7 +32,7 @@ class PC {
   KSP ksp;
 };
 
-INJECTION_TRANSFORM(Samples, pcToKsp, PC, KSP) { return &(ptr->ksp); }
+INJECTION_TRANSFORM(VnVPlugin, pcToKsp, PC, KSP) { return &(ptr->ksp); }
 
 /// A poly morphic example
 class B;
@@ -57,10 +57,10 @@ class B : public A {
   B() : A("B") {}
 };
 
-INJECTION_TRANSFORM_R(Samples, BtoA, int, B, A) {
+INJECTION_TRANSFORM_R(VnVPlugin, BtoA, int, B, A) {
   return dynamic_cast<A*>(ptr);
 }
 
-INJECTION_TRANSFORM_R(Samples, AtoB, int, A, B) { 
+INJECTION_TRANSFORM_R(VnVPlugin, AtoB, int, A, B) { 
   return ptr->getAsB();
 }

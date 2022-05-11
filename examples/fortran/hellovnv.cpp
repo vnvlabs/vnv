@@ -1,8 +1,13 @@
 #include "VnV.h"
 
+/**
+ * The fortran example. 
+ * 
+ * 
+ */
+INJECTION_EXECUTABLE(fortran)
+
 /*
-
-
  * My Custom Test
  * --------------
  *

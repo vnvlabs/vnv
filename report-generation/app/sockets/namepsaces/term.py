@@ -34,7 +34,7 @@ def configure_terminal(socketio, app):
 
         (child_pid, fd) = pty.fork()
         if child_pid == 0:
-            subprocess.run("bash")
+            subprocess.run("bash", cwd=os.getenv("SOURCE_DIR"))
         else:
             # this is the parent process fork.
             # store child fd and pid

@@ -172,6 +172,15 @@ class CustomVnVFunctions(functions.Functions):
             return ss
         return sep.join(obj)
 
+
+    ### TODO This wont work because we have not defined the (*,+) operator for
+    ### the DataBase class.
+    @functions.signature({"types": []},{"types": []}, {"types": []})
+    def _func_axpy(self, alpha, sep, obj):
+        return alpha * sep + obj
+
+
+
 class VnVExpression:
     def __init__(self, parse):
         self.parse = parse

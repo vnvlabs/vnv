@@ -49,6 +49,8 @@ std::string ltrim_copy(std::string s);
 // trim from end (copying)
 std::string rtrim_copy(std::string s);
 
+std::string join(std::vector<std::string>&r, std::string delim=" ");
+
 // trim from both ends (copying)
 std::string trim_copy(std::string s);
 

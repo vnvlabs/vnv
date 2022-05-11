@@ -16,7 +16,7 @@
 // There are more opportunities for optimization in cummulative reduction
 // operations.
 
-INJECTION_REDUCER(Samples, custom_reduction, true) {
+INJECTION_REDUCER(VnVPlugin, custom_reduction, true) {
   // Communitive reducer that just takes the sum
   out->axpy(1, in);
   return out;

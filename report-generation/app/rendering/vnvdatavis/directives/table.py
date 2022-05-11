@@ -44,18 +44,18 @@ class QuickTableChartDirective(TableChartDirective):
     def getHtml(self, id_, uid):
         return f'''
          <div class='card' style='padding:20px;'>
-            <div id="{id_}" class='vnv-table' width="{self.options.get("width", 400)}" height="{self.options.get("height", 400)}"></div>
+            <div id="v-{id_}" class='vnv-table' width="{self.options.get("width", 400)}" height="{self.options.get("height", 400)}"></div>
          </div>   
             <script>
               $(document).ready(function() {{
-                var table = new Tabulator("#{id_}", {{
+                var table = new Tabulator("#v-{id_}", {{
                       layout : "fitDataStretch",
                       "title" : "{self.options.get("title", "VnV Table")}",
                       "columns": [{self.columns()}]
                 }});
                 
                 var url = "/directives/updates/{uid}/{{{{data.getFile()}}}}/{{{{data.getAAId()}}}}"
-                update_now(url, "{id_}", 3000, function(config) {{
+                update_now(url, "v-{id_}", 3000, function(config) {{
                   table.setData(JSON.parse(config))
                 }})
                 

@@ -14,7 +14,7 @@
 /**
  * The unit test comment. This is rendered in the final report.
  */
-INJECTION_UNITTEST(Samples, test1, 1) {
+INJECTION_UNITTEST(VnVPlugin, test1, 1) {
   /** The test assert comment will be rendered in the report **/
   TEST_ASSERT_EQUALS("true", true, true);
 
@@ -28,7 +28,7 @@ INJECTION_UNITTEST(Samples, test1, 1) {
  * Parallel unit test
  *
  */
-INJECTION_UNITTEST(Samples, test2, 2) {
+INJECTION_UNITTEST(VnVPlugin, test2, 2) {
   int worldSize = comm->Size();
 
   /** The world size should be two. **/

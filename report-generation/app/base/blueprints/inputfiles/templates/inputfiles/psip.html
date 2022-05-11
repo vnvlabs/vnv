@@ -6,5 +6,8 @@
 {% with initial_data = file.get_psip(), readonly=False %}
   a = {{initial_data|safe}}
   set_psip_data(a,{{file.id_}})
+  {%if not file.psip_enabled %}
+    $('#show_psip_view').toggle('hide')
+  {%endif%}
 {% endwith %}
 </script>

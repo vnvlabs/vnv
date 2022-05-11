@@ -1,0 +1,11 @@
+    {
+    "outputEngine": {
+        "json_file": {
+            "filename": "outputs"
+        }
+    },
+    "actions": {
+        "VNV:PSIP": {},
+        "VNV:issues": []
+    }
+}

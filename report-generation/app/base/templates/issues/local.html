@@ -24,7 +24,7 @@ document.querySelector('#new_issue').addEventListener('click', function() {
 
 document.querySelector('#submit-new-issue').addEventListener('click', function() {
 
-    var name = $('#new-issue-name').val();
+    var name = MYNAME;
     var title = $('#new-issue-title').val();
     var description = $('#new-issue-description').val();
     var newIssue =  {date: Date.now(), title:title,description:description,name:name}
@@ -87,8 +87,14 @@ function addIssues() {
         $('#main_issue_container').empty();
     } catch {
     }
+    if (vnv_data.length == 0 ) {
+        $('#main_issue_container').html("<div class='card' style='padding:20px'>You have not created any issues yet!</div>")
+        return
+    }
 
     let fragment = document.createDocumentFragment();
+
+
     vnv_data.forEach(function (issue, index) {
 
         clearBuildClickHandlers(index);
@@ -114,6 +120,12 @@ function addIssues() {
 
 $(document).ready(function() {
     addIssues();
+    {% if not readonly %}
+        {% if not file.issues_enabled %}
+           $('#main_issue_container').hide()
+           $('#new_issue').hide()
+        {%endif%}
+    {%endif%}
 });
 
 

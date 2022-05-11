@@ -5,6 +5,12 @@
       "filename": "outputs/euler/out"
     }
   },
+  "additionalPlugins" : {
+	"Papi" : "/home/ben/source/vv/applications/perf/libpapiTest.so"
+  },
+  "actions" : {
+	"Papi:Hardware" : {}
+  },
   "injectionPoints": {
     "Euler:Eulers": {},
     "Euler:StepSize": {

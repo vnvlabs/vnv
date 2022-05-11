@@ -84,6 +84,8 @@ namespace std {
 
 import json
 import numpy as np
+import os
+
 
 class classIterator :
          def __init__(self, obj):
@@ -600,7 +602,7 @@ PY_GETATTRWORK(VnV::Nodes::IWorkflowNode)
          return False 
 
       def __iter__(self):
-        return shapeclassIterator(self)
+        return shapeClassIterator(self)
 
       def __getType__(self):
         return "array"

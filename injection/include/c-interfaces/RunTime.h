@@ -9,35 +9,32 @@
 // All packages can register a function that returns a char* with the package
 // json.
 
-#  define REGISTER_FULL_JSON(PNAME, callback) \
-    VnV_declarePackageJson(VNV_STR(PNAME), callback);
+#  define REGISTER_FULL_JSON(PNAME, callback) VnV_declarePackageJson(VNV_STR(PNAME), callback);
 
 #  define INJECTION_INITIALIZE(PNAME, argc, argv, filename) \
-    VnV_init(VNV_STR(PNAME), argc, argv, filename,          \
-             VNV_REGISTRATION_CALLBACK_NAME(PNAME))
+    VnV_init(VNV_STR(PNAME), argc, argv, filename, VNV_REGISTRATION_CALLBACK_NAME(PNAME))
 
 #  define INJECTION_INITIALIZE_RAW(PNAME, argc, argv, inputjson) \
-    VnV_init_raw(VNV_STR(PNAME), argc, argv, inputjson,          \
-             VNV_REGISTRATION_CALLBACK_NAME(PNAME))
+    VnV_init_raw(VNV_STR(PNAME), argc, argv, inputjson, VNV_REGISTRATION_CALLBACK_NAME(PNAME))
 
 #  define INJECTION_FINALIZE(PNAME) VnV_finalize();
 
 #  define DECLARESUBPACKAGE(NAME) INJECTION_REGISTRATION(NAME);
 
-#  define REGISTERSUBPACKAGE(NAME)          \
-    VnV_Register_Subpackage(#NAME, INJECTION_REGISTRATION_PTR(NAME));
+#  define REGISTERSUBPACKAGE(NAME) VnV_Register_Subpackage(#  NAME, INJECTION_REGISTRATION_PTR(NAME));
 
-#define RES(x) V
-#define REGSUB(x) RES(x)
-#define ESPI(...) FOR_EACH(DECLARESUBPACKAGE,__VA_ARGS__)
-#define ESPR(...) FOR_EACH(REGISTERSUBPACKAGE,__VA_ARGS__)
+#  define RES(x) V
+#  define REGSUB(x) RES(x)
+#  define ESPI(...) FOR_EACH(DECLARESUBPACKAGE, __VA_ARGS__)
+#  define ESPR(...) FOR_EACH(REGISTERSUBPACKAGE, __VA_ARGS__)
 
-#define INJECTION_EXECUTABLE_NOCLANG(package,...)\
-    ESPI(__VA_ARGS__) \
-    INJECTION_REGISTRATION(package) { \
-       ESPR(__VA_ARGS__)              \
-    }                                 \
+#  define INJECTION_EXECUTABLE_NOCLANG(package, ...) \
+    ESPI(__VA_ARGS__)                                \
+    INJECTION_REGISTRATION(package) { ESPR(__VA_ARGS__) }
 
+#  define INJECTION_LIBRARY_NOCLANG(package, ...) \
+    ESPI(__VA_ARGS__)                             \
+    INJECTION_REGISTRATION(package) { ESPR(__VA_ARGS__) }
 
 // This doesn't expand to anything, just tells the VNV Registration generator to
 // include a subpackage.
@@ -45,13 +42,10 @@
 
 typedef void (*registrationCallBack)();
 
-
-VNVEXTERNC void VnV_Register_Subpackage(const char* Name,
-                                        registrationCallBack callback);
+VNVEXTERNC void VnV_Register_Subpackage(const char* Name, registrationCallBack callback);
 
 typedef const char* (*vnvFullJsonStrCallback)();
-VNVEXTERNC void VnV_declarePackageJson(const char* packageName,
-                                       vnvFullJsonStrCallback callback);
+VNVEXTERNC void VnV_declarePackageJson(const char* packageName, vnvFullJsonStrCallback callback);
 
 /**
  * @brief VnV_init
@@ -63,9 +57,8 @@ VNVEXTERNC void VnV_declarePackageJson(const char* packageName,
  * Initialize the VnV library. If this function is not called, no injection
  * point testing will take place.
  */
-VNVEXTERNC int VnV_init(const char* packageName, int* argc, char*** argv,
-                        const char* filename, registrationCallBack callback);
-
+VNVEXTERNC int VnV_init(const char* packageName, int* argc, char*** argv, const char* filename,
+                        registrationCallBack callback);
 
 /**
  * @brief VnV_init
@@ -77,8 +70,8 @@ VNVEXTERNC int VnV_init(const char* packageName, int* argc, char*** argv,
  * Initialize the VnV library. If this function is not called, no injection
  * point testing will take place.
  */
-VNVEXTERNC int VnV_init_raw(const char* packageName, int* argc, char*** argv,
-                        const char* inputjson, registrationCallBack callback);
+VNVEXTERNC int VnV_init_raw(const char* packageName, int* argc, char*** argv, const char* inputjson,
+                            registrationCallBack callback);
 
 /**
  * @brief VnV_finalize
@@ -100,14 +93,12 @@ VNVEXTERNC void VnV_runUnitTests(VnV_Comm comm);
 VNVEXTERNC void VnV_Registration_Info(const char* filename, int quit);
 
 VNVEXTERNC void VnV_readFile(const char* reader, const char* filename);
-VNVEXTERNC void VnV_readFileAndWalk(const char* reader, const char* filename,
-                                    const char* package, const char* walker,
+VNVEXTERNC void VnV_readFileAndWalk(const char* reader, const char* filename, const char* package, const char* walker,
                                     const char* config);
-
 
 VNVEXTERNC void* VnV_getOptionsObject(const char* package);
 
-#define INJECTION_GET_CONFIG(PNAME) VnV_getOptionsObject(VNV_STR(PNAME));
+#  define INJECTION_GET_CONFIG(PNAME) VnV_getOptionsObject(VNV_STR(PNAME));
 
 #else  // WITHOUT_VNV
 #  define VnV_init(...)

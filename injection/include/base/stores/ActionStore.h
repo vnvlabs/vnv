@@ -7,8 +7,9 @@
 
 #include <map>
 #include <string>
-#include "base/parser/JsonSchema.h"
+
 #include "base/parser/JsonParser.h"
+#include "base/parser/JsonSchema.h"
 #include "base/stores/BaseStore.h"
 #include "base/stores/OutputEngineStore.h"
 #include "c-interfaces/Communication.h"
@@ -44,74 +45,82 @@ class ActionStore : public BaseStore {
 
   virtual void initialize(ICommunicator_ptr world) {
     for (auto action : actions) {
-      try {
-        getEngine()->actionStartedCallBack(world, action->getPackage(), action->getName(), ActionStage::init);
-        action->setComm(world);
-        action->initialize();
-        action->popComm();
-        getEngine()->actionEndedCallBack(ActionStage::init);
-      } catch(std::exception &e) {
-        VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage Initialization", action->getPackage().c_str(),
-                  action->getName().c_str());
+        try {
+          getEngine()->actionStartedCallBack(world, action->getPackage(), action->getName(), ActionStage::init);
+          action->setComm(world);
+          action->initialize();
+          action->popComm();
+          getEngine()->actionEndedCallBack(ActionStage::init);
+        } catch (std::exception& e) {
+          VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage Initialization", action->getPackage().c_str(),
+                    action->getName().c_str());
+        }
       }
-    }
   }
 
   virtual void injectionPointStart(ICommunicator_ptr comm, std::string packageName, std::string id) {
     for (auto action : actions) {
-      try {
-        getEngine()->actionStartedCallBack(comm, action->getPackage(), action->getName(), ActionStage::start);
-        action->setComm(comm);
-        action->injectionPointStart(packageName, id);
-        getEngine()->actionEndedCallBack(ActionStage::start);
-      } catch(std::exception &e) {
-        VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage IP %s:%s", action->getPackage().c_str(),
-                  action->getName().c_str(), packageName.c_str(), id.c_str());
+      if (action->implements_injectionPointStart) {
+        try {
+          getEngine()->actionStartedCallBack(comm, action->getPackage(), action->getName(), ActionStage::start);
+          action->setComm(comm);
+          action->injectionPointStart(packageName, id);
+          getEngine()->actionEndedCallBack(ActionStage::start);
+        } catch (std::exception& e) {
+          VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage IP %s:%s", action->getPackage().c_str(),
+                    action->getName().c_str(), packageName.c_str(), id.c_str());
+        }
       }
     }
   };
 
   virtual void injectionPointIter(std::string id) {
     for (auto action : actions) {
-      try {
-        getEngine()->actionStartedCallBack(action->getComm(), action->getPackage(), action->getName(),
-                                           ActionStage::iter);
-        action->injectionPointIteration(id);
-        getEngine()->actionEndedCallBack(ActionStage::iter);
-      } catch(std::exception &e) {
-        VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage IP iteration %s", action->getPackage().c_str(),
-                  action->getName().c_str(), id.c_str());
+      if (action->implements_injectionPointIter) {
+        try {
+          getEngine()->actionStartedCallBack(action->getComm(), action->getPackage(), action->getName(),
+                                             ActionStage::iter);
+          action->injectionPointIteration(id);
+          getEngine()->actionEndedCallBack(ActionStage::iter);
+        } catch (std::exception& e) {
+          VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage IP iteration %s", action->getPackage().c_str(),
+                    action->getName().c_str(), id.c_str());
+        }
       }
     }
   };
 
   virtual void injectionPointEnd() {
     for (auto action : actions) {
-      try {
-        getEngine()->actionStartedCallBack(action->getComm(), action->getPackage(), action->getName(),
-                                           ActionStage::end);
-        action->injectionPointEnd();
-        action->popComm();
-        getEngine()->actionEndedCallBack(ActionStage::end);
-      } catch(std::exception &e) {
-        VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage IP end  ", action->getPackage().c_str(),
-                  action->getName().c_str());
+      if (action->implements_injectionPointEnd) {
+        try {
+          getEngine()->actionStartedCallBack(action->getComm(), action->getPackage(), action->getName(),
+                                             ActionStage::end);
+          action->injectionPointEnd();
+          action->popComm();
+          getEngine()->actionEndedCallBack(ActionStage::end);
+        } catch (std::exception& e) {
+          VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage IP end  ", action->getPackage().c_str(),
+                    action->getName().c_str());
+        }
       }
     }
   }
 
   virtual void finalize(ICommunicator_ptr world) {
     for (auto action : actions) {
-      try {
-        getEngine()->actionStartedCallBack(world, action->getPackage(), action->getName(), ActionStage::final);
-        action->setComm(world);
-        action->finalize();
-        action->popComm();
-        getEngine()->actionEndedCallBack(ActionStage::final);
-      } catch(std::exception &e) {
-        VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage finalize", action->getPackage().c_str(),
-                  action->getName().c_str());
-      }
+     
+        try {
+          getEngine()->actionStartedCallBack(world, action->getPackage(), action->getName(), ActionStage::final);
+          action->setComm(world);
+          action->finalize();
+          action->popComm();
+          getEngine()->actionEndedCallBack(ActionStage::final);
+        } catch (std::exception& e) {
+          VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage finalize", action->getPackage().c_str(),
+                    action->getName().c_str());
+        }
+     
     }
   }
 
@@ -123,7 +132,6 @@ class ActionStore : public BaseStore {
   bool registeredAction(std::string packageName, std::string name) {
     std::cout << "Looking for action " << packageName << ":" << name << " " << action_factory.size() << std::endl;
     return action_factory.find(packageName + ":" + name) != action_factory.end();
-    
   }
 
   void addAction(std::string packageName, std::string name, const json& config) {
@@ -136,10 +144,9 @@ class ActionStore : public BaseStore {
         act->setNameAndPackageAndEngine(packageName, name, getEngine());
         actions.push_back(act);
         return;
-      } catch(std::exception &e) {
-        std::cout << "HERE " << e.what() << std::endl;
+      } catch (std::exception& e) {
       }
-    } 
+    }
     HTHROW INJECTION_EXCEPTION("Error adding Action", packageName.c_str(), name.c_str());
   }
 

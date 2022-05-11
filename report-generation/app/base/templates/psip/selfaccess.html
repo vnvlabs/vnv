@@ -1,13 +1,12 @@
 <div style="padding:15px;">
     <div style="display:flex; align-items:center;">
-        <h1 style="flex:1">PSIP Application Dashboard</h1>
-        {%if not readonly %}
-        <button type="button" class="btn  btn-secondary" style="margin-right:10px;" onclick="reset_state()">Reset
-        </button>
-        <button type="button" class="btn btn-primary" onclick="save_state();">Save</button>
+
+        <h2 style="flex:1">PSIP Application Dashboard</h2>
+        {% if not readonly %}
+            <button class="btn btn-primary" onclick="toggle_psip({{file.id_}})" id="psip_enabled_btn">{%if file.psip_enabled %}Disable {%else%}Enable {%endif%} PSIP</button>
         {%endif%}
     </div>
-
+  <div id="show_psip_view">
     <div>
         <p>Software engineering is a systematic approach to the design, development, and maintenance of a software
             system. Teams seldom have the time to stop development and focus solely on improving productivity or
@@ -40,7 +39,12 @@
 
                     <div class="card"
                          style="display:flex; flex-direction: column; margin:10px; padding:20px;width:100%;">
-                        <h2>Overall Performance:</h2>
+
+                        <div style="display:flex">
+                             <h2 style="flex:1; text-align:center;" id="">Overall Performance</h2>
+                             <i class="feather icon-edit" style="padding:10px; cursor:pointer;" onclick="edit_psip_raw()" ></i>
+                        </div>
+
                         <p id="psip_description">
                             The assessment section is used to estimate the degree to which software engineering
                             practices are currently being used by your project.
@@ -156,7 +160,7 @@
 
 
     </div>
-
+  </div>
 
 </div>
 {% if not readonly %}
@@ -216,4 +220,6 @@
 {%endif%}
 
 <script src="/static/assets/js/inputfiles/psip.js"></script>
-
+{% if not readonly %}
+<script> set_psip_readonly(false); </script>
+{%endif%}

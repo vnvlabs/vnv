@@ -1,7 +1,8 @@
 <div style="display:flex; margin-bottom:20px;">
     <h4 style="flex:1"> Local Application Issues and Comments:</h4>
     {% if not readonly %}
-    <button id="new_issue" class="btn btn-primary" style="margin-right:10px;">New</button>
+        <button id="new_issue" class="btn btn-primary" style="margin-right:10px;">New</button>
+        <button id="issues_enabled_btn" onclick="toggle_issues({{file.id_}})" class="btn btn-primary" style="margin-right:10px;">{% if file.issues_enabled %}Disable {%else%}Enable {%endif%} Issues</button>
     {%endif%}
 </div>
 
@@ -16,18 +17,17 @@
                 </button>
             </div>
             <div class="modal-body" id="ptc-modal-body">
-                    <div class="form-group">
-                        <label>Name</label>
-                        <input name="name" , id="new-issue-name" type="text" class="form-control">
-                    </div>
+
                     <div class="form-group">
                         <label>Title</label>
-                        <input title="name" , id="new-issue-title" type="text" class="form-control">
+                        <input placeholder="New Issue" title="name" , id="new-issue-title" type="text" class="form-control">
+                        <small>A short descriptive title for your issue</small>
                     </div>
 
                     <div class="form-group">
                         <label for="new-issue-description">Description</label>
                         <textarea class="form-control" name="description" , id="new-issue-description" rows="3"></textarea>
+                        <small>Describe the issue in detail (Github markdown format is supported)</small>
                     </div>
             </div>
             <div class="modal-footer">
@@ -39,3 +39,20 @@
     </div>
 </div>
 {%endif%}
+
+<script>
+function toggle_issues(fileId) {
+    {% if not readonly %}
+        $.post('/inputfiles/toggle_issues/' + fileId, function(data) {
+            $('#main_issue_container').toggle(data)
+            $('#new_issue').toggle(data)
+
+            if (data === "show") {
+                $('#issues_enabled_btn').html("Disable Issues")
+            } else {
+                $('#issues_enabled_btn').html("Enable Issues")
+            }
+        })
+    {%endif%}
+}
+</script>

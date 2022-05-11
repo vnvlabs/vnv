@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import tempfile
 import stat
+import time
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -12,6 +13,7 @@ import shlex
 import paramiko
 from ansi2html import Ansi2HTMLConverter
 from app.models.RemoteFileInfo import get_file_name
+from datetime import datetime
 
 
 class VnVJob:
@@ -21,6 +23,7 @@ class VnVJob:
         self.ctx = ctx
         self.script_ = script
         self.metadata = metadata
+        self.time = datetime.now();
 
     def getName(self):
         return self.name if self.name is not None else self.id
@@ -40,6 +43,9 @@ class VnVJob:
 
     def metadata(self):
         return self.metadata
+
+    def dispDate(self):
+        return self.time.strftime("%m/%d/%Y at %H:%M:%S")
 
     def stdout(self):
         return Ansi2HTMLConverter().convert(self.getCtx().stdout())
@@ -364,7 +370,7 @@ class VnVLocalConnection:
         except Exception as e:
             raise Exception("Failed to execute command: " + str(e))
 
-    def execute_script(self, script, asy=True, name=None, metadata=None):
+    def execute_script(self, script , work_dir=None, deps={}, asy=True, name=None, metadata=None):
         path = self.write(script, None)
         st = os.stat(path)
         os.chmod(path, st.st_mode | stat.S_IEXEC)

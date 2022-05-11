@@ -22,5 +22,3 @@ add_custom_command(
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} DESTINATION gui USE_SOURCE_PERMISSIONS )
-
-message("RR")

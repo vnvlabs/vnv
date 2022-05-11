@@ -152,7 +152,6 @@ function update_processing(fileId, procTag) {
    $.get('/files/processing/' + fileId, function(data, textStatus, xhr) {
 
         if (xhr.status == 201) {
-            debugger;
             $(procTag).hide();
         } else {
             setTimeout(function(){ update_processing(fileId, procTag) }, 3000);

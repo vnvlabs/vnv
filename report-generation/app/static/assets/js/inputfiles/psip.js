@@ -67,6 +67,7 @@ function ptc_modal_save() {
     gchart.updateOptions(goals_options())
     change_tracking_card(ptc_ind)
     $('#edit-ptc-modal').modal('hide');
+    save_state();
 
 }
 
@@ -75,6 +76,7 @@ function delete_selected() {
         main_data["ptc"].splice(ptc_ind, 1);
         gchart.updateOptions(goals_options())
         change_tracking_card(0)
+        save_state();
     } else {
         alert("You need at least one PTC for now");
     }
@@ -99,6 +101,7 @@ function new_selected() {
     gchart.updateOptions(goals_options())
     change_tracking_card(main_data["ptc"].length - 1)
     edit_selected();
+    save_state();
 }
 
 
@@ -159,15 +162,24 @@ function render_all() {
 
 function reset_state() {
    reset_data()
+   render_everything();
+   save_state();
+   save_state();
+   change_tracking_card(0)
+
+
+}
+
+function render_everything() {
    render_all();
    gchart.updateOptions(goals_options())
-   change_tracking_card(0)
 }
 
 
 function change_state(val) {
         main_data["sa"][schema_categories()[schema_data_selection]]["subgoals"][selected_categories()[schema_process_selection]]["score"] = val;
         render_all();
+        save_state();
 }
 
 
@@ -261,6 +273,7 @@ function change_ptc(val) {
     ptc_data["score"] = val;
     gchart.updateOptions(goals_options())
     change_tracking_card(ptc_ind)
+    save_state();
 }
 
 var ptc_data;
@@ -459,11 +472,37 @@ function goals_options() {
  };
 }
 
-function save_state() {
- var element = document.createElement('a');
+psip_readonly = true
 
-   url = "/inputfiles/save_psip/"+ psip_file_id + "?data=" + encodeURIComponent(JSON.stringify(main_data))
-   $.post(url,function(d,s,x) {
-          addToast("Save Successfull",4000)
-   });
+function toggle_psip(fileId) {
+    if (!psip_readonly) {
+        $.post('/inputfiles/toggle_psip/' + fileId, function(data) {
+            $('#show_psip_view').toggle(data)
+            if (data === "show") {
+                $('#psip_enabled_btn').html("Disable PSIP")
+            } else {
+                $('#psip_enabled_btn').html("Enable PSIP")
+            }
+        })
+    }
+}
+
+function edit_psip_raw() {
+   if (!psip_readonly) {
+        temp_main_data = JSON.stringify(main_data, null,4 )
+        main_data = JSON.parse(temp_main_data)
+        render_everything()
+        alert("editing the self assessment is not supported yet!")
+   }
+}
+
+function set_psip_readonly(val) {
+    psip_readonly = val
+}
+
+function save_state() {
+    if (!psip_readonly) {
+        url = "/inputfiles/save_psip/"+ psip_file_id + "?data=" + encodeURIComponent(JSON.stringify(main_data))
+        $.post(url,function(d,s,x) {});
+    }
 }

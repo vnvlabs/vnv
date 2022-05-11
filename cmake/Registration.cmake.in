@@ -19,116 +19,91 @@ set(VNV_MPI_CXX_VERSION @MPI_CXX_VERSION@)
 if(WITH_EXTRACTION AND TARGET Injection::Extraction)
 
 
-function( add_vnv_generation_target packageName filename cacheFileName) 
-    
-   set(depfiles ${cacheFileName} ${filename} ${ARGN})         
+### Command should always run. 
+add_custom_target(
    
-   if (${ARGC} GREATER 3 ) 
-      set(fortranFiles --fortran ${ARGN})
+   vnv_generate_cache
+   COMMAND Injection::Extraction 
+          --cache-only 
+          --cache ${CMAKE_BINARY_DIR}/vnv.__cache__ 
+          --fix-omp
+          ${CMAKE_BINARY_DIR}/compile_commands.json          
+   BYPRODUCTS ${CMAKE_BINARY_DIR}/vnv.__cache__        
+   COMMENT "Updating the VnV Cache File"
+   )
+
+
+
+function( add_vnv_generation_target targetName packageName extension fortran ) 
+    
+   if (${fortran} GREATER 0 ) 
+      set(fortranFile ${CMAKE_BINARY_DIR}/vnv_${packageName}.f90)
+      set(fortranFiles --fortran ${CMAKE_BINARY_DIR}/vnv_${packageName}.f90 )
    endif()
 
-   add_custom_target(
-        vnv_gen_${packageName}
+   add_custom_target(vnv_gen_${packageName}
         COMMAND Injection::Extraction 
-               --output ${filename} 
-               --cache ${cacheFileName} 
+               --output-only
+               --output ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} 
+               --cache ${CMAKE_BINARY_DIR}/vnv.__cache__ 
                --package ${packageName} 
+               --targetFile ${CMAKE_CURRENT_BINARY_DIR}/${targetName}
+               --regFile ${CMAKE_BINARY_DIR}/vnv.__registration__ 
                ${fortranFiles}
                ${CMAKE_BINARY_DIR}/compile_commands.json
-               
-        BYPRODUCTS ${depfiles}       
-   )
-   
-   add_custom_target(
-        vnv_force_${packageName}
-        COMMAND Injection::Extraction 
-               --output ${filename} 
-               --cache ${cacheFileName} 
-               --force 
-               --package ${packageName} 
-               ${fortranFiles}
-               {CMAKE_BINARY_DIR}/compile_commands.json
-          BYPRODUCTS ${depfiles}
-               )
-   
-   add_custom_target(
-        vnv_reset_${packageName}
-        COMMAND Injection::Extraction 
-               --output ${filename}
-               --cache ${cacheFileName} 
-               --reset 
-               ${fortranFiles}
-               --package ${packageName} 
-               {CMAKE_BINARY_DIR}/compile_commands.json
-          BYPRODUCTS ${depfiles}
-               )
-
-   add_custom_target(
-        vnv_reset_force_${packageName}
-        COMMAND Injection::Extraction 
-               --output ${filename} 
-               --cache ${cacheFileName} 
-               --force 
-               --reset
-               ${fortranFiles}
-               --package ${packageName} 
-               {CMAKE_BINARY_DIR}/compile_commands.json
-          BYPRODUCTS ${depfiles}
+         DEPENDS vnv_generate_cache
+         BYPRODUCTS ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} ${fortranFile}
+         COMMENT "Generating the vnv registration file for ${targetName}." 
    )
       
 endfunction()
 
 
 # This one adds all the targets but makes it up to you 
-function(link_vnv_file_root targetName packageName filename )
+function(link_vnv_file_root targetName packageName extension fortran )
 
    #Link the vnv library
-   if (${ARGC} GREATER 3 )
+   if (${fortran} GREATER 0 )
       target_link_libraries(${targetName} PRIVATE Injection::FInjection)
-      add_vnv_generation_target( ${packageName} ${filename} ${CMAKE_BINARY_DIR}/vnv_cache.__cache__  ${ARGN} )
-   
    else() 
    
      if (NOT ${targetName}  MATCHES "^injection$" )
-      target_link_libraries(${targetName} PRIVATE Injection::Injection)
+         target_link_libraries(${targetName} PRIVATE Injection::Injection)
      endif()
-
-     message("Adding Generation Targets for ${packageName}" )
-     add_vnv_generation_target( ${packageName} ${filename} ${CMAKE_BINARY_DIR}/vnv_cache.__cache__  )
-      
+   
    endif()
+   add_vnv_generation_target( ${targetName} ${packageName} ${extension} ${fortran}  )
+
 
 endfunction()
 
 
 # This one adds all the targets but makes it up to you to add the source. 
-function(link_vnv_file_semi targetName packageName filename )
+function(link_vnv_file_semi targetName packageName extension fortran )
    
    link_vnv_file_root(${ARGV})
 
    #Add the file as a source
-   target_sources( ${targetName} PRIVATE ${filename} )
-   set_source_files_properties( ${filename} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
+   target_sources( ${targetName} PRIVATE ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} )
+   set_source_files_properties( ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
   
-   if (${ARGC} GREATER 3)
-       target_sources( ${targetName} PRIVATE ${ARGN} )
-       set_source_files_properties( ${ARGN} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
+   if (${fortran} GREATER 0)
+       target_sources( ${targetName} PRIVATE ${CMAKE_BINARY_DIR}/vnv_${packageName}.f90 )
+       set_source_files_properties( ${CMAKE_BINARY_DIR}/vnv_${packageName}.f90 PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
    endif()
+
+   
    
 endfunction()
 
 
 function(link_vnv_file_fortran targetName packageName extension)
-   link_vnv_file_semi(${targetName} ${packageName} ${CMAKE_BINARY_DIR}/vnv_registration_${packageName}.${extension} ${CMAKE_BINARY_DIR}/vnv_registration_${packageName}.f90)
-   add_dependencies(${targetName} vnv_gen_${packageName})   
+   link_vnv_file_semi(${targetName} ${packageName} ${extension} 1)
 endfunction()
 
 
-
-
 function(link_vnv_file targetName packageName extension)
-  link_vnv_file_semi(${targetName} ${packageName} ${CMAKE_BINARY_DIR}/vnv_registration_${packageName}.${extension})
-  add_dependencies(${targetName} vnv_gen_${packageName})      
+  link_vnv_file_semi(${targetName} ${packageName} ${extension} 0)
 endfunction()
 
 

@@ -1,0 +1,18 @@
+{% if deps | length > 0 %}
+{% for id_,dependency in deps.items() %}
+        <div class="" style="width:100%; padding:10px; align-items:center; display:flex;">
+            <div style="width:60px; display:flex; justify-content:center "><span class="badge badge-success">{{dependency.type}}</span></div>
+            <div style="margin-left:20px; width:350px; font-size:20px;font-weight:900; overflow:hidden; text-overflow: ellipsis; white-space: nowrap;">{{dependency.remoteName}}</div>
+            <div style="margin-left:20px; flex:1 ; font-size:20px; overflow:hidden; text-overflow: ellipsis; white-space: nowrap;">{{dependency.describe()}}</div>
+            <button class="btn btn-primary" style="margin-right:10px;" onclick='edit_dependency("{{dependency.id_}}")'>Edit</button>
+            <button class="btn btn-primary" style="margin-right:10px;" onclick='delete_dependency("{{dependency.id_}}")'>Delete</button>
+        </div>
+        <hr class="logrule">
+
+ {% endfor %}
+{% else %}
+        <div class="" style="width:100%; padding:10px; align-items:center; display:flex;">
+            You have not added any dependencies yet!
+        </div>
+
+{%endif%}

@@ -19,8 +19,12 @@ class ActionStore;
 
 class IAction {
   friend class ActionStore;
+  
+
   std::string name, package;
   IOutputEngine* engine;
+
+
   void setNameAndPackageAndEngine(std::string package, std::string name, IOutputEngine* engine) {
     this->name = name;
     this->package = package;
@@ -36,18 +40,37 @@ class IAction {
   void setComm(ICommunicator_ptr ptr) { commStack.push(ptr); }
   void popComm() { commStack.pop(); }
 
+ protected:
+
+  bool implements_injectionPointStart = false;
+  bool implements_injectionPointIter=false;
+  bool implements_injectionPointEnd = false;
+
  public:
+  
+  virtual void implements_injection_point(bool yes) {
+    implements_injectionPointStart = yes;
+    implements_injectionPointIter= yes;
+    implements_injectionPointEnd = yes;
+  }
+
   virtual ICommunicator_ptr getComm() { return commStack.top(); }
 
   virtual IOutputEngine* getEngine() { return engine; }
-
+   
   virtual void initialize(){};
 
-  virtual void injectionPointStart(std::string /* packageName */, std::string /* id */){};
+  virtual void injectionPointStart(std::string  /**packageName**/ , std::string  /**id**/ ){
+      throw INJECTION_EXCEPTION_("Implements Initialize Called");
+  };
 
-  virtual void injectionPointIteration(std::string /* stageId */){};
+  virtual void injectionPointIteration(std::string /**stageId**/ ){
+   throw INJECTION_EXCEPTION_("Implements Initialize Called");
+  };
 
-  virtual void injectionPointEnd(){};
+  virtual void injectionPointEnd(){
+   throw INJECTION_EXCEPTION_("Implements Initialize Called");
+  };
 
   virtual void finalize() {}
 

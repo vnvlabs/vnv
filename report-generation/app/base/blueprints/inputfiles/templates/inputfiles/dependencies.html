@@ -1,0 +1,259 @@
+<div style="display:flex; align-items:center; ">
+    <h2 style="flex:1">Input File Dependencies</h2>
+    <button class="btn btn-primary" style="margin-right:10px;" onclick='create_new_dep()'>New Dependency</button>
+</div>
+
+<div id="dependency" class="card" style="padding:15px; margin-top:15px">
+    {%with deps = file.dependencies() %}
+    {% include "inputfiles/deps.html"%}
+    {% endwith %}
+</div>
+
+<div class="modal fade" id="edit_dep_modal" tabindex="-1" role="dialog" aria-labelledby="edit_dep_modal_label"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 95vw;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="flex:1;" id="new_file_modal_label">Edit Dependency</h5>
+                <button type="button btn-primary" style="margin-right:10px;" class="btn btn-primary" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">Close</span></button>
+                <button type="button" class="btn btn-primary" accesskey="s" onclick="save_dependency()" aria-label="Save"><span
+                        aria-hidden="true">Save</span></button>
+
+            </div>
+            <div class="modal-body">
+                <form id="edit_dependency_form" method="post">
+                    <input type="hidden" name="fileId" value="">
+                    <input id="depId" type="hidden" name="depId" value="">
+
+                    <div class="form-group">
+                        <label for="dep_type" class="col-form-label">Select The Dependency Type:</label>
+                        <select type="text" class="form-control" id="dep_type" name="type">
+                            <option value="text" selected>Text</option>
+                            <option value="upload" >Upload</option>
+                            <option value="hard link" >Hard Link</option>
+                            <option value="soft link" >Soft Link</option>
+                            <option value="copy" >Copy</option>
+                            <option value="moose" >HIVE File</option>
+                        </select>
+                        <small id="application_description"> {{list_vnv_executables()[0][1]}} </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="remoteName" class="col-form-label">Remote Name</label>
+                        <input type="text" class="form-control" name="remoteName" id="remoteName">
+                        <small>The location on the remote machine to store the file prior to execution.</small>
+                    </div>
+                    <div id="rfgroup" class="form-group">
+                        <label for="linkValue" class="col-form-label">Remote File</label>
+                        <input type="text" class="form-control" name="linkValue" id="linkValue">
+                        <small>The file name on the remote machine to copy</small>
+                    </div>
+                    <div id="fupgroup" class="form-group">
+
+                        <div class="input-group cust-file-button">
+                            <div class="custom-file">
+                                <label for="fileDepUpload" class="col-form-label">File To Upload</label>
+                                <input type="file" class="custom-file-input" id="fileDepUpload">
+                                <label id="fuploadlabel" class="custom-file-label" for="fileDepUpload">Choose the file you want to upload</label>
+                            </div>
+                            <div class="input-group-append">
+                                <button class="btn  btn-primary" onclick='view_uploaded_file()' type="button">View</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tagroup" class="form-group" style="">
+                        <div id="hivegroup" class="form-group">
+                            <label for="linkValue" class="col-form-label">HIVE Specification Dump</label>
+                            <input type="text" class="form-control" name="linkValue" value="${application} --json" id="hiveCommand">
+                            <small>Command to dump the HIVE Specification</small>
+                        </div>
+                        <div style="position:relative">
+                             <button type="button" id="hivevalidate" style="position: absolute; top: 5px; right:5px; z-index:2000"  accesskey="v" onclick="validate_hive(false)" class="btn btn-secondary">Validate</button>
+                             <div style="height:800px" id="inputtextarea"></div>
+                        </div>
+                    </div>
+                    <script>
+                        $( document ).ready(function() {
+
+                            $('#dep_type').on('change', function() {
+
+                                  $('#fupgroup').toggle($(this).val() === "upload" )
+                                  $('#tagroup').toggle($(this).val() === "text"  || $(this).val() === "moose" )
+                                  $('#hivegroup').toggle($(this).val() === "moose")
+                                  $('#hivevalidate').toggle($(this).val() === "moose" || $(this).val() === "text" )
+                                  $('#rfgroup').toggle( !( $(this).val() === "upload" || $(this).val() === "text"  || $(this).val() === "moose" ))
+                                  //Clear or set any moose validation annotations.
+                            })
+                            $('#dep_type').trigger('change')
+
+                             $('#fileDepUpload').change(function(e) {
+                                var file = e.target.files[0].name;
+                                $('#fuploadlabel').html("Selected File: " + file);
+                             });
+
+                        });
+
+
+                    </script>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+function create_new_dep() {
+     $('#depId').val("")
+     $('#fuploadlabel').html("Choose the file you want to upload")
+     $('#dep_type').val("text").trigger('change')
+     $('#edit_dep_modal').modal('show')
+}
+
+function edit_dependency(depId) {
+
+    $.post('/inputfiles/dependency/get/{{file.id_}}?depId=' + depId, function(data) {
+        $('#depId').val(depId)
+        $('#dep_type').val(data["type"]).trigger("change")
+        $('#remoteName').val(data["remoteName"])
+
+        if ($('#dep_type').val() == "moose" ||  $('#dep_type').val() == "text") {
+            setInputTextValue(data.kwargs.text)
+            if ($('#dep_type').val() == "moose") {
+                $('#hiveCommand').val(data.kwargs.hive)
+            }
+        } else if ($('#dep_type').val() == "upload") {
+           $('#fuploadlabel').html("Current File: " + data.kwargs.original)
+        } else {
+            $('#linkValue').val(data.kwargs.text)
+        }
+        $('#edit_dep_modal').modal('show')
+    })
+}
+
+function view_uploaded_file() {
+    alert("Not implemented yet")
+}
+
+function setInputTextValue(vaj) {
+    ace.edit('inputtextarea').setValue(vaj)
+}
+
+function getInputTextValue(){
+    return ace.edit('inputtextarea').getValue()
+}
+
+function save_dependency() {
+
+    var formData = new FormData()
+    formData.append("fileId" , {{file.id_}});
+
+    formData.append("depId" , $('#depId').val());
+    formData.append("depType", $('#dep_type').val());
+    formData.append("rname",$('#remoteName').val());
+
+    var depType = $('#dep_type').val()
+    if ( depType == "upload" ) {
+        formData.append("file", $('#fileDepUpload').prop('files')[0])
+    } else if (depType == "text" || depType == "moose"  ) {
+        formData.append("text", getInputTextValue());
+        if (depType == "moose") {
+            formData.append("hive", $('#hiveCommand').val());
+        }
+    } else {
+        formData.append("text", $('#linkValue').val());
+    }
+
+    $.ajax({
+        type : "POST",
+        processData: false,
+        contentType: false,
+        url : "/inputfiles/dependency/edit/{{file.id_}}",
+        data : formData,
+        success : function(data) {
+            $('#dependency').html(data)
+            $('#edit_dep_modal').modal('hide')
+        }
+    })
+
+
+}
+function delete_dependency(depId) {
+    url = "/inputfiles/dependency/delete/{{file.id_}}/" + depId
+    $.post(url,function(data) {
+        $('#dependency').html(data)
+    })
+}
+
+function validate_hive(clear) {
+    if ($('#dep_type').val() === "moose" && !clear) {
+
+        $.ajax({
+                url : "/inputfiles/moose/validate",
+                data : JSON.stringify({
+                   depId  : $('#depId').val() ,
+                   fileId : {{file.id_}},
+                   value  : ace.edit('inputtextarea').getValue(),
+                   dump : $('#hiveCommand').val()
+                }),
+                contentType : 'application/json',
+                type : 'POST',
+                success: function(data, s, xhr) {
+                    ace.edit('inputtextarea').session.setAnnotations(data)
+                }
+        });
+    } else {
+      ace.edit('inputtextarea').session.setAnnotations([])
+    }
+}
+
+$(document).ready(function() {
+
+    var input_editor = ace.edit('inputtextarea',
+    {
+        theme: "ace/theme/tomorrow_night_blue",
+        autoScrollEditorIntoView: true,
+        fontSize: 20,
+        enableBasicAutocompletion: true,
+        enableLiveAutocompletion: true
+
+    });
+
+    var inputWordCompleter = {
+         getCompletions: function(editor, session, pos, prefix, callback) {
+
+             if (ace.edit('inputtextarea') == editor && $('#dep_type').val() == "moose" ) {
+                $.ajax({
+                    url : "/inputfiles/moose/autocomplete",
+                    data : JSON.stringify({
+                        depId  : $('#depId').val() ,
+                        fileId : {{file.id_}},
+                        row : pos.row,
+                        "col" : pos.column,
+                        pre : prefix,
+                        value  : editor.getValue(),
+                        dump : $('#hiveCommand').val()
+                    }),
+                    contentType : 'application/json',
+                    type : 'POST',
+                    success: function(data, s, xhr) {
+                       callback(null,data)
+                    }
+                });
+             }
+         },
+         getDocTooltip: function(item) {
+             if (item.desc.length > 0 ) {
+                    item.docHTML = item.desc
+             }
+         }
+    }
+    langTools.addCompleter(inputWordCompleter)
+})
+
+
+
+</script>
+

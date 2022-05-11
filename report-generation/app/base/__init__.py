@@ -14,6 +14,7 @@ from .utils.mongo import list_mongo_collections
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.Directory import VNV_DIR_PATH
+from .utils.utils import render_error
 
 from .. import Directory
 from ..models.VnVFile import VnVFile
@@ -83,6 +84,20 @@ blueprint.register_blueprint(
 @blueprint.route('/')
 def default_route():
     return render_template('index.html', segment='index')
+
+@blueprint.route('/theia')
+def theia_route():
+    #This route should get intercepted by the "serve" app, so, when
+    #serving, this should never be called. This button is just a placeholder
+    # for the serve app -- should really allow the serve app to add buttons.
+    return render_error(200, "Eclipse Theia is not configured")
+
+@blueprint.route('/paraview')
+def paraview_route():
+    #This route should get intercepted by the "serve" app, so, when
+    #serving, this should never be called. This button is just a placeholder
+    # for the serve app -- should really allow the serve app to add buttons.
+    return render_error(200, "Visualzier is not configured")
 
 
 @blueprint.route('/avatar/<username>')
@@ -191,6 +206,7 @@ def updateBranding(config, pd):
     logo = config.get("logo", {})
     if "small" in logo and os.path.exists(os.path.join(pd, logo["small"])):
         shutil.copy(os.path.join(pd, logo["small"]), LOGO_SMALL)
+
     if "icon" in logo and os.path.exists(os.path.join(pd, logo["icon"])):
         shutil.copy(os.path.join(pd, logo["icon"]), LOGO_ICON)
 
@@ -230,8 +246,9 @@ def load_default_data(loadIt):
                     config = json.load(w)
 
                     for key, value in config.get("executables", {}).items():
-                        blueprints.inputfiles.vnv_executables[key] = [os.path.join(pd, value["filename"]),
-                                                                      value.get("description", "")]
+                        blueprints.inputfiles.vnv_executables[key] = [
+                            os.path.join(pd, value["filename"]),
+                            value.get("description", ""), value.get("defaults",{})]
 
                     for key, value in config.get("plugins", {}).items():
                         blueprints.inputfiles.vnv_plugins[key] = os.path.join(pd, value)

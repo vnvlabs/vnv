@@ -66,7 +66,7 @@ function buildIssue(data, closeable, deleteable, commentable) {
  }
 
  var comments = getComments(data["comments"], data["number"], commentable === undefined )
- debugger;
+
  var html = `<div id="issue-${data.number}" class="issue_main card">
                  <div class=" issue_container ">
                     <div class="issue_avatar">

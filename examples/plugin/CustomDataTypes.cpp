@@ -138,6 +138,6 @@ class ExampleDataType : public VnV::IDataType {
   }
 };
 
-INJECTION_DATATYPE(Samples, customDataType, ExampleDataType) {
+INJECTION_DATATYPE(VnVPlugin, customDataType, ExampleDataType) {
   return new ExampleDataType();
 };

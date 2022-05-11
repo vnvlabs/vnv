@@ -5,11 +5,13 @@ Copyright (c) 2019 - present AppSeed.us
 import glob
 import json
 import os
+import uuid
 from pathlib import Path
 
 from flask import Blueprint, make_response, jsonify
 from flask import render_template, redirect, url_for, request
 
+from app.Directory import STATIC_FILES_DIR
 from app.models import VnVFile
 from app.models.VnVInputFile import VnVInputFile
 from ..files import get_file_from_runinfo
@@ -31,12 +33,14 @@ def new():
     try:
 
         c = request.form.get("executable")
-        if c == "custom":
+        if c == "Custom":
             path = request.form["path"]
+            defs = {}
         else:
             path = os.path.join(VnVInputFile.VNV_PREFIX, vnv_executables.get(c)[0])
+            defs = vnv_executables.get(c)[2]
 
-        file = VnVInputFile.add(request.form["name"], path)
+        file = VnVInputFile.add(request.form["name"], path, defs=defs)
 
         return redirect(url_for("base.inputfiles.view", id_=file.id_))
     except Exception as e:
@@ -102,6 +106,24 @@ def save_psip(id_):
     except:
         return make_response("", 203)
 
+@blueprint.route('/toggle_psip/<int:id_>', methods=["POST"])
+def enable_psip(id_):
+    try:
+        with VnVInputFile.find(id_) as file:
+            file.psip_enabled = not file.psip_enabled
+            return make_response("show" if file.psip_enabled else "hide", 200)
+    except:
+        return make_response("", 203)
+
+@blueprint.route('/toggle_issues/<int:id_>', methods=["POST"])
+def enable_issues(id_):
+    try:
+        with VnVInputFile.find(id_) as file:
+            file.issues_enabled = not file.issues_enabled
+            return make_response("show" if file.issues_enabled else "hide", 200)
+    except:
+        return make_response("", 203)
+
 
 @blueprint.route('/validate/<string:comp>/<int:id_>', methods=["POST"])
 def validate_input(comp, id_):
@@ -161,6 +183,67 @@ def load_exec(id_):
         return make_response("File does not exist", 200)
 
 
+@blueprint.route('/dependency/new/<int:fileid_>', methods=["POST"])
+def newdep(fileid_):
+    with VnVInputFile.find(fileid_) as file:
+        deps = file.add_dependency(remoteName="NEW DEP",type="NEW DEP")
+        return render_template("inputfiles/deps.html", deps=deps)
+
+@blueprint.route('/dependency/delete/<int:fileid_>/<depId>', methods=["POST"])
+def deletedep(fileid_, depId):
+    with VnVInputFile.find(fileid_) as file:
+        deps = file.delete_dependency(depId)
+        return render_template("inputfiles/deps.html", deps=deps)
+
+        return make_response("FFF",200)
+
+@blueprint.route('/dependency/edit/<int:fileid_>', methods=["POST"])
+def editdep(fileid_):
+
+    print(request.form)
+    print(request.files)
+
+    with VnVInputFile.find(fileid_) as file:
+        depId = request.form["depId"]
+        depType = request.form["depType"]
+        kw = {}
+        if depType == "upload":
+            fname = os.path.join(STATIC_FILES_DIR,uuid.uuid4().hex)
+            if "file" in request.files and request.files["file"] is not None:
+                request.files["file"].save(fname)
+                kw["text"] = fname
+                kw["original"] = request.files["file"].filename
+        else:
+            kw["text"] = request.form["text"]
+
+        if "hive" in request.form:
+            kw["hive"] = request.form["hive"]
+
+        if depId is None or len(depId) == 0:
+            deps = file.add_dependency(remoteName=request.form["rname"], type=request.form["depType"], **kw )
+        else:
+            deps = file.edit_dependency(depId, remoteName=request.form["rname"], type=request.form["depType"], **kw)
+
+        return render_template("inputfiles/deps.html", deps=deps)
+
+
+@blueprint.route('/dependency/get/<int:fileid_>', methods=["POST"])
+def getdep(fileid_):
+
+    with VnVInputFile.find(fileid_) as file:
+        dep = file.deps.get(request.args.get("depId"))
+        if dep is not None:
+            return make_response(jsonify(dep.to_json()),200)
+    return make_response("Error",204)
+
+
+@blueprint.route('/dependency/view/<int:fileid_>/<depId>', methods=["POST"])
+def viewdep(fileid_, depId):
+    with VnVInputFile.find(fileid_) as file:
+        return make_response("FFF",200)
+
+
+
 @blueprint.route('/connected/<int:id_>', methods=["GET"])
 def connected(id_):
     with VnVInputFile.find(id_) as file:
@@ -177,6 +260,38 @@ def input_autocomplete(comp, id_):
         if hasattr(file, "autocomplete_" + comp):
             r = getattr(file, "autocomplete_" + comp)(row, col, pre, val, plugins=vnv_plugins)
             return make_response(jsonify(r), 200)
+
+    return make_response(jsonify([]), 200)
+
+
+@blueprint.route('/moose/autocomplete', methods=["POST"])
+def moose_auto():
+    j = request.get_json()
+    fileId = j["fileId"]
+    depId = j["depId"]
+    row = j["row"]
+    col = j.get('col',0)
+    pre = j["pre"]
+    val = j["value"]
+    dump = j["dump"]
+    with VnVInputFile.find(fileId) as file:
+        return make_response(jsonify(file.autocomplete_moose(depId, dump, row,col,pre,val)),200)
+
+    return make_response(jsonify([]), 200)
+
+
+
+@blueprint.route('/moose/validate', methods=["POST"])
+def moose_validate():
+    j = request.get_json()
+
+    depId = j["depId"]
+    fileId = j["fileId"]
+    value = j["value"]
+    dump = j["dump"]
+
+    with VnVInputFile.find(fileId) as file:
+        return make_response(jsonify(file.validate_moose(depId, dump, value)),200)
 
     return make_response(jsonify([]), 200)
 
@@ -280,10 +395,9 @@ def openreport(id_):
                 for i in reports:
                     with open(file.connection.download(i), 'r') as ff:
                         ff = get_file_from_runinfo(json.load(ff))
-                        return url_for('base.files.view', id_=ff.id_)
-            else:
-                data = {}
-                return make_response(str(len(reports)), 200)
+                        return make_response(url_for('base.files.view', id_=ff.id_),200)
+
+            return make_response("Error", 201)
 
     except Exception as e:
         print(e)
@@ -308,7 +422,7 @@ def execute(id_):
     try:
         with VnVInputFile.find(id_) as file:
             if "dryrun" in request.args:
-                script, name = file.script(request.args.get("val", ""))
+                script, name = file.script(request.args.get("val", ""),"SAMPLE")
                 return make_response(f'''Job Name: {name}\n\n{script}''', 200)
             else:
                 return make_response(file.execute(request.args.get("val", "")), 200)

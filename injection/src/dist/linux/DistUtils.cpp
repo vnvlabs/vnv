@@ -41,7 +41,7 @@ libInfo getLibInfo(std::string filepath, unsigned long add) {
 
 char* getCurrentDirectory() { return get_current_dir_name(); }
 
-void initialize_lock(LockFile* lockfile) { lockfile->fd = open(lockfile->fname.c_str(), O_WRONLY | O_CREAT); }
+void initialize_lock(LockFile* lockfile) {  }
 
 void lock_file(LockFile* lockfile) { flock(lockfile->fd, LOCK_EX); }
 

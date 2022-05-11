@@ -113,8 +113,7 @@ function get_ace_editor(fileid, elmId, mode, live, autocompl) {
         theme: "ace/theme/tomorrow_night_blue",
         mode: "ace/mode/" + mode,
         autoScrollEditorIntoView: true,
-        minLines: 40,
-        id: elmId
+        minLines: 40
     });
 
     if (autocompl) {

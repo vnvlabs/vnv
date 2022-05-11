@@ -36,7 +36,7 @@ class run {
  * (thats this comment). You can write data using the engine.
  *
  */
-INJECTION_ITERATOR_R(Samples, sampleIterator, run) {
+INJECTION_ITERATOR_R(VnVPlugin, sampleIterator, run) {
   
   auto y = getOutputRef<double>("y","double");
   

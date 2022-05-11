@@ -10,7 +10,7 @@
  *
  *
  */
-INJECTION_PLUG(Samples, samplePlug) {
+INJECTION_PLUG(VnVPlugin, samplePlug) {
   auto x = getInputRef<double>("x", "double");
   auto y = getOutputRef<double>("y", "double");
 

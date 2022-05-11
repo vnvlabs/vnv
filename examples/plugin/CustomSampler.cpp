@@ -13,6 +13,6 @@ class sampleRunner {
  * Sampler that always says run.
  *
  */
-INJECTION_SAMPLER_R(Samples, identitySampler, sampleRunner) {
+INJECTION_SAMPLER_R(VnVPlugin, identitySampler, sampleRunner) {
   return runner->run(type, stageId);
 }

@@ -5,9 +5,21 @@
 {%else%}
 
 {% for job in file.get_jobs() %}
-<div class="card" style="padding:10px;">
-    <div style="display:flex; align-items:center;">
-        <h5 style="flex:1"> {{job.getName()}} ({{job.getId()[0:5]}}) -- {%if job.running() == True %} Running... {%else%} Job Completed with exit code {{job.exitcode()}} {%endif%} </h5>
+<div class="" style="padding:10px;">
+    <div style="display:flex; align-items:center; font-size:20px; font-weight:800">
+         {%if job.running() == True %}
+                <div class="badge badge-warning">Running</div>
+            {%elif job.exitcode() == 0 %}
+                <div class="badge badge-success">Completed</div>
+            {%else%}
+                <div class="badge badge-danger">Error {{job.exitcode()}}</div>
+            {%endif%}
+        <div style="flex:1; margin-left:10px" >
+            {{job.getName()}}
+        </div>
+        <div style="margin-right:40px;" >{{job.getId()[0:5]}} </div>
+        <div style="margin-right:40px;" >{{job.dispDate()}} </div>
+
         <button class="btn btn-primary" style="margin-right:10px;" onclick='$("#script_{{job.getId()|safe}}").toggle("show")'>Script</button>
         <button class="btn btn-primary" style="margin-right:10px;" onclick='$("#input_{{job.getId()|safe}}").toggle("show")'>VnV Input</button>
 
@@ -20,6 +32,7 @@
 
         {%endif%}
     </div>
+
     <div id="script_{{job.getId()|safe}}" style="display:none">
         <h3>Execution Script</h3>
         {{job.script()|safe}}
@@ -34,16 +47,22 @@
     </div>
 
 </div>
+<hr class="logrule">
+{% endfor %}
 
 <script>
     function open_vnv_report(id, dir) {
         markAsLoading(true,"Loading")
-        $.get("/inputfiles/openreport/{{file.id_}}?confirmed&id=" + id + "&dir=" + dir , function(data1) {
-             window.location.href = data1
+        $.get("/inputfiles/openreport/{{file.id_}}?confirmed&id=" + id + "&dir=" + dir , function(data1, status,xhr) {
+
+            if (xhr.status == 200) {
+                window.location.href = data1
+            } else {
+                alert("Could not a find valid vnv report for this job")
+            }
         })
     }
 </script>
 
-{% endfor %}
 {%endif%}
 {%endwith%}

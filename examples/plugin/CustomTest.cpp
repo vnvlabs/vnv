@@ -4,7 +4,7 @@
 /** Include the VnV include file **/
 #include "VnV.h"
 
-#define PNAME Samples
+#define PNAME VnVPlugin
 
 // This is a set of tests. You can compile tests into a separate testing
 // library, or you can add them directly in the executable. All that is
@@ -125,5 +125,57 @@ INJECTION_TEST(PNAME, customTest4) {
     return FAILURE;
   }
 
+  return SUCCESS;
+}
+
+/**
+  Euclidean Error. Docuementation is Fun
+
+  This is some more.
+
+
+  This is the rest.
+
+
+**/
+INJECTION_TEST(PNAME, EuclideanError) {
+  auto measured = GetRef("measured", std::vector<double> );
+  auto exact = GetRef("exact", std::vector<double> );
+  
+  if (measured.size() != exact.size()) {
+    double m1 = -1;
+    engine->Put("l2_error", m1);
+    engine->Put("l1_error", m1);
+    engine->Put("linf_error", m1);
+    return FAILURE;
+  }
+
+  double l2(0), l1(0), linf(0);
+  for (std::size_t i = 0; i < measured.size(); i++) {
+    double diff = fabs(measured[i] - exact[i]);
+    l1 += diff;
+    l2 += diff * diff;
+    linf = (diff > linf) ? diff : linf;
+  }
+
+  l2 = sqrt(l2);
+  engine->Put("l2_error", l2);
+  engine->Put("l1_error", l1);
+  engine->Put("linf_error", linf);
+  return SUCCESS;
+}
+
+/**
+ * @brief Construct a new injection test object
+ * 
+ * 
+ */
+INJECTION_TEST(PNAME, slope) {
+  
+  auto slope = GetRef("slope",double);
+  auto intersection = GetRef("intersection",double);
+          
+  engine->Put("slope", slope);
+  engine->Put("intersection", intersection);
   return SUCCESS;
 }

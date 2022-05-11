@@ -25,7 +25,7 @@ int class1::function2(int y) {
 
 // This is an example of how an application can provide initialization
 // functions for VnV to use in applications using the library. 
-INJECTION_EXECUTABLE_NOCLANG(DummyApplication, DLPNAME);
+INJECTION_LIBRARY_NOCLANG(DummyApplication, DLPNAME);
 
 
 void DummyVnV::Initialize(int argc, char** argv, const char* filename) {
