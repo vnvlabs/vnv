@@ -33,7 +33,8 @@ add_custom_target(
    )
 
 
-
+#TODO targetFile is wrong -- Need to figure out a way to get the file name 
+# of the target output binary. 
 function( add_vnv_generation_target targetName packageName extension fortran ) 
     
    if (${fortran} GREATER 0 ) 
@@ -47,7 +48,7 @@ function( add_vnv_generation_target targetName packageName extension fortran )
                --output ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} 
                --cache ${CMAKE_BINARY_DIR}/vnv.__cache__ 
                --package ${packageName} 
-               --targetFile ${CMAKE_CURRENT_BINARY_DIR}/${targetName}
+               --targetFile ${CMAKE_CURRENT_BINARY_DIR}/${targetName} 
                --regFile ${CMAKE_BINARY_DIR}/vnv.__registration__ 
                ${fortranFiles}
                ${CMAKE_BINARY_DIR}/compile_commands.json

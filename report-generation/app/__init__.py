@@ -2,6 +2,7 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
+import shutil
 
 from flask import Flask,render_template
 from logging import DEBUG
@@ -30,7 +31,7 @@ def register_blueprints(apps, config):
     base.config(config)
     apps.register_blueprint(base.blueprint)
     base.template_globals(global_template_variables)
-    base.load_default_data(not Configured() or BrandNew())
+
 
     @apps.context_processor
     def inject_stage_and_region():
@@ -60,14 +61,3 @@ def create_app(config):
     configure_error_handlers(app)
     return app
 
-
-
-def create_serve_app(config):
-    import app.serve
-
-    app = Flask(__name__, static_folder="static")
-    app.config.from_object(config)
-    socketio = SocketIO(app)
-    serve.register(socketio, app, config)
-
-    return socketio, app

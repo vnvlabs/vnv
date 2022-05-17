@@ -27,7 +27,8 @@ import os
 blueprint = Blueprint(
     'directives',
     __name__,
-    template_folder='templates'
+    template_folder='templates',
+    url_prefix="/directives"
 )
 
 context_map = {

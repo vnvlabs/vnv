@@ -339,7 +339,7 @@ class VnVInputFile:
             path = self.connection.write(json.dumps(s), None)
             a = getSpecDumpCommand(path)
 
-            res = self.connection.execute(a)
+            res = self.connection.execute(a, env={"VNV_INPUT_FILE":path})
             a = res.find("===START SCHEMA DUMP===") + len("===START SCHEMA DUMP===")
             b = res.find("===END SCHEMA_DUMP===")
             if a > 0 and b > 0 and b > a:
@@ -588,7 +588,6 @@ class VnVInputFile:
         a = mongo.loadInputFile(name)
         if a is not None:
             raise Exception("Name is taken")
-            f = VnVInputFile.fromJson(a)
         else:
             f = VnVInputFile(name, path=path, defs=defs )
 

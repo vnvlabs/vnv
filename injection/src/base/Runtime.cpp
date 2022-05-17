@@ -907,15 +907,25 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
 
 bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv, std::string configFile,
                            registrationCallBack callback) {
-  // Search the Cmd line for the input override call. This call sets the
-  // configuration file using the command line. It overrides the value passed in
-  // through the initialize call.
-  for (int i = 0; i < *argc; i++) {
-    std::string s((*argv)[i]);
-    if (s.compare("--vnv-input-file") == 0) {
-      configFile = (*argv)[i + 1];
-      break;
+  
+  
+  std::string fname = DistUtils::getEnvironmentVariable("VNV_INPUT_FILE","");
+  if (fname.length() > 0 ) {
+    std::cout << "Using Input file defined in the environment: " << fname;
+    configFile = fname;
+  } else {
+
+    // Search the Cmd line for the input override call. This call sets the
+    // configuration file using the command line. It overrides the value passed in
+    // through the initialize call.
+    for (int i = 0; i < *argc; i++) {
+      std::string s((*argv)[i]);
+      if (s.compare("--vnv-input-file") == 0) {
+        configFile = (*argv)[i + 1];
+        break;
+      }
     }
+
   }
 
   this->configFile = configFile;

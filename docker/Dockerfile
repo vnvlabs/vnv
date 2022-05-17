@@ -11,10 +11,14 @@ ENV VNV_MATCHER=${VNV_DIR}/bin/vnv-matcher
 ENV VNV_CONFIG=${VNV_DIR}/config/.vnv-config.json
 ENV LD_LIBRARY_PATH=${VNV_DIR}/lib
 
-# This one is used by the extraction code to fix issues with openmp 
-ENV OPENMP_INCLUDE_DIR=/usr/lib/gcc/x86_64-linux-gnu/9/include
+# This one is used by the extraction code to fix issues with openmp. This is the directory containing
+# the Clang version of the openmp omp.h header file. We need the clang version because libtooling uses
+# clang to process the input files,  not gcc. 
+
+ENV OPENMP_INCLUDE_DIR=/usr/lib/llvm-10/include/openmp
 
 COPY . ${SOURCE_DIR}/vnv
+
 
 #Build it
 RUN cd ${SOURCE_DIR}/vnv  \
@@ -35,3 +39,5 @@ RUN cd ${VNV_DIR}/examples/c && ./csample.a && cd ../cpp && ./injectionPoint && 
 RUN cd ${VNV_DIR}/gui/report-generation && virtualenv virt && virt/bin/pip install -r ./requirements.txt
 
 ENV VNV_CONFIG=${VNV_CONFIG}:${SOURCE_DIR}/vnv/build/vnv.__registration__
+
+COPY ./docker/launch.sh ${VNV_DIR}/gui/launch.sh

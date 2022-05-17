@@ -467,11 +467,17 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Executables");
       std::string pname = getPackageName(Args, 0);
       jj[pname] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_LIBRARY") {
+      jj[pname]["lib"] = "executables";
+    } else if (nae == "INJECTION_LIBRARY" ) {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Executables");
       std::string pname = getPackageName(Args, 0);
       jj[pname] = getDocs(Range).toJson();
-      jj[pname]["lib"] = true;
+      jj[pname]["lib"] = "libraries";
+    } else if ( nae == "INJECTION_PLUGIN" ) {
+      json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Executables");
+      std::string pname = getPackageName(Args, 0);
+      jj[pname] = getDocs(Range).toJson();
+      jj[pname]["lib"] = "plugins";
     } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 2, true));
 

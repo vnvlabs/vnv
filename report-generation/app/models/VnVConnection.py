@@ -357,9 +357,9 @@ class VnVLocalConnection:
                 return self.session.returncode
             return -1
 
-    def execute(self, command, asy=False, name=None, fullscript=None, metadata=None):
+    def execute(self, command, asy=False, name=None, fullscript=None, metadata=None, env={}):
         try:
-            result = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
+            result = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE, env=env)
             if not asy:
                 return result.communicate()[0].decode("utf-8")
             else:

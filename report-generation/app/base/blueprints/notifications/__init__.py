@@ -10,7 +10,8 @@ from app.models.VnVNotification import VnVNotification
 blueprint = Blueprint(
     'notifications',
     __name__,
-    template_folder='templates'
+    template_folder='templates',
+    url_prefix="/notifications"
 )
 
 

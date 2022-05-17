@@ -8,7 +8,8 @@ from flask import Blueprint, render_template, request, make_response, jsonify
 blueprint = Blueprint(
     'help',
     __name__,
-    template_folder='templates'
+    template_folder='templates',
+    url_prefix="/help"
 )
 
 

@@ -2,13 +2,6 @@
 
     <a href="#!" class="nav-link "><span class="pcoded-micon"><i class="feather icon-file"></i></span><span
             class="pcoded-mtext">VnV Executables</span>
-        <span title="New Input File" onclick='add_input_file(event)' class="pcoded-micon pcoded-mtext" style="float:right; padding-right:10px;">
-							    <i class="feather icon-file-plus"></i>
-							 </span>
-           <span title="delete all" onclick='delete_all_inputfiles(event)' class="pcoded-micon pcoded-mtext"
-              style="float:right; padding-right:10px;">
-              <i class="feather icon-delete"></i>
-          </span>
     </a>
     <ul class="pcoded-submenu" id="inputfiles_list">
         {% for file in inputfiles.values() %}
@@ -23,6 +16,11 @@
             </div>
         </a></li>
         {% endfor %}
+        <li>
+            <a href="#!" onclick='add_input_file(event)' style="cursor:pointer">
+                <i class="feather icon-file-plus"></i> Create A New Executable
+            </a>
+        </li>
     </ul>
 
 </li>

@@ -4,16 +4,21 @@
 		<div class="navbar-wrapper  ">
 			<div class="navbar-content scroll-div " >
 				<ul class="nav pcoded-inner-navbar " style="font-size:15px">
-					{% include 'inputfiles/sidebar.html' %}
-					{% include 'files/sidebar.html' %}
+                	{% for k,v in ALL_BLUEPRINTS.items() %}
+					{%with get_template_file = v.get_template_file %}
+                		{% include k + "/sidebar.html"  ignore missing %}
+					{% endwith %}
+                	{%endfor%}
 				</ul>
 			</div>
 		</div>
 	</nav>
 
-	{%include 'includes/modals.html' %}
-	{%include 'files/modals.html' %}
- 	{%include 'inputfiles/modals.html' %}
+	{% for k,v in ALL_BLUEPRINTS.items() %}
+	{%with get_template_file = v.get_template_file %}
+		{% include k + "/modals.html" ignore missing %}
+	{%endwith%}
+	{%endfor%}
 
 
 

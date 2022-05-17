@@ -23,7 +23,8 @@ from ...utils.utils import render_error
 blueprint = Blueprint(
     'files',
     __name__,
-    template_folder='templates'
+    template_folder='templates',
+    url_prefix="/files"
 )
 blueprint.register_blueprint(viewers.blueprint, url_prefix="/viewers")
 

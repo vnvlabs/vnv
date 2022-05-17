@@ -386,7 +386,7 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
         std::cout << "Invalid registration file. Please fix/delete it and try again" << std::endl;
       }
     } else {
-      j = R"({"reports":{},"executables": {}, "plugins" : {}})"_json;
+      j = R"({"reports":{},"executables": {}, "plugins" : {}, "libraries" : {} })"_json;
     }
 
     if (!j.contains("executables")) {
@@ -395,7 +395,9 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
     if (!j.contains("plugins")) {
       j["plugins"] = json::object();
     }
-    
+    if (!j.contains("libraries")) {
+      j["libraries"] = json::object();
+    }
 
     json jv = json::object();
     jv["filename"] = targetFileName;
@@ -408,11 +410,13 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
     std::string n = jc.value("title", packageName);
     if (n.empty()) n = packageName;
 
-    if (j.value("lib", false)) {
-      j["plugins"][n] = jv;  ////// TODO
-    } else {
-      j["executables"][n] = jv;  ////// TODO
-    }
+    std::string ty = jc.value("lib","executables");
+    
+    // This smells but im lazy  
+    assert(ty.compare("executables")==0 || ty.compare("libraries") == 0 || ty.compare("plugins") == 0);
+    
+    j[ty][n] = jv;  ////// TODO
+    
     std::ofstream rfile(regFileName);
     rfile << j.dump(3);
     rfile.close();

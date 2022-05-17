@@ -47,6 +47,7 @@
                 </div>
             </li>
         </ul>
+
         <ul class="navbar-nav ml-auto" >
             <li>
                 <div class="dropdown">
@@ -56,9 +57,11 @@
         </ul>
 
         <ul class="navbar-nav ml-auto">
-            <li>
-                {% include 'notifications/navigation.html' %}
-            </li>
+                {% for k,v in ALL_BLUEPRINTS.items() %}
+	            {%with get_template_file = v.get_template_file %}
+                {% include k + "/navigation.html" ignore missing %}
+                {%endwith%}
+                {%endfor%}
         </ul>
 
          <ul class="navbar-nav ml-auto" >

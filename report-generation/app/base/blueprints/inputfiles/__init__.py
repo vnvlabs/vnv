@@ -24,7 +24,8 @@ vnv_plugins = {}
 blueprint = Blueprint(
     'inputfiles',
     __name__,
-    template_folder='templates'
+    template_folder='templates',
+    url_prefix="/inputfiles"
 )
 
 

@@ -2,16 +2,6 @@
 
     <a href="#!" class="nav-link "><span class="pcoded-micon"><i class="feather icon-file"></i></span><span
             class="pcoded-mtext">VnV Reports</span>
-
-        <span title="Load New File" onclick='add_file(event)' class="pcoded-micon pcoded-mtext"
-              style="float:right; padding-right:10px;">
-							    <i class="feather icon-file-plus"></i>
-							 </span>
-        <span title="delete all" onclick='delete_all_files(event)' class="pcoded-micon pcoded-mtext"
-              style="float:right; padding-right:10px;">
-              <i class="feather icon-delete"></i>
-          </span>
-
     </a>
     <ul class="pcoded-submenu" id="files_list">
 
@@ -32,6 +22,11 @@
             </a>
         </li>
         {% endfor %}
+        <li>
+            <a href="#!" onclick='add_file(event)' style="cursor:pointer">
+                <i class="feather icon-file-plus"></i> Load A New Report
+            </a>
+        </li>
     </ul>
 
 </li>

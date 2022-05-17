@@ -19,6 +19,12 @@ function delete_all_files(event) {
 
   }
 
+function render_in_main_view(url) {
+   $.get(url, function(data) {
+        $('#formControlElm').html(data)
+   })
+}
+
 
 function remove_file(id_, event, refresh) {
   event.preventDefault()

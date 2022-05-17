@@ -1,39 +1,43 @@
+<script src="/static/assets/js/plugins/bootstrap.min.js"></script>
+<script src="/static/assets/js/pcoded.js"></script>
 
-    <script src="/static/assets/js/plugins/bootstrap.min.js"></script>
-    <script src="/static/assets/js/pcoded.js"></script>
+<script src="/static/assets/js/plugins/jquery.timeago.js"></script>
 
-    <script src="/static/assets/js/plugins/jquery.timeago.js"></script>
+<script src="/static/assets/js/plugins/apexcharts.min.js"></script>
+<script src="/static/assets/js/plugins/Chart.min.js"></script>
+<script src="/static/assets/js/plugins/json-formatter.umd.js"></script>
+<script src="/static/assets/js/plugins/plotly.min.js"></script>
+<script src="/static/assets/js/plugins/tabulator.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
 
-    <script src="/static/assets/js/plugins/apexcharts.min.js"></script>
-    <script src="/static/assets/js/plugins/Chart.min.js"></script>
-    <script src="/static/assets/js/plugins/json-formatter.umd.js"></script>
-    <script src="/static/assets/js/plugins/plotly.min.js"></script>
-    <script src="/static/assets/js/plugins/tabulator.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js"></script>
+<script src="/static/assets/js/plugins/xterm.js"></script>
+<script src="/static/assets/js/plugins/xterm-addon-fit.js"></script>
 
-    <script src="/static/assets/js/plugins/xterm.js"></script>
-    <script src="/static/assets/js/plugins/xterm-addon-fit.js"></script>
+<script src="/static/assets/js/plugins/gridstack-h5.js"></script>
 
-    <script src="/static/assets/js/plugins/gridstack-h5.js"></script>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="/static/assets/js/plugins/force-graph.js"></script>
 
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script src="/static/assets/js/plugins/force-graph.js"></script>
+<script src="/static/assets/js/plugins/element-resize.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ext-language_tools.min.js" ?></script>
 
-    <script src="/static/assets/js/plugins/element-resize.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ext-language_tools.min.js"?></script>
-
-    <script>
+<script>
       langTools = ace.require('ace/ext/language_tools');
       langTools.setCompleters([])
-    </script>
 
-    {% include 'notifications/scripts.html'%}
-    {% include 'files/scripts.html'%}
-    {% include 'inputfiles/scripts.html'%}
+</script>
 
-    <script>
+
+{% for k,v in ALL_BLUEPRINTS.items() %}
+
+{%with get_template_file = v.get_template_file %}
+{% include k + "/scripts.html" ignore missing %}
+{%endwith%}
+{%endfor%}
+
+<script>
         $(document).ready(function(){
             if ($('.grid-stack').length > 0 ) {
                 let grid = GridStack.init({});
@@ -68,16 +72,17 @@
         }
 
 
-    </script>
+
+</script>
 
 
-
-    <script>
+<script>
         $(document).ready(function() {
             $("time.timeago").timeago();
 
         });
-    </script>
+
+</script>
 
 
 
