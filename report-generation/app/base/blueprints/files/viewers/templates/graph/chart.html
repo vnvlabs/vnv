@@ -1,4 +1,0 @@
-{% with strip = request.args.get("strip"), processor = request.args.get("processor","0")  %}
-{%with f=file.set_proc_iter(processor,strip)%}{%endwith%}
-{%include 'general/tree.html'%}
-{%endwith%}

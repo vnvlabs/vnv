@@ -1,5 +1,0 @@
-
-{% with strip = request.args.get("strip"), communicator = request.args.get("communicator",file.getDefaultComm())  %}
-{%with f=file.set_comm_iter(communicator,strip)%}{%endwith%}
-{%include 'general/tree.html'%}
-{%endwith%}

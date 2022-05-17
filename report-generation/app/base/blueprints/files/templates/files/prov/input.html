@@ -1,9 +1,0 @@
-{% with file = file.get_prov().get_input() %}
-<div class="" style="padding:15px;    border: 1px solid #80808038; ">
-    <div class="card-body">
-        {% include 'files/prov/file.html' %}
-        {% endwith %}
-
-        {{ file.get_prov().render_input_file() | safe }}
-    </div>
-</div>
