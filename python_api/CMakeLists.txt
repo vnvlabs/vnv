@@ -33,4 +33,8 @@ if(${SWIG_FOUND} AND ${PYTHONLIBS_FOUND})
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
        DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
+  install(FILES ${CMAKE_CURRENT_LIST_DIR}/__init__.py DESTINATION python_api )
+  install(TARGETS VnVReader DESTINATION python_api)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/VnVReader.py DESTINATION python_api)
+     
 endif()

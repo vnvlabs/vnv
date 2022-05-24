@@ -367,8 +367,6 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
   json jc = r.getExecutableDocumentations(packageName);
 
 
-
-
   if (jc.size() > 0 && !regFileName.empty() && !targetFileName.empty()) {
     
     //Get a lock file for the registration file. 
@@ -402,7 +400,7 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
     json jv = json::object();
     jv["filename"] = targetFileName;
     jv["description"] = jc.value("description", "");
-
+    jv["packageName"] = packageName;
     if (jc.contains("configuration")) {
       jv["defaults"] = jc["configuration"];
     }

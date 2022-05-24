@@ -217,7 +217,7 @@ nlohmann::json RunTime::getFullJsonSchema() {
 
   defs["outputEngine"] = OutputEngineStore::instance().schema(packageJson);
   defs["communicator"] = CommunicationStore::instance().schema(packageJson);
-  defs["action"] = ActionStore::instance().schema(packageJson);
+  defs["actions"] = ActionStore::instance().schema(packageJson);
   defs["unittest"] = UnitTestStore::instance().schema(packageJson);
   defs["workflows"] = WorkflowStore::instance().schema(packageJson);
   

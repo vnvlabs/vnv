@@ -80,7 +80,7 @@ install(FILES ${CMAKE_CURRENT_LIST_DIR}/injection/include/VnV.h
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/injection/include/
         DESTINATION include)
 
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/config/ DESTINATION config)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/docker/config/ DESTINATION config)
         
 
 # Create a ConfigVersion.cmake file

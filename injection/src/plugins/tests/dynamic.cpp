@@ -12,8 +12,8 @@ typedef VnV::ITest* dynamic_test_maker_ptr(VnV::TestConfig config);
 
 VnV::ITest* loadPlugin(std::string libraryPath, std::string symbolName,
                        VnV::TestConfig config) {
-  
-  
+    
+    
   void* dllib = VnV::DistUtils::loadLibrary(libraryPath);
  
   if (dllib != nullptr) {

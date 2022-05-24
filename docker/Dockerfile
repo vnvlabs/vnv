@@ -8,7 +8,7 @@ LABEL vnv.version.vnv=${COMMIT_HASH}
 
 ENV VNV_DIR=${SOFTWARE_DIR}/vnv
 ENV VNV_MATCHER=${VNV_DIR}/bin/vnv-matcher
-ENV VNV_CONFIG=${VNV_DIR}/config/.vnv-config.json
+ENV VNV_CONFIG=${VNV_DIR}/config/vnv-config.json
 ENV LD_LIBRARY_PATH=${VNV_DIR}/lib
 
 # This one is used by the extraction code to fix issues with openmp. This is the directory containing
@@ -35,9 +35,5 @@ RUN cd ${VNV_DIR}/test/ && ./test-runner
 # Run the examples. 
 RUN cd ${VNV_DIR}/examples/c && ./csample.a && cd ../cpp && ./injectionPoint && ./iterator && ./euler && ./line && ./distributed   
 
-# Create the virtual environment for the report generation (Should happen in Cmake but doesn't for some reason.
-RUN cd ${VNV_DIR}/gui/report-generation && virtualenv virt && virt/bin/pip install -r ./requirements.txt
-
 ENV VNV_CONFIG=${VNV_CONFIG}:${SOURCE_DIR}/vnv/build/vnv.__registration__
 
-COPY ./docker/launch.sh ${VNV_DIR}/gui/launch.sh

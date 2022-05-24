@@ -638,8 +638,8 @@ class MongoPersistance {
     Mongo_getter_setter(streamId, long, -1) Mongo_getter_setter(name, std::string, "")
         Mongo_getter_setter(open_, bool, false)
 
-            void setmetadata(MetaDataWrapper& meta) {
-      getDocument()->update("metadata", meta.asJson());
+    void setmetadata(MetaDataWrapper& meta) {
+      getDocument()->update("metadata", meta.toJson());
     }
 
     void markReaderThread() { getCollection()->set_reader_thread(); }
