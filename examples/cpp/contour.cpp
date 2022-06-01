@@ -46,10 +46,11 @@ INJECTION_TEST(ContourExample, contour) {
 /**
  * @brief 
  * 
- * HELLO 
- * =====
+ * VnV Toolkit Tutorials: Countour Plots 
+ * =====================================
  * 
- * What does this application do. 
+ * This application uses VnV and Plotly to demonstrate how appplication data can be injected 
+ * directly into a contour plot. 
  */
 INJECTION_EXECUTABLE(ContourExample)
 
@@ -89,7 +90,7 @@ int main(int argc, char** argv) {
    *    :layout.title.text: Basic contour plot
    * 
    **/
-  INJECTION_POINT_C("ContourExample", VWORLD, "mainpoint", IPCALLBACK {
+  INJECTION_POINT_C(ContourExample, VWORLD, mainpoint, IPCALLBACK {
       engine->Put_Vector("xx", x);
       engine->Put_Vector("yy", y);
 
@@ -112,15 +113,15 @@ int main(int argc, char** argv) {
    *    :layout.title.text: Basic contour plot
    *
    */
-  INJECTION_LOOP_BEGIN_C("ContourExample", VWORLD, "mainloop", IPCALLBACK {
+  INJECTION_LOOP_BEGIN_C(ContourExample, VWORLD, mainloop, IPCALLBACK {
       engine->Put_Vector("x",x);
   }, x);
   
   for (double i = rank; i < rank + 5; i++ ) {
       x = {i, i*i, i*i*i , i*i*i*i };
-      INJECTION_LOOP_ITER("ContourExample", "mainloop", "inner");
+      INJECTION_LOOP_ITER(ContourExample, mainloop, inner);
   }
-  INJECTION_LOOP_END("ContourExample", "mainloop");
+  INJECTION_LOOP_END(ContourExample, mainloop);
 
 
   INJECTION_FINALIZE(SPNAME);

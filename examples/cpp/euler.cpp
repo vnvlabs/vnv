@@ -99,7 +99,7 @@ double solve( double dt, double stop) {
      * 
      * 
      */
-    INJECTION_LOOP_BEGIN_C("Euler",VSELF,"Eulers",IPCALLBACK {
+    INJECTION_LOOP_BEGIN_C(Euler,VSELF,Eulers,IPCALLBACK {
        if (type == VnV::InjectionPointType::Begin) {
            engine->Put("dt",dt);
        } else if (type == VnV::InjectionPointType::Iter) {
@@ -114,13 +114,13 @@ double solve( double dt, double stop) {
 
     while (t < stop) {
 
-        INJECTION_LOOP_ITER("Euler", "Eulers", "TimeStep");
+        INJECTION_LOOP_ITER(Euler, Eulers, TimeStep);
         dt =  ( (stop - t) > dt ) ? dt : stop - t ;
         y = y + dt * deriv(y,t);
         t += dt;
     }
     
-    INJECTION_LOOP_END("Euler","Eulers");
+    INJECTION_LOOP_END(Euler,Eulers);
     
     double exact = exp(stop/2.)*sin(5*stop);
     return fabs((y-exact)/exact);
@@ -203,7 +203,7 @@ int main(int argc, char** argv) {
      * 
      * 
      */
-     INJECTION_LOOP_BEGIN_C("Euler",VSELF,"StepSize", IPCALLBACK {
+     INJECTION_LOOP_BEGIN_C(Euler,VSELF,StepSize, IPCALLBACK {
         if (type == VnV::InjectionPointType::Begin) {
             engine->Put("stop", stop);
         } else if (type == VnV::InjectionPointType::Iter) {
@@ -214,9 +214,9 @@ int main(int argc, char** argv) {
      for ( int i = 1; i < 5; i+=1 ) {
          dt = stop / (pow(10,i) );
          error = solve(dt,stop);
-         INJECTION_LOOP_ITER("Euler","StepSize","Step");
+         INJECTION_LOOP_ITER(Euler,StepSize,Step);
      }
-     INJECTION_LOOP_END("Euler","StepSize");
+     INJECTION_LOOP_END(Euler,StepSize);
 
 
 

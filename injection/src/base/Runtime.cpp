@@ -900,7 +900,7 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
    * application between the VnVInit and VnVFinalize functions.
    *
    */
-  INJECTION_LOOP_BEGIN(VNV_STR(VNVPACKAGENAME), comm, "initialization", runTests);
+  INJECTION_LOOP_BEGIN(VNVPACKAGENAME, comm, initialization, runTests);
 
   return false;
 }
@@ -993,7 +993,7 @@ bool RunTime::Finalize() {
   if (runTests) {
     auto comm = CommunicationStore::instance().worldComm();
 
-    INJECTION_LOOP_END(VNV_STR(VNVPACKAGENAME), "initialization");
+    INJECTION_LOOP_END(VNVPACKAGENAME, initialization);
 
     ActionStore::instance().finalize(comm);
 

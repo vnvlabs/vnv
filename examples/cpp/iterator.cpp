@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
    * -----------------------------------------
    *
    */
-  INJECTION_ITERATION(zx, VNV_STR(SPNAME), VSELF, "FunctionEvaluation", 1, x, f) { f = 10 * x * x - 200; }
+  INJECTION_ITERATION(zx, SPNAME, VSELF, FunctionEvaluation, 1, x, f) { f = 10 * x * x - 200; }
 
   /**
      Conclusion.

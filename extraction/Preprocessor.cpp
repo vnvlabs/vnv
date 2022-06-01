@@ -479,8 +479,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj[pname] = getDocs(Range).toJson();
       jj[pname]["lib"] = "plugins";
     } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 2, true));
-
+      json& jj = getDef("InjectionPoints", getPackageName(Args, 0), getPackageName(Args, 2));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range).toJson();
@@ -488,9 +487,8 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       if (nae == "INJECTION_LOOP_BEGIN_C") {
         jj["loop"] = true;
       }
-
     } else if (nae == "INJECTION_ITERATION_C") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 1, true), getPackageName(Args, 3, true));
+      json& jj = getDef("InjectionPoints", getPackageName(Args, 1), getPackageName(Args, 3));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range).toJson();
@@ -498,7 +496,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       thisStage["docs"] = ProcessedComment().toJson();
 
     } else if (nae == "INJECTION_FUNCTION_PLUG_C") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 1, true), getPackageName(Args, 3, true));
+      json& jj = getDef("InjectionPoints", getPackageName(Args, 1), getPackageName(Args, 3));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range).toJson();
@@ -512,7 +510,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       // thisStage["docs"] = getDocs(Range).toJson();
 
     } else if (nae == "INJECTION_LOOP_END") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
+      json& jj = getDef("InjectionPoints", getPackageName(Args, 0), getPackageName(Args, 1));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "End");
       thisStage["docs"] = getDocs(Range).toJson();

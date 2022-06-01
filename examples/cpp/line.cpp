@@ -232,7 +232,7 @@ int main(int argc, char** argv) {
    * This is a simple VnV Injection point. There is not much more to say. 
    * 
    **/
-  INJECTION_POINT("LineExample", VWORLD, "mainpoint", x, y, z, w, t);
+  INJECTION_POINT(LineExample, VWORLD, mainpoint, x, y, z, w, t);
 
   INJECTION_FINALIZE(SPNAME);
 

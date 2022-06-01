@@ -13,13 +13,13 @@ struct VnV_Function_Sig a;
 a.compiler = "";
 a.signiture = "";
 
-  INJECTION_LOOP_BEGIN(VNV_STR(PNAME), VWORLD, "CFunction", x)
+  INJECTION_LOOP_BEGIN(PNAME, VWORLD, CFunction, x)
   for (int i = 0; i < 10; i++) {
     x += i;
-    INJECTION_LOOP_ITER(VNV_STR(PNAME),"CFunction", "inner");
+    INJECTION_LOOP_ITER(PNAME, CFunction, inner);
   }
 
-  INJECTION_LOOP_END(VNV_STR(PNAME),"CFunction");
+  INJECTION_LOOP_END(PNAME,CFunction);
   return x;
 }
 

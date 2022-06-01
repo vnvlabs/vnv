@@ -44,7 +44,7 @@ contains ! Implementation of the functions. We just wrap the C function here.
 end module
 )";
 
-  //TODO COMPARE -- IF FILE IS SAME THEN DO NOTTTTTT REWRITE SO IT DOESNT NEED 
+  //TODO COMPARE -- IF FILE IS SAME THEN DO NOT REWRITE SO IT DOESNT NEED 
   //A REBUILD EVERY TIME. 
   std::size_t has = -1;
   std::ifstream iffs(filename);
@@ -410,7 +410,7 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
 
     std::string ty = jc.value("lib","executables");
     
-    // This smells but im lazy  
+    // hmmmmmm
     assert(ty.compare("executables")==0 || ty.compare("libraries") == 0 || ty.compare("plugins") == 0);
     
     j[ty][n] = jv;  ////// TODO

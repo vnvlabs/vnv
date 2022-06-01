@@ -55,7 +55,7 @@ VnV_Iterator IterationPack(A comm, const char* package, const char* id, struct V
 }  // namespace VnV
 
 #  define INJECTION_ITERATION_C(VAR, PNAME, COMM, NAME, ONCE, callback, ...)                                     \
-    VnV_Iterator VAR = VnV::CppIteration::IterationPack(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, \
+    VnV_Iterator VAR = VnV::CppIteration::IterationPack(COMM, VNV_STR(PNAME), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__, __LINE__, \
                                                         callback, ONCE EVERYONE(__VA_ARGS__));                   \
     while (VnV::CppIteration::Iterate(&VAR))
 

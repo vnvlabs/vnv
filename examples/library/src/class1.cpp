@@ -10,16 +10,16 @@ int class1::function1(int x) {
   double intersection = 3;
   double value = 0;
 
-  INJECTION_LOOP_BEGIN(VNV_STR(DLPNAME), VSELF, "Hello_temp_sub", slope, intersection, x, value);
+  INJECTION_LOOP_BEGIN(DLPNAME, VSELF, Hello_temp_sub, slope, intersection, x, value);
 
   value = slope * x + intersection;
 
-  INJECTION_LOOP_END(VNV_STR(DLPNAME), "Hello_temp_sub");
+  INJECTION_LOOP_END(DLPNAME, Hello_temp_sub);
 
   return static_cast<int>(value);
 }
 int class1::function2(int y) {
-    INJECTION_POINT(VNV_STR(DLPNAME), VSELF, "function_in_header", y);
+    INJECTION_POINT(DLPNAME, VSELF, function_in_header, y);
     return 0;
 }
 

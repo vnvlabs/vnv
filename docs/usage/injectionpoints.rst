@@ -213,7 +213,7 @@ Consider the following C++ source code:
    double b = std::atoi(argv[2])
    double x = std::atoi(argv[3]);
 
-   INJECTION_POINT("MyFirstApplication",VSELF,"Start", a,b,x);
+   INJECTION_POINT(MyFirstApplication,VSELF,Start, a,b,x);
 
    double f = a*x*x - b
 
@@ -223,7 +223,7 @@ Consider the following C++ source code:
                             = :vnv:`data.f`
 
    **/
-   INJECTION_POINT_C("MyFirstApplication",VSELF,"Start1", VNV_CALLBACK {
+   INJECTION_POINT_C(MyFirstApplication,VSELF,Start1, VNV_CALLBACK {
         engine->Put("value", get<double>("f");
    }, a,x,b,f);
 

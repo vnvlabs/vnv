@@ -13,24 +13,28 @@
 // Injection Points
 
 #  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...)            \
-    _VnV_injectionPoint(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, \
+    _VnV_injectionPoint(COMM, VNV_STR(PNAME), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, \
                         EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
 #  define INJECTION_POINT(PNAME, COMM, NAME, ...) \
     INJECTION_POINT_C(PNAME, COMM, NAME, NULL, __VA_ARGS__)
 
 #  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...)             \
-    _VnV_injectionPoint_begin(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, \
+    _VnV_injectionPoint_begin(COMM, VNV_STR(PNAME), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, \
                               EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);
 
 #  define INJECTION_LOOP_BEGIN(PNAME, COMM, NAME, ...) \
     INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, NULL, __VA_ARGS__)
 
 #  define INJECTION_LOOP_END(PNAME, NAME) \
-    _VnV_injectionPoint_end(PNAME, NAME, __FILE__, __LINE__);
+    _VnV_injectionPoint_end(VNV_STR(PNAME), VNV_STR(NAME), __FILE__, __LINE__);
 
 #  define INJECTION_LOOP_ITER(PNAME, NAME, STAGE) \
-    _VnV_injectionPoint_loop(PNAME, NAME, STAGE, __FILE__, __LINE__);
+    _VnV_injectionPoint_loop(VNV_STR(PNAME), VNV_STR(NAME), VNV_STR(STAGE), __FILE__, __LINE__);
+
+#  define INJECTION_LOOP_ITER_D(PNAME, NAME, STAGE) \
+    _VnV_injectionPoint_loop(VNV_STR(PNAME), VNV_STR(NAME), STAGE), __FILE__, __LINE__);
+
 
 #  define INJECTION_FUNCTION_WRAPPER_C(PNAME, COMM, NAME, function, callback, \
                                        ...)                                   \

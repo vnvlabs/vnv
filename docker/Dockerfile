@@ -1,4 +1,3 @@
-#from vnv_env:latest
 ARG FROM_IMAGE=beon9273a/vnv:vnv_env
 from ${FROM_IMAGE}
 
@@ -29,11 +28,6 @@ RUN cd ${SOURCE_DIR}/vnv  \
     && make install
 
 
-# Run the tests
-RUN cd ${VNV_DIR}/test/ && ./test-runner 
-
-# Run the examples. 
-RUN cd ${VNV_DIR}/examples/c && ./csample.a && cd ../cpp && ./injectionPoint && ./iterator && ./euler && ./line && ./distributed   
-
+# Register the file for reading during launch.
 ENV VNV_CONFIG=${VNV_CONFIG}:${SOURCE_DIR}/vnv/build/vnv.__registration__
 

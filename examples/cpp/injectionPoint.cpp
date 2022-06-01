@@ -40,12 +40,12 @@ int main(int argc, char** argv) {
    *  points. 
 
   **/
-  INJECTION_LOOP_BEGIN(VNV_STR(SPNAME), VSELF, "Function1", samplePoints);
+  INJECTION_LOOP_BEGIN(SPNAME, VSELF, Function1, samplePoints);
   for (int i = 0; i < 10; i++) {
     samplePoints.push_back(i);
-    INJECTION_LOOP_ITER(VNV_STR(SPNAME), "Function1", "inner");
+    INJECTION_LOOP_ITER(SPNAME, Function1, inner);
   }
-  INJECTION_LOOP_END(VNV_STR(SPNAME), "Function1");
+  INJECTION_LOOP_END(SPNAME, Function1);
   
 
   INJECTION_FINALIZE(SPNAME);

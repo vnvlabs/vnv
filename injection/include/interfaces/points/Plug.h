@@ -48,7 +48,7 @@ VnV_Iterator PlugPack(A comm, const char* package, const char* id, struct VnV_Fu
 
 // Macro for an iterative vnv injection point.
 #  define INJECTION_FUNCTION_PLUG_C(VAR, PNAME, COMM, NAME, callback, ...)                             \
-    VnV_Iterator VAR = VnV::CppPlug::PlugPack(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, \
+    VnV_Iterator VAR = VnV::CppPlug::PlugPack(COMM, VNV_STR(PNAME), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__, __LINE__, \
                                               callback EVERYONE(__VA_ARGS__));                         \
     while (VnV::CppPlug::Iterate(&VAR))
 

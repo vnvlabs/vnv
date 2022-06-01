@@ -10,13 +10,14 @@
 #  define DOIT(X) #  X, (void*)(&X),
 #  define EVERYONE(...) FOR_EACH(DOIT, __VA_ARGS__)
 
-#  define INJECTION_FUNCTION_PLUG_C(PNAME, COMM, NAME, callback, ...)                         \
-    VnV_Iterator VNV_JOIN(PNAME, _plug_, NAME) =                                              \
-        _VnV_injectionPlug(COMM, PNANE, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, \
+#  define INJECTION_FUNCTION_PLUG_C(VAR, PNAME, COMM, NAME, callback, ...)                         \
+    VnV_Iterator VAR = _VnV_injectionPlug(COMM, VNV_STR(PNANE), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, \
                            EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);                       \
-    while (_VnV_injectionPlugRun(&VNV_JOIN(PNAME, _plug_, NAME)))
+    while (_VnV_injectionPlugRun(&VAR))
 
-#  define INJECTION_FUNCTION_PLUG(PNAME, COMM, NAME, ...) INJECTION_ITERATION_C(COMM, PNAME, NAME, NULL, __VA_ARGS__)
+
+#  define INJECTION_FUNCTION_PLUG(VAR, PNAME, COMM, NAME, ...) INJECTION_FUNCTION_PLUG_C(VAR, PNAME, COMM, NAME, NULL, __VA_ARGS__)
+
 
 #  define Register_Injection_Plug(PNAME, NAME, PARAMETERS) _VnV_registerInjectionPlug(PNAME, NAME, PARAMETERS);
 

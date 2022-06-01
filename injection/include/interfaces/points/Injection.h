@@ -78,12 +78,12 @@ void BeginPack(A comm, const char* package, const char* id, struct VnV_Function_
 
 // BEGIN A SINGLE INJECTION POINT THAT HAS TEMPLATE PARAMETERS AND A CALLBACK.
 #  define INJECTION_POINT_C(PNAME, COMM, NAME, callback, ...)                                \
-    VnV::CppInjection::BeginPack(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, \
+    VnV::CppInjection::BeginPack(COMM, VNV_STR(PNAME), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__, __LINE__, \
                                  callback EVERYONE(__VA_ARGS__));
 
 // BEGIN A LOOPED INJECTION POINT WITH TEMPLATES AND A CALLBACK
 #  define INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, callback, ...)                               \
-    VnV::CppInjection::BeginLoopPack(COMM, PNAME, NAME, VNV_FUNCTION_SIG, __FILE__, __LINE__, \
+    VnV::CppInjection::BeginLoopPack(COMM, VNV_STR(PNAME), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__, __LINE__, \
                                      callback EVERYONE(__VA_ARGS__))
 
 // SINGULAR INJECTION POINT NO TEMPLATES AND NO CALLBACK.
@@ -95,10 +95,17 @@ void BeginPack(A comm, const char* package, const char* id, struct VnV_Function_
     INJECTION_LOOP_BEGIN_C(PNAME, COMM, NAME, &VnV::defaultCallBack, __VA_ARGS__)
 
 // INTERNAL ITERATION OF A LOOPED INJECTION POINT.
-#  define INJECTION_LOOP_ITER(PNAME, NAME, STAGE) VnV::CppInjection::IterLoop(PNAME, NAME, STAGE, __FILE__, __LINE__)
+#  define INJECTION_LOOP_ITER_D(PNAME, NAME, STAGE) \
+    VnV::CppInjection::IterLoop(VNV_STR(PNAME), VNV_STR(NAME), STAGE, __FILE__, __LINE__)
+
+
+// INTERNAL ITERATION OF A LOOPED INJECTION POINT.
+#  define INJECTION_LOOP_ITER(PNAME, NAME, STAGE) \
+    INJECTION_LOOP_ITER_D(PNAME,NAME,VNV_STR(STAGE))
+
 
 // END A LOOPED INJECTION POINT.
-#  define INJECTION_LOOP_END(PNAME, NAME) VnV::CppInjection::EndLoop(PNAME, NAME, __FILE__, __LINE__)
+#  define INJECTION_LOOP_END(PNAME, NAME) VnV::CppInjection::EndLoop(VNV_STR(PNAME), VNV_STR(NAME), __FILE__, __LINE__)
 
 #  define Register_Injection_Point(PNAME, NAME, PARAMETERS) \
     VnV::CppInjection::RegisterInjectionPoint(PNAME, NAME, PARAMETERS);
