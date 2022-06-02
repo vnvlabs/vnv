@@ -125,12 +125,10 @@ class ActionStore : public BaseStore {
   }
 
   void registerAction(std::string packageName, std::string name, const json& schema, action_ptr m) {
-    std::cout << "Registering action " << packageName << ":" << name << " " << action_factory.size() << std::endl;
     action_factory[packageName + ":" + name] = {schema, m};
   }
 
   bool registeredAction(std::string packageName, std::string name) {
-    std::cout << "Looking for action " << packageName << ":" << name << " " << action_factory.size() << std::endl;
     return action_factory.find(packageName + ":" + name) != action_factory.end();
   }
 

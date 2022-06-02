@@ -269,11 +269,9 @@ nlohmann::json RunTime::getFullJson() {
         }
       } else if (type.key().compare("Actions") == 0) {
         for (auto& entry : type.value().items()) {
-          std::cout << "Trying to Add action " << package.first << " " <<  entry.key() << std::endl;
           if (ActionStore::instance().registeredAction(package.first, entry.key())) {
             mj[package.first + ":" + entry.key()] = entry.value();
           } else {
-             std::cout << "FAILED Trying to Add action " << package.first << " " <<  entry.key() << std::endl;  
           }
         }
       } else if (type.key().compare("Iterators") == 0) {
