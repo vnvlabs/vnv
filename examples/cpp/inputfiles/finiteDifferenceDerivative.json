@@ -1,0 +1,21 @@
+{
+  "runTests": true,
+  "outputEngine": {
+    "json_file" : {
+       "filename" : "outputs/finiteDifferenceDerivative/out"
+    }
+  },
+  "injectionPoints": {
+     "VNV:initialization" : {
+        "tests" : {
+          "VNV:cputime" : {}
+	      }
+     },
+     "FiniteDifferenceDerivative:mainpoint" : {
+         "tests" : {
+             "FiniteDifferenceDerivative:finiteDifferenceDerivative" : {}
+         }
+     }
+  }
+}
+
