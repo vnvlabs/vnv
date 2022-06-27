@@ -6,7 +6,7 @@
 #include <string>
 
 #include "base/Utilities.h"
-#include "c-interfaces/prettyfunction.h"
+#include "common-interfaces/prettyfunction.h"
 #include "json-schema.hpp"
 
 namespace VnV {

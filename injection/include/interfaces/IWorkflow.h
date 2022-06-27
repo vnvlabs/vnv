@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/PackageName.h"
 #include "interfaces/ICommunicator.h"
 #include "json-schema.hpp"
 

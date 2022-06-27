@@ -174,7 +174,7 @@ INJECTION_OPTIONS(SPNAME, R"(
         "vsize" : {"type" : "integer" }
      }
   }
-)") {
+)",void) {
   if (config.contains("lsize")) {
     options.lsize = config["lsize"].get<int>();
   }

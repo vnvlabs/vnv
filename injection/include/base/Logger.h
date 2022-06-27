@@ -13,8 +13,8 @@
 #include <stack>
 #include <string>
 
-#include "c-interfaces/Communication.h"
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/Communication.h"
+#include "common-interfaces/PackageName.h"
 #include "base/parser/JsonParser.h"
 #define MAXSAVED_LOGS 1024
 

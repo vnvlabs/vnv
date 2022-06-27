@@ -523,6 +523,7 @@ class InMemory {
     std::shared_ptr<WorkflowNode> workflowNode;
     std::shared_ptr<ArrayNode> logs;
 
+    std::shared_ptr<TestNode> initialization;
 
     std::map<long, std::list<IDN>> nodes;
     std::map<long, std::shared_ptr<DataBase>> idMap;
@@ -532,6 +533,7 @@ class InMemory {
     GETTERSETTER(upperId, long);
     GETTERSETTER(infoNode, std::shared_ptr<InfoNode>)
     GETTERSETTER(workflowNode, std::shared_ptr<WorkflowNode>)
+    GETTERSETTER(initialization, std::shared_ptr<TestNode>)
 
     RootNode() : DataBaseImpl<IRootNode>(), spec(new VnVSpec()) {}
 
@@ -542,6 +544,7 @@ class InMemory {
     virtual std::shared_ptr<IMapNode> getPackages() override { INITMEMBER(packages, MapNode) return packages; }
     virtual std::shared_ptr<IMapNode> getActions() override { INITMEMBER(actions, MapNode) return actions; }
     virtual std::shared_ptr<IArrayNode> getChildren() override { INITMEMBER(children, ArrayNode) return children; }
+    virtual std::shared_ptr<ITestNode> getInitialization() override { INITMEMBER(initialization,TestNode) return initialization;  }
     virtual std::shared_ptr<IArrayNode> getUnitTests() override { INITMEMBER(unitTests, ArrayNode) return unitTests; }
     virtual std::shared_ptr<IArrayNode> getLogs() override { INITMEMBER(logs, ArrayNode) return logs; }
     virtual std::shared_ptr<IInfoNode> getInfoNode() override { INITMEMBER(infoNode, InfoNode) return infoNode; }

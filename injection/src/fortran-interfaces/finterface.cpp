@@ -7,7 +7,10 @@
 #include <vector>
 
 #include "base/Runtime.h"
+#include "interfaces/Initialization.h"
 #include "base/stores/OptionsParserStore.h"
+
+
 // Initialize the thing
 namespace {
 
@@ -59,11 +62,11 @@ void vnv_init_end_x(void** ctx) {
 
   int argc = c->args.size();
   char** argv = cstrings.data();
-  VnV_init(c->package.c_str(), &argc, &argv, c->filename.c_str(), c->callback);
+  VnV::Init(c->package.c_str(), &argc, &argv, c->filename.c_str(), NULL, c->callback);
   delete (c);
 }
 
-void vnv_finalize_x(const char* s) { VnV_finalize(); }
+void vnv_finalize_x(const char* s) { VnV::finalize(); }
 
 void vnv_declare_type_parameter_x(void** ctx, const char* name, const char* typeInfo, void* ptr) {
   PointCtx* c = (PointCtx*)(*ctx);

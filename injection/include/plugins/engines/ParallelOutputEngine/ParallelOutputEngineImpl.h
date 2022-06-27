@@ -113,6 +113,10 @@ class ParallelEngine : public OutputEngineManager {
    */
   void packageOptionsEndedCallBack(std::string packageName) override;
 
+  void initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName) override;
+  void initializationEndedCallBack(std::string packageName) override;
+
+
   void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile, std::string filename,
             std::string reader) {}
 

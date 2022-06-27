@@ -93,7 +93,7 @@ bool VnVInit_Str(std::vector<std::string> args, std::string configStr) {
   }
 
   try {
-    bool success = RunTime::instance().InitFromJson("PYTHON_READER", &argc, &argv, conf, nullptr);
+    bool success = RunTime::instance().InitFromJson("PYTHON_READER", &argc, &argv, conf, nullptr, nullptr);
     return success == 0;
   } catch (std::exception &e) {
     return false;
@@ -105,7 +105,7 @@ bool VnVInit(std::vector<std::string> args, std::string config) {
   std::vector<char*> cstrings = stringsToChars(args);
   char** argv = &cstrings[0];
   try {
-    return RunTime::instance().InitFromFile("PYTHON_READER", &argc, &argv, config, nullptr);
+    return RunTime::instance().InitFromFile("PYTHON_READER", &argc, &argv, config, nullptr, nullptr);
   } catch (std::exception &e) {
     return false;
   }

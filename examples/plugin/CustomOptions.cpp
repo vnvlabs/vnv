@@ -19,7 +19,7 @@ const char* oschema = R"({
  * See JsonSchema.org for details about json schema.
  *
  */
-INJECTION_OPTIONS(VnVPlugin, oschema) {
+INJECTION_OPTIONS(VnVPlugin, oschema,void) {
   double value = config["value"].get<double>();
   // ... configure the package ....
   return NULL;

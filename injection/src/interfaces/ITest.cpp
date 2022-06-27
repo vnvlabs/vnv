@@ -7,7 +7,7 @@
 #include "base/stores/OutputEngineStore.h"
 #include "base/stores/TestStore.h"
 #include "base/stores/TransformStore.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 
 using namespace VnV;
 using nlohmann::json_schema::json_validator;

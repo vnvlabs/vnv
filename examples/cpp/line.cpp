@@ -196,7 +196,7 @@ INJECTION_EXECUTABLE(LineExample)
  *    :reader: glvis
  * 
  */
-INJECTION_OPTIONS(LineExample,"{}") {
+INJECTION_OPTIONS(LineExample,"{}",void) {
   return NULL;
 }
 

@@ -15,7 +15,7 @@
 
 #include "base/Utilities.h"
 #include "base/parser/JsonSchema.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 #include "json-schema.hpp"
 #include "base/exceptions.h"
 

@@ -7,7 +7,7 @@
 
 #include "base/Runtime.h"
 #include "base/exceptions.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 
 using namespace VnV;
 using nlohmann::json;

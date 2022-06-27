@@ -785,6 +785,12 @@ class VnVSpec {
   nlohmann::json unitTest(std::string package, std::string name) const {
     return spec["UnitTests"][package + ":" + name];
   }
+
+
+  std::string code(std::string package, std::string name) const {
+    return getter("CodeBlocks", package + ":" + name);
+  }
+
 };
 
 
@@ -870,7 +876,7 @@ class IRootNode : public DataBase {
   virtual std::shared_ptr<IMapNode> getPackages() = 0;
   virtual std::shared_ptr<IWorkflowNode> getWorkflowNode() = 0;
   virtual std::shared_ptr<IArrayNode> getLogs() = 0;
-
+  virtual std::shared_ptr<ITestNode> getInitialization() = 0;
   
   virtual long getEndTime() {
     auto a = getInfoNode();

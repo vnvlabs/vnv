@@ -6,8 +6,8 @@
 #include <string>
 #include <vector>
 
-#include "c-interfaces/Communication.h"
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/Communication.h"
+#include "common-interfaces/PackageName.h"
 #include "interfaces/IDataType.h"
 
 namespace VnV {

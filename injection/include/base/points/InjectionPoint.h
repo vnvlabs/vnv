@@ -39,48 +39,7 @@ enum class InjectionPointType;
  * @brief Wrapper class to support C and C++ style callback functions
  * within a single class
  */
-class VnVCallBack {
- private:
-  DataCallback cppCallback = nullptr;         /**< Callback if callbackType is 0 */
-  injectionDataCallback* cCallback = nullptr; /**< Function pointer to a C style callback. */
 
- public:
-  /**
-   * @brief Construct a new Vn V Call Back object for a Cpp callback type
-   *
-   * @param callback The Cpp callback .
-   */
-  VnVCallBack(DataCallback callback) : cppCallback(callback) {}
-
-  /**
-   * @brief Construct a new Vn V Call Back object for a C callback type
-   *
-   * @param callback The C callback (function pointer).
-   */
-  VnVCallBack(injectionDataCallback* callback) : cCallback(callback) {}
-
-  /**
-   * @brief Call the callback
-   *
-   * @param comm The communicator defined at the injection point
-   * @param wrapper The output engine manager
-   * @param parameterMap The parameter map for the injection point
-   * @param type The type of the current injection point
-   * @param stageId The stage id for the current injection point
-   */
-  void call(ICommunicator_ptr comm, OutputEngineManager* wrapper, VnV::VnVParameterSet& parameterMap,
-            InjectionPointType type, std::string stageId) {
-    if (cCallback != nullptr) {
-      IOutputEngineWrapper engineWraper = {static_cast<void*>(wrapper->getOutputEngine())};
-      ParameterSetWrapper paramWrapper = {static_cast<void*>(&parameterMap)};
-      int t = InjectionPointTypeUtils::toC(type);
-      (*cCallback)(comm->asComm(), &paramWrapper, &engineWraper, t, stageId.c_str());
-    } else if (cppCallback != nullptr) {
-      cppCallback(comm->asComm(), parameterMap, wrapper, type, stageId);
-    } else {
-    }
-  }
-};
 
 // Typedefs
 typedef std::map<std::string, std::pair<std::string, void*>> NTV;
@@ -124,7 +83,7 @@ class InjectionPointBase {
   VnV::VnVParameterSet parameterMap; /**< The parameters available at this injection point */
 
   //@todo define a wrapper class for these two callback types.
-  std::unique_ptr<VnVCallBack> callback = nullptr;
+  DataCallback callback = nullptr;
 
   bool skipped = false; /**< Was this injection point skipped due to a sampler */
 
@@ -160,7 +119,7 @@ class InjectionPointBase {
    * @tparam T The type of callback to set
    * @param callback
    */
-  template <typename T> void setCallBack(T callback) { this->callback.reset(new VnVCallBack(callback)); }
+  void setCallBack(DataCallback callback) { this->callback = callback; }
 
   /**
    * @brief Set the Comm object

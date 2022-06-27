@@ -29,7 +29,7 @@ add_custom_target(
           --fix-omp
           ${CMAKE_BINARY_DIR}/compile_commands.json          
    BYPRODUCTS ${CMAKE_BINARY_DIR}/vnv.__cache__        
-   COMMENT "Updating the VnV Cache File"
+   COMMENT "Updating the VnV Cache Filei --cache-only --cache ${CMAKE_BINARY_DIR}/vnv.__cache__ --fix-omp ${CMAKE_BINARY_DIR}/compile_commands.json" 
    )
 
 

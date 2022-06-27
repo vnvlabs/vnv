@@ -9,7 +9,7 @@ defined in base/InjectionPointStore.h.
 #include "base/parser/JsonSchema.h"      // getInjectionPointDeclarationSchema
 #include "base/points/InjectionPoint.h"  // InjectionPoint.
 #include "base/stores/SamplerStore.h"
-#include "c-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
+#include "common-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
 #include "interfaces/ITest.h"      // TestConfig
 
 using namespace VnV;
@@ -201,6 +201,18 @@ void InjectionPointStore::addInjectionPoint(std::string package, std::string nam
 
   injectionPoints.insert(std::make_pair(key, InjectionPointConfig(package, name, runInternal, templateName, tests)));
 }
+
+//Turn on all not configured injection points with default options. 
+void InjectionPointStore::runAll() {
+  for (auto &it  : registeredInjectionPoints) {
+    auto a = injectionPoints.find(it.first);
+    if (a == injectionPoints.end()) {
+       InjectionPointConfig c(it.second.package, it.second.name, true, json::object(), {});
+       injectionPoints.insert(std::make_pair(it.first, c));
+    }
+  }
+}
+
 
 void InjectionPointStore::print() {
   for (auto it : registeredInjectionPoints) {

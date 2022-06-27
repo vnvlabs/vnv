@@ -7,8 +7,10 @@
 #include "base/Runtime.h"
 #include "base/Utilities.h"
 #include "base/stores/InjectionPointStore.h"
-
+#include "c-interfaces/Wrappers.h"
 using namespace VnV;
+
+namespace VnV {DataCallback& DataCallback_wrapper(injectionDataCallback* callback);}
 
 extern "C" {
 
@@ -18,7 +20,7 @@ void _VnV_injectionPoint(VnV_Comm comm, const char* package, const char* id, str
     va_list argp;
     va_start(argp, callback);
     NTV map = VariadicUtils::UnwrapVariadicArgs(argp);
-    VnV::RunTime::instance().injectionPoint(comm, package, id, pretty, fname, line, callback, map);
+    VnV::RunTime::instance().injectionPoint(comm, package, id, pretty, fname, line, VnV::DataCallback_wrapper(callback), map);
     va_end(argp);
   } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Error launching injection point %s:%s", package, id);
@@ -31,7 +33,7 @@ void _VnV_injectionPoint_begin(VnV_Comm comm, const char* package, const char* f
     va_list argp;
     va_start(argp, callback);
     NTV map = VariadicUtils::UnwrapVariadicArgs(argp);
-    VnV::RunTime::instance().injectionPoint_begin(comm, package, id, pretty, fname, line, callback, map);
+    VnV::RunTime::instance().injectionPoint_begin(comm, package, id, pretty, fname, line, VnV::DataCallback_wrapper(callback), map);
     va_end(argp);
   } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Error launching injection point %s:%s", package, id);

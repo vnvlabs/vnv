@@ -107,6 +107,8 @@ class InjectionPointStore : public BaseStore {
    */
   void print();
 
+  void runAll();
+
   bool registered(std::string package, std::string name);
   bool registeredTest(std::string package, std::string name);
 

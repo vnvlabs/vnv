@@ -61,13 +61,19 @@ SamplerInfo JsonParser::getSamplerInfo(const json& samplerJson) {
   throw VnVExceptionBase("Schema Validation Error -- This should be possible");
 }
 
-void JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runScopes,
+bool JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runScopes,
                                    std::map<std::string, InjectionPointInfo>& ips, InjectionType type) {
+  
+  bool all_on = false;
   for (auto& it : ip.items()) {
-    if (!add(it.value(), runScopes)) {
-      continue;
+    
+    if (it.key().compare("runAll") == 0 ) {
+        all_on = it.value().get<bool>();
+        continue;
+    } else if (!add(it.value(), runScopes)) {
+        continue;
     }
-
+    
     const json& values = it.value();
     auto aip = ips.find(it.key());
 
@@ -138,6 +144,7 @@ void JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runSco
       }
     }
   }
+  return all_on;
 }
 
 void JsonParser::addTestLibrary(const json& lib, std::map<std::string, std::string>& libs) {
@@ -340,6 +347,8 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
     info.schemaQuit = main["schema"].value("quit",false);
   }
 
+  
+
   if (main.find("options") != main.end()) {
     info.pluginConfig = main.find("options").value();
   }
@@ -402,7 +411,7 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
 
   // Add all the injection points;
   if (main.find("injectionPoints") != main.end()) {
-    addInjectionPoint(main["injectionPoints"], runScopes, info.injectionPoints, InjectionType::POINT);
+    info.runAll = addInjectionPoint(main["injectionPoints"], runScopes, info.injectionPoints, InjectionType::POINT);
   }
 
   // Add all the injection points;

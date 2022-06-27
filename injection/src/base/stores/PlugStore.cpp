@@ -8,7 +8,7 @@ defined in base/PlugStore.h.
 #include "base/parser/JsonSchema.h"  // getplugDeclarationSchema
 #include "base/points/PlugPoint.h"
 #include "base/stores/PlugsStore.h"
-#include "c-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
+#include "common-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
 #include "interfaces/IPlug.h"
 #include "interfaces/ITest.h"  // TestConfig
 

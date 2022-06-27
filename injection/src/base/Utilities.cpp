@@ -19,7 +19,7 @@
 #include <set>
 
 #include "base/exceptions.h"
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/PackageName.h"
 
 using nlohmann::json;
 

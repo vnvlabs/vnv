@@ -6,8 +6,8 @@
 #include <type_traits>
 
 #include "base/stores/BaseStore.h"
-#include "c-interfaces/Communication.h"
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/Communication.h"
+#include "common-interfaces/PackageName.h"
 #include "interfaces/ICommunicator.h"
 #include "interfaces/IDataType.h"
 using VnV::comm_register_ptr;

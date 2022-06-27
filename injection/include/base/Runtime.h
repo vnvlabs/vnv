@@ -24,10 +24,10 @@
 #include "base/points/IteratorPoint.h"
 #include "base/points/PlugPoint.h"
 #include "base/stores/BaseStore.h"
-#include "c-interfaces/CJson.h"
-#include "c-interfaces/RunTime.h"
-#include "c-interfaces/Wrappers.h"
+#include "common-interfaces/RunTime.h"
 #include "interfaces/ActionType.h"
+#include "interfaces/Initialization.h"
+#include "c-interfaces/Wrappers.h"
 
 /**
  * VnV Namespace
@@ -129,8 +129,9 @@ class RunTime {
    * designed to work with this injection point in mind.
    */
   bool InitFromFile(const char* packageName, int* argc, char*** argv, std::string configFile,
-                    registrationCallBack callback);
-  bool InitFromJson(const char* packageName, int* argc, char*** argv, json& configFile, registrationCallBack callback);
+                    InitDataCallback icallback, registrationCallBack callback);
+  bool InitFromJson(const char* packageName, int* argc, char*** argv, json& configFile, 
+                    InitDataCallback icallback, registrationCallBack callback);
 
   int registerCleanUpAction(std::function<void(ICommunicator_ptr)> action);
 
@@ -177,8 +178,6 @@ class RunTime {
   VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
                                   std::string fname, int line, const DataCallback& callback, NTV& args, int once);
 
-  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
-                                  std::string fname, int line, injectionDataCallback* callback, NTV& args, int once);
 
   /****************** PLUGS ************************************/
  private:
@@ -191,10 +190,6 @@ class RunTime {
                              std::string fname, int line, const DataCallback& callback, NTV& args);
 
   int injectionPlugRun(VnV_Iterator* iterator);
-
-  // C Interface for an Iteration Point.
-  VnV_Iterator injectionPlug(VnV_Comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
-                             std::string fname, int line, injectionDataCallback* callback, NTV& args);
 
   /************************ INJECTION POINTS **************************/
  private:
@@ -217,12 +212,6 @@ class RunTime {
   void injectionPoint_end(std::string pname, std::string id, std::string fname, int line);
 
   void injectionPoint_iter(std::string pname, std::string id, std::string iterid, std::string fname, int line);
-
-  void injectionPoint(VnV_Comm comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
-                      std::string fname, int line, injectionDataCallback* callback, NTV& args);
-
-  void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
-                            std::string fname, int line, injectionDataCallback* callback, NTV& args);
 
   /**
    * @brief Finalize
@@ -324,8 +313,6 @@ class RunTime {
   VnVProv getProv();
 
   std::string getPackageName();
-
-  void* getOptionsObject(std::string package);
   
 
 };

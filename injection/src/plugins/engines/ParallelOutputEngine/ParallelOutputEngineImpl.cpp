@@ -8,7 +8,7 @@
 
 #include "base/Utilities.h"
 #include "base/stores/CommunicationStore.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 namespace VnV {
 namespace VNVPACKAGENAME {
 namespace Engines {
@@ -86,6 +86,9 @@ void ParallelEngine::injectionPointEndedCallBack(std::string id, InjectionPointT
 void ParallelEngine::packageOptionsStartedCallBack(ICommunicator_ptr world, std::string packageName) {}
 
 void ParallelEngine::packageOptionsEndedCallBack(std::string packageName) {}
+
+void ParallelEngine::initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName) {};
+void ParallelEngine::initializationEndedCallBack(std::string packageName) {};
 
 void ParallelEngine::injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string id,
                                                    InjectionPointType type, std::string stageVal, std::string filename,
