@@ -11,7 +11,7 @@
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "base/stores/OutputEngineStore.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 
 using namespace VnV;
 

@@ -55,7 +55,7 @@ INJECTION_OPTIONS(Euler,R"({
         "dt" :   {"type" : "integer", "default" : 0.2, "min" : 0.000001 , "max" : 1 },
         "stop" : {"type" : "integer", "default" : 5, "min" : 0.1, "max" : 10 }
     }
-})") {
+})",void) {
 
   // @beon memory leak? Provide a way to destroy;
   OptionsStruct *a = new OptionsStruct();
@@ -65,10 +65,12 @@ INJECTION_OPTIONS(Euler,R"({
 
 }
 
-
+INJECTION_CODEBLOCK_START(Euler,Derivitive)
 double deriv(double y, double t) {
     return y - 0.5*exp(t/2.)*sin(5*t) + 5*exp(t/2.)*cos(5*t); 
 }
+INJECTION_CODEBLOCK_END(Euler,Derivitive)
+
 
 double solve( double dt, double stop) {
     
@@ -165,12 +167,17 @@ int main(int argc, char** argv) {
     *          "sol.y" : json.dumps( (np.exp(np.linspace(0,5,1000)/2) * np.sin(5*np.linspace(0,5,1000))).tolist() ) 
     *      }
     * 
-    * 
+    * The Fish has :vnv:`Fish` 
+    *  
     * As you will see, Eulers method is not that great for solving problems where the function changes 
     * rapidly like this one. 
     * 
     */
-    INJECTION_INITIALIZE(Euler, &argc, &argv, (argc > 1) ? argv[1] : "inputfiles/euler.json");
+    INJECTION_INITIALIZE_C(Euler, &argc, &argv, (argc > 1) ? argv[1] : "inputfiles/euler.json",
+        [](VnV_Comm comm, VnV::IOutputEngine *engine) {
+            engine->Put("Fish","Power");
+        }
+    );
 
     auto config = (OptionsStruct*) INJECTION_GET_CONFIG(Euler);
     auto dt = config->dt;

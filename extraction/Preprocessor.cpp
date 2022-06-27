@@ -246,6 +246,8 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     jj["docs"] = getDocs(range).toJson();
   }
 
+
+
   ProcessedComment getCommentFor(DiagnosticsEngine& eng, SourceManager& SM, SourceLocation loc) {
     SourceLocation macroSrcLoc = SM.getExpansionLoc(loc);
     std::pair<FileID, unsigned> macroLoc = SM.getDecomposedLoc(macroSrcLoc);
@@ -296,6 +298,8 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
   ProcessedComment getDocs(SourceRange Range) {
     return getCommentFor(pp.getDiagnostics(), pp.getSourceManager(), Range.getBegin());
   }
+
+
 
   std::string getPackageName(const MacroArgs* Args, int c, bool removeQuotes = false) {
     std::string s = "";
@@ -457,7 +461,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     } else if (nae == "INJECTION_COMM") {
       json& jj = getDef("Comms", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_INITIALIZE" || nae == "INJECTION_INITIALIZE_RAW") {
+    } else if (nae == "INJECTION_INITIALIZE_C" || nae == "INJECTION_INITIALIZE_RAW_C") {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Introduction");
       jj[getPackageName(Args, 0)] = getDocs(Range).toJson();
     } else if (nae == "INJECTION_FINALIZE") {
@@ -514,7 +518,36 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "End");
       thisStage["docs"] = getDocs(Range).toJson();
-    }
+    } else if (nae == "INJECTION_CODEBLOCK_START") {
+      
+      SourceManager& SM = pp.getSourceManager();
+      SourceLocation loc =  Range.getEnd();
+      SourceLocation macroSrcLoc = SM.getExpansionLoc(loc);     
+      std::pair<FileID, unsigned> macroLoc = SM.getDecomposedLoc(macroSrcLoc);
+
+      json& jj = getDef("CodeBlocks", getPackageName(Args, 0), getPackageName(Args, 1));
+      jj["start"] = macroLoc.second + 1;
+      std::cout << jj.dump(4) << "FDSDF" << std::endl;
+
+    } else if (nae == "INJECTION_CODEBLOCK_END") {
+      SourceManager& SM = pp.getSourceManager();
+      SourceLocation loc =  Range.getBegin();
+      SourceLocation macroSrcLoc = SM.getExpansionLoc(loc);     
+      std::pair<FileID, unsigned> macroLoc = SM.getDecomposedLoc(macroSrcLoc);
+      
+      bool Invalid = false;
+      const char* Buffer = SM.getBufferData(macroLoc.first, &Invalid).data();
+      
+      if (!Invalid) {
+        json& jj = getDef("CodeBlocks", getPackageName(Args, 0), getPackageName(Args, 1));
+        auto start = jj["start"].get<unsigned>();
+        std::string code(Buffer + start, macroLoc.second - start ); 
+        jj["end"] = macroLoc.second;
+        jj["code"] =  code ; 
+        std::cout << jj.dump(4) << "FDSDF" << std::endl;
+
+      }
+    } 
   }
 
   void MacroDefined(const Token& MacroNameTok, const MacroDirective* MD) override {

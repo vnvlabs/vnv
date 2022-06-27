@@ -7,8 +7,8 @@
 #  include <map>
 #  include <string>
 
-#  include "c-interfaces/Communication.h"
-#  include "c-interfaces/PackageName.h"
+#  include "common-interfaces/Communication.h"
+#  include "common-interfaces/PackageName.h"
 #  include "interfaces/IOutputEngine.h"
 #  include "interfaces/ITest.h"
 #  include "interfaces/points/Iteration.h"

@@ -198,6 +198,9 @@ R"(
       "injectionPoints": {
         "description": "Injection Points",
         "type": "object",
+        "properties": {
+          "runAll" : {"type" : "boolean"}
+        },
         "patternProperties": {
           "^.*?:.*?$": {
             "$ref": "#/definitions/injectionPoint"

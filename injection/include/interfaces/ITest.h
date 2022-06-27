@@ -8,8 +8,8 @@
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "base/stores/TransformStore.h"
-#include "c-interfaces/Communication.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Communication.h"
+#include "common-interfaces/Logging.h"
 #include "interfaces/IOutputEngine.h"
 #include "interfaces/ITransform.h"
 #include "interfaces/argType.h"
@@ -19,7 +19,7 @@
 #include "base/FunctionSigniture.h"
 #include "base/InjectionPointConfig.h"
 
-//#include "c-interfaces/Logging.h"
+//#include "common-interfaces/Logging.h"
 using nlohmann::json;
 using nlohmann::json_schema::json_validator;
 /**

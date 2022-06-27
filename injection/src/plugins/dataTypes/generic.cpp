@@ -3,7 +3,7 @@
 #include <string>
 
 #include "base/exceptions.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 #include "interfaces/ICommunicator.h"
 #include "interfaces/IOutputEngine.h"
 

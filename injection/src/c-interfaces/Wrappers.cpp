@@ -18,7 +18,20 @@ IOutputEngine* EngineWrapperCast(IOutputEngineWrapper* wrapper) {
   return static_cast<IOutputEngine*>(wrapper->ptr);
 }
 
+
+
 }  // namespace
+
+  DataCallback DataCallback_wrapper(injectionDataCallback* callback) {
+     return [callback](VnV_Comm comm, VnVParameterSet &ntv, OutputEngineManager *engine, VnV::InjectionPointType type, std::string stageId){
+          IOutputEngineWrapper engineWraper = {static_cast<void*>(engine->getOutputEngine())};
+          ParameterSetWrapper paramWrapper = {static_cast<void*>(&ntv)};
+          int t = InjectionPointTypeUtils::toC(type);
+          (*callback)(comm, &paramWrapper, &engineWraper, t, stageId.c_str());
+     };
+  }
+
+
 }  // namespace VnV
 extern "C" {
 
@@ -51,3 +64,4 @@ ParameterDTO VnV_Parameter_Get(ParameterSetWrapper* wrapper, const char* name) {
   }
 }
 }
+

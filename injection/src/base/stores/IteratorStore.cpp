@@ -9,7 +9,7 @@ defined in base/IteratorStore.h.
 #include "base/parser/JsonSchema.h"  // getInjectionPointDeclarationSchema
 #include "base/points/IteratorPoint.h"
 #include "base/stores/IteratorsStore.h"
-#include "c-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
+#include "common-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
 #include "interfaces/IIterator.h"
 #include "interfaces/ITest.h"  // TestConfig
 

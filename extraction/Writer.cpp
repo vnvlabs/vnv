@@ -187,6 +187,18 @@ class RegistrationWriter {
     registerHelper(j, "Walkers", "WALKER", packageName);
     registerHelper(j, "DataTypes", "DATATYPE", packageName);
 
+    if (j.contains("CodeBlocks")) {
+      std::cout << j["CodeBlocks"].dump(4) << std::endl;
+      for (auto& it : j["CodeBlocks"].items()) {
+          std::string pname = it.value()["packageName"].get<std::string>();
+          if (packageName.empty() || pname == packageName) {
+            std::string n = it.value()["name"].get<std::string>();
+            createPackageOss(pname);
+            VnV::JsonUtilities::getOrCreate(pjson[pname], "CodeBlocks")[n] = it.value()["code"];
+        }  
+      }
+    }
+
     if (j.contains("LogLevels")) {
       for (auto it : j["LogLevels"].items()) {
         std::string pname = it.value()["packageName"].get<std::string>();
@@ -310,7 +322,7 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
           "Plugs",           "Engines",      "EngineReaders",   "Comms",       "Reducers",     "Samplers",
           "Walkers",         "DataTypes",    "Serializers",     "Transforms",  "UnitTests",    "Actions",
           "Options",         "Introduction", "Conclusion",      "Executables", "Communicator", "Schedulers",
-          "Validators",      "JobCreators",  "ScriptGenerators"}) {
+          "Validators",      "JobCreators",  "ScriptGenerators", "CodeBlocks"}) {
       json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);
       for (auto it : VnV::JsonUtilities::getOrCreate(it.value(), type).items()) {
         to[it.key()] = it.value();

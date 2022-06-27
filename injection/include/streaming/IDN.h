@@ -4,7 +4,7 @@
 #include <string>
 #include "base/exceptions.h"
 #include "json-schema.hpp"
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/PackageName.h"
 namespace VnV {
 namespace Nodes {
 

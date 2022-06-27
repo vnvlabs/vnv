@@ -99,7 +99,10 @@ namespace JSN {
   X(unitTestStarted, x)           \
   X(unitTestFinished, y)          \
   X(commInfo, z)                  \
-  X(info, aa)
+  X(info, aa)                     \
+  X(initializationStarted,ab)     \
+  X(initializationEnded,ac)
+ 
 
 #define X(A, b) constexpr auto A = #b;
 NTYPES
@@ -1064,6 +1067,26 @@ template <typename T> class StreamManager : public OutputEngineManager {
     }
   }
 
+  void initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName) override {
+    setComm(comm,true);
+
+    if (comm->Rank() == getRoot()) {
+      T j = T::object();
+      j[JSD::node] = JSN::initializationStarted;
+      j[JSD::package] = packageName;
+      write(j);
+    }
+
+  }
+  void initializationEndedCallBack(std::string packageName) override {
+    if (comm->Rank() == getRoot()) {
+      T j = T::object();
+      j[JSD::node] = JSN::initializationEnded;
+      write(j);
+    }
+  }
+
+
   void unitTestFinishedCallBack(IUnitTest* tester) {
     if (comm->Rank() == getRoot()) {
       T j = T::object();
@@ -1398,6 +1421,20 @@ template <class DB> class StreamParserTemplate {
     };
 
     virtual std::shared_ptr<typename DB::TestNode> visitPackageNodeEnded(const T& j, std::shared_ptr<DataBase> node) {
+      auto n = std::dynamic_pointer_cast<typename DB::TestNode>(node);
+      n->open(false);
+      return n;
+    };
+
+    virtual std::shared_ptr<typename DB::TestNode> visitInitializationStarted(const T& j) {
+      auto n =  std::dynamic_pointer_cast<typename DB::TestNode>(rootInternal()->getInitialization()); 
+      n->setusage(ITestNode::TestNodeUsage::PACKAGE);
+      n->open(true);
+      n->setpackage(j[JSD::package].template get<std::string>());
+      return n;
+    };
+
+    virtual std::shared_ptr<typename DB::TestNode> visitInitializationEnded(const T& j, std::shared_ptr<DataBase> node) {
       auto n = std::dynamic_pointer_cast<typename DB::TestNode>(node);
       n->open(false);
       return n;
@@ -1748,7 +1785,6 @@ template <class DB> class StreamParserTemplate {
         std::string stage = j[JSD::stageId].template get<std::string>();
         p->setisOpen(true);
         p->setisIter(true);
-        // rootInternal()->addIDN(p->getId(), p->getstreamId(), node_type::ITER, elementId, stage);
 
       } else if (node == JSN::log) {
         std::shared_ptr<typename DB::LogNode> n = visitLogNode(j);
@@ -1823,7 +1859,16 @@ template <class DB> class StreamParserTemplate {
         jstream->push(po);
       } else if (node == JSN::packageOptionsFinished) {
         auto u = visitPackageNodeEnded(j, jstream->pop());
-      } else if (node == JSN::shape) {
+      } else if (node == JSN::initializationStarted) {
+        auto po = visitInitializationStarted(j);
+        jstream->push(po);
+      } else if (node == JSN::initializationEnded) {
+        auto u = visitInitializationEnded(j, jstream->pop());
+      } 
+       
+      
+      
+      else if (node == JSN::shape) {
         std::string type = j[JSD::dtype].template get<std::string>();
 
         if (type == JST::String) {

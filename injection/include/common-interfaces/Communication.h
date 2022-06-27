@@ -1,7 +1,7 @@
 ﻿#ifndef CINTERFACE_COMMUNICATION_H
 #define CINTERFACE_COMMUNICATION_H
 
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/PackageName.h"
 
 #define MAX_PACKAGE_NAME_SIZE 20
 

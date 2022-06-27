@@ -10,8 +10,8 @@
 
 #include "base/parser/JsonParser.h"
 #include "base/stores/BaseStore.h"
-#include "c-interfaces/Communication.h"
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/Communication.h"
+#include "common-interfaces/PackageName.h"
 #include "interfaces/IDataType.h"
 #include "base/Utilities.h"
 namespace VnV {

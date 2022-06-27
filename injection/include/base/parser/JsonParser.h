@@ -189,6 +189,7 @@ struct RunInfo {
   bool runTests; /**< Should any tests be run */
   bool schemaDump = false;
   bool schemaQuit = false;
+  bool runAll = false;
   std::string workflowName = "";
   std::string workflowJob = "";
   std::string workflowDir = "";
@@ -196,6 +197,8 @@ struct RunInfo {
   std::string communicator = "mpi";                          /**< what communicator should be used*/
   std::map<std::string, std::string> additionalPlugins;      /**< List of file paths to included plugin libraries */
   std::map<std::string, InjectionPointInfo> injectionPoints; /**< all injection points with tests */
+
+
 
   json pluginConfig; /**< Json object mapping packageName to shared library path */
   json cmdline;      /**< Command Line options parsed into a configuration json --vnv.packageName.[sdfsdf] = "sdf"*/
@@ -343,7 +346,7 @@ class JsonParser {
    *
    * Here we add the injection point to the injection point list.
    */
-  void addInjectionPoint(const json& injectionPointJson, std::set<std::string>& runScopes,
+  bool addInjectionPoint(const json& injectionPointJson, std::set<std::string>& runScopes,
                          std::map<std::string, InjectionPointInfo>& ips, InjectionType type);
 
   /**

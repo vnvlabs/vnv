@@ -14,8 +14,10 @@
 using nlohmann::json;
 
 #include "base/stores/BaseStore.h"
-#include "c-interfaces/CJson.h"
+
+#include "c-interfaces/Options.h"
 #include "interfaces/IOptions.h"
+
 namespace VnV {
 
 class RawJsonObject {

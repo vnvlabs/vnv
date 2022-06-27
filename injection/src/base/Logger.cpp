@@ -8,7 +8,7 @@
 
 #include "base/Runtime.h"                   // RunTime.
 #include "base/stores/OutputEngineStore.h"  // OutputEngineStore
-#include "c-interfaces/Logging.h"           // Logging macros
+#include "common-interfaces/Logging.h"           // Logging macros
 using namespace VnV;
 
 namespace {

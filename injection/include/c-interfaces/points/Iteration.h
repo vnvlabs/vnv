@@ -3,8 +3,8 @@
 
 #ifndef WITHOUT_VNV
 
-#  include "c-interfaces/Communication.h"
-#  include "c-interfaces/PackageName.h"
+#  include "common-interfaces/Communication.h"
+#  include "common-interfaces/PackageName.h"
 #  include "c-interfaces/Wrappers.h"
 
 #  define DOIT(X) #  X, (void*)(&X),

@@ -1161,7 +1161,7 @@ class MongoPersistance {
 
     Mongo_docuemnt_ref(children, Array) Mongo_docuemnt_ref(logs, Array) Mongo_docuemnt_ref(unitTests, Array)
         Mongo_docuemnt_ref(actions, Map) Mongo_docuemnt_ref(packages, Map)
-
+            Mongo_docuemnt_ref(initialization,Test)
             Mongo_docuemnt_ref(infoNode, Info) Mongo_docuemnt_ref(commInfoNode, CommInfo)
                 Mongo_docuemnt_ref(workflowNode, Workflow)
 
@@ -1202,6 +1202,8 @@ class MongoPersistance {
     virtual void respond(long id, long jid, const std::string& response) override {}
 
     virtual std::shared_ptr<IMapNode> getPackages() override { return getInternal_packages(); }
+
+    virtual std::shared_ptr<ITestNode> getInitialization() override { return getInternal_initialization(); }
 
     virtual std::shared_ptr<IMapNode> getActions() override { return getInternal_actions(); }
 

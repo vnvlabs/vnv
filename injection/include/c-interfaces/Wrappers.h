@@ -1,8 +1,8 @@
 ﻿#ifndef WRAPPERS_H
 #define WRAPPERS_H
 
-#include "c-interfaces/Communication.h"
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/Communication.h"
+#include "common-interfaces/PackageName.h"
 
 // Define the inters for the VnV Iterator
 typedef struct VnV_Iterator_ {
@@ -42,5 +42,10 @@ VNVEXTERNC struct ParameterDTO VnV_Parameter_Get(struct ParameterSetWrapper* wra
 // Define a callback that can be used to write injection point data
 typedef void (*injectionDataCallback)(VnV_Comm comm, struct ParameterSetWrapper* wrapper,
                                       struct IOutputEngineWrapper* engine, int injectionPointType, const char* stageId);
+
+typedef void (*initDataCallback)(VnV_Comm comm, struct IOutputEngineWrapper* engine);
+                                      
+
+
 
 #endif  // WRAPPERS_H

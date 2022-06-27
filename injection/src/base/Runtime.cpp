@@ -27,97 +27,14 @@
 #include "base/stores/UnitTestStore.h"
 #include "base/stores/WalkerStore.h"
 #include "base/stores/WorkflowStore.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 #include "interfaces/IAction.h"
 #include "interfaces/points/Injection.h"
 #include "streaming/Nodes.h"
 
 using namespace VnV;
 
-/**
- * 
- * VnV Toolkit Version :vnv:`version[0]`
- * -------------------------------------
- * 
- * With access to high performance computational resources at an all time high, and with exascale computing resources on the horizon;
- * the role M&S has in the design pipelines of next generation technologies is only expected to increase. However, numerical simulations are,
- * by definition, an approximation to a real world physical system. As such, it is important that this increased reliance on simulated tests
- * is accompanied by a concerted effort to ensure simulations are fit for the intended purpose.
- *
- * The process of ensuring a code is fit for its intended purpose is called Verification and Validation (V&V) and generally includes:
- *   
- *   - Implementation of software development best practices (e.g. version control, unit and regression testing, code reviews, etc.).
- *   - Mathematical and algorithmic testing (convergence analysis, mesh refinement studies, method of manufactured solutions, etc.).
- *   - A broad benchmark testing suite including uncertainty quantification and sensitivity analysis.
- *   - Comparison of simulation results with experimental data and results from third party simulations. 
- *   - Review of the implementation and results by experts in the field.
- * 
- * V&V is a discrete process that cannot account for each and every possibility. This raises issues in the development of general purpose numerical
- * simulation packages because, while it is the simulation software developers responsibility to ensure the product is mathematically correct, 
- * it is ultimately the responsibility of the end user to ensure the solution is a suitable representation of their physical model. After all,
- * the direct costs of a design failure (be it time, money, or loss of life) fall squarely on the shoulders of the end-user; any attempt to 
- * shift the blame to the developers of simulation library *X* will certainly fall on deaf ears.
- * 
- * **VnV** was designed to facilitate end-user V&V in general
- * purpose numerical simulation packages. The framework will promote the development of **explainable numerical simulations**
- * that, in addition to the traditional simulation solution, produce a detailed report outlining how the solution was obtained and why 
- * it should be trusted. The VnV framework provides simple to maintain V&V methods for creating
- * self verifying, self describing, explainable numerical simulations.
- * 
- *    - **In-situ Testing And Analysis:** Unit tests are an effective mechanism for ensuring a function works as expected. 
- *      However, unit testing is an unavoidably discrete process that cannot cover every possible outcome. This is particularly
- *      true for numerical algorithms because even small changes (e.g., input parameters, mesh geometry, etc.) can cause the algorithms 
- *      to behave unexpectedly (i.e., diverge, converge to the wrong solution, etc.). As such, a robust V&V report should include a description
- *      of unit tests completed *and* a detailed set of tests and assertions that were completed during the simulation process.
- *      The VnV framework includes a sophisticated test injection system with cross-library support for defining testing points in existing codes.
- *      The framework will be able to configure injection points in any library linked to a simulation. For example,
- *      a MOOSE user would be able to run V&V tests at injection points defined in the source codes of hypre, PETSc, libMesh,
- *      MOOSE, etc through a single interface. This cross library support will allow for in-depth, expert directed, 
- *      end-user V&V in an executable that utilizes a range of numerical simulation libraries.
- *    
- *    - **Reusable Software Components:** While the specific details of V&V vary from application to application, 
- *      the macro scale algorithms are relatively consistent (e.g., mesh refinement studies, the method of manufactured solutions, 
- *      sensitivity analysis, uncertainty quantification and error propagation). Many of these algorithms can 
- *      be, or already have been, implemented as black-box or near black box solutions. The VnV framework will
- *      provide a robust set of near black-box tools that implement these common V&V approaches.
- *    
- *    - **Documentation Generation:** With software packages under almost constant development, 
- *      and new and improved packages being released on a regular basis, keeping an up-to-date V&V report 
- *      is an almost impossible task. The VnV toolkit will include automatic VnV report generation in the
- *      form of a server-less HTML web page. The report will be built using an extended markdown format 
- *      with support for standard markdown formatting, latex formatting, images, videos, self-sorting tables,
- *      two-dimensional charts, and three-dimensional visualization.
- *
- * 
- * .. vnv-image:: app/static/assets/images/VnVOut.png
- *    :width: 90%
- *    
- * 
- * 
- * In the image above, green boxes represent core functionalities. Developer interactions are shown in blue, 
- * runtime interactions are shown in orange and post-processing interactions are shown in black.
- * The figure above uses the MOOSE tool-chain to show how developers and end-users will interact with the VnV framework. 
- * The first step is to define the injection points. These injection points will be placed at key locations of the code 
- * where testing can and should take place. Developers will also complete an output template describing the state of
- * the simulation at each injection point. That specification will be used to populate the final VnV report.
- * 
- * The next step is to create a VnV test. The tests are developed in external libraries and hence, 
- * can be developed either by the developer of the simulation or by the end-user of the library. The core framework will also 
- * include a robust set of general purpose V&V tests. Each test will be accompanied by a markdown formatted template file.
- * Like injection points, this markdown file will be used to describe the test and present the results.
- * The VnV framework supports a custom markdown format that includes a range of data visualization techniques. We envision that
- * the developers of a numerical simulation package will ship the library with hard-coded injection points and a set of custom V&V tests.
-
- * End-users will be able to generate a customized input configuration file for each executable. This configuration file
- * will contain information about every injection point located in the call-graph of the simulation; 
- * including those in external third party libraries. After customizing that file, generating a VnV report is as simple as running the simulation.
- * 
- * Overall, once integrated into an application, the VnV framework will provide a simple mechanism for creating
- * self verifying, self describing, explainable numerical simulations. This will significantly reduce the burden
- * associated with V&V for end users, thereby increasing the usability of the tools for non-expert end-users. 
- * 
- */
-INJECTION_OPTIONS(VNVPACKAGENAME, getBaseOptionsSchema().dump().c_str()) {
+INJECTION_OPTIONS(VNVPACKAGENAME, getBaseOptionsSchema().dump().c_str(),void) {
   RunTime::instance().getRunTimeOptions()->fromJson(config);
   engine->Put("version", 1.0);
   return NULL;
@@ -292,6 +209,10 @@ nlohmann::json RunTime::getFullJson() {
             mj[package.first + ":" + entry.key()] = entry.value();
           }
         }
+      } else if (type.key().compare("CodeBlocks") == 0) {
+        for (auto& entry : type.value().items()) {
+          mj[package.first + ":" + entry.key()] = entry.value();
+        }
       }
     }
   }
@@ -362,31 +283,6 @@ VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::
   }
 }
 
-VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::string id,
-                                         struct VnV_Function_Sig pretty, std::string fname, int line,
-                                         injectionDataCallback* callback, NTV& args, int once) {
-  try {
-    ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
-
-    auto it = getNewInjectionIteration(comm, pname, id, pretty, InjectionPointType::Begin, once, args);
-    if (it != nullptr) {
-      it->setComm(getComm(comm));
-      it->setCallBack(callback);
-      it->iterate(fname, line);
-    }
-
-    VnV_Iterator_Info* info = new VnV_Iterator_Info(id, pname, once, fname, line, it);
-
-    return {(void*)info};
-
-  } catch (std::exception &e) {
-    VnV_Error(VNVPACKAGENAME, "Injection iteration failed %s:%s", pname.c_str(), id.c_str());
-    std::shared_ptr<VnV::IterationPoint> s;
-    VnV_Iterator_Info* info = new VnV_Iterator_Info(id, pname, once, fname, line, s);
-    return {(void*)info};
-  }
-}
-
 int RunTime::injectionIterationRun(VnV_Iterator* iterator) {
   VnV_Iterator_Info* info = (VnV_Iterator_Info*)iterator->data;
 
@@ -447,30 +343,12 @@ std::shared_ptr<PlugPoint> RunTime::getNewInjectionPlug(VnV_Comm comm, std::stri
 
 VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
                                     std::string fname, int line, const DataCallback& callback, NTV& args) {
+  
   ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
   std::shared_ptr<VnV::PlugPoint> it;
   try {
     auto it = getNewInjectionPlug(comm, pname, id, pretty, args);
-    if (it != nullptr) {
-      it->setComm(getComm(comm));
-      it->setCallBack(callback);
-    }
-  } catch (std::exception &e) {
-    it = nullptr;
-  }
-
-  VnV_Plug_Info* info = new VnV_Plug_Info(id, pname, fname, line, it);
-  return {(void*)info};
-}
-
-VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
-                                    std::string fname, int line, injectionDataCallback* callback, NTV& args) {
-  ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
-
-  std::shared_ptr<VnV::PlugPoint> it;
-  try {
-    it = getNewInjectionPlug(comm, pname, id, pretty, args);
     if (it != nullptr) {
       it->setComm(getComm(comm));
       it->setCallBack(callback);
@@ -544,18 +422,6 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname, std::string
   }
 }
 
-void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
-                                   std::string fname, int line, injectionDataCallback* callback, NTV& args) {
-  ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
-
-  auto it = getNewInjectionPoint(comm, pname, id, pretty, InjectionPointType::Begin, args);
-  if (it != nullptr) {
-    it->setCallBack(callback);
-    it->setComm(getComm(comm));
-    it->run(fname, line);
-  }
-}
-
 // Cpp interface.
 void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
                              std::string fname, int line, const DataCallback& callback, NTV& args) {
@@ -571,20 +437,6 @@ void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id, s
   ActionStore::instance().injectionPointEnd();
 }
 
-void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
-                             std::string fname, int line, injectionDataCallback* callback, NTV& args) {
-  ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
-
-  auto it = getNewInjectionPoint(comm, pname, id, pretty, InjectionPointType::Single, args);
-
-  if (it != nullptr) {
-    it->setCallBack(callback);
-    it->setComm(getComm(comm));
-    it->run(fname, line);
-  }
-
-  ActionStore::instance().injectionPointEnd();
-}
 
 void RunTime::injectionPoint_iter(std::string pname, std::string id, std::string stageId, std::string fname, int line) {
   ActionStore::instance().injectionPointIter(stageId);
@@ -747,6 +599,8 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
             "Validating Json Test Configuration Input and converting to TestConfig "
             "objects");
 
+
+
   for (auto it : info.injectionPoints) {
     auto x = TestStore::instance().validateTests(it.second.tests);
 
@@ -765,6 +619,7 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
                   e.what());
       }
     } else if (it.second.type == InjectionType::POINT) {
+      
       SamplerConfig sconfig(it.second);
       InjectionPointStore::instance().addInjectionPoint(it.second.package, it.second.name, it.second.runInternal,
                                                         it.second.templateName, x, sconfig);
@@ -772,6 +627,10 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
       throw INJECTION_BUG_REPORT("Unknown Injection point type %d", it.second.type);
     }
   }
+  if (info.runAll) {
+    InjectionPointStore::instance().runAll();
+  }
+  
   jobManager = WorkflowStore::instance().buildJobManager(mainPackageName, workflowName(), info.workflowInfo.workflows);
 
   OutputEngineStore::instance().getEngineManager()->sendInfoNode(world);
@@ -836,7 +695,7 @@ VnVProv RunTime::getProv() { return *prov; }
 
 // Cant overload the name because "json" can be a "string".
 bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, json& config,
-                           registrationCallBack callback) {
+                           InitDataCallback icallback, registrationCallBack callback) {
   mainPackageName = packageName;
 
   // Set the provenance information .
@@ -880,12 +739,17 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
 
   prov.reset(new VnV::VnVProv(*argc, *argv, configFile, config));
 
-  /**
-   * Injection point documentation.
-   **/
+
+  
 
   VnV_Comm comm = CommunicationStore::instance().world();
 
+  // Make the callback to the initialization function. 
+  auto engine = OutputEngineStore::instance().getEngineManager();
+  engine->initializationStartedCallBack(CommunicationStore::instance().worldComm(), mainPackageName);
+  icallback(comm,engine->getOutputEngine());
+  engine->initializationEndedCallBack(mainPackageName);
+  
   /**
    * @title VnV Application Profiling Loop.
    * @description Initialization of the VnV Loop   
@@ -904,7 +768,7 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
 }
 
 bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv, std::string configFile,
-                           registrationCallBack callback) {
+                           InitDataCallback icallback, registrationCallBack callback) {
   
   
   std::string fname = DistUtils::getEnvironmentVariable("VNV_INPUT_FILE","");
@@ -929,13 +793,13 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv, std
   this->configFile = configFile;
   if (configFile == VNV_DEFAULT_INPUT_FILE) {
     json j = json::object();
-    return InitFromJson(packageName, argc, argv, j, callback);
+    return InitFromJson(packageName, argc, argv, j, icallback, callback);
   }
 
   std::ifstream fstream(configFile);
   if (fstream.good()) {
     json mainJson = JsonUtilities::load(configFile);
-    return InitFromJson(packageName, argc, argv, mainJson, callback);
+    return InitFromJson(packageName, argc, argv, mainJson, icallback, callback);
   }
   throw INJECTION_EXCEPTION("Bad Input File %s", configFile.c_str());
 }
@@ -1051,7 +915,4 @@ void RunTime::printRunTimeInformation() {
 
 std::string RunTime::getPackageName() { return mainPackageName; }
 
-void* RunTime::getOptionsObject(std::string package) {
-  return OptionsParserStore::instance().getResult(package);
-}
   

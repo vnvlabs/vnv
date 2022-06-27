@@ -2,7 +2,7 @@
 /**
   @file Logging.cpp
 **/
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 
 #include "base/Runtime.h"
 
@@ -27,8 +27,7 @@ try {
 
 }
 
-void _VnV_Log(VnV_Comm comm, const char* p, const char* l, const char* format,
-              ...) {
+void _VnV_Log(VnV_Comm comm, const char* p, const char* l, const char* format, ...) {
   try {
     va_list args;
     va_start(args, format);

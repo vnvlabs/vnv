@@ -8,7 +8,8 @@
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "base/stores/TransformStore.h"
-#include "c-interfaces/Communication.h"
+#include "common-interfaces/Communication.h"
+#include "c-interfaces/Wrappers.h"
 #include "json-schema.hpp"
 
 using nlohmann::json;
@@ -157,11 +158,11 @@ class TestConfig {
 };
 
 typedef std::function<void(VnV_Comm comm, VnV::VnVParameterSet& ntv, VnV::OutputEngineManager* engine,
-                           VnV::InjectionPointType type, std::string stageId)>
-    DataCallback;
+                           VnV::InjectionPointType type, std::string stageId)> DataCallback;
 
 void defaultCallBack(VnV_Comm comm, VnV::VnVParameterSet& ntv, IOutputEngine* engine, InjectionPointType type,
                      std::string stageId);
+
 
 }  // namespace VnV
 

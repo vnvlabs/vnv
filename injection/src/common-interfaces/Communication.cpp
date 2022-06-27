@@ -1,11 +1,11 @@
-﻿#include "c-interfaces/Communication.h"
+﻿#include "common-interfaces/Communication.h"
 
 #include <cstring>
 #include <sstream>
 
 #include "base/exceptions.h"
 #include "base/stores/CommunicationStore.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 
 extern "C" {
 

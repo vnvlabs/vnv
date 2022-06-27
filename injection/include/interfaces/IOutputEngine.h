@@ -10,9 +10,9 @@
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/DataTypeStore.h"
 #include "base/stores/ReductionStore.h"
-#include "c-interfaces/Communication.h"
-#include "c-interfaces/Logging.h"
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/Communication.h"
+#include "common-interfaces/Logging.h"
+#include "common-interfaces/PackageName.h"
 #include "c-interfaces/Wrappers.h"
 #include "interfaces/ActionType.h"
 #include "interfaces/IUnitTest.h"
@@ -728,6 +728,10 @@ class IInternalOutputEngine : public IOutputEngine {
 
   virtual void packageOptionsStartedCallBack(ICommunicator_ptr comm, std::string packageName) = 0;
   virtual void packageOptionsEndedCallBack(std::string packageName) = 0;
+
+  virtual void initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName) = 0;
+  virtual void initializationEndedCallBack(std::string packageName) = 0;
+
 
   virtual void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile,
                     std::string filename, std::string reader) = 0;

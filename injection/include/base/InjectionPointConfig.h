@@ -31,7 +31,7 @@ class InjectionPointConfig {
   json runConfig = json::object();
 
 
-  InjectionPointConfig(std::string package, std::string id, bool runInternal_, json& runConfig_, std::vector<TestConfig>& tests_)
+  InjectionPointConfig(std::string package, std::string id, bool runInternal_, const json& runConfig_, const  std::vector<TestConfig>& tests_)
       : packageName(package), name(id), runInternal(runInternal_), tests(tests_), runConfig(runConfig_) {
   }
  

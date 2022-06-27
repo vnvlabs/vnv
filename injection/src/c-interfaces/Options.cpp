@@ -2,8 +2,9 @@
   @file CJson.cpp
 **/
 
-#include "c-interfaces/CJson.h"
+#include "c-interfaces/Options.h"
 #include "base/stores/OptionsParserStore.h"
+
 using nlohmann::json;
 
 void _VnV_registerOptions(const char* name, const char* s,
@@ -15,4 +16,9 @@ void _VnV_registerOptions(const char* name, const char* s,
     VnV_Error(VNVPACKAGENAME, "Error Registering Options: %s", e.what());
   }
 }
+
+extern "C" void* _VnV_getOptionsObject(const char* package) {
+  return VnV::OptionsParserStore::instance().getResult(package);
+}
+
 

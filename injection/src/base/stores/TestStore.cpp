@@ -15,7 +15,7 @@
 #include "base/Runtime.h"
 #include "base/parser/JsonSchema.h"
 #include "base/stores/OutputEngineStore.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 #include "json-schema.hpp"
 
 using nlohmann::json_schema::json_validator;

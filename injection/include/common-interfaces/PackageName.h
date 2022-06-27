@@ -21,12 +21,14 @@
 #  define VNVEXTERNC
 #endif
 
+typedef void (*registrationCallBack)();
 
-#include "c-interfaces/prettyfunction.h"
+
+#include "common-interfaces/prettyfunction.h"
 
 // C Injection Macros.
 
-#include "c-interfaces/foreach.h"
+#include "common-interfaces/foreach.h"
 
 #define VNV_END_PARAMETERS __vnv_end_parameters__
 #define VNV_END_PARAMETERS_S VNV_STR(VNV_END_PARAMETERS)
@@ -72,6 +74,8 @@
 
 // Forward declare the VNV Registration Function.
 INJECTION_REGISTRATION(VNVPACKAGENAME);
+
+
 
 #define VNV_INCLUDED
 

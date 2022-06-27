@@ -12,7 +12,7 @@
 #include "base/exceptions.h"
 #include "base/parser/JsonParser.h"
 #include "base/stores/BaseStore.h"
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/PackageName.h"
 #include "interfaces/IWorkflow.h"
 
 namespace VnV {

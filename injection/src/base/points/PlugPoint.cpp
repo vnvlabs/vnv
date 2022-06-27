@@ -11,7 +11,7 @@
 #include "base/stores/OutputEngineStore.h"
 #include "base/stores/PlugsStore.h"
 #include "base/stores/TestStore.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 #include "interfaces/IIterator.h"
 #include "interfaces/IPlug.h"
 #include "json-schema.hpp"

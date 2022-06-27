@@ -2,7 +2,7 @@
 #define VNV_IDATATYPE_HEADER
 
 #include "base/exceptions.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 
 #include <map>
 #include <memory>

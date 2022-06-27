@@ -13,26 +13,6 @@
 
 extern "C" {
 
-int VnV_init(const char* packageName, int* argc, char*** argv, const char* filename, registrationCallBack callback) {
-  try {
-    return VnV::RunTime::instance().InitFromFile(packageName, argc, argv, filename, callback);
-  } catch (std::exception& e ) {
-    std::cout << "Error Initializing VnV: " << e.what() <<  std::endl;
-    std::abort();
-  }
-}
-
-int VnV_init_raw(const char* packageName, int* argc, char*** argv, const char* inputjson, registrationCallBack callback) {
-  try {
-    json j = json::parse(inputjson);
-    return VnV::RunTime::instance().InitFromJson(packageName, argc, argv, j, callback);
-  } catch (std::exception &e) {
-    std::cout << "Error Initializing VnV: " << e.what() << std::endl;
-    std::abort();
-  }
-}
-
-
 void VnV_Register_Subpackage(const char* subPackageName, registrationCallBack callback) {
   try {
     VnV::RunTime::instance().runTimePackageRegistration(subPackageName, callback);
@@ -49,14 +29,6 @@ void VnV_declarePackageJson(const char* packageName, vnvFullJsonStrCallback call
   }
 }
 
-void VnV_finalize() {
-  try {
-    VnV::RunTime::instance().Finalize();
-    VnV::RunTime::reset();
-  } catch (std::exception &e) {
-    VnV_Error(VNVPACKAGENAME, "Error During finalization");
-  }
-}
 
 void VnV_runUnitTests(VnV_Comm comm) {
   try {
@@ -82,9 +54,6 @@ void VnV_readFile(const char* reader, const char* filename) {
   }
 }
 
-void* VnV_getOptionsObject(const char* package) {
-  return VnV::RunTime::instance().getOptionsObject(package);
-}
 
 
 void VnV_readFileAndWalk(const char* reader, const char* filename, const char* package, const char* walker,

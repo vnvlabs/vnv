@@ -9,17 +9,18 @@
 // used in C and C++.
 
 // C Interface for the runtime functions.
-#include "c-interfaces/RunTime.h"
+#include "common-interfaces/RunTime.h"
 
 // C Interface for defining the communicator.
-#include "c-interfaces/Communication.h"
+#include "common-interfaces/Communication.h"
 
 // C Interface for the Logging components of VnV
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 
 
 #ifdef __cplusplus
 
+#  include "interfaces/Initialization.h"
 #  include "interfaces/IAction.h"
 #  include "interfaces/ICommunicator.h"
 #  include "interfaces/IDataType.h"
@@ -41,10 +42,11 @@
 
 #else
 
+#  include "c-interfaces/Initialization.h"
 #  include "c-interfaces/points/Injection.h"
 #  include "c-interfaces/points/Iteration.h"
 #  include "c-interfaces/points/Plug.h"
-#  include "c-interfaces/CJson.h"
+#  include "c-interfaces/Options.h"
 
 #endif
 

@@ -12,8 +12,8 @@
 #include "base/parser/JsonSchema.h"
 #include "base/stores/BaseStore.h"
 #include "base/stores/OutputEngineStore.h"
-#include "c-interfaces/Communication.h"
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/Communication.h"
+#include "common-interfaces/PackageName.h"
 #include "interfaces/IAction.h"
 #include "interfaces/IOutputEngine.h"
 

@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "base/DistUtils.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 #include "interfaces/ITest.h"
 
 using namespace VnV;

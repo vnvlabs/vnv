@@ -9,7 +9,7 @@
 #include "base/exceptions.h"
 #include "base/points/InjectionPoint.h"
 #include "base/stores/OutputEngineStore.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 #include "json-schema.hpp"
 
 using namespace VnV;

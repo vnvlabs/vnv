@@ -5,9 +5,9 @@
 #include <type_traits>
 
 
-#include "c-interfaces/Communication.h"
-#include "c-interfaces/Logging.h"
-#include "c-interfaces/PackageName.h"
+#include "common-interfaces/Communication.h"
+#include "common-interfaces/Logging.h"
+#include "common-interfaces/PackageName.h"
 #include "c-interfaces/Wrappers.h"
 #include "interfaces/IUnitTest.h"
 #include "json-schema.hpp"

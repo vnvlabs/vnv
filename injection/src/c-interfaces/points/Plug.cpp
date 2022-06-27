@@ -7,8 +7,12 @@
 #include "base/Runtime.h"
 #include "base/Utilities.h"
 #include "base/stores/PlugStore.h"
+#include "interfaces/points/Plug.h"
+
 
 using namespace VnV;
+namespace VnV {DataCallback& DataCallback_wrapper(injectionDataCallback* callback);}
+
 
 extern "C" {
 
@@ -19,9 +23,8 @@ VnV_Iterator _VnV_injectionPlug(VnV_Comm comm, const char* packageName, const ch
     va_list argp;
     va_start(argp, callback);
     NTV parameters = VariadicUtils::UnwrapVariadicArgs(argp);
-    VnV_Iterator v =
-        VnV::RunTime::instance().injectionPlug(comm, packageName, name, pretty, fname, line, callback, parameters);
     va_end(argp);
+    VnV_Iterator v = VnV::RunTime::instance().injectionPlug(comm, packageName, name, pretty, fname, line, DataCallback_wrapper(callback), parameters);
     return v;
 
   } catch (std::exception &e) {

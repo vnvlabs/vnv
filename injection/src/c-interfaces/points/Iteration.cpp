@@ -10,6 +10,9 @@
 
 using namespace VnV;
 
+namespace VnV {DataCallback& DataCallback_wrapper(injectionDataCallback* callback);}
+
+
 extern "C" {
 
 VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName, const char* name,
@@ -19,7 +22,7 @@ VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName, con
     va_list argp;
     va_start(argp, once);
     NTV parameters = VariadicUtils::UnwrapVariadicArgs(argp);
-    VnV_Iterator v = VnV::RunTime::instance().injectionIteration(comm, packageName, name, pretty, fname, line, callback,
+    VnV_Iterator v = VnV::RunTime::instance().injectionIteration(comm, packageName, name, pretty, fname, line, DataCallback_wrapper(callback),
                                                                  parameters, once);
     va_end(argp);
     return v;

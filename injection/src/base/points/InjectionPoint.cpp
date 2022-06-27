@@ -11,7 +11,7 @@
 #include "base/stores/OutputEngineStore.h"
 #include "base/stores/SamplerStore.h"
 #include "base/stores/TestStore.h"
-#include "c-interfaces/Logging.h"
+#include "common-interfaces/Logging.h"
 #include "json-schema.hpp"
 
 using namespace VnV;
@@ -61,7 +61,7 @@ void InjectionPointBase::runTestsInternal(OutputEngineManager* wrapper) {
     if (callback != nullptr) {
       wrapper->testStartedCallBack(package, "__internal__", true, -1);
       try {
-        callback->call(comm, wrapper, parameterMap, type, stageId);
+        callback(comm->asComm(),  parameterMap, wrapper, type, stageId);
       } catch (VnVExceptionBase& e) {
         VnV_Error(VNVPACKAGENAME, "Error Running internal Test: %s", e.what());
       }
