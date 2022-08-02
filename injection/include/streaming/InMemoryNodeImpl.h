@@ -71,59 +71,42 @@ class InMemory {
     MapNode() : DataBaseImpl<IMapNode>() {}
 
     virtual void insert(std::string key, std::shared_ptr<DataBase> val) {
-      
-      
-      if (map.find(key) != map.end() ) {
-        
+    
+      auto parent = map.find(key);
+      if (parent == map.end()) {
+        map[key] = val;
+      } else {
         auto metadata = val->getMetaData();
         std::string collate = metadata.has("collate") ? metadata.get("collate") : "shape";
 
         // If replace then we just override it.
         if (collate.compare("replace") == 0) {
           map[key] = val;
-          return;
-          // TODO Delete old node from repo?
-        }
+        } else {
+          auto exist = parent->second;
+          if (exist->getType() != DataType::Array) {
 
-        // If shape, then we try and turn it into a shape node. (default)
-        auto parent = map.find(key)->second;
-        auto t = parent->getType();
-        if (t == val->getType() && collate.compare("shape") == 0) {
-          if (t == DataType::Double) {
-            if (convertToShapeNode<DoubleNode>(parent, val)) return;
-          } else if (t == DataType::Float) {
-            if (convertToShapeNode<FloatNode>(parent, val)) return;
-          } else if (t == DataType::Shape) {
-            if (convertToShapeNode<ShapeNode>(parent, val)) return;
-          } else if (t == DataType::Integer) {
-            if (convertToShapeNode<IntegerNode>(parent, val)) return;
-          } else if (t == DataType::Long) {
-            if (convertToShapeNode<LongNode>(parent, val)) return;
-          } else if (t == DataType::Json) {
-            if (convertToShapeNode<FloatNode>(parent, val)) return;
-          } else if (t == DataType::Bool) {
-            if (convertToShapeNode<BoolNode>(parent, val)) return;
-          } else if (t == DataType::String) {
-            if (convertToShapeNode<StringNode>(parent, val)) return;
+            // Not an array -- so convert it (we collate ids of same type.)
+            auto a = std::make_shared<ArrayNode>();
+            rootNode()->registerNode(a);
+            
+            a->setname(key);
+            std::cout << a->toJson().dump() <<std::endl;
+
+            a->add(exist);
+            std::cout << a->toJson().dump() <<std::endl;
+
+            a->add(val);
+            std::cout << a->toJson().dump() <<std::endl;
+
+            map[key] = a;
+          } else {
+            std::cout << exist->getAsArrayNode(exist)->toJson().dump() <<std::endl;
+       
+            exist->getAsArrayNode(exist)->add(val);
+       
           }
         }
-
-        // Else collate -- combine it into a single array. (default action)
-        if (parent->getType() != DataType::Array) {
-          // Not an array -- so convert it (we collate ids of same type.)
-           auto a = std::make_shared<ArrayNode>();
-           rootNode()->registerNode(a);
-          a->setname(key);
-          a->add(parent);
-          a->add(val);
-          map[key] = a;
-        } else {
-          // Add it to the array.
-          auto an = parent->getAsArrayNode(parent);
-          an->add(val);
-        }
-      } else {
-        map[key] = val;
       }
     }
 
@@ -147,42 +130,45 @@ class InMemory {
     virtual ~MapNode(){};
   };
 
-#define X(x, y)                                                                                         \
-  class x##Node : public DataBaseImpl<I##x##Node> {                                                     \
-    std::vector<std::size_t> shape;                                                                     \
-    std::vector<y> value;                                                                               \
-                                                                                                        \
-   public:                                                                                              \
-    x##Node() : DataBaseImpl<I##x##Node>() {}                                                           \
-                                                                                                        \
-    const std::vector<std::size_t>& getShape() override { return shape; }                               \
-                                                                                                        \
-    y getValueByShape(const std::vector<std::size_t>& rshape) override {                                \
-      if (shape.size() == 0) {                                                                          \
-        return value[0];                                                                                \
-      }                                                                                                 \
-      if (rshape.size() != shape.size())                                                                \
-        throw INJECTION_EXCEPTION("%s: Invalid Shape Size %d (should be %d)", #x,  rshape.size(), shape.size()); \
-      int index = 0;                                                                                    \
-      for (int i = 0; i < shape.size(); i++) {                                                          \
-        index += rshape[i] * shape[i];                                                                  \
-      }                                                                                                 \
-      return getValueByIndex(index);                                                                    \
-    }                                                                                                   \
-    void add(const y& v) { value.push_back(v); }                                                        \
-    y getValueByIndex(const size_t ind) override { return value[ind]; }                                 \
-                                                                                                        \
-    y getScalarValue() override {                                                                       \
-      if (shape.size() == 0)                                                                            \
-        return value[0];                                                                                \
-      else                                                                                              \
-        throw INJECTION_EXCEPTION("%s: No shape provided to non scalar shape tensor object", #x);       \
-    }                                                                                                   \
-                                                                                                        \
-    int getNumElements() override { return value.size(); }                                              \
-    virtual ~x##Node() {}                                                                               \
-    virtual void setShape(const std::vector<std::size_t>& s) { shape = s; }                             \
-    virtual void setValue(const std::vector<y>& s) { value = s; }                                       \
+#define X(x, y)                                                                                                 \
+  class x##Node : public DataBaseImpl<I##x##Node> {                                                             \
+    std::vector<std::size_t> shape;                                                                             \
+    std::vector<y> value;                                                                                       \
+                                                                                                                \
+   public:                                                                                                      \
+    x##Node() : DataBaseImpl<I##x##Node>() {}                                                                   \
+                                                                                                                \
+    const std::vector<std::size_t>& getShape() override { return shape; }                                       \
+                                                                                                                \
+    y getValueByShape(const std::vector<std::size_t>& rshape) override {                                        \
+      if (shape.size() == 0) {                                                                                  \
+        return value[0];                                                                                        \
+      }                                                                                                         \
+      if (rshape.size() != shape.size())                                                                        \
+        throw INJECTION_EXCEPTION("%s: Invalid Shape Size %d (should be %d)", #x, rshape.size(), shape.size()); \
+      \
+      std::size_t mult = 1;                                                                          \
+      int index = 0;                                                                                \
+      for (int i = shape.size()-1; i >= 0 ; i--) {                                                               \
+        index += rshape[i] * mult;                                                                              \
+        mult *= shape[i];                                                                                        \
+      }\
+      return getValueByIndex(index);                                                                            \
+    }                                                                                                           \
+    void add(const y& v) { value.push_back(v); }                                                                \
+    y getValueByIndex(const size_t ind) override { return value[ind]; }                                         \
+                                                                                                                \
+    y getScalarValue() override {                                                                               \
+      if (shape.size() == 0)                                                                                    \
+        return value[0];                                                                                        \
+      else                                                                                                      \
+        throw INJECTION_EXCEPTION("%s: No shape provided to non scalar shape tensor object", #x);               \
+    }                                                                                                           \
+                                                                                                                \
+    int getNumElements() override { return value.size(); }                                                      \
+    virtual ~x##Node() {}                                                                                       \
+    virtual void setShape(const std::vector<std::size_t>& s) { shape = s; }                                     \
+    virtual void setValue(const std::vector<y>& s) { value = s; }                                               \
   };
   DTYPES
 #undef X
@@ -204,11 +190,11 @@ class InMemory {
     virtual long getEndTime() override { return end; }
     virtual std::string getWorkflow() override { return workflow; }
     virtual std::string getJobName() override { return jobName; }
-    
-    GETTERSETTER(workflow,std::string)
-    GETTERSETTER(jobName,std::string)
+
+    GETTERSETTER(workflow, std::string)
+    GETTERSETTER(jobName, std::string)
     GETTERSETTER(start, long)
-    GETTERSETTER(end,long)
+    GETTERSETTER(end, long)
     GETTERSETTER(title, std::string)
     GETTERSETTER(prov, std::shared_ptr<VnVProv>)
 
@@ -244,52 +230,47 @@ class InMemory {
     json info;
     std::map<std::string, std::shared_ptr<IRootNode>> rootNodes;
     std::map<std::string, int> fileIds;
-  
-  public:
-  
+
+   public:
     WorkflowNode() : DataBaseImpl<IWorkflowNode>() {}
     virtual std::string getPackage() override { return package; }
     virtual std::string getState() override { return state; }
     virtual json getInfo() override { return info; }
-    
+
     GETTERSETTER(package, std::string);
     GETTERSETTER(state, std::string);
     GETTERSETTER(info, json);
 
     virtual std::shared_ptr<IRootNode> getReport(std::string reportName) override {
-     
-     auto it = rootNodes.find(reportName);
-     if (it != rootNodes.end()) {
-       return it->second;
-     }
-     return nullptr;
-   }
- 
-   virtual bool hasReport(std::string reportName) override {
-     return rootNodes.find( reportName) != rootNodes.end();
-   }
+      auto it = rootNodes.find(reportName);
+      if (it != rootNodes.end()) {
+        return it->second;
+      }
+      return nullptr;
+    }
 
-   virtual void setReport(std::string reportName, int fileId, std::shared_ptr<IRootNode> rootNode) override {
-     fileIds[ reportName ] = fileId ;
-     rootNodes[ reportName ] = rootNode; 
-   }
+    virtual bool hasReport(std::string reportName) override { return rootNodes.find(reportName) != rootNodes.end(); }
 
-   virtual std::vector<std::string> listReports() override {
-     std::vector<std::string> ret; 
-     for (auto &it : rootNodes) {
-       ret.push_back(it.first);
-     }
-     return ret;
-   }
+    virtual void setReport(std::string reportName, int fileId, std::shared_ptr<IRootNode> rootNode) override {
+      fileIds[reportName] = fileId;
+      rootNodes[reportName] = rootNode;
+    }
 
-   virtual int getReportFileId(std::string reportName) {
+    virtual std::vector<std::string> listReports() override {
+      std::vector<std::string> ret;
+      for (auto& it : rootNodes) {
+        ret.push_back(it.first);
+      }
+      return ret;
+    }
+
+    virtual int getReportFileId(std::string reportName) {
       auto it = fileIds.find(reportName);
-     if (it != fileIds.end()) {
-       return it->second;
-     }
-     return -100;
-   }
-
+      if (it != fileIds.end()) {
+        return it->second;
+      }
+      return -100;
+    }
   };
 
   class TestNode : public DataBaseImpl<ITestNode> {
@@ -331,7 +312,6 @@ class InMemory {
     std::shared_ptr<TestNode> internal;
     std::string package;
 
-
     long startIndex = -1;
     long endIndex = -1;
     long long commId;
@@ -343,12 +323,11 @@ class InMemory {
     GETTERSETTER(package, std::string)
     GETTERSETTER(commId, long long)
     GETTERSETTER(internal, std::shared_ptr<TestNode>)
-   GETTERSETTER(startIndex, long)
+    GETTERSETTER(startIndex, long)
     GETTERSETTER(endIndex, long)
     GETTERSETTER(isIter, bool)
     GETTERSETTER(isOpen, bool)
 
-  
     InjectionPointNode() : DataBaseImpl<IInjectionPointNode>() {}
 
     virtual std::string getPackage() override { return package; }
@@ -372,7 +351,7 @@ class InMemory {
 
     virtual long getStartIndex() override { return startIndex; }
     virtual long getEndIndex() override { return endIndex; }
-     std::shared_ptr<TestNode> getTestByUID(long uid) {
+    std::shared_ptr<TestNode> getTestByUID(long uid) {
       for (int i = 0; i < getTests()->size(); i++) {
         auto t = std::dynamic_pointer_cast<TestNode>(getTests()->get(i));
         if (t->getuid() == uid) {
@@ -544,18 +523,22 @@ class InMemory {
     virtual std::shared_ptr<IMapNode> getPackages() override { INITMEMBER(packages, MapNode) return packages; }
     virtual std::shared_ptr<IMapNode> getActions() override { INITMEMBER(actions, MapNode) return actions; }
     virtual std::shared_ptr<IArrayNode> getChildren() override { INITMEMBER(children, ArrayNode) return children; }
-    virtual std::shared_ptr<ITestNode> getInitialization() override { INITMEMBER(initialization,TestNode) return initialization;  }
+    virtual std::shared_ptr<ITestNode> getInitialization() override {
+      INITMEMBER(initialization, TestNode) return initialization;
+    }
     virtual std::shared_ptr<IArrayNode> getUnitTests() override { INITMEMBER(unitTests, ArrayNode) return unitTests; }
     virtual std::shared_ptr<IArrayNode> getLogs() override { INITMEMBER(logs, ArrayNode) return logs; }
     virtual std::shared_ptr<IInfoNode> getInfoNode() override { INITMEMBER(infoNode, InfoNode) return infoNode; }
-    virtual std::shared_ptr<IWorkflowNode> getWorkflowNode() override { INITMEMBER(workflowNode, WorkflowNode) return workflowNode; }
+    virtual std::shared_ptr<IWorkflowNode> getWorkflowNode() override {
+      INITMEMBER(workflowNode, WorkflowNode) return workflowNode;
+    }
     virtual std::shared_ptr<ICommInfoNode> getCommInfoNode() override {
       INITMEMBER(commInfo, CommInfoNode) return commInfo;
     }
 
     void cache_persist(bool clearCache) {}
 
-    void markReaderThread(){}
+    void markReaderThread() {}
 
     virtual bool processing() const override { return _processing.load(); }
 
@@ -584,7 +567,6 @@ class InMemory {
     virtual const VnVSpec& getVnVSpec() { return *spec; }
   };
 };
-
 
 typedef StreamParserTemplate<InMemory> InMemoryParser;
 template <typename N> using InMemoryParserVisitor = InMemoryParser::ParserVisitor<N>;

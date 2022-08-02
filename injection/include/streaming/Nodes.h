@@ -269,17 +269,12 @@ class IArrayNode : public DataBase {
   }
 
   virtual json toJson() override {
-    std::cout << "Starting Array to Json " << size() << std::endl;
     
-    json j = json::array();
-    j.get_ptr<json::array_t*>()->reserve(size());
-    
-    // This is really slow -- Could parallelize with openmp ? 
+    json j = json::array();    
     for (int i = 0; i < size(); i++ ){
       j[i] = get(i)->toJson();
     }
 
-    std::cout << "Finished Array to Json " << size() << std::endl;
     return j;
   }
 
@@ -330,6 +325,9 @@ class IMapNode : public DataBase {
   virtual std::shared_ptr<DataBase> get(std::string key)= 0; 
   
   virtual void insert(std::string key, std::shared_ptr<DataBase> val) = 0;
+
+  
+
 
   virtual bool contains(std::string key) = 0;
   virtual std::vector<std::string> fetchkeys() = 0;

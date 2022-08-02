@@ -95,7 +95,6 @@ json toJ(std::vector<std::size_t> curr, V* cls, const std::function<json(T)>& fu
         jj.push_back(toJ(curr,cls, func));
       }
   }
-
   return jj;
 }
 
