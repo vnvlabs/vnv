@@ -20,8 +20,14 @@ using nlohmann::json;
 
 namespace {
 
+/**
+ * comment that implements a VnV macro
+ *   stores information as json
+ */
 class ProcessedComment {
  public:
+  //VnV macro comment's anatomy before being interpreted by pre-processor
+  //  this anatomy is defined in the comment above ProcessedComment::processComment(std::string comment)
   std::string templ = "";
   std::string title = "";
   std::string treeTitle = "";
@@ -31,6 +37,7 @@ class ProcessedComment {
   std::map<std::string, std::string> params;
   ProcessedComment(){};
 
+  //create a json file to store VnV macro comment anatomy
   json toJson() {
     json j = json ::object();
     j["template"] = templ;
@@ -40,18 +47,23 @@ class ProcessedComment {
     j["shortTitle"] = treeTitle;
     j["params"] = params;
 
+    // if there's no string for configuration, then set configuration to the json object
     if (configuration.empty()) {
       j["configuration"] = json::object();
-    } else {
+    } 
+    else {
+      //otherwise, try to convert the configuration string into a json object
       try {
         j["configuration"] = json::parse(configuration);
       } catch (...) {
-        std::cout << "Could not pase configuration -- Invalid Json" << std::endl;
+        //output error message if cannot convert the configuration string into a json
+        std::cout << "Could not parse configuration -- Invalid Json" << std::endl;
         std::cout << j.dump(3);
         std::cout << "Ignoring invalid configuration options..." << std::endl;
       }
     }
 
+    //return the json file that stores information about the processed VnV macro comment's anatomy
     return j;
   }
 };
@@ -74,20 +86,31 @@ ProcessedComment processComment(std::string comment) {
    *
    */
   ProcessedComment c;
+  //all of the processed comment's anatomy is stored in the result vector
   std::vector<std::string> result;
   VnV::StringUtils::StringSplit(comment, "\n", result, true);
   std::ostringstream oss;
 
   std::string* curr = nullptr;
   for (auto it : result) {
+
+    //define the title anatomy if it hasn't been done already
     if (c.title.empty()) {
+      //search for the title of the VnV macro comment
       auto t = it.find("@title");
+      //if a title is found ...
       if (t != std::string::npos) {
+        //set the processed comment's title to the foo in @title foo
         c.title = VnV::StringUtils::trim_copy(it.substr(t + 6));
+        //move the current location pointer to the title
         curr = &(c.title);
+        //move on to next type of comment anatomy
         continue;
       }
     }
+    // SEE THE COMMENT FOR:
+    //   if (c.title.empty()) {...}
+    //     just consider the @description instead of the @title
     if (c.description.empty()) {
       auto t = it.find("@description");
       if (t != std::string::npos) {
@@ -96,6 +119,9 @@ ProcessedComment processComment(std::string comment) {
         continue;
       }
     }
+    // SEE THE COMMENT FOR:
+    //   if (c.title.empty()) {...}
+    //     just consider the @instructions instead of the @title    
     if (c.instructions.empty()) {
       auto t = it.find("@instructions");
       if (t != std::string::npos) {
@@ -104,6 +130,9 @@ ProcessedComment processComment(std::string comment) {
         continue;
       }
     }
+    // SEE THE COMMENT FOR:
+    //   if (c.title.empty()) {...}
+    //     just consider the @shortTitle instead of the @title
     if (c.treeTitle.empty()) {
       auto t = it.find("@shortTitle");
       if (t != std::string::npos) {
@@ -112,6 +141,9 @@ ProcessedComment processComment(std::string comment) {
         continue;
       }
     }
+    // SEE THE COMMENT FOR:
+    //   if (c.title.empty()) {...}
+    //     just consider the @configuration instead of the @title    
     if (c.configuration.empty()) {
       auto t = it.find("@configuration");
       if (t != std::string::npos) {
@@ -121,21 +153,26 @@ ProcessedComment processComment(std::string comment) {
       }
     }
 
+    //search for the parameters of the VnV macro comment
     auto t = it.find("@param");
+    //if @param is found ...
     if (t != std::string::npos) {
+      //TODO doc
       auto subs = VnV::StringUtils::ltrim_copy(it.substr(t + 6));
       auto tt = subs.find_first_of(" ");
       if (tt != std::string::npos) {
         c.params[subs.substr(0, tt)] = subs.substr(tt + 1);
         curr = &(c.params[subs.substr(0, tt)]);
-      } else {
+      } 
+      else {
         c.params[subs] = "No description provided";
         curr = &(c.params[subs.substr(0, tt)]);
       }
       continue;
     }
-
+    //if VnV macro comment anatomy was previously found
     if (curr != nullptr) {
+      //TODO doc
       auto s = VnV::StringUtils::trim_copy(it);
       if (s.length() > 0) {
         (*curr) += "\n" + it;
@@ -145,6 +182,7 @@ ProcessedComment processComment(std::string comment) {
     curr = nullptr;
     oss << it << "\n";
   }
+  //set the template of the processed comment
   c.templ = oss.str();
   return c;
 }
@@ -192,7 +230,11 @@ static bool onlyWhitespaceBetween(SourceManager& SM, SourceLocation Loc1, Source
   return true;
 }
 
+/**
+ * extract arguments of VnV macro Token
+ */
 std::string stringArgs(Preprocessor& pp, const Token* token, bool spaceBeforeLast) {
+  //TODO doc
   std::string s = "";
   while (token->isNot(tok::eof)) {
     if (spaceBeforeLast && (pp.getSpelling(*(token + 1)) == "," || (token + 1)->is(tok::eof))) s += " ";
@@ -326,15 +368,22 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     currComment.clear();
   }
 
+  /**
+   * expand out a VnV macro Token to populate a json
+   */
   void MacroExpands(const Token& MacroNameTok, const MacroDefinition& MD, SourceRange Range,
                     const MacroArgs* Args) override {
+    //stop if the preprocessor is not turned on
     if (!active) return;
 
+    //extract the name of the macro MacroNameTok Token object
+    //  Token is a struct that is defined in injection/thrid-party/inja.hpp
     std::string nae = pp.getSpelling(MacroNameTok);
 
     // TODOO CATCH THE TEST ASSERT EQUALS CALLS FOR GETTING DOCS FOR INDIVIDUAL
     // UNIT TESTS
 
+    //TODO doc
     if ((nae == "TEST_ASSERT_EQUALS" || nae == "TEST_ASSERT_NOT_EQUALS") && lastTestJson != nullptr) {
       std::string name = VnV::StringUtils::trim_copy(pp.getSpelling(*Args->getUnexpArgument(0)));
       if (name.size() < 3) {
@@ -354,7 +403,9 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
         j[name] = t.value().get<std::string>() + docs;
       }
       return;
-    } else if (nae == "INJECTION_CREATE_JOB" && lastWorkflowJson != nullptr) {
+    }  
+    else if (nae == "INJECTION_CREATE_JOB" && lastWorkflowJson != nullptr) {
+    //TODO doc
       std::string name = VnV::StringUtils::trim_copy(pp.getSpelling(*Args->getUnexpArgument(1)));
       if (name[0] == '\"' && name[name.size() - 1] == '\"') {
         name = name.substr(1, name.size() - 2);
@@ -364,11 +415,15 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       return;
     }
 
+    //stop if nae's first 10 characters are not INJECTION_
+    //  all VnV macros begin with INJECTION_
     if (nae.substr(0, 10).compare("INJECTION_") != 0) return;
 
     // Reset the lastTestJson object as we have a new Injection macro.
     lastTestJson = nullptr;
     lastWorkflowJson = nullptr;
+
+    
     if (nae == "INJECTION_COMMENT") {
       std::string pname = getPackageName(Args, 0);
       std::string name = getPackageName(Args, 1);
@@ -376,113 +431,147 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       int import = std::atoi(getPackageName(Args, 3).c_str());
       override_comment(Range, pname, name, type, import);
 
-    } else if (nae == "INJECTION_TEST_RS") {
+    } 
+    else if (nae == "INJECTION_TEST_RS") {
+      //gets or creates a jj with:
+      //  type="Tests"
+      //  packageName = getPackageName(Args,0)
+      //  nstr = getPackageName(Args,1)
       json& jj = getDef("Tests", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_ITERATOR_RS") {
+    } 
+    else if (nae == "INJECTION_ITERATOR_RS") {
       json& jj = getDef("Iterators", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_PLUG_RS") {
+    } 
+    else if (nae == "INJECTION_PLUG_RS") {
       json& jj = getDef("Plugs", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_SERIALIZER_R") {
+    } 
+    else if (nae == "INJECTION_SERIALIZER_R") {
       json& jj = getDef("Serializers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
       jj["type"] = stringArgs(pp, Args->getUnexpArgument(3), false);
-    } else if (nae == "INJECTION_TRANSFORM_R") {
+    } 
+    else if (nae == "INJECTION_TRANSFORM_R") {
       json& jj = getDef("Transforms", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
       jj["to"] = stringArgs(pp, Args->getUnexpArgument(3), false);
       jj["from"] = stringArgs(pp, Args->getUnexpArgument(4), false);
       jj["alias"] = false;
-    } else if (nae == "INJECTION_ALIAS") {
+    } 
+    else if (nae == "INJECTION_ALIAS") {
       json& jj = getDef("Transforms", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
       jj["to"] = stringArgs(pp, Args->getUnexpArgument(2), false);
       jj["from"] = stringArgs(pp, Args->getUnexpArgument(3), false);
       jj["alias"] = true;
-    } else if (nae == "INJECTION_OPTIONS") {
+    } 
+    else if (nae == "INJECTION_OPTIONS") {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Options");
       std::string pname = getPackageName(Args, 0);
       jj[pname] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_INPUT_FILE_") {
+    } 
+    else if (nae == "INJECTION_INPUT_FILE_") {
       json& jj = getDef("Files", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_OUTPUT_FILE_") {
+    } 
+    else if (nae == "INJECTION_OUTPUT_FILE_") {
       json& jj = getDef("Files", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_LOGLEVEL") {
+    } 
+    else if (nae == "INJECTION_LOGLEVEL") {
       json& jj = getDef("LogLevels", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["color"] = pp.getSpelling(*Args->getUnexpArgument(2));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_SUBPACKAGE") {
+    } 
+    else if (nae == "INJECTION_SUBPACKAGE") {
       json& jj = getDef("SubPackages", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_UNITTEST_R" || nae == "INJECTION_UNITTEST_RAW") {
+    } 
+    else if (nae == "INJECTION_UNITTEST_R" || nae == "INJECTION_UNITTEST_RAW") {
       json& jj = getDef("UnitTests", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
       jj["tests"] = json::object();
       lastTestJson = &jj;
-    } else if (nae == "INJECTION_ACTION") {
+    } 
+    else if (nae == "INJECTION_ACTION") {
       json& jj = getDef("Actions", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_ENGINE") {
+    } 
+    else if (nae == "INJECTION_ENGINE") {
       json& jj = getDef("Engines", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_ENGINE_READER") {
+    } 
+    else if (nae == "INJECTION_ENGINE_READER") {
       json& jj = getDef("EngineReaders", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_DATATYPE") {
+    } 
+    else if (nae == "INJECTION_DATATYPE") {
       json& jj = getDef("DataTypes", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_REDUCER") {
+    } 
+    else if (nae == "INJECTION_REDUCER") {
       json& jj = getDef("Reducers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_SCHEDULER") {
+    } 
+    else if (nae == "INJECTION_SCHEDULER") {
       json& jj = getDef("Schedulers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_VALIDATOR") {
+    } 
+    else if (nae == "INJECTION_VALIDATOR") {
       json& jj = getDef("Validators", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_JOBCREATOR") {
+    } 
+    else if (nae == "INJECTION_JOBCREATOR") {
       json& jj = getDef("JobCreators", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["jobs"] = json::object();
       jj["docs"] = getDocs(Range).toJson();
       lastWorkflowJson = &jj;
-    } else if (nae == "INJECTION_SCRIPTGENERATOR") {
+    } 
+    else if (nae == "INJECTION_SCRIPTGENERATOR") {
       json& jj = getDef("ScriptGenerators", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_SAMPLER_RS") {
+    } 
+    else if (nae == "INJECTION_SAMPLER_RS") {
       json& jj = getDef("Samplers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_WALKER_S") {
+    } 
+    else if (nae == "INJECTION_WALKER_S") {
       json& jj = getDef("Walkers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_COMM") {
+    } 
+    else if (nae == "INJECTION_COMM") {
       json& jj = getDef("Comms", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_INITIALIZE_C" || nae == "INJECTION_INITIALIZE_RAW_C") {
+    } 
+    else if (nae == "INJECTION_INITIALIZE_C" || nae == "INJECTION_INITIALIZE_RAW_C") {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Introduction");
       jj[getPackageName(Args, 0)] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_FINALIZE") {
+    } 
+    else if (nae == "INJECTION_FINALIZE") {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Conclusion");
       jj[getPackageName(Args, 0)] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_EXECUTABLE") {
+    } 
+    else if (nae == "INJECTION_EXECUTABLE") {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Executables");
       std::string pname = getPackageName(Args, 0);
       jj[pname] = getDocs(Range).toJson();
       jj[pname]["lib"] = "executables";
-    } else if (nae == "INJECTION_LIBRARY" ) {
+    } 
+    else if (nae == "INJECTION_LIBRARY" ) {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Executables");
       std::string pname = getPackageName(Args, 0);
       jj[pname] = getDocs(Range).toJson();
       jj[pname]["lib"] = "libraries";
-    } else if ( nae == "INJECTION_PLUGIN" ) {
+    } 
+    else if ( nae == "INJECTION_PLUGIN" ) {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Executables");
       std::string pname = getPackageName(Args, 0);
       jj[pname] = getDocs(Range).toJson();
       jj[pname]["lib"] = "plugins";
-    } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
+    } 
+    else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 0), getPackageName(Args, 2));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
@@ -491,7 +580,8 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       if (nae == "INJECTION_LOOP_BEGIN_C") {
         jj["loop"] = true;
       }
-    } else if (nae == "INJECTION_ITERATION_C") {
+    } 
+    else if (nae == "INJECTION_ITERATION_C") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 1), getPackageName(Args, 3));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
@@ -499,7 +589,8 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj["iterator"] = true;
       thisStage["docs"] = ProcessedComment().toJson();
 
-    } else if (nae == "INJECTION_FUNCTION_PLUG_C") {
+    } 
+    else if (nae == "INJECTION_FUNCTION_PLUG_C") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 1), getPackageName(Args, 3));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
@@ -507,18 +598,21 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj["plug"] = true;
       thisStage["docs"] = ProcessedComment().toJson();
 
-    } else if (nae == "INJECTION_LOOP_ITER") {
+    } 
+    else if (nae == "INJECTION_LOOP_ITER") {
       // json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
       // json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       // json& thisStage = VnV::JsonUtilities::getOrCreate(stages, getPackageName(Args, 2, true));
       // thisStage["docs"] = getDocs(Range).toJson();
 
-    } else if (nae == "INJECTION_LOOP_END") {
+    } 
+    else if (nae == "INJECTION_LOOP_END") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 0), getPackageName(Args, 1));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "End");
       thisStage["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_CODEBLOCK_START") {
+    } 
+    else if (nae == "INJECTION_CODEBLOCK_START") {
       
       SourceManager& SM = pp.getSourceManager();
       SourceLocation loc =  Range.getEnd();
@@ -529,7 +623,8 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj["start"] = macroLoc.second + 1;
       std::cout << jj.dump(4) << "FDSDF" << std::endl;
 
-    } else if (nae == "INJECTION_CODEBLOCK_END") {
+    } 
+    else if (nae == "INJECTION_CODEBLOCK_END") {
       SourceManager& SM = pp.getSourceManager();
       SourceLocation loc =  Range.getBegin();
       SourceLocation macroSrcLoc = SM.getExpansionLoc(loc);     
@@ -553,6 +648,7 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
   void MacroDefined(const Token& MacroNameTok, const MacroDirective* MD) override {
     if (active) return;
     std::string nae = pp.getSpelling(MacroNameTok);
+    //if #define VNV_INCLUDED is in the file, then turn on the preprocessor
     if (nae == "VNV_INCLUDED") {
       pp.addCommentHandler(this);
       active = true;
