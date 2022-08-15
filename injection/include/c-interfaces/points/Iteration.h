@@ -16,7 +16,7 @@
                                 EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);                             \
     while (_VnV_injectionIterate(&VAR, _iterator_, NAME)))
 
-#  define INJECTION_ITEARTION(VAR, PNAME, COMM, NAME, ONCE, ...) \
+#  define INJECTION_ITERATION(VAR, PNAME, COMM, NAME, ONCE, ...) \
     INJECTION_ITERATION_C(VAR, COMM, PNAME, NAME, ONCE, NULL, __VA_ARGS__)
 
 #  define Register_Injection_Iterator(PNAME, NAME, PARAMETERS) _VnV_registerInjectionIterator(PNAME, NAME, PARAMETERS);
