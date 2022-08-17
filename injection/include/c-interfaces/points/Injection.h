@@ -33,7 +33,7 @@
     _VnV_injectionPoint_loop(VNV_STR(PNAME), VNV_STR(NAME), VNV_STR(STAGE), __FILE__, __LINE__);
 
 #  define INJECTION_LOOP_ITER_D(PNAME, NAME, STAGE) \
-    _VnV_injectionPoint_loop(VNV_STR(PNAME), VNV_STR(NAME), STAGE), __FILE__, __LINE__);
+    _VnV_injectionPoint_loop(VNV_STR(PNAME), VNV_STR(NAME), STAGE, __FILE__, __LINE__);
 
 
 #  define INJECTION_FUNCTION_WRAPPER_C(PNAME, COMM, NAME, function, callback, \
