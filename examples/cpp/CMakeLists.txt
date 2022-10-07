@@ -28,5 +28,5 @@ addexecutable(contour ContourExample)
 addexecutable(line LineExample)
 addexecutable(euler Euler)
 addexecutable(vectors VectorsExample)
+addexecutable(finiteDifferenceDerivative FiniteDifferenceDerivative)
 
-  
