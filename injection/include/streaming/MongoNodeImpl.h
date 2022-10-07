@@ -707,6 +707,7 @@ class MongoPersistance {
       return false;
     }
 
+
     virtual void insert(std::string key, std::shared_ptr<DataBase> val) {
       auto& m = getmap(true);
 
@@ -718,35 +719,7 @@ class MongoPersistance {
         // If replace then we just override it.
         if (collate.compare("replace") == 0) {
           m[key] = val->getId();
-          return;
-          // TODO Delete old node from repo?
-        }
-
-        // If shape, then we try and turn it into a shape node. (default)
-        auto t = edbn->getType();
-        if (t == val->getType() && collate.compare("shape") == 0) {
-          bool sucess = false;
-          if (t == DataType::Double) {
-            if (_convertToShapeNode<DoubleNode>(edbn, val)) return;
-          } else if (t == DataType::Float) {
-            if (_convertToShapeNode<FloatNode>(edbn, val)) return;
-          } else if (t == DataType::Shape) {
-            if (_convertToShapeNode<ShapeNode>(edbn, val)) return;
-          } else if (t == DataType::Integer) {
-            if (_convertToShapeNode<IntegerNode>(edbn, val)) return;
-          } else if (t == DataType::Long) {
-            if (_convertToShapeNode<LongNode>(edbn, val)) return;
-          } else if (t == DataType::Json) {
-            if (_convertToShapeNode<FloatNode>(edbn, val)) return;
-          } else if (t == DataType::Bool) {
-            if (_convertToShapeNode<BoolNode>(edbn, val)) return;
-          } else if (t == DataType::String) {
-            if (_convertToShapeNode<StringNode>(edbn, val)) return;
-          }
-        }
-
-        // Else collate -- combine it into a single array. (default action)
-        if (edbn->getType() != DataType::Array) {
+        } else if (edbn->getType() != DataType::Array) {
           // Not an array -- so convert it (we collate ids of same type.)
           auto a = std::make_shared<ArrayNode>();
           rootNode()->registerNode(a);
@@ -757,7 +730,6 @@ class MongoPersistance {
         } else {
           // Add it to the array.
           auto an = edbn->getAsArrayNode(edbn);
-          auto last = an->get(an->size() - 1);
           an->add(val);
         }
       } else {
@@ -801,8 +773,21 @@ class MongoPersistance {
       }                                                                                             \
                                                                                                     \
       y getValueByShape(const std::vector<std::size_t>& rshape) override {                          \
-        auto a = getValueByIndex(computeShapeIndex<std::size_t>(rshape, getshape()));               \
-        return a;                                                                                   \
+        auto shape = getshape();                                                                    \
+        if (shape.size() == 0) {                                                                    \
+          return getValueByIndex(0);                                                                \
+        }                                                                                           \
+        if (rshape.size() != shape.size())                                                          \
+          throw INJECTION_EXCEPTION("%s: Invalid Shape Size %d (should be %d)",                     \
+                #x, rshape.size(), shape.size());                                                   \
+                                                                                                    \
+        std::size_t mult = 1;                                                                       \
+        int index = 0;                                                                              \
+        for (int i = shape.size()-1; i >= 0 ; i--) {                                                \
+           index += rshape[i] * mult;                                                               \
+           mult *= shape[i].get<std::size_t>();                                                     \
+      }                                                                                             \
+        return  getValueByIndex(index);                                                             \
       }                                                                                             \
       void add(const y& v);                                                                         \
       y getValueByIndex(const size_t ind) override;                                                 \

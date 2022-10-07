@@ -1,0 +1,11 @@
+{
+  "runTests": true,
+  "outputEngine": {
+    "json_file" : {
+       "filename" : "outputs/vectors/out"
+    }
+  },
+  "injectionPoints": {
+     "VectorsExample:mainpoint" : {}
+  }
+}
