@@ -52,13 +52,13 @@
 
 VNVEXTERNC void _VnV_injectionPoint(VnV_Comm comm, const char* packageName,
                                     const char* id, struct VnV_Function_Sig pretty, const char* fname, int line,
-                                    injectionDataCallback* callback, ...);
+                                    injectionDataCallback callback, ...);
 
 VNVEXTERNC void _VnV_injectionPoint_begin(VnV_Comm comm,
                                           const char* packageName,
                                           const char* id, struct VnV_Function_Sig pretty, const char* fname,
                                           int line,
-                                          injectionDataCallback* callback, ...);
+                                          injectionDataCallback callback, ...);
 
 VNVEXTERNC void _VnV_injectionPoint_loop(const char* packageName,
                                          const char* id, const char* stageId,

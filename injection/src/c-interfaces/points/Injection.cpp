@@ -10,12 +10,12 @@
 #include "c-interfaces/Wrappers.h"
 using namespace VnV;
 
-namespace VnV {DataCallback& DataCallback_wrapper(injectionDataCallback* callback);}
+namespace VnV {DataCallback& DataCallback_wrapper(injectionDataCallback callback);}
 
 extern "C" {
 
 void _VnV_injectionPoint(VnV_Comm comm, const char* package, const char* id, struct VnV_Function_Sig pretty,
-                         const char* fname, int line, injectionDataCallback* callback, ...) {
+                         const char* fname, int line, injectionDataCallback callback, ...) {
   try {
     va_list argp;
     va_start(argp, callback);
@@ -28,7 +28,7 @@ void _VnV_injectionPoint(VnV_Comm comm, const char* package, const char* id, str
 }
 
 void _VnV_injectionPoint_begin(VnV_Comm comm, const char* package, const char* fname, int line, const char* id,
-                               struct VnV_Function_Sig pretty, injectionDataCallback* callback, ...) {
+                               struct VnV_Function_Sig pretty, injectionDataCallback callback, ...) {
   try {
     va_list argp;
     va_start(argp, callback);

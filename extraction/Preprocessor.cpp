@@ -527,7 +527,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
 
       json& jj = getDef("CodeBlocks", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["start"] = macroLoc.second + 1;
-      std::cout << jj.dump(4) << "FDSDF" << std::endl;
 
     } else if (nae == "INJECTION_CODEBLOCK_END") {
       SourceManager& SM = pp.getSourceManager();
@@ -544,8 +543,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
         std::string code(Buffer + start, macroLoc.second - start ); 
         jj["end"] = macroLoc.second;
         jj["code"] =  code ; 
-        std::cout << jj.dump(4) << "FDSDF" << std::endl;
-
       }
     } 
   }
