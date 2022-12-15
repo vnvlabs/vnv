@@ -24,13 +24,13 @@ IOutputEngine* EngineWrapperCast(IOutputEngineWrapper* wrapper) {
 
   DataCallback DataCallback_wrapper(injectionDataCallback callback) {
      
-     return [callback](VnV_Comm comm, VnVParameterSet &ntv, OutputEngineManager *engine, VnV::InjectionPointType type, std::string stageId){
+     return [callback](VnVCallbackData& callback1){
         
         if (callback != NULL) { 
-          IOutputEngineWrapper engineWraper = {static_cast<void*>(engine->getOutputEngine())};
-          ParameterSetWrapper paramWrapper = {static_cast<void*>(&ntv)};
-          int t = InjectionPointTypeUtils::toC(type);
-          (callback)(comm, &paramWrapper, &engineWraper, t, stageId.c_str());
+          IOutputEngineWrapper engineWraper = {static_cast<void*>(callback1.engine->getOutputEngine())};
+          ParameterSetWrapper paramWrapper = {static_cast<void*>(&callback1.ntv)};
+          int t = InjectionPointTypeUtils::toC(callback1.type);
+          (callback)(callback1.comm, &paramWrapper, &engineWraper, t, callback1.stageId.c_str());
         }
 
      };

@@ -32,13 +32,13 @@ void IterationPoint::addIterator(IteratorConfig& config) {
   VnV_Error(VNVPACKAGENAME, "Error Loading Iterator with Name %s", config.getName().c_str());
 }
 
-bool IterationPoint::iterate(std::string filename, int line) {
+bool IterationPoint::iterate(std::string filename, int line, const DataCallback& callback) {
   OutputEngineManager* wrapper = OutputEngineStore::instance().getEngineManager();
 
   // On the first iteration, call INjectionPointBegin and run all the tests.
   if (started == 0) {
     InjectionPointBase::setInjectionPointType(InjectionPointType::Begin, "Begin");
-    InjectionPoint::run(filename, line);
+    InjectionPoint::run(filename, line, callback);
     started++;
     return true;
   } else {
@@ -48,7 +48,7 @@ bool IterationPoint::iterate(std::string filename, int line) {
   // Set the first values();
   wrapper->injectionPointStartedCallBack(comm, package, getName(), type, stageId, filename, line);
 
-  InjectionPointBase::runTestsInternal(wrapper);
+  InjectionPointBase::runTestsInternal(wrapper,callback);
 
   bool result = false;
   if (itIndex < m_iterators.size()) {
@@ -66,7 +66,7 @@ bool IterationPoint::iterate(std::string filename, int line) {
   } else {
     // No more iterations and meet the required minimum
     InjectionPointBase::setInjectionPointType(InjectionPointType::End, "End");
-    InjectionPoint::run(filename, line);
+    InjectionPoint::run(filename, line,callback);
     return false;
   }
 

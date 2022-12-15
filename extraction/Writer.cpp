@@ -283,14 +283,7 @@ class RegistrationWriter {
           std::string name = it.value()["name"].get<std::string>();
 
           json& params = it.value()["parameters"];
-
-          auto s = it.value()["stages"];
-          if (!s.contains("Begin")) {
-            HTHROW INJECTION_EXCEPTION("Injection Point %s:%s has no Begin Stage", pname.c_str(), name.c_str());
-          } else if (it.value().value("loop", false) && !s.contains("End")) {
-            HTHROW INJECTION_EXCEPTION("Injection Loop %s:%s has no End Stage", pname.c_str(), name.c_str());
-          }
-
+          
           createPackageOss(pname);
 
           VnV::JsonUtilities::getOrCreate(pjson[pname], "InjectionPoints")[name] = it.value();

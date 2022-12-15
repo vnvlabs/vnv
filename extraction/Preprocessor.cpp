@@ -482,13 +482,13 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       std::string pname = getPackageName(Args, 0);
       jj[pname] = getDocs(Range).toJson();
       jj[pname]["lib"] = "plugins";
-    } else if (nae == "INJECTION_POINT_C" || nae == "INJECTION_LOOP_BEGIN_C") {
+    } else if (nae == "INJECTION_POINT" || nae == "INJECTION_LOOP_BEGIN") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 0), getPackageName(Args, 2));
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range).toJson();
       thisStage["docs"] = ProcessedComment().toJson();
-      if (nae == "INJECTION_LOOP_BEGIN_C") {
+      if (nae == "INJECTION_LOOP_BEGIN") {
         jj["loop"] = true;
       }
     } else if (nae == "INJECTION_ITERATION_C") {
@@ -507,17 +507,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj["plug"] = true;
       thisStage["docs"] = ProcessedComment().toJson();
 
-    } else if (nae == "INJECTION_LOOP_ITER") {
-      // json& jj = getDef("InjectionPoints", getPackageName(Args, 0, true), getPackageName(Args, 1, true));
-      // json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
-      // json& thisStage = VnV::JsonUtilities::getOrCreate(stages, getPackageName(Args, 2, true));
-      // thisStage["docs"] = getDocs(Range).toJson();
-
-    } else if (nae == "INJECTION_LOOP_END") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 0), getPackageName(Args, 1));
-      json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
-      json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "End");
-      thisStage["docs"] = getDocs(Range).toJson();
     } else if (nae == "INJECTION_CODEBLOCK_START") {
       
       SourceManager& SM = pp.getSourceManager();

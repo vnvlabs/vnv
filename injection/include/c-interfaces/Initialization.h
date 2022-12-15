@@ -9,6 +9,7 @@
 #    include "common-interfaces/PackageName.h"
 #    include "c-interfaces/Wrappers.h"
 
+
 #    define INJECTION_INITIALIZE_C(PNAME, argc, argv, icallback, filename) \
       VnV_init(VNV_STR(PNAME), argc, argv, filename, icallback, VNV_REGISTRATION_CALLBACK_NAME(PNAME))
 
@@ -18,10 +19,15 @@
 #    define INJECTION_INITIALIZE(PNAME, argc, argv, filename) \
       VnV_init(VNV_STR(PNAME), argc, argv, filename, NULL, VNV_REGISTRATION_CALLBACK_NAME(PNAME))
 
+//Initialize
+
 #    define INJECTION_INITIALIZE_RAW(PNAME, argc, argv, inputjson) \
       VnV_init_raw(VNV_STR(PNAME), argc, argv, inputjson, NULL, VNV_REGISTRATION_CALLBACK_NAME(PNAME))
 
 #    define INJECTION_FINALIZE(PNAME) VnV_finalize();
+
+
+
 
 /**
  * @brief VnV_init

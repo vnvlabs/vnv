@@ -225,8 +225,7 @@ unsigned int getInfo(const CallExpr* call, const FunctionDecl* func, const Match
 
   json parameters;
   unsigned int count = (begin);
-  std::string package =
-      VnV::StringUtils::trim_copy(getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts()));
+  std::string package = VnV::StringUtils::trim_copy(getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts()));
   id = VnV::StringUtils::trim_copy(getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts()));
   std::string key = package + ":" + id;
   id = key;
@@ -379,6 +378,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       addParameters(sig, E, idJson, count);
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite_begin")) {
+      
       // Loop begin with the C++ interface
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1,strip);
       std::string sig = getSig(E, count++, FF);

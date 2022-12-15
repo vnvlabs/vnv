@@ -250,7 +250,7 @@ int main(int argc, char** argv) {
    *  vector and matrix.
    *
    */
-  INJECTION_POINT(SPNAME, VWORLD, distribute, local_vec, local_mat);
+  INJECTION_POINT(SPNAME, VWORLD, distribute, VNV_NOCALLBACK, local_vec, local_mat);
 
   /**
      Conclusion.

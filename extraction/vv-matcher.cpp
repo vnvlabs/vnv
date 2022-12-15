@@ -39,7 +39,7 @@ using namespace llvm;
 #define LAST_RUN_TIME "__LAST_RUN_TIME__"
 
 std::set<std::string>& fexts() {
-  static std::set<std::string> fexts_ = {".f90", ".for", ".f", ".fpp", ".i", ".i90", ".ftn", ".F90"};
+  static std::set<std::string> fexts_ = {".f90", ".for", ".f", ".fpp", ".i", ".i90", ".ftn", ".F90",".F"};
   return fexts_;
 }
 
@@ -314,12 +314,20 @@ int main(int argc, const char** argv) {
 
         // Add the injection point data to the cacheData object.
         for (auto cachedFile : injectionFiles) {
+          
+          //This is the data from the cache extract during preprocessing for this file. 
           json& cfileJson = cacheData[cachedFile];
 
+          //This is the preprocessor injection points
           auto ips = cfileJson.find("InjectionPoints");
 
+
           if (ips != cfileJson.end()) {
+          
+            //Iterate over all the injection points found in this file by the preprocessor.
             for (auto injectionPoint : ips.value().items()) {
+
+              //Try and find the parameters as extracted by the clang tool. 
               auto info = found.find(injectionPoint.key());
 
               if (info != found.end()) {
@@ -330,6 +338,8 @@ int main(int argc, const char** argv) {
                 for (auto& stage : info.value()["stages"].items()) {
                   stages[stage.key()]["info"] = stage.value();
                 }
+              } else {
+                std::cout << "Could Not Find Matching Parameters " << injectionPoint.key() << std::endl;
               }
             }
           }

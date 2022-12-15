@@ -56,27 +56,27 @@ void InjectionPointBase::setInjectionPointType(InjectionPointType type_, std::st
 
 void InjectionPointBase::setComm(ICommunicator_ptr comm) { this->comm = comm; }
 
-void InjectionPointBase::runTestsInternal(OutputEngineManager* wrapper) {
+void InjectionPointBase::runTestsInternal(OutputEngineManager* wrapper,const DataCallback& callback) {
   try {
-    if (callback != nullptr) {
       wrapper->testStartedCallBack(package, "__internal__", true, -1);
       try {
-        callback(comm->asComm(),  parameterMap, wrapper, type, stageId);
+        auto a = VnVCallbackData(comm->asComm(),  parameterMap, wrapper, type, stageId);
+        callback(a);
       } catch (VnVExceptionBase& e) {
         VnV_Error(VNVPACKAGENAME, "Error Running internal Test: %s", e.what());
       }
       wrapper->testFinishedCallBack(true);  // TODO callback should return bool "__internal__");
-    }
-    for (auto it : m_tests) {
-      it->_runTest(comm, wrapper, type, stageId);
-    }
+    
+      for (auto it : m_tests) {
+         it->_runTest(comm, wrapper, type, stageId);
+      }
 
   } catch (VnVExceptionBase& e) {
     VnV_Error(VNVPACKAGENAME, "Exception occured when running tests");
   }
 }
 
-void InjectionPoint::run(std::string function, int line) {
+void InjectionPoint::run(std::string function, int line, const DataCallback& callback) {
   if (skipped) {
     return;  // We are marked as skipped, so don't do anything.
   }
@@ -98,7 +98,7 @@ void InjectionPoint::run(std::string function, int line) {
 
     wrapper->injectionPointStartedCallBack(comm, package, getName(), type, stageId, function, line);
 
-    runTestsInternal(wrapper);
+    runTestsInternal(wrapper,callback);
 
     wrapper->injectionPointEndedCallBack(getName(), type, stageId);
 

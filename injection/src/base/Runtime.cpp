@@ -233,9 +233,10 @@ class VnV_Iterator_Info {
   int line;
   int once;
   int count = 0;
+  DataCallback callback;
   std::shared_ptr<IterationPoint> iter;
-  VnV_Iterator_Info(std::string n, std::string p, int o, std::string f, int l, std::shared_ptr<IterationPoint>& it)
-      : name(n), pname(p), once(o), fname(f), line(l), iter(it) {}
+  VnV_Iterator_Info(std::string n, std::string p, int o, std::string f, int l, std::shared_ptr<IterationPoint>& it, const DataCallback& call)
+      : name(n), pname(p), once(o), fname(f), line(l), iter(it), callback(call) {}
 };
 
 }  // namespace
@@ -269,16 +270,15 @@ VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::
     auto it = getNewInjectionIteration(comm, pname, id, pretty, InjectionPointType::Begin, once, args);
     if (it != nullptr) {
       it->setComm(getComm(comm));
-      it->setCallBack(callback);
-      it->iterate(fname, line);
+      it->iterate(fname, line, callback);
     }
 
-    VnV_Iterator_Info* info = new VnV_Iterator_Info(id, pname, once, fname, line, it);
+    VnV_Iterator_Info* info = new VnV_Iterator_Info(id, pname, once, fname, line, it,callback);
     return {(void*)info};
   } catch (std::exception &e) {
     VnV_Error(VNVPACKAGENAME, "Injection iteration failed %s:%s", pname.c_str(), id.c_str());
     std::shared_ptr<VnV::IterationPoint> s;
-    VnV_Iterator_Info* info = new VnV_Iterator_Info(id, pname, once, fname, line, s);
+    VnV_Iterator_Info* info = new VnV_Iterator_Info(id, pname, once, fname, line, s, callback);
     return {(void*)info};
   }
 }
@@ -291,7 +291,7 @@ int RunTime::injectionIterationRun(VnV_Iterator* iterator) {
   if (info->iter != nullptr) {
     bool a = false;
     try {
-      a = info->iter->iterate(info->fname, info->line);
+      a = info->iter->iterate(info->fname, info->line, info->callback);
       if (!a) {
         ActionStore::instance().injectionPointEnd();
       }
@@ -318,10 +318,11 @@ class VnV_Plug_Info {
   std::string name;
   std::string pname;
   std::string function;
+  DataCallback callback;
   int line;
   std::shared_ptr<PlugPoint> iter;
-  VnV_Plug_Info(std::string n, std::string p, std::string f, int l, std::shared_ptr<PlugPoint>& it)
-      : name(n), pname(p), function(f), line(l), iter(it) {}
+  VnV_Plug_Info(std::string n, std::string p, std::string f, int l, std::shared_ptr<PlugPoint>& it, const DataCallback& call)
+      : name(n), pname(p), function(f), line(l), iter(it), callback(call) {}
 };
 }  // namespace
 
@@ -351,13 +352,12 @@ VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname, std::strin
     auto it = getNewInjectionPlug(comm, pname, id, pretty, args);
     if (it != nullptr) {
       it->setComm(getComm(comm));
-      it->setCallBack(callback);
     }
   } catch (std::exception &e) {
     it = nullptr;
   }
 
-  VnV_Plug_Info* info = new VnV_Plug_Info(id, pname, fname, line, it);
+  VnV_Plug_Info* info = new VnV_Plug_Info(id, pname, fname, line, it, callback);
   return {(void*)info};
 }
 
@@ -365,7 +365,7 @@ int RunTime::injectionPlugRun(VnV_Iterator* iterator) {
   VnV_Plug_Info* info = (VnV_Plug_Info*)iterator->data;
   ActionStore::instance().injectionPointIter("Plug");
   if (info->iter != nullptr) {
-    info->iter->plug(info->function, info->line);
+    info->iter->plug(info->function, info->line, info->callback);
     ActionStore::instance().injectionPointEnd();
     return 1;
   } else {
@@ -416,43 +416,27 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname, std::string
 
   auto it = getNewInjectionPoint(comm, pname, id, pretty, InjectionPointType::Begin, args);
   if (it != nullptr) {
-    it->setCallBack(callback);
     it->setComm(getComm(comm));
-    it->run(fname, line);
+    it->run(fname, line,callback);
   }
 }
 
-// Cpp interface.
-void RunTime::injectionPoint(VnV_Comm comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
-                             std::string fname, int line, const DataCallback& callback, NTV& args) {
-  ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
-  auto it = getNewInjectionPoint(comm, pname, id, pretty, InjectionPointType::Single, args);
-  if (it != nullptr) {
-    it->setCallBack(callback);
-    it->setComm(getComm(comm));
-    it->run(fname, line);
-  }
-
-  ActionStore::instance().injectionPointEnd();
-}
-
-
-void RunTime::injectionPoint_iter(std::string pname, std::string id, std::string stageId, std::string fname, int line) {
+void RunTime::injectionPoint_iter(std::string pname, std::string id, std::string stageId, std::string fname, int line, const DataCallback& callback) {
   ActionStore::instance().injectionPointIter(stageId);
 
   auto it = getExistingInjectionPoint(pname, id, InjectionPointType::Iter, stageId);
   if (it != nullptr) {
-    it->run(fname, line);
+    it->run(fname, line, callback);
   }
 }
 
-void RunTime::injectionPoint_end(std::string pname, std::string id, std::string fname, int line) {
+void RunTime::injectionPoint_end(std::string pname, std::string id, std::string fname, int line,const DataCallback& callback) {
   ActionStore::instance().injectionPointEnd();
 
   auto it = getExistingInjectionPoint(pname, id, InjectionPointType::End, "End");
   if (it != nullptr) {
-    it->run(fname, line);
+    it->run(fname, line, callback);
   }
 }
 
@@ -762,7 +746,7 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
    * application between the VnVInit and VnVFinalize functions.
    *
    */
-  INJECTION_LOOP_BEGIN(VNVPACKAGENAME, comm, initialization, runTests);
+  INJECTION_LOOP_BEGIN(VNVPACKAGENAME, comm, initialization, VNV_NOCALLBACK, runTests);
 
   return false;
 }
@@ -855,7 +839,7 @@ bool RunTime::Finalize() {
   if (runTests) {
     auto comm = CommunicationStore::instance().worldComm();
 
-    INJECTION_LOOP_END(VNVPACKAGENAME, initialization);
+    INJECTION_LOOP_END(VNVPACKAGENAME, initialization, VNV_NOCALLBACK);
 
     ActionStore::instance().finalize(comm);
 

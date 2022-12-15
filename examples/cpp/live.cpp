@@ -98,16 +98,16 @@ int main(int argc, char** argv) {
    * 
    * The parameter x is a counter counting the number of iterations that have passed. 
    */
-  INJECTION_LOOP_BEGIN(Live, VWORLD, Loop, x);
+  INJECTION_LOOP_BEGIN(Live, VWORLD, Loop, VNV_NOCALLBACK, x);
 
   while (x < std::atoi(argv[1])) {
-    INJECTION_LOOP_ITER(Live,Loop,iter);
+    INJECTION_LOOP_ITER(Live,Loop,"iter",VNV_NOCALLBACK);
     std::this_thread::sleep_for (std::chrono::seconds(1));
     x++;
     std::cout << "Countdown: " << std::atoi(argv[1]) - x << std::endl;
   } 
 
-  INJECTION_LOOP_END(Live, Loop);
+  INJECTION_LOOP_END(Live, Loop,VNV_NOCALLBACK);
   
   INJECTION_FINALIZE(SPNAME);
 

@@ -104,29 +104,29 @@ int main(int argc, char** argv) {
    *   :layout.yaxis.range: [0,100]
    *   
    */
-  INJECTION_POINT_C(VectorsExample, VWORLD, mainpoint, IPCALLBACK {
+  INJECTION_POINT(VectorsExample, VWORLD, mainpoint, VNV_CALLBACK {
 
       //VnV Provides two ways of writing matrices -- either as a single matrix,
       //or through multiple calls to engine->Put with the same name. 
 
       auto gsizes = std::make_pair(10,10);
       auto offsets = std::make_pair(0,0);
-      engine->Put_Matrix("matrix", w, gsizes, offsets);
+      data.engine->Put_Matrix("matrix", w, gsizes, offsets);
 
       // Vector of vectors version
       for (int i = 0; i < 10; i++ ) {
-         engine->Put_Vector("vector", w[i]) ;
+         data.engine->Put_Vector("vector", w[i]) ;
       }
 
       //Vector of vectors where the size grows each time and then shrinks.
       w[0].clear();
       for (int i = 0; i < 10; i++) {
         w[0].push_back(i+10);
-        engine->Put_Vector("adapt", w[0]);
+        data.engine->Put_Vector("adapt", w[0]);
       }
       for (int i = 0; i < 10; i++ ) {
         w[0].pop_back();
-        engine->Put_Vector("adapt", w[0]);
+        data.engine->Put_Vector("adapt", w[0]);
       }
 
 
