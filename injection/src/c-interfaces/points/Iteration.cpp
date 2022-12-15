@@ -10,14 +10,14 @@
 
 using namespace VnV;
 
-namespace VnV {DataCallback& DataCallback_wrapper(injectionDataCallback* callback);}
+namespace VnV {DataCallback& DataCallback_wrapper(injectionDataCallback callback);}
 
 
 extern "C" {
 
 VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName, const char* name,
                                      struct VnV_Function_Sig pretty, const char* fname, int line,
-                                     injectionDataCallback* callback, int once, ...) {
+                                     injectionDataCallback callback, int once, ...) {
   try {
     va_list argp;
     va_start(argp, once);

@@ -101,28 +101,27 @@ double solve( double dt, double stop) {
      * 
      * 
      */
-    INJECTION_LOOP_BEGIN_C(Euler,VSELF,Eulers,IPCALLBACK {
-       if (type == VnV::InjectionPointType::Begin) {
-           engine->Put("dt",dt);
-       } else if (type == VnV::InjectionPointType::Iter) {
-          double exact = exp(t/2.)*sin(5*t);
-          
-          engine->Put("y", y);
-          engine->Put("t", t);
-          engine->Put("exact", exact);
-          engine->Put("error", fabs(exact-y));
-       }
+    INJECTION_LOOP_BEGIN(Euler,VSELF,Eulers,VNV_CALLBACK {
+           data.engine->Put("dt",dt);
     }, t, y);
 
     while (t < stop) {
 
-        INJECTION_LOOP_ITER(Euler, Eulers, TimeStep);
-        dt =  ( (stop - t) > dt ) ? dt : stop - t ;
-        y = y + dt * deriv(y,t);
-        t += dt;
+       INJECTION_LOOP_ITER(Euler, Eulers, "TimeStep",VNV_CALLBACK {
+          double exact = exp(t/2.)*sin(5*t);  
+          data.engine->Put("y", y);
+          data.engine->Put("t", t);
+          data.engine->Put("exact", exact);
+          data.engine->Put("error", fabs(exact-y));
+       });
+
+       dt =  ( (stop - t) > dt ) ? dt : stop - t ;
+       y = y + dt * deriv(y,t);
+       t += dt;
+
     }
     
-    INJECTION_LOOP_END(Euler,Eulers);
+    INJECTION_LOOP_END(Euler,Eulers,VNV_NOCALLBACK);
     
     double exact = exp(stop/2.)*sin(5*stop);
     return fabs((y-exact)/exact);
@@ -210,20 +209,22 @@ int main(int argc, char** argv) {
      * 
      * 
      */
-     INJECTION_LOOP_BEGIN_C(Euler,VSELF,StepSize, IPCALLBACK {
-        if (type == VnV::InjectionPointType::Begin) {
-            engine->Put("stop", stop);
-        } else if (type == VnV::InjectionPointType::Iter) {
-            engine->Put("dt", dt);
-            engine->Put("error", error);
-        }
+     INJECTION_LOOP_BEGIN(Euler,VSELF,StepSize, VNV_CALLBACK {
+            data.engine->Put("stop", stop);
      }, stop, dt, error );
+
      for ( int i = 1; i < 5; i+=1 ) {
          dt = stop / (pow(10,i) );
          error = solve(dt,stop);
-         INJECTION_LOOP_ITER(Euler,StepSize,Step);
+         
+         INJECTION_LOOP_ITER(Euler,StepSize,"Step",VNV_CALLBACK {
+            data.engine->Put("dt", dt);
+            data.engine->Put("error", error);
+         });
+
      }
-     INJECTION_LOOP_END(Euler,StepSize);
+     
+     INJECTION_LOOP_END(Euler,StepSize,VNV_NOCALLBACK);
 
 
 

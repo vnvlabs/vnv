@@ -9,7 +9,7 @@
 #include "base/Runtime.h"
 #include "interfaces/Initialization.h"
 #include "base/stores/OptionsParserStore.h"
-
+#include "base/TestConfig.h"
 
 // Initialize the thing
 namespace {
@@ -169,18 +169,17 @@ void* vnv_loop_init_x(int world, const char* package, const char* fname) {
 void vnv_loop_begin_x(void** ctx) {
   PointCtx* c = (PointCtx*)(*ctx);
   VnV_Comm comm = c->world ? VWORLD : VSELF;
-  VnV::RunTime::instance().injectionPoint_begin(comm, c->package, c->name, {"gfortran", ""}, "", -1, NULL,
-                                                c->parameters);
+  VnV::RunTime::instance().injectionPoint_begin(comm, c->package, c->name, {"gfortran", ""}, "", -1, [](VnV::VnVCallbackData &data) {}, c->parameters);
 }
 
 void vnv_loop_iter_x(void** ctx, const char* iter) {
   PointCtx* c = (PointCtx*)(*ctx);
-  VnV::RunTime::instance().injectionPoint_iter(c->package, c->name, iter, "", -1);
+  VnV::RunTime::instance().injectionPoint_iter(c->package, c->name, iter, "", -1,  [](VnV::VnVCallbackData &data) {});
 }
 
 void vnv_loop_end_x(void** ctx) {
   PointCtx* c = (PointCtx*)(*ctx);
-  VnV::RunTime::instance().injectionPoint_end(c->package, c->name, "", -1);
+  VnV::RunTime::instance().injectionPoint_end(c->package, c->name, "", -1, [](VnV::VnVCallbackData &data) {});
   delete (c);
 }
 
@@ -192,7 +191,9 @@ void* vnv_point_init_x(int world, const char* package, const char* fname) {
 void vnv_point_run_x(void** ctx) {
   PointCtx* c = (PointCtx*)(*ctx);
   VnV_Comm comm = c->world ? VWORLD : VSELF;
-  VnV::RunTime::instance().injectionPoint(comm, c->package, c->name, {"gfortran", ""}, "", -1, NULL, c->parameters);
+  VnV::RunTime::instance().injectionPoint_begin(comm, c->package, c->name, {"gfortran", ""}, "", -1, [](VnV::VnVCallbackData &data) {}, c->parameters);
+  VnV::RunTime::instance().injectionPoint_end(c->package, c->name, "", -1, [](VnV::VnVCallbackData &data) {});
+
 }
 
 void* vnv_plug_init_x(int world, const char* package, const char* fname) {

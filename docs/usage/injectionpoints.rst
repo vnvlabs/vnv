@@ -121,7 +121,7 @@ To begin an injection point loop, the user should use one of the two BEGIN macro
 .. code-block::
 
    INJECTION_LOOP_BEGIN(const char* PACKAGENAME, <COMM>, const char* UNIQUE ID, <PARAMETER 1>, ... , <PARAMETER 15> )
-   INJECTION_LOOP_BEGIN_C(const char* PACKAGENAME, <COMM>, const char*UNIQUE ID , <CALLBACK>, <PARAMETER 1>, ... , <PARAMETER 15> )
+   INJECTION_LOOP_BEGIN(const char* PACKAGENAME, <COMM>, const char*UNIQUE ID , <CALLBACK>, <PARAMETER 1>, ... , <PARAMETER 15> )
 
 Other than the macro name, these calls are identical to the INJECTION_POINT macros defined above. Because tests maintain scope throughout the loop region, it is important that any parameters passed to the injection point begin function remain valid throughout the entire region.
 
@@ -133,7 +133,7 @@ Injection loops support any number of injection iteration stages. To define thes
 
 .. code-block::
 
-   INJECTION_LOOP_ITER(const char* PACKAGENAME, const char* UNIQUE_ID, const char* STAGE_ID )
+   INJECTION_L(const char* PACKAGENAME, const char* UNIQUE_ID, const char* STAGE_ID ,VNV_NOCALLBACK)
 
 Here, STAGE ID is a valid C++ parameter name used to declare the current stage of the iteration.
 
@@ -159,9 +159,9 @@ Here is an example.
   INJECTION_LOOP_BEGIN("SamplePackage", VSELF, "SampleLoop", sampleParameter)
   for (int i = 0; i < 10; i++) {
     sampleParameter[i] = i;
-    INJECTION_LOOP_ITER("SamplePackage", "SampleLoop", "SampleIteration")
+    INJECTION_L("SamplePackage", "SampleLoop", "SampleIteration",VNV_NOCALLBACK)
   }
-  INJECTION_LOOP_END("SamplePackage", "SampleLoop")
+  INJECTION_LOOP_ITER("SamplePackage", "SampleLoop",VNV_NOCALLBACK)
 
 How do I use a VnV equipt Library in my Application
 ***************************************************
@@ -223,7 +223,7 @@ Consider the following C++ source code:
                             = :vnv:`data.f`
 
    **/
-   INJECTION_POINT_C(MyFirstApplication,VSELF,Start1, VNV_CALLBACK {
+   INJECTION_POINT(MyFirstApplication,VSELF,Start1, VNV_CALLBACK {
         engine->Put("value", get<double>("f");
    }, a,x,b,f);
 

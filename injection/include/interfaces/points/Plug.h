@@ -24,7 +24,7 @@ namespace CppPlug {
 void Register(const char* package, const char* id, std::string json);
 
 VnV_Iterator BeginPlug(VnV_Comm comm, const char* package, const char* id, struct VnV_Function_Sig pretty,
-                       const char* fname, int line, DataCallback callback, NTV& parameters);
+                       const char* fname, int line, const DataCallback& callback, NTV& parameters);
 
 int Iterate(VnV_Iterator* iterator);
 
@@ -47,13 +47,10 @@ VnV_Iterator PlugPack(A comm, const char* package, const char* id, struct VnV_Fu
 }  // namespace VnV
 
 // Macro for an iterative vnv injection point.
-#  define INJECTION_FUNCTION_PLUG_C(VAR, PNAME, COMM, NAME, callback, ...)                             \
+#  define INJECTION_FUNCTION_PLUG(VAR, PNAME, COMM, NAME, callback, ...)                             \
     VnV_Iterator VAR = VnV::CppPlug::PlugPack(COMM, VNV_STR(PNAME), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__, __LINE__, \
                                               callback EVERYONE(__VA_ARGS__));                         \
     while (VnV::CppPlug::Iterate(&VAR))
-
-#  define INJECTION_FUNCTION_PLUG(VAR, PNAME, COMM, NAME, ...) \
-    INJECTION_FUNCTION_PLUG_C(VAR, PNAME, COMM, NAME, &VnV::defaultCallBack, __VA_ARGS__)
 
 #  define Register_Injection_Plug(PNAME, NAME, PARAMETERS) VnV::CppPlug::Register(PNAME, NAME, PARAMETERS);
 

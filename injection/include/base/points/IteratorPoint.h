@@ -59,7 +59,7 @@ class IterationPoint : public InjectionPoint {
    * @return true We are done iterating
    * @return false We have more iterations to complete.
    */
-  virtual bool iterate(std::string filename, int line);
+  virtual bool iterate(std::string filename, int line, const DataCallback& callback);
 };
 
 }  // namespace VnV

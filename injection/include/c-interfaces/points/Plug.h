@@ -23,7 +23,7 @@
 
 VNVEXTERNC VnV_Iterator _VnV_injectionPlug(VnV_Comm comm, const char* packageName, const char* name,
                                            struct VnV_Function_Sig pretty, const char* fname, int line,
-                                           injectionDataCallback* callback, ...);
+                                           injectionDataCallback callback, ...);
 
 VNVEXTERNC int _VnV_injectionPlugRun(VnV_Iterator* iterator);
 

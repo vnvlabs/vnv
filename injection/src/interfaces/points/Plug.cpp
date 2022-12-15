@@ -13,7 +13,7 @@ void VnV::CppPlug::Register(const char* package, const char* id, std::string jso
 }
 
 VnV_Iterator VnV::CppPlug::BeginPlug(VnV_Comm comm, const char* package, const char* id, struct VnV_Function_Sig pretty,
-                                     const char* fname, int line, DataCallback callback, NTV& parameters) {
+                                     const char* fname, int line, const DataCallback &callback, NTV& parameters) {
   try {
     return VnV::RunTime::instance().injectionPlug(comm, package, id, pretty, fname, line, callback, parameters);
 

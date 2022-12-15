@@ -19,7 +19,7 @@ class PlugPoint : public InjectionPoint {
       : InjectionPoint(packageName, name, registrationJson, args){};
 
   virtual void setPlug(PlugConfig& config);
-  virtual bool plug(std::string function, int line);
+  virtual bool plug(std::string function, int line, const DataCallback& callback);
 };
 
 }  // namespace VnV

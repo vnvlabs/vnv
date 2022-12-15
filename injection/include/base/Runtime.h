@@ -209,9 +209,9 @@ class RunTime {
   void injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
                             std::string fname, int line, const DataCallback& callback, NTV& args);
 
-  void injectionPoint_end(std::string pname, std::string id, std::string fname, int line);
+  void injectionPoint_end(std::string pname, std::string id, std::string fname, int line,const DataCallback& callback);
 
-  void injectionPoint_iter(std::string pname, std::string id, std::string iterid, std::string fname, int line);
+  void injectionPoint_iter(std::string pname, std::string id, std::string iterid, std::string fname, int line,const DataCallback& callback);
 
   /**
    * @brief Finalize

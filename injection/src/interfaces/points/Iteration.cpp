@@ -12,6 +12,7 @@ void VnV::CppIteration::UnwrapParameterPack(NTV& m) {}
 VnV_Iterator VnV::CppIteration::BeginIteration(VnV_Comm comm, const char* package, const char* id,
                                                struct VnV_Function_Sig pretty, const char* fname, int line,
                                                const DataCallback& callback, int once, NTV& parameters) {
+  
   try {
     return VnV::RunTime::instance().injectionIteration(comm, package, id, pretty, fname, line, callback, parameters,
                                                        once);
@@ -19,6 +20,7 @@ VnV_Iterator VnV::CppIteration::BeginIteration(VnV_Comm comm, const char* packag
     VnV_Error(VNVPACKAGENAME, "Error Running Loop %s:%s", package, id);
     return {NULL};
   }
+
 }
 
 int VnV::CppIteration::Iterate(VnV_Iterator* iterator) {

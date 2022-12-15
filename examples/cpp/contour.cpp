@@ -90,13 +90,13 @@ int main(int argc, char** argv) {
    *    :layout.title.text: Basic contour plot
    * 
    **/
-  INJECTION_POINT_C(ContourExample, VWORLD, mainpoint, IPCALLBACK {
-      engine->Put_Vector("xx", x);
-      engine->Put_Vector("yy", y);
+  INJECTION_POINT(ContourExample, VWORLD, mainpoint, VNV_CALLBACK {
+      data.engine->Put_Vector("xx", x);
+      data.engine->Put_Vector("yy", y);
 
       auto gsizes = std::make_pair(world*4,world*4);
       auto offsets = std::make_pair(rank*4,rank*4);
-      engine->Put_Matrix("zz", z, gsizes, offsets);
+      data.engine->Put_Matrix("zz", z, gsizes, offsets);
   }, x, y, z);
 
   /**
@@ -113,15 +113,15 @@ int main(int argc, char** argv) {
    *    :layout.title.text: Basic contour plot
    *
    */
-  INJECTION_LOOP_BEGIN_C(ContourExample, VWORLD, mainloop, IPCALLBACK {
-      engine->Put_Vector("x",x);
+  INJECTION_LOOP_BEGIN(ContourExample, VWORLD, mainloop, VNV_CALLBACK {
+      data.engine->Put_Vector("x",x);
   }, x);
   
   for (double i = rank; i < rank + 5; i++ ) {
       x = {i, i*i, i*i*i , i*i*i*i };
-      INJECTION_LOOP_ITER(ContourExample, mainloop, inner);
+      INJECTION_LOOP_ITER(ContourExample, mainloop, "inner",VNV_NOCALLBACK);
   }
-  INJECTION_LOOP_END(ContourExample, mainloop);
+  INJECTION_LOOP_END(ContourExample, mainloop,VNV_NOCALLBACK);
 
 
   INJECTION_FINALIZE(SPNAME);

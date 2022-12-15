@@ -35,11 +35,6 @@ class OutputEngineManager;
 enum class InjectionPointType;
 enum class InjectionPointType;
 
-/**
- * @brief Wrapper class to support C and C++ style callback functions
- * within a single class
- */
-
 
 // Typedefs
 typedef std::map<std::string, std::pair<std::string, void*>> NTV;
@@ -82,9 +77,6 @@ class InjectionPointBase {
 
   VnV::VnVParameterSet parameterMap; /**< The parameters available at this injection point */
 
-  //@todo define a wrapper class for these two callback types.
-  DataCallback callback = nullptr;
-
   bool skipped = false; /**< Was this injection point skipped due to a sampler */
 
   /**
@@ -92,7 +84,7 @@ class InjectionPointBase {
    *
    * @param wrapper The OutputEngineManager to pass to the tests.
    */
-  virtual void runTestsInternal(OutputEngineManager* wrapper);
+  virtual void runTestsInternal(OutputEngineManager* wrapper, const DataCallback& callback);
 
   /**
    * @brief Construct a new Injection Point Base object
@@ -113,13 +105,6 @@ class InjectionPointBase {
    */
   void setInjectionPointType(InjectionPointType type, std::string stageId);
 
-  /**
-   * @brief Set the Call Back object.
-   *
-   * @tparam T The type of callback to set
-   * @param callback
-   */
-  void setCallBack(DataCallback callback) { this->callback = callback; }
 
   /**
    * @brief Set the Comm object
@@ -167,7 +152,7 @@ class InjectionPointBase {
    * @todo Injection point stage and type should be required here. Requiring they be set before
    * this call is a bug waiting to happen.
    */
-  virtual void run(std::string filename, int line) = 0;
+  virtual void run(std::string filename, int line,const DataCallback& callback) = 0;
 
   /**
    * @brief Destroy the Injection Point Base object
@@ -197,7 +182,7 @@ class InjectionPoint : public InjectionPointBase {
   /**
    * @copydoc VnV::InjectionPointBase::run
    */
-  virtual void run(std::string function, int line) override;
+  virtual void run(std::string function, int line, const DataCallback& callback) override;
 };
 
 }  // namespace VnV

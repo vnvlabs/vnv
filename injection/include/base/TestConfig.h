@@ -157,11 +157,20 @@ class TestConfig {
   void print();
 };
 
-typedef std::function<void(VnV_Comm comm, VnV::VnVParameterSet& ntv, VnV::OutputEngineManager* engine,
-                           VnV::InjectionPointType type, std::string stageId)> DataCallback;
+class VnVCallbackData {
+public:
 
-void defaultCallBack(VnV_Comm comm, VnV::VnVParameterSet& ntv, IOutputEngine* engine, InjectionPointType type,
-                     std::string stageId);
+  VnVCallbackData(VnV_Comm c, VnV::VnVParameterSet&n, VnV::OutputEngineManager* e, VnV::InjectionPointType t, std::string s ) :
+  comm(c),ntv(n),engine(e),type(t),stageId(s) {}
+
+  VnV_Comm comm;
+  VnV::VnVParameterSet& ntv;
+  VnV::OutputEngineManager* engine;
+  VnV::InjectionPointType type;
+  std::string stageId;
+};
+
+typedef std::function<void(VnVCallbackData& data)> DataCallback;
 
 
 }  // namespace VnV
