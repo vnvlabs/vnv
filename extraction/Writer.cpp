@@ -188,7 +188,6 @@ class RegistrationWriter {
     registerHelper(j, "DataTypes", "DATATYPE", packageName);
 
     if (j.contains("CodeBlocks")) {
-      std::cout << j["CodeBlocks"].dump(4) << std::endl;
       for (auto& it : j["CodeBlocks"].items()) {
         std::string pname = it.value()["packageName"].get<std::string>();
         if (packageName.empty() || pname == packageName) {
