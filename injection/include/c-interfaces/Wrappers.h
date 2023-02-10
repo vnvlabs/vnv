@@ -22,8 +22,10 @@ OUTPUTENGINESUPPORTEDTYPES
 
 VNVEXTERNC void VnV_Output_Put_String(struct IOutputEngineWrapper* wrapper, const char* name, const char* value);
 
+#define PARAMETERDTOSIZE 150
+
 struct ParameterDTO {
-  const char* type;
+  char type[PARAMETERDTOSIZE];
   const void* ptr;
 };
 

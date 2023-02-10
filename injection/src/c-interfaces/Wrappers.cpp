@@ -19,14 +19,20 @@ IOutputEngine* EngineWrapperCast(IOutputEngineWrapper* wrapper) { return static_
 }  // namespace
 
 DataCallback DataCallback_wrapper(injectionDataCallback callback) {
-  return [callback](VnVCallbackData& callback1) {
-    if (callback != NULL) {
-      IOutputEngineWrapper engineWraper = {static_cast<void*>(callback1.engine->getOutputEngine())};
-      ParameterSetWrapper paramWrapper = {static_cast<void*>(&callback1.ntv)};
-      int t = InjectionPointTypeUtils::toC(callback1.type);
-      (callback)(callback1.comm, &paramWrapper, &engineWraper, t, callback1.stageId.c_str());
-    }
-  };
+  
+  if (callback == NULL) {
+    return [](VnVCallbackData&){};
+  } else {
+
+    return [callback](VnVCallbackData& callback1) {
+      if (callback != NULL) {
+        IOutputEngineWrapper engineWraper = {static_cast<void*>(callback1.engine->getOutputEngine())};
+        ParameterSetWrapper paramWrapper = {static_cast<void*>(&callback1.ntv)};
+        int t = InjectionPointTypeUtils::toC(callback1.type);
+        (callback)(callback1.comm, &paramWrapper, &engineWraper, t, callback1.stageId.c_str());
+      }
+    };
+  }
 }
 
 }  // namespace VnV
@@ -49,13 +55,21 @@ void VnV_Output_Put_String(IOutputEngineWrapper* wrapper, const char* name, cons
   VnV::EngineWrapperCast(wrapper)->Put(nameS, valueS);
 }
 
+
+struct ParameterDTO buildParameterDTO(const std::string& type, void* ptr) {
+   ParameterDTO dto;
+   std::strncpy(dto.type, type.c_str(),PARAMETERDTOSIZE - 2);
+   dto.ptr = ptr;
+   return dto;
+}
+
 ParameterDTO VnV_Parameter_Get(ParameterSetWrapper* wrapper, const char* name) {
   VnV::VnVParameterSet* s = VnV::ParameterWrapperCast(wrapper);
   auto it = s->find(name);
   if (it != s->end()) {
-    return {it->second.getType().c_str(), it->second.getRawPtr()};
+    return buildParameterDTO(it->second.getType(), it->second.getRawPtr());
   } else {
-    return {nullptr, nullptr};
+    return buildParameterDTO("NULL",nullptr);
   }
 }
 }
