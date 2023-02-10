@@ -32,9 +32,9 @@ class ReaderWrapper {
   long getUpperId() { return upperId; }
 
   virtual ~ReaderWrapper() {
-     if (rootNode) {
-       rootNode->kill();
-     }
+    if (rootNode) {
+      rootNode->kill();
+    }
   }
 };
 
@@ -43,7 +43,6 @@ bool VnVInit_Str(std::vector<std::string> args, std::string configStr);
 bool VnVIsInitialized();
 void VnVFinalize();
 void VnVLoadPlugin(std::string name, std::string filepath);
-
 
 std::string VnVDumpReaders();
 

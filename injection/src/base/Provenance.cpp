@@ -1,7 +1,8 @@
 #include "base/Provenance.h"
 
+#include <iostream>
+
 #include "base/Utilities.h"
-#include <iostream> 
 
 using namespace VnV;
 
@@ -14,7 +15,7 @@ ProvFile::ProvFile(std::string filename, std::string reader, std::string text) {
 
   try {
     info = DistUtils::getLibInfo(filename, 0);
-  } catch (std::exception &e) {
+  } catch (std::exception& e) {
   }
 }
 
@@ -26,7 +27,6 @@ ProvFile::ProvFile(DistUtils::libInfo lb, std::string reader) {
 }
 
 ProvFile::ProvFile(const json& j) {
-
   this->filename = j["filename"].get<std::string>();
   this->reader = j["reader"].get<std::string>();
   this->text = j["text"].get<std::string>();
@@ -36,7 +36,7 @@ ProvFile::ProvFile(const json& j) {
   this->name = j["name"].get<std::string>();
 }
 
-json ProvFile::toJson() const  {
+json ProvFile::toJson() const {
   json j = json::object();
   j["filename"] = filename;
   j["reader"] = reader;
@@ -52,7 +52,7 @@ bool ProvFile::modified() const {
   try {
     DistUtils::libInfo l = DistUtils::getLibInfo(filename, 0);
     return l.timestamp != info.timestamp;
-  } catch (std::exception &e) {
+  } catch (std::exception& e) {
     return true;
   }
 }
@@ -73,10 +73,7 @@ void VnVProv::fromArray(std::vector<std::shared_ptr<ProvFile>>& array, const jso
 
 VnVProv::VnVProv(int argc, char** argv, std::string inputfileName, json& config)
 
-  
-
 {
-
   inputFile.reset(new ProvFile(inputfileName, "json", config.dump(4)));
   executable.reset(new ProvFile(argv[0], "binary"));
   currentWorkingDirectory = DistUtils::getCurrentDirectory();
@@ -87,7 +84,7 @@ VnVProv::VnVProv(int argc, char** argv, std::string inputfileName, json& config)
   DistUtils::getAllLinkedLibraryData(&lb);
   for (auto it : lb.libs) {
     ProvFile pf(it, "binary");
-    libraries.push_back(std::make_shared<ProvFile>(it,"binary"));
+    libraries.push_back(std::make_shared<ProvFile>(it, "binary"));
   }
 }
 
@@ -108,17 +105,15 @@ json VnVProv::toJson() const {
 VnVProv::VnVProv() {}
 
 VnVProv::VnVProv(const json& j) {
-  
   currentWorkingDirectory = j["cwd"].get<std::string>();
   time_in_seconds_since_epoch = j["time"].get<long>();
   commandLine = j["cmd"].get<std::string>();
   inputFile.reset(new ProvFile(j["inp"]));
   executable.reset(new ProvFile(j["exe"]));
-  
+
   fromArray(inputFiles, j["inps"]);
   fromArray(outputFiles, j["outs"]);
   fromArray(libraries, j["libs"]);
-
 }
 
 void VnVProv::addInputFile(std::shared_ptr<ProvFile> pv) { inputFiles.push_back(pv); }

@@ -1,9 +1,10 @@
 ﻿
 #include <mpi.h>
 #include <time.h>
-#include <map>
+
 #include <chrono>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <thread>
 #include <typeinfo>
@@ -13,12 +14,10 @@
 
 #define SPNAME SampleExecutable
 
-//Register the executable with VNV
+// Register the executable with VNV
 INJECTION_EXECUTABLE(SPNAME)
 
 int main(int argc, char** argv) {
-  
-  
   /**
    * Sample Executable
    * =================
@@ -31,25 +30,21 @@ int main(int argc, char** argv) {
   INJECTION_INITIALIZE(SPNAME, &argc, &argv, (argc == 2) ? argv[1] : "./inputfiles/injectionPoint.json");
 
   std::vector<int> samplePoints;
-  
+
   /**
    *  A Simple Injection Point Loop
    *  -----------------------------
-   *  
+   *
    *  This injection point loop tracks the values in the vector sample
-   *  points. 
+   *  points.
 
   **/
   INJECTION_LOOP_BEGIN(SPNAME, VSELF, Function1, VNV_NOCALLBACK, samplePoints);
   for (int i = 0; i < 10; i++) {
     samplePoints.push_back(i);
-    INJECTION_LOOP_ITER(SPNAME, Function1, "inner",VNV_NOCALLBACK);
+    INJECTION_LOOP_ITER(SPNAME, Function1, "inner", VNV_NOCALLBACK);
   }
-  INJECTION_LOOP_END(SPNAME, Function1,VNV_NOCALLBACK);
-  
+  INJECTION_LOOP_END(SPNAME, Function1, VNV_NOCALLBACK);
 
   INJECTION_FINALIZE(SPNAME);
-
-
 }
-

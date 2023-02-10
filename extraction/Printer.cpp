@@ -1,8 +1,8 @@
 ﻿#include <clang/AST/Expr.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
-#include <clang/Frontend/CompilerInstance.h>
 #include <clang/Basic/Version.h>
+#include <clang/Frontend/CompilerInstance.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/Tooling.h>
 
@@ -216,7 +216,7 @@ unsigned int getInfo(const CallExpr* call, const FunctionDecl* func, const Match
 
   SourceManager& srcMgr = Result.Context->getSourceManager();
   filename = srcMgr.getFilename(func->getLocation()).str();
-  
+
   info["filename"] = stripFilename(filename, strip);  // Result.SourceManager->getFilename(callLocation);
 
   info["Calling Function"] = func->getNameInfo().getAsString();
@@ -225,7 +225,8 @@ unsigned int getInfo(const CallExpr* call, const FunctionDecl* func, const Match
 
   json parameters;
   unsigned int count = (begin);
-  std::string package = VnV::StringUtils::trim_copy(getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts()));
+  std::string package =
+      VnV::StringUtils::trim_copy(getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts()));
   id = VnV::StringUtils::trim_copy(getValueFromStringLiteral(call->getArg(count++)->IgnoreParenCasts()));
   std::string key = package + ":" + id;
   id = key;
@@ -272,8 +273,9 @@ class VnVPrinter : public MatchFinder::MatchCallback {
  private:
   json main_json;
   std::string strip;
+
  public:
-  VnVPrinter(std::string strip_) :strip(strip_) { main_json = json::object(); }
+  VnVPrinter(std::string strip_) : strip(strip_) { main_json = json::object(); }
 
   json& get() { return main_json; }
 
@@ -285,7 +287,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
     const FunctionDecl* FF = Result.Nodes.getNodeAs<clang::FunctionDecl>("function");
     if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite")) {
       // Single IP using C interface
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1,strip);
+      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
       std::string sig = getSig(E, count++, FF);
       count++;  // Skip the filename
       count++;  // Skip the line
@@ -298,7 +300,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_begin")) {
       // Loop begin using the C interface
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1,strip);
+      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
       std::string sig = getSig(E, count++, FF);
       count++;  // Skip the filename
       count++;  // Skip the line
@@ -311,7 +313,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite")) {
       // Single IP using the C++ interface
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1,strip);
+      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
 
       std::string sig = getSig(E, count++, FF);
       count++;  // Skip the filename
@@ -325,7 +327,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite_iteration")) {
       // Iteration point using the C++ interface
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1,strip);
+      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
       std::string sig = getSig(E, count++, FF);
       count++;  // skip the filename
       count++;  // skip the line number
@@ -339,7 +341,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite_plug")) {
       // Plug point using the C++ interface
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1,strip);
+      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
       std::string sig = getSig(E, count++, FF);
       count++;  // Skip the filename
       count++;  // Skip the line
@@ -352,7 +354,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iteration")) {
       // Iteration point in the C interface.
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1,strip);
+      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
       std::string sig = getSig(E, count++, FF);
       count++;  // skip the filename
       count++;  // skip the line number
@@ -366,7 +368,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_plug")) {
       // Iteration point in the C interface.
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1,strip);
+      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
       std::string sig = getSig(E, count++, FF);
       count++;  // skip the filename
       count++;  // skip the line number
@@ -378,9 +380,8 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       addParameters(sig, E, idJson, count);
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite_begin")) {
-      
       // Loop begin with the C++ interface
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1,strip);
+      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
       std::string sig = getSig(E, count++, FF);
       count++;  // Skip the filename
       count++;  // Skip the line
@@ -410,7 +411,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
 
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_end")) {
       // End of  a loop in the C AND C++ interface
-      getInfo(E, FF, Result, info, id, filename, 0,strip);
+      getInfo(E, FF, Result, info, id, filename, 0, strip);
       json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
       json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
       singleJson["End"] = info;
@@ -500,42 +501,37 @@ class VnVFinder : public MatchFinder {
 };
 
 class VnVFinderAction : public ASTFrontendAction {
-  VnVFinder &finder;  
-  public:
-  
-      VnVFinderAction(VnVFinder& f) : finder(f) {}
+  VnVFinder& finder;
 
-      std::unique_ptr<ASTConsumer>
-      CreateASTConsumer(CompilerInstance &, StringRef) override {
-        return finder.newASTConsumer();
-      }
+ public:
+  VnVFinderAction(VnVFinder& f) : finder(f) {}
 
- 
-      bool BeginInvocation(CompilerInstance &CI) override {
-        //Weird bug in Clang -- When we change directories, the file manager seems to end up in  
-        //the wrong directory. Resetting the file manager here means a new one will be created. This 
-        //new one is created in the correct directory, so we can continue. 
-        CI.setFileManager(nullptr);
-        CI.setSourceManager(nullptr);
-        return true;
-      }
+  std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance&, StringRef) override {
+    return finder.newASTConsumer();
+  }
 
-      bool BeginSourceFileAction(CompilerInstance &CI) override {
-        if (!ASTFrontendAction::BeginSourceFileAction(CI))
-          return false;
-        return true;
-      }
+  bool BeginInvocation(CompilerInstance& CI) override {
+    // Weird bug in Clang -- When we change directories, the file manager seems to end up in
+    // the wrong directory. Resetting the file manager here means a new one will be created. This
+    // new one is created in the correct directory, so we can continue.
+    CI.setFileManager(nullptr);
+    CI.setSourceManager(nullptr);
+    return true;
+  }
 
-      void EndSourceFileAction() override {
-        ASTFrontendAction::EndSourceFileAction();
-      }
-};  
+  bool BeginSourceFileAction(CompilerInstance& CI) override {
+    if (!ASTFrontendAction::BeginSourceFileAction(CI)) return false;
+    return true;
+  }
 
+  void EndSourceFileAction() override { ASTFrontendAction::EndSourceFileAction(); }
+};
 
 class VnVFinderActionFactory : public tooling::FrontendActionFactory {
   VnVFinder& finder;
+
  public:
-  VnVFinderActionFactory(VnVFinder &f) :finder(f) {}
+  VnVFinderActionFactory(VnVFinder& f) : finder(f) {}
   std::unique_ptr<FrontendAction> create() override { return std::make_unique<VnVFinderAction>(finder); }
 };
 

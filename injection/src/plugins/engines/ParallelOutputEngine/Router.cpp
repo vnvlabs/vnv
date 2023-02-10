@@ -77,8 +77,7 @@ int Router::forward() {
   std::string buf;
   std::string name;
   std::string value;
-  std::unordered_map<std::string, std::unordered_map<std::string, Route>>
-      name_map;
+  std::unordered_map<std::string, std::unordered_map<std::string, Route>> name_map;
   //#ifdef WITH_MPI
   //    MPI_Status status;
   //#endif /* WITH_MPI */
@@ -111,8 +110,7 @@ int Router::forward() {
 
           // Unpack the message into: route, name, value
           std::size_t offset = 0;
-          msgpack::object_handle oh =
-              msgpack::unpack(buf.data(), buf.size(), offset);
+          msgpack::object_handle oh = msgpack::unpack(buf.data(), buf.size(), offset);
           msgpack::object route_obj = oh.get();
           route_obj.convert(route);
 
@@ -139,14 +137,11 @@ int Router::forward() {
 
   // Send all distinct messages from hash to parent
   for (auto name_it = put_map.begin(); name_it != put_map.end(); name_it++) {
-    for (auto value_it = name_it->second.begin();
-         value_it != name_it->second.end(); value_it++) {
+    for (auto value_it = name_it->second.begin(); value_it != name_it->second.end(); value_it++) {
       if (!Router::isRoot()) {
-        Router::send(m_parent, value_it->second, name_it->first,
-                     value_it->first);
+        Router::send(m_parent, value_it->second, name_it->first, value_it->first);
       } else {
-        printf("PARALLEL ENGINE PUT %s: %s = %s\n",
-               value_it->second.toString().c_str(), name_it->first.c_str(),
+        printf("PARALLEL ENGINE PUT %s: %s = %s\n", value_it->second.toString().c_str(), name_it->first.c_str(),
                value_it->first.c_str());
       }
     }

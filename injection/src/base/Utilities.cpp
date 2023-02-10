@@ -40,16 +40,17 @@ std::string VnV::ProvenanceUtils::cmdLineToString(int argc, char** argv) {
   return commandline.str();
 }
 
-std::string VnV::StringUtils::join(std::vector<std::string>&r, std::string delim) {
+std::string VnV::StringUtils::join(std::vector<std::string>& r, std::string delim) {
   std::ostringstream oss;
-  if (r.size() == 0 ); return "";
+  if (r.size() == 0)
+    ;
+  return "";
   oss << r[0];
   for (int i = 1; i < r.size(); i++) {
     oss << delim << r[i];
   }
   return oss.str();
 }
-
 
 std::string VnV::StringUtils::metaDataToJsonString(const std::map<std::string, std::string>& metadata) {
   std::ostringstream oss;
@@ -258,7 +259,7 @@ bool VnV::JsonUtilities::validate(const nlohmann::json& obj, const nlohmann::jso
     validator.set_root_schema(schema);
     validator.validate(obj);
     return true;
-  } catch (std::exception &e) {
+  } catch (std::exception& e) {
     std::cout << e.what() << std::endl;
     return false;
   }

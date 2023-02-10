@@ -10,7 +10,7 @@ namespace VnV {
 
 BaseStoreInstance(WalkerStore)
 
-void WalkerStore::addWalker(std::string packageName, std::string name, nlohmann::json& schema, walker_maker_ptr m) {
+    void WalkerStore::addWalker(std::string packageName, std::string name, nlohmann::json& schema, walker_maker_ptr m) {
   Walker_factory[packageName + ":" + name] = std::make_pair(m, schema);
 }
 

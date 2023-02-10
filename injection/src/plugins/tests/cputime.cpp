@@ -35,8 +35,7 @@ class cpuRunner {
 
   void start() { startTime = std::chrono::high_resolution_clock::now(); }
 
-  template <typename T>
-  auto durr(std::chrono::high_resolution_clock::time_point stop) {
+  template <typename T> auto durr(std::chrono::high_resolution_clock::time_point stop) {
     return std::chrono::duration_cast<T>(stop - startTime).count();
   }
 
@@ -76,7 +75,7 @@ cpuRunner::~cpuRunner() {}
  * @title Injection Point Timing Results
  *
  * The overall time was :vnv:`TotalTime[0]` :vnv:`units[0]`
- * 
+ *
  * .. vnv-chart::
  *
  *    {
@@ -93,13 +92,13 @@ cpuRunner::~cpuRunner() {}
  *       "options" : {
  *           "animation" : false,
  *           "responsive" : true,
- *           "title" : { "display" : true, 
+ *           "title" : { "display" : true,
  *                       "text" : "CPU Time at the begining of each injection point."
- *                     }, 
- *          "scales": { 
- *             "yAxes": [{ 
- *               "scaleLabel": { 
- *                 "display": true, 
+ *                     },
+ *          "scales": {
+ *             "yAxes": [{
+ *               "scaleLabel": {
+ *                 "display": true,
  *                 "labelString": "CPU Time ({{units[0]}})"
  *               }
  *            }],
@@ -113,22 +112,21 @@ cpuRunner::~cpuRunner() {}
  *       }
  *    }
  *
- * 
+ *
  */
 INJECTION_TEST_RS(VNVPACKAGENAME, cputime, cpuRunner, cpuRunner::provSchema()) {
-  
-  if (type == InjectionPointType::Begin || type== InjectionPointType::Single ) {
-      const json& c = getConfigurationJson();
-      auto it = c.find("units");
-      if (it != c.end()) {
-        runner->setUnit(it->get<std::string>());
-      }
-      engine->Put("units", runner->unit);
-      runner->start();
+  if (type == InjectionPointType::Begin || type == InjectionPointType::Single) {
+    const json& c = getConfigurationJson();
+    auto it = c.find("units");
+    if (it != c.end()) {
+      runner->setUnit(it->get<std::string>());
+    }
+    engine->Put("units", runner->unit);
+    runner->start();
   } else if (type == InjectionPointType::End) {
     engine->Put("TotalTime", runner->split(), {{"tag", "value"}});
-  } 
-  
+  }
+
   engine->Put("Labels", stageId);
   engine->Put("Data", runner->split());
   return SUCCESS;

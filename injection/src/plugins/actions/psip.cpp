@@ -5,9 +5,7 @@ class PSIPAction : public VnV::IAction {
   json conf;
 
  public:
-  PSIPAction(const json& config) { 
-    conf = config;
-  }
+  PSIPAction(const json& config) { conf = config; }
 
   json getDefault() {
     return R"(
@@ -39,7 +37,7 @@ class PSIPAction : public VnV::IAction {
   }
 };
 
-//TODO WRITE A SCHEMA
+// TODO WRITE A SCHEMA
 const char* schema = R"(
 {
         "type" : "object",
@@ -50,6 +48,4 @@ const char* schema = R"(
 /**
  * .. vnv-psip:: psip
  */
-INJECTION_ACTION(VNVPACKAGENAME, PSIP, schema) { 
-  return new PSIPAction(config);
-}
+INJECTION_ACTION(VNVPACKAGENAME, PSIP, schema) { return new PSIPAction(config); }

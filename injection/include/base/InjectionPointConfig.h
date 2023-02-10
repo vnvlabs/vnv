@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+
 #include "base/TestConfig.h"
 #include "json-schema.hpp"
 
@@ -30,18 +31,12 @@ class InjectionPointConfig {
   std::vector<TestConfig> tests;
   json runConfig = json::object();
 
-
-  InjectionPointConfig(std::string package, std::string id, bool runInternal_, const json& runConfig_, const  std::vector<TestConfig>& tests_)
-      : packageName(package), name(id), runInternal(runInternal_), tests(tests_), runConfig(runConfig_) {
-  }
- 
-
+  InjectionPointConfig(std::string package, std::string id, bool runInternal_, const json& runConfig_,
+                       const std::vector<TestConfig>& tests_)
+      : packageName(package), name(id), runInternal(runInternal_), tests(tests_), runConfig(runConfig_) {}
 };
 
-
-}
- // namespace InjectionPointTypeUtils
-
-
+}  // namespace VnV
+   // namespace InjectionPointTypeUtils
 
 #endif

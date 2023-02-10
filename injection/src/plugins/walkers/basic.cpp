@@ -41,7 +41,6 @@ class BasicNodeIter : public VnV::IWalker {
       indexIter = niter->second.begin();
     }
   }
-
 };
 
 }  // namespace

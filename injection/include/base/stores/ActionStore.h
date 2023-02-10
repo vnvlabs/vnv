@@ -45,17 +45,17 @@ class ActionStore : public BaseStore {
 
   virtual void initialize(ICommunicator_ptr world) {
     for (auto action : actions) {
-        try {
-          getEngine()->actionStartedCallBack(world, action->getPackage(), action->getName(), ActionStage::init);
-          action->setComm(world);
-          action->initialize();
-          action->popComm();
-          getEngine()->actionEndedCallBack(ActionStage::init);
-        } catch (std::exception& e) {
-          VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage Initialization", action->getPackage().c_str(),
-                    action->getName().c_str());
-        }
+      try {
+        getEngine()->actionStartedCallBack(world, action->getPackage(), action->getName(), ActionStage::init);
+        action->setComm(world);
+        action->initialize();
+        action->popComm();
+        getEngine()->actionEndedCallBack(ActionStage::init);
+      } catch (std::exception& e) {
+        VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage Initialization", action->getPackage().c_str(),
+                  action->getName().c_str());
       }
+    }
   }
 
   virtual void injectionPointStart(ICommunicator_ptr comm, std::string packageName, std::string id) {
@@ -109,18 +109,16 @@ class ActionStore : public BaseStore {
 
   virtual void finalize(ICommunicator_ptr world) {
     for (auto action : actions) {
-     
-        try {
-          getEngine()->actionStartedCallBack(world, action->getPackage(), action->getName(), ActionStage::final);
-          action->setComm(world);
-          action->finalize();
-          action->popComm();
-          getEngine()->actionEndedCallBack(ActionStage::final);
-        } catch (std::exception& e) {
-          VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage finalize", action->getPackage().c_str(),
-                    action->getName().c_str());
-        }
-     
+      try {
+        getEngine()->actionStartedCallBack(world, action->getPackage(), action->getName(), ActionStage::final);
+        action->setComm(world);
+        action->finalize();
+        action->popComm();
+        getEngine()->actionEndedCallBack(ActionStage::final);
+      } catch (std::exception& e) {
+        VnV_Error(VNVPACKAGENAME, "Action %s:%s failed at stage finalize", action->getPackage().c_str(),
+                  action->getName().c_str());
+      }
     }
   }
 

@@ -1,7 +1,6 @@
 
 #include "VnV.h"
 
-
 const char* github_schema = R"(
 {
    "type" : "object",
@@ -43,43 +42,32 @@ const char* local_schema = R"(
 }
 )";
 
-
-
 class IssuesAction : public VnV::IAction {
   json conf;
 
  public:
-  IssuesAction(const json &config) { 
-      conf = config;
-  }
-  
-  virtual void initialize() override { 
-      getEngine()->Put("conf", conf );
-  }
-};
+  IssuesAction(const json& config) { conf = config; }
 
+  virtual void initialize() override { getEngine()->Put("conf", conf); }
+};
 
 /**
  * .. vnv-issues:: conf
- * 
- *       
- * 
+ *
+ *
+ *
  */
 INJECTION_ACTION(VNVPACKAGENAME, github, github_schema) { return new IssuesAction(config); }
 
-
 /**
- * .. vnv-issues:: conf 
+ * .. vnv-issues:: conf
  *   :host: gitlab
- * 
+ *
  */
 INJECTION_ACTION(VNVPACKAGENAME, gitlab, gitlab_schema) { return new IssuesAction(config); }
 
-
 /**
- * .. vnv-issues:: conf 
+ * .. vnv-issues:: conf
  *   :host: local
  */
-INJECTION_ACTION(VNVPACKAGENAME, issues, local_schema ) { return new IssuesAction(config); }
-
-
+INJECTION_ACTION(VNVPACKAGENAME, issues, local_schema) { return new IssuesAction(config); }

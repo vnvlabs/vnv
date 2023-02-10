@@ -100,9 +100,8 @@ namespace JSN {
   X(unitTestFinished, y)          \
   X(commInfo, z)                  \
   X(info, aa)                     \
-  X(initializationStarted,ab)     \
-  X(initializationEnded,ac)
- 
+  X(initializationStarted, ab)    \
+  X(initializationEnded, ac)
 
 #define X(A, b) constexpr auto A = #b;
 NTYPES
@@ -591,7 +590,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   std::string getId() { return std::to_string(StreamManager<T>::id++); }
 
   virtual void write(T& j) {
-    //j[JSD::time] = VnV::RunTime::instance().currentTime();
+    // j[JSD::time] = VnV::RunTime::instance().currentTime();
     if (stream != nullptr) {
       stream->write(comm->uniqueId(), j, StreamManager<T>::id++);
     }
@@ -612,7 +611,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
         nJson[JSD::node] = JSN::commInfo;
         nJson[JSD::comm] = id;
         nJson[JSD::commList] = procList;
-        //nJson[JSD::time] = VnV::RunTime::instance().currentTime();
+        // nJson[JSD::time] = VnV::RunTime::instance().currentTime();
 
         stream->newComm(id, nJson, comm);
       }
@@ -707,7 +706,9 @@ template <typename T> class StreamManager : public OutputEngineManager {
       j[JSD::dtype] = JST::typeb;                                                      \
       j[JSD::value] = value;                                                           \
       j[JSD::node] = JSN::shape;                                                       \
-      if (! m.empty() ) {j[JSD::meta] = m;}                                            \
+      if (!m.empty()) {                                                                \
+        j[JSD::meta] = m;                                                              \
+      }                                                                                \
       write(j);                                                                        \
     }                                                                                  \
   }
@@ -721,7 +722,9 @@ template <typename T> class StreamManager : public OutputEngineManager {
       T j = T::object();
       j[JSD::node] = JSN::dataTypeStarted;
       j[JSD::name] = variableName;
-      if (! m.empty() ) {j[JSD::meta] = m;}                                            
+      if (!m.empty()) {
+        j[JSD::meta] = m;
+      }
       j[JSD::dtype] = data->getKey();
       write(j);
     }
@@ -759,7 +762,9 @@ template <typename T> class StreamManager : public OutputEngineManager {
           j[JSD::shape] = gsizes;
           j[JSD::dtype] = JST::GlobalArray;
           j[JSD::key] = dtype;
-          if (! m.empty() ) {j[JSD::meta] = m;}                                
+          if (!m.empty()) {
+            j[JSD::meta] = m;
+          }
           j[JSD::children] = WriteDataJson<json>(gather);
           write(j);
         } catch (VnV::VnVExceptionBase& e) {
@@ -823,7 +828,9 @@ template <typename T> class StreamManager : public OutputEngineManager {
         j[JSD::value] = vals;
         j[JSD::shape] = gsizes;
         j[JSD::node] = JSN::shape;
-        if (! m.empty() ) {j[JSD::meta] = m;}                                            \
+        if (!m.empty()) {
+          j[JSD::meta] = m;
+        }
         write(j);
       }
     }
@@ -1068,7 +1075,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   }
 
   void initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName) override {
-    setComm(comm,true);
+    setComm(comm, true);
 
     if (comm->Rank() == getRoot()) {
       T j = T::object();
@@ -1076,7 +1083,6 @@ template <typename T> class StreamManager : public OutputEngineManager {
       j[JSD::package] = packageName;
       write(j);
     }
-
   }
   void initializationEndedCallBack(std::string packageName) override {
     if (comm->Rank() == getRoot()) {
@@ -1085,7 +1091,6 @@ template <typename T> class StreamManager : public OutputEngineManager {
       write(j);
     }
   }
-
 
   void unitTestFinishedCallBack(IUnitTest* tester) {
     if (comm->Rank() == getRoot()) {
@@ -1254,10 +1259,10 @@ template <class DB> class StreamParserTemplate {
 
       auto shapeJ = j.contains(JSD::shape) ? j[JSD::shape] : json::object();
       std::size_t shapeSize = shapeJ.size();
-      
+
       std::vector<std::size_t> shape;
       std::vector<std::string> value;
-    
+
       shape.reserve(shapeSize);
 
       for (auto it : shapeJ.items()) {
@@ -1281,14 +1286,12 @@ template <class DB> class StreamParserTemplate {
       auto n = mks<typename DB::ShapeNode>(j);
       n->open(true);
       // Load the shape.
-      
+
       auto shapeJ = j.contains(JSD::shape) ? j[JSD::shape] : json::object();
       std::size_t shapeSize = shapeJ.size();
-      
 
       std::vector<std::size_t> shape;
       std::vector<std::shared_ptr<DataBase>> value;
-
 
       for (auto it : shapeJ.items()) {
         shape.push_back(it.value().template get<std::size_t>());
@@ -1427,14 +1430,15 @@ template <class DB> class StreamParserTemplate {
     };
 
     virtual std::shared_ptr<typename DB::TestNode> visitInitializationStarted(const T& j) {
-      auto n =  std::dynamic_pointer_cast<typename DB::TestNode>(rootInternal()->getInitialization()); 
+      auto n = std::dynamic_pointer_cast<typename DB::TestNode>(rootInternal()->getInitialization());
       n->setusage(ITestNode::TestNodeUsage::PACKAGE);
       n->open(true);
       n->setpackage(j[JSD::package].template get<std::string>());
       return n;
     };
 
-    virtual std::shared_ptr<typename DB::TestNode> visitInitializationEnded(const T& j, std::shared_ptr<DataBase> node) {
+    virtual std::shared_ptr<typename DB::TestNode> visitInitializationEnded(const T& j,
+                                                                            std::shared_ptr<DataBase> node) {
       auto n = std::dynamic_pointer_cast<typename DB::TestNode>(node);
       n->open(false);
       return n;
@@ -1503,13 +1507,13 @@ template <class DB> class StreamParserTemplate {
       return n;
     };
 
- 
-    virtual std::shared_ptr<typename DB::InjectionPointNode> visitInjectionPointStartedNode(const T& j, long elementId) {
+    virtual std::shared_ptr<typename DB::InjectionPointNode> visitInjectionPointStartedNode(const T& j,
+                                                                                            long elementId) {
       auto n = mks<typename DB::InjectionPointNode>(j);
       n->setpackage(j[JSD::package].template get<std::string>());
       n->setcommId(j[JSD::comm].template get<long>());
       n->setstartIndex(elementId);
-      //n->setstartTime(time);
+      // n->setstartTime(time);
       n->open(true);
 
       return n;
@@ -1545,7 +1549,7 @@ template <class DB> class StreamParserTemplate {
         const T& j, std::shared_ptr<DataBase> node, long elementId) {
       auto n = std::dynamic_pointer_cast<typename DB::InjectionPointNode>(node);
       n->setendIndex(elementId);
-      //n->setendTime(time);
+      // n->setendTime(time);
       n->open(false);
 
       return n;
@@ -1700,8 +1704,6 @@ template <class DB> class StreamParserTemplate {
 
     void visit(const T& j, long elementId) {
       std::string node = j[JSD::node].template get<std::string>();
-
-  
 
       if (node == JSN::finalTime) {
         auto i = rootInternal()->getInfoNode();
@@ -1864,10 +1866,8 @@ template <class DB> class StreamParserTemplate {
         jstream->push(po);
       } else if (node == JSN::initializationEnded) {
         auto u = visitInitializationEnded(j, jstream->pop());
-      } 
-       
-      
-      
+      }
+
       else if (node == JSN::shape) {
         std::string type = j[JSD::dtype].template get<std::string>();
 

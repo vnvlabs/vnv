@@ -9,15 +9,12 @@
 // IF LOGGING IS TURNED ON.
 #  ifndef WITHOUT_LOGGING
 
-VNVEXTERNC void _VnV_registerLogLevel(const char* packageName, const char* name,
-                                      const char* color);
+VNVEXTERNC void _VnV_registerLogLevel(const char* packageName, const char* name, const char* color);
 
-VNVEXTERNC void _VnV_registerFile(VnV_Comm comm, const char* packageName,
-                                  const char* name, int input,
+VNVEXTERNC void _VnV_registerFile(VnV_Comm comm, const char* packageName, const char* name, int input,
                                   const char* filename, const char* reader);
 
-VNVEXTERNC void _VnV_Log(VnV_Comm comm, const char* p, const char* level,
-                         const char* message, ...)
+VNVEXTERNC void _VnV_Log(VnV_Comm comm, const char* p, const char* level, const char* message, ...)
     __attribute__((format(printf, 4, 5)));
 
 // This macro allows packages to define custom logging levels. Here the
@@ -32,18 +29,12 @@ VNVEXTERNC void _VnV_Log(VnV_Comm comm, const char* p, const char* level,
 // To use the custom log level, call VnV_Log(name, message, args...).
 #    define INJECTION_LOGLEVEL(PNAME, NAME, COLOR)
 
-#    define REGISTERLOGLEVEL(PNAME, NAME, COLOR) \
-      _VnV_registerLogLevel(VNV_STR(PNAME), #NAME, #COLOR);
-#    define VnV_Debug_MPI(PNAME, comm, ...) \
-      _VnV_Log(comm, VNV_STR(PNAME), "DEBUG", __VA_ARGS__)
-#    define VnV_Warn_MPI(PNAME, comm, ...) \
-      _VnV_Log(comm, VNV_STR(PNAME), "WARN", __VA_ARGS__)
-#    define VnV_Error_MPI(PNAME, comm, ...) \
-      _VnV_Log(comm, VNV_STR(PNAME), "ERROR", __VA_ARGS__)
-#    define VnV_Info_MPI(PNAME, comm, ...) \
-      _VnV_Log(comm, VNV_STR(PNAME), "INFO", __VA_ARGS__)
-#    define VnV_Log_MPI(PNAME, comm, level, ...) \
-      _VnV_Log(comm, VNV_STR(PNAME), level, __VA_ARGS__)
+#    define REGISTERLOGLEVEL(PNAME, NAME, COLOR) _VnV_registerLogLevel(VNV_STR(PNAME), #    NAME, #    COLOR);
+#    define VnV_Debug_MPI(PNAME, comm, ...) _VnV_Log(comm, VNV_STR(PNAME), "DEBUG", __VA_ARGS__)
+#    define VnV_Warn_MPI(PNAME, comm, ...) _VnV_Log(comm, VNV_STR(PNAME), "WARN", __VA_ARGS__)
+#    define VnV_Error_MPI(PNAME, comm, ...) _VnV_Log(comm, VNV_STR(PNAME), "ERROR", __VA_ARGS__)
+#    define VnV_Info_MPI(PNAME, comm, ...) _VnV_Log(comm, VNV_STR(PNAME), "INFO", __VA_ARGS__)
+#    define VnV_Log_MPI(PNAME, comm, level, ...) _VnV_Log(comm, VNV_STR(PNAME), level, __VA_ARGS__)
 
 #    define VnV_Debug(PNAME, ...) VnV_Debug_MPI(PNAME, VWORLD, __VA_ARGS__)
 #    define VnV_Warn(PNAME, ...) VnV_Warn_MPI(PNAME, VWORLD, __VA_ARGS__)
@@ -52,20 +43,17 @@ VNVEXTERNC void _VnV_Log(VnV_Comm comm, const char* p, const char* level,
 #    define VnV_Log(PNAME, ...) VnV_Log_MPI(PNAME, VWORLD, __VA_ARGS__)
 
 #    define ___INJECTION_FILE(PNAME, NAME, COMM, INPUT_BOOL, FILENAME, READER) \
-      _VnV_registerFile(COMM, VNV_STR(PNAME), #NAME, INPUT_BOOL, FILENAME,     \
-                        READER)
+      _VnV_registerFile(COMM, VNV_STR(PNAME), #NAME, INPUT_BOOL, FILENAME, READER)
 
 #    define INJECTION_INPUT_FILE_(PNAME, NAME, COMM, FILENAME, READER) \
       ___INJECTION_FILE(PNAME, NAME, COMM, 1, FILENAME, READER)
 
-#    define INJECTION_INPUT_FILE(PNAME, NAME, COMM, FILENAME) \
-      INJECTION_INPUT_FILE_(PNAME, NAME, COMM, FILENAME, CODE)
+#    define INJECTION_INPUT_FILE(PNAME, NAME, COMM, FILENAME) INJECTION_INPUT_FILE_(PNAME, NAME, COMM, FILENAME, CODE)
 
 #    define INJECTION_OUTPUT_FILE_(PNAME, NAME, COMM, FILENAME, READER) \
       ___INJECTION_FILE(PNAME, NAME, COMM, 0, FILENAME, READER)
 
-#    define INJECTION_OUTPUT_FILE(PNAME, NAME, COMM, FILENAME) \
-      INJECTION_OUTPUT_FILE_(PNAME, NAME, COMM, FILENAME, CODE)
+#    define INJECTION_OUTPUT_FILE(PNAME, NAME, COMM, FILENAME) INJECTION_OUTPUT_FILE_(PNAME, NAME, COMM, FILENAME, CODE)
 
 #  else
 #    define VnV_Debug(...)

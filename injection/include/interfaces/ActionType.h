@@ -5,15 +5,15 @@ namespace VnV {
 
 namespace ActionStage {
 
- typedef std::string type;
- constexpr auto init = "i";
- constexpr auto start = "s";
- constexpr auto iter = "it";
- constexpr auto end = "e";
- constexpr auto final = "f";
- 
-}; 
+typedef std::string type;
+constexpr auto init = "i";
+constexpr auto start = "s";
+constexpr auto iter = "it";
+constexpr auto end = "e";
+constexpr auto final = "f";
 
-}
+};  // namespace ActionStage
+
+}  // namespace VnV
 
 #endif

@@ -18,8 +18,7 @@ BaseStoreInstance(ReductionStore)
   long long getKey(std::string name) { return getKey("", name); }
 }
 
-void ReductionStore::addReduction(std::string packageName, std::string name,
-                                  reduction_ptr m) {
+void ReductionStore::addReduction(std::string packageName, std::string name, reduction_ptr m) {
   reduction_factory.insert(std::make_pair(getKey(packageName, name), m));
 }
 
@@ -33,8 +32,7 @@ IReduction_ptr ReductionStore::getReducer(long long key) {
   throw INJECTION_EXCEPTION("Un supported Data Type %d", key);
 }
 
-IReduction_ptr ReductionStore::getReducer(std::string packageName,
-                                          std::string name) {
+IReduction_ptr ReductionStore::getReducer(std::string packageName, std::string name) {
   return getReducer(getKey(packageName, name));
 }
 

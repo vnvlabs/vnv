@@ -25,22 +25,19 @@ template <typename T> T calculateNumElements(const std::vector<T>& shape) {
   return count;
 }
 
-template <typename T>
-std::vector<T> multipliers(const std::vector<T> &shape) {
-   std::vector<T> m;
-   m.resize(shape.size());
-   for (int i = shape.size(); i > 0; i--) {
-      m[i - 1] = (i == shape.size()) ? 1 : m[i] * shape[i];
-   }
-   
+template <typename T> std::vector<T> multipliers(const std::vector<T>& shape) {
+  std::vector<T> m;
+  m.resize(shape.size());
+  for (int i = shape.size(); i > 0; i--) {
+    m[i - 1] = (i == shape.size()) ? 1 : m[i] * shape[i];
+  }
 
-   return m;
+  return m;
 }
-
 
 template <typename T> T computeShapeIndex(const std::vector<T>& rshape, const std::vector<T>& shape) {
   if (rshape.size() != shape.size()) {
-    throw INJECTION_EXCEPTION("Invalid Shape. Size is %s when it should be %s", shape.size(), rshape.size() );
+    throw INJECTION_EXCEPTION("Invalid Shape. Size is %s when it should be %s", shape.size(), rshape.size());
   }
 
   T index = 0;
@@ -49,7 +46,7 @@ template <typename T> T computeShapeIndex(const std::vector<T>& rshape, const st
   for (int i = 0; i < mults.size(); i++) {
     index += rshape[i] * mults[i];
   }
-  
+
   return index;
 }
 

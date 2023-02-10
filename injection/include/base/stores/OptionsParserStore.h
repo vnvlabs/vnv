@@ -14,29 +14,25 @@
 using nlohmann::json;
 
 #include "base/stores/BaseStore.h"
-
 #include "c-interfaces/Options.h"
 #include "interfaces/IOptions.h"
 
 namespace VnV {
 
 class RawJsonObject {
-public:
-   RawJsonObject(json& j) : data(j) {}
-   json data;
+ public:
+  RawJsonObject(json& j) : data(j) {}
+  json data;
 };
 
 class OptionsParserStore : public BaseStore {
   friend class Runtime;
 
  private:
-  std::map<std::string,
-           std::pair<json,
-                     std::pair<options_callback_ptr, options_cpp_callback_ptr>>,
+  std::map<std::string, std::pair<json, std::pair<options_callback_ptr, options_cpp_callback_ptr>>,
            std::less<std::string>>
       factory;
 
-  
   std::map<std::string, void*> optionResult;
 
  public:
@@ -47,8 +43,8 @@ class OptionsParserStore : public BaseStore {
   void callBack(std::string name, json info, ICommunicator_ptr world);
 
   void* getResult(std::string name) {
-    if ( optionResult.find(name) != optionResult.end()) {
-        return optionResult[name];
+    if (optionResult.find(name) != optionResult.end()) {
+      return optionResult[name];
     }
     return nullptr;
   }

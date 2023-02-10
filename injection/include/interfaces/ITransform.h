@@ -86,8 +86,11 @@ template <typename To, typename From, typename Runner> class Transform_T : publi
   ITransform* declare_##NAME() { return new NAME(); }                                                              \
   void register_##NAME() {                                                                                         \
     registerTransform(#NAME, &declare_##NAME, VnV::StringUtils::get_type(#From), VnV::StringUtils::get_type(#To)); \
-  }}}} 
-  
+  }                                                                                                                \
+  }                                                                                                                \
+  }                                                                                                                \
+  }
+
 #define DECLARETRANSFORM(PNAME, name) \
   namespace VnV {                     \
   namespace PNAME {                   \

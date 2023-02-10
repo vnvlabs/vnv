@@ -14,8 +14,7 @@ defined in base/PlugStore.h.
 
 using namespace VnV;
 
-BaseStoreInstance(PlugStore)
-BaseStoreInstance(PlugsStore)
+BaseStoreInstance(PlugStore) BaseStoreInstance(PlugsStore)
 
     PlugStore::PlugStore() {}
 
@@ -125,7 +124,7 @@ void PlugStore::registerPlug(std::string packageName, std::string id,
   try {
     json x = json::parse(parameters_str);
     registerPlug(packageName, id, x);
-  } catch (std::exception &e) {
+  } catch (std::exception& e) {
     VnV_Warn(VNVPACKAGENAME, "Could not register Injection Point. Invalid Json. %s", parameters_str.c_str());
   }
 }

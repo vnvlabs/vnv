@@ -12,8 +12,4 @@ find examples/ -iname *.h -o -iname *.cpp | xargs clang-format-${version} -style
 echo "Formatting extraction"
 find extraction/ -iname *.h -o -iname *.cpp | xargs clang-format-${version} -style=file -i
 
-echo "Formatting VnV Python code"
-find report-generation/ -iname *.py | xargs autopep8 --in-place --aggressive --aggressive 
 
-echo "Formatting all CMakeFiles"
-find . -iname CMakeLists.txt | xargs cmake-format --config-files .cmake-format --in-place

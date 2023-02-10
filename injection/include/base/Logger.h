@@ -13,9 +13,9 @@
 #include <stack>
 #include <string>
 
+#include "base/parser/JsonParser.h"
 #include "common-interfaces/Communication.h"
 #include "common-interfaces/PackageName.h"
-#include "base/parser/JsonParser.h"
 #define MAXSAVED_LOGS 1024
 
 #define MAX_LOG_SIZE 2048
@@ -57,28 +57,23 @@ class Logger {
   int rank = -1;
 
   std::map<std::string, std::string> logLevelsToColor;
-  std::map<std::string, bool>
-      logs; /**< Switches for the different log levels */
+  std::map<std::string, bool> logs; /**< Switches for the different log levels */
   std::queue<std::tuple<std::string, int, std::string, std::string, VnV_Comm>>
       savedLogs; /** logging statements that occur before engine config. **/
   Logger();
-  
+
   bool engine = false; /**< True if this logger writes to the output engine. */
   LogWriteType ltype;
 
-
   int stage = 0;
 
-  bool on = true; /**< Is the logger on */
-  std::ostream*
-      fileptr; /**< ostream for writing the logs to the intended location */
-  bool locked = false; /**< has the logger been configured */
+  bool on = true;        /**< Is the logger on */
+  std::ostream* fileptr; /**< ostream for writing the logs to the intended location */
+  bool locked = false;   /**< has the logger been configured */
   std::set<std::string> packageBlackList;
   std::string outFileName;
 
-  void setRank(int r) {
-    rank = r;
-  }
+  void setRank(int r) { rank = r; }
 
   /**
    * @arg level The level to which this log should be written.
@@ -87,8 +82,7 @@ class Logger {
    *
    * The Log function.
    */
-  void log(VnV_Comm comm, std::string pname, std::string level,
-           std::string format);
+  void log(VnV_Comm comm, std::string pname, std::string level, std::string format);
 
   /**
    * @brief setLog
@@ -128,8 +122,7 @@ class Logger {
    *
    * Standard C Style logging.
    */
-  void log_c(VnV_Comm comm, std::string pname, std::string level,
-             std::string format, va_list args);
+  void log_c(VnV_Comm comm, std::string pname, std::string level, std::string format, va_list args);
 
   /**
    * @brief print
@@ -137,8 +130,7 @@ class Logger {
    */
   void print();
 
-  void registerLogLevel(std::string packageName, std::string name,
-                        std::string color);
+  void registerLogLevel(std::string packageName, std::string name, std::string color);
   void setLogLevel(std::string level, bool on);
   std::string logLevelToColor(std::string logLevel, std::string message);
 

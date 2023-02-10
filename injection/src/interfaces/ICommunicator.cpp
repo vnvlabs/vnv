@@ -38,7 +38,8 @@ VnV::IDataType_vec VnV::IRequest::unpack() {
   } else {
     throw INJECTION_EXCEPTION(
         "Attempted to unpack Request that was not marked ready or already "
-        "unpacked or not a recv (ready : %d, buffer: %d, recv: %d", ready, buffer, recv);
+        "unpacked or not a recv (ready : %d, buffer: %d, recv: %d",
+        ready, buffer, recv);
   }
 }
 
@@ -46,9 +47,8 @@ void VnV::OpTypeEncodedReduction(void* invec, void* outvec, int* len) {
   long long* buff = (long long*)invec;
   long long reducerKey = buff[0];
   long long dataKey = buff[1];
-  
-  long dataSize = DataTypeStore::instance().getDataType(dataKey)->maxSize() +
-                  2 * sizeof(long long);
+
+  long dataSize = DataTypeStore::instance().getDataType(dataKey)->maxSize() + 2 * sizeof(long long);
   IReduction_ptr reducer = ReductionStore::instance().getReducer(reducerKey);
 
   // Call the reduction across all processors.
@@ -78,18 +78,14 @@ void VnV::OpTypeEncodedReduction(void* invec, void* outvec, int* len) {
 }
 VnV::IStatus::~IStatus() {}
 
-void VnV::ICommunicator::setPackage(std::string package) {
-  packageName = package;
-}
+void VnV::ICommunicator::setPackage(std::string package) { packageName = package; }
 
 std::string VnV::ICommunicator::getPackage() { return packageName; }
 
 std::string VnV::ICommunicator::getName() { return keyName; }
 void VnV::ICommunicator::setName(std::string name) { keyName = name; }
 
-VnV_Comm VnV::ICommunicator::asComm() {
-  return CommunicationStore::instance().toVnVComm(this);
-}
+VnV_Comm VnV::ICommunicator::asComm() { return CommunicationStore::instance().toVnVComm(this); }
 void VnV::ICommunicator::Initialize() {}
 void VnV::ICommunicator::Finalize() {}
 

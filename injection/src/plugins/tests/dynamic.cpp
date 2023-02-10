@@ -10,21 +10,18 @@ namespace {
 
 typedef VnV::ITest* dynamic_test_maker_ptr(VnV::TestConfig config);
 
-VnV::ITest* loadPlugin(std::string libraryPath, std::string symbolName,
-                       VnV::TestConfig config) {
-    
-    
+VnV::ITest* loadPlugin(std::string libraryPath, std::string symbolName, VnV::TestConfig config) {
   void* dllib = VnV::DistUtils::loadLibrary(libraryPath);
- 
+
   if (dllib != nullptr) {
-      void* callback = dlsym(dllib, symbolName.c_str());
-      if (callback != nullptr) {
-        return ((dynamic_test_maker_ptr*)callback)(config);
-      }
-      throw INJECTION_EXCEPTION("Library Registration Symbol not found", symbolName.c_str());
+    void* callback = dlsym(dllib, symbolName.c_str());
+    if (callback != nullptr) {
+      return ((dynamic_test_maker_ptr*)callback)(config);
     }
-  } 
-  throw INJECTION_EXCEPTION("Library not found", libraryPath.c_str());
+    throw INJECTION_EXCEPTION("Library Registration Symbol not found", symbolName.c_str());
+  }
+}
+throw INJECTION_EXCEPTION("Library not found", libraryPath.c_str());
 }
 
 void talk(std::string& filename, std::string& symbol) {
@@ -89,7 +86,7 @@ INJECTION_TEST(VNVPACKAGENAME, dynamicTestLoader) {
       // Run the test (shared_ptr destroys it)
       try {
         s = test->runTest(comm, engine, type, stageId);
-      } catch (VnV::VnVExceptionBase &e) {
+      } catch (VnV::VnVExceptionBase& e) {
         VnV_Error(VNVPACKAGENAME, "Error running user uploaded test");
         s = FAILURE;
       }

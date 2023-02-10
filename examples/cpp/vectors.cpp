@@ -3,47 +3,40 @@
 #include <ctime>
 #include <fstream>
 #include <iomanip>
-#include <sstream>
-#include <vector>
 #include <map>
+#include <sstream>
 #include <utility>
+#include <vector>
 
 #include "VnV.h"
 
 using namespace VnV;
 
-
-
 /**
  * @title Vectors and Matrices
- * 
- * This example deomnstrates VnV support for collecting Vector data across iterations. 
+ *
+ * This example deomnstrates VnV support for collecting Vector data across iterations.
  */
 INJECTION_EXECUTABLE(VectorsExample)
 
-
 int main(int argc, char** argv) {
-
-  
   INJECTION_INITIALIZE(VectorsExample, &argc, &argv, (argc == 2) ? argv[1] : "./inputfiles/vectors.json");
 
-  
   // Lets make a matrix of size 10x10 with w[i,j] = i*10 + j
   std::vector<std::vector<double>> w;
   for (int i = 0; i < 10; i++) {
     w.push_back({});
     for (int j = 0; j < 10; j++) {
-      w[i].push_back( i*10 + j ); 
+      w[i].push_back(i * 10 + j);
     }
   }
 
-  
   /**
-   * @title PLOT SOLUTION Contour Plot Of the Solution 
+   * @title PLOT SOLUTION Contour Plot Of the Solution
    *
-   * In this contour plot the x axis is the solution. The y 
-   * axis is the time. So, this is a contour plot of the 1D 
-   * solution against time. 
+   * In this contour plot the x axis is the solution. The y
+   * axis is the time. So, this is a contour plot of the 1D
+   * solution against time.
    *
    * .. vnv-plotly::
    *    :trace.main: contour
@@ -60,8 +53,8 @@ int main(int argc, char** argv) {
    *    :layout.title.text: Asgard Solution against time.
    *    :layout.yaxis.title.text: time
    *    :layout.xaxis.title.text: index
-   * 
-   * 
+   *
+   *
    * .. vnv-plotly::
    *    :trace.main: contour
    *    :main.z: {{as_json(adapt)}}
@@ -73,7 +66,7 @@ int main(int argc, char** argv) {
    * .. vnv-animation::
    *   :start: 0
    *   :end: {{length(vector)}}
-   *   :step: 1 
+   *   :step: 1
    *   :prefix: Testprefix
    *   :trace.main: scatter
    *   :trace.main1: scatter
@@ -102,36 +95,35 @@ int main(int argc, char** argv) {
    *   :layout.yaxis.title.text: time
    *   :layout.xaxis.title.text: index
    *   :layout.yaxis.range: [0,100]
-   *   
+   *
    */
-  INJECTION_POINT(VectorsExample, VWORLD, mainpoint, VNV_CALLBACK {
+  INJECTION_POINT(
+      VectorsExample, VWORLD, mainpoint,
+      VNV_CALLBACK {
+        // VnV Provides two ways of writing matrices -- either as a single matrix,
+        // or through multiple calls to engine->Put with the same name.
 
-      //VnV Provides two ways of writing matrices -- either as a single matrix,
-      //or through multiple calls to engine->Put with the same name. 
+        auto gsizes = std::make_pair(10, 10);
+        auto offsets = std::make_pair(0, 0);
+        data.engine->Put_Matrix("matrix", w, gsizes, offsets);
 
-      auto gsizes = std::make_pair(10,10);
-      auto offsets = std::make_pair(0,0);
-      data.engine->Put_Matrix("matrix", w, gsizes, offsets);
+        // Vector of vectors version
+        for (int i = 0; i < 10; i++) {
+          data.engine->Put_Vector("vector", w[i]);
+        }
 
-      // Vector of vectors version
-      for (int i = 0; i < 10; i++ ) {
-         data.engine->Put_Vector("vector", w[i]) ;
-      }
-
-      //Vector of vectors where the size grows each time and then shrinks.
-      w[0].clear();
-      for (int i = 0; i < 10; i++) {
-        w[0].push_back(i+10);
-        data.engine->Put_Vector("adapt", w[0]);
-      }
-      for (int i = 0; i < 10; i++ ) {
-        w[0].pop_back();
-        data.engine->Put_Vector("adapt", w[0]);
-      }
-
-
-  }, w);
+        // Vector of vectors where the size grows each time and then shrinks.
+        w[0].clear();
+        for (int i = 0; i < 10; i++) {
+          w[0].push_back(i + 10);
+          data.engine->Put_Vector("adapt", w[0]);
+        }
+        for (int i = 0; i < 10; i++) {
+          w[0].pop_back();
+          data.engine->Put_Vector("adapt", w[0]);
+        }
+      },
+      w);
 
   INJECTION_FINALIZE(SPNAME);
-
 }

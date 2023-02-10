@@ -15,17 +15,14 @@ namespace VnV {
 
 class WalkerStore : public BaseStore {
  private:
-  std::map<std::string, std::pair<VnV::walker_maker_ptr, nlohmann::json>>
-      Walker_factory;
+  std::map<std::string, std::pair<VnV::walker_maker_ptr, nlohmann::json>> Walker_factory;
 
  public:
   WalkerStore() {}
 
-  IWalker_ptr getWalker(std::string package, std::string name,
-                        Nodes::IRootNode* rootNode, nlohmann::json& config);
+  IWalker_ptr getWalker(std::string package, std::string name, Nodes::IRootNode* rootNode, nlohmann::json& config);
 
-  void addWalker(std::string packageName, std::string name,
-                 nlohmann::json& schema, walker_maker_ptr m);
+  void addWalker(std::string packageName, std::string name, nlohmann::json& schema, walker_maker_ptr m);
 
   static WalkerStore& instance();
 };

@@ -45,7 +45,7 @@ VnV_Iterator IterationPack(A comm, const char* package, const char* id, struct V
 
     return BeginIteration(comm, package, id, pretty, fname, line, callback, once, parameters);
 
-  } catch(std::exception &e) {
+  } catch (std::exception& e) {
     assert(false && "cant happen as we cant handle once parameter from here");
     return {NULL};
   }
@@ -54,9 +54,9 @@ VnV_Iterator IterationPack(A comm, const char* package, const char* id, struct V
 }  // namespace CppIteration
 }  // namespace VnV
 
-#  define INJECTION_ITERATION(VAR, PNAME, COMM, NAME, ONCE, callback, ...)                                     \
-    VnV_Iterator VAR = VnV::CppIteration::IterationPack(COMM, VNV_STR(PNAME), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__, __LINE__, \
-                                                        callback, ONCE EVERYONE(__VA_ARGS__));                   \
+#  define INJECTION_ITERATION(VAR, PNAME, COMM, NAME, ONCE, callback, ...)                                         \
+    VnV_Iterator VAR = VnV::CppIteration::IterationPack(COMM, VNV_STR(PNAME), VNV_STR(NAME), VNV_FUNCTION_SIG,     \
+                                                        __FILE__, __LINE__, callback, ONCE EVERYONE(__VA_ARGS__)); \
     while (VnV::CppIteration::Iterate(&VAR))
 
 #  define Register_Injection_Iterator(PNAME, NAME, PARAMETERS) VnV::CppIteration::Register(PNAME, NAME, PARAMETERS);

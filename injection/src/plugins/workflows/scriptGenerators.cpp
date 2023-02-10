@@ -7,19 +7,16 @@
 #include "base/stores/WorkflowStore.h"
 #include "interfaces/IWorkflow.h"
 
-
-INJECTION_INJA_TEMPLATE(VNVPACKAGENAME, Template, 
-R"({"type":"object","properties":{"children":{"type":"array"}}})",
-R"(Roll Call:
+INJECTION_INJA_TEMPLATE(VNVPACKAGENAME, Template, R"({"type":"object","properties":{"children":{"type":"array"}}})",
+                        R"(Roll Call:
 ## for child in children
   Hello {{ child }}.
 ## endfor    
-)"
-);
+)");
 
-INJECTION_INJA_TEMPLATE(VNVPACKAGENAME, SimpleSlurmHeader, 
+INJECTION_INJA_TEMPLATE(VNVPACKAGENAME, SimpleSlurmHeader,
 
-R"(
+                        R"(
 
 {   
     "type" : "object",
@@ -37,9 +34,8 @@ R"(
     "required" : ["name","hello","email","tasks","memory","walltime","stdout","modules","notify"]
 }
 
-)" 
-, 
-R"(
+)",
+                        R"(
 
 #!/bin/bash
 #SBATCH --job-name={{jobName}}            # Job name

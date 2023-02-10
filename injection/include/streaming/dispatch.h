@@ -18,7 +18,7 @@ std::shared_ptr<IRootNode> engineReaderDispatch(bool async, const json& config, 
                                                 bool lock = true) {
   std::string db = config.value("persist", "mongo");
 #if MONGO_DB
-  
+
   if (db.compare("mongo") == 0) {
     std::string uri, dbname, coll;
     extract(config, uri, dbname, coll);
@@ -30,14 +30,10 @@ std::shared_ptr<IRootNode> engineReaderDispatch(bool async, const json& config, 
   }
 #endif
 
-
   auto pv = lock ? std::make_shared<Memory::InMemoryParserVisitor<V>>()
                  : std::make_shared<Memory::NoLockInMemoryParserVisitor<V>>();
 
-  
   return Memory::InMemoryRootNodeWithThread<T, json>::parse(async, stream, pv);
-
-
 }
 
 }  // namespace Nodes

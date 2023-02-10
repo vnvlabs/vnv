@@ -2,13 +2,12 @@
 #define IDN_HEADER
 
 #include <string>
+
 #include "base/exceptions.h"
-#include "json-schema.hpp"
 #include "common-interfaces/PackageName.h"
+#include "json-schema.hpp"
 namespace VnV {
 namespace Nodes {
-
-
 
 enum class node_type { ROOT, POINT, START, ITER, END, LOG, WAITING, DONE };
 
@@ -22,20 +21,19 @@ class IDN {
   node_type type;
   std::string stage;
 
-  IDN(long a, long b, node_type c,std::string e) : id(a), streamId(b), type(c), stage(e) {}
-  
+  IDN(long a, long b, node_type c, std::string e) : id(a), streamId(b), type(c), stage(e) {}
+
   IDN() : id(-1), streamId(-1), type(node_type::ROOT), stage("") {}
-  
+
   IDN(nlohmann::json& j) {
     id = j["id"].get<long>();
     streamId = j["streamId"].get<long>();
     stage = j["stage"].get<std::string>();
     type = Node_Type_From_Int(j["type"].get<int>());
   }
-
 };
 
-}
-}
+}  // namespace Nodes
+}  // namespace VnV
 
 #endif

@@ -14,38 +14,28 @@ VnVParameterSet* ParameterWrapperCast(ParameterSetWrapper* wrapper) {
   return static_cast<VnVParameterSet*>(wrapper->ptr);
 }
 
-IOutputEngine* EngineWrapperCast(IOutputEngineWrapper* wrapper) {
-  return static_cast<IOutputEngine*>(wrapper->ptr);
-}
-
-
+IOutputEngine* EngineWrapperCast(IOutputEngineWrapper* wrapper) { return static_cast<IOutputEngine*>(wrapper->ptr); }
 
 }  // namespace
 
-  DataCallback DataCallback_wrapper(injectionDataCallback callback) {
-     
-     return [callback](VnVCallbackData& callback1){
-        
-        if (callback != NULL) { 
-          IOutputEngineWrapper engineWraper = {static_cast<void*>(callback1.engine->getOutputEngine())};
-          ParameterSetWrapper paramWrapper = {static_cast<void*>(&callback1.ntv)};
-          int t = InjectionPointTypeUtils::toC(callback1.type);
-          (callback)(callback1.comm, &paramWrapper, &engineWraper, t, callback1.stageId.c_str());
-        }
-
-     };
-
-  }
-
+DataCallback DataCallback_wrapper(injectionDataCallback callback) {
+  return [callback](VnVCallbackData& callback1) {
+    if (callback != NULL) {
+      IOutputEngineWrapper engineWraper = {static_cast<void*>(callback1.engine->getOutputEngine())};
+      ParameterSetWrapper paramWrapper = {static_cast<void*>(&callback1.ntv)};
+      int t = InjectionPointTypeUtils::toC(callback1.type);
+      (callback)(callback1.comm, &paramWrapper, &engineWraper, t, callback1.stageId.c_str());
+    }
+  };
+}
 
 }  // namespace VnV
 extern "C" {
 
 // Do most of the Put Commands using X Macros.
-#define X(type)                                                               \
-  void VnV_Output_Put_##type(IOutputEngineWrapper* wrapper, const char* name, \
-                             type* value) {                                   \
-    VnV::EngineWrapperCast(wrapper)->Put(name, *value);                       \
+#define X(type)                                                                              \
+  void VnV_Output_Put_##type(IOutputEngineWrapper* wrapper, const char* name, type* value) { \
+    VnV::EngineWrapperCast(wrapper)->Put(name, *value);                                      \
   }
 
 OUTPUTENGINESUPPORTEDTYPES
@@ -53,8 +43,7 @@ OUTPUTENGINESUPPORTEDTYPES
 #undef X
 
 // An extra one to handle char*
-void VnV_Output_Put_String(IOutputEngineWrapper* wrapper, const char* name,
-                           const char* value) {
+void VnV_Output_Put_String(IOutputEngineWrapper* wrapper, const char* name, const char* value) {
   std::string nameS = name;
   std::string valueS = value;
   VnV::EngineWrapperCast(wrapper)->Put(nameS, valueS);
@@ -70,4 +59,3 @@ ParameterDTO VnV_Parameter_Get(ParameterSetWrapper* wrapper, const char* name) {
   }
 }
 }
-

@@ -12,7 +12,6 @@ long long VnV::IDataType::getKey() { return key; }
 
 VnV::IDataType::~IDataType() {}
 
-void VnV::registerDataType(std::string packageName, std::string name,
-                           VnV::dataType_ptr ptr) {
+void VnV::registerDataType(std::string packageName, std::string name, VnV::dataType_ptr ptr) {
   VnV::DataTypeStore::instance().addDataType(packageName, name, ptr);
 }

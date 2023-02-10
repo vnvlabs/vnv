@@ -21,11 +21,9 @@ class SamplerStore : public BaseStore {
  public:
   SamplerStore() {}
 
-  ISampler_ptr getSamplerForInjectionPoint(std::string ipPackage,
-                                           std::string ipName);
+  ISampler_ptr getSamplerForInjectionPoint(std::string ipPackage, std::string ipName);
 
-  void addSampler(std::string packageName, std::string name, std::string schema,
-                  sampler_ptr m);
+  void addSampler(std::string packageName, std::string name, std::string schema, sampler_ptr m);
 
   bool createSampler(const SamplerConfig& config);
 

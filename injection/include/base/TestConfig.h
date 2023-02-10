@@ -8,8 +8,8 @@
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "base/stores/TransformStore.h"
-#include "common-interfaces/Communication.h"
 #include "c-interfaces/Wrappers.h"
+#include "common-interfaces/Communication.h"
 #include "json-schema.hpp"
 
 using nlohmann::json;
@@ -158,10 +158,10 @@ class TestConfig {
 };
 
 class VnVCallbackData {
-public:
-
-  VnVCallbackData(VnV_Comm c, VnV::VnVParameterSet&n, VnV::OutputEngineManager* e, VnV::InjectionPointType t, std::string s ) :
-  comm(c),ntv(n),engine(e),type(t),stageId(s) {}
+ public:
+  VnVCallbackData(VnV_Comm c, VnV::VnVParameterSet& n, VnV::OutputEngineManager* e, VnV::InjectionPointType t,
+                  std::string s)
+      : comm(c), ntv(n), engine(e), type(t), stageId(s) {}
 
   VnV_Comm comm;
   VnV::VnVParameterSet& ntv;
@@ -171,7 +171,6 @@ public:
 };
 
 typedef std::function<void(VnVCallbackData& data)> DataCallback;
-
 
 }  // namespace VnV
 

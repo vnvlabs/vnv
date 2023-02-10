@@ -30,27 +30,23 @@ class StreamPatch {
   template <class T> std::vector<T> Read(const std::string& name, const size_t blockID);
 
  private:
-
   template <class T> std::vector<T> GetCommon(Variable<T>& variable);
   template <class T> void SetBlockSelectionCommon(Variable<T>& variable, const size_t blockID);
 
   ADIOS m_ADIOS;
-  Engine m_Engine ;
-  IO m_IO ;
+  Engine m_Engine;
+  IO m_IO;
   bool m_StepStatus = false;
   bool m_FirstStep = true;
   std::string m_Name;
-
 };
 
 // Explicit declaration of the public template methods
 #define declare_template_instantiation(T) \
-extern template std::vector<T> StreamPatch::Read<T>(const std::string&, const size_t);
+  extern template std::vector<T> StreamPatch::Read<T>(const std::string&, const size_t);
 
 ADIOS2_FOREACH_STDTYPE_1ARG(declare_template_instantiation)
 #undef declare_template_instantiation
-
-
 
 class ifstream {
  public:

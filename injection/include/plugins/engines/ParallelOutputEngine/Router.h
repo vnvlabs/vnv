@@ -28,8 +28,7 @@ class Router {
   int m_parent = 0;
   int m_root = 0;
   Route m_children;
-  std::unordered_map<std::string, std::unordered_map<std::string, Route>>
-      put_map;
+  std::unordered_map<std::string, std::unordered_map<std::string, Route>> put_map;
 
   VnV::ICommunicator_ptr m_comm;
 
@@ -39,8 +38,7 @@ class Router {
   int parent_of(int id, int root, int fanout);
   Route children_of(int id, int root, int fanout);
   void init(VnV::ICommunicator_ptr ptr);
-  int send(int id, Route route, const std::string name,
-           const std::string value);
+  int send(int id, Route route, const std::string name, const std::string value);
 
  public:
   Router(VnV::ICommunicator_ptr ptr);

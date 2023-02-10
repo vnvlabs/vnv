@@ -37,7 +37,7 @@ VnV_Iterator PlugPack(A comm, const char* package, const char* id, struct VnV_Fu
 
     return BeginPlug(comm, package, id, pretty, fname, line, callback, parameters);
 
-  } catch(std::exception &e) {
+  } catch (std::exception& e) {
     assert(false && "cant happen as we cant handle once parameter from here");
     return {NULL};
   }
@@ -47,9 +47,9 @@ VnV_Iterator PlugPack(A comm, const char* package, const char* id, struct VnV_Fu
 }  // namespace VnV
 
 // Macro for an iterative vnv injection point.
-#  define INJECTION_FUNCTION_PLUG(VAR, PNAME, COMM, NAME, callback, ...)                             \
-    VnV_Iterator VAR = VnV::CppPlug::PlugPack(COMM, VNV_STR(PNAME), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__, __LINE__, \
-                                              callback EVERYONE(__VA_ARGS__));                         \
+#  define INJECTION_FUNCTION_PLUG(VAR, PNAME, COMM, NAME, callback, ...)                                       \
+    VnV_Iterator VAR = VnV::CppPlug::PlugPack(COMM, VNV_STR(PNAME), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__, \
+                                              __LINE__, callback EVERYONE(__VA_ARGS__));                       \
     while (VnV::CppPlug::Iterate(&VAR))
 
 #  define Register_Injection_Plug(PNAME, NAME, PARAMETERS) VnV::CppPlug::Register(PNAME, NAME, PARAMETERS);

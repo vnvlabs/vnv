@@ -2,8 +2,9 @@
   @file CJson.cpp
 **/
 
-#include "base/stores/OptionsParserStore.h"
 #include "interfaces/IOptions.h"
+
+#include "base/stores/OptionsParserStore.h"
 
 using nlohmann::json;
 
@@ -25,5 +26,5 @@ void VnV::RegisterOptions_Json(std::string name, json& schema, options_cpp_callb
 }
 
 void* VnV::getOptionsObject(std::string packageName) {
-    return VnV::OptionsParserStore::instance().getResult(packageName);
+  return VnV::OptionsParserStore::instance().getResult(packageName);
 }

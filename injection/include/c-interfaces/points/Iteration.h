@@ -3,17 +3,16 @@
 
 #ifndef WITHOUT_VNV
 
+#  include "c-interfaces/Wrappers.h"
 #  include "common-interfaces/Communication.h"
 #  include "common-interfaces/PackageName.h"
-#  include "c-interfaces/Wrappers.h"
 
 #  define DOIT(X) #  X, (void*)(&X),
 #  define EVERYONE(...) FOR_EACH(DOIT, __VA_ARGS__)
 
-#  define INJECTION_ITERATION_C(VAR, PNAME, COMM, NAME, ONCE, callback, ...)                                  \
-    VnV_Iterator VAR =                                                     \
-        _VnV_injectionIteration(COMM, VNV_STR(PNANE), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__, __LINE__, callback, ONCE, \
-                                EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S);                             \
+#  define INJECTION_ITERATION_C(VAR, PNAME, COMM, NAME, ONCE, callback, ...)                                          \
+    VnV_Iterator VAR = _VnV_injectionIteration(COMM, VNV_STR(PNANE), VNV_STR(NAME), VNV_FUNCTION_SIG, __FILE__,       \
+                                               __LINE__, callback, ONCE, EVERYONE(__VA_ARGS__) VNV_END_PARAMETERS_S); \
     while (_VnV_injectionIterate(&VAR, _iterator_, NAME)))
 
 #  define INJECTION_ITERATION(VAR, PNAME, COMM, NAME, ONCE, ...) \

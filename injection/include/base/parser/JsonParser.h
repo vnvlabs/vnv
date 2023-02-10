@@ -198,8 +198,6 @@ struct RunInfo {
   std::map<std::string, std::string> additionalPlugins;      /**< List of file paths to included plugin libraries */
   std::map<std::string, InjectionPointInfo> injectionPoints; /**< all injection points with tests */
 
-
-
   json pluginConfig; /**< Json object mapping packageName to shared library path */
   json cmdline;      /**< Command Line options parsed into a configuration json --vnv.packageName.[sdfsdf] = "sdf"*/
 

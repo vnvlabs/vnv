@@ -11,6 +11,7 @@
 #include <clang/Tooling/Tooling.h>
 #include <llvm/Support/CommandLine.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <cctype>
@@ -23,7 +24,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <unistd.h>
 
 #include "base/DistUtils.h"
 #include "base/Utilities.h"
@@ -39,7 +39,7 @@ using namespace llvm;
 #define LAST_RUN_TIME "__LAST_RUN_TIME__"
 
 std::set<std::string>& fexts() {
-  static std::set<std::string> fexts_ = {".f90", ".for", ".f", ".fpp", ".i", ".i90", ".ftn", ".F90",".F"};
+  static std::set<std::string> fexts_ = {".f90", ".for", ".f", ".fpp", ".i", ".i90", ".ftn", ".F90", ".F"};
   return fexts_;
 }
 
@@ -82,13 +82,11 @@ static llvm::cl::opt<std::string> targetFile("targetFile", llvm::cl::desc("The t
 static llvm::cl::opt<std::string> packageName("package", llvm::cl::desc("PackageName"), llvm::cl::value_desc("string"),
                                               llvm::cl::cat(VnVParserCatagory));
 
-static llvm::cl::opt<std::string> strip("strip", llvm::cl::desc("strip"), llvm::cl::value_desc("string"),llvm::cl::init(""),
-                                              llvm::cl::cat(VnVParserCatagory));
+static llvm::cl::opt<std::string> strip("strip", llvm::cl::desc("strip"), llvm::cl::value_desc("string"),
+                                        llvm::cl::init(""), llvm::cl::cat(VnVParserCatagory));
 
-static llvm::cl::opt<bool> nostrip("no-strip", llvm::cl::desc("nostrip"), llvm::cl::value_desc("bool"), llvm::cl::init(false),
-                                 llvm::cl::cat(VnVParserCatagory));
-
-
+static llvm::cl::opt<bool> nostrip("no-strip", llvm::cl::desc("nostrip"), llvm::cl::value_desc("bool"),
+                                   llvm::cl::init(false), llvm::cl::cat(VnVParserCatagory));
 
 static llvm::cl::opt<std::string> fortranPackage("fortran", llvm::cl::desc("FortranModuleFileName"),
                                                  llvm::cl::value_desc("string"), llvm::cl::cat(VnVParserCatagory));
@@ -104,8 +102,6 @@ static llvm::cl::opt<bool> cacheonly("cache-only", llvm::cl::desc("cache-only"),
 
 static llvm::cl::opt<bool> fixomp("fix-omp", llvm::cl::desc("fix-omp"), llvm::cl::value_desc("bool"),
                                   llvm::cl::init(false), llvm::cl::cat(VnVParserCatagory));
-
-
 
 static llvm::cl::opt<bool> inject("inject", llvm::cl::desc("inject"), llvm::cl::value_desc("bool"),
                                   llvm::cl::init(false), llvm::cl::cat(VnVParserCatagory));
@@ -141,7 +137,6 @@ void fix_omp(std::string compil_dbase) {
   const char* nn = getenv("OPENMP_INCLUDE_DIR");
 
   if (nn != nullptr) {
-    
     // Last argument in the command line is the compile_database file
     // This is a bug fix that adds the openmp include directory to any
     // file that lists -fopenmp
@@ -184,29 +179,26 @@ void fix_omp(std::string compil_dbase) {
     std::ofstream ofs(compil_dbase);
     ofs << j.dump(4);
   } else {
-      std::cout << "export OPENMP_INCLUDE_DIR=<path> prior to calling with --fix-omp option" << std::endl; 
+    std::cout << "export OPENMP_INCLUDE_DIR=<path> prior to calling with --fix-omp option" << std::endl;
   }
 }
-
 
 /**
  * Main Executable for VnV Processor.
  */
 int main(int argc, const char** argv) {
   try {
-    
     for (int i = 0; i < argc; i++) {
-      if ( strcmp(argv[i],"--fix-omp")== 0 ) {
-          fix_omp(argv[argc - 1]);
+      if (strcmp(argv[i], "--fix-omp") == 0) {
+        fix_omp(argv[argc - 1]);
       }
     }
-
 
     // Parse the options
     CommonOptionsParser OptionsParser(argc, argv, VnVParserCatagory);
 
-    //Strip val is "" by default -- If no-strip is passed, we set it empty, else, we set 
-    // it to the current working dir. 
+    // Strip val is "" by default -- If no-strip is passed, we set it empty, else, we set
+    // it to the current working dir.
     std::string stripVal = strip.getValue();
     if (stripVal.size() == 0 && !nostrip.getValue()) {
       char* a = get_current_dir_name();
@@ -314,20 +306,16 @@ int main(int argc, const char** argv) {
 
         // Add the injection point data to the cacheData object.
         for (auto cachedFile : injectionFiles) {
-          
-          //This is the data from the cache extract during preprocessing for this file. 
+          // This is the data from the cache extract during preprocessing for this file.
           json& cfileJson = cacheData[cachedFile];
 
-          //This is the preprocessor injection points
+          // This is the preprocessor injection points
           auto ips = cfileJson.find("InjectionPoints");
 
-
           if (ips != cfileJson.end()) {
-          
-            //Iterate over all the injection points found in this file by the preprocessor.
+            // Iterate over all the injection points found in this file by the preprocessor.
             for (auto injectionPoint : ips.value().items()) {
-
-              //Try and find the parameters as extracted by the clang tool. 
+              // Try and find the parameters as extracted by the clang tool.
               auto info = found.find(injectionPoint.key());
 
               if (info != found.end()) {
@@ -415,8 +403,8 @@ int main(int argc, const char** argv) {
     if (!cacheonly.getValue()) {
       // Write the file.
 
-      writeFile(cacheInfo, outputFileName, regFileName, targetFileName, packageName.getValue(),
-               strip.getValue(), fortranPackage.getValue());
+      writeFile(cacheInfo, outputFileName, regFileName, targetFileName, packageName.getValue(), strip.getValue(),
+                fortranPackage.getValue());
     }
 
     return 0;

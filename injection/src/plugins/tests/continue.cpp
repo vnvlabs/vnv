@@ -29,7 +29,6 @@ INJECTION_TEST(VNVPACKAGENAME, confirm) {
   } else {
     std::cout << "FAILED" << std::endl;
   }
-  
-  return SUCCESS;
 
+  return SUCCESS;
 }

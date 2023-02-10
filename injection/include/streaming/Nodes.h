@@ -69,9 +69,7 @@ class MetaDataWrapper {
     return j.dump();
   }
 
-  json toJson() const {
-    return m;
-  }
+  json toJson() const { return m; }
 
   std::size_t size() const { return m.size(); }
 
@@ -114,7 +112,6 @@ STYPES
 RTYPES
 #undef X
 
-
 class DataBase {
  public:
   enum class DataType {
@@ -129,16 +126,15 @@ class DataBase {
 
  private:
   DataType dataType;
+
  protected:
   IRootNode* _rootNode = nullptr;
 
-  IRootNode* rootNode() {
-    return _rootNode;
-  }
+  IRootNode* rootNode() { return _rootNode; }
 
   long id = ID_NOT_INITIALIZED_YET;
+
  public:
-  
   DataBase(DataType type);
   virtual ~DataBase();
 
@@ -150,11 +146,9 @@ class DataBase {
   RTYPES
 #undef X
 
-  virtual std::string getUsageType() {
-    return getTypeStr();
-  }
+  virtual std::string getUsageType() { return getTypeStr(); }
 
-  virtual long getId() { return id; } 
+  virtual long getId() { return id; }
   virtual const MetaDataWrapper& getMetaData() = 0;
   virtual long getStreamId() = 0;
 
@@ -178,13 +172,8 @@ class DataBase {
     this->id = id;
   }
 
-  virtual json toJson() {
-    return getId();
-  }
-  virtual std::string toString() {
-    return toJson().dump();
-  }
-
+  virtual json toJson() { return getId(); }
+  virtual std::string toString() { return toJson().dump(); }
 
   std::string getDataChildren(int fileId, int level) { return getDataChildren_(fileId, level).dump(); }
 
@@ -216,34 +205,33 @@ class DataBase {
   }
 };
 
-
-#define X(X, x)                                                                                 \
-  class I##X##Node : public DataBase {                                                          \
-   public:                                                                                      \
-    I##X##Node();                                                                               \
-    virtual const std::vector<std::size_t>& getShape() = 0;                                     \
-    virtual x getValueByShape(const std::vector<std::size_t>& shape) = 0;                       \
-    virtual x getValueByIndex(const std::size_t ind) = 0;                                       \
-    std::string valueToString(x ind);                                                           \
-    virtual x getScalarValue() = 0;                                                             \
-    virtual int getNumElements() = 0;                                                           \
-    json toJson() override;                                                                     \
-    virtual ~I##X##Node();                                                                      \
-    virtual std::string getShapeJson() {                                                        \
-      nlohmann::json j = this->getShape();                                                      \
-      return j.dump();                                                                          \
-    }                                                                                           \
-    virtual void add(const x & s) = 0 ;                                                         \
-    virtual json getDataChildren_(int fileId, int level) override {                             \
-      json a = DataBase::getDataChildren_(fileId, level);                                       \
-      a.push_back("Dimension:" + std::to_string(getShape().size()));                            \
-      a.push_back("Size:" + std::to_string(getNumElements()));                                  \
-      a.push_back("Shape: " + getShapeJson());                                                  \
-      if (getShape().size() == 0) {                                                             \
-        a.push_back("Value:" + valueToString(getScalarValue()));                                \
-      }                                                                                         \
-      return a;                                                                                 \
-    }                                                                                           \
+#define X(X, x)                                                           \
+  class I##X##Node : public DataBase {                                    \
+   public:                                                                \
+    I##X##Node();                                                         \
+    virtual const std::vector<std::size_t>& getShape() = 0;               \
+    virtual x getValueByShape(const std::vector<std::size_t>& shape) = 0; \
+    virtual x getValueByIndex(const std::size_t ind) = 0;                 \
+    std::string valueToString(x ind);                                     \
+    virtual x getScalarValue() = 0;                                       \
+    virtual int getNumElements() = 0;                                     \
+    json toJson() override;                                               \
+    virtual ~I##X##Node();                                                \
+    virtual std::string getShapeJson() {                                  \
+      nlohmann::json j = this->getShape();                                \
+      return j.dump();                                                    \
+    }                                                                     \
+    virtual void add(const x& s) = 0;                                     \
+    virtual json getDataChildren_(int fileId, int level) override {       \
+      json a = DataBase::getDataChildren_(fileId, level);                 \
+      a.push_back("Dimension:" + std::to_string(getShape().size()));      \
+      a.push_back("Size:" + std::to_string(getNumElements()));            \
+      a.push_back("Shape: " + getShapeJson());                            \
+      if (getShape().size() == 0) {                                       \
+        a.push_back("Value:" + valueToString(getScalarValue()));          \
+      }                                                                   \
+      return a;                                                           \
+    }                                                                     \
   };
 DTYPES
 #undef X
@@ -269,65 +257,56 @@ class IArrayNode : public DataBase {
   }
 
   virtual json toJson() override {
-    
-    json j = json::array();    
-    for (int i = 0; i < size(); i++ ){
+    json j = json::array();
+    for (int i = 0; i < size(); i++) {
       j[i] = get(i)->toJson();
     }
 
     return j;
   }
 
-
   void open(bool value) override {
     DataBase::open(value);
-    
-    //Open MP parallel for 
-    for (int i = 0; i < size(); i++ ) {
-        get(i)->open(value);
-    } 
+
+    // Open MP parallel for
+    for (int i = 0; i < size(); i++) {
+      get(i)->open(value);
+    }
   }
-  
 };
 
 class IMapNode : public DataBase {
- 
  protected:
-    
-    template <typename T> bool convertToShapeNode(std::shared_ptr<DataBase> parent, std::shared_ptr<DataBase> child) {
-      // Right now we only support collate for scalar values.
+  template <typename T> bool convertToShapeNode(std::shared_ptr<DataBase> parent, std::shared_ptr<DataBase> child) {
+    // Right now we only support collate for scalar values.
 
-      std::shared_ptr<T> c = std::dynamic_pointer_cast<T>(child);
+    std::shared_ptr<T> c = std::dynamic_pointer_cast<T>(child);
 
-  
-      if (c->getShape().size() > 0) return false;
+    if (c->getShape().size() > 0) return false;
 
-      c->getScalarValue();
+    c->getScalarValue();
 
-      // Right now we can only collate scalars.
-      auto p = std::dynamic_pointer_cast<T>(parent);
-      auto sh = p->getShape();
+    // Right now we can only collate scalars.
+    auto p = std::dynamic_pointer_cast<T>(parent);
+    auto sh = p->getShape();
 
-      if (sh.size() == 0) {
-        p->setShape({2});
-        p->add(c->getScalarValue());
-        return true;
-      } else if (sh.size() == 1) {
-        p->setShape({sh[0] + 1});
-        p->add(c->getScalarValue());
-        return true;
-      }
-      return false;
+    if (sh.size() == 0) {
+      p->setShape({2});
+      p->add(c->getScalarValue());
+      return true;
+    } else if (sh.size() == 1) {
+      p->setShape({sh[0] + 1});
+      p->add(c->getScalarValue());
+      return true;
     }
- 
+    return false;
+  }
+
  public:
   IMapNode();
-  virtual std::shared_ptr<DataBase> get(std::string key)= 0; 
-  
+  virtual std::shared_ptr<DataBase> get(std::string key) = 0;
+
   virtual void insert(std::string key, std::shared_ptr<DataBase> val) = 0;
-
-  
-
 
   virtual bool contains(std::string key) = 0;
   virtual std::vector<std::string> fetchkeys() = 0;
@@ -335,33 +314,28 @@ class IMapNode : public DataBase {
 
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
-    
+
     for (auto it : fetchkeys()) {
       j.push_back(get(it)->getAsDataChild(fileId, level - 1));
     }
     return j;
   }
 
-
   virtual json toJson() override {
-    
-     json j = json::object();
-     auto keys = fetchkeys();
-     for (int i = 0; i < keys.size(); i++) {
-         j[keys[i]] = get(keys[i])->toJson();
-     }
-     return j;
-
+    json j = json::object();
+    auto keys = fetchkeys();
+    for (int i = 0; i < keys.size(); i++) {
+      j[keys[i]] = get(keys[i])->toJson();
+    }
+    return j;
   }
-
 
   void open(bool value) override {
     DataBase::open(value);
-    for (auto &it : fetchkeys() ) {
-        get(it)->open(value);
-    } 
+    for (auto& it : fetchkeys()) {
+      get(it)->open(value);
+    }
   }
-
 
   virtual ~IMapNode();
 };
@@ -384,9 +358,7 @@ class IDataNode : public DataBase {
     return j;
   }
 
-  virtual std::string toString() override {
-    return getData()->toString();
-  }
+  virtual std::string toString() override { return getData()->toString(); }
 
   virtual void open(bool value) override {
     DataBase::open(value);
@@ -395,12 +367,10 @@ class IDataNode : public DataBase {
   }
 };
 
-
 class IInfoNode : public DataBase {
  protected:
   virtual std::shared_ptr<VnV::VnVProv> getProvInternal() = 0;
-  
- 
+
  public:
   IInfoNode();
   virtual std::string getTitle() = 0;
@@ -416,22 +386,16 @@ class IInfoNode : public DataBase {
     j.push_back("End:" + std::to_string(getEndTime()));
     j.push_back("Workflow:" + getWorkflow());
     j.push_back("JobName:" + getJobName());
-    
-    j.push_back("Durr:" + std::to_string(getEndTime()-getStartTime()));
+
+    j.push_back("Durr:" + std::to_string(getEndTime() - getStartTime()));
     j.push_back("Prov: TODO");
     return j;
   }
 
-  virtual void addInputFile(std::shared_ptr<ProvFile> pv) {
-    getProvInternal()->addInputFile(pv);
-  };
-  virtual void addOutputFile(std::shared_ptr<ProvFile> pv) {
-    getProvInternal()->addOutputFile(pv);
-  } 
+  virtual void addInputFile(std::shared_ptr<ProvFile> pv) { getProvInternal()->addInputFile(pv); };
+  virtual void addOutputFile(std::shared_ptr<ProvFile> pv) { getProvInternal()->addOutputFile(pv); }
 
-  std::shared_ptr<VnV::VnVProv> getProv() {
-    return getProvInternal();
-  }
+  std::shared_ptr<VnV::VnVProv> getProv() { return getProvInternal(); }
 
   virtual ~IInfoNode();
 };
@@ -444,7 +408,7 @@ class ICommMap {
 
   virtual bool commContainsProcessor(long commId, long proc) const = 0;
   virtual bool commContainsComm(long commParent, long commChild) const = 0;
-  virtual std::set<long> commChain(long comm) const  = 0;
+  virtual std::set<long> commChain(long comm) const = 0;
   virtual bool commIsChild(long parentId, long childId) const = 0;
   virtual bool commIsSelf(long streamId, long proc) const = 0;
   virtual bool commsIntersect(long streamId, long comm) const = 0;
@@ -457,24 +421,17 @@ class ICommMap {
   virtual std::string toJsonStr(bool strip) const = 0;
 };
 
-
 class ICommInfoNode : public DataBase {
  protected:
-    
   virtual std::shared_ptr<ICommMap> getCommMapInternal() = 0;
-  
+
  public:
- 
   ICommInfoNode();
   virtual int getWorldSize() = 0;
-  
-  virtual std::shared_ptr<const ICommMap> getCommMap() {
-    return getCommMapInternal();
-  };
-  
-  virtual void add(long id, const std::set<long>& comms) {
-    getCommMapInternal()->add(id,comms);
-  }
+
+  virtual std::shared_ptr<const ICommMap> getCommMap() { return getCommMapInternal(); };
+
+  virtual void add(long id, const std::set<long>& comms) { getCommMapInternal()->add(id, comms); }
 
   virtual std::string getNodeMap() = 0;
   virtual std::string getVersion() = 0;
@@ -506,40 +463,44 @@ class FetchRequest {
   std::string getMessage() { return message; }
 };
 
-
 class ITestNode : public DataBase {
-public:
-  enum class TestNodeUsage { TEST, INTERNAL, ACTION, PACKAGE};
+ public:
+  enum class TestNodeUsage { TEST, INTERNAL, ACTION, PACKAGE };
   static std::string getUsageString(TestNodeUsage u) {
     switch (u) {
-      case TestNodeUsage::ACTION: return "Action";
-      case TestNodeUsage::INTERNAL: return "Internal";
-      case TestNodeUsage::TEST: return "Test";
-      case TestNodeUsage::PACKAGE: return "Package";
+    case TestNodeUsage::ACTION:
+      return "Action";
+    case TestNodeUsage::INTERNAL:
+      return "Internal";
+    case TestNodeUsage::TEST:
+      return "Test";
+    case TestNodeUsage::PACKAGE:
+      return "Package";
     }
-    // We should test this never happens 
-    assert(false &&  "Error: Forget to add toString condition int testNodeUsage");
+    // We should test this never happens
+    assert(false && "Error: Forget to add toString condition int testNodeUsage");
     std::abort();
   }
 
   static TestNodeUsage getUsageFromString(std::string u) {
-      if     (u.compare("Action") == 0 ) return TestNodeUsage::ACTION;
-      else if(u.compare("Internal") == 0 ) return TestNodeUsage::INTERNAL;
-      else if(u.compare("Test") == 0 ) return TestNodeUsage::TEST;
-      else if(u.compare("Package") == 0 ) return TestNodeUsage::PACKAGE;
-      throw INJECTION_EXCEPTION("%s is not a valid string representation of any known enum in enum class TestNodeUsage ", u.c_str());
+    if (u.compare("Action") == 0)
+      return TestNodeUsage::ACTION;
+    else if (u.compare("Internal") == 0)
+      return TestNodeUsage::INTERNAL;
+    else if (u.compare("Test") == 0)
+      return TestNodeUsage::TEST;
+    else if (u.compare("Package") == 0)
+      return TestNodeUsage::PACKAGE;
+    throw INJECTION_EXCEPTION("%s is not a valid string representation of any known enum in enum class TestNodeUsage ",
+                              u.c_str());
   }
 
- protected: 
+ protected:
   std::shared_ptr<FetchRequest> fetch = nullptr;
   TestNodeUsage usage = TestNodeUsage::TEST;
 
  public:
-
-
-  virtual std::string getUsageType() override {
-    return getUsageString(getUsage());
-  }    
+  virtual std::string getUsageType() override { return getUsageString(getUsage()); }
 
   ITestNode();
 
@@ -556,7 +517,7 @@ public:
     fetch.reset(new FetchRequest(schema, id, jid, expiry, message));
   }
 
-  virtual TestNodeUsage getUsage()  = 0 ; 
+  virtual TestNodeUsage getUsage() = 0;
   virtual std::string getPackage() = 0;
   virtual std::shared_ptr<IMapNode> getData() = 0;
   virtual std::shared_ptr<IArrayNode> getLogs() = 0;
@@ -572,38 +533,32 @@ public:
     return j;
   }
 
- virtual void open(bool value)  override {
+  virtual void open(bool value) override {
     DataBase::open(value);
     getLogs()->open(value);
     getData()->open(value);
   }
- 
- 
 };
 
 class IWorkflowNode : public DataBase {
-   std::string jobName;
+  std::string jobName;
 
+ public:
+  IWorkflowNode();
+  virtual std::string getPackage() = 0;
+  virtual json getInfo() = 0;
+  virtual std::string getState() = 0;
+  virtual ~IWorkflowNode();
 
-public:
-   IWorkflowNode();
-   virtual std::string getPackage() = 0;
-   virtual json getInfo() = 0;
-   virtual std::string getState() = 0;
-   virtual ~IWorkflowNode();
+  virtual std::string getInfoStr() { return getInfo().dump(); }
 
-   virtual std::string getInfoStr() { return getInfo().dump(); }
+  virtual json getDataChildren_(int fileId, int level) override;
 
-   virtual json getDataChildren_(int fileId, int level) override;
-
-   virtual std::shared_ptr<IRootNode> getReport(std::string reportName) = 0;
-   virtual bool hasReport(std::string reportName) = 0;
-   virtual void setReport(std::string reportName, int fileId, std::shared_ptr<IRootNode> rootNode) = 0;
-   virtual std::vector<std::string> listReports() = 0; 
-   virtual int getReportFileId(std::string reportName) = 0 ;
-
- 
-
+  virtual std::shared_ptr<IRootNode> getReport(std::string reportName) = 0;
+  virtual bool hasReport(std::string reportName) = 0;
+  virtual void setReport(std::string reportName, int fileId, std::shared_ptr<IRootNode> rootNode) = 0;
+  virtual std::vector<std::string> listReports() = 0;
+  virtual int getReportFileId(std::string reportName) = 0;
 };
 
 class IInjectionPointNode : public DataBase {
@@ -611,7 +566,7 @@ class IInjectionPointNode : public DataBase {
   IInjectionPointNode();
   virtual long getStartIndex() = 0;
   virtual long getEndIndex() = 0;
-  
+
   virtual std::string getComm() = 0;
   virtual std::string getPackage() = 0;
   virtual std::shared_ptr<IArrayNode> getTests() = 0;
@@ -629,13 +584,12 @@ class IInjectionPointNode : public DataBase {
 
     return j;
   }
- virtual void open(bool value) override {
+  virtual void open(bool value) override {
     DataBase::open(value);
     getLogs()->open(value);
     getData()->open(value);
     getTests()->open(value);
   }
- 
 };
 
 class ILogNode : public DataBase {
@@ -692,12 +646,10 @@ class IUnitTestResultsNode : public DataBase {
 
   void open(bool value) override {
     DataBase::open(value);
-    for (auto &it : fetchkeys() ) {
-        get(it)->open(value);
-    } 
+    for (auto& it : fetchkeys()) {
+      get(it)->open(value);
+    }
   }
- 
-
 };
 
 class IUnitTestNode : public DataBase {
@@ -722,9 +674,8 @@ class IUnitTestNode : public DataBase {
     DataBase::open(value);
     getData()->open(value);
     getLogs()->open(value);
-    getResults()->open(value); 
+    getResults()->open(value);
   }
-
 };
 
 class VnVSpec {
@@ -733,8 +684,9 @@ class VnVSpec {
   std::string getter(std::string r, std::string key) const {
     try {
       return spec[r][key]["docs"]["template"].get<std::string>();
-    } catch (std::exception &e) {
-      throw INJECTION_EXCEPTION("Template Specification Error: %s:%s/docs does not exist or is not a string ", r.c_str(), key.c_str());
+    } catch (std::exception& e) {
+      throw INJECTION_EXCEPTION("Template Specification Error: %s:%s/docs does not exist or is not a string ",
+                                r.c_str(), key.c_str());
     }
   }
 
@@ -746,13 +698,12 @@ class VnVSpec {
   VnVSpec() {}
   void set(const nlohmann::json& s) { spec = s; }
 
-
   std::string get() { return spec.dump(); }
 
   std::string intro() {
     try {
       return spec["Introduction"]["docs"]["template"].get<std::string>();
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
       throw INJECTION_EXCEPTION_("No introduction available");
     }
   }
@@ -760,7 +711,7 @@ class VnVSpec {
   std::string conclusion() {
     try {
       return spec["Conclusion"]["docs"]["template"].get<std::string>();
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
       throw INJECTION_EXCEPTION_("No conclusion available");
     }
   }
@@ -774,9 +725,7 @@ class VnVSpec {
 
   std::string file(std::string package, std::string name) const { return getter("Files", package + ":" + name); }
 
-  std::string action(std::string package, std::string name) const {
-    return getter("Actions", package + ":" + name);
-  }
+  std::string action(std::string package, std::string name) const { return getter("Actions", package + ":" + name); }
 
   std::string package(std::string package) const { return getter("Options", package); }
 
@@ -784,13 +733,8 @@ class VnVSpec {
     return spec["UnitTests"][package + ":" + name];
   }
 
-
-  std::string code(std::string package, std::string name) const {
-    return getter("CodeBlocks", package + ":" + name);
-  }
-
+  std::string code(std::string package, std::string name) const { return getter("CodeBlocks", package + ":" + name); }
 };
-
 
 class WalkerNode {
  public:
@@ -803,55 +747,44 @@ class WalkerWrapper {
   std::shared_ptr<IWalker> ptr;
   std::shared_ptr<WalkerNode> node;
   IRootNode* _rootNode;
-  
-  IRootNode* rootNode() {
-    return _rootNode; 
-  }
+
+  IRootNode* rootNode() { return _rootNode; }
 
  public:
   WalkerWrapper(std::shared_ptr<IWalker> walker, IRootNode* root);
   std::shared_ptr<WalkerNode> next();
 };
 
-
-
 class IRootNode : public DataBase {
- std::weak_ptr<IRootNode> rootNode_; 
- long idCounter = 0;
+  std::weak_ptr<IRootNode> rootNode_;
+  long idCounter = 0;
 
  protected:
-   virtual void registerNodeInternal(std::shared_ptr<DataBase> ptr) = 0;
-   virtual std::shared_ptr<DataBase> findById_Internal(long id) = 0;
-
+  virtual void registerNodeInternal(std::shared_ptr<DataBase> ptr) = 0;
+  virtual std::shared_ptr<DataBase> findById_Internal(long id) = 0;
 
  public:
   IRootNode();
 
   virtual std::shared_ptr<DataBase> findById(long id, bool throwOnNull = true) {
-    
     try {
-
       if (id == rootNode()->getId()) {
         return rootNode_.lock();
       }
-      
-      auto a =  findById_Internal(id);
+
+      auto a = findById_Internal(id);
       if (a == nullptr && throwOnNull) {
         throw INJECTION_EXCEPTION_("Could not find element with that id");
       }
       return a;
     } catch (...) {
       return nullptr;
-    } 
+    }
   }
-
 
   WalkerWrapper getWalker(std::string package, std::string name, std::string config);
 
-  
-
-  void registerNode(std::shared_ptr<DataBase> ptr) { 
-    
+  void registerNode(std::shared_ptr<DataBase> ptr) {
     if (ptr->getType() == DataBase::DataType::Root) {
       rootNode_ = ptr->getAsRootNode(ptr);
       ptr->setRootNode(idCounter++, ptr->getAsRootNode(ptr).get());
@@ -861,12 +794,16 @@ class IRootNode : public DataBase {
     registerNodeInternal(ptr);
   }
 
-
   virtual void addIDN(long id, long streamId, node_type type, long index, std::string stage) = 0;
-  void join() { auto a = getThread(); if (a!= nullptr) {a->join();} }
-  virtual std::thread* getThread() {return NULL;};
-  
-  virtual std::map<long, std::list<IDN>>& getNodes() = 0; 
+  void join() {
+    auto a = getThread();
+    if (a != nullptr) {
+      a->join();
+    }
+  }
+  virtual std::thread* getThread() { return NULL; };
+
+  virtual std::map<long, std::list<IDN>>& getNodes() = 0;
   virtual std::shared_ptr<IArrayNode> getChildren() = 0;
   virtual std::shared_ptr<IArrayNode> getUnitTests() = 0;
   virtual std::shared_ptr<IInfoNode> getInfoNode() = 0;
@@ -875,15 +812,15 @@ class IRootNode : public DataBase {
   virtual std::shared_ptr<IWorkflowNode> getWorkflowNode() = 0;
   virtual std::shared_ptr<IArrayNode> getLogs() = 0;
   virtual std::shared_ptr<ITestNode> getInitialization() = 0;
-  
+
   virtual long getEndTime() {
     auto a = getInfoNode();
     if (a != nullptr) {
       auto end = a->getEndTime();
-      if ( end <= 0 ) {
-       return std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::system_clock::now().time_since_epoch()
-       ).count();
+      if (end <= 0) {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::system_clock::now().time_since_epoch())
+            .count();
       }
       return end;
     }
@@ -896,10 +833,10 @@ class IRootNode : public DataBase {
     j.push_back(getActions()->getAsDataChild(fileId, level - 1));
     j.push_back(getUnitTests()->getAsDataChild(fileId, level - 1));
     j.push_back(getInfoNode()->getAsDataChild(fileId, level - 1));
-    j.push_back(getChildren()->getAsDataChild(fileId, level - 1));    
-    j.push_back(getLogs()->getAsDataChild(fileId, level - 1));    
+    j.push_back(getChildren()->getAsDataChild(fileId, level - 1));
+    j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
     j.push_back(getWorkflowNode()->getAsDataChild(fileId, level - 1));
-  
+
     json jj = json::object();
     jj["text"] = "Injection Points and Log Messages";
 
@@ -917,12 +854,12 @@ class IRootNode : public DataBase {
     return j;
   }
 
-  virtual std::shared_ptr<ITestNode> getPackage(std::string package) { 
+  virtual std::shared_ptr<ITestNode> getPackage(std::string package) {
     auto a = getPackages()->get(package);
     return a->getAsTestNode(a);
   }
 
-  virtual std::shared_ptr<ITestNode> getAction(std::string package) { 
+  virtual std::shared_ptr<ITestNode> getAction(std::string package) {
     auto a = getActions()->get(package);
     return a->getAsTestNode(a);
   }
@@ -941,9 +878,9 @@ class IRootNode : public DataBase {
 
   virtual void respond(long id, long jid, const std::string& response) = 0;
 
-  virtual void persist() {};
+  virtual void persist(){};
 
-  virtual void kill() {};
+  virtual void kill(){};
 
   virtual ~IRootNode();
 };

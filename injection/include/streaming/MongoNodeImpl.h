@@ -638,7 +638,7 @@ class MongoPersistance {
     Mongo_getter_setter(streamId, long, -1) Mongo_getter_setter(name, std::string, "")
         Mongo_getter_setter(open_, bool, false)
 
-    void setmetadata(MetaDataWrapper& meta) {
+            void setmetadata(MetaDataWrapper& meta) {
       getDocument()->update("metadata", meta.toJson());
     }
 
@@ -707,7 +707,6 @@ class MongoPersistance {
       return false;
     }
 
-
     virtual void insert(std::string key, std::shared_ptr<DataBase> val) {
       auto& m = getmap(true);
 
@@ -760,55 +759,54 @@ class MongoPersistance {
     virtual ~MapNode(){};
   };
 
-#  define X(x, y)                                                                                   \
-    class x##Node : public DataBaseImpl<I##x##Node> {                                               \
-      Mongo_getter_setter_json(shape, json::array()) Mongo_getter_setter_json(vals, json::array())  \
-                                                                                                    \
-          public : x##Node()                                                                        \
-          : DataBaseImpl<I##x##Node>() {}                                                           \
-      std::vector<std::size_t> ss;                                                                  \
-      const std::vector<std::size_t>& getShape() override {                                         \
-        ss = convertArrayToVector<std::size_t>(getshape());                                         \
-        return ss;                                                                                  \
-      }                                                                                             \
-                                                                                                    \
-      y getValueByShape(const std::vector<std::size_t>& rshape) override {                          \
-        auto shape = getshape();                                                                    \
-        if (shape.size() == 0) {                                                                    \
-          return getValueByIndex(0);                                                                \
-        }                                                                                           \
-        if (rshape.size() != shape.size())                                                          \
-          throw INJECTION_EXCEPTION("%s: Invalid Shape Size %d (should be %d)",                     \
-                #x, rshape.size(), shape.size());                                                   \
-                                                                                                    \
-        std::size_t mult = 1;                                                                       \
-        int index = 0;                                                                              \
-        for (int i = shape.size()-1; i >= 0 ; i--) {                                                \
-           index += rshape[i] * mult;                                                               \
-           mult *= shape[i].get<std::size_t>();                                                     \
-      }                                                                                             \
-        return  getValueByIndex(index);                                                             \
-      }                                                                                             \
-      void add(const y& v);                                                                         \
-      y getValueByIndex(const size_t ind) override;                                                 \
-                                                                                                    \
-      y getScalarValue() override {                                                                 \
-        if (getshape().size() == 0) {                                                               \
-          return getValueByIndex(0);                                                                \
-        } else {                                                                                    \
-          throw INJECTION_EXCEPTION("%s: No shape provided to non scalar shape tensor object", #x); \
-        }                                                                                           \
-      }                                                                                             \
-                                                                                                    \
-      int getNumElements() override { return calculateNumElements<std::size_t>(getshape()); }       \
-      virtual ~x##Node() {}                                                                         \
-      virtual void setShape(const std::vector<std::size_t>& s) { setshape(s); }                     \
-      virtual void setValue(const std::vector<y>& s) {                                              \
-        setvals(json::array());                                                                     \
-        for (auto ot : s) {                                                                         \
-          add(ot);                                                                                  \
-        }                                                                                           \
-      }                                                                                             \
+#  define X(x, y)                                                                                                 \
+    class x##Node : public DataBaseImpl<I##x##Node> {                                                             \
+      Mongo_getter_setter_json(shape, json::array()) Mongo_getter_setter_json(vals, json::array())                \
+                                                                                                                  \
+          public : x##Node()                                                                                      \
+          : DataBaseImpl<I##x##Node>() {}                                                                         \
+      std::vector<std::size_t> ss;                                                                                \
+      const std::vector<std::size_t>& getShape() override {                                                       \
+        ss = convertArrayToVector<std::size_t>(getshape());                                                       \
+        return ss;                                                                                                \
+      }                                                                                                           \
+                                                                                                                  \
+      y getValueByShape(const std::vector<std::size_t>& rshape) override {                                        \
+        auto shape = getshape();                                                                                  \
+        if (shape.size() == 0) {                                                                                  \
+          return getValueByIndex(0);                                                                              \
+        }                                                                                                         \
+        if (rshape.size() != shape.size())                                                                        \
+          throw INJECTION_EXCEPTION("%s: Invalid Shape Size %d (should be %d)", #x, rshape.size(), shape.size()); \
+                                                                                                                  \
+        std::size_t mult = 1;                                                                                     \
+        int index = 0;                                                                                            \
+        for (int i = shape.size() - 1; i >= 0; i--) {                                                             \
+          index += rshape[i] * mult;                                                                              \
+          mult *= shape[i].get<std::size_t>();                                                                    \
+        }                                                                                                         \
+        return getValueByIndex(index);                                                                            \
+      }                                                                                                           \
+      void add(const y& v);                                                                                       \
+      y getValueByIndex(const size_t ind) override;                                                               \
+                                                                                                                  \
+      y getScalarValue() override {                                                                               \
+        if (getshape().size() == 0) {                                                                             \
+          return getValueByIndex(0);                                                                              \
+        } else {                                                                                                  \
+          throw INJECTION_EXCEPTION("%s: No shape provided to non scalar shape tensor object", #x);               \
+        }                                                                                                         \
+      }                                                                                                           \
+                                                                                                                  \
+      int getNumElements() override { return calculateNumElements<std::size_t>(getshape()); }                     \
+      virtual ~x##Node() {}                                                                                       \
+      virtual void setShape(const std::vector<std::size_t>& s) { setshape(s); }                                   \
+      virtual void setValue(const std::vector<y>& s) {                                                            \
+        setvals(json::array());                                                                                   \
+        for (auto ot : s) {                                                                                       \
+          add(ot);                                                                                                \
+        }                                                                                                         \
+      }                                                                                                           \
     };
   DTYPES
 #  undef X
@@ -1145,8 +1143,7 @@ class MongoPersistance {
     std::atomic<bool> _processing = ATOMIC_VAR_INIT(true);
 
     Mongo_docuemnt_ref(children, Array) Mongo_docuemnt_ref(logs, Array) Mongo_docuemnt_ref(unitTests, Array)
-        Mongo_docuemnt_ref(actions, Map) Mongo_docuemnt_ref(packages, Map)
-            Mongo_docuemnt_ref(initialization,Test)
+        Mongo_docuemnt_ref(actions, Map) Mongo_docuemnt_ref(packages, Map) Mongo_docuemnt_ref(initialization, Test)
             Mongo_docuemnt_ref(infoNode, Info) Mongo_docuemnt_ref(commInfoNode, CommInfo)
                 Mongo_docuemnt_ref(workflowNode, Workflow)
 

@@ -37,9 +37,8 @@ class run {
  *
  */
 INJECTION_ITERATOR_R(VnVPlugin, sampleIterator, run) {
-  
-  auto y = getOutputRef<double>("y","double");
-  
+  auto y = getOutputRef<double>("y", "double");
+
   if (y < 10) {
     double& x = getInputRef<double>("x", "double");
     x += 1;

@@ -48,7 +48,7 @@ bool IterationPoint::iterate(std::string filename, int line, const DataCallback&
   // Set the first values();
   wrapper->injectionPointStartedCallBack(comm, package, getName(), type, stageId, filename, line);
 
-  InjectionPointBase::runTestsInternal(wrapper,callback);
+  InjectionPointBase::runTestsInternal(wrapper, callback);
 
   bool result = false;
   if (itIndex < m_iterators.size()) {
@@ -66,7 +66,7 @@ bool IterationPoint::iterate(std::string filename, int line, const DataCallback&
   } else {
     // No more iterations and meet the required minimum
     InjectionPointBase::setInjectionPointType(InjectionPointType::End, "End");
-    InjectionPoint::run(filename, line,callback);
+    InjectionPoint::run(filename, line, callback);
     return false;
   }
 

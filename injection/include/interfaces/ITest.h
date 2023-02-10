@@ -2,9 +2,11 @@
 #define ITEST_H
 
 #include <map>
-#include <string>
 #include <regex>
+#include <string>
 
+#include "base/FunctionSigniture.h"
+#include "base/InjectionPointConfig.h"
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "base/stores/TransformStore.h"
@@ -13,11 +15,8 @@
 #include "interfaces/IOutputEngine.h"
 #include "interfaces/ITransform.h"
 #include "interfaces/argType.h"
-#include "json-schema.hpp"
 #include "interfaces/templates.h"
-
-#include "base/FunctionSigniture.h"
-#include "base/InjectionPointConfig.h"
+#include "json-schema.hpp"
 
 //#include "common-interfaces/Logging.h"
 using nlohmann::json;
@@ -26,9 +25,6 @@ using nlohmann::json_schema::json_validator;
  * @brief The TestConfig class
  */
 namespace VnV {
-
-
-
 
 /**
  * @brief The ITest class
@@ -87,15 +83,13 @@ class ITest {
 
   template <typename T> T& getRef(std::string name, std::string type = "") { return getRef<T>(name, type, true); }
 
-
   template <typename T> T& getRef(std::string name, std::string type, bool input) {
-    return *getPtr<T>(name,type,input);
+    return *getPtr<T>(name, type, input);
   }
-  
+
   template <typename T> T* getPtr(std::string name, std::string type, bool input) {
     return m_config.getParameterMap().getPtr<T>(name, type, input);
   }
-
 
  protected:
   TestConfig m_config;
@@ -108,8 +102,6 @@ class ITest {
 
 #define GetRef_NoCheck(name, T) getRef<T>(name)
 #define GetPtr_NoCheck(name, T) getPtr<T>(name)
-
-
 
 typedef ITest* (*maker_ptr)(TestConfig config);
 void registerTest(std::string package, std::string name, std::string schema, VnV::maker_ptr m);

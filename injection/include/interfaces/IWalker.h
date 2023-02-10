@@ -1,19 +1,19 @@
 #ifndef WALKER_HEADER_VNV
 #define WALKER_HEADER_VNV
 
-#include <memory>
 #include <list>
+#include <memory>
 #include <string>
-#include "streaming/IDN.h"
-#include "json-schema.hpp"
 
+#include "json-schema.hpp"
+#include "streaming/IDN.h"
 
 namespace VnV {
 
 namespace Nodes {
-  class IRootNode;  
-  class WalkerNode;
-}
+class IRootNode;
+class WalkerNode;
+}  // namespace Nodes
 
 class IWalker {
   Nodes::IRootNode* rootNode;
@@ -39,24 +39,20 @@ void registerWalker(std::string package, std::string name, std::string schema, V
 
 }  // namespace VnV
 
-#define INJECTION_WALKER_S(PNAME, name, schema)                          \
-                                                                         \
-  namespace VnV {                                                        \
-  namespace PNAME {                                                      \
-  namespace Walkers {                                                    \
-  IWalker* declare_##name(IRootNode* rootNode, nlohmann::json& config);  \
-                                                                         \
-  void register_##name() {                                               \
-    VnV::registerWalker(VNV_STR(PNAME), #name, schema, &declare_##name); \
-  }                                                                      \
-  }                                                                      \
-  }                                                                      \
-  }                                                                      \
-  VnV::IWalker* VnV::PNAME::Walkers::declare_##name(IRootNode* rootNode, \
-                                                    nlohmann::json& config)
+#define INJECTION_WALKER_S(PNAME, name, schema)                                                   \
+                                                                                                  \
+  namespace VnV {                                                                                 \
+  namespace PNAME {                                                                               \
+  namespace Walkers {                                                                             \
+  IWalker* declare_##name(IRootNode* rootNode, nlohmann::json& config);                           \
+                                                                                                  \
+  void register_##name() { VnV::registerWalker(VNV_STR(PNAME), #name, schema, &declare_##name); } \
+  }                                                                                               \
+  }                                                                                               \
+  }                                                                                               \
+  VnV::IWalker* VnV::PNAME::Walkers::declare_##name(IRootNode* rootNode, nlohmann::json& config)
 
-#define INJECTION_WALKER(PNAME, name) \
-  INJECTION_WALKER_S(PNAME, name, R"({"type":"object"})")
+#define INJECTION_WALKER(PNAME, name) INJECTION_WALKER_S(PNAME, name, R"({"type":"object"})")
 
 #define DECLAREWALKER(PNAME, name) \
   namespace VnV {                  \

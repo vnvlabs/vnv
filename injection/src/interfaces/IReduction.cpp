@@ -10,7 +10,6 @@ long long VnV::IReduction::getKey() { return key; }
 
 void VnV::IReduction::setKey(long long key) { this->key = key; }
 
-void VnV::registerReduction(std::string packageName, std::string name,
-                            VnV::reduction_ptr ptr) {
+void VnV::registerReduction(std::string packageName, std::string name, VnV::reduction_ptr ptr) {
   ReductionStore::instance().addReduction(packageName, name, ptr);
 }

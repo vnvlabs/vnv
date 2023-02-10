@@ -10,7 +10,7 @@ defined in base/InjectionPointStore.h.
 #include "base/points/InjectionPoint.h"  // InjectionPoint.
 #include "base/stores/SamplerStore.h"
 #include "common-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
-#include "interfaces/ITest.h"      // TestConfig
+#include "interfaces/ITest.h"           // TestConfig
 
 using namespace VnV;
 
@@ -101,7 +101,7 @@ json InjectionPointStore::schema(json& packageJson) {
   json props = json::object();
   for (auto& it : registeredInjectionPoints) {
     json j = temp;
-    j["description"] = packageJson[it.second.package]["InjectionPoints"][it.second.name]["docs"]["description"];    
+    j["description"] = packageJson[it.second.package]["InjectionPoints"][it.second.name]["docs"]["description"];
     j["vnvprops"] = it.second.specJson;
     j["vnvparam"] = packageJson[it.second.package]["InjectionPoints"][it.second.name]["docs"]["params"];
     props[it.second.package + ":" + it.second.name] = j;
@@ -117,7 +117,7 @@ void InjectionPointStore::registerInjectionPoint(std::string packageName, std::s
   try {
     json x = json::parse(parameters_str);
     registerInjectionPoint(packageName, id, x);
-  } catch (std::exception &e) {
+  } catch (std::exception& e) {
     VnV_Warn(VNVPACKAGENAME, "Could not register Injection Point. Invalid Json. %s", parameters_str.c_str());
   }
 }
@@ -202,17 +202,16 @@ void InjectionPointStore::addInjectionPoint(std::string package, std::string nam
   injectionPoints.insert(std::make_pair(key, InjectionPointConfig(package, name, runInternal, templateName, tests)));
 }
 
-//Turn on all not configured injection points with default options. 
+// Turn on all not configured injection points with default options.
 void InjectionPointStore::runAll() {
-  for (auto &it  : registeredInjectionPoints) {
+  for (auto& it : registeredInjectionPoints) {
     auto a = injectionPoints.find(it.first);
     if (a == injectionPoints.end()) {
-       InjectionPointConfig c(it.second.package, it.second.name, true, json::object(), {});
-       injectionPoints.insert(std::make_pair(it.first, c));
+      InjectionPointConfig c(it.second.package, it.second.name, true, json::object(), {});
+      injectionPoints.insert(std::make_pair(it.first, c));
     }
   }
 }
-
 
 void InjectionPointStore::print() {
   for (auto it : registeredInjectionPoints) {

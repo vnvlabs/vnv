@@ -7,14 +7,13 @@ class class1 {
  public:
   int function1(int x);
   int function2(int y);
-
 };
 
 }  // namespace dummyLibOne
 
 namespace DummyVnV {
-  void Initialize(int argc, char** argv, const char* filename);
-  void Finalize();
-}
+void Initialize(int argc, char** argv, const char* filename);
+void Finalize();
+}  // namespace DummyVnV
 
 #endif

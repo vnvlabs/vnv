@@ -33,8 +33,8 @@ INJECTION_EXECUTABLE(SPNAME)
  *     }
  */
 INJECTION_TEST(SPNAME, write_vec) {
-  std::string var = m_config.getAdditionalParameters().value("var","local_vec");
-  auto x = GetRef(var,std::vector<double>);
+  std::string var = m_config.getAdditionalParameters().value("var", "local_vec");
+  auto x = GetRef(var, std::vector<double>);
 
   // Write a vector indexed by the rank with local size x.size() on each
   // process.
@@ -61,9 +61,8 @@ INJECTION_TEST(SPNAME, write_vec) {
  * x");
  */
 INJECTION_TEST(SPNAME, put_rank) {
-
-  std::string var = m_config.getAdditionalParameters().value("var","local_vec");
-  auto x = GetRef(var,std::vector<double>);
+  std::string var = m_config.getAdditionalParameters().value("var", "local_vec");
+  auto x = GetRef(var, std::vector<double>);
 
   // Could also pull the rank from the user options (TODO).
   int rank = 0;
@@ -95,9 +94,8 @@ INJECTION_TEST(SPNAME, put_rank) {
  *
  */
 INJECTION_TEST(SPNAME, put_matrix) {
-
-  std::string var = m_config.getAdditionalParameters().value("var","local_mat");
-  auto x = GetRef(var,std::vector<std::vector<double>>);
+  std::string var = m_config.getAdditionalParameters().value("var", "local_mat");
+  auto x = GetRef(var, std::vector<std::vector<double>>);
 
   // First one passed in data + cols where cols in the number of columns in
   // the global output matrix. This function will take and [x,y] local matrix
@@ -107,8 +105,7 @@ INJECTION_TEST(SPNAME, put_matrix) {
 
   // Second one is a generic matrix. this one allows for different local sizes.
   //  and non rank based ordering.
-  std::pair<int, int> gsize =
-      std::make_pair(x.size() * comm->Size(), x[0].size());
+  std::pair<int, int> gsize = std::make_pair(x.size() * comm->Size(), x[0].size());
   std::pair<int, int> offs = std::make_pair(x.size() * comm->Rank(), 0);
   engine->Put_Matrix("Matrix2", x, gsize, offs);
   return SUCCESS;
@@ -122,9 +119,8 @@ INJECTION_TEST(SPNAME, put_matrix) {
  * a vector to be reduced across the communicator.
  */
 INJECTION_TEST(SPNAME, put_reduce) {
-
-  std::string var = m_config.getAdditionalParameters().value("var","local_vec");
-  auto x = GetRef(var,std::vector<double>);
+  std::string var = m_config.getAdditionalParameters().value("var", "local_vec");
+  auto x = GetRef(var, std::vector<double>);
 
   // Find the "min" value in a global vector.
   engine->Put_ReduceVector("Reduce1", "VNV:max", x);
@@ -174,7 +170,8 @@ INJECTION_OPTIONS(SPNAME, R"(
         "vsize" : {"type" : "integer" }
      }
   }
-)",void) {
+)",
+                  void) {
   if (config.contains("lsize")) {
     options.lsize = config["lsize"].get<int>();
   }
@@ -238,8 +235,7 @@ int main(int argc, char** argv) {
   std::vector<std::vector<double>> local_mat(local_mat_size);
   for (int i = 0; i < local_mat_size; i++) {
     local_mat[i].resize(size * local_mat_size);
-    std::iota(local_mat[i].begin(), local_mat[i].end(),
-              (i + rank * local_mat_size) * size * local_mat_size);
+    std::iota(local_mat[i].begin(), local_mat[i].end(), (i + rank * local_mat_size) * size * local_mat_size);
   }
 
   /*

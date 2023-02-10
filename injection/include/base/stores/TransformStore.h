@@ -26,8 +26,7 @@ class Transformer {
   std::vector<std::pair<std::string, ITransform*>> transPath;
 
  public:
-  Transformer(std::string from_,
-              std::vector<std::pair<std::string, ITransform*>>& trans);
+  Transformer(std::string from_, std::vector<std::pair<std::string, ITransform*>>& trans);
   virtual void* Transform(void* ptr);
   virtual ~Transformer();
 };
@@ -54,8 +53,7 @@ class TransformStore : public BaseStore {
    * @param name
    * @param p
    */
-  void addTransform(std::string name, trans_ptr p, std::string from,
-                    std::string to);
+  void addTransform(std::string name, trans_ptr p, std::string from, std::string to);
 
   /**
    * @brief getTransform

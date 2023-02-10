@@ -14,13 +14,9 @@ class Iter {
   std::map<long, std::list<Nodes::IDN>>& nodes;
   std::map<long, std::list<Nodes::IDN>>::iterator niter;
 
-  virtual bool parentContainsChild(long parent, long child) {
-    return commMap->commContainsComm(parent, child);
-  }
+  virtual bool parentContainsChild(long parent, long child) { return commMap->commContainsComm(parent, child); }
 
-  virtual bool commContainsProc(long comm, long proc) {
-    return commMap->commContainsProcessor(comm, proc);
-  }
+  virtual bool commContainsProc(long comm, long proc) { return commMap->commContainsProcessor(comm, proc); }
 
  public:
   Iter(std::shared_ptr<const Nodes::ICommMap> comm, std::map<long, std::list<Nodes::IDN>>& n)

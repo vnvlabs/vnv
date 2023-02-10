@@ -57,10 +57,6 @@ class B : public A {
   B() : A("B") {}
 };
 
-INJECTION_TRANSFORM_R(VnVPlugin, BtoA, int, B, A) {
-  return dynamic_cast<A*>(ptr);
-}
+INJECTION_TRANSFORM_R(VnVPlugin, BtoA, int, B, A) { return dynamic_cast<A*>(ptr); }
 
-INJECTION_TRANSFORM_R(VnVPlugin, AtoB, int, A, B) { 
-  return ptr->getAsB();
-}
+INJECTION_TRANSFORM_R(VnVPlugin, AtoB, int, A, B) { return ptr->getAsB(); }

@@ -2,9 +2,9 @@
 /** @file JsonSchema.cpp Implementation of the JsonSchema class as defined in
     base/JsonSchema.h
 **/
-#include <iostream>
-
 #include "base/parser/JsonSchema.h"
+
+#include <iostream>
 
 #include "base/exceptions.h"
 #include "json-schema.hpp"
@@ -13,19 +13,16 @@ using nlohmann::json_schema::json_validator;
 namespace VnV {
 
 const json& getVVSchema() {
- 
- try { 
+  try {
+    static const json __vv_schema__ = json::parse(
+#include "base/parser/schema.json"
+    );
 
-  static const json __vv_schema__ = json::parse( 
-    #include "base/parser/schema.json"
-  );
+    return __vv_schema__;
 
-  return __vv_schema__;
- 
-} catch (json::parse_error& ex) {
-   throw INJECTION_EXCEPTION("Error Parsing VnV Schema %s", ex.what());
- }
-
+  } catch (json::parse_error& ex) {
+    throw INJECTION_EXCEPTION("Error Parsing VnV Schema %s", ex.what());
+  }
 }
 
 json& getBaseOptionsSchema() {
@@ -76,7 +73,7 @@ bool validateSchema(const json& config, const json& schema, bool throwOnInvalid)
   try {
     validator.validate(config);
     return true;
-  } catch (std::exception &e) {
+  } catch (std::exception& e) {
     if (throwOnInvalid) {
       throw INJECTION_EXCEPTION("Schema validation failed: %s", e.what());
     } else {

@@ -87,8 +87,8 @@ void ParallelEngine::packageOptionsStartedCallBack(ICommunicator_ptr world, std:
 
 void ParallelEngine::packageOptionsEndedCallBack(std::string packageName) {}
 
-void ParallelEngine::initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName) {};
-void ParallelEngine::initializationEndedCallBack(std::string packageName) {};
+void ParallelEngine::initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName){};
+void ParallelEngine::initializationEndedCallBack(std::string packageName){};
 
 void ParallelEngine::injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string id,
                                                    InjectionPointType type, std::string stageVal, std::string filename,

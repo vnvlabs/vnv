@@ -35,7 +35,6 @@ class OutputEngineManager;
 enum class InjectionPointType;
 enum class InjectionPointType;
 
-
 // Typedefs
 typedef std::map<std::string, std::pair<std::string, void*>> NTV;
 
@@ -105,7 +104,6 @@ class InjectionPointBase {
    */
   void setInjectionPointType(InjectionPointType type, std::string stageId);
 
-
   /**
    * @brief Set the Comm object
    *
@@ -152,7 +150,7 @@ class InjectionPointBase {
    * @todo Injection point stage and type should be required here. Requiring they be set before
    * this call is a bug waiting to happen.
    */
-  virtual void run(std::string filename, int line,const DataCallback& callback) = 0;
+  virtual void run(std::string filename, int line, const DataCallback& callback) = 0;
 
   /**
    * @brief Destroy the Injection Point Base object

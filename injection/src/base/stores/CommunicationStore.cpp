@@ -67,7 +67,7 @@ void CommunicationStore::set(std::string name) {
     input file to a valid communicator class name. For now, we will use the default: %s",
             name.c_str(), DEFCOMM);
 
-  //Use the default 
+  // Use the default
   set("");
 }
 

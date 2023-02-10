@@ -38,10 +38,7 @@ class ParallelEngine : public OutputEngineManager {
    */
   void Log(ICommunicator_ptr comm, const char* package, int stage, std::string level, std::string message) override;
 
- json getRunInfo() override {
-    return json::object();
-  }
-
+  json getRunInfo() override { return json::object(); }
 
   /**
    * @brief Put
@@ -115,7 +112,6 @@ class ParallelEngine : public OutputEngineManager {
 
   void initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName) override;
   void initializationEndedCallBack(std::string packageName) override;
-
 
   void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile, std::string filename,
             std::string reader) {}

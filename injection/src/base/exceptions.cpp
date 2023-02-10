@@ -1,4 +1,5 @@
 ﻿#include "base/exceptions.h"
+
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -13,62 +14,53 @@ VnV::VnVExceptionBase::VnVExceptionBase(std::string message) {
   this->line = -1;
 }
 
-const char* VnV::VnVExceptionBase::what() const throw() {
-  return message.c_str();
-}
+const char* VnV::VnVExceptionBase::what() const throw() { return message.c_str(); }
 
 VnV::VnVExceptionBase::VnVExceptionBase(std::string function, std::string file, int line, std::string message) {
   this->function = function;
   this->file = file;
   this->line = line;
   this->message = message;
- 
 }
 
 namespace {
-  std::string extract(const char* format, va_list args) {
-    
-    char buffer[250];
-    int r = vsnprintf(buffer, sizeof buffer, format, args);
+std::string extract(const char* format, va_list args) {
+  char buffer[250];
+  int r = vsnprintf(buffer, sizeof buffer, format, args);
 
-    const size_t len = r;
-    if (len < sizeof buffer) {
-      return {buffer, len};
-    } else {
-      return "There was an error writing the error";
-   }
+  const size_t len = r;
+  if (len < sizeof buffer) {
+    return {buffer, len};
+  } else {
+    return "There was an error writing the error";
   }
 }
+}  // namespace
 
 VnV::VnVExceptionBase::VnVExceptionBase(std::string function, std::string file, int line, const char* format, ...) {
   this->function = function;
   this->file = file;
   this->line = line;
-  
+
   va_list args;
   va_start(args, format);
-  message = extract(format,args);
+  message = extract(format, args);
   va_end(args);
-
 }
 
-VnV::VnVBugReport::VnVBugReport(std::string function, std::string file, int line, const char* format, ...) : VnVExceptionBase("") {
+VnV::VnVBugReport::VnVBugReport(std::string function, std::string file, int line, const char* format, ...)
+    : VnVExceptionBase("") {
   this->function = function;
   this->file = file;
   this->line = line;
-  
+
   va_list args;
   va_start(args, format);
-  message = extract(format,args);
+  message = extract(format, args);
   va_end(args);
-
 }
 
-
-
-VnV::VnVExceptionBase VnV::Exceptions::parseError(std::ifstream& fstream,
-                                                  unsigned long byte,
-                                                  std::string message) {
+VnV::VnVExceptionBase VnV::Exceptions::parseError(std::ifstream& fstream, unsigned long byte, std::string message) {
   std::ostringstream oss;
   oss << "Could not parse input File. The Json Error message was: \n"
       << "\t" << message << "\n\n";

@@ -31,9 +31,7 @@ class CustomDataType {
     setY(getZ() + alpha * y->getZ());
   }
 
-  int compare(CustomDataType* y) {
-    return (getX() + getY() + getZ()) - (y->getX() + y->getY() + y->getZ());
-  }
+  int compare(CustomDataType* y) { return (getX() + getY() + getZ()) - (y->getX() + y->getY() + y->getZ()); }
 
   void mult(CustomDataType* y) {
     setX(getX() * y->getX());
@@ -85,19 +83,13 @@ class ExampleDataType : public VnV::IDataType {
   }
 
   // this = this + ay
-  void axpy(double alpha, VnV::IDataType_ptr y) override {
-    t->axpy(alpha, ((ExampleDataType*)y.get())->t);
-  }
+  void axpy(double alpha, VnV::IDataType_ptr y) override { t->axpy(alpha, ((ExampleDataType*)y.get())->t); }
 
   // Compare to objects of the same type
-  int compare(VnV::IDataType_ptr y) override {
-    return t->compare(((ExampleDataType*)y.get())->t);
-  }
+  int compare(VnV::IDataType_ptr y) override { return t->compare(((ExampleDataType*)y.get())->t); }
 
   // this = this * y;
-  void mult(VnV::IDataType_ptr y) override {
-    t->mult(((ExampleDataType*)y.get())->t);
-  }
+  void mult(VnV::IDataType_ptr y) override { t->mult(((ExampleDataType*)y.get())->t); }
 
   // Write the data structure to the engine.
   void Put(VnV::IOutputEngine* engine) override {
@@ -134,10 +126,8 @@ class ExampleDataType : public VnV::IDataType {
     } else if (name.compare("z") == 0) {
       return &(t->getZ());
     }
-    HTHROW INJECTION_EXCEPTION("Invalid Put Data Request %s. Only x,y,z are supported", name.c_str() );
+    HTHROW INJECTION_EXCEPTION("Invalid Put Data Request %s. Only x,y,z are supported", name.c_str());
   }
 };
 
-INJECTION_DATATYPE(VnVPlugin, customDataType, ExampleDataType) {
-  return new ExampleDataType();
-};
+INJECTION_DATATYPE(VnVPlugin, customDataType, ExampleDataType) { return new ExampleDataType(); };

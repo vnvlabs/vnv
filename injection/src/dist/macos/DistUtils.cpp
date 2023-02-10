@@ -55,18 +55,13 @@ std::string getAbsolutePath(std::string filename) {
   return filename;
 }
 
-
-bool fileEquals(std::string f1, std::string f2) {
-  return getAbsolutePath(f1).compare(getAbsolutePath(f2)) == 0;
-}
-
+bool fileEquals(std::string f1, std::string f2) { return getAbsolutePath(f1).compare(getAbsolutePath(f2)) == 0; }
 
 bool fileInDirectory(std::string file, std::string directory) {
-   auto ap = getAbsolutePath(file);
-   auto ad = getAbsolutePath(directory);
-   return ap.rfind(ad, 0) == 0
+  auto ap = getAbsolutePath(file);
+  auto ad = getAbsolutePath(directory);
+  return ap.rfind(ad, 0) == 0
 }
-
 
 void getAllLinkedLibraryData(libData* data) {
   uint32_t count = _dyld_image_count();
@@ -101,16 +96,13 @@ registrationCallBack searchLibrary(void* dylib, std::string packageName) {
   throw INJECTION_EXCEPTION("Library Registration Symbol not found for package %s", packageName.c_str());
 }
 
-
 // Not sure if works on mac -- please fix and commit if not compile.
 std::string getEnvironmentVariable(std::string name) {
   std::string s = std::getenv(name.c_str());
   return s;
 }
 
-bool makedir(std::string filename, mode_t mode) {
-  return mkdir(filename.c_str(), mode) == 0;
-}
+bool makedir(std::string filename, mode_t mode) { return mkdir(filename.c_str(), mode) == 0; }
 
 bool mv(std::string oldFileName, std::string newFileName) {
   return 0 == std::rename(oldFileName.c_str(), newFileName.c_str());
@@ -127,8 +119,7 @@ std::string join(std::vector<std::string> vector, mode_t i, bool makeDir) {
           if (S_ISDIR(sb.st_mode)) {
             continue;
           } else {
-            throw INJECTION_EXCEPTION(
-                "Cannot create directory as file %s exists", s.c_str());
+            throw INJECTION_EXCEPTION("Cannot create directory as file %s exists", s.c_str());
           }
         } else if (!makedir(s, i)) {
           throw INJECTION_EXCEPTION("Cannot make directory %s", s.c_str());

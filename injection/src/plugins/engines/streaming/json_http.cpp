@@ -281,7 +281,7 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
     MHD_destroy_response(response);
     return ret;
 
-  } catch (std::exception &e) {
+  } catch (std::exception& e) {
     struct MHD_Response* response;
     response = MHD_create_response_from_buffer(strlen(err), (void*)err, MHD_RESPMEM_PERSISTENT);
     MHD_Result ret = MHD_queue_response(connection, MHD_HTTP_INTERNAL_SERVER_ERROR, response);

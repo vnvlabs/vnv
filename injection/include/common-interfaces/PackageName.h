@@ -23,7 +23,6 @@
 
 typedef void (*registrationCallBack)();
 
-
 #include "common-interfaces/prettyfunction.h"
 
 // C Injection Macros.
@@ -40,32 +39,28 @@ typedef void (*registrationCallBack)();
 #define VNV_GET_REGISTRATION "__vnv_registration_callback__"
 
 #ifdef __cplusplus
-#  define INJECTION_REGISTRATION(PNAME)                    \
-    extern "C" void __attribute__((visibility("default"))) \
-    VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
+#  define INJECTION_REGISTRATION(PNAME) \
+    extern "C" void __attribute__((visibility("default"))) VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
 
-#  define FORTRAN_INJECTION_REGISTRATION(PNAME) \
-    extern "C" registrationCallBack __attribute__((visibility("default"))) \
-    vnv_fort_##PNAME##_x(){return INJECTION_REGISTRATION_PTR(PNAME);}   
+#  define FORTRAN_INJECTION_REGISTRATION(PNAME)                                                     \
+    extern "C" registrationCallBack __attribute__((visibility("default"))) vnv_fort_##PNAME##_x() { \
+      return INJECTION_REGISTRATION_PTR(PNAME);                                                     \
+    }
 
 #else
 
-#  define INJECTION_REGISTRATION(PNAME)         \
-    void __attribute__((visibility("default"))) \
-    VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
+#  define INJECTION_REGISTRATION(PNAME) \
+    void __attribute__((visibility("default"))) VNV_REGISTRATION_CALLBACK_NAME(PNAME)()
 
-#  define FORTRAN_INJECTION_REGISTRATION(PNAME) \
-    registrationCallBack __attribute__((visibility("default"))) \
-    vnv_fort_##PNAME##_x(){return INJECTION_REGISTRATION_PTR(PNAME);}   
+#  define FORTRAN_INJECTION_REGISTRATION(PNAME)                                          \
+    registrationCallBack __attribute__((visibility("default"))) vnv_fort_##PNAME##_x() { \
+      return INJECTION_REGISTRATION_PTR(PNAME);                                          \
+    }
 
 #endif
 
-
-
 #define INJECTION_REGISTRATION_CALL(PNAME) VNV_REGISTRATION_CALLBACK_NAME(PNAME)
 #define INJECTION_REGISTRATION_PTR(PNAME) &VNV_REGISTRATION_CALLBACK_NAME(PNAME)
-
-
 
 // Allows the user to define a comment for any vnv injection object at some
 // other place. Comments will be inserted based on the IMPORTANCE rating. The
@@ -74,8 +69,6 @@ typedef void (*registrationCallBack)();
 
 // Forward declare the VNV Registration Function.
 INJECTION_REGISTRATION(VNVPACKAGENAME);
-
-
 
 #define VNV_INCLUDED
 

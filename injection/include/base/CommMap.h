@@ -16,8 +16,7 @@ class CommMap : public ICommMap {
   typedef std::shared_ptr<Comm> Comm_ptr;
 
   class Comm {
-    void getAllChildren(std::set<long>& data,
-                        std::map<long, Comm_ptr>& result) {
+    void getAllChildren(std::set<long>& data, std::map<long, Comm_ptr>& result) {
       for (auto& it : children) {
         if (data.find(it.first) == data.end()) {
           it.second->getAllChildren(data, result);

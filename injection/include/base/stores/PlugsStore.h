@@ -12,16 +12,12 @@
 
 namespace VnV {
 
-class PlugsStore : public TestStoreTemplate<IPlug, plug_maker_ptr, PlugConfig>,
-                   public BaseStore {
+class PlugsStore : public TestStoreTemplate<IPlug, plug_maker_ptr, PlugConfig>, public BaseStore {
  public:
   PlugsStore() : TestStoreTemplate<IPlug, plug_maker_ptr, PlugConfig>() {}
   static PlugsStore& instance();
-  
-  nlohmann::json schema(json& packageJson) {
-    return schema_(packageJson,"Plugs");
-  }
 
+  nlohmann::json schema(json& packageJson) { return schema_(packageJson, "Plugs"); }
 };
 
 }  // namespace VnV

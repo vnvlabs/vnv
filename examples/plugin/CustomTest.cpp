@@ -23,7 +23,6 @@ INJECTION_TEST(PNAME, customTest) {
   // function.
   auto x = GetRef("x", double);
 
-
   // You can write values to the output engine using the IOutputEngine
   // interface. These values can be used in the test comment template as shown
   // above.
@@ -80,7 +79,6 @@ class CRunner {
  *
  */
 INJECTION_TEST_RS(PNAME, customTest3, CRunner, c3Schema) {
-  
   // Calling getConfigurationJson() returns a const reference to the user
   // provided json configuration object that has been validated against the
   // schema provided eariler. With a good schema, you can avoid checking the
@@ -101,9 +99,7 @@ INJECTION_TEST_RS(PNAME, customTest3, CRunner, c3Schema) {
  * Something in here I guess.
  */
 INJECTION_TEST(PNAME, customTest4) {
-  
   auto y = GetRef("y", double);
-
 
   // Injection points have stages. You can get the current stage using the type
   // variable
@@ -139,9 +135,9 @@ INJECTION_TEST(PNAME, customTest4) {
 
 **/
 INJECTION_TEST(PNAME, EuclideanError) {
-  auto measured = GetRef("measured", std::vector<double> );
-  auto exact = GetRef("exact", std::vector<double> );
-  
+  auto measured = GetRef("measured", std::vector<double>);
+  auto exact = GetRef("exact", std::vector<double>);
+
   if (measured.size() != exact.size()) {
     double m1 = -1;
     engine->Put("l2_error", m1);
@@ -167,14 +163,13 @@ INJECTION_TEST(PNAME, EuclideanError) {
 
 /**
  * @brief Construct a new injection test object
- * 
- * 
+ *
+ *
  */
 INJECTION_TEST(PNAME, slope) {
-  
-  auto slope = GetRef("slope",double);
-  auto intersection = GetRef("intersection",double);
-          
+  auto slope = GetRef("slope", double);
+  auto intersection = GetRef("intersection", double);
+
   engine->Put("slope", slope);
   engine->Put("intersection", intersection);
   return SUCCESS;

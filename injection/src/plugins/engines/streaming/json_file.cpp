@@ -15,57 +15,48 @@ using nlohmann::json;
 
 namespace {
 
-template<typename T>
-class Optional {
+template <typename T> class Optional {
   std::unique_ptr<T> v = nullptr;
-  Optional(const T& val) {
-     v = std::make_unique<T>(val);
-  }
-
-
+  Optional(const T& val) { v = std::make_unique<T>(val); }
 };
 
-template<typename T>
-class ThreadsafeQueue {
+template <typename T> class ThreadsafeQueue {
   std::queue<T> queue_;
   mutable std::mutex mutex_;
- 
+
   // Moved out of public interface to prevent races between this
   // and pop().
-  bool empty() const {
-    return queue_.empty();
-  }
- 
+  bool empty() const { return queue_.empty(); }
+
  public:
   ThreadsafeQueue() = default;
-  ThreadsafeQueue(const ThreadsafeQueue<T> &) = delete ;
-  ThreadsafeQueue& operator=(const ThreadsafeQueue<T> &) = delete ;
- 
+  ThreadsafeQueue(const ThreadsafeQueue<T>&) = delete;
+  ThreadsafeQueue& operator=(const ThreadsafeQueue<T>&) = delete;
+
   ThreadsafeQueue(ThreadsafeQueue<T>&& other) {
     std::lock_guard<std::mutex> lock(mutex_);
     queue_ = std::move(other.queue_);
   }
- 
-  virtual ~ThreadsafeQueue() { }
- 
+
+  virtual ~ThreadsafeQueue() {}
+
   unsigned long size() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return queue_.size();
   }
- 
+
   T pop() {
     std::lock_guard<std::mutex> lock(mutex_);
     T tmp = queue_.front();
     queue_.pop();
     return tmp;
   }
- 
-  void push(const T &item) {
+
+  void push(const T& item) {
     std::lock_guard<std::mutex> lock(mutex_);
     queue_.push(item);
   }
 };
-
 
 // A static file iterator.
 class JsonFileIterator : public Iterator<json> {
@@ -79,9 +70,9 @@ class JsonFileIterator : public Iterator<json> {
 
   std::string currJson;
 
-  // What do we want to do--
-  // We want to prefetch json.  
-  #define QUEUESIZE 100
+// What do we want to do--
+// We want to prefetch json.
+#define QUEUESIZE 100
   ThreadsafeQueue<json> jsonQueue;
   std::atomic<bool> _fetching = ATOMIC_VAR_INIT(true);
 
@@ -99,7 +90,7 @@ class JsonFileIterator : public Iterator<json> {
         }
 
         jsonQueue.push(json::parse(currline));
-        
+
         if (ifs.tellg() == -1) {
           p += currline.size();
         } else {
@@ -118,28 +109,24 @@ class JsonFileIterator : public Iterator<json> {
   }
 
   void getLine_() {
-    
     auto s = jsonQueue.size();
-    
-    //Attempt to catch race conditions 
-  
-    
+
+    // Attempt to catch race conditions
+
     if (s == 0) {
       nextValue = STREAM_READER_NO_MORE_VALUES;
       nextCurr = json::object();
-    
-    } else {
-    
-      try {
 
+    } else {
+      try {
         auto j = jsonQueue.pop();
         nextCurr = j[1];
         nextValue = j[0].get<long>();
 
-      } catch (std::exception &e) {
+      } catch (std::exception& e) {
         nextValue = STREAM_READER_NO_MORE_VALUES;
         nextCurr = json::object();
-        std::cout << "HHHHHH " << e.what()  << std::endl;
+        std::cout << "HHHHHH " << e.what() << std::endl;
       }
     }
   }

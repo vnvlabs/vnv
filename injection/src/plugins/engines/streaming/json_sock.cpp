@@ -438,7 +438,7 @@ void UDPServer::parseMessage(const struct sockaddr* sender, socklen_t lena, std:
         s->add(jid, data);
         iter->add(s);
       }
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
       throw INJECTION_EXCEPTION("COULD NOT PARSE %s ", data);
     }
   }

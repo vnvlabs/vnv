@@ -29,16 +29,15 @@ class MPICommunicator : public ICommunicator {
   static bool finalizeMPI;
 
   static MPI_Datatype& getDataType(long size) {
-    static std::map<long, MPI_Datatype> dataTypes = {
-        {sizeof(double), MPI_DOUBLE},
-        {sizeof(int), MPI_INT},
-        {sizeof(float), MPI_FLOAT},
-        {sizeof(char), MPI_CHAR},
-        {sizeof(wchar_t), MPI_WCHAR},
-        {sizeof(bool), MPI_C_BOOL},
-        {sizeof(short), MPI_SHORT},
-        {sizeof(long long), MPI_LONG_LONG},
-        {sizeof(long double), MPI_LONG_DOUBLE}};
+    static std::map<long, MPI_Datatype> dataTypes = {{sizeof(double), MPI_DOUBLE},
+                                                     {sizeof(int), MPI_INT},
+                                                     {sizeof(float), MPI_FLOAT},
+                                                     {sizeof(char), MPI_CHAR},
+                                                     {sizeof(wchar_t), MPI_WCHAR},
+                                                     {sizeof(bool), MPI_C_BOOL},
+                                                     {sizeof(short), MPI_SHORT},
+                                                     {sizeof(long long), MPI_LONG_LONG},
+                                                     {sizeof(long double), MPI_LONG_DOUBLE}};
 
     auto it = dataTypes.find(size);
     if (it != dataTypes.end()) {
@@ -73,8 +72,7 @@ class MPICommunicator : public ICommunicator {
     }
   }
 
-  static void custom_reduction_function(void* in, void* inout, int* len,
-                                        MPI_Datatype* data) {
+  static void custom_reduction_function(void* in, void* inout, int* len, MPI_Datatype* data) {
     OpTypeEncodedReduction(in, inout, len);
   }
 
@@ -163,8 +161,7 @@ class MPICommunicator : public ICommunicator {
         std::iota(ranks.begin(), ranks.end(), 0);
 
         std::vector<int> wranks(grp_size);
-        MPI_Group_translate_ranks(grp, grp_size, &(ranks[0]), world_grp,
-                                  &(wranks[0]));
+        MPI_Group_translate_ranks(grp, grp_size, &(ranks[0]), world_grp, &(wranks[0]));
 
         commUniqueId = VnV::HashUtils::vectorHash(wranks);
 
@@ -258,21 +255,15 @@ class MPICommunicator : public ICommunicator {
     return std::string(version, resultlen);
   }
 
-  ICommunicator_ptr world() {
-    return ICommunicator_ptr(new MPICommunicator(VnVCommType::World));
-  }
+  ICommunicator_ptr world() { return ICommunicator_ptr(new MPICommunicator(VnVCommType::World)); }
 
-  ICommunicator_ptr get() {
-    return ICommunicator_ptr(new MPICommunicator(VnVCommType::World));
-  }
+  ICommunicator_ptr get() { return ICommunicator_ptr(new MPICommunicator(VnVCommType::World)); }
 
-  virtual ICommunicator_ptr handleOtherCommunicators(std::string name,
-                                                     void* data) {
+  virtual ICommunicator_ptr handleOtherCommunicators(std::string name, void* data) {
     if (name.compare("serial") == 0) {
       return self();
     } else {
-      throw INJECTION_EXCEPTION(
-          "MPI Executable cannot handle communicator with name %s", name);
+      throw INJECTION_EXCEPTION("MPI Executable cannot handle communicator with name %s", name);
     }
   }
 
@@ -287,9 +278,7 @@ class MPICommunicator : public ICommunicator {
     return ICommunicator_ptr(p);
   }
 
-  ICommunicator_ptr self() {
-    return ICommunicator_ptr(new MPICommunicator(VnVCommType::Self));
-  }
+  ICommunicator_ptr self() { return ICommunicator_ptr(new MPICommunicator(VnVCommType::Self)); }
 
   // Want procs in range [start,end). Make sure to put end-1.
   ICommunicator_ptr create(int start, int end, int stride, int tag) override {
@@ -343,35 +332,27 @@ class MPICommunicator : public ICommunicator {
     return contained != MPI_UNEQUAL;
   }
 
-  void Send(void* buffer, int count, int dest, int tag,
-            int dataTypeSize) override {
-    MPI_Send(buffer, count, getDataType(dataTypeSize), destMap(dest),
-             tagMap(tag), comm);
+  void Send(void* buffer, int count, int dest, int tag, int dataTypeSize) override {
+    MPI_Send(buffer, count, getDataType(dataTypeSize), destMap(dest), tagMap(tag), comm);
   }
 
-  IRequest_ptr ISend(void* buffer, int count, int dest, int tag,
-                     int dataTypeSize) override {
+  IRequest_ptr ISend(void* buffer, int count, int dest, int tag, int dataTypeSize) override {
     MPIRequest* request = new MPIRequest();
-    MPI_Isend(buffer, count, getDataType(dataTypeSize), destMap(dest),
-              tagMap(tag), comm, &(request->request));
+    MPI_Isend(buffer, count, getDataType(dataTypeSize), destMap(dest), tagMap(tag), comm, &(request->request));
     IRequest_ptr p(request);
     return p;
   }
 
-  IStatus_ptr Recv(void* buffer, int count, int dest, int tag,
-                   int dataTypeSize) override {
+  IStatus_ptr Recv(void* buffer, int count, int dest, int tag, int dataTypeSize) override {
     MPIStatus* stat = new MPIStatus();
-    MPI_Recv(buffer, count, getDataType(dataTypeSize), destMap(dest),
-             tagMap(tag), comm, &(stat->status));
+    MPI_Recv(buffer, count, getDataType(dataTypeSize), destMap(dest), tagMap(tag), comm, &(stat->status));
     IStatus_ptr p(stat);
     return p;
   }
 
-  IRequest_ptr IRecv(void* buffer, int count, int source, int tag,
-                     int dataTypeSize) override {
+  IRequest_ptr IRecv(void* buffer, int count, int source, int tag, int dataTypeSize) override {
     MPIRequest* request = new MPIRequest();
-    MPI_Irecv(buffer, count, getDataType(dataTypeSize), destMap(source),
-              tagMap(tag), comm, &(request->request));
+    MPI_Irecv(buffer, count, getDataType(dataTypeSize), destMap(source), tagMap(tag), comm, &(request->request));
     IRequest_ptr p(request);
     return p;
   }
@@ -479,63 +460,47 @@ class MPICommunicator : public ICommunicator {
     return {p, index, flag};
   }
 
-  void Gather(void* buffer, int count, void* recvBuffer, int dataTypeSize,
-              int root) override {
-    MPI_Gather(buffer, count, getDataType(dataTypeSize), recvBuffer, count,
-               getDataType(dataTypeSize), root, comm);
+  void Gather(void* buffer, int count, void* recvBuffer, int dataTypeSize, int root) override {
+    MPI_Gather(buffer, count, getDataType(dataTypeSize), recvBuffer, count, getDataType(dataTypeSize), root, comm);
   }
 
-  void AllGather(void* buffer, int count, void* recvBuffer,
-                 int dataTypeSize) override {
-    MPI_Allgather(buffer, count, getDataType(dataTypeSize), recvBuffer, count,
-                  getDataType(dataTypeSize), comm);
+  void AllGather(void* buffer, int count, void* recvBuffer, int dataTypeSize) override {
+    MPI_Allgather(buffer, count, getDataType(dataTypeSize), recvBuffer, count, getDataType(dataTypeSize), comm);
   }
-  void GatherV(void* buffer, int count, void* recvBuffer, int* recvCount,
-               int* recvDispl, int dataTypeSize, int root) {
-    MPI_Gatherv(buffer, count, getDataType(dataTypeSize), recvBuffer, recvCount,
-                recvDispl, getDataType(dataTypeSize), root, comm);
+  void GatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize, int root) {
+    MPI_Gatherv(buffer, count, getDataType(dataTypeSize), recvBuffer, recvCount, recvDispl, getDataType(dataTypeSize),
+                root, comm);
   }
 
-  void AllGatherV(void* buffer, int count, void* recvBuffer, int* recvCount,
-                  int* recvDispl, int dataTypeSize) {
-    MPI_Allgatherv(buffer, count, getDataType(dataTypeSize), recvBuffer,
-                   recvCount, recvDispl, getDataType(dataTypeSize), comm);
+  void AllGatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize) {
+    MPI_Allgatherv(buffer, count, getDataType(dataTypeSize), recvBuffer, recvCount, recvDispl,
+                   getDataType(dataTypeSize), comm);
   }
 
   void BroadCast(void* buffer, int count, int dataTypeSize, int root) override {
     MPI_Bcast(buffer, count, getDataType(dataTypeSize), root, comm);
   }
 
-  void AllToAll(void* buffer, int count, void* recvBuffer,
-                int dataTypeSize) override {
-    MPI_Alltoall(buffer, count, getDataType(dataTypeSize), recvBuffer, count,
-                 getDataType(dataTypeSize), comm);
+  void AllToAll(void* buffer, int count, void* recvBuffer, int dataTypeSize) override {
+    MPI_Alltoall(buffer, count, getDataType(dataTypeSize), recvBuffer, count, getDataType(dataTypeSize), comm);
   }
 
-  void Scatter(void* buffer, int count, void* recvBuffer, int dataTypeSize,
-               int root) override {
-    MPI_Scatter(buffer, count, getDataType(dataTypeSize), recvBuffer, count,
-                getDataType(dataTypeSize), root, comm);
+  void Scatter(void* buffer, int count, void* recvBuffer, int dataTypeSize, int root) override {
+    MPI_Scatter(buffer, count, getDataType(dataTypeSize), recvBuffer, count, getDataType(dataTypeSize), root, comm);
   }
 
-  void Reduce(void* buffer, int count, void* recvBuffer, int dataTypeSize,
-              OpType op, int root) override {
-    MPI_Reduce(buffer, recvBuffer, count, getDataType(dataTypeSize), getOp(op),
-               root, comm);
+  void Reduce(void* buffer, int count, void* recvBuffer, int dataTypeSize, OpType op, int root) override {
+    MPI_Reduce(buffer, recvBuffer, count, getDataType(dataTypeSize), getOp(op), root, comm);
 
     char* coutvec = (char*)recvBuffer;
   }
 
-  void AllReduce(void* buffer, int count, void* recvBuffer, int dataTypeSize,
-                 OpType op) override {
-    MPI_Allreduce(buffer, recvBuffer, count, getDataType(dataTypeSize),
-                  getOp(op), comm);
+  void AllReduce(void* buffer, int count, void* recvBuffer, int dataTypeSize, OpType op) override {
+    MPI_Allreduce(buffer, recvBuffer, count, getDataType(dataTypeSize), getOp(op), comm);
   }
 
-  void Scan(void* buffer, int count, void* recvBuffer, int dataTypeSize,
-            OpType op) override {
-    MPI_Scan(buffer, recvBuffer, count, getDataType(dataTypeSize), getOp(op),
-             comm);
+  void Scan(void* buffer, int count, void* recvBuffer, int dataTypeSize, OpType op) override {
+    MPI_Scan(buffer, recvBuffer, count, getDataType(dataTypeSize), getOp(op), comm);
   }
 
   void Abort(int errorcode) override { MPI_Abort(comm, errorcode); }
@@ -545,7 +510,7 @@ bool MPICommunicator::finalizeMPI = false;
 
 MPI_Comm castToMPIComm(ICommunicator_ptr ptr) {
   MPI_Comm mpicomm;
-  
+
   if (ptr->getName() == "serial") {
     mpicomm = MPI_COMM_SELF;
 
@@ -563,6 +528,4 @@ MPI_Comm castToMPIComm(ICommunicator_ptr ptr) {
 }  // namespace Communication
 }  // namespace VnV
 
-INJECTION_COMM(VNVPACKAGENAME, mpi) {
-  return new VnV::Communication::MPI::MPICommunicator(type);
-}
+INJECTION_COMM(VNVPACKAGENAME, mpi) { return new VnV::Communication::MPI::MPICommunicator(type); }

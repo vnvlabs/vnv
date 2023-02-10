@@ -1,13 +1,13 @@
 #ifndef VNV_IDATATYPE_HEADER
 #define VNV_IDATATYPE_HEADER
 
-#include "base/exceptions.h"
-#include "common-interfaces/Logging.h"
-
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "base/exceptions.h"
+#include "common-interfaces/Logging.h"
 
 namespace VnV {
 
@@ -65,42 +65,39 @@ class IDataType {
   // returned in the getLocalPutData map. The function should return a pointer
   // to the data associated with this key.
   virtual void* getPutData(std::string /*name*/) {
-     HTHROW INJECTION_EXCEPTION("DataType %d does not support function getPutData", key);
+    HTHROW INJECTION_EXCEPTION("DataType %d does not support function getPutData", key);
   }
 
   // Needed if you want to support data type redcution and vectors.
   virtual long long maxSize() {
-      throw INJECTION_EXCEPTION("DataType %d does not support function maxSize", key);
+    throw INJECTION_EXCEPTION("DataType %d does not support function maxSize", key);
   }  // what is the maximum size of the buffer
-  
+
   virtual long long pack(void* /*buffer*/) {
-     throw INJECTION_EXCEPTION("DataType %d does not support function pack", key);
+    throw INJECTION_EXCEPTION("DataType %d does not support function pack", key);
   }  // pack the buffer
-  
+
   virtual void unpack(void* /*buffer*/) {
-   throw INJECTION_EXCEPTION("DataType %d does not support function unpack", key);
+    throw INJECTION_EXCEPTION("DataType %d does not support function unpack", key);
   }  // unpack into a buffer
 
   // Needed if you want to use reduction operations.
   virtual void axpy(double /*alpha*/, IDataType_ptr /*y*/) {
-      throw INJECTION_EXCEPTION("DataType %d does not support function axpy", key);
+    throw INJECTION_EXCEPTION("DataType %d does not support function axpy", key);
   }  // y = ax + y
-  
+
   virtual int compare(IDataType_ptr /*y*/) {
-     throw INJECTION_EXCEPTION("DataType %d does not support function compare", key);
+    throw INJECTION_EXCEPTION("DataType %d does not support function compare", key);
   }  // -1 less, 0 == , 1 greater.
-  
+
   virtual void mult(IDataType_ptr /*y*/) {
-      throw INJECTION_EXCEPTION("DataType %d does not support function mult", key);
+    throw INJECTION_EXCEPTION("DataType %d does not support function mult", key);
   }
 
-  virtual std::string typeId() {
-     throw INJECTION_EXCEPTION("DataType %d does not support function typeId", key);
-  }
+  virtual std::string typeId() { throw INJECTION_EXCEPTION("DataType %d does not support function typeId", key); }
   virtual std::string displayName() {
-     throw INJECTION_EXCEPTION("DataType %d does not support function displayName", key);
+    throw INJECTION_EXCEPTION("DataType %d does not support function displayName", key);
   }
-
 
   void setKey(long long key);
   long long getKey();
@@ -109,40 +106,34 @@ class IDataType {
 
 typedef IDataType* (*dataType_ptr)();
 
-void registerDataType(std::string packageName, std::string name,
-                      VnV::dataType_ptr r);
+void registerDataType(std::string packageName, std::string name, VnV::dataType_ptr r);
 
-template <typename T>
-void registerDataType(std::string packageName, VnV::dataType_ptr ptr) {
+template <typename T> void registerDataType(std::string packageName, VnV::dataType_ptr ptr) {
   std::string s = typeid(T).name();
   VnV::registerDataType(packageName, s, ptr);
 }
 
 }  // namespace VnV
 
-#define INJECTION_DATATYPE(PNAME, name, cls)                     \
-  namespace VnV {                                                \
-  namespace PNAME {                                              \
-  namespace DataTypes {                                          \
-  VnV::IDataType* declare_##name();                              \
-  void register_##name() {                                       \
-    VnV::registerDataType<cls>(VNV_STR(PNAME), &declare_##name); \
-  }                                                              \
-  }                                                              \
-  }                                                              \
-  }                                                              \
+#define INJECTION_DATATYPE(PNAME, name, cls)                                              \
+  namespace VnV {                                                                         \
+  namespace PNAME {                                                                       \
+  namespace DataTypes {                                                                   \
+  VnV::IDataType* declare_##name();                                                       \
+  void register_##name() { VnV::registerDataType<cls>(VNV_STR(PNAME), &declare_##name); } \
+  }                                                                                       \
+  }                                                                                       \
+  }                                                                                       \
   VnV::IDataType* VnV::PNAME::DataTypes::declare_##name()
 
-
-#define INJECTION_TDATATYPE(PNAME,cname,cls) \
-   INJECTION_DATATYPE(PNAME,cname,cls) {          \
-     class datatype : public VnV::IDataType { \
-        std::string typeId() override { return typeid(cls).name(); } \
-        std::string displayName() override { return #cls; } \
-     }; \
-     return new datatype(); \
-   }
-
+#define INJECTION_TDATATYPE(PNAME, cname, cls)                     \
+  INJECTION_DATATYPE(PNAME, cname, cls) {                          \
+    class datatype : public VnV::IDataType {                       \
+      std::string typeId() override { return typeid(cls).name(); } \
+      std::string displayName() override { return #cls; }          \
+    };                                                             \
+    return new datatype();                                         \
+  }
 
 #define DECLAREDATATYPE(PNAME, name) \
   namespace VnV {                    \
@@ -155,4 +146,3 @@ void registerDataType(std::string packageName, VnV::dataType_ptr ptr) {
 #define REGISTERDATATYPE(PNAME, name) VnV::PNAME::DataTypes::register_##name();
 
 #endif
-

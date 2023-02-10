@@ -44,8 +44,5 @@ typedef void (*injectionDataCallback)(VnV_Comm comm, struct ParameterSetWrapper*
                                       struct IOutputEngineWrapper* engine, int injectionPointType, const char* stageId);
 
 typedef void (*initDataCallback)(VnV_Comm comm, struct IOutputEngineWrapper* engine);
-                                      
-
-
 
 #endif  // WRAPPERS_H

@@ -39,7 +39,6 @@ VNVEXTERNC void VnV_Register_Subpackage(const char* Name, registrationCallBack c
 typedef const char* (*vnvFullJsonStrCallback)();
 VNVEXTERNC void VnV_declarePackageJson(const char* packageName, vnvFullJsonStrCallback callback);
 
-
 /**
  * @brief VnV_runUnitTests
  * @return tod
@@ -55,12 +54,8 @@ VNVEXTERNC void VnV_readFile(const char* reader, const char* filename);
 VNVEXTERNC void VnV_readFileAndWalk(const char* reader, const char* filename, const char* package, const char* walker,
                                     const char* config);
 
-
-#define INJECTION_CODEBLOCK_START(PNAME,NAME)
-#define INJECTION_CODEBLOCK_END(PNAME,NAME)
-
-
-
+#  define INJECTION_CODEBLOCK_START(PNAME, NAME)
+#  define INJECTION_CODEBLOCK_END(PNAME, NAME)
 
 #else  // WITHOUT_VNV
 #  define VnV_init(...)

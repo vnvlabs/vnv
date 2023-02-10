@@ -41,7 +41,7 @@ libInfo getLibInfo(std::string filepath, unsigned long add) {
 
 char* getCurrentDirectory() { return get_current_dir_name(); }
 
-void initialize_lock(LockFile* lockfile) {  }
+void initialize_lock(LockFile* lockfile) {}
 
 void lock_file(LockFile* lockfile) { flock(lockfile->fd, LOCK_EX); }
 
@@ -254,23 +254,22 @@ void permissions(std::string filename, bool read, bool write, bool execute) {
 }
 
 void makedirs(std::string path, bool make_last = false, mode_t mode = 0777) {
-    std::vector<std::string> dirs;
-    StringUtils::StringSplit(path,"/",dirs, true);
-    
-    std::string s = "";
+  std::vector<std::string> dirs;
+  StringUtils::StringSplit(path, "/", dirs, true);
 
-    int end = (make_last) ? dirs.size() : dirs.size() - 1; 
-    for (int i = 0 ; i < end; i++) {
-       s +=  dirs[i] + "/";
-       try { 
-         makedir(s,mode);
-       } catch (...) {}
+  std::string s = "";
+
+  int end = (make_last) ? dirs.size() : dirs.size() - 1;
+  for (int i = 0; i < end; i++) {
+    s += dirs[i] + "/";
+    try {
+      makedir(s, mode);
+    } catch (...) {
     }
+  }
 }
 
-
 std::string join(std::vector<std::string> vec_i, mode_t i, bool makeDir, bool isFile) {
-
   if (vec_i.size() > 0) {
     std::string s = "";
     for (auto it = vec_i.begin(); it != vec_i.end(); ++it) {

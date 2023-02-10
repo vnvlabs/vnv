@@ -17,14 +17,13 @@
 // C Interface for the Logging components of VnV
 #include "common-interfaces/Logging.h"
 
-
 #ifdef __cplusplus
 
-#  include "interfaces/Initialization.h"
 #  include "interfaces/IAction.h"
 #  include "interfaces/ICommunicator.h"
 #  include "interfaces/IDataType.h"
 #  include "interfaces/IIterator.h"
+#  include "interfaces/IOptions.h"
 #  include "interfaces/IOutputEngine.h"
 #  include "interfaces/IPlug.h"
 #  include "interfaces/IReduction.h"
@@ -34,7 +33,7 @@
 #  include "interfaces/IUnitTest.h"
 #  include "interfaces/IWalker.h"
 #  include "interfaces/IWorkflow.h"
-#  include "interfaces/IOptions.h"
+#  include "interfaces/Initialization.h"
 #  include "interfaces/argType.h"
 #  include "interfaces/points/Injection.h"
 #  include "interfaces/points/Iteration.h"
@@ -43,10 +42,10 @@
 #else
 
 #  include "c-interfaces/Initialization.h"
+#  include "c-interfaces/Options.h"
 #  include "c-interfaces/points/Injection.h"
 #  include "c-interfaces/points/Iteration.h"
 #  include "c-interfaces/points/Plug.h"
-#  include "c-interfaces/Options.h"
 
 #endif
 

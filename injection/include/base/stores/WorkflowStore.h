@@ -58,22 +58,23 @@ class WorkflowStore : public BaseStore {
     return getComponent(job_factory, packageName, name, config);
   }
 
-  std::shared_ptr<JobManager> buildJobManager(std::string mainApplicationName, std::string workflowName, std::vector<WorkflowConfig> &workflows) { 
-      auto a = std::make_shared<JobManager>(mainApplicationName, "Workflow" );
-      for (auto it : workflows) {
-        loadSubJob(it.package,it.name, it.config, a);
-      }
-      return a;
+  std::shared_ptr<JobManager> buildJobManager(std::string mainApplicationName, std::string workflowName,
+                                              std::vector<WorkflowConfig>& workflows) {
+    auto a = std::make_shared<JobManager>(mainApplicationName, "Workflow");
+    for (auto it : workflows) {
+      loadSubJob(it.package, it.name, it.config, a);
+    }
+    return a;
   }
 
   void loadSubJob(std::string package, std::string name, const json& config, std::shared_ptr<JobManager> jm) {
-        jm->pushCreator(package,name);
-        getJobCreator(package,name,config)->createJob(*jm);
-        jm->popCreator();
+    jm->pushCreator(package, name);
+    getJobCreator(package, name, config)->createJob(*jm);
+    jm->popCreator();
   }
 
   bool registeredJobCreator(std::string package, std::string name) {
-    return true;//We dont know which ones will run.
+    return true;  // We dont know which ones will run.
   }
 
   void addScheduler(std::string packageName, std::string name, const json& schema, scheduler_ptr m) {
@@ -108,6 +109,5 @@ class WorkflowStore : public BaseStore {
 };
 
 }  // namespace VnV
-
 
 #endif

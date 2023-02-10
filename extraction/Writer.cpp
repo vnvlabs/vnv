@@ -1,9 +1,11 @@
-﻿#include <iostream>
+﻿#include <sys/file.h>
+
+#include <iostream>
 #include <map>
 #include <regex>
 #include <set>
 #include <sstream>
-#include <sys/file.h>
+
 #include "base/Utilities.h"
 #include "base/exceptions.h"
 #include "json-schema.hpp"
@@ -44,30 +46,28 @@ contains ! Implementation of the functions. We just wrap the C function here.
 end module
 )";
 
-  //TODO COMPARE -- IF FILE IS SAME THEN DO NOT REWRITE SO IT DOESNT NEED 
-  //A REBUILD EVERY TIME. 
+  // TODO COMPARE -- IF FILE IS SAME THEN DO NOT REWRITE SO IT DOESNT NEED
+  // A REBUILD EVERY TIME.
   std::size_t has = -1;
   std::ifstream iffs(filename);
-  
+
   std::string ho = "";
-  
+
   std::ifstream efile(filename);
   if (efile.good()) {
     std::getline(efile, ho);
     efile.close();
   }
-  
+
   std::string s = std::regex_replace(fortranModuleTemplate, std::regex("####"), package.c_str());
   std::size_t hs = std::hash<std::string>()(s);
   if (ho.size() <= 2 || std::to_string(hs).compare(ho.substr(2)) != 0) {
-
     std::ofstream ofs(filename);
     if (ofs.good()) {
       ofs << "! " << hs << "\n" << s;
     }
     ofs.close();
   }
-
 }
 
 class RegistrationWriter {
@@ -190,12 +190,12 @@ class RegistrationWriter {
     if (j.contains("CodeBlocks")) {
       std::cout << j["CodeBlocks"].dump(4) << std::endl;
       for (auto& it : j["CodeBlocks"].items()) {
-          std::string pname = it.value()["packageName"].get<std::string>();
-          if (packageName.empty() || pname == packageName) {
-            std::string n = it.value()["name"].get<std::string>();
-            createPackageOss(pname);
-            VnV::JsonUtilities::getOrCreate(pjson[pname], "CodeBlocks")[n] = it.value()["code"];
-        }  
+        std::string pname = it.value()["packageName"].get<std::string>();
+        if (packageName.empty() || pname == packageName) {
+          std::string n = it.value()["name"].get<std::string>();
+          createPackageOss(pname);
+          VnV::JsonUtilities::getOrCreate(pjson[pname], "CodeBlocks")[n] = it.value()["code"];
+        }
       }
     }
 
@@ -283,7 +283,7 @@ class RegistrationWriter {
           std::string name = it.value()["name"].get<std::string>();
 
           json& params = it.value()["parameters"];
-          
+
           createPackageOss(pname);
 
           VnV::JsonUtilities::getOrCreate(pjson[pname], "InjectionPoints")[name] = it.value();
@@ -311,10 +311,10 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
   json finalJson = json::object();
   for (auto it : cacheInfo["data"].items()) {
     for (std::string type :
-         {"InjectionPoints", "SubPackages",  "LogLevels",       "Files",       "Tests",        "Iterators",
-          "Plugs",           "Engines",      "EngineReaders",   "Comms",       "Reducers",     "Samplers",
-          "Walkers",         "DataTypes",    "Serializers",     "Transforms",  "UnitTests",    "Actions",
-          "Options",         "Introduction", "Conclusion",      "Executables", "Communicator", "Schedulers",
+         {"InjectionPoints", "SubPackages",  "LogLevels",        "Files",       "Tests",        "Iterators",
+          "Plugs",           "Engines",      "EngineReaders",    "Comms",       "Reducers",     "Samplers",
+          "Walkers",         "DataTypes",    "Serializers",      "Transforms",  "UnitTests",    "Actions",
+          "Options",         "Introduction", "Conclusion",       "Executables", "Communicator", "Schedulers",
           "Validators",      "JobCreators",  "ScriptGenerators", "CodeBlocks"}) {
       json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);
       for (auto it : VnV::JsonUtilities::getOrCreate(it.value(), type).items()) {
@@ -371,14 +371,12 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
   // Updating the registration file
   json jc = r.getExecutableDocumentations(packageName);
 
-
   if (jc.size() > 0 && !regFileName.empty() && !targetFileName.empty()) {
-    
-    //Get a lock file for the registration file. 
+    // Get a lock file for the registration file.
     std::string lockFile = "." + regFileName + ".lock";
     int fd = open(lockFile.c_str(), O_WRONLY | O_CREAT);
     flock(fd, LOCK_EX);
-  
+
     std::ifstream ifv(regFileName);
     json j;
     if (ifv.good()) {
@@ -413,21 +411,20 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
     std::string n = jc.value("title", packageName);
     if (n.empty()) n = packageName;
 
-    std::string ty = jc.value("lib","executables");
-    
+    std::string ty = jc.value("lib", "executables");
+
     // hmmmmmm
-    assert(ty.compare("executables")==0 || ty.compare("libraries") == 0 || ty.compare("plugins") == 0);
-    
+    assert(ty.compare("executables") == 0 || ty.compare("libraries") == 0 || ty.compare("plugins") == 0);
+
     j[ty][n] = jv;  ////// TODO
-    
+
     std::ofstream rfile(regFileName);
     rfile << j.dump(3);
     rfile.close();
-  
-    // Unlock the registration file. 
+
+    // Unlock the registration file.
     flock(fd, LOCK_UN);
   }
-
 }
 
 void removeNonModified(std::set<std::string>& files, json& cacheFiles, std::map<std::string, bool>& fModMap,

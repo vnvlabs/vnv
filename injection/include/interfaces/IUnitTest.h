@@ -57,34 +57,34 @@ template <typename Runner> class UnitTester_T : public IUnitTest {
 
 }  // namespace VnV
 
-#define TEST_ASSERT_EQUALS(name, expected, got)                                                       \
-  {                                                                                                   \
-    if (!((got) == (expected))) {                                                                     \
-      std::stringstream tmpstream;                                                                    \
-      tmpstream << "Got " << (got) << ", expected " << (expected);                                    \
-      results.emplace_back((name), tmpstream.str(), false);                                           \
-      if (!continue_on_fail) {                                                                        \
-        VnV_Error(VNVPACKAGENAME, "Test Assertion failed"); \
-        std::abort();                                                                                 \
-      }                                                                                               \
-    } else {                                                                                          \
-      results.emplace_back((name), "", true);                                                         \
-    }                                                                                                 \
+#define TEST_ASSERT_EQUALS(name, expected, got)                    \
+  {                                                                \
+    if (!((got) == (expected))) {                                  \
+      std::stringstream tmpstream;                                 \
+      tmpstream << "Got " << (got) << ", expected " << (expected); \
+      results.emplace_back((name), tmpstream.str(), false);        \
+      if (!continue_on_fail) {                                     \
+        VnV_Error(VNVPACKAGENAME, "Test Assertion failed");        \
+        std::abort();                                              \
+      }                                                            \
+    } else {                                                       \
+      results.emplace_back((name), "", true);                      \
+    }                                                              \
   }
 
-#define TEST_ASSERT_NOT_EQUALS(name, expected, got)                                                   \
-  {                                                                                                   \
-    if (((got) == (expected))) {                                                                      \
-      std::stringstream tmpstream;                                                                    \
-      tmpstream << "Got " << (got) << ", expected " << (expected);                                    \
-      results.emplace_back((name), tmpstream.str(), false);                                           \
-      if (!continue_on_fail) {                                                                        \
-          VnV_Error(VNVPACKAGENAME,"Test Assertion failed"); \
-          std::abort();\
-      }                                                                                               \
-    } else {                                                                                          \
-      results.emplace_back((name), "", true);                                                         \
-    }                                                                                                 \
+#define TEST_ASSERT_NOT_EQUALS(name, expected, got)                \
+  {                                                                \
+    if (((got) == (expected))) {                                   \
+      std::stringstream tmpstream;                                 \
+      tmpstream << "Got " << (got) << ", expected " << (expected); \
+      results.emplace_back((name), tmpstream.str(), false);        \
+      if (!continue_on_fail) {                                     \
+        VnV_Error(VNVPACKAGENAME, "Test Assertion failed");        \
+        std::abort();                                              \
+      }                                                            \
+    } else {                                                       \
+      results.emplace_back((name), "", true);                      \
+    }                                                              \
   }
 
 #define INJECTION_UNITTEST_R(PNAME, name, Runner, cores)                                        \

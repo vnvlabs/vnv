@@ -63,17 +63,15 @@ SamplerInfo JsonParser::getSamplerInfo(const json& samplerJson) {
 
 bool JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runScopes,
                                    std::map<std::string, InjectionPointInfo>& ips, InjectionType type) {
-  
   bool all_on = false;
   for (auto& it : ip.items()) {
-    
-    if (it.key().compare("runAll") == 0 ) {
-        all_on = it.value().get<bool>();
-        continue;
+    if (it.key().compare("runAll") == 0) {
+      all_on = it.value().get<bool>();
+      continue;
     } else if (!add(it.value(), runScopes)) {
-        continue;
+      continue;
     }
-    
+
     const json& values = it.value();
     auto aip = ips.find(it.key());
 
@@ -155,30 +153,29 @@ void JsonParser::addTestLibrary(const json& lib, std::map<std::string, std::stri
 
 LoggerInfo JsonParser::getLoggerInfo(const json& logging) {
   LoggerInfo info;
-  info.on = logging.value("on",true);
-  
-  if (info.on) {
-    info.engine = logging.value("engine",true);
+  info.on = logging.value("on", true);
 
-    info.filename = logging.value("filename","vnv-logs.out");
+  if (info.on) {
+    info.engine = logging.value("engine", true);
+
+    info.filename = logging.value("filename", "vnv-logs.out");
     std::string t = logging.value("type", "stdout");
-    if (t.compare("stdout") == 0 ) {
+    if (t.compare("stdout") == 0) {
       info.type = LogWriteType::STDOUT;
-    } else if (t.compare("stderr") == 0 ) {
+    } else if (t.compare("stderr") == 0) {
       info.type = LogWriteType::STDERR;
     } else if (t.compare("file") == 0) {
       info.type == LogWriteType::FILE;
     } else {
       info.type == LogWriteType::NONE;
     }
-    
-    if ( logging.contains("logs")) {
+
+    if (logging.contains("logs")) {
       for (auto& it : logging["logs"].items()) {
         info.logs.insert(std::make_pair(it.key(), it.value().get<bool>()));
       }
     }
 
-    
     auto it = logging.find("blackList");
     if (it != logging.end()) {
       for (auto itt : logging["blackList"].items()) {
@@ -262,11 +259,11 @@ nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile, int* arg
               } else {
                 throw INJECTION_EXCEPTION_("Adding new values is not supported: ");
               }
-            } catch (std::exception &e) {
+            } catch (std::exception& e) {
               throw INJECTION_EXCEPTION("Invalid Json Pointer: %s", point.c_str());
             }
 
-          } catch (std::exception &e) {
+          } catch (std::exception& e) {
             throw INJECTION_EXCEPTION("Invalid Json %s", ans.c_str());
           }
 
@@ -281,48 +278,46 @@ nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile, int* arg
   return main;
 }
 
- void addCommandLinePlugins(int* argc, char** argv, RunInfo& info) {
-   int i = 0;
-   while (i < *argc) {
-     std::string s = argv[i++];
-     if (s.compare("--vnv-plugin") == 0 ) {
-       if ( i+1 < *argc ) {
-         std::string pname = argv[i++];
-         std::string file = argv[i++];
-         info.additionalPlugins[pname] = file;
-       } else {
-         throw INJECTION_EXCEPTION_("Invalid Command line plugin");
-       }
-     } 
-   } 
+void addCommandLinePlugins(int* argc, char** argv, RunInfo& info) {
+  int i = 0;
+  while (i < *argc) {
+    std::string s = argv[i++];
+    if (s.compare("--vnv-plugin") == 0) {
+      if (i + 1 < *argc) {
+        std::string pname = argv[i++];
+        std::string file = argv[i++];
+        info.additionalPlugins[pname] = file;
+      } else {
+        throw INJECTION_EXCEPTION_("Invalid Command line plugin");
+      }
+    }
+  }
 }
-
 
 }  // namespace
 
 WorkflowInfo JsonParser::getWorkflowInfo(const json& workflowInfo) {
-  WorkflowInfo info = { true, true, {} };
+  WorkflowInfo info = {true, true, {}};
 
   info.run = workflowInfo.value("run", true);
   info.quit = workflowInfo.value("quit", true);
-  
-  for (auto &it : workflowInfo.items()) {
-    if (it.key().compare("run") == 0 ) {
+
+  for (auto& it : workflowInfo.items()) {
+    if (it.key().compare("run") == 0) {
       info.run = it.value().get<bool>();
-    } else if ( it.key().compare("quit") == 0) {
+    } else if (it.key().compare("quit") == 0) {
       info.quit = it.value().get<bool>();
     } else {
-      std::vector<std::string>r;
-      StringUtils::StringSplit(it.key(),":",r);
+      std::vector<std::string> r;
+      StringUtils::StringSplit(it.key(), ":", r);
       if (r.size() == 2) {
-        info.workflows.push_back({r[0], r[1], it.value() });
+        info.workflows.push_back({r[0], r[1], it.value()});
       } else {
         throw VnVExceptionBase("Validation should catch this");
       }
     }
   }
   return info;
-
 }
 
 RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
@@ -337,17 +332,13 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   }
 
   if (main.find("job") != main.end()) {
-
     info.workflowDir = main["job"].value("dir", "/tmp");
   }
 
-
   if (main.find("schema") != main.end()) {
-    info.schemaDump = main["schema"].value("dump",false);
-    info.schemaQuit = main["schema"].value("quit",false);
+    info.schemaDump = main["schema"].value("dump", false);
+    info.schemaQuit = main["schema"].value("quit", false);
   }
-
-  
 
   if (main.find("options") != main.end()) {
     info.pluginConfig = main.find("options").value();
@@ -397,10 +388,9 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
 
   // Get the test libraries infomation.
   if (main.find("additionalPlugins") != main.end()) addTestLibrary(main["additionalPlugins"], info.additionalPlugins);
-  
-  // Add any explicity stated command line plugins. 
-  addCommandLinePlugins(argc,argv, info);
 
+  // Add any explicity stated command line plugins.
+  addCommandLinePlugins(argc, argv, info);
 
   if (main.find("workflows") != main.end()) {
     info.workflowInfo = getWorkflowInfo(main["workflows"]);
@@ -479,11 +469,10 @@ RunInfo JsonParser::parse(const json& _json, int* argc, char** argv) {
   validator.set_root_schema(getVVSchema());
   try {
     validator.validate(_json);
-  } catch (std::exception &e) {
+  } catch (std::exception& e) {
     std::cout << e.what();
     std::cout << getVVSchema().dump(4);
     throw INJECTION_EXCEPTION("Input File Parsing Failed.\n Reason : %s", e.what());
-
   }
   return _parse(_json, argc, argv);
 }

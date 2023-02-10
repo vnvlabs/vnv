@@ -23,13 +23,13 @@ void DataTypeStore::addDataType(std::string packageName, std::string name, dataT
 }
 
 IDataType_ptr DataTypeStore::getDataType(long long key) {
-    auto it = dataType_factory.find(key);
-    if (it != dataType_factory.end()) {
-      IDataType_ptr ptr(it->second());
-      ptr->setKey(key);
-      return ptr;
-    }
-    throw INJECTION_EXCEPTION("No data type exists %d" , key);
+  auto it = dataType_factory.find(key);
+  if (it != dataType_factory.end()) {
+    IDataType_ptr ptr(it->second());
+    ptr->setKey(key);
+    return ptr;
+  }
+  throw INJECTION_EXCEPTION("No data type exists %d", key);
 }
 
 IDataType_ptr DataTypeStore::getDataType(std::string name) { return getDataType(getKey("", name)); }

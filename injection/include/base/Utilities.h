@@ -33,8 +33,7 @@ namespace StringUtils {
 
 std::string escapeQuotes(std::string str, bool escapeFullString);
 
-std::string metaDataToJsonString(
-    const std::map<std::string, std::string>& metadata);
+std::string metaDataToJsonString(const std::map<std::string, std::string>& metadata);
 
 void ltrim(std::string& s);
 
@@ -49,7 +48,7 @@ std::string ltrim_copy(std::string s);
 // trim from end (copying)
 std::string rtrim_copy(std::string s);
 
-std::string join(std::vector<std::string>&r, std::string delim=" ");
+std::string join(std::vector<std::string>& r, std::string delim = " ");
 
 // trim from both ends (copying)
 std::string trim_copy(std::string s);
@@ -79,11 +78,9 @@ bool balancedParenthesis(std::string expr);
  * @param result
  * @return
  */
-int StringSplit(const std::string& s, const char* delim,
-                std::vector<std::string>& result, bool addEmpty = false);
+int StringSplit(const std::string& s, const char* delim, std::vector<std::string>& result, bool addEmpty = false);
 
-template <typename ContainerT, typename PredicateT>
-void erase_if(ContainerT& items, const PredicateT& predicate) {
+template <typename ContainerT, typename PredicateT> void erase_if(ContainerT& items, const PredicateT& predicate) {
   for (auto it = items.begin(); it != items.end();) {
     if (predicate(*it))
       it = items.erase(it);
@@ -94,20 +91,17 @@ void erase_if(ContainerT& items, const PredicateT& predicate) {
 
 std::string toString(std::vector<std::size_t> vector);
 
-
 std::string random(std::size_t size);
 
 }  // namespace StringUtils
 
-std::vector<std::pair<std::string, std::string>> bfs(
-    std::map<std::string, std::map<std::string, std::string>>& m,
-    std::string start, std::string end);
+std::vector<std::pair<std::string, std::string>> bfs(std::map<std::string, std::map<std::string, std::string>>& m,
+                                                     std::string start, std::string end);
 
 namespace JsonUtilities {
 
 enum class CreateType { Object, Array, String, Float, Integer };
-nlohmann::json& getOrCreate(nlohmann::json& parent, std::string key,
-                            CreateType type = CreateType::Object);
+nlohmann::json& getOrCreate(nlohmann::json& parent, std::string key, CreateType type = CreateType::Object);
 
 nlohmann::json load(std::string s);
 
@@ -117,16 +111,14 @@ bool validate(const nlohmann::json& obj, const nlohmann::json& schema);
 
 namespace MapUtilities {
 
-template <typename Key, typename Value>
-std::vector<Key> extractKeys(std::map<Key, Value> const& input) {
+template <typename Key, typename Value> std::vector<Key> extractKeys(std::map<Key, Value> const& input) {
   std::vector<Key> res;
   res.reserve(input.size());
   for (auto const& el : input) res.push_back(el.first);
   return res;
 }
 
-template <typename Key, typename Value>
-const Value& maxValue(std::map<Key, Value> const& input) {
+template <typename Key, typename Value> const Value& maxValue(std::map<Key, Value> const& input) {
   auto const& m = input.end();
   for (auto& el : input) {
     if (m == input.end() || el.second > m.second) {
@@ -171,7 +163,6 @@ std::string timeForFile(std::string filename);
 
 std::string timestamp();
 
-
 }  // namespace TimeUtils
 
 namespace HashUtils {
@@ -180,13 +171,11 @@ std::size_t vectorHash(std::vector<int> const& vec);
 }
 
 namespace Log {
-    void up();
-    void down();
-    std::ostream& log();
-}
+void up();
+void down();
+std::ostream& log();
+}  // namespace Log
 
 }  // namespace VnV
-
-
 
 #endif

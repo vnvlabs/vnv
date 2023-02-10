@@ -26,10 +26,8 @@ ICommunicator_ptr UnitTestStore::dispatch(VnV_Comm comm, int cores) {
   auto c = CommunicationStore::instance().getCommunicator(comm);
   if (c->Rank() == 0) {
     if (cores > c->Size()) {
-      VnV_Warn_MPI(
-          VNVPACKAGENAME, VSELF,
-          "Test Requested %d cores but only %d are available -- skipping",
-          cores, c->Size());
+      VnV_Warn_MPI(VNVPACKAGENAME, VSELF, "Test Requested %d cores but only %d are available -- skipping", cores,
+                   c->Size());
       return nullptr;
     }
   }
@@ -56,8 +54,7 @@ nlohmann::json UnitTestStore::schema(json& packageJson) {
   return m;
 }
 
-void UnitTestStore::addUnitTester(std::string packageName, std::string name,
-                                  tester_ptr m, int cores) {
+void UnitTestStore::addUnitTester(std::string packageName, std::string name, tester_ptr m, int cores) {
   if (tester_factory.find(packageName) == tester_factory.end()) {
     tester_factory[packageName] = {};
   }
@@ -65,9 +62,7 @@ void UnitTestStore::addUnitTester(std::string packageName, std::string name,
   tester_cores[packageName + ":" + name] = cores;
 }
 
-
-IUnitTest* UnitTestStore::getUnitTester(std::string packageName,
-                                        std::string name) {
+IUnitTest* UnitTestStore::getUnitTester(std::string packageName, std::string name) {
   auto it = tester_factory.find(packageName);
   if (it != tester_factory.end()) {
     auto itt = it->second.find(name);
@@ -78,18 +73,15 @@ IUnitTest* UnitTestStore::getUnitTester(std::string packageName,
   return nullptr;
 }
 
-void UnitTestStore::runTest(ICommunicator_ptr comm, std::string packageName,
-                            std::string name, IUnitTest* tester) {
+void UnitTestStore::runTest(ICommunicator_ptr comm, std::string packageName, std::string name, IUnitTest* tester) {
   tester->setComm(comm);
-  OutputEngineManager* engineManager =
-      OutputEngineStore::instance().getEngineManager();
+  OutputEngineManager* engineManager = OutputEngineStore::instance().getEngineManager();
   engineManager->unitTestStartedCallBack(comm, packageName, name);
   tester->run();
   engineManager->unitTestFinishedCallBack(tester);
 }
 
-void UnitTestStore::runTest(ICommunicator_ptr comm, std::string packageName,
-                            std::string name) {
+void UnitTestStore::runTest(ICommunicator_ptr comm, std::string packageName, std::string name) {
   auto it = tester_factory.find(packageName);
   if (it != tester_factory.end()) {
     auto itt = it->second.find(name);
@@ -121,8 +113,7 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
     std::set<std::string> blist;
     if (info.unitTestConfig.contains(it.first)) {
       json& pconfig = info.unitTestConfig[it.first];
-      if (pconfig.contains("runUnitTests") &&
-          !pconfig["runUnitTests"].get<bool>()) {
+      if (pconfig.contains("runUnitTests") && !pconfig["runUnitTests"].get<bool>()) {
         // run unit tests was false --> so we continue without adding any from
         // this pacakge.
         continue;
@@ -141,18 +132,16 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
         std::string key = it.first + ":" + itt.first;
         int cores = tester_cores[key];
 
-        tests.push_back(
-            std::make_tuple(cores, it.first, itt.first, itt.second));
+        tests.push_back(std::make_tuple(cores, it.first, itt.first, itt.second));
       }
     }
   }
 
-  std::sort(
-      tests.begin(), tests.end(),
-      [](const std::tuple<int, std::string, std::string, tester_ptr>& p1,
-         const std::tuple<int, std::string, std::string, tester_ptr>& p2) {
-        return std::get<0>(p1) > std::get<0>(p2);
-      });
+  std::sort(tests.begin(), tests.end(),
+            [](const std::tuple<int, std::string, std::string, tester_ptr>& p1,
+               const std::tuple<int, std::string, std::string, tester_ptr>& p2) {
+              return std::get<0>(p1) > std::get<0>(p2);
+            });
 
   auto it = tests.begin();
   int currentBuffer = 0;
@@ -170,9 +159,7 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
     std::string name = std::get<2>(*it);
     std::string pname = std::get<1>(*it);
     if (req > size) {
-      VnV_Warn(VNVPACKAGENAME,
-               "Ignoring test %s because cannot fufull requested cores of %d",
-               name.c_str(), req);
+      VnV_Warn(VNVPACKAGENAME, "Ignoring test %s because cannot fufull requested cores of %d", name.c_str(), req);
       it = tests.erase(it);
     } else if (currentBuffer + req <= size) {
       if (rank >= currentBuffer && rank < currentBuffer + req) {
@@ -197,8 +184,8 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
         // Create comm - collective on the ranks [myStart,myEnd).
         ICommunicator_ptr p = c->create(myStart, myEnd, 1, 10);
         auto pcomm = CommunicationStore::instance().toVnVComm(p);
-        VnV_Debug_MPI(VNVPACKAGENAME, pcomm, "Running %s %s on range [%d,%d)",
-                      myName.c_str(), myPackage.c_str(), myStart, myEnd);
+        VnV_Debug_MPI(VNVPACKAGENAME, pcomm, "Running %s %s on range [%d,%d)", myName.c_str(), myPackage.c_str(),
+                      myStart, myEnd);
         runTest(p, myPackage, myName, (*myTester)());
       }
       currentBuffer = 0;
@@ -219,7 +206,6 @@ void UnitTestStore::print() {
   }
 }
 
-void VnV::registerUnitTester(std::string packageName, std::string name,
-                             tester_ptr m, int cores) {
+void VnV::registerUnitTester(std::string packageName, std::string name, tester_ptr m, int cores) {
   UnitTestStore::instance().addUnitTester(packageName, name, m, cores);
 }

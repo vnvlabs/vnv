@@ -14,19 +14,13 @@
 
 namespace VnV {
 
-class IteratorsStore
-    : public TestStoreTemplate<IIterator, iterator_maker_ptr, IteratorConfig>,
-      public BaseStore {
+class IteratorsStore : public TestStoreTemplate<IIterator, iterator_maker_ptr, IteratorConfig>, public BaseStore {
  public:
-  IteratorsStore()
-      : TestStoreTemplate<IIterator, iterator_maker_ptr, IteratorConfig>() {}
+  IteratorsStore() : TestStoreTemplate<IIterator, iterator_maker_ptr, IteratorConfig>() {}
 
   static IteratorsStore& instance();
 
-  nlohmann::json schema(json& packageJson) {
-    return schema_(packageJson,"Iterators");
-  }
-
+  nlohmann::json schema(json& packageJson) { return schema_(packageJson, "Iterators"); }
 };
 
 }  // namespace VnV

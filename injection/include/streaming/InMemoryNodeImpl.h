@@ -71,7 +71,6 @@ class InMemory {
     MapNode() : DataBaseImpl<IMapNode>() {}
 
     virtual void insert(std::string key, std::shared_ptr<DataBase> val) {
-    
       auto parent = map.find(key);
       if (parent == map.end()) {
         map[key] = val;
@@ -85,26 +84,24 @@ class InMemory {
         } else {
           auto exist = parent->second;
           if (exist->getType() != DataType::Array) {
-
             // Not an array -- so convert it (we collate ids of same type.)
             auto a = std::make_shared<ArrayNode>();
             rootNode()->registerNode(a);
-            
+
             a->setname(key);
-            std::cout << a->toJson().dump() <<std::endl;
+            std::cout << a->toJson().dump() << std::endl;
 
             a->add(exist);
-            std::cout << a->toJson().dump() <<std::endl;
+            std::cout << a->toJson().dump() << std::endl;
 
             a->add(val);
-            std::cout << a->toJson().dump() <<std::endl;
+            std::cout << a->toJson().dump() << std::endl;
 
             map[key] = a;
           } else {
-            std::cout << exist->getAsArrayNode(exist)->toJson().dump() <<std::endl;
-       
+            std::cout << exist->getAsArrayNode(exist)->toJson().dump() << std::endl;
+
             exist->getAsArrayNode(exist)->add(val);
-       
           }
         }
       }
@@ -146,13 +143,13 @@ class InMemory {
       }                                                                                                         \
       if (rshape.size() != shape.size())                                                                        \
         throw INJECTION_EXCEPTION("%s: Invalid Shape Size %d (should be %d)", #x, rshape.size(), shape.size()); \
-      \
-      std::size_t mult = 1;                                                                          \
-      int index = 0;                                                                                \
-      for (int i = shape.size()-1; i >= 0 ; i--) {                                                               \
+                                                                                                                \
+      std::size_t mult = 1;                                                                                     \
+      int index = 0;                                                                                            \
+      for (int i = shape.size() - 1; i >= 0; i--) {                                                             \
         index += rshape[i] * mult;                                                                              \
-        mult *= shape[i];                                                                                        \
-      }\
+        mult *= shape[i];                                                                                       \
+      }                                                                                                         \
       return getValueByIndex(index);                                                                            \
     }                                                                                                           \
     void add(const y& v) { value.push_back(v); }                                                                \

@@ -7,17 +7,17 @@ void VnV::CppPlug::Register(const char* package, const char* id, std::string jso
   try {
     VnV::PlugStore::instance().registerPlug(package, id, json);
 
-  } catch (std::exception &e) {
+  } catch (std::exception& e) {
     VnV_Error(VNVPACKAGENAME, "Error Registering Plug %s:%s", package, id);
   }
 }
 
 VnV_Iterator VnV::CppPlug::BeginPlug(VnV_Comm comm, const char* package, const char* id, struct VnV_Function_Sig pretty,
-                                     const char* fname, int line, const DataCallback &callback, NTV& parameters) {
+                                     const char* fname, int line, const DataCallback& callback, NTV& parameters) {
   try {
     return VnV::RunTime::instance().injectionPlug(comm, package, id, pretty, fname, line, callback, parameters);
 
-  } catch (std::exception &e) {
+  } catch (std::exception& e) {
     VnV_Error(VNVPACKAGENAME, "Error Running Loop %s:%s", package, id);
     return {NULL};
   }
@@ -27,7 +27,7 @@ int VnV::CppPlug::Iterate(VnV_Iterator* iterator) {
   try {
     return VnV::RunTime::instance().injectionPlugRun(iterator);
 
-  } catch (std::exception &e) {
+  } catch (std::exception& e) {
     VnV_Error(VNVPACKAGENAME, "Error Running iterate");
     return 0;
   }

@@ -47,7 +47,7 @@ bool SamplerStore::createSampler(const SamplerConfig& config) {
       ISampler_ptr s(it->second.first(j));
       samplers[config.ipPackage + ":" + config.ipName] = s;
       return true;
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
       return false;
     }
   }

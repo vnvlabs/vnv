@@ -51,12 +51,10 @@ template class SingleVariableMinimization<double>;
    The optimal values for this function are [:vnv:`data.xopt` , :vnv:`data.yopt`].
 
 **/
-INJECTION_ITERATOR_R(VNVPACKAGENAME, singleParameterMinimization,
-                     SingleVariableMinimization<double>) {
+INJECTION_ITERATOR_R(VNVPACKAGENAME, singleParameterMinimization, SingleVariableMinimization<double>) {
   const json& p = getConfigurationJson();
   if (!runner->configured()) {
-    runner->setRange(p["min"].get<double>(), p["max"].get<double>(),
-                     p["step"].get<double>());
+    runner->setRange(p["min"].get<double>(), p["max"].get<double>(), p["step"].get<double>());
   }
   double* next = getInputPtr<double>(p["variable"], "double");
   double* feval = getInputPtr<double>(p["feval"], "double");

@@ -15,28 +15,28 @@ class BashScheduler : public VnV::IScheduler {
                           int timeout) override {
     std::string s = VnV::StringUtils::random(5);
 
-    //First, we write there script to file. 
-    
+    // First, we write there script to file.
+
     std::ostringstream os;
     os << "#!/bin/env bash \n\n"
        << "cd " << workingDirectory << " \n";
-    
+
     for (auto it : environ) {
       os << "export " << it.first << "=" << it.second << "\n";
     }
     os << "\n\n" << setup << "\n\n" << script << "\n\n" << teardown << "\n\n";
 
-    // Execute the script. 
+    // Execute the script.
     auto p = VnV::DistUtils::exec(os.str());
 
-    //Add it to our database of processes 
+    // Add it to our database of processes
     std::string ra = VnV::StringUtils::random(5);
     while (processes.find(ra) != processes.end()) {
       ra = VnV::StringUtils::random(5);
     }
     processes[ra] = p;
 
-    // Wait until timeout expires or until it finishes running 
+    // Wait until timeout expires or until it finishes running
     auto t = std::chrono::system_clock::now();
     while (true) {
       auto n = std::chrono::system_clock::now() - t;
@@ -78,28 +78,23 @@ class BashScheduler : public VnV::IScheduler {
   }
 
   virtual VnV::ProcessResult status(std::string jobId, long timeout = -1) override {
-    
     auto rr = processes.find(jobId);
     if (rr != processes.end()) {
-      
       if (timeout > 0) {
-            auto t = std::chrono::system_clock::now();
-            while (!rr->second->running() && std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - t ).count() < timeout) {}
-      }
-      
-      if (rr->second->running()) {    
-          return VnV::ProcessResult(VnV::ProcessResult::Status::RUNNING, -1,"","");
-      
-      } else {
-      
-          return VnV::ProcessResult(
-              VnV::ProcessResult::Status::SUCCESS, 
-              rr->second->getExitStatus(),
-              rr->second->getStdout(), 
-              rr->second->getStdError());
-      
+        auto t = std::chrono::system_clock::now();
+        while (!rr->second->running() &&
+               std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - t).count() <
+                   timeout) {
+        }
       }
 
+      if (rr->second->running()) {
+        return VnV::ProcessResult(VnV::ProcessResult::Status::RUNNING, -1, "", "");
+
+      } else {
+        return VnV::ProcessResult(VnV::ProcessResult::Status::SUCCESS, rr->second->getExitStatus(),
+                                  rr->second->getStdout(), rr->second->getStdError());
+      }
     }
     throw INJECTION_EXCEPTION("Unknown Job %s", jobId.c_str());
   }
@@ -171,7 +166,8 @@ class SlurmScheduler : public BashScheduler {
     std::string stdo = a->getStdout();
     std::string stde = a->getStdError();
     int exitStat = a->getExitStatus();
-    return VnV::ProcessResult(VnV::ProcessResult::Status::SUCCESS,exitStat,stdo,stde);;  // TODO
+    return VnV::ProcessResult(VnV::ProcessResult::Status::SUCCESS, exitStat, stdo, stde);
+    ;  // TODO
   }
 
   virtual void cancel(std::string jobId) override {
@@ -184,20 +180,22 @@ class SlurmScheduler : public BashScheduler {
     }
   }
 
-  virtual VnV::ProcessResult status(std::string jobId, long timeout = -1 ) override {
+  virtual VnV::ProcessResult status(std::string jobId, long timeout = -1) override {
     auto rr = sprocesses.find(jobId);
     if (rr != sprocesses.end()) {
-      
-       if (timeout > 0) {
-            auto t = std::chrono::system_clock::now();
-            while (!rr->second->running() && std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - t ).count() < timeout) {}
-       }
-      
-       if (rr->second->running()) {    
-          return VnV::ProcessResult(VnV::ProcessResult::Status::RUNNING, -1,"","");
+      if (timeout > 0) {
+        auto t = std::chrono::system_clock::now();
+        while (!rr->second->running() &&
+               std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - t).count() <
+                   timeout) {
+        }
+      }
+
+      if (rr->second->running()) {
+        return VnV::ProcessResult(VnV::ProcessResult::Status::RUNNING, -1, "", "");
       } else {
-          return processSlurmResult(jobId); 
-      }    
+        return processSlurmResult(jobId);
+      }
     }
     return BashScheduler::status(jobId);
   }

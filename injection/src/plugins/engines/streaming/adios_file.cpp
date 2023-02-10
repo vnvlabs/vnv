@@ -186,10 +186,10 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
   }
 
   json getRunInfo() override {
-     json j = json::object();
-     j["reader"] = "adios_file";
-     j["filename"] = filestub;
-     return j;
+    json j = json::object();
+    j["reader"] = "adios_file";
+    j["filename"] = filestub;
+    return j;
   }
 
   virtual void initialize(json& config) override {
@@ -218,7 +218,8 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
   }
 
   static std::string getResponseFileName(std::string stub, long id, long jid) {
-    return VnV::DistUtils::join({stub, "__response__", std::to_string(jid) + "_" + std::to_string(id)}, 0777, true, true);
+    return VnV::DistUtils::join({stub, "__response__", std::to_string(jid) + "_" + std::to_string(id)}, 0777, true,
+                                true);
   }
 
   virtual bool supportsFetch() override { return true; }
@@ -387,9 +388,7 @@ class MultiAdiosStreamIterator : public MultiStreamIterator<AdiosFileIterator, j
   std::string response_stub = "";
 
  public:
-  MultiAdiosStreamIterator(std::string fstub) : MultiStreamIterator<AdiosFileIterator, json>(), filestub(fstub) {
-    
-  }
+  MultiAdiosStreamIterator(std::string fstub) : MultiStreamIterator<AdiosFileIterator, json>(), filestub(fstub) {}
 
   virtual void respond(long id, long jid, const json& response) override {
     // Respond to a file request in a format that will be understood by rhe Json Stream that is
@@ -413,7 +412,7 @@ class MultiAdiosStreamIterator : public MultiStreamIterator<AdiosFileIterator, j
             std::string fname = VnV::DistUtils::join({filestub, it}, 0777, false);
             add(std::make_shared<AdiosFileIterator>(id, fname));
           }
-        } catch (std::exception &e) {
+        } catch (std::exception& e) {
         }
       }
     }

@@ -22,7 +22,7 @@ void OutputEngineStore::setEngineManager(ICommunicator_ptr world, std::string ty
       manager.reset((*it->second)());
     } catch (std::exception& e) {
       HTHROW INJECTION_EXCEPTION("Engine init failed:  %s", e.what());
-    } 
+    }
 
     if (manager == nullptr) {
       std::abort();
@@ -39,7 +39,7 @@ void OutputEngineStore::setEngineManager(ICommunicator_ptr world, std::string ty
         engineName = type;
       }
       return;
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
       HTHROW INJECTION_EXCEPTION_("Invalid Engine Schema");
     }
   }
@@ -111,10 +111,11 @@ std::shared_ptr<Nodes::IRootNode> OutputEngineStore::readFile(std::string filena
         validator.set_root_schema(schema);
         validator.validate(config);
       }
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
       throw INJECTION_EXCEPTION("Invalid Engine Reader Configuration: %s", engineType.c_str());
     }
-    std::cout << "READING THE FILE" << " " << filename << std::endl;
+    std::cout << "READING THE FILE"
+              << " " << filename << std::endl;
     return (*it->second)(filename, idCounter, config, async);
   }
   throw INJECTION_EXCEPTION("Invalid Engine Reader %s ", engineType.c_str());

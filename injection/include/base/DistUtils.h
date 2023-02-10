@@ -40,29 +40,18 @@ void close_file(LockFile* lockfile);
 
 bool fileExists(std::string filename);
 
-
-class LockFile { 
-public:
-  
+class LockFile {
+ public:
   int fd;
   std::string fname;
-  LockFile(std::string filename) : fname(filename) {
-     initialize_lock(this);
-  }
+  LockFile(std::string filename) : fname(filename) { initialize_lock(this); }
 
-  void lock() {
-    lock_file(this);
-  }
-  void unlock() {
-    unlock_file(this);
-  }
-  void close() {
-    close_file(this);
-  }
+  void lock() { lock_file(this); }
+  void unlock() { unlock_file(this); }
+  void close() { close_file(this); }
+};
 
-};  
-
-bool fileEquals(std::string f1, std::string f2); 
+bool fileEquals(std::string f1, std::string f2);
 bool fileInDirectory(std::string file, std::string directory);
 
 /**
@@ -89,29 +78,27 @@ bool makedir(std::string filename, mode_t mode);
 
 bool mv(std::string oldFileName, std::string newFilename);
 bool cp(std::string oldFileName, std::string newFilename);
-bool ln(std::string oldFileName, std::string newFilename, bool hard=false);
-
+bool ln(std::string oldFileName, std::string newFilename, bool hard = false);
 
 class VnVProcess {
-public:  
- virtual void wait() = 0;
- virtual bool running() = 0;
- virtual int getExitStatus() = 0;
- virtual void cancel() = 0;
- virtual std::string getStdout() = 0;
- virtual std::string getStdError() = 0;
+ public:
+  virtual void wait() = 0;
+  virtual bool running() = 0;
+  virtual int getExitStatus() = 0;
+  virtual void cancel() = 0;
+  virtual std::string getStdout() = 0;
+  virtual std::string getStdError() = 0;
 
- virtual ~VnVProcess(){}
+  virtual ~VnVProcess() {}
 };
 std::shared_ptr<VnVProcess> exec(std::string cmd);
-
 
 std::string getEnvironmentVariable(std::string val, std::string def = "");
 
 std::string getTempFolder();
-std::string getTempFile(std::string code = StringUtils::random(10), std::string ext=".sh");
+std::string getTempFile(std::string code = StringUtils::random(10), std::string ext = ".sh");
 
-void permissions(std::string fname, bool read, bool write, bool execute );
+void permissions(std::string fname, bool read, bool write, bool execute);
 
 /**
  * Make the nested directories with the given mode.

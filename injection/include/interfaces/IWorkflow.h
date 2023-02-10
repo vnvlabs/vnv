@@ -133,7 +133,7 @@ class Job {
   void setKillOnError(bool val) { killOnError = val; }
   void setExpectedRuntime(long val) { expectedRunTime = val; }
   void setRunBeforeMainApplication(bool val) { beforeApplication = val; }
-  void setHasVnVReports(bool val) { hasVnVReports = val;}
+  void setHasVnVReports(bool val) { hasVnVReports = val; }
 
   std::string getName() const { return name; }
   std::string getWorkingDirectory() const { return working_directory; }
@@ -166,8 +166,7 @@ class Job {
   void addDepdendency(std::shared_ptr<IValidator> v) { dependencies.push_back(v); }
   const std::vector<std::shared_ptr<IValidator>>& getDependencies() { return dependencies; }
 
-  std::string getVnVJobName() const { 
-      return vnv_workflow_id; }
+  std::string getVnVJobName() const { return vnv_workflow_id; }
 
   std::string getVnVJobDir() const { return vnvJobDir.empty() ? getWorkingDirectory() : vnvJobDir; }
 
@@ -306,12 +305,8 @@ class JobManager {
     return name;
   }
 
-  void pushCreator(std::string package, std::string name) {
-      creators.push(package + ":" + name);
-  }
-  void popCreator() {
-      creators.pop();
-  }
+  void pushCreator(std::string package, std::string name) { creators.push(package + ":" + name); }
+  void popCreator() { creators.pop(); }
 
   template <typename T>
   static std::string addnode(std::string type, const T value, std::map<std::string, nlohmann::json>& nodes) {
@@ -521,12 +516,7 @@ class InjaScriptGenerator : public IScriptGenerator {
   }                                                                                                   \
   void VnV::PNAME::JobCreators::name::createJob(JobManager& manager)
 
-
-
-#define INJECTION_CREATE_JOB(VAR,NAME,SCHEDULER)\
-    auto VAR = manager.create(NAME,SCHEDULER);
-
-
+#define INJECTION_CREATE_JOB(VAR, NAME, SCHEDULER) auto VAR = manager.create(NAME, SCHEDULER);
 
 #define DECLAREJOBCREATOR(PNAME, name) \
   namespace VnV {                      \

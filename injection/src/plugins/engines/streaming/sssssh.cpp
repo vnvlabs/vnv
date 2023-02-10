@@ -55,15 +55,12 @@ class NullManager : public OutputEngineManager {
 
   virtual void packageOptionsEndedCallBack(std::string packageName) override {}
 
-  virtual void initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName) {};
-  virtual void initializationEndedCallBack(std::string packageName) {};
-
+  virtual void initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName){};
+  virtual void initializationEndedCallBack(std::string packageName){};
 
   void unitTestFinishedCallBack(IUnitTest* tester) {}
 
-  json getRunInfo() override {
-    return json::object();
-  }
+  json getRunInfo() override { return json::object(); }
 
   // IInternalOutputEngine interface
   std::string print() override { return ""; }

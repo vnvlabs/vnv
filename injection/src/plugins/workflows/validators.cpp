@@ -7,12 +7,7 @@
 
 /**************************BOOLEAN VALIDATOR ****************/
 
-namespace {
-
-
-
-
-}  // namespace
+namespace {}  // namespace
 
 class BooleanValidator : public VnV::IValidator {
   bool val = true;

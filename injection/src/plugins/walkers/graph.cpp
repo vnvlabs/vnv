@@ -12,9 +12,7 @@ class SequentialGraphIter : public VnV::Walkers::Iter {
   std::list<IDN>::iterator indexIter;
 
   // Include a .
-  bool includeProc(long streamId) {
-    return streamId == rootComm || commMap->commIsChild(rootComm, streamId);
-  }
+  bool includeProc(long streamId) { return streamId == rootComm || commMap->commIsChild(rootComm, streamId); }
 
   std::map<long, long> currentNodeForComm;
   std::map<long, std::set<long>> commSubs;
@@ -37,8 +35,7 @@ class SequentialGraphIter : public VnV::Walkers::Iter {
   }
 
   void addEdges(long comm, long streamId, long nodeId, std::set<long>& edges) {
-    bool intersect =
-        comm == streamId || commMap->commsIntersect(streamId, comm);
+    bool intersect = comm == streamId || commMap->commsIntersect(streamId, comm);
 
     if (!intersect) {
       return;  // No intersection between the two comms.
@@ -74,8 +71,7 @@ class SequentialGraphIter : public VnV::Walkers::Iter {
   // Get the next node id->vector of parents
 
  public:
-  SequentialGraphIter(std::shared_ptr<const ICommMap> comm, long commId,
-                      std::map<long, std::list<IDN>>& n)
+  SequentialGraphIter(std::shared_ptr<const ICommMap> comm, long commId, std::map<long, std::list<IDN>>& n)
       : Iter(comm, n), rootComm(commId) {
     indexIter = niter->second.begin();
   }
@@ -102,7 +98,7 @@ class SequentialGraphIter : public VnV::Walkers::Iter {
 
 class RootNodeGraphWalk : public VnV::IWalker {
   IRootNode* rootNode;
-  
+
   std::shared_ptr<SequentialGraphIter> procIter;
   std::tuple<long, node_type, std::set<long>> curr;
 
@@ -123,8 +119,7 @@ class RootNodeGraphWalk : public VnV::IWalker {
  public:
   RootNodeGraphWalk(IRootNode* root, long commId) : IWalker(root) {
     rootNode = root;
-    procIter = std::make_shared<SequentialGraphIter>(
-        root->getCommInfoNode()->getCommMap(), commId, root->getNodes());
+    procIter = std::make_shared<SequentialGraphIter>(root->getCommInfoNode()->getCommMap(), commId, root->getNodes());
   }
 };
 

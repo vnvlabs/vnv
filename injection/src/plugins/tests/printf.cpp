@@ -23,8 +23,7 @@ static std::string default_type = "Put";
 INJECTION_TEST(VNVPACKAGENAME, printMessage) {
   const json& j = getConfigurationJson();
   auto message = j.find("message");
-  std::string m = (message == j.end()) ? default_message
-                                       : message.value().get<std::string>();
+  std::string m = (message == j.end()) ? default_message : message.value().get<std::string>();
   engine->Put("message", m);
   return SUCCESS;
 }

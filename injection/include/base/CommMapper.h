@@ -139,8 +139,7 @@ class CommMapper {
 
   json getCommJson(ICommunicator_ptr worldcomm);
 
-  static void commsMapSetToMap(const CommWrap_ptr& ptr,
-                               std::map<long, CommWrap_ptr>& comms) {
+  static void commsMapSetToMap(const CommWrap_ptr& ptr, std::map<long, CommWrap_ptr>& comms) {
     auto it = comms.find(ptr->id);
     if (it == comms.end()) {
       comms.insert(std::make_pair(ptr->id, ptr));
@@ -150,8 +149,7 @@ class CommMapper {
     }
   }
 
-  static std::map<long, CommWrap_ptr> convertToMap(
-      std::set<CommWrap_ptr>& comms) {
+  static std::map<long, CommWrap_ptr> convertToMap(std::set<CommWrap_ptr>& comms) {
     std::map<long, CommWrap_ptr> m;
     for (auto& it : comms) {
       commsMapSetToMap(it, m);
@@ -162,13 +160,7 @@ class CommMapper {
   std::vector<long> listAllComms(ICommunicator_ptr sharedPtr);
 };
 
-enum class DataRelative {
-  PARENT,
-  CHILD,
-  OLDERSIBLING,
-  YOUNGERSIBLING,
-  STRANGER
-};
+enum class DataRelative { PARENT, CHILD, OLDERSIBLING, YOUNGERSIBLING, STRANGER };
 
 class InjectionPointInterface {
  public:
@@ -191,9 +183,7 @@ class InjectionPointMerger {
   std::set<long> chain;
   CommWrap_ptr commWrap;
 
-  InjectionPointMerger(InjectionPointInterface& m,
-                       std::map<long, std::shared_ptr<CommWrap>>& comms,
-                       bool isR = false)
+  InjectionPointMerger(InjectionPointInterface& m, std::map<long, std::shared_ptr<CommWrap>>& comms, bool isR = false)
       : isRoot(isR), main(m) {
     if (!isRoot) {
       idstart = main.startId();
@@ -235,10 +225,8 @@ class InjectionPointMerger {
       return DataRelative::PARENT;
     } else if (isRoot || (data->idstart > idstart && data->idstop < idstop)) {
       bool isNewChild = true;
-      for (auto childStartId = children.begin();
-           childStartId != children.end();) {
-        for (auto child = childStartId->second.begin();
-             child != childStartId->second.end();) {
+      for (auto childStartId = children.begin(); childStartId != children.end();) {
+        for (auto child = childStartId->second.begin(); child != childStartId->second.end();) {
           auto r = (*child)->getRelation(data);
           if (r == DataRelative::CHILD) {
             return DataRelative::CHILD;  // child so its handled --> Return .
@@ -266,11 +254,9 @@ class InjectionPointMerger {
     return DataRelative::STRANGER;
   }
 
-  static void join(
-      std::shared_ptr<InjectionPointMerger>& datastruct, long commId,
-      std::map<long, CommWrap_ptr> comms, std::string outfile,
-      std::set<long>& done,
-      std::function<std::shared_ptr<InjectionPointInterface>(long)>& parse) {
+  static void join(std::shared_ptr<InjectionPointMerger>& datastruct, long commId, std::map<long, CommWrap_ptr> comms,
+                   std::string outfile, std::set<long>& done,
+                   std::function<std::shared_ptr<InjectionPointInterface>(long)>& parse) {
     // Don't add comms twice.
     auto comm = comms.find(commId)->second;
     if (done.find(commId) != done.end())
@@ -301,9 +287,8 @@ class InjectionPointMerger {
   static std::shared_ptr<InjectionPointMerger> join(
       std::string outputfile, std::set<CommWrap_ptr>& comms,
       std::function<std::shared_ptr<InjectionPointInterface>(long)>& parse) {
-    
     INJECTION_ASSERT(comms.size() != 1, "Invalid Comms Object. Size should be one but it was %ld", comms.size());
-    
+
     std::map<long, CommWrap_ptr> commsMap = CommMapper::convertToMap(comms);
     std::shared_ptr<InjectionPointMerger> dstruct = nullptr;
     std::set<long> done;

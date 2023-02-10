@@ -10,10 +10,10 @@
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/DataTypeStore.h"
 #include "base/stores/ReductionStore.h"
+#include "c-interfaces/Wrappers.h"
 #include "common-interfaces/Communication.h"
 #include "common-interfaces/Logging.h"
 #include "common-interfaces/PackageName.h"
-#include "c-interfaces/Wrappers.h"
 #include "interfaces/ActionType.h"
 #include "interfaces/IUnitTest.h"
 #include "json-schema.hpp"
@@ -45,23 +45,22 @@ class BaseAction {
   virtual int count(ICommunicator_ptr comm, int engineRoot) const = 0;
 
   template <typename T> std::vector<T> flatten(std::vector<std::vector<T>>& data) {
-      if (data.size() == 0 ) return {};
+    if (data.size() == 0) return {};
 
     int rows = data.size();
     int cols = data[0].size();
 
     std::vector<T> res;
-    res.reserve(rows*cols);
+    res.reserve(rows * cols);
 
-    for (int i = 0; i < rows; i++) { 
-      auto &col = data[i];
+    for (int i = 0; i < rows; i++) {
+      auto& col = data[i];
       for (int j = 0; j < col.size(); j++) {
-        res.push_back(col[j]);         
+        res.push_back(col[j]);
       }
     }
     return res;
   }
-
 };
 
 class IOutputEngine {
@@ -76,7 +75,10 @@ class IOutputEngine {
   virtual void Log(ICommunicator_ptr comm, const char* packageName, int stage, std::string level,
                    std::string message) = 0;
 
-  virtual bool Fetch(std::string /* message */, const json& /* schema */, long /* timeoutInSeconds */, json& /* response */) { return false; }
+  virtual bool Fetch(std::string /* message */, const json& /* schema */, long /* timeoutInSeconds */,
+                     json& /* response */) {
+    return false;
+  }
 
   virtual void Put(std::string variableName, const bool& value, const MetaData& m = MetaData()) = 0;
 
@@ -133,7 +135,6 @@ class IOutputEngine {
   template <typename T>
   void Write(std::string variableName, long long key, T* data, const BaseAction& action,
              const MetaData& m = MetaData()) {
-    
     int total = action.count(comm, getRoot());
 
     try {
@@ -233,7 +234,7 @@ class IOutputEngine {
   void Put_Matrix(std::string variableName, std::vector<std::vector<T>>& data, std::pair<int, int>& gsize,
                   std::pair<int, int>& offsets, const MetaData& m = MetaData());
 
-  // Flat version of above for matrices that are allready flat. 
+  // Flat version of above for matrices that are allready flat.
   template <typename T>
   void Put_Matrix(std::string variableName, int xdim, std::vector<T>& data, std::pair<int, int>& gsize,
                   std::pair<int, int>& offsets, const MetaData& m = MetaData());
@@ -487,11 +488,11 @@ void IOutputEngine::IOutputEngine::Put_Matrix(std::string variableName, int xdim
   if (data.size() == 0) {
     return;
   }
-  if (data.size() % xdim != 0 ) throw INJECTION_EXCEPTION_("Invalid Data Size passed to Put Matrix");
+  if (data.size() % xdim != 0) throw INJECTION_EXCEPTION_("Invalid Data Size passed to Put Matrix");
 
   std::vector<int> gsizes = {gsize.first, gsize.second};
   std::vector<int> offs = {offsets.first, offsets.second};
-  std::vector<int> lsizes = {xdim, data.size() / xdim };
+  std::vector<int> lsizes = {xdim, data.size() / xdim};
 
   GlobalArrayAction action(gsizes, lsizes, offs);
   Write(variableName, data.data(), action, m);
@@ -708,17 +709,20 @@ class IInternalOutputEngine : public IOutputEngine {
                                      ActionStage::type /* stage */){};
   virtual void actionEndedCallBack(ActionStage::type /* stage */){};
 
-  virtual void workflowStartedCallback(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */, const json&/* info */){
+  virtual void workflowStartedCallback(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */,
+                                       const json& /* info */) {
     throw VnVExceptionBase("Workflows not supported by this engine;");
   };
-  virtual void workflowEndedCallback(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */, const json&/* info */){
+  virtual void workflowEndedCallback(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */,
+                                     const json& /* info */) {
     throw VnVExceptionBase("Workflows not supported by this engine;");
   };
-  
-  virtual void workflowUpdatedCallback(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */, const json&/* info */){
+
+  virtual void workflowUpdatedCallback(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */,
+                                       const json& /* info */) {
     throw VnVExceptionBase("Workflows not supported by this engine;");
   };
-  
+
   virtual void testStartedCallBack(std::string packageName, std::string testName, bool internal, long uuid) = 0;
   virtual void testFinishedCallBack(bool result_) = 0;
 
@@ -731,7 +735,6 @@ class IInternalOutputEngine : public IOutputEngine {
 
   virtual void initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName) = 0;
   virtual void initializationEndedCallBack(std::string packageName) = 0;
-
 
   virtual void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile,
                     std::string filename, std::string reader) = 0;
@@ -757,8 +760,6 @@ class OutputEngineManager : public IInternalOutputEngine {
   void set(ICommunicator_ptr world, json& configuration, std::string key);
 
   IOutputEngine* getOutputEngine();
-
-
 
   virtual ~OutputEngineManager() = default;
 };
