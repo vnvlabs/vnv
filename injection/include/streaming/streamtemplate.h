@@ -220,7 +220,7 @@ template <typename T, typename V> class MultiStreamIterator : public Iterator<V>
 
   virtual void add(std::shared_ptr<T> iter) { instreams.push_back(iter); }
 
-  virtual bool isDone() {
+  virtual bool isDone() override{
     updateStreams();
 
     if (instreams.size() == 0) {
@@ -249,7 +249,7 @@ template <typename T, typename V> class MultiStreamIterator : public Iterator<V>
 
   virtual long streamId() const override { return (*min)->streamId(); }
 
-  virtual long peekId() {
+  virtual long peekId() override {
     this->pullLine(true);
     return (*min)->peekId();
   }
@@ -587,16 +587,16 @@ template <typename T> class StreamManager : public OutputEngineManager {
   std::string outputFile;
   std::shared_ptr<StreamWriter<T>> stream;
 
-  std::string getId() { return std::to_string(StreamManager<T>::id++); }
+  std::string getId() { return std::to_string(id++); }
 
   virtual void write(T& j) {
     // j[JSD::time] = VnV::RunTime::instance().currentTime();
     if (stream != nullptr) {
-      stream->write(comm->uniqueId(), j, StreamManager<T>::id++);
+      stream->write(comm->uniqueId(), j, id++);
     }
   }
 
-  virtual void syncId() { StreamManager<T>::id = getNextId(comm, StreamManager<T>::id); }
+  virtual void syncId() { id = getNextId(comm, id); }
 
   virtual void setComm(ICommunicator_ptr comm, bool syncIds) {
     setCommunicator(comm);
@@ -677,7 +677,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
 
     if (comm->Rank() == getRoot()) {
       response = json::object();
-      bool worked = fetch(comm->uniqueId(), message, schema, timeoutInSeconds, response, StreamManager<T>::id++);
+      bool worked = fetch(comm->uniqueId(), message, schema, timeoutInSeconds, response, id++);
       line = response.dump();
       if (worked) {
         size = line.size();
@@ -717,7 +717,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
 #undef LTypes
 
       void
-      Put(std::string variableName, IDataType_ptr data, const MetaData& m) {
+      Put(std::string variableName, IDataType_ptr data, const MetaData& m) override {
     if (comm->Rank() == getRoot()) {
       T j = T::object();
       j[JSD::node] = JSN::dataTypeStarted;
@@ -739,7 +739,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   }
 
   void PutGlobalArray(long long dtype, std::string variableName, IDataType_vec data, std::vector<int> gsizes,
-                      std::vector<int> sizes, std::vector<int> offset, const MetaData& m) {
+                      std::vector<int> sizes, std::vector<int> offset, const MetaData& m) override {
     VnV::DataTypeCommunication d(comm);
 
     IDataType_ptr mainDT = DataTypeStore::instance().getDataType(dtype);
@@ -836,7 +836,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
     }
   }
 
-  void Log(ICommunicator_ptr logcomm, const char* package, int stage, std::string level, std::string message) {
+  void Log(ICommunicator_ptr logcomm, const char* package, int stage, std::string level, std::string message) override {
     // Save the current communicator
     ICommunicator_ptr commsave = this->comm;
 
@@ -851,7 +851,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
       log[JSD::level] = level;
       log[JSD::message] = message;
       log[JSD::node] = JSN::log;
-      log[JSD::name] = std::to_string(StreamManager<json>::id++);
+      log[JSD::name] = std::to_string(id++);
       log[JSD::comm] = comm->uniqueId();
       write(log);
     }
@@ -925,7 +925,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   }
 
   void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile, std::string filename,
-            std::string reader) {
+            std::string reader) override{
     setComm(comm, false);
 
     if (comm->Rank() == getRoot()) {
@@ -1159,11 +1159,11 @@ template <typename T, typename V> class FileStream : public StreamWriter<V> {
     )";
   };
 
-  virtual void finalize(ICommunicator_ptr wcomm, long currentTime) = 0;
+  virtual void finalize(ICommunicator_ptr wcomm, long currentTime) override = 0;
 
-  virtual void newComm(long id, const V& obj, ICommunicator_ptr comm) = 0;
+  virtual void newComm(long id, const V& obj, ICommunicator_ptr comm) override  = 0;
 
-  virtual void write(long id, const V& obj, long jid) = 0;
+  virtual void write(long id, const V& obj, long jid) override = 0;
 };
 
 template <class DB> class StreamParserTemplate {

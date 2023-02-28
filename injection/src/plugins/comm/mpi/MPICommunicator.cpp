@@ -51,7 +51,8 @@ class MPICommunicator : public ICommunicator {
     return dataTypes[size];
   }
 
-  void Initialize() override {
+
+  void Initialize_() {
     int flag;
     MPI_Initialized(&flag);
     if (!flag) {
@@ -63,6 +64,11 @@ class MPICommunicator : public ICommunicator {
       finalizeMPI = true;
     }
   }
+
+  void Initialize() override {
+    Initialize_();
+  }
+
 
   void Finalize() override {
     int flag;
@@ -96,6 +102,12 @@ class MPICommunicator : public ICommunicator {
     return commuteOperation;
   }
 
+  int Size_() {
+    int x;
+    MPI_Comm_size(comm, &x);
+    return x;
+  }
+
   static MPI_Op getOp(OpType type) {
     switch (type) {
     case OpType::SUM:
@@ -126,7 +138,7 @@ class MPICommunicator : public ICommunicator {
   int worldSize, worldRank;
 
   MPICommunicator(VnVCommType type) : mtype(type) {
-    Initialize();
+    Initialize_();
     MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
     MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
 
@@ -146,16 +158,16 @@ class MPICommunicator : public ICommunicator {
   void setComm(MPI_Comm comm_) {
     comm = comm_;
     if (commUniqueId < 0) {
-      if (Size() == worldSize) {
+      if (Size_() == worldSize) {
         commUniqueId = worldSize == 1 ? getpid() : worldSize;
-      } else if (Size() == 1) {
+      } else if (Size_() == 1) {
         commUniqueId = getpid();
       } else {
         MPI_Group grp, world_grp;
         MPI_Comm_group(MPI_COMM_WORLD, &world_grp);
         MPI_Comm_group(comm, &grp);
 
-        int grp_size = Size();
+        int grp_size = Size_();
 
         std::vector<int> ranks(grp_size);
         std::iota(ranks.begin(), ranks.end(), 0);
@@ -180,11 +192,12 @@ class MPICommunicator : public ICommunicator {
 
   long uniqueId() override { return commUniqueId; }
 
+
   int Size() override {
-    int x;
-    MPI_Comm_size(comm, &x);
-    return x;
+   return Size_();
   }
+
+
 
   int Rank() override {
     int x;
@@ -237,37 +250,37 @@ class MPICommunicator : public ICommunicator {
     return ICommunicator_ptr(p);
   }
 
-  virtual int VersionMajor() {
+  virtual int VersionMajor() override {
     int major, minor;
     MPI_Get_version(&major, &minor);
     return major;
   }
 
-  virtual int VersionMinor() {
+  virtual int VersionMinor() override {
     int major, minor;
     MPI_Get_version(&major, &minor);
     return minor;
   }
-  virtual std::string VersionLibrary() {
+  virtual std::string VersionLibrary() override {
     int resultlen;
     char version[MPI_MAX_LIBRARY_VERSION_STRING];
     MPI_Get_library_version(version, &resultlen);
     return std::string(version, resultlen);
   }
 
-  ICommunicator_ptr world() { return ICommunicator_ptr(new MPICommunicator(VnVCommType::World)); }
+  ICommunicator_ptr world() override { return ICommunicator_ptr(new MPICommunicator(VnVCommType::World)); }
 
   ICommunicator_ptr get() { return ICommunicator_ptr(new MPICommunicator(VnVCommType::World)); }
 
-  virtual ICommunicator_ptr handleOtherCommunicators(std::string name, void* data) {
+  virtual ICommunicator_ptr handleOtherCommunicators(std::string name, void* data) override {
     if (name.compare("serial") == 0) {
       return self();
     } else {
-      throw INJECTION_EXCEPTION("MPI Executable cannot handle communicator with name %s", name);
+      throw INJECTION_EXCEPTION("MPI Executable cannot handle communicator with name %s", name.c_str());
     }
   }
 
-  ICommunicator_ptr custom(void* data, bool raw) {
+  ICommunicator_ptr custom(void* data, bool raw) override{
     MPICommunicator* p = new MPICommunicator(VnVCommType::Default);
     if (raw) {
       MPI_Comm* c = (MPI_Comm*)data;
@@ -278,7 +291,7 @@ class MPICommunicator : public ICommunicator {
     return ICommunicator_ptr(p);
   }
 
-  ICommunicator_ptr self() { return ICommunicator_ptr(new MPICommunicator(VnVCommType::Self)); }
+  ICommunicator_ptr self() override { return ICommunicator_ptr(new MPICommunicator(VnVCommType::Self)); }
 
   // Want procs in range [start,end). Make sure to put end-1.
   ICommunicator_ptr create(int start, int end, int stride, int tag) override {
@@ -467,12 +480,12 @@ class MPICommunicator : public ICommunicator {
   void AllGather(void* buffer, int count, void* recvBuffer, int dataTypeSize) override {
     MPI_Allgather(buffer, count, getDataType(dataTypeSize), recvBuffer, count, getDataType(dataTypeSize), comm);
   }
-  void GatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize, int root) {
+  void GatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize, int root) override  {
     MPI_Gatherv(buffer, count, getDataType(dataTypeSize), recvBuffer, recvCount, recvDispl, getDataType(dataTypeSize),
                 root, comm);
   }
 
-  void AllGatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize) {
+  void AllGatherV(void* buffer, int count, void* recvBuffer, int* recvCount, int* recvDispl, int dataTypeSize) override {
     MPI_Allgatherv(buffer, count, getDataType(dataTypeSize), recvBuffer, recvCount, recvDispl,
                    getDataType(dataTypeSize), comm);
   }

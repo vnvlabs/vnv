@@ -74,6 +74,13 @@ MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection, co
 class JsonHttpStreamIterator : public JsonPortStreamIterator {
   struct MHD_Daemon* daemon = NULL;
 
+  void stop_stream_reader_() {
+    if (daemon != NULL) {
+      MHD_stop_daemon(daemon);
+      daemon = NULL;
+    }
+  }
+
  public:
   JsonHttpStreamIterator(std::string p, const json& config) : JsonPortStreamIterator(p, config){};
 
@@ -86,13 +93,10 @@ class JsonHttpStreamIterator : public JsonPortStreamIterator {
   }
 
   void stop_stream_reader() override {
-    if (daemon != NULL) {
-      MHD_stop_daemon(daemon);
-      daemon == NULL;
-    }
+    stop_stream_reader_();
   }
 
-  ~JsonHttpStreamIterator() { stop_stream_reader(); }
+  ~JsonHttpStreamIterator() { stop_stream_reader_(); }
 };
 
 size_t writefunc(void* ptr, size_t size, size_t nmemb, std::string* s) {

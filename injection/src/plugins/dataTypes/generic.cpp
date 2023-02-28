@@ -23,25 +23,25 @@ template <typename T, const char* dname> class GenericDataType : public IDataTyp
   T get() { return data; }
   void set(T d) { data = d; }
 
-  long long maxSize() { return sizeof(T); }
-  long long pack(void* buffer) {
+  long long maxSize() override { return sizeof(T); }
+  long long pack(void* buffer) override {
     ((T*)buffer)[0] = data;
     return sizeof(T);
   }
-  void unpack(void* buffer) {
+  void unpack(void* buffer) override {
     T* tbuffer = (T*)buffer;
     data = tbuffer[0];
   }
 
-  void setData(void* dat) { data = *((T*)dat); }
+  void setData(void* dat) override { data = *((T*)dat); }
 
   // this = this + ay
-  void axpy(double alpha, IDataType_ptr y) {
+  void axpy(double alpha, IDataType_ptr y)override {
     GenericDataType<T, dname>* yy = (GenericDataType<T, dname>*)y.get();
     data += yy->get() * alpha;
   }
 
-  int compare(IDataType_ptr y) {
+  int compare(IDataType_ptr y) override {
     GenericDataType<T, dname>* yy = (GenericDataType<T, dname>*)y.get();
     if (yy->get() == data)
       return 0;
@@ -50,7 +50,7 @@ template <typename T, const char* dname> class GenericDataType : public IDataTyp
     return 1;
   }
   // this = this * y;
-  void mult(IDataType_ptr y) {
+  void mult(IDataType_ptr y) override {
     GenericDataType<T, dname>* yy = (GenericDataType<T, dname>*)y.get();
     data = data * yy->get();
   }
@@ -99,11 +99,11 @@ template <unsigned int N, typename T, const char* dname> class StringDataType : 
     }
     data = d;
   }
-  void setData(void* dat) { data = *((T*)dat); }
+  void setData(void* dat) override { data = *((T*)dat); }
 
-  long long maxSize() { return sizeof(char) * (1 + N); }
+  long long maxSize()override  { return sizeof(char) * (1 + N); }
 
-  long long pack(void* buffer) {
+  long long pack(void* buffer) override {
     char* b = (char*)buffer;
     std::string str = toString(data);
     std::size_t length = str.copy(b, str.size());
@@ -111,16 +111,16 @@ template <unsigned int N, typename T, const char* dname> class StringDataType : 
     return str.size() + 1;
   }
 
-  void unpack(void* buffer) { data = fromCharStar((char*)buffer); }
+  void unpack(void* buffer) override { data = fromCharStar((char*)buffer); }
 
-  void axpy(double alpha, IDataType_ptr y) { throw INJECTION_EXCEPTION_("axpy not supported for string data types"); }
+  void axpy(double alpha, IDataType_ptr y) override { throw INJECTION_EXCEPTION_("axpy not supported for string data types"); }
 
-  int compare(IDataType_ptr y) {
+  int compare(IDataType_ptr y) override {
     StringDataType* yy = (StringDataType*)y.get();
     return compareT(get(), yy->get());
   }
 
-  void mult(IDataType_ptr y) { throw INJECTION_EXCEPTION_("multiplication not supported for string data types"); }
+  void mult(IDataType_ptr y)override  { throw INJECTION_EXCEPTION_("multiplication not supported for string data types"); }
 
   std::string typeId() override { return typeid(T).name(); }
 

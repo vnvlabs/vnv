@@ -93,7 +93,7 @@ class UDPServer {
   }
 
   void copySockAddr(struct sockaddr_in* parent, struct sockaddr_in* child) {
-    memcpy(&child, parent, sizeof(struct sockaddr_in));
+    memcpy(child, parent, sizeof(struct sockaddr_in));
   }
   std::map<std::string, std::pair<long, std::vector<char>>> messages;
   // Run the server;
@@ -203,7 +203,7 @@ class UPDClient {
     if (!connected) {
       std::string m = upass + "Hello";
       std::string s = std::to_string(m.size()) + ":" + m;
-      int a = sendto(sockfd, &(s[0]), s.size(), MSG_CONFIRM, (const struct sockaddr*)&servaddr, sizeof(servaddr));
+      sendto(sockfd, &(s[0]), s.size(), MSG_CONFIRM, (const struct sockaddr*)&servaddr, sizeof(servaddr));
 
       struct timeval tv;
       tv.tv_sec = 1;
@@ -295,6 +295,13 @@ class JsonSocketStreamIterator : public JsonPortStreamIterator {
   std::string upass;
   long upassLen;
 
+  void stop_stream_reader_() {
+    if (server != nullptr) {
+      server->stop();
+      server.reset();
+    }
+  }
+
  public:
   JsonSocketStreamIterator(std::string port, const json& config) : JsonPortStreamIterator(port, config) {
     upass = uname + ":" + pass;
@@ -320,13 +327,10 @@ class JsonSocketStreamIterator : public JsonPortStreamIterator {
   }
 
   void stop_stream_reader() override {
-    if (server != nullptr) {
-      server->stop();
-      server.reset();
-    }
+    stop_stream_reader();
   }
 
-  ~JsonSocketStreamIterator() { stop_stream_reader(); }
+  ~JsonSocketStreamIterator() { stop_stream_reader_(); }
 };
 
 class JsonSocketStream : public PortStreamWriter<json> {
@@ -439,7 +443,7 @@ void UDPServer::parseMessage(const struct sockaddr* sender, socklen_t lena, std:
         iter->add(s);
       }
     } catch (std::exception& e) {
-      throw INJECTION_EXCEPTION("COULD NOT PARSE %s ", data);
+      throw INJECTION_EXCEPTION("COULD NOT PARSE %s ", data.c_str());
     }
   }
 }

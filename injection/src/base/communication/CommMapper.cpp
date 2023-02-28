@@ -200,9 +200,9 @@ bool CommMapper::isNew(ICommunicator_ptr comm) { return comms.find(comm->uniqueI
 
 void CommMapper::logComm(ICommunicator_ptr comm) {
   long id = comm->uniqueId();
-  comms.insert(comm->uniqueId());
+  comms.insert(id);
   if (comm->Rank() == 0) {
-    rootComms.insert(comm->uniqueId());
+    rootComms.insert(id);
   }
 }
 
@@ -329,7 +329,7 @@ INJECTION_UNITTEST(VNVPACKAGENAME, CommMapTester, 1) {
    * Can we add a communicator and get an id.
    */
   p->logComm(comm);
-  long id = p->getNextId(comm, -1);
+  
   /**
    * After Adding a communicator was the comms set property. This test
    * ensures that logging a comm adds it to the list of registered comms.
@@ -339,7 +339,6 @@ INJECTION_UNITTEST(VNVPACKAGENAME, CommMapTester, 1) {
 
   // Call log comm again.
   p->logComm(comm);
-  id = p->getNextId(comm, -1);
 
   /**
    * Adding the same comm again should do nothing. This is all but guaranteed

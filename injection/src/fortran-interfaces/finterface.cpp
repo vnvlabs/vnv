@@ -127,7 +127,7 @@ const char* vnv_get_str_parameter_x(const char* package, const char* parameter) 
 
   // They need to free this once they are done with it.
   char* res = (char*)malloc((v.size() + 1) * sizeof(char));
-  strcpy(res, v.c_str());
+  strncpy(res, v.c_str(), v.size()+1);
   return res;
 }
 

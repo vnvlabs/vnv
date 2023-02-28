@@ -201,7 +201,7 @@ IDataType_vec DataTypeCommunication::GatherV(IDataType_vec& data, long long dtyp
     sendBuffer.push_back(offsets[i]);
   }
 
-  int total = 0;
+ 
   std::vector<int> result((comm->Rank() == root || allGather) ? comm->Size() * csize : 0);
   std::vector<int> counts((comm->Rank() == root || allGather) ? comm->Size() : 0);
   std::vector<int> displs((comm->Rank() == root || allGather) ? comm->Size() : 0);
@@ -216,6 +216,7 @@ IDataType_vec DataTypeCommunication::GatherV(IDataType_vec& data, long long dtyp
   // the number from each process.
 
   // results = [[ count , xdim, xoff, ydim, yoff, zdim, zoff, ...] ,[...]]
+  int total = 0;
   for (int i = 0; i < counts.size(); i++) {
     displs[i] = total;
     total += result[i * csize];
@@ -233,9 +234,11 @@ IDataType_vec DataTypeCommunication::GatherV(IDataType_vec& data, long long dtyp
   }
 
   // Alloc the recv buffer on any rank that needs it.
-  char* recvBuffer;
+  char* recvBuffer = NULL;
   if (comm->Rank() == root || allGather) {
-    recvBuffer = (char*)malloc(dataSize * total);
+    if (dataSize > 0 && total > 0 ) {
+      recvBuffer = (char*) malloc(dataSize * total);
+    }
   }
 
   // Call the Gather
@@ -315,7 +318,7 @@ IDataType_vec DataTypeCommunication::Gather(IDataType_vec& data, long long dtype
   }
 
   // Alloc the recv buffer on any rank that needs it.
-  char* recvBuffer;
+  char* recvBuffer = NULL;
   if (rank == root || allGather) {
     recvBuffer = (char*)malloc(dataSize * data.size() * size);
   }

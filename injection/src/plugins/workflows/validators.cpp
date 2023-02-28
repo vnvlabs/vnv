@@ -67,7 +67,7 @@ class AndOrValidator : public VnV::IValidator {
   }
 
   std::string addNodesAndEdges(const VnV::Job& job, std::map<std::string, nlohmann::json>& nodes,
-                               nlohmann::json& edges) {
+                               nlohmann::json& edges) override {
     std::string name = VnV::JobManager::addnode("AndOr", a ? "And" : "Or", nodes);
     std::string e1 = one->addNodesAndEdges(job, nodes, edges);
     std::string e2 = two->addNodesAndEdges(job, nodes, edges);
@@ -133,7 +133,7 @@ class FileValidator : public VnV::IValidator {
   }
 
   std::string addNodesAndEdges(const VnV::Job& job, std::map<std::string, nlohmann::json>& nodes,
-                               nlohmann::json& edges) {
+                               nlohmann::json& edges)  override {
     std::string fileExistsnode = VnV::JobManager::addnode("FileExists", req, nodes);
     std::string fileNode = VnV::JobManager::add_file_node(f, nodes);
     VnV::JobManager::add_edge(fileNode, fileExistsnode, edges);
@@ -169,12 +169,10 @@ class JobFinishedValidator : public VnV::IValidator {
   virtual Status validate(const VnV::Job& job) override {
     int exitStatus = -1;
     VnV::JobStatus::State s;
-    VnV::ProcessResult::Status ps;
 
     if (jobname.empty()) {
       // In this case, we are checking the return status of another job.
       s = job.getStatus().state;
-      ps = job.getStatus().result.status;
       exitStatus = job.getStatus().result.exitCode;
 
       // If this is a self job -- I.e., the validator is applied to the job

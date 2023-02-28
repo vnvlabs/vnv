@@ -99,7 +99,6 @@ class AdiosFileIterator : public Iterator<json> {
         std::vector<std::size_t> sizes = step.read<std::size_t>("sizes");
 
         int count = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<>());
-        long long dtype = step.read<long long>("dtype")[0];
 
         nextCurr[JSD::children] = json::array();
         json& children = nextCurr[JSD::children];

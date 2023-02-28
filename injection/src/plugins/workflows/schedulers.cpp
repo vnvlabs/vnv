@@ -65,6 +65,8 @@ class BashScheduler : public VnV::IScheduler {
     case VnV::IScheduler::CopyType::SOFT_LINK:
       comm = "ln -s" + source + " " + dest;
       break;
+    case VnV::IScheduler::CopyType::ASIS:
+       break;
     }
 
     return run(comm, working_directory, {}, "", "", -1);

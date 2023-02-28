@@ -165,9 +165,9 @@ LoggerInfo JsonParser::getLoggerInfo(const json& logging) {
     } else if (t.compare("stderr") == 0) {
       info.type = LogWriteType::STDERR;
     } else if (t.compare("file") == 0) {
-      info.type == LogWriteType::FILE;
+      info.type = LogWriteType::FILE;
     } else {
-      info.type == LogWriteType::NONE;
+      info.type = LogWriteType::NONE;
     }
 
     if (logging.contains("logs")) {

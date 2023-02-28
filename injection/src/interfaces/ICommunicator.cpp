@@ -67,14 +67,8 @@ void VnV::OpTypeEncodedReduction(void* invec, void* outvec, int* len) {
     out = reducer->reduce(in, out);
     out->pack(&(buff[2]));
 
-    double* dd = (double*)&(buff[2]);
   }
 
-  for (int i = 0; i < *len; i++) {
-    buff = (long long*)&(coutvec[i * dataSize]);
-    double* d = (double*)&(buff[2]);
-    ;
-  }
 }
 VnV::IStatus::~IStatus() {}
 

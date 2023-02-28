@@ -23,12 +23,12 @@ class NullManager : public OutputEngineManager {
 
       void
       PutGlobalArray(long long dtype, std::string variableName, IDataType_vec data, std::vector<int> gsizes,
-                     std::vector<int> sizes, std::vector<int> offset, const MetaData& m) {
+                     std::vector<int> sizes, std::vector<int> offset, const MetaData& m)  override {
   }
 
-  void Log(ICommunicator_ptr logcomm, const char* package, int stage, std::string level, std::string message) {}
+  void Log(ICommunicator_ptr logcomm, const char* package, int stage, std::string level, std::string message) override {}
 
-  void file(VnV::ICommunicator_ptr, std::string, std::string, bool, std::string, std::string) {}
+  void file(VnV::ICommunicator_ptr, std::string, std::string, bool, std::string, std::string) override {}
 
   void finalize(ICommunicator_ptr worldComm, long duration) override {}
 
@@ -55,10 +55,10 @@ class NullManager : public OutputEngineManager {
 
   virtual void packageOptionsEndedCallBack(std::string packageName) override {}
 
-  virtual void initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName){};
-  virtual void initializationEndedCallBack(std::string packageName){};
+  virtual void initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName)override {};
+  virtual void initializationEndedCallBack(std::string packageName)override {};
 
-  void unitTestFinishedCallBack(IUnitTest* tester) {}
+  void unitTestFinishedCallBack(IUnitTest* tester)override {}
 
   json getRunInfo() override { return json::object(); }
 

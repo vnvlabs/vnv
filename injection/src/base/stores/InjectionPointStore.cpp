@@ -25,7 +25,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::newInjectionPoint(std::stri
     FunctionSigniture sig(pretty);
     if (sig.run(it->second.runConfig)) {
       std::map<std::string, std::string> spec_map;
-      bool foundOne;
+      bool foundOne = false;
       auto& smap = reg->second.specJson;
 
       for (auto& it : smap.items()) {
@@ -167,7 +167,7 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::fetchFromQueue(std::string 
   }
   auto ptr = active.top();
   if (key.compare(ptr->getPackage() + ":" + ptr->getName()) != 0) {
-    throw INJECTION_EXCEPTION("Injection Point Nesting Error. Cannot call %s stage  inside a %s:%s", key,
+    throw INJECTION_EXCEPTION("Injection Point Nesting Error. Cannot call %s stage  inside a %s:%s", key.c_str(),
                               ptr->getPackage().c_str(), ptr->getName().c_str());
   }
 

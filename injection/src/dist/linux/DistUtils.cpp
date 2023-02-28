@@ -231,11 +231,9 @@ class LinuxProcess : public VnVProcess {
 
   // Still running if we cant find complete.
   virtual bool running() override {
-    if (pipe != nullptr) {
-      std::ifstream df(getTempFile(cfile, ".exit"));
-      if (!df.good()) {
-        return true;
-      }
+    std::ifstream df(getTempFile(cfile, ".exit"));
+    if (!df.good()) {
+      return true;
     }
     return false;
   };
@@ -246,11 +244,13 @@ class LinuxProcess : public VnVProcess {
 std::shared_ptr<VnVProcess> exec(std::string cmd) { return std::make_shared<LinuxProcess>(cmd); }
 
 void permissions(std::string filename, bool read, bool write, bool execute) {
-  mode_t mode;
-  if (read) mode = mode | S_IRUSR;
-  if (write) mode = mode | S_IWUSR;
-  if (execute) mode = mode | S_IXUSR;
-  chmod(filename.c_str(), mode);
+  if (read||write||execute) {
+    mode_t mode = 0;
+    if (read) mode = S_IRUSR;
+    if (write) mode = (read) ? (mode | S_IWUSR) : S_IWUSR;
+    if (execute) mode = (read || write) ? (mode | S_IXUSR) : S_IXUSR;
+    chmod(filename.c_str(), mode);
+  }
 }
 
 void makedirs(std::string path, bool make_last = false, mode_t mode = 0777) {

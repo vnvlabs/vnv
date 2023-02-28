@@ -56,12 +56,6 @@ size_t StreamPatch::CurrentStep() const noexcept {
     return 0;
   }
 
-  if (m_Engine) {
-    throw std::invalid_argument("ERROR: stream with name " + m_Name +
-                                "is invalid or closed, in call "
-                                "to CurrentStep");
-  }
-
   return m_Engine.CurrentStep();
 }
 

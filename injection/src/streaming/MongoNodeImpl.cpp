@@ -36,6 +36,8 @@ std::shared_ptr<DataBase> VnV::Nodes::Mongo::LoadNode(IRootNode* root, long id) 
     break;
       STYPES
 #undef X
+    case DataBase::DataType::Root: break;  
+
     }
 
     assert(ptr != nullptr);
@@ -100,8 +102,6 @@ std::shared_ptr<IRootNode> Mongo::MongoPersistance::WorkflowNode::getReport(std:
   auto a = getreports();
   if (a.contains(reportName)) {
     auto root = dynamic_cast<MongoPersistance::RootNode*>(rootNode());
-    long id = a[reportName]["id"].get<long>();
-
     std::string collectionName = a[reportName]["collection"].get<std::string>();
     auto collection = Collection::Initialize(collectionName, root->getMainDatabase());
 

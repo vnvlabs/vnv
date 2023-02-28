@@ -261,7 +261,6 @@ VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::
                                          struct VnV_Function_Sig pretty, std::string fname, int line,
                                          const DataCallback& callback, NTV& args, int once) {
   try {
-    auto engine = OutputEngineStore::instance().getEngineManager();
 
     ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 

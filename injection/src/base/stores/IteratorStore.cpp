@@ -28,7 +28,7 @@ std::shared_ptr<IterationPoint> IteratorStore::newIterator(std::string packageNa
 
     if (sig.run(it->second.runConfig)) {
       std::map<std::string, std::string> spec_map;
-      bool foundOne;
+      bool foundOne = false;
       for (auto& it : reg->second.specJson.items()) {
         if (sig.match(it.key())) {
           for (auto itt : it.value().items()) {
@@ -44,8 +44,9 @@ std::shared_ptr<IterationPoint> IteratorStore::newIterator(std::string packageNa
         for (auto it : reg->second.specJson.items()) {
           j.push_back(it.key());
         }
+        std::string ff = j.dump();
         throw INJECTION_BUG_REPORT("No template specification matched: %s:%s:%s", pretty.signiture, pretty.compiler,
-                                   j.dump());
+                                   ff.c_str());
       }
 
       // Construct and reset because InjectionPoint ctor is only accessible in

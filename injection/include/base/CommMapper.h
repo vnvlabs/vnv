@@ -224,7 +224,6 @@ class InjectionPointMerger {
       // data->getRelation(this);// Add myself as a child to data.
       return DataRelative::PARENT;
     } else if (isRoot || (data->idstart > idstart && data->idstop < idstop)) {
-      bool isNewChild = true;
       for (auto childStartId = children.begin(); childStartId != children.end();) {
         for (auto child = childStartId->second.begin(); child != childStartId->second.end();) {
           auto r = (*child)->getRelation(data);
@@ -234,7 +233,6 @@ class InjectionPointMerger {
             // The get realation call has already added child as a child data.
             data->getRelation(*child);
             child = childStartId->second.erase(child);  // erase this as child.
-            isNewChild = true;
             // Can't return just yet, need to check other siblings are not
             // children of it.
           } else {
@@ -287,7 +285,7 @@ class InjectionPointMerger {
   static std::shared_ptr<InjectionPointMerger> join(
       std::string outputfile, std::set<CommWrap_ptr>& comms,
       std::function<std::shared_ptr<InjectionPointInterface>(long)>& parse) {
-    INJECTION_ASSERT(comms.size() != 1, "Invalid Comms Object. Size should be one but it was %ld", comms.size());
+    INJECTION_ASSERT((comms.size() != 1), "Invalid Comms Object. Size should be one but it was %ld", comms.size());
 
     std::map<long, CommWrap_ptr> commsMap = CommMapper::convertToMap(comms);
     std::shared_ptr<InjectionPointMerger> dstruct = nullptr;
