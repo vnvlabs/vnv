@@ -11,24 +11,25 @@
 using namespace VnV;
 
 namespace VnV {
-DataCallback& DataCallback_wrapper(injectionDataCallback callback);
+  DataCallback DataCallback_wrapper(injectionDataCallback callback);
 }
 
 extern "C" {
 
-void _VnV_injectionPoint_begin(VnV_Comm comm, const char* package, const char* fname, int line, const char* id,
-                               struct VnV_Function_Sig pretty, injectionDataCallback callback, ...) {
+void _VnV_injectionPoint_begin(VnV_Comm comm, const char* package, const char* id, 
+struct VnV_Function_Sig pretty, const char* file, int line,  injectionDataCallback callback, ...) {
+  
   try {
     va_list argp;
     va_start(argp, callback);
     NTV map = VariadicUtils::UnwrapVariadicArgs(argp);
-    VnV::RunTime::instance().injectionPoint_begin(comm, package, id, pretty, fname, line,
-                                                  VnV::DataCallback_wrapper(callback), map);
+    VnV::RunTime::instance().injectionPoint_begin(comm, package, id, pretty, file, line, VnV::DataCallback_wrapper(callback), map);
     va_end(argp);
   } catch (std::exception& e) {
     VnV_Error(VNVPACKAGENAME, "Error launching injection point %s:%s", package, id);
   }
 }
+
 
 void _VnV_injectionPoint_loop(const char* package, const char* id, const char* stageId, const char* fname, int line,
                               injectionDataCallback callback) {

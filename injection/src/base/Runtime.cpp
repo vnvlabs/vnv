@@ -44,7 +44,8 @@ void RunTime::resetStore() { stores.clear(); }
 
 namespace {
 
-ICommunicator_ptr getComm(VnV_Comm comm) { return CommunicationStore::instance().getCommunicator(comm); }
+ICommunicator_ptr getComm(VnV_Comm comm) { 
+  return CommunicationStore::instance().getCommunicator(comm); }
 }  // namespace
 
 void RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
@@ -245,6 +246,7 @@ std::shared_ptr<IterationPoint> RunTime::getNewInjectionIteration(VnV_Comm comm,
   if (runTests) {
     // Load any hot patches
     loadHotPatch(comm);
+    ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
     std::shared_ptr<IterationPoint> ipd = IteratorStore::instance().getNewIterator(pname, id, pretty, once, args);
     if (ipd != nullptr) {
@@ -261,8 +263,7 @@ VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::
                                          struct VnV_Function_Sig pretty, std::string fname, int line,
                                          const DataCallback& callback, NTV& args, int once) {
   try {
-
-    ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
+    
 
     auto it = getNewInjectionIteration(comm, pname, id, pretty, InjectionPointType::Begin, once, args);
     if (it != nullptr) {
@@ -282,10 +283,13 @@ VnV_Iterator RunTime::injectionIteration(VnV_Comm comm, std::string pname, std::
 
 int RunTime::injectionIterationRun(VnV_Iterator* iterator) {
   VnV_Iterator_Info* info = (VnV_Iterator_Info*)iterator->data;
-
-  ActionStore::instance().injectionPointIter(std::to_string(info->count));
+  
+  if (runTests) {
+    ActionStore::instance().injectionPointIter(std::to_string(info->count));
+  }
 
   if (info->iter != nullptr) {
+
     bool a = false;
     try {
       a = info->iter->iterate(info->fname, info->line, info->callback);
@@ -302,7 +306,9 @@ int RunTime::injectionIterationRun(VnV_Iterator* iterator) {
     info->count++;
     return 1;
   } else {
-    ActionStore::instance().injectionPointEnd();
+    if (runTests) {
+      ActionStore::instance().injectionPointEnd();
+    }
     return 0;
   }
 }
@@ -329,6 +335,8 @@ std::shared_ptr<PlugPoint> RunTime::getNewInjectionPlug(VnV_Comm comm, std::stri
   if (runTests) {
     // load hotpatches
     loadHotPatch(comm);
+    
+    ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
     std::shared_ptr<PlugPoint> ipd = PlugStore::instance().getNewPlug(pname, id, pretty, args);
     if (ipd != nullptr) {
@@ -342,7 +350,7 @@ std::shared_ptr<PlugPoint> RunTime::getNewInjectionPlug(VnV_Comm comm, std::stri
 
 VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
                                     std::string fname, int line, const DataCallback& callback, NTV& args) {
-  ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
+  
 
   std::shared_ptr<VnV::PlugPoint> it;
   try {
@@ -360,13 +368,17 @@ VnV_Iterator RunTime::injectionPlug(VnV_Comm comm, std::string pname, std::strin
 
 int RunTime::injectionPlugRun(VnV_Iterator* iterator) {
   VnV_Plug_Info* info = (VnV_Plug_Info*)iterator->data;
-  ActionStore::instance().injectionPointIter("Plug");
+  if (runTests) {
+    ActionStore::instance().injectionPointIter("Plug");
+  }
   if (info->iter != nullptr) {
     info->iter->plug(info->function, info->line, info->callback);
     ActionStore::instance().injectionPointEnd();
     return 1;
   } else {
-    ActionStore::instance().injectionPointEnd();
+    if (runTests) {
+      ActionStore::instance().injectionPointEnd();
+    }
     return 0;
   }
 }
@@ -380,6 +392,7 @@ std::shared_ptr<InjectionPoint> RunTime::getNewInjectionPoint(VnV_Comm comm, std
   if (runTests) {
     // look for hotpatches;
     loadHotPatch(comm);
+    ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
     std::shared_ptr<InjectionPoint> ipd =
         InjectionPointStore::instance().getNewInjectionPoint(pname, id, pretty, type, args);
@@ -397,6 +410,12 @@ std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(std::string p
                                                                    InjectionPointType type, std::string stageId) {
   if (runTests) {
     std::shared_ptr<InjectionPoint> ipd = InjectionPointStore::instance().getExistingInjectionPoint(pname, id, type);
+    
+    if (type == InjectionPointType::End) {
+        ActionStore::instance().injectionPointEnd();
+    } else {
+      ActionStore::instance().injectionPointIter(stageId);
+    }
 
     if (ipd != nullptr) {
       ipd->setInjectionPointType(type, stageId);
@@ -409,7 +428,6 @@ std::shared_ptr<InjectionPoint> RunTime::getExistingInjectionPoint(std::string p
 
 void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
                                    std::string fname, int line, const DataCallback& callback, NTV& args) {
-  ActionStore::instance().injectionPointStart(getComm(comm), pname, id);
 
   auto it = getNewInjectionPoint(comm, pname, id, pretty, InjectionPointType::Begin, args);
   if (it != nullptr) {
@@ -420,7 +438,6 @@ void RunTime::injectionPoint_begin(VnV_Comm comm, std::string pname, std::string
 
 void RunTime::injectionPoint_iter(std::string pname, std::string id, std::string stageId, std::string fname, int line,
                                   const DataCallback& callback) {
-  ActionStore::instance().injectionPointIter(stageId);
 
   auto it = getExistingInjectionPoint(pname, id, InjectionPointType::Iter, stageId);
   if (it != nullptr) {
@@ -430,7 +447,6 @@ void RunTime::injectionPoint_iter(std::string pname, std::string id, std::string
 
 void RunTime::injectionPoint_end(std::string pname, std::string id, std::string fname, int line,
                                  const DataCallback& callback) {
-  ActionStore::instance().injectionPointEnd();
 
   auto it = getExistingInjectionPoint(pname, id, InjectionPointType::End, "End");
   if (it != nullptr) {

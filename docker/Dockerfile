@@ -24,7 +24,5 @@ RUN cd ${SOURCE_DIR}/vnv  \
     && cd build \
     && cmake -DCMAKE_INSTALL_PREFIX=${VNV_DIR} -DLLVM_DIR=${LLVM_DIR} -DADIOS2_DIR=${ADIOS_DIR}/lib/cmake/adios2 .. \
     && make -j 8 \
-    && make install \
-    && rm -r ${SOURCE_DIR}/vnv
-
+    && make install 
 

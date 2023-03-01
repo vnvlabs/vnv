@@ -12,8 +12,9 @@
 
 using namespace VnV;
 namespace VnV {
-DataCallback& DataCallback_wrapper(injectionDataCallback callback);
+DataCallback DataCallback_wrapper(injectionDataCallback callback);
 }
+
 
 extern "C" {
 
