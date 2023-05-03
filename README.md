@@ -30,3 +30,16 @@ The next step is to create a VnV test. The tests are developed in external libra
 End-users will be able to generate a customized input configuration file for each executable. This configuration file will contain information about every injection point located in the call-graph of the simulation; including those in external third party libraries. After customizing that file, generating a VnV report is as simple as running the simulation.
 
 Overall, once integrated into an application, the VnV framework will provide a simple mechanism for creating self verifying, self describing, explainable numerical simulations. This will significantly reduce the burden associated with V&V for end users, thereby increasing the usability of the tools for non-expert end-users. 
+
+    
+# vnv-snippets: A Related VS Code Extension:
+
+We created an extension for VS Code that enables users employ snippets for incorporating VnV macros.
+
+## vnv-snippets' Repo:
+
+https://marketplace.visualstudio.com/items?itemName=jburz2001.vnv-snippets
+
+## vnv-snippets' VS Code Marketplace Page:
+https://marketplace.visualstudio.com/items?itemName=jburz2001.vnv-snippets
+
