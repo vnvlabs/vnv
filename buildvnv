@@ -1,1 +1,0 @@
-cmake -DCMAKE_INSTALL_PREFIX=/home/user/software/vnv -DLLVM_DIR=/usr/lib/llvm-12 -DADIOS2_DIR=/home/user/software/adios/lib/cmake/adios2 ..
