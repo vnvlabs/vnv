@@ -203,9 +203,9 @@ class AdiosFileStream : public FileStream<AdiosFileIterator, json> {
     if (config.find("configFile") != config.end()) configFile = config["configFile"].get<std::string>();
 
     if (configFile.empty())
-      adios = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD, debug);
+      adios = std::make_unique<adios2::ADIOS>(MPI_COMM_WORLD);
     else
-      adios = std::make_unique<adios2::ADIOS>(configFile, MPI_COMM_WORLD, debug);
+      adios = std::make_unique<adios2::ADIOS>(configFile, MPI_COMM_WORLD);
 
     io = adios->DeclareIO("BPWriter");
 
