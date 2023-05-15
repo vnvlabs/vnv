@@ -8,8 +8,8 @@ LABEL vnv.version.vnv=${COMMIT_HASH}
 ENV VNV_DIR=${SOFTWARE_DIR}/vnv
 ENV VNV_MATCHER=${VNV_DIR}/bin/vnv-matcher
 ENV VNV_CONFIG=${VNV_DIR}/config/vnv-config.json
-ENV LD_LIBRARY_PATH=${VNV_DIR}/lib
 ENV VNV_CONFIG=${VNV_CONFIG}:${VNV_DIR}/vnv.__registration__
+ENV LD_LIBRARY_PATH=${VNV_DIR}/lib
 ENV OPENMP_INCLUDE_DIR=/usr/lib/llvm-10/include/openmp
 
 # This one is used by the extraction code to fix issues with openmp. This is the directory containing

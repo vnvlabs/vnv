@@ -53,7 +53,7 @@ function( add_vnv_generation_target targetName packageName extension fortran )
                ${fortranFiles}
                ${CMAKE_BINARY_DIR}/compile_commands.json
          DEPENDS vnv_generate_cache
-         BYPRODUCTS ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} ${fortranFile}
+         BYPRODUCTS ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} ${CMAKE_BINARY_DIR}/vnv.__registration__  ${fortranFile}
          COMMENT "Generating the vnv registration file for ${targetName}." 
    )
       
@@ -88,6 +88,8 @@ function(link_vnv_file_semi targetName packageName extension fortran )
    target_sources( ${targetName} PRIVATE ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} )
    set_source_files_properties( ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
   
+   install(FILES ${CMAKE_BINARY_DIR}/vnv.__registration__ DESTINATION ${CMAKE_INSTALL_PREFIX})
+
    if (${fortran} GREATER 0)
        target_sources( ${targetName} PRIVATE ${CMAKE_BINARY_DIR}/vnv_${packageName}.f90 )
        set_source_files_properties( ${CMAKE_BINARY_DIR}/vnv_${packageName}.f90 PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
