@@ -16,13 +16,13 @@
       VnV_init_raw(VNV_STR(PNAME), argc, argv, inputjson, icallback, VNV_REGISTRATION_CALLBACK_NAME(PNAME))
 
 #    define INJECTION_INITIALIZE(PNAME, argc, argv, filename) \
-      VnV_init(VNV_STR(PNAME), argc, argv, filename, NULL, VNV_REGISTRATION_CALLBACK_NAME(PNAME))
-
-// Initialize
+      INJECTION_INITIALIZE_C(PNAME,argc,argv, NULL, filename)
+      
 
 #    define INJECTION_INITIALIZE_RAW(PNAME, argc, argv, inputjson) \
-      VnV_init_raw(VNV_STR(PNAME), argc, argv, inputjson, NULL, VNV_REGISTRATION_CALLBACK_NAME(PNAME))
-
+      INJECTION_INITIALIZE_RAW_C(PNAME,argc,argv, NULL, filename)
+      
+      
 #    define INJECTION_FINALIZE(PNAME) VnV_finalize();
 
 /**
