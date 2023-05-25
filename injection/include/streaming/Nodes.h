@@ -85,7 +85,7 @@ class MetaDataWrapper {
 
     json j = json::object();
     j["text"] = "Meta Data";
-    j["icon"] = "feather icon-database"
+    j["icon"] = "feather icon-database";
     j["children"] = k;
     return j;
   }
@@ -196,7 +196,7 @@ class DataBase {
     json j = json::object();
     
     j["text"] = getDisplayName();
-    j["icon"] = "feather icon-" + getType();
+    j["icon"] = "feather icon-" + getTypeStr();
     
     if (level > 0) {
       j["children"] = getDataChildren_(fileId, level - 1);
@@ -254,7 +254,7 @@ class IArrayNode : public DataBase {
     json ch = DataBase::getDataChildren_(fileId, level);     
     for (int i = 0; i < size(); i++) {
       ch.push_back(get(i)->getAsDataChild(fileId, level - 1));
-      ch.back()["text"] = std::to_string(i) + ": " + ch.back()["text"]
+      ch.back()["text"] = std::to_string(i) + ": " + ch.back()["text"].template get<std::string>();
     }
     return ch;
     
@@ -322,7 +322,7 @@ class IMapNode : public DataBase {
     json ch = json::array();
     for (auto it : fetchkeys()) {
       ch.push_back(get(it)->getAsDataChild(fileId, level - 1));
-      ch.back()["text"] = it + ": " + ch.back()["text"];
+      ch.back()["text"] = it + ": " + ch.back()["text"].template get<std::string>();
     }
     return ch;
   }
@@ -607,7 +607,7 @@ class IInjectionPointNode : public DataBase {
       j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
       j.back()["text"] = "Logs";
     }
-    if (getData()->size() > 0 ) {
+    if (getData() != nullptr ) {
       j.push_back(getData()->getAsDataChild(fileId, level - 1));
       j.back()["text"] = "Data";
     }
@@ -672,12 +672,13 @@ class IUnitTestResultsNode : public DataBase {
 
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
-    if (fetchKeys().size() > 0 ) {
+    if (fetchkeys().size() > 0 ) {
       for (auto it : fetchkeys()) {
-         if (it->getResult()) {
-            j.push_back("[PASS] " it->getName() + ": " + it->getDescription() );
+         auto git = get(it);
+         if (git->getResult()) {
+            j.push_back("[PASS] " + git->getName() + ": " + git->getDescription() );
          } else {
-            j.push_back("[FAIL] " it->getName() + ": " + it->getDescription() );
+            j.push_back("[FAIL] " + git->getName() + ": " + git->getDescription() );
          }
       }
     }
@@ -707,14 +708,14 @@ class IUnitTestNode : public DataBase {
 
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
-    if (getResults()->fetchKeys().size() > 0) {
+    if (getResults()->fetchkeys().size() > 0) {
       j.push_back(getResults()->getAsDataChild(fileId, level - 1));
     }
-    if (getLogs().size() > 0 ) {
+    if (getLogs()->size() > 0 ) {
       j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
 
     }
-    if (getData().size() > 0 ) {
+    if (getData()->size() > 0 ) {
       j.push_back(getData()->getAsDataChild(fileId, level - 1));
     }
     return j;
@@ -906,7 +907,7 @@ class IRootNode : public DataBase {
     
     json jj = json::object();
     jj["text"] = "Injection Points";
-    jj["icon"] = "feather icon-folder;"
+    jj["icon"] = "feather icon-folder;";
     json ch = json::array();
     for (auto it : getNodes()) {
       for (auto itt : it.second) {

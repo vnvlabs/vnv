@@ -57,9 +57,8 @@ class ProvFile {
     }
     return o;
     
-    
-    
-
+  }  
+  
 };
 
 class VnVProv {
@@ -80,12 +79,12 @@ class VnVProv {
 
   json toJson() const;
 
-  void getDataChildren() const {
+  json getDataChildren() const {
     json j = json::object();
     j["text"] = "provenance";
     j["icon"] = "feather icon-folder";
   
-    ch = json::array();
+    json ch = json::array();
     
     json time_in_secs = json::object();
     time_in_secs["text"] = "Unix Start Time: " + std::to_string(time_in_seconds_since_epoch) + " seconds";
@@ -98,27 +97,28 @@ class VnVProv {
     wdir["icon"] = "feather icon-text";
     ch.push_back(wdir);
 
-    json commandLine = json::object();
-    commandLine["text"] = "Command Line: " + commandLine ;
-    commandLine["icon"] = "feather icon-text";
-    ch.push_back(commandLine);
+    json commandLineJ = json::object();
+    commandLineJ["text"] = "Command Line: " + commandLine ;
+    commandLineJ["icon"] = "feather icon-text";
+    ch.push_back(commandLineJ);
 
     if (inputFile != nullptr) {
-      ch.push_back(inputFile->getAsDataChild());
-      ch.back()["text"] = "Input File: " + ch.back()["text"];
+      ch.push_back(inputFile->getDataChildren());
+      ch.back()["text"] = "Input File: " + ch.back()["text"].template get<std::string>();
 
     }     
     if (executable != nullptr) {
-      ch.push_back(executable->getAsDataChild());
-      ch.back()["text"] = "Executable: " + ch.back()["text"];
+      ch.push_back(executable->getDataChildren());
+      ch.back()["text"] = "Executable: " + ch.back()["text"].template get<std::string>();
 
     }     
 
     std::vector<std::string> names = {"Application Input Files", "Application Output Files", "Shared Libraries" };
-    std::vector< std::vector<std::shared_ptr<ProvFile>>*> vals = {&inputFiles,&outputFiles,&libraries};
+  
     for (int i = 0; i < names.size(); i++ ) {
-        std::vector<std::shared_ptr<ProvFile>>& data = *(vals[i]);
-
+        
+       const std::vector<std::shared_ptr<ProvFile>>& data  = (i==0) ? inputFiles : (i==1) ? outputFiles : libraries;
+       
         if (data.size() > 0 ) {
             json inputs = json::object();
             inputs["text"] = names[i];
@@ -127,16 +127,16 @@ class VnVProv {
             int count = 0;
             json child = json::array();
             for (auto &it : inputFiles) {
-              child.push_back(it->getAsDataChild());
-              child.back()["text"] = std::to_string(count++) + ": " + child.back()["text"];
+              child.push_back(it->getDataChildren());
+              child.back()["text"] = std::to_string(count++) + ": " + child.back()["text"].template get<std::string>();
             }
             inputs["children"] = child;
             ch.push_back(inputs);
          }
     }
 
-
-
+    j["children"] = ch;
+    return j;
 
 
 
