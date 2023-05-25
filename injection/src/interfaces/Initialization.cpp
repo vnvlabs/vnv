@@ -17,7 +17,6 @@ int Init(const char* packageName, int* argc, char*** argv, const char* filename,
     return VnV::RunTime::instance().InitFromFile(packageName, argc, argv, filename, icallback, callback);
   } catch (std::exception& e) {
     std::cout << "Error Initializing VnV: " << e.what() << std::endl;
-    std::abort();
   }
 }
 
@@ -28,7 +27,6 @@ int Init_raw(const char* packageName, int* argc, char*** argv, const char* input
     return VnV::RunTime::instance().InitFromJson(packageName, argc, argv, j, icallback, callback);
   } catch (std::exception& e) {
     std::cout << "Error Initializing VnV: " << e.what() << std::endl;
-    std::abort();
   }
 }
 
@@ -37,7 +35,7 @@ void finalize() {
     VnV::RunTime::instance().Finalize();
     VnV::RunTime::reset();
   } catch (std::exception& e) {
-    VnV_Error(VNVPACKAGENAME, "Error During finalization");
+    std::cout << "Error Finalizing VnV: " << e.what() << std::endl;
   }
 }
 

@@ -74,13 +74,18 @@ class MetaDataWrapper {
   std::size_t size() const { return m.size(); }
 
   json getAsDataChild() const {
+    
     json k = json::array();
     for (auto it : m) {
-      k.push_back(it.first + ":" + it.second);
+      json kj = json::object();
+      kj["text"] = it.first + ": " + it.second;
+      kj["icon"] = "feather icon-minus";
+      k.push_back(kj);
     }
 
     json j = json::object();
-    j["text"] = "Meta Data Object";
+    j["text"] = "Meta Data";
+    j["icon"] = "feather icon-database"
     j["children"] = k;
     return j;
   }
@@ -159,6 +164,8 @@ class DataBase {
 
   virtual DataType getType();
   virtual std::string getName();
+
+  virtual std::string getDisplayName() { return getName(); }
   virtual std::string getTypeStr();
 
   static DataBase::DataType getDataTypeFromString(std::string s);
@@ -179,9 +186,6 @@ class DataBase {
 
   virtual json getDataChildren_(int fileId, int level) {
     json a = json::array();
-    a.push_back("Name: " + getName());
-    a.push_back("Type: " + getTypeStr());
-    a.push_back("ID: " + std::to_string(getId()));
     if (getMetaData().size() > 0) {
       a.push_back(getMetaData().getAsDataChild());
     }
@@ -190,8 +194,10 @@ class DataBase {
 
   virtual json getAsDataChild(int fileId, int level) {
     json j = json::object();
-    j["text"] = getName();
-
+    
+    j["text"] = getDisplayName();
+    j["icon"] = "feather icon-" + getType();
+    
     if (level > 0) {
       j["children"] = getDataChildren_(fileId, level - 1);
     } else {
@@ -221,17 +227,13 @@ class DataBase {
       nlohmann::json j = this->getShape();                                \
       return j.dump();                                                    \
     }                                                                     \
-    virtual void add(const x& s) = 0;                                     \
-    virtual json getDataChildren_(int fileId, int level) override {       \
-      json a = DataBase::getDataChildren_(fileId, level);                 \
-      a.push_back("Dimension:" + std::to_string(getShape().size()));      \
-      a.push_back("Size:" + std::to_string(getNumElements()));            \
-      a.push_back("Shape: " + getShapeJson());                            \
+    virtual std::string getDisplayName() override {                       \
       if (getShape().size() == 0) {                                       \
-        a.push_back("Value:" + valueToString(getScalarValue()));          \
+        return getName() + ": " + valueToString(getScalarValue());        \
       }                                                                   \
-      return a;                                                           \
+      return  getName() + ": Shape " + getShapeJson();                    \
     }                                                                     \
+    virtual void add(const x& s) = 0;                                     \
   };
 DTYPES
 #undef X
@@ -248,12 +250,14 @@ class IArrayNode : public DataBase {
   void iter(std::function<void(std::shared_ptr<DataBase>)>& lambda);
 
   virtual json getDataChildren_(int fileId, int level) override {
-    json j = DataBase::getDataChildren_(fileId, level);
-    j.push_back("Size: " + std::to_string(size()));
+    
+    json ch = DataBase::getDataChildren_(fileId, level);     
     for (int i = 0; i < size(); i++) {
-      j.push_back(get(i)->getAsDataChild(fileId, level - 1));
+      ch.push_back(get(i)->getAsDataChild(fileId, level - 1));
+      ch.back()["text"] = std::to_string(i) + ": " + ch.back()["text"]
     }
-    return j;
+    return ch;
+    
   }
 
   virtual json toJson() override {
@@ -314,11 +318,13 @@ class IMapNode : public DataBase {
 
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
-
+    
+    json ch = json::array();
     for (auto it : fetchkeys()) {
-      j.push_back(get(it)->getAsDataChild(fileId, level - 1));
+      ch.push_back(get(it)->getAsDataChild(fileId, level - 1));
+      ch.back()["text"] = it + ": " + ch.back()["text"];
     }
-    return j;
+    return ch;
   }
 
   virtual json toJson() override {
@@ -350,11 +356,16 @@ class IDataNode : public DataBase {
   virtual ~IDataNode();
 
   virtual json getDataChildren_(int fileId, int level) override {
+    
     json j = DataBase::getDataChildren_(fileId, level);
-    j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
-    j.push_back(getData()->getAsDataChild(fileId, level - 1));
-    j.push_back("Data Type Key:" + std::to_string(getDataTypeKey()));
-    j.push_back("Local:" + std::to_string(getLocal()));
+    if (getLogs()->size() > 0 ) {
+      j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
+      j.back()["text"] = "Logs";
+    }
+    if (getData()->size() > 0) {
+        j.push_back(getData()->getAsDataChild(fileId, level - 1));
+        j.back()["text"] = "Data";
+    }
     return j;
   }
 
@@ -381,14 +392,14 @@ class IInfoNode : public DataBase {
 
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
-    j.push_back("Title:" + getTitle());
-    j.push_back("Start:" + std::to_string(getStartTime()));
-    j.push_back("End:" + std::to_string(getEndTime()));
-    j.push_back("Workflow:" + getWorkflow());
-    j.push_back("JobName:" + getJobName());
-
-    j.push_back("Durr:" + std::to_string(getEndTime() - getStartTime()));
-    j.push_back("Prov: TODO");
+    j.push_back("Title: " + getTitle());
+    j.push_back("Unix Start Time: " + std::to_string(getStartTime()));
+    j.push_back("Unix End Time: " + std::to_string(getEndTime()));
+    j.push_back("Total Duration:" + std::to_string(getEndTime() - getStartTime()) + " seconds");
+    j.push_back("Workflow ID: " + getWorkflow());
+    j.push_back("JobName: " + getJobName());
+    j.push_back(getProvInternal()->getDataChildren());
+    j.back()["text"] = "Provenance";
     return j;
   }
 
@@ -438,8 +449,8 @@ class ICommInfoNode : public DataBase {
 
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
-    j.push_back("World Size:" + std::to_string(getWorldSize()));
-    j.push_back("Version:" + getVersion());
+    j.push_back("World Size: " + std::to_string(getWorldSize()));
+    j.push_back("Version: " + getVersion());
     return j;
   }
 
@@ -524,13 +535,24 @@ class ITestNode : public DataBase {
   virtual bool isInternal() = 0;
   virtual ~ITestNode();
 
+  virtual std::string getDisplayName() override {
+    return getPackage() + ": " + getName();
+  }
+
   virtual json getDataChildren_(int fileId, int level) override {
+    
     json j = DataBase::getDataChildren_(fileId, level);
-    j.push_back("Package:" + getPackage());
     j.push_back("Internal:" + std::to_string(isInternal()));
-    j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
-    j.push_back(getData()->getAsDataChild(fileId, level - 1));
+    if (getLogs()->size() > 0 ) {
+      j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
+      j.back()["text"] = "Logs";
+    }
+    if (getData()->size() > 0 ) {
+      j.push_back(getData()->getAsDataChild(fileId, level - 1));
+      j.back()["text"] = "Data";
+    }
     return j;
+  
   }
 
   virtual void open(bool value) override {
@@ -574,14 +596,25 @@ class IInjectionPointNode : public DataBase {
   virtual std::shared_ptr<ITestNode> getData() = 0;
   virtual ~IInjectionPointNode();
 
+  virtual std::string getDisplayName() override {
+    return getPackage() + ": " + getName();
+  }
+
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
-    j.push_back("Package:" + getPackage());
-    j.push_back("Comm:" + getComm());
-    j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
-    j.push_back(getData()->getAsDataChild(fileId, level - 1));
-    j.push_back(getTests()->getAsDataChild(fileId, level - 1));
-
+    j.push_back("Communicator:" + getComm());
+    if (getLogs()->size() > 0 ) {
+      j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
+      j.back()["text"] = "Logs";
+    }
+    if (getData()->size() > 0 ) {
+      j.push_back(getData()->getAsDataChild(fileId, level - 1));
+      j.back()["text"] = "Data";
+    }
+    if (getTests()->size() > 0 ) {
+      j.push_back(getTests()->getAsDataChild(fileId, level - 1));
+      j.back()["text"] = "Tests";
+    }
     return j;
   }
   virtual void open(bool value) override {
@@ -602,13 +635,14 @@ class ILogNode : public DataBase {
   virtual std::string getComm() = 0;
   virtual ~ILogNode();
 
+   virtual std::string getDisplayName() override {
+    return "[" + getLevel() + "]["  + getPackage() + ":" + getName();
+  }
+
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
-    j.push_back("Package:" + getPackage());
-    j.push_back("Level:" + getLevel());
     j.push_back("Message:" + getMessage());
-    j.push_back("Stage:" + getStage());
-    j.push_back("Comm:" + getComm());
+    j.push_back("Communicator:" + getComm());
     return j;
   }
 };
@@ -638,8 +672,14 @@ class IUnitTestResultsNode : public DataBase {
 
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
-    for (auto it : fetchkeys()) {
-      j.push_back(get(it)->getAsDataChild(fileId, level));
+    if (fetchKeys().size() > 0 ) {
+      for (auto it : fetchkeys()) {
+         if (it->getResult()) {
+            j.push_back("[PASS] " it->getName() + ": " + it->getDescription() );
+         } else {
+            j.push_back("[FAIL] " it->getName() + ": " + it->getDescription() );
+         }
+      }
     }
     return j;
   }
@@ -661,12 +701,22 @@ class IUnitTestNode : public DataBase {
   virtual std::shared_ptr<IUnitTestResultsNode> getResults() = 0;
   virtual ~IUnitTestNode();
 
+  virtual std::string getDisplayName() override {
+    return getPackage() + ":" + getName();
+  }
+
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
-    j.push_back("Package:" + getPackage());
-    j.push_back(getResults()->getAsDataChild(fileId, level - 1));
-    j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
-    j.push_back(getData()->getAsDataChild(fileId, level - 1));
+    if (getResults()->fetchKeys().size() > 0) {
+      j.push_back(getResults()->getAsDataChild(fileId, level - 1));
+    }
+    if (getLogs().size() > 0 ) {
+      j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
+
+    }
+    if (getData().size() > 0 ) {
+      j.push_back(getData()->getAsDataChild(fileId, level - 1));
+    }
     return j;
   }
 
@@ -829,17 +879,34 @@ class IRootNode : public DataBase {
 
   virtual json getDataChildren_(int fileId, int level) override {
     json j = DataBase::getDataChildren_(fileId, level);
-    j.push_back(getPackages()->getAsDataChild(fileId, level - 1));
-    j.push_back(getActions()->getAsDataChild(fileId, level - 1));
-    j.push_back(getUnitTests()->getAsDataChild(fileId, level - 1));
+    
     j.push_back(getInfoNode()->getAsDataChild(fileId, level - 1));
-    j.push_back(getChildren()->getAsDataChild(fileId, level - 1));
-    j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
+    
+    if (getPackages()->size() > 0 ) {
+        j.push_back(getPackages()->getAsDataChild(fileId, level - 1));
+    }
+    
+    if (getActions()->size() > 0 ) {
+      j.push_back(getActions()->getAsDataChild(fileId, level - 1));
+    }
+    
+    if (getUnitTests()->size() > 0 ) {
+      j.push_back(getUnitTests()->getAsDataChild(fileId, level - 1));
+    }
+    
+    if (getChildren()->size() > 0 ) {
+      j.push_back(getChildren()->getAsDataChild(fileId, level - 1));
+    }
+    
+    if (getLogs()->size() > 0 ) {
+      j.push_back(getLogs()->getAsDataChild(fileId, level - 1));
+    }
+    
     j.push_back(getWorkflowNode()->getAsDataChild(fileId, level - 1));
-
+    
     json jj = json::object();
-    jj["text"] = "Injection Points and Log Messages";
-
+    jj["text"] = "Injection Points";
+    jj["icon"] = "feather icon-folder;"
     json ch = json::array();
     for (auto it : getNodes()) {
       for (auto itt : it.second) {
