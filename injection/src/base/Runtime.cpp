@@ -759,23 +759,25 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
 
 bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv, std::string configFile,
                            InitDataCallback icallback, registrationCallBack callback) {
+  
+  
   std::string fname = DistUtils::getEnvironmentVariable("VNV_INPUT_FILE", "");
   if (fname.length() > 0) {
     std::cout << "Using Input file defined in the environment: " << fname;
     configFile = fname;
-  } else {
-    // Search the Cmd line for the input override call. This call sets the
-    // configuration file using the command line. It overrides the value passed in
-    // through the initialize call.
-    for (int i = 0; i < *argc; i++) {
-      std::string s((*argv)[i]);
-      if (s.compare("--vnv-input-file") == 0) {
-        configFile = (*argv)[i + 1];
-        break;
-      }
+  } 
+  
+  // Search the Cmd line for the input override call. This call sets the
+  // configuration file using the command line. It overrides the value passed in
+  // through the initialize call.
+  for (int i = 0; i < *argc; i++) {
+    std::string s((*argv)[i]);
+    if (s.compare("--vnv-input-file") == 0) {
+      configFile = (*argv)[i + 1];
+      break;
     }
   }
-
+  
   this->configFile = configFile;
   if (configFile == VNV_DEFAULT_INPUT_FILE) {
     json j = json::object();
@@ -787,6 +789,7 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv, std
     json mainJson = JsonUtilities::load(configFile);
     return InitFromJson(packageName, argc, argv, mainJson, icallback, callback);
   }
+  
   throw INJECTION_EXCEPTION("Bad Input File %s", configFile.c_str());
 }
 

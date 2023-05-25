@@ -31,11 +31,9 @@ extern "C" {
 int VnV_init(const char* packageName, int* argc, char*** argv, const char* filename, initDataCallback icallback,
              registrationCallBack callback) {
   try {
-    return VnV::RunTime::instance().InitFromFile(packageName, argc, argv, filename, cpp_to_c_wrapper(icallback),
-                                                 callback);
+    return VnV::RunTime::instance().InitFromFile(packageName, argc, argv, filename, cpp_to_c_wrapper(icallback), callback);
   } catch (std::exception& e) {
     std::cout << "Error Initializing VnV: " << e.what() << std::endl;
-    std::abort();
   }
 }
 
@@ -46,7 +44,6 @@ int VnV_init_raw(const char* packageName, int* argc, char*** argv, const char* i
     return VnV::RunTime::instance().InitFromJson(packageName, argc, argv, j, cpp_to_c_wrapper(icallback), callback);
   } catch (std::exception& e) {
     std::cout << "Error Initializing VnV: " << e.what() << std::endl;
-    std::abort();
   }
 }
 
