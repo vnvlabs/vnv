@@ -370,7 +370,7 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
   // Updating the registration file
   json jc = r.getExecutableDocumentations(packageName);
 
-  if (jc.size() > 0 && !regFileName.empty() && !targetFileName.empty()) {
+  if ( !regFileName.empty() && !targetFileName.empty()) {
     // Get a lock file for the registration file.
     std::string lockFile = "." + regFileName + ".lock";
     int fd = open(lockFile.c_str(), O_WRONLY | O_CREAT);
@@ -379,12 +379,14 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
     std::ifstream ifv(regFileName);
     json j;
     if (ifv.good()) {
+      
       try {
         j = json::parse(ifv);
         assert(j.is_object());
       } catch (...) {
         std::cout << "Invalid registration file. Please fix/delete it and try again" << std::endl;
       }
+
     } else {
       j = R"({"reports":{},"executables": {}, "plugins" : {}, "libraries" : {} })"_json;
     }
@@ -399,29 +401,30 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
       j["libraries"] = json::object();
     }
 
-    json jv = json::object();
-    jv["filename"] = targetFileName;
-    jv["description"] = jc.value("description", "");
-    jv["packageName"] = packageName;
-    if (jc.contains("configuration")) {
-      jv["defaults"] = jc["configuration"];
+    if ( jc.size() > 0 ) {
+      json jv = json::object();
+      jv["filename"] = targetFileName;
+      jv["description"] = jc.value("description", "");
+      jv["packageName"] = packageName;
+      if (jc.contains("configuration")) {
+        jv["defaults"] = jc["configuration"];
+      }
+
+      std::string n = jc.value("title", packageName);
+      if (n.empty()) n = packageName;
+
+      std::string ty = jc.value("lib", "executables");
+
+      // hmmmmmm
+      assert(ty.compare("executables") == 0 || ty.compare("libraries") == 0 || ty.compare("plugins") == 0);
+
+      j[ty][n] = jv;  ////// TODO
     }
 
-    std::string n = jc.value("title", packageName);
-    if (n.empty()) n = packageName;
-
-    std::string ty = jc.value("lib", "executables");
-
-    // hmmmmmm
-    assert(ty.compare("executables") == 0 || ty.compare("libraries") == 0 || ty.compare("plugins") == 0);
-
-    j[ty][n] = jv;  ////// TODO
-
+    //Write and unlock
     std::ofstream rfile(regFileName);
     rfile << j.dump(3);
     rfile.close();
-
-    // Unlock the registration file.
     flock(fd, LOCK_UN);
   }
 }
