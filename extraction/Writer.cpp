@@ -405,6 +405,7 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
     }
 
     if ( jc.size() > 0 ) {
+      
       json jv = json::object();
       jv["filename"] = targetFileName;
       jv["description"] = jc.value("description", "");

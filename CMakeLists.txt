@@ -33,7 +33,6 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
       CACHE STRING "Build type (default RelWitDebInfo)")
 endif()
 
-option(BUILD_EXAMPLES "Build the examples" ON)
 
 option(ALLERRORS OFF)
 if(ALLERRORS)
@@ -55,9 +54,6 @@ if(BUILD_TESTS)
   add_subdirectory(test)
 endif()
 
-if(BUILD_EXAMPLES)
-  add_subdirectory(examples)
-endif()
 
 add_subdirectory(docs)
 
@@ -84,7 +80,7 @@ install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/injection/include/
 
 
 #Register a vnv file on install
-install_vnv_registration_dir(vnv docker/config vnv-config.json)        
+install_vnv_registration_dir(vnv gui vnv-config.json)        
 
 
 # Create a ConfigVersion.cmake file

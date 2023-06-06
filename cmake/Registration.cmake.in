@@ -15,6 +15,7 @@ set(VNV_MPI_C_VERSION @MPI_C_VERSION@)
 set(VNV_MPI_CXX_COMPILER @MPI_CXX_COMPILER@)
 set(VNV_MPI_CXX_VERSION @MPI_CXX_VERSION@)
 set(VNV_SCRIPTS_DIR @CMAKE_INSTALL_PREFIX@/scripts)
+set(VNV_MODULES_DIR @CMAKE_INSTALL_PREFIX@/modules)
 
 if(WITH_EXTRACTION AND TARGET Injection::Extraction)
 
@@ -131,7 +132,9 @@ endfunction()
 
 
 function(link_vnv_file_fortran targetName packageName extension)
-   link_vnv_file_semi(${targetName} ${packageName} ${extension} 1)
+	target_include_directories(${targetName} PUBLIC ${VNV_MODULES_DIR})
+	link_vnv_file_semi(${targetName} ${packageName} ${extension} 1)
+
 endfunction()
 
 
