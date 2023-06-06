@@ -18,7 +18,6 @@ with open(os.path.expanduser("~/.vnv"),'r+') as f:
         print("unknown argument ", sys.argv[1])
         exit(1)
     
-    print(a)
     f.seek(0)
     f.write("\n".join(a))
     f.truncate()

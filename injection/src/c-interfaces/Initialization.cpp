@@ -35,6 +35,7 @@ int VnV_init(const char* packageName, int* argc, char*** argv, const char* filen
   } catch (std::exception& e) {
     std::cout << "Error Initializing VnV: " << e.what() << std::endl;
   }
+  return 0;
 }
 
 int VnV_init_raw(const char* packageName, int* argc, char*** argv, const char* inputjson, initDataCallback icallback,
@@ -45,6 +46,7 @@ int VnV_init_raw(const char* packageName, int* argc, char*** argv, const char* i
   } catch (std::exception& e) {
     std::cout << "Error Initializing VnV: " << e.what() << std::endl;
   }
+  return 0;
 }
 
 void VnV_finalize() {

@@ -44,6 +44,8 @@ add_subdirectory(extraction)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake @ONLY)
 include("${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake")
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/scripts DESTINATION ${CMAKE_INSTALL_PREFIX} )
+
 
 add_subdirectory(injection)
 add_subdirectory(python_api)
@@ -103,6 +105,7 @@ install(
         ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/InjectionConfigVersion.cmake
   DESTINATION ${INSTALL_CONFIGDIR})
+
 
 export(
   EXPORT injection-targets

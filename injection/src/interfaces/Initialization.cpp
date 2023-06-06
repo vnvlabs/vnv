@@ -18,6 +18,7 @@ int Init(const char* packageName, int* argc, char*** argv, const char* filename,
   } catch (std::exception& e) {
     std::cout << "Error Initializing VnV: " << e.what() << std::endl;
   }
+  return 0;
 }
 
 int Init_raw(const char* packageName, int* argc, char*** argv, const char* inputjson, InitDataCallback icallback,
@@ -28,6 +29,7 @@ int Init_raw(const char* packageName, int* argc, char*** argv, const char* input
   } catch (std::exception& e) {
     std::cout << "Error Initializing VnV: " << e.what() << std::endl;
   }
+  return 0;
 }
 
 void finalize() {
