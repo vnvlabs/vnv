@@ -1,4 +1,5 @@
 ﻿#include <sys/file.h>
+#include <sys/stat.h>
 
 #include <iostream>
 #include <map>
@@ -370,7 +371,9 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
   // Updating the registration file
   json jc = r.getExecutableDocumentations(packageName);
 
+
   if ( !regFileName.empty() && !targetFileName.empty()) {
+
     // Get a lock file for the registration file.
     std::string lockFile = "." + regFileName + ".lock";
     int fd = open(lockFile.c_str(), O_WRONLY | O_CREAT);
@@ -419,6 +422,36 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
       assert(ty.compare("executables") == 0 || ty.compare("libraries") == 0 || ty.compare("plugins") == 0);
 
       j[ty][n] = jv;  ////// TODO
+
+      //Register it in the users global env place.
+      const char *homedir = getenv("HOME");
+      std::string homed(homedir);
+      homed += "/.vnv";
+      std::string lockFile1 = homed + ".lock";
+      
+      int fdd = open(lockFile1.c_str(), O_WRONLY | O_CREAT);
+      flock(fdd, LOCK_EX);
+
+      std::set<std::string> files;
+      files.insert(regFileName);
+
+      std::ifstream globalF(homed);
+      if (globalF.good()) {
+        std::string nextline;
+        while (std::getline(globalF, nextline)) {
+          files.insert(nextline); 
+        }
+      }
+      globalF.close();
+
+      std::ofstream globalO(homed);
+      for (auto &it : files) {
+        globalO << it << "\n";
+      }
+      globalO.close();
+
+      flock(fdd, LOCK_UN);
+
     }
 
     //Write and unlock

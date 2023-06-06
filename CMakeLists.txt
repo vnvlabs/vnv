@@ -80,8 +80,10 @@ install(FILES ${CMAKE_CURRENT_LIST_DIR}/injection/include/VnV.h
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/injection/include/
         DESTINATION include)
 
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/docker/config/ DESTINATION config)
-        
+
+#Register a vnv file on install
+install_vnv_registration_dir(vnv docker/config vnv-config.json)        
+
 
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)

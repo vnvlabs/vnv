@@ -1,14 +1,8 @@
 ARG FROM_IMAGE=beon9273a/vnv:vnv_env
 from ${FROM_IMAGE}
 
-# Tag it
-ARG COMMIT_HASH="unknown"
-LABEL vnv.version.vnv=${COMMIT_HASH}
-
 ENV VNV_DIR=${SOFTWARE_DIR}/vnv
 ENV VNV_MATCHER=${VNV_DIR}/bin/vnv-matcher
-ENV VNV_CONFIG=${VNV_DIR}/config/vnv-config.json
-ENV VNV_CONFIG=${VNV_CONFIG}:${VNV_DIR}/vnv.__registration__
 ENV LD_LIBRARY_PATH=${VNV_DIR}/lib
 ENV OPENMP_INCLUDE_DIR=/usr/lib/llvm-10/include/openmp
 ENV Injection_DIR=${VNV_DIR}/lib/cmake
@@ -16,7 +10,6 @@ ENV Injection_DIR=${VNV_DIR}/lib/cmake
 # the Clang version of the openmp omp.h header file. We need the clang version because libtooling uses
 # clang to process the input files,  not gcc. 
 COPY . ${SOURCE_DIR}/vnv
-
 
 #Build it
 RUN cd ${SOURCE_DIR}/vnv  \
@@ -26,6 +19,8 @@ RUN cd ${SOURCE_DIR}/vnv  \
     && make -j 8 \
     && make install 
 
+RUN echo ${VNV_DIR}/config/vnv-config.json > ${HOME}/.vnv
 RUN rm -r ${SOURCE_DIR}/vnv
+
 
 

@@ -78,6 +78,31 @@ function(link_vnv_file_root targetName packageName extension fortran )
 
 endfunction()
 
+function(install_vnv_registration_dir name config_dir reg_file)
+   
+   install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/${config_dir} DESTINATION ${CMAKE_INSTALL_PREFIX})
+   install(CODE "
+      execute_process(
+         COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/register.py register ${CMAKE_INSTALL_PREFIX}/${config_dir}/${reg_file} 
+      )
+   ")
+
+    add_custom_target(uninstall_${name} 
+         COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/register.py deregister ${CMAKE_INSTALL_PREFIX}/${config_dir}/${reg_file} 
+    )
+   
+
+   add_custom_target(register_${name} 
+         COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/register.py register ${CMAKE_CURRENT_LIST_DIR}/${config_dir}/${reg_file} 
+   )
+
+   add_custom_target(deregister_${name} 
+         COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/register.py deregister ${CMAKE_CURRENT_LIST_DIR}/${config_dir}/${reg_file} 
+   )
+   
+   
+endfunction()
+
 
 # This one adds all the targets but makes it up to you to add the source. 
 function(link_vnv_file_semi targetName packageName extension fortran )
@@ -89,6 +114,11 @@ function(link_vnv_file_semi targetName packageName extension fortran )
    set_source_files_properties( ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
   
    install(FILES ${CMAKE_BINARY_DIR}/vnv.__registration__ DESTINATION ${CMAKE_INSTALL_PREFIX})
+   install(CODE "
+       execute_process(
+         COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/register.py register ${CMAKE_INSTALL_PREFIX}/vnv.__registration__ 
+      )
+   ")
 
    if (${fortran} GREATER 0)
        target_sources( ${targetName} PRIVATE ${CMAKE_BINARY_DIR}/vnv_${packageName}.f90 )
