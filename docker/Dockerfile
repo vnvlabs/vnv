@@ -19,7 +19,6 @@ RUN cd ${SOURCE_DIR}/vnv  \
     && make -j 8 \
     && make install 
 
-RUN echo ${VNV_DIR}/config/vnv-config.json > ${HOME}/.vnv
 RUN rm -r ${SOURCE_DIR}/vnv
 
 
