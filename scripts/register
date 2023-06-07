@@ -17,10 +17,11 @@ if not os.path.exists(sys.argv[3]):
     print("Registration file does not exist")
     exit(1)
 
-try:
+if sys.argv[1] == "gui":
+  try:
     with open(sys.argv[3],'r') as ff:
         json.load(ff)
-except Exception as e:
+  except Exception as e:
     print(e)
     print("Registration file provided is not valid json")
     exit(1)

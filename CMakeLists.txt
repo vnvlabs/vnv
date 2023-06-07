@@ -43,7 +43,7 @@ add_subdirectory(extraction)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake @ONLY)
 include("${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake")
-install(FILES ${CMAKE_SOURCE_DIR}/scripts/register ${CMAKE_SOURCE_DIR}/scripts/merge DESTINATION ${CMAKE_INSTALL_PREFIX}/bin )
+install(FILES ${CMAKE_SOURCE_DIR}/scripts/register ${CMAKE_SOURCE_DIR}/scripts/merge DESTINATION ${CMAKE_INSTALL_PREFIX}/bin PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)
 
 add_subdirectory(injection)
 add_subdirectory(python_api)

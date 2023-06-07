@@ -81,8 +81,8 @@ void RunTime::makeLibraryRegistrationCallbacks(std::map<std::string, std::string
 
   std::string home_dir = DistUtils::getEnvironmentVariable("HOME", StringUtils::random(5));
   
-  std::ifstream ifs(home_dir + "/.vnv")
-  json conf = json::parse(ifs)
+  std::ifstream ifs(home_dir + "/.vnv");
+  json conf = json::parse(ifs);
 
   for (auto &it : conf["plugin"].items()) {
     loadPlugin(it.value(),it.key());
