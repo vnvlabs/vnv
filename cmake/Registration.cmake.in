@@ -50,7 +50,6 @@ function( add_vnv_generation_target targetName packageName extension fortran )
                --cache ${CMAKE_BINARY_DIR}/vnv.__cache__ 
                --package ${packageName} 
                --targetFile ${CMAKE_CURRENT_BINARY_DIR}/${targetName} 
-               --regFile ${CMAKE_BINARY_DIR}/vnv.__registration__ 
                ${fortranFiles}
                ${CMAKE_BINARY_DIR}/compile_commands.json
          DEPENDS vnv_generate_cache
@@ -80,28 +79,7 @@ function(link_vnv_file_root targetName packageName extension fortran )
 endfunction()
 
 function(install_vnv_registration_dir name config_dir reg_file)
-   
-   install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/${config_dir} DESTINATION ${CMAKE_INSTALL_PREFIX})
-   install(CODE "
-      execute_process(
-         COMMAND python3 ${VNV_SCRIPTS_DIR}/register.py register ${CMAKE_INSTALL_PREFIX}/${config_dir}/${reg_file} 
-      )
-   ")
 
-    add_custom_target(uninstall_${name} 
-         COMMAND python3 ${VNV_SCRIPTS_DIR}/register.py deregister ${CMAKE_INSTALL_PREFIX}/${config_dir}/${reg_file} 
-    )
-   
-
-   add_custom_target(register_${name} 
-         COMMAND python3 ${VNV_SCRIPTS_DIR}/register.py register ${CMAKE_CURRENT_LIST_DIR}/${config_dir}/${reg_file} 
-   )
-
-   add_custom_target(deregister_${name} 
-         COMMAND python3 ${VNV_SCRIPTS_DIR}/register.py deregister ${CMAKE_CURRENT_LIST_DIR}/${config_dir}/${reg_file} 
-   )
-   
-   
 endfunction()
 
 
@@ -114,13 +92,6 @@ function(link_vnv_file_semi targetName packageName extension fortran )
    target_sources( ${targetName} PRIVATE ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} )
    set_source_files_properties( ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)
   
-   install(FILES ${CMAKE_BINARY_DIR}/vnv.__registration__ DESTINATION ${CMAKE_INSTALL_PREFIX})
-   install(CODE "
-       execute_process(
-         COMMAND python3 ${VNV_SCRIPTS_DIR}/register.py register ${CMAKE_INSTALL_PREFIX}/vnv.__registration__ 
-      )
-   ")
-
    if (${fortran} GREATER 0)
        target_sources( ${targetName} PRIVATE ${CMAKE_BINARY_DIR}/vnv_${packageName}.f90 )
        set_source_files_properties( ${CMAKE_BINARY_DIR}/vnv_${packageName}.f90 PROPERTIES COMPILE_DEFINITIONS VNV_IGNORE=0)

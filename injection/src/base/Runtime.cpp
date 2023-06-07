@@ -77,6 +77,26 @@ void RunTime::makeLibraryRegistrationCallbacks(std::map<std::string, std::string
   for (auto it : packageNames) {
     loadPlugin(it.second, it.first);
   }
+
+  std::string default_plugins = DistUtils::getEnvironmentVariable("VNV_PLUGINS", "");
+  if (default_plugins.size() > 2) {
+    std::vector<std::string> result;
+    StringUtils::StringSplit(default_plugins, "@", result);
+    for (auto &it : result ) {
+      if (it.size() > 2 ) {
+        std::vector<std::string> result1;
+      
+        StringUtils::StringSplit(it, ":", result1);
+        if (result1.size() == 2)
+          try{
+            loadPlugin(result1[1],result1[0]);
+          } catch (...) {
+            std::cout << "Could not load environment plugin " << it << std::endl; 
+          }
+      }
+    }
+
+  }
 }
 
 bool RunTime::useAsciiColors() { return terminalSupportsAsciiColors; }

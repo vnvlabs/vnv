@@ -522,6 +522,12 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       std::string pname = getPackageName(Args, 0);
       jj[pname] = getDocs(Range).toJson();
       jj[pname]["lib"] = "executables";
+      try {
+        std::string def_file = getPackageName(Args,1,true);
+        jj[pname]["default"] = json::parse(def_file);
+      } catch(...) {
+        std::cout << "Could not parse default input file for executable " << pname;
+      }
     } else if (nae == "INJECTION_LIBRARY") {
       json& jj = VnV::JsonUtilities::getOrCreate(thisJson, "Executables");
       std::string pname = getPackageName(Args, 0);

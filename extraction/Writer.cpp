@@ -302,7 +302,7 @@ class RegistrationWriter {
   }
 };
 
-void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileName, std::string targetFileName,
+void writeFile(json& cacheInfo, std::string outputFileName, std::string targetFileName,
                std::string packageName, std::string strip, std::string fortran) {
   // First we load the existing file in that directory.
   bool cacheChanged = true;
@@ -368,99 +368,6 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileN
     writeFortranModule(packageName, fortran);
   }
 
-  // Updating the registration file
-  json jc = r.getExecutableDocumentations(packageName);
-
-
-  if ( !regFileName.empty() && !targetFileName.empty()) {
-
-    // Get a lock file for the registration file.
-    std::string lockFile = "." + regFileName + ".lock";
-    int fd = open(lockFile.c_str(), O_WRONLY | O_CREAT);
-    flock(fd, LOCK_EX);
-
-    std::ifstream ifv(regFileName);
-    json j;
-    if (ifv.good()) {
-      
-      try {
-        j = json::parse(ifv);
-        assert(j.is_object());
-      } catch (...) {
-        std::cout << "Invalid registration file. Please fix/delete it and try again" << std::endl;
-      }
-
-    } else {
-      j = R"({"reports":{},"executables": {}, "plugins" : {}, "libraries" : {} })"_json;
-    }
-
-    if (!j.contains("executables")) {
-      j["executables"] = json::object();
-    }
-    if (!j.contains("plugins")) {
-      j["plugins"] = json::object();
-    }
-    if (!j.contains("libraries")) {
-      j["libraries"] = json::object();
-    }
-
-    if ( jc.size() > 0 ) {
-      
-      json jv = json::object();
-      jv["filename"] = targetFileName;
-      jv["description"] = jc.value("description", "");
-      jv["packageName"] = packageName;
-      if (jc.contains("configuration")) {
-        jv["defaults"] = jc["configuration"];
-      }
-
-      std::string n = jc.value("title", packageName);
-      if (n.empty()) n = packageName;
-
-      std::string ty = jc.value("lib", "executables");
-
-      // hmmmmmm
-      assert(ty.compare("executables") == 0 || ty.compare("libraries") == 0 || ty.compare("plugins") == 0);
-
-      j[ty][n] = jv;  ////// TODO
-
-      //Register it in the users global env place.
-      const char *homedir = getenv("HOME");
-      std::string homed(homedir);
-      homed += "/.vnv";
-      std::string lockFile1 = homed + ".lock";
-      
-      int fdd = open(lockFile1.c_str(), O_WRONLY | O_CREAT);
-      flock(fdd, LOCK_EX);
-
-      std::set<std::string> files;
-      files.insert(regFileName);
-
-      std::ifstream globalF(homed);
-      if (globalF.good()) {
-        std::string nextline;
-        while (std::getline(globalF, nextline)) {
-          files.insert(nextline); 
-        }
-      }
-      globalF.close();
-
-      std::ofstream globalO(homed);
-      for (auto &it : files) {
-        globalO << it << "\n";
-      }
-      globalO.close();
-
-      flock(fdd, LOCK_UN);
-
-    }
-
-    //Write and unlock
-    std::ofstream rfile(regFileName);
-    rfile << j.dump(3);
-    rfile.close();
-    flock(fd, LOCK_UN);
-  }
 }
 
 void removeNonModified(std::set<std::string>& files, json& cacheFiles, std::map<std::string, bool>& fModMap,

@@ -19,6 +19,9 @@ RUN cd ${SOURCE_DIR}/vnv  \
     && make -j 8 \
     && make install 
 
+RUN cp -r ${SOURCE_DIR}/vnv/gui ${SOFTWARE_DIR}/vnv/gui 
+ENV VNV_CONFIG=${VNV_CONFIG}:${VNV_DIR}/gui/vnv-config.json
+
 RUN rm -r ${SOURCE_DIR}/vnv
 
 

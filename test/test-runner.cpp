@@ -2,7 +2,7 @@
 
 #define PACKAGENAME VnVTestRunner
 
-INJECTION_EXECUTABLE(PACKAGENAME)
+INJECTION_EXECUTABLE(PACKAGENAME,"{}")
 
 const char* inputfile = R"(
 

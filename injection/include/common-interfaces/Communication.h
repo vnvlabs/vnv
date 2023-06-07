@@ -20,8 +20,14 @@ VNVEXTERNC VnV_Comm VnV_Comm_Custom(const char* name, void* data);
 #define VCUST(name, data) VnV_Comm_Custom(name, (void*)&data)
 #define VMPI(data) VCUST("mpi", data)
 
-#define INJECTION_EXECUTABLE(package) INJECTION_REGISTRATION(package);
+#define INJECTION_EXECUTABLE_WITH_DEFAULT(package, input) 
+#define INJECTION_EXECUTABLE(package, input) INJECTION_REGISTRATION(package);
+
 #define INJECTION_LIBRARY(package) INJECTION_REGISTRATION(package);
 #define INJECTION_PLUGIN(package) INJECTION_REGISTRATION(package);
 
+#define INJECTION_DEFAULT_FILE(package, inputfile) 
+
 #endif  // COMMUNICATION_H
+
+

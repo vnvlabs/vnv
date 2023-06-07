@@ -52,7 +52,7 @@ bool isFortranFile(std::string fname) {
   return false;
 }
 
-void writeFile(json& cacheInfo, std::string outputFileName, std::string regFileName, std::string targetFileName,
+void writeFile(json& cacheInfo, std::string outputFileName, std::string targetFileName,
                std::string packageName, std::string strip = "", std::string fortran = "");
 
 void checkCache(json& cacheInfo, std::set<std::string>& cfiles, std::set<std::string>& ffiles);
@@ -73,8 +73,6 @@ static llvm::cl::opt<std::string> outputFile("output", llvm::cl::desc("Output fi
 static llvm::cl::opt<std::string> cacheFile("cache", llvm::cl::desc("The cache file"), llvm::cl::value_desc("file"),
                                             llvm::cl::cat(VnVParserCatagory));
 
-static llvm::cl::opt<std::string> regFile("regFile", llvm::cl::desc("The registration file file"),
-                                          llvm::cl::value_desc("file"), llvm::cl::cat(VnVParserCatagory));
 
 static llvm::cl::opt<std::string> targetFile("targetFile", llvm::cl::desc("The target file"),
                                              llvm::cl::value_desc("file"), llvm::cl::cat(VnVParserCatagory));
@@ -216,7 +214,6 @@ int main(int argc, const char** argv) {
     }
 
     std::string targetFileName = targetFile.getValue();
-    std::string regFileName = regFile.getValue();
 
     std::hash<std::string> hasher;
 
@@ -403,7 +400,7 @@ int main(int argc, const char** argv) {
     if (!cacheonly.getValue()) {
       // Write the file.
 
-      writeFile(cacheInfo, outputFileName, regFileName, targetFileName, packageName.getValue(), strip.getValue(),
+      writeFile(cacheInfo, outputFileName, targetFileName, packageName.getValue(), strip.getValue(),
                 fortranPackage.getValue());
     }
 

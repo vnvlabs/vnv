@@ -26,6 +26,8 @@ VNVEXTERNC void* _VnV_getOptionsObject(const char* package);
 #  define DECLAREOPTIONS(PNAME) void REG_HELPER(_VnV_register_options_, PNAME)();
 #  define INJECTION_GET_CONFIG(PNAME) REG_HELPER(_VnV_get_options_, PNAME)();
 
+
+
 #endif
 
 #endif  // JSONINTERFACE_H
