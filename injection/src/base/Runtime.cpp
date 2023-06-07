@@ -6,6 +6,7 @@
 #include "base/Runtime.h"
 
 #include <unistd.h>
+#include <stdlib.h>
 
 #include <iostream>
 
@@ -78,24 +79,13 @@ void RunTime::makeLibraryRegistrationCallbacks(std::map<std::string, std::string
     loadPlugin(it.second, it.first);
   }
 
-  std::string default_plugins = DistUtils::getEnvironmentVariable("VNV_PLUGINS", "");
-  if (default_plugins.size() > 2) {
-    std::vector<std::string> result;
-    StringUtils::StringSplit(default_plugins, "@", result);
-    for (auto &it : result ) {
-      if (it.size() > 2 ) {
-        std::vector<std::string> result1;
-      
-        StringUtils::StringSplit(it, ":", result1);
-        if (result1.size() == 2)
-          try{
-            loadPlugin(result1[1],result1[0]);
-          } catch (...) {
-            std::cout << "Could not load environment plugin " << it << std::endl; 
-          }
-      }
-    }
+  std::string home_dir = DistUtils::getEnvironmentVariable("HOME", StringUtils::random(5));
+  
+  std::ifstream ifs(home_dir + "/.vnv")
+  json conf = json::parse(ifs)
 
+  for (auto &it : conf["plugin"].items()) {
+    loadPlugin(it.value(),it.key());
   }
 }
 
