@@ -38,14 +38,15 @@ void Logger::up() { stage++; }
 void Logger::down() { stage--; }
 
 Logger::Logger() {
-  registerLogLevel(VNVPACKAGENAME_S, "INFO", green);
-  registerLogLevel(VNVPACKAGENAME_S, "DEBUG", green);
-  registerLogLevel(VNVPACKAGENAME_S, "WARN", blue);
-  registerLogLevel(VNVPACKAGENAME_S, "ERROR", red);
+  registerLogLevel(VNVPACKAGENAME_S, "INFO", green, false);
+  registerLogLevel(VNVPACKAGENAME_S, "DEBUG", green, false);
+  registerLogLevel(VNVPACKAGENAME_S, "WARN", blue, true);
+  registerLogLevel(VNVPACKAGENAME_S, "ERROR", red, true);
 };
 
-void Logger::registerLogLevel(std::string packageName, std::string name, std::string color) {
+void Logger::registerLogLevel(std::string packageName, std::string name, std::string color, bool on) {
   logLevelsToColor[packageName + ":" + name] = color;
+  logs[packageName + ":" + name] = on;
 }
 
 std::string Logger::getIndent(int stages) {
@@ -54,7 +55,9 @@ std::string Logger::getIndent(int stages) {
   return s;
 }
 
-void Logger::setLogLevel(std::string level, bool on) { logs.insert(std::make_pair(level, on)); }
+void Logger::setLogLevel(std::string level, bool on) { 
+  logs[level] = on;
+}
 
 void Logger::log(VnV_Comm comm, std::string pname, std::string level, std::string format) {
   if (!locked) return;

@@ -486,7 +486,7 @@ RunTime::RunTime() {
 }
 
 void RunTime::registerLogLevel(std::string packageName, std::string name, std::string color) {
-  logger.registerLogLevel(packageName, name, color);
+  logger.registerLogLevel(packageName, name, color, true);
 }
 
 void RunTime::registerFile(VnV_Comm comm, std::string packageName, std::string name, int input, std::string filename,

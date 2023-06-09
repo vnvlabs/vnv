@@ -124,7 +124,7 @@ class IOutputEngine {
       auto it = DataTypeStore::instance().getDataType(T::vnv_datatype);
       if (it != nullptr) {
         it->setData(&value);
-        return;
+        this->Put(variableName, it, m);
       }
     } catch (VnVExceptionBase e) {
       VnV_Error(VNVPACKAGENAME, "Could not put Data Type %s because %s ", T::vnv_datatype.c_str(), e.what());

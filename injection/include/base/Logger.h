@@ -130,7 +130,7 @@ class Logger {
    */
   void print();
 
-  void registerLogLevel(std::string packageName, std::string name, std::string color);
+  void registerLogLevel(std::string packageName, std::string name, std::string color, bool on);
   void setLogLevel(std::string level, bool on);
   std::string logLevelToColor(std::string logLevel, std::string message);
 
