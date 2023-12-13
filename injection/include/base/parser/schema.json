@@ -199,7 +199,15 @@ R"(
         "description": "Injection Points",
         "type": "object",
         "properties": {
-          "runAll" : {"type" : "boolean"}
+          "runAll" : {
+            "type": "object",
+            "patternProperties": {
+              "^.*?:.*?$": {
+                "$ref": "#/definitions/test"
+              }
+            },
+            "additionalProperties": false
+          }
         },
         "patternProperties": {
           "^.*?:.*?$": {

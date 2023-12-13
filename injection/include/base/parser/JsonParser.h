@@ -189,7 +189,7 @@ struct RunInfo {
   bool runTests; /**< Should any tests be run */
   bool schemaDump = false;
   bool schemaQuit = false;
-  bool runAll = false;
+  std::vector<json> runAll;  
   std::string workflowName = "";
   std::string workflowJob = "";
   std::string workflowDir = "";
@@ -344,7 +344,7 @@ class JsonParser {
    *
    * Here we add the injection point to the injection point list.
    */
-  bool addInjectionPoint(const json& injectionPointJson, std::set<std::string>& runScopes,
+  std::vector<json> addInjectionPoint(const json& injectionPointJson, std::set<std::string>& runScopes,
                          std::map<std::string, InjectionPointInfo>& ips, InjectionType type);
 
   /**

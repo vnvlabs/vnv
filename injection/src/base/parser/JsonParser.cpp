@@ -61,14 +61,21 @@ SamplerInfo JsonParser::getSamplerInfo(const json& samplerJson) {
   throw VnVExceptionBase("Schema Validation Error -- This should be possible");
 }
 
-bool JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runScopes,
+std::vector<json> JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runScopes,
                                    std::map<std::string, InjectionPointInfo>& ips, InjectionType type) {
-  bool all_on = false;
+  
+  std::vector<json> global_tests;
+
   for (auto& it : ip.items()) {
+    std::set<std::string> runscopes;
     if (it.key().compare("runAll") == 0) {
-      all_on = it.value().get<bool>();
+      for (auto& test : it.value().items()) {
+          addTest(test.key(), test.value(), global_tests, runscopes);
+      }
+
       continue;
-    } else if (!add(it.value(), runScopes)) {
+    } 
+    else if (!add(it.value(), runScopes)) {
       continue;
     }
 
@@ -142,7 +149,7 @@ bool JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runSco
       }
     }
   }
-  return all_on;
+  return global_tests;
 }
 
 void JsonParser::addTestLibrary(const json& lib, std::map<std::string, std::string>& libs) {
@@ -400,7 +407,9 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   }
 
   // Add all the injection points;
+
   if (main.find("injectionPoints") != main.end()) {
+
     info.runAll = addInjectionPoint(main["injectionPoints"], runScopes, info.injectionPoints, InjectionType::POINT);
   }
 
@@ -466,7 +475,11 @@ RunInfo JsonParser::parse(std::ifstream& fstream, int* argc, char** argv) {
 #include <iostream>
 RunInfo JsonParser::parse(const json& _json, int* argc, char** argv) {
   json_validator validator;
+
+
   validator.set_root_schema(getVVSchema());
+
+
   try {
     validator.validate(_json);
   } catch (std::exception& e) {
@@ -474,5 +487,8 @@ RunInfo JsonParser::parse(const json& _json, int* argc, char** argv) {
     std::cout << getVVSchema().dump(4);
     throw INJECTION_EXCEPTION("Input File Parsing Failed.\n Reason : %s", e.what());
   }
+
   return _parse(_json, argc, argv);
+
+
 }

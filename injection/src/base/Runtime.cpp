@@ -630,10 +630,14 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
       throw INJECTION_BUG_REPORT("Unknown Injection point type %d", it.second.type);
     }
   }
-  if (info.runAll) {
-    InjectionPointStore::instance().runAll();
-  }
 
+
+  std::vector<TestConfig> alltests;
+  if (info.runAll.size() > 0 ) {
+    alltests = TestStore::instance().validateTests(info.runAll);
+  }
+  InjectionPointStore::instance().runAll(alltests);
+  
   jobManager = WorkflowStore::instance().buildJobManager(mainPackageName, workflowName(), info.workflowInfo.workflows);
 
   OutputEngineStore::instance().getEngineManager()->sendInfoNode(world);
@@ -701,8 +705,12 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
                            registrationCallBack callback) {
   mainPackageName = packageName;
 
+  std::cout << "GGGGGGGGGGGGGGGG" << std::endl;
+
+
   // Set the provenance information .
   prov.reset(new VnV::VnVProv(*argc, *argv, configFile, config));
+  std::cout << "1GGGGGGGGGGGGGGGG" << std::endl;
 
   JsonParser parser;
   try {
@@ -787,7 +795,8 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv, std
       break;
     }
   }
-  
+
+
   this->configFile = configFile;
   if (configFile == VNV_DEFAULT_INPUT_FILE) {
     json j = json::object();
@@ -809,7 +818,6 @@ bool RunTime::configure(std::string packageName, RunInfo info, registrationCallB
   if (runTests) {
     CommunicationStore::instance().set(info.communicator);
     auto commW = CommunicationStore::instance().worldComm();
-
     loadRunInfo(info, callback);
 
     // Run any workflows listed in the application
