@@ -51,6 +51,7 @@ ICommunicator_ptr getComm(VnV_Comm comm) {
 
 void RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
   try {
+    std::cout << "REGISTERING A PLUGIN " << packageName << std::endl;
     auto it = plugins.find(libraryPath);
     if (it == plugins.end()) {
       void* dllib = DistUtils::loadLibrary(libraryPath);
@@ -554,6 +555,7 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
 
     // Register the Executable.
     if (callback != nullptr) {
+      std::cout << "REgistering the executable " << std::endl;
       runTimePackageRegistration(mainPackageName, *callback);
     }
 
@@ -590,7 +592,7 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
 
   // Process the configs (wait until now because it allows loaded test libraries
   // to register options objects.
-  processToolConfig(info.pluginConfig, info.cmdline, world);
+  processToolConfig(info.pluginConfig, world);
 
   if (info.schemaDump) {
     dumpSpecification(info.schemaQuit);
@@ -644,19 +646,6 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
   ActionStore::instance().initialize(info.actionInfo);
 }
 
-void RunTime::loadInjectionPoints(json _json) {
-  JsonParser parser;
-  char** argv = nullptr;
-  int argc = 0;
-  try {
-    RunInfo info = parser.parse(_json, &argc, argv);
-    loadRunInfo(info, nullptr);
-  } catch (VnVExceptionBase e) {
-    std::cerr << "Loading of injection points failed" << std::endl;
-    std::cerr << e.what() << std::endl;
-    std::abort();
-  }
-}
 
 namespace {
 
@@ -681,13 +670,12 @@ void RunTime::loadHotPatch(VnV_Comm comm) {
     if (getHotPatchFileName(comm, hotpatchfilename)) {
       json j = JsonUtilities::load(hotpatchfilename);
       JsonParser parser;
-      char** argv = nullptr;
-      int argc = 0;
 
       RunInfo hinfo;
 
       try {
-        hinfo = parser.parse(j, &argc, argv);
+        std::vector<std::string> cmdline;
+        hinfo = parser.parse(j, cmdline);
         loadRunInfo(hinfo, nullptr);
       } catch (VnVExceptionBase e) {
         std::cerr << "Loading of hot patch failed" << std::endl;
@@ -705,16 +693,16 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
                            registrationCallBack callback) {
   mainPackageName = packageName;
 
-  std::cout << "GGGGGGGGGGGGGGGG" << std::endl;
-
-
   // Set the provenance information .
   prov.reset(new VnV::VnVProv(*argc, *argv, configFile, config));
-  std::cout << "1GGGGGGGGGGGGGGGG" << std::endl;
+
+  for (int i = 0; i < *argc; i++) {
+    command_line_vector.push_back((*argv)[i]);
+  }
 
   JsonParser parser;
   try {
-    info = parser.parse(config, argc, *argv);
+    info = parser.parse(config, command_line_vector);
   } catch (VnVExceptionBase e) {
     std::cerr << "VnV Initialization Failed during input file validation. \n";
     std::cerr << e.what() << std::endl;
@@ -771,6 +759,20 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
    *
    */
   INJECTION_LOOP_BEGIN(VNVPACKAGENAME, comm, initialization, VNV_NOCALLBACK, runTests);
+
+  //Update the command line. During configuation, everything is allowed to add/remove
+  //things from the command line vector. At the end we change the command line pointers
+  //to point to our new updated command line that can then be used for everything else. 
+
+  for (size_t i = 0; i < command_line_vector.size(); ++i) {
+        //Note: This leaks -- we never clean up the command line chars allocated with new
+        // but this class (the Runtime class) is a static singleton, so its destructor gets
+        // called on program exit -- Lets let the os clean it up in the name of "performance". 
+        command_line_char_star.push_back(new char[command_line_vector[i].size() + 1]);
+        std::strcpy(command_line_char_star[i], command_line_vector[i].c_str());
+  }
+  *argc = command_line_vector.size();
+  *argv = command_line_char_star.data();
 
   return false;
 }
@@ -840,8 +842,8 @@ bool RunTime::configure(std::string packageName, RunInfo info, registrationCallB
   return 0;
 }
 
-void RunTime::processToolConfig(json config, json& cmdline, ICommunicator_ptr world) {
-  OptionsParserStore::instance().parse(config, cmdline, world);
+void RunTime::processToolConfig(json config, ICommunicator_ptr world) {
+  OptionsParserStore::instance().parse(config, command_line_vector,  world);
 }
 
 void RunTime::runTimePackageRegistration(std::string packageName, registrationCallBack reg) {

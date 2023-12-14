@@ -32,6 +32,9 @@ R"(
       "unit-testing": {
         "$ref": "#/definitions/unit-testing"
       },
+      "execution" : {
+        "type" : "object"
+      },
       "actions": {
         "$ref": "#/definitions/actions"
       },

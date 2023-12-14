@@ -40,7 +40,7 @@ class OptionsParserStore : public BaseStore {
 
   void add(std::string name, json& m, options_callback_ptr v);
   void add(std::string name, json& m, options_cpp_callback_ptr v);
-  void callBack(std::string name, json info, ICommunicator_ptr world);
+  void callBack(std::string name, json info, std::vector<std::string>& cmdline, ICommunicator_ptr world);
 
   void* getResult(std::string name) {
     if (optionResult.find(name) != optionResult.end()) {
@@ -49,7 +49,7 @@ class OptionsParserStore : public BaseStore {
     return nullptr;
   }
 
-  void parse(json info, json& cmdline, ICommunicator_ptr world);
+  void parse(json info, std::vector<std::string>& cmdline, ICommunicator_ptr world);
 
   json& getSchema(std::string package);
 
