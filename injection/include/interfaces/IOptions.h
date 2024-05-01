@@ -9,7 +9,7 @@
 using nlohmann::json;
 namespace VnV {
 
-typedef void* (*options_cpp_callback_ptr)(json& info, IOutputEngine* engine, ICommunicator_ptr world);
+typedef void* (*options_cpp_callback_ptr)(json& info, std::vector<std::string>& cmdline, IOutputEngine* engine, ICommunicator_ptr world);
 
 void RegisterOptions(std::string packageName, std::string schema, options_cpp_callback_ptr callback);
 
@@ -24,15 +24,15 @@ void* getOptionsObject(std::string packageName);
 #  define INJECTION_OPTIONS(PNAME, schema, OptionsObject)                                                            \
     namespace VnV {                                                                                                  \
     namespace PNAME {                                                                                                \
-    OptionsObject* optionsCallback_(json& config, VnV::IOutputEngine* engine, VnV::ICommunicator_ptr world);         \
-    void* optionsCallback(json& config, VnV::IOutputEngine* engine, VnV::ICommunicator_ptr world) {                  \
-      return (void*)optionsCallback_(config, engine, world);                                                         \
+    OptionsObject* optionsCallback_(json& config, std::vector<std::string>& cmdline, VnV::IOutputEngine* engine, VnV::ICommunicator_ptr world);         \
+    void* optionsCallback(json& config, std::vector<std::string>& cmdline, VnV::IOutputEngine* engine, VnV::ICommunicator_ptr world) {                  \
+      return (void*)optionsCallback_(config, cmdline, engine, world);                                                         \
     }                                                                                                                \
     void registerOptions() { VnV::RegisterOptions(VNV_STR(PNAME), schema, &optionsCallback); }                       \
     OptionsObject* getOptionsObject() { return static_cast<OptionsObject*>(VnV::getOptionsObject(VNV_STR(PNAME))); } \
     }                                                                                                                \
     }                                                                                                                \
-    OptionsObject* VnV::PNAME::optionsCallback_(json& config, VnV::IOutputEngine* engine, VnV::ICommunicator_ptr world)
+    OptionsObject* VnV::PNAME::optionsCallback_(json& config, std::vector<std::string>& cmdline, VnV::IOutputEngine* engine, VnV::ICommunicator_ptr world)
 
 #  define DECLAREOPTIONS(PNAME) \
     namespace VnV {             \

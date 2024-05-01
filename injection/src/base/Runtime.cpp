@@ -53,6 +53,7 @@ ICommunicator_ptr getComm(VnV_Comm comm) {
 
 bool RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
   try {
+    std::cout << "REGISTERING A PLUGIN " << packageName << std::endl;
     auto it = plugins.find(libraryPath);
     if (it == plugins.end()) {
       void* dllib = DistUtils::loadLibrary(libraryPath);
@@ -570,6 +571,7 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
 
     // Register the Executable.
     if (callback != nullptr) {
+      std::cout << "REgistering the executable " << std::endl;
       runTimePackageRegistration(mainPackageName, *callback);
     }
 
@@ -657,6 +659,7 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
 
 
 
+
   jobManager = WorkflowStore::instance().buildJobManager(mainPackageName, workflowName(), info.workflowInfo.workflows);
 
   OutputEngineStore::instance().getEngineManager()->sendInfoNode(world,getFullJson(),getProv().toJson(), workflowName(),workflowJob());
@@ -699,13 +702,12 @@ void RunTime::loadHotPatch(VnV_Comm comm) {
     if (getHotPatchFileName(comm, hotpatchfilename)) {
       json j = JsonUtilities::load(hotpatchfilename);
       JsonParser parser;
-      char** argv = nullptr;
-      int argc = 0;
 
       RunInfo hinfo;
 
       try {
-        hinfo = parser.parse(j, &argc, argv);
+        std::vector<std::string> cmdline;
+        hinfo = parser.parse(j, cmdline);
         loadRunInfo(hinfo, nullptr);
       } catch (VnVExceptionBase e) {
         std::cerr << "Loading of hot patch failed" << std::endl;
@@ -728,9 +730,13 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
   prov.reset(new VnV::VnVProv(*argc, *argv, configFile, config));
   prov->setLibraries(lb);
 
+  for (int i = 0; i < *argc; i++) {
+    command_line_vector.push_back((*argv)[i]);
+  }
+
   JsonParser parser;
   try {
-    info = parser.parse(config, argc, *argv);
+    info = parser.parse(config, command_line_vector);
   } catch (VnVExceptionBase e) {
     std::cerr << "VnV Initialization Failed during input file validation. \n";
     std::cerr << e.what() << std::endl;
@@ -787,6 +793,20 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
    */
   INJECTION_LOOP_BEGIN(VNVPACKAGENAME, comm, initialization, VNV_NOCALLBACK, runTests);
 
+  //Update the command line. During configuation, everything is allowed to add/remove
+  //things from the command line vector. At the end we change the command line pointers
+  //to point to our new updated command line that can then be used for everything else. 
+
+  for (size_t i = 0; i < command_line_vector.size(); ++i) {
+        //Note: This leaks -- we never clean up the command line chars allocated with new
+        // but this class (the Runtime class) is a static singleton, so its destructor gets
+        // called on program exit -- Lets let the os clean it up in the name of "performance". 
+        command_line_char_star.push_back(new char[command_line_vector[i].size() + 1]);
+        std::strcpy(command_line_char_star[i], command_line_vector[i].c_str());
+  }
+  *argc = command_line_vector.size();
+  *argv = command_line_char_star.data();
+
   return false;
 }
 
@@ -810,7 +830,8 @@ bool RunTime::InitFromFile(const char* packageName, int* argc, char*** argv, std
       break;
     }
   }
-  
+
+
   this->configFile = configFile;
   if (configFile == VNV_DEFAULT_INPUT_FILE) {
     json j = json::object();
@@ -832,7 +853,6 @@ bool RunTime::configure(std::string packageName, RunInfo info, registrationCallB
   if (runTests) {
     CommunicationStore::instance().set(info.communicator);
     auto commW = CommunicationStore::instance().worldComm();
-
     loadRunInfo(info, callback);
 
 
@@ -858,8 +878,6 @@ bool RunTime::configure(std::string packageName, RunInfo info, registrationCallB
 }
 
 void RunTime::processToolConfig(json config, json& cmdline, ICommunicator_ptr world) {
-
-  
   OptionsParserStore::instance().parse(config, cmdline, world);
 }
 

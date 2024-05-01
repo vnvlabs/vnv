@@ -103,6 +103,10 @@ class RunTime {
   std::string workflowDir_ = "/tmp";
   std::shared_ptr<JobManager> jobManager = nullptr;
 
+  std::vector<std::string> command_line_vector;
+  std::vector<char*> command_line_char_star;
+  int command_line_size; 
+
   bool hotpatch;
 
   void loadRunInfo(RunInfo& info, registrationCallBack callback);
@@ -161,7 +165,7 @@ class RunTime {
 
   RunTimeOptions* getRunTimeOptions();
 
-  void processToolConfig(json config, json& cmdline, ICommunicator_ptr world);
+  void processToolConfig(json config, ICommunicator_ptr world);
 
   void runTimePackageRegistration(std::string packageName, registrationCallBack reg);
 
@@ -280,19 +284,6 @@ class RunTime {
 
   static RunTime& reset();
 
-  /**
-   * @brief loadInjectionPoints
-   * @param json
-   *
-   * Load injection points from a json file. This is a pooly named WIP.
-   *
-   * The idea here is that we can load additional injection points at any time.
-   * At the moment this is used by the unit testers to add injection point
-   * configuraitons dynamically.
-   *
-   *
-   */
-  void loadInjectionPoints(json _json);
 
   bool loadPlugin(std::string filename, std::string packageName);
 

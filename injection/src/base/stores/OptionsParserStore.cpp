@@ -23,6 +23,7 @@ void OptionsParserStore::add(std::string name, json& schema, options_callback_pt
 }
 
 void OptionsParserStore::add(std::string name, json& schema, options_cpp_callback_ptr v) {
+  std::cout << "HERE " << name << std::endl;
   std::pair<options_callback_ptr, options_cpp_callback_ptr> x = {nullptr, v};
   factory[name] = {schema, x};
 }
@@ -63,7 +64,7 @@ void OptionsParserStore::callBack(std::string name, json info, ICommunicator_ptr
       cjson j = {&info};
       optionResult[name] = (*it->second.second.first)(j);
     } else if (it->second.second.second != nullptr) {
-      optionResult[name] = (*it->second.second.second)(info, engine->getOutputEngine(), world);
+      optionResult[name] = (*it->second.second.second)(info, cmdline, engine->getOutputEngine(), world);
     } else {
       optionResult[name] = new RawJsonObject(info);
     }
@@ -83,7 +84,6 @@ void OptionsParserStore::parse(json info, json& cmdline, ICommunicator_ptr world
     }
    
     callBack(it.first, found, world);
-   
   }
 }
 

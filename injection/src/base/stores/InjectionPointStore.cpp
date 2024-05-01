@@ -205,11 +205,13 @@ void InjectionPointStore::addInjectionPoint(std::string package, std::string nam
 }
 
 // Turn on all not configured injection points with default options.
-void InjectionPointStore::runAll() {
+void InjectionPointStore::runAll(std::vector<TestConfig>& tests) {
+  
+  
   for (auto& it : registeredInjectionPoints) {
     auto a = injectionPoints.find(it.first);
     if (a == injectionPoints.end()) {
-      InjectionPointConfig c(it.second.package, it.second.name, true, json::object(), {});
+      InjectionPointConfig c(it.second.package, it.second.name, true, json::object(), tests);
       injectionPoints.insert(std::make_pair(it.first, c));
     }
   }

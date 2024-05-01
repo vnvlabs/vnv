@@ -61,14 +61,21 @@ SamplerInfo JsonParser::getSamplerInfo(const json& samplerJson) {
   throw VnVExceptionBase("Schema Validation Error -- This should be possible");
 }
 
-bool JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runScopes,
+std::vector<json> JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runScopes,
                                    std::map<std::string, InjectionPointInfo>& ips, InjectionType type) {
-  bool all_on = false;
+  
+  std::vector<json> global_tests;
+
   for (auto& it : ip.items()) {
+    std::set<std::string> runscopes;
     if (it.key().compare("runAll") == 0) {
-      all_on = it.value().get<bool>();
+      for (auto& test : it.value().items()) {
+          addTest(test.key(), test.value(), global_tests, runscopes);
+      }
+
       continue;
-    } else if (!add(it.value(), runScopes)) {
+    } 
+    else if (!add(it.value(), runScopes)) {
       continue;
     }
 
@@ -142,7 +149,7 @@ bool JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runSco
       }
     }
   }
-  return all_on;
+  return global_tests;
 }
 
 void JsonParser::addTestLibrary(const json& lib, std::map<std::string, std::string>& libs) {
@@ -238,11 +245,12 @@ namespace {
 
 // We accept arguments of the type
 // "vnv/options/sdfsdf/sdfsdf/sdfsdf/=valid_json"
-nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile, int* argc, char** argv) {
+nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile, std::vector<std::string>& cmdline) {
   nlohmann::json main = mainFile;
 
-  for (int i = 0; i < *argc; i++) {
-    std::string s = argv[i];
+  std::vector<std::string> cmd_out;
+  for (int i = 0; i < cmdline.size(); i++) {
+    std::string s = cmdline[i];
     try {
       if (s.substr(0, 6).compare("--vnv/") == 0) {
         std::size_t ind = s.find_first_of("=");
@@ -272,27 +280,42 @@ nlohmann::json updateFileWithCommandLineOverrides(const json& mainFile, int* arg
         } else {
           throw INJECTION_EXCEPTION_("Invalid VnV Command line argument");
         }
+      } else {
+        cmd_out.push_back(cmdline[i]);
       }
     } catch (VnVExceptionBase& e) {
       std::cout << "Ignoring VnV command line parameter : " << s << "\n Reason: " << e.message << std::endl;
     }
   }
+  cmdline.clear();
+  for (auto&it : cmd_out) { cmdline.push_back(it); }
   return main;
 }
 
-void addCommandLinePlugins(int* argc, char** argv, RunInfo& info) {
+void addCommandLinePlugins(std::vector<std::string>& command_line, RunInfo& info) {
   int i = 0;
-  while (i < *argc) {
-    std::string s = argv[i++];
+  std::vector<std::string> cmd_out; 
+
+  while (i < command_line.size()) {
+    std::string s = command_line[i];
     if (s.compare("--vnv-plugin") == 0) {
-      if (i + 1 < *argc) {
-        std::string pname = argv[i++];
-        std::string file = argv[i++];
+      
+      if (i + 2 < command_line.size()) {
+        std::string pname = command_line[i+1];
+        std::string file = command_line[i+2];
         info.additionalPlugins[pname] = file;
+      
       } else {
         throw INJECTION_EXCEPTION_("Invalid Command line plugin");
       }
+      i = i + 3;
+    } else {
+      cmd_out.push_back(command_line[i++]);
     }
+  }
+  command_line.clear();
+  for (auto &it : cmd_out) {
+    command_line.push_back(it);
   }
 }
 
@@ -322,8 +345,9 @@ WorkflowInfo JsonParser::getWorkflowInfo(const json& workflowInfo) {
   return info;
 }
 
-RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
-  json main = updateFileWithCommandLineOverrides(mainFile, argc, argv);
+RunInfo JsonParser::_parse(const json& mainFile, std::vector<std::string>& command_line) {
+  
+  json main = updateFileWithCommandLineOverrides(mainFile, command_line);
 
   RunInfo info;
   if (main.find("logging") != main.end())
@@ -345,7 +369,6 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   if (main.find("options") != main.end()) {
     info.pluginConfig = main.find("options").value();
   }
-  info.cmdline = commandLineParser(argc, argv);
 
   // Get the run information and the scopes.
   if (main.find("runTests") != main.end()) {
@@ -392,7 +415,7 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   if (main.find("additionalPlugins") != main.end()) addTestLibrary(main["additionalPlugins"], info.additionalPlugins);
 
   // Add any explicity stated command line plugins.
-  addCommandLinePlugins(argc, argv, info);
+  addCommandLinePlugins(command_line, info);
 
   if (main.find("workflows") != main.end()) {
     info.workflowInfo = getWorkflowInfo(main["workflows"]);
@@ -402,7 +425,9 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   }
 
   // Add all the injection points;
+
   if (main.find("injectionPoints") != main.end()) {
+
     info.runAll = addInjectionPoint(main["injectionPoints"], runScopes, info.injectionPoints, InjectionType::POINT);
   }
 
@@ -428,29 +453,8 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   return info;
 }
 
-json JsonParser::commandLineParser(int* argc, char** argv) {
-  json main = json::object();
-  for (int i = 0; i < *argc; i++) {
-    std::string s(argv[i]);
-    std::vector<std::string> result;
-    StringUtils::StringSplit(s, ".", result);
 
-    // valid parameters are --vnv.packageName.key <value>
-    if (result.size() >= 3 && result[0].compare("--vnv") == 0) {
-      json& j = JsonUtilities::getOrCreate(main, result[1], JsonUtilities::CreateType::Object);
-
-      // Set the value to be argv[i+1], the next token in the command line.
-      // A bit hacky, but don't set i+=1 to skip the next parameter. This
-      // allows for parameters where there is no value. We could not know
-      // that without pre-registration, which we should probably do, but
-      // this works for now.
-      j[result[2]] = (i + 1 == *argc) ? "" : argv[i + 1];
-    }
-  }
-  return main;
-}
-
-RunInfo JsonParser::parse(std::ifstream& fstream, int* argc, char** argv) {
+RunInfo JsonParser::parse(std::ifstream& fstream, std::vector<std::string>& command_line) {
   json mainJson;
   if (!fstream.good()) {
     throw INJECTION_EXCEPTION_(
@@ -463,12 +467,16 @@ RunInfo JsonParser::parse(std::ifstream& fstream, int* argc, char** argv) {
   } catch (json::parse_error e) {
     throw Exceptions::parseError(fstream, e.byte, e.what());
   }
-  return parse(mainJson, argc, argv);
+  return parse(mainJson, command_line);
 }
 #include <iostream>
-RunInfo JsonParser::parse(const json& _json, int* argc, char** argv) {
+RunInfo JsonParser::parse(const json& _json, std::vector<std::string>& command_line) {
   json_validator validator;
+
+
   validator.set_root_schema(getVVSchema());
+
+
   try {
     validator.validate(_json);
   } catch (std::exception& e) {
@@ -476,5 +484,8 @@ RunInfo JsonParser::parse(const json& _json, int* argc, char** argv) {
     std::cout << getVVSchema().dump(4);
     throw INJECTION_EXCEPTION("Input File Parsing Failed.\n Reason : %s", e.what());
   }
-  return _parse(_json, argc, argv);
+
+  return _parse(_json, command_line);
+
+
 }
