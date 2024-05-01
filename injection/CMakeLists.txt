@@ -9,11 +9,9 @@ endif()
 add_library(injection SHARED "" include/plugins/comms/MPICommunicator.h)
 link_vnv_file(injection VNV cpp)
 
-set_target_properties(injection PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION
-                                                                      1)
+set_target_properties(injection PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 1)
 
 add_library(Injection::Injection ALIAS injection)
-target_link_libraries(injection PRIVATE msgpack)
 
 if(WITH_MPI)
   target_include_directories(
@@ -34,6 +32,10 @@ else()
            $<INSTALL_INTERFACE:include>)
 endif()
 
+target_include_directories(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../third-party/cppcrc)
+target_include_directories(vnv-matcher PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../third-party/cppcrc)
+
+message(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../third-party/cppcrc)
+
+add_shared_sources(injection)
 add_subdirectory(src)
-add_subdirectory(third-party)
-add_subdirectory(util)

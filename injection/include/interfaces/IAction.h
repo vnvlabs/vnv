@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <vector>
 
-#include "interfaces/ActionType.h"
 #include "interfaces/ICommunicator.h"
 #include "interfaces/IOutputEngine.h"
 #include "interfaces/argType.h"
@@ -56,14 +55,14 @@ class IAction {
   virtual void initialize(){};
 
   virtual void injectionPointStart(std::string /**packageName**/, std::string /**id**/) {
-    throw INJECTION_EXCEPTION_("Implements Initialize Called");
+    throw "Implements Initialize Called";
   };
 
   virtual void injectionPointIteration(std::string /**stageId**/) {
-    throw INJECTION_EXCEPTION_("Implements Initialize Called");
+    throw "Implements Initialize Called";
   };
 
-  virtual void injectionPointEnd() { throw INJECTION_EXCEPTION_("Implements Initialize Called"); };
+  virtual void injectionPointEnd() { throw "Implements Initialize Called"; };
 
   virtual void finalize() {}
 

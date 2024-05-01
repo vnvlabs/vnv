@@ -8,8 +8,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "base/Utilities.h"
-#include "base/exceptions.h"
+#include "shared/Utilities.h"
+#include "shared/exceptions.h"
 #include "base/parser/JsonSchema.h"  // ValidationSchema()
 
 using namespace VnV;
@@ -157,6 +157,8 @@ LoggerInfo JsonParser::getLoggerInfo(const json& logging) {
 
   if (info.on) {
     info.engine = logging.value("engine", true);
+
+    std::cout << "ENGINE IS " << info.engine << std::endl;
 
     info.filename = logging.value("filename", "vnv-logs.out");
     std::string t = logging.value("type", "stdout");
@@ -365,7 +367,7 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   if (main.find("outputEngine") != main.end()) {
     info.engineInfo = getEngineInfo(main["outputEngine"]);
   } else {
-    info.engineInfo = getEngineInfo(R"({ "json_stdout" : {} })"_json);
+    info.engineInfo = getEngineInfo(R"({ "stdout" : {} })"_json);
   }
 
   // Get the output Engine information.

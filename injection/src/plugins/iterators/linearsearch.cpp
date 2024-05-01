@@ -56,8 +56,8 @@ INJECTION_ITERATOR_R(VNVPACKAGENAME, singleParameterMinimization, SingleVariable
   if (!runner->configured()) {
     runner->setRange(p["min"].get<double>(), p["max"].get<double>(), p["step"].get<double>());
   }
-  double* next = getInputPtr<double>(p["variable"], "double");
-  double* feval = getInputPtr<double>(p["feval"], "double");
+  double* next = getInputPtr<double>(p["variable"]);
+  double* feval = getInputPtr<double>(p["feval"]);
   int more = runner->iterate(next, feval);
   if (!more) {
     engine->Put("xopt", runner->xoptimal);

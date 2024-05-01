@@ -8,8 +8,6 @@
 #include <map>
 #include <string>
 
-#include "base/Utilities.h"
-#include "base/exceptions.h"
 #include "base/parser/JsonParser.h"
 #include "base/stores/BaseStore.h"
 #include "common-interfaces/PackageName.h"
@@ -28,35 +26,15 @@ class WorkflowStore : public BaseStore {
 
   template <typename T>
   std::shared_ptr<T> getComponent(std::map<std::string, std::pair<json, T* (*)(const json& config)>>& map,
-                                  std::string packageName, std::string name, const nlohmann::json& config) {
-    auto it = map.find(packageName + ":" + name);
-    if (it != map.end()) {
-      auto s = it->second.first;
-      if (JsonUtilities::validate(config, s)) {
-        std::shared_ptr<T> s;
-        s.reset((*(it->second.second))(config));
-        return s;
-      }
-      throw VnVExceptionBase("Input Validation Failed.");
-    }
-    throw VnVExceptionBase("Invalid Component not found");
-  }
+                                  std::string packageName, std::string name, const nlohmann::json& config) ;
 
-  std::shared_ptr<IValidator> getValidator(std::string packageName, std::string name, const nlohmann::json& config) {
-    return getComponent(validator_factory, packageName, name, config);
-  }
+  std::shared_ptr<IValidator> getValidator(std::string packageName, std::string name, const nlohmann::json& config);
 
-  std::shared_ptr<IScheduler> getScheduler(std::string packageName, std::string name, const nlohmann::json& config) {
-    return getComponent(scheduler_factory, packageName, name, config);
-  }
+  std::shared_ptr<IScheduler> getScheduler(std::string packageName, std::string name, const nlohmann::json& config);
 
-  std::shared_ptr<IScriptGenerator> getScript(std::string packageName, std::string name, const nlohmann::json& config) {
-    return getComponent(script_factory, packageName, name, config);
-  }
+  std::shared_ptr<IScriptGenerator> getScript(std::string packageName, std::string name, const nlohmann::json& config) ;
 
-  std::shared_ptr<IJobCreator> getJobCreator(std::string packageName, std::string name, const nlohmann::json& config) {
-    return getComponent(job_factory, packageName, name, config);
-  }
+  std::shared_ptr<IJobCreator> getJobCreator(std::string packageName, std::string name, const nlohmann::json& config) ;
 
   std::shared_ptr<JobManager> buildJobManager(std::string mainApplicationName, std::string workflowName,
                                               std::vector<WorkflowConfig>& workflows) {

@@ -10,7 +10,7 @@
 #include "base/Communication.h"
 #include "interfaces/ICommunicator.h"
 #include "json-schema.hpp"
-
+#include "shared/exceptions.h"
 using namespace VnV;
 using nlohmann::json;
 namespace {

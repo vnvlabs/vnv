@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "base/exceptions.h"
+#include "shared/exceptions.h"
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/DataTypeStore.h"
 

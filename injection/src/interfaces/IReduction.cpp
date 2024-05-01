@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "base/exceptions.h"
+#include "shared/exceptions.h"
 #include "base/stores/ReductionStore.h"
 #include "interfaces/IOutputEngine.h"
 

@@ -42,9 +42,9 @@ struct LoggerInfo {
    * become noops.
    *
    */
-  bool on;
+  bool on = true;
 
-  bool engine;
+  bool engine = true;
 
   /**
    * @brief Where should we write logging statements.

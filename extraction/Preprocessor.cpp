@@ -12,7 +12,7 @@
 #include <regex>
 #include <set>
 
-#include "base/Utilities.h"
+#include "shared/Utilities.h"
 
 using namespace clang;
 using namespace clang::tooling;
@@ -439,12 +439,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       json& jj = getDef("Serializers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
       jj["type"] = stringArgs(pp, Args->getUnexpArgument(3), false);
-    } else if (nae == "INJECTION_TRANSFORM_R") {
-      json& jj = getDef("Transforms", getPackageName(Args, 0), getPackageName(Args, 1));
-      jj["docs"] = getDocs(Range).toJson();
-      jj["to"] = stringArgs(pp, Args->getUnexpArgument(3), false);
-      jj["from"] = stringArgs(pp, Args->getUnexpArgument(4), false);
-      jj["alias"] = false;
     } else if (nae == "INJECTION_ALIAS") {
       json& jj = getDef("Transforms", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();

@@ -55,27 +55,15 @@ if(Clang_FOUND)
 
   add_executable(
     vnv-matcher
-    vv-matcher.cpp  Printer.cpp Writer.cpp Preprocessor.cpp 
-    ${CMAKE_CURRENT_LIST_DIR}/../injection/src/base/Utilities.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/../injection/src/base/exceptions.cpp)
+    vv-matcher.cpp  Printer.cpp Writer.cpp Preprocessor.cpp   
+  )
 
-  if(APPLE)
-    target_sources(vnv-matcher
-                 PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../injection/src/dist/macos/DistUtils.cpp)
-  elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    target_sources(vnv-matcher PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../injection/src/dist/linux/DistUtils.cpp)
-  else()
-    message(FATAL_ERROR "Dist is not MACOS or Linux")
-  endif()
- 
-  
+  add_shared_sources(vnv-matcher)
+     
   add_executable(Injection::Extraction ALIAS vnv-matcher)
 
   target_include_directories(vnv-matcher SYSTEM PRIVATE ${CLANG_INCLUDE_DIRS})
   target_include_directories( vnv-matcher PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../injection/include)
-
-  
-
   target_compile_definitions(vnv-matcher PRIVATE -DPACKAGENAME=VnVProcessor)
   
   target_link_libraries(
@@ -87,7 +75,7 @@ if(Clang_FOUND)
             clangTooling
             clangToolingRefactoring
             jsv::jsv
-            dl)          
+  )          
 
   install(
     TARGETS vnv-matcher

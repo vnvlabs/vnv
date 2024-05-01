@@ -8,8 +8,8 @@
 #include <iostream>
 
 #include "base/Runtime.h"
-#include "base/Utilities.h"
-#include "base/exceptions.h"
+#include "shared/Utilities.h"
+#include "shared/exceptions.h"
 #include "base/stores/OutputEngineStore.h"
 #include "common-interfaces/Logging.h"
 
@@ -41,16 +41,24 @@ nlohmann::json OptionsParserStore::schema(json& packageJson) {
 }
 
 void OptionsParserStore::callBack(std::string name, json info, ICommunicator_ptr world) {
+
+  
   auto it = factory.find(name);
+  
+
+  
   if (it != factory.end()) {
     nlohmann::json_schema::json_validator validator;
     validator.set_root_schema(it->second.first);
     validator.validate(info);
 
+
     // Pass it back to the callback -- Pick the C or C++ interface depending.
     OutputEngineManager* engine = OutputEngineStore::instance().getEngineManager();
 
+
     engine->packageOptionsStartedCallBack(world, name);
+
     if (it->second.second.first != nullptr) {
       cjson j = {&info};
       optionResult[name] = (*it->second.second.first)(j);
@@ -66,12 +74,16 @@ void OptionsParserStore::callBack(std::string name, json info, ICommunicator_ptr
 }
 
 void OptionsParserStore::parse(json info, json& cmdline, ICommunicator_ptr world) {
+
   for (auto& it : factory) {
+    
     json& found = JsonUtilities::getOrCreate(info, it.first, JsonUtilities::CreateType::Object);
     if (cmdline.contains(it.first)) {
       found["command-line"] = cmdline[it.first];
     }
+   
     callBack(it.first, found, world);
+   
   }
 }
 

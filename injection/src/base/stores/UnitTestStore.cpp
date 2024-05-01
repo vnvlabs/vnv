@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include "base/Runtime.h"
-#include "base/Utilities.h"
+#include "shared/Utilities.h"
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/OutputEngineStore.h"
 #include "common-interfaces/Logging.h"
@@ -100,6 +100,7 @@ void UnitTestStore::runTest(ICommunicator_ptr comm, std::string packageName, std
 // the available ranks and the remaining tests.
 
 void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
+
   if (!info.runUnitTests) {
     return;
   }
@@ -158,6 +159,7 @@ void UnitTestStore::runAll(VnV_Comm comm, VnV::UnitTestInfo info) {
     int req = std::get<0>(*it);  // requested processors for this iter.
     std::string name = std::get<2>(*it);
     std::string pname = std::get<1>(*it);
+    
     if (req > size) {
       VnV_Warn(VNVPACKAGENAME, "Ignoring test %s because cannot fufull requested cores of %d", name.c_str(), req);
       it = tests.erase(it);

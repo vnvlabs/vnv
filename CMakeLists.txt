@@ -4,7 +4,7 @@ project(vnv LANGUAGES CXX C Fortran)
 
 set(PROJECT_VERSION 1.0.0)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 include(GNUInstallDirs)
@@ -39,14 +39,18 @@ if(ALLERRORS)
   add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter)
 endif()
 
+add_subdirectory(shared)
 add_subdirectory(extraction)
+add_subdirectory(third-party)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake @ONLY)
 include("${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake")
 install(FILES ${CMAKE_SOURCE_DIR}/scripts/register ${CMAKE_SOURCE_DIR}/scripts/merge DESTINATION ${CMAKE_INSTALL_PREFIX}/bin PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)
 
+
+
 add_subdirectory(injection)
-add_subdirectory(python_api)
+
 
 option(BUILD_TESTS "Build the test runner" ON)
 if(BUILD_TESTS)

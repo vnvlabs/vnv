@@ -50,9 +50,6 @@ VNVEXTERNC void VnV_runUnitTests(VnV_Comm comm);
 
 VNVEXTERNC void VnV_Registration_Info(const char* filename, int quit);
 
-VNVEXTERNC void VnV_readFile(const char* reader, const char* filename);
-VNVEXTERNC void VnV_readFileAndWalk(const char* reader, const char* filename, const char* package, const char* walker,
-                                    const char* config);
 
 #  define INJECTION_CODEBLOCK_START(PNAME, NAME)
 #  define INJECTION_CODEBLOCK_END(PNAME, NAME)

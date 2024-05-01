@@ -7,7 +7,7 @@
 #include <iostream>
 #include <list>
 
-#include "base/exceptions.h"
+#include "shared/exceptions.h"
 #include "interfaces/ICommunicator.h"
 
 using namespace VnV;

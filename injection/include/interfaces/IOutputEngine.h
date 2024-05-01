@@ -6,7 +6,6 @@
 
 #include "base/Communication.h"
 #include "base/InjectionPointConfig.h"
-#include "base/exceptions.h"
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/DataTypeStore.h"
 #include "base/stores/ReductionStore.h"
@@ -14,10 +13,11 @@
 #include "common-interfaces/Communication.h"
 #include "common-interfaces/Logging.h"
 #include "common-interfaces/PackageName.h"
-#include "interfaces/ActionType.h"
 #include "interfaces/IUnitTest.h"
 #include "json-schema.hpp"
 #define FetchTypes X(std::string) X(int) X(double) X(long)
+
+
 
 /**
  * @brief The IOutputEngine class
@@ -27,10 +27,6 @@ using nlohmann::json;
 namespace VnV {
 
 class IOutputEngine;
-
-namespace Nodes {
-class IRootNode;
-}
 
 namespace InjectionPointTypeUtils {
 
@@ -126,8 +122,8 @@ class IOutputEngine {
         it->setData(&value);
         this->Put(variableName, it, m);
       }
-    } catch (VnVExceptionBase e) {
-      VnV_Error(VNVPACKAGENAME, "Could not put Data Type %s because %s ", T::vnv_datatype.c_str(), e.what());
+    } catch (...) {
+      VnV_Error(VNVPACKAGENAME, "Could not put Data Type %s ", T::vnv_datatype.c_str());
     }
     VnV_Error(VNVPACKAGENAME, "Could not put Data Type %s because it does not exist ", T::vnv_datatype.c_str());
   }
@@ -153,7 +149,7 @@ class IOutputEngine {
       }
       action.write(comm, key, variableName, vec, this, m);
 
-    } catch (VnVExceptionBase& e) {
+    } catch (...) {
       VnV_Error(VNVPACKAGENAME, "Could not write %s", variableName.c_str());
     }
   }
@@ -488,7 +484,7 @@ void IOutputEngine::IOutputEngine::Put_Matrix(std::string variableName, int xdim
   if (data.size() == 0) {
     return;
   }
-  if (data.size() % xdim != 0) throw INJECTION_EXCEPTION_("Invalid Data Size passed to Put Matrix");
+  if (data.size() % xdim != 0) throw "Invalid Data Size passed to Put Matrix";
 
   std::vector<int> gsizes = {gsize.first, gsize.second};
   std::vector<int> offs = {offsets.first, offsets.second};
@@ -697,7 +693,7 @@ class IInternalOutputEngine : public IOutputEngine {
  public:
   virtual void setFromJson(ICommunicator_ptr worldComm, json& configuration) = 0;
 
-  virtual void sendInfoNode(ICommunicator_ptr worldComm) = 0;
+  virtual void sendInfoNode(ICommunicator_ptr worldComm, const json& fullJson, const json& prov, std::string workflowName, std::string workflowJob ) = 0;
 
   virtual void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string id,
                                              InjectionPointType type, std::string stageId, std::string filename,
@@ -706,21 +702,21 @@ class IInternalOutputEngine : public IOutputEngine {
   virtual void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageId) = 0;
 
   virtual void actionStartedCallBack(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */,
-                                     ActionStage::type /* stage */){};
-  virtual void actionEndedCallBack(ActionStage::type /* stage */){};
+                                     std::string /* stage */){};
+  virtual void actionEndedCallBack(std::string /* stage */){};
 
   virtual void workflowStartedCallback(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */,
                                        const json& /* info */) {
-    throw VnVExceptionBase("Workflows not supported by this engine;");
+    throw "Workflows not supported by this engine;";
   };
   virtual void workflowEndedCallback(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */,
                                      const json& /* info */) {
-    throw VnVExceptionBase("Workflows not supported by this engine;");
+    throw "Workflows not supported by this engine;";
   };
 
   virtual void workflowUpdatedCallback(ICommunicator_ptr /* comm */, std::string /* package */, std::string /* name */,
                                        const json& /* info */) {
-    throw VnVExceptionBase("Workflows not supported by this engine;");
+    throw "Workflows not supported by this engine;";
   };
 
   virtual void testStartedCallBack(std::string packageName, std::string testName, bool internal, long uuid) = 0;
@@ -736,8 +732,7 @@ class IInternalOutputEngine : public IOutputEngine {
   virtual void initializationStartedCallBack(ICommunicator_ptr comm, std::string packageName) = 0;
   virtual void initializationEndedCallBack(std::string packageName) = 0;
 
-  virtual void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile,
-                    std::string filename, std::string reader) = 0;
+  virtual void file(ICommunicator_ptr comm, std::string packageName, std::string name, bool inputFile, std::string reader, std::string infilename, std::string outfilename) = 0;
 
   virtual std::string print() = 0;
 
@@ -763,13 +758,10 @@ class OutputEngineManager : public IInternalOutputEngine {
 
   virtual ~OutputEngineManager() = default;
 };
-typedef std::shared_ptr<VnV::Nodes::IRootNode> (*engine_reader_ptr)(std::string filename, long& id,
-                                                                    const nlohmann::json& config, bool async);
 typedef std::string (*engine_schema_ptr)();
 
 typedef OutputEngineManager* (*engine_register_ptr)();
 void registerEngine(std::string name, VnV::engine_register_ptr r, VnV::engine_schema_ptr s);
-void registerReader(std::string name, VnV::engine_reader_ptr r, VnV::engine_schema_ptr s);
 
 }  // namespace VnV
 
@@ -795,28 +787,5 @@ void registerReader(std::string name, VnV::engine_reader_ptr r, VnV::engine_sche
   }
 #define REGISTERENGINE(PNAME, name) VnV::PNAME::Engines::register_##name();
 
-#define INJECTION_ENGINE_READER(PNAME, name, schema)                                                                  \
-  namespace VnV {                                                                                                     \
-  namespace PNAME {                                                                                                   \
-  namespace EngineReaders {                                                                                           \
-  std::string sch_##name() { return schema; }                                                                         \
-  std::shared_ptr<VnV::Nodes::IRootNode> declare_##name(std::string filename, long& id, const nlohmann::json& config, \
-                                                        bool async);                                                  \
-  void register_##name() { registerReader(#name, &declare_##name, &sch_##name); }                                     \
-  }                                                                                                                   \
-  }                                                                                                                   \
-  }                                                                                                                   \
-  std::shared_ptr<VnV::Nodes::IRootNode> VnV::PNAME::EngineReaders::declare_##name(                                   \
-      std::string filename, long& id, const nlohmann::json& config, bool async)
-
-#define DECLAREENGINEREADER(PNAME, name) \
-  namespace VnV {                        \
-  namespace PNAME {                      \
-  namespace EngineReaders {              \
-  void register_##name();                \
-  }                                      \
-  }                                      \
-  }
-#define REGISTERENGINEREADER(PNAME, name) VnV::PNAME::EngineReaders::register_##name();
 
 #endif  // IOUTPUTENGINE_H

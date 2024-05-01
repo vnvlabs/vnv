@@ -6,7 +6,7 @@
 
 #include <stdarg.h>
 
-#include "base/exceptions.h"
+#include "shared/exceptions.h"
 #include "base/points/InjectionPoint.h"
 #include "base/stores/OutputEngineStore.h"
 #include "common-interfaces/Logging.h"
@@ -84,8 +84,4 @@ IOutputEngine* OutputEngineManager::getOutputEngine() { return dynamic_cast<IOut
 
 void VnV::registerEngine(std::string name, engine_register_ptr r, VnV::engine_schema_ptr s) {
   OutputEngineStore::instance().registerEngine(name, r, s);
-}
-
-void VnV::registerReader(std::string name, engine_reader_ptr r, VnV::engine_schema_ptr s) {
-  OutputEngineStore::instance().registerReader(name, r, s);
 }

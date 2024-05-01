@@ -13,6 +13,7 @@
 #include "base/stores/TestStore.h"
 #include "common-interfaces/Logging.h"
 #include "json-schema.hpp"
+#include "shared/exceptions.h"
 
 using namespace VnV;
 

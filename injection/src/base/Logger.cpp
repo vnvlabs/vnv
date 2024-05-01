@@ -3,7 +3,7 @@
     base/Logger.h
 **/
 #include "base/Logger.h"  //Prototype.
-
+#include <mpi.h>
 #include <sstream>  //stringstream
 
 #include "base/Runtime.h"                   // RunTime.
@@ -59,27 +59,55 @@ void Logger::setLogLevel(std::string level, bool on) {
   logs[level] = on;
 }
 
-void Logger::log(VnV_Comm comm, std::string pname, std::string level, std::string format) {
-  if (!locked) return;
+
+void Logger::write_to_file(ICommunicator_ptr comm, std::string pname, int stage, std::string level, std::string message) {
+  if (ltype != LogWriteType::NONE) {
+    if (comm->Rank() == 0 ) {
+        std::ostringstream oss;
+        std::string pkey = pname + ":" + level;
+        oss << getIndent(stage) << "[" << pkey << "](Comm: " << comm->uniqueId() <<"): " << message;
+
+        if (ltype != LogWriteType::FILE) {
+          (*fileptr) << logLevelToColor(pkey, oss.str()) << std::endl;
+        } else {
+          (*fileptr) << oss.str() << std::endl;
+        }
+    }
+  }
+}
+
+void Logger::log(VnV_Comm comm, std::string pname, std::string level, std::string format, bool saved) {
+
+  if (!locked || (engine && !OutputEngineStore::instance().isInitialized())) { 
+    savedLogs.push(std::make_tuple(pname, stage, level, format, comm));
+    return;
+  }
+
+  auto cc = CommunicationStore::instance().getCommunicator(comm);
+
+
+  if (saved ) {
+     while (savedLogs.size() > 0) {
+        auto t = savedLogs.front();
+        VnV_Comm cc = std::get<4>(t);
+        log(cc, std::get<0>(t).c_str(), std::get<2>(t), std::get<3>(t), false);
+        savedLogs.pop();
+
+      }
+  }
+
   if (packageBlackList.find(pname) != packageBlackList.end()) {
     return;
   }
-  auto it = logs.find(pname + ":" + level);
-  if (it != logs.end() && !it->second) return;
 
-  if (engine) {
+ 
+  auto it = logs.find(pname + ":" + level);
+  if (it != logs.end() && !it->second) {/*return*/}
+      
+
+  if (engine ) {
     try {
       OutputEngineManager* eng = OutputEngineStore::instance().getEngineManager();
-
-      // Clear any saved logs.
-      while (savedLogs.size() > 0) {
-        auto& t = savedLogs.front();
-        VnV_Comm cc = std::get<4>(t);
-        auto c = CommunicationStore::instance().getCommunicator(cc);
-        eng->Log(c, std::get<0>(t).c_str(), std::get<1>(t), std::get<2>(t), std::get<3>(t));
-        savedLogs.pop();
-      }
-
       auto c = CommunicationStore::instance().getCommunicator(comm);
       eng->Log(c, pname.c_str(), stage, level, format);
     } catch (std::exception& e) {
@@ -87,17 +115,8 @@ void Logger::log(VnV_Comm comm, std::string pname, std::string level, std::strin
     }
   }
 
-  if (ltype != LogWriteType::NONE) {
-    std::ostringstream oss;
-    std::string pkey = pname + ":" + level;
-    oss << getIndent(stage) << "[" << pkey << "](Rank: " << rank << ") " << format;
-
-    if (ltype != LogWriteType::FILE) {
-      (*fileptr) << logLevelToColor(pkey, oss.str()) << std::endl;
-    } else {
-      (*fileptr) << oss.str() << std::endl;
-    }
-  }
+  auto c = CommunicationStore::instance().getCommunicator(comm);
+  write_to_file(c,pname, stage, level, format);
 }
 
 void Logger::log_c(VnV_Comm comm, std::string pname, std::string level, std::string format, va_list args) {
@@ -124,6 +143,8 @@ void Logger::setLog(bool useEngine, LogWriteType t, const std::string& filename)
   locked = true;
   this->ltype = t;
   this->engine = useEngine;
+
+
   if (t == LogWriteType::STDOUT) {
     fileptr = &std::cout;
   } else if (t == LogWriteType::STDERR) {
@@ -135,5 +156,6 @@ void Logger::setLog(bool useEngine, LogWriteType t, const std::string& filename)
   } else {
   }
 }
+
 
 void Logger::print() { VnV_Info(VNVPACKAGENAME, "Outfile Name: %s", outFileName.c_str()); }

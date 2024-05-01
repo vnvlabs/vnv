@@ -8,6 +8,8 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <exception>
+#include <stack>
 
 #include "common-interfaces/PackageName.h"
 #include "interfaces/ICommunicator.h"
@@ -356,7 +358,7 @@ class JobManager {
 
       return j;
     }
-    throw INJECTION_EXCEPTION_("Job by that name already exists.");
+    throw "Job by that name already exists.";
   }
 
   void subjob(std::string package, std::string name, const json& config);
@@ -366,7 +368,7 @@ class JobManager {
     if (it != jobs.end()) {
       return it->second;
     }
-    throw INJECTION_EXCEPTION("No job by the name %s exists", name.c_str());
+    throw "Job Does not exist";
   }
 
   void run(ICommunicator_ptr ptr, bool before);

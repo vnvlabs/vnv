@@ -13,6 +13,8 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <list>
+
 
 #include "c-interfaces/Wrappers.h"
 #include "interfaces/ICommunicator.h"

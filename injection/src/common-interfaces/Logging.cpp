@@ -14,10 +14,10 @@ void _VnV_registerLogLevel(const char* packageName, const char* name, const char
   }
 }
 
-void _VnV_registerFile(VnV_Comm comm, const char* packageName, const char* name, int input, const char* filename,
-                       const char* reader) {
+void _VnV_registerFile(VnV_Comm comm, const char* packageName, const char* name, int input,
+                                  const char* reader, const char* infilename, const char* outfilename){
   try {
-    VnV::RunTime::instance().registerFile(comm, packageName, name, input, filename, reader);
+    VnV::RunTime::instance().registerFile(comm, packageName, name, input, reader, infilename, outfilename);
 
   } catch (std::exception& e) {
     VnV_Error(VNVPACKAGENAME, "Error registering log level: %s", e.what());

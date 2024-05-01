@@ -7,7 +7,7 @@
 #include <stdarg.h>
 
 #include "base/Runtime.h"
-#include "base/Utilities.h"
+#include "shared/Utilities.h"
 #include "base/stores/PlugStore.h"
 
 using namespace VnV;
@@ -24,7 +24,7 @@ VnV_Iterator _VnV_injectionPlug(VnV_Comm comm, const char* packageName, const ch
   try {
     va_list argp;
     va_start(argp, callback);
-    NTV parameters = VariadicUtils::UnwrapVariadicArgs(argp);
+    NTV parameters = VariadicUtils::UnwrapVariadicArgs(argp,VNV_END_PARAMETERS_S);
     va_end(argp);
     VnV_Iterator v = VnV::RunTime::instance().injectionPlug(comm, packageName, name, pretty, fname, line,
                                                             DataCallback_wrapper(callback), parameters);

@@ -104,7 +104,7 @@ R"(
         "minProperties": 1,
         "maxProperties": 1,
         "default": {
-          "json_stdout": {}
+          "stdout": {}
         }
       },
       "runScopes": {
@@ -116,11 +116,12 @@ R"(
       },
       "unit-testing": {
         "default": {
-          "runTests": false
+          "runUnitTests": false
         },
+        "additionalProperties" : false,
         "type": "object",
         "properties": {
-          "runTests": {
+          "runUnitTests": {
             "type": "boolean",
             "default": true
           },

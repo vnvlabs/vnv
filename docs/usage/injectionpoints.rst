@@ -605,7 +605,7 @@ Here is an example of the configuration for the JSON engine schema. Like the opt
 .. code-block::
 
     "outputEngine": {
-    "type": "json_stdout",
+    "type": "stdout",
     "config": {
        "outputFile" : "vv-output.json"
     }
@@ -676,16 +676,6 @@ In this case, the parameters block could be
        "c" : "y"
    }
 
-Automatic Parameter Transforms
-++++++++++++++++++++++++++++++
-
-During parsing and initialization, the VnV toolkit will check the types of each parameter to ensure they are compatible. The toolkit includes an INJECTION_TRANSFORM plugin macro that can be used to define how one parameter can be transformed into a parameter of a different type. For instance the following shows how one might declare a transform between a double and an int. VnV uses a breadth first search graph algorithm to find the shortest transformation path between any two variables. If no transformation path is found, an error will be thrown during initialization.
-
-.. code-block::
-
-   INJECTION_TRANSFORM(double, int) {
-     return (int*) value;
-   }
 
 VnV Iterators
 +++++++++++++

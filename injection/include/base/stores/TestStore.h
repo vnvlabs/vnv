@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-#include "base/Utilities.h"
+#include "shared/Utilities.h"
 #include "base/parser/JsonSchema.h"
 #include "base/stores/BaseStore.h"
 #include "interfaces/ITest.h"
@@ -92,8 +92,8 @@ template <typename Inter, typename Maker, typename Config> class TestStoreTempla
     for (auto& it : configs) {
       try {
         conf.push_back(validateTest(it));
-      } catch (VnVExceptionBase& e) {
-        VnV_Error(VNVPACKAGENAME, "Test Validation Failed for %s  --- %s", it.dump().c_str(), e.what());
+      } catch (...) {
+        VnV_Error(VNVPACKAGENAME, "Test Validation Failed for %s", it.dump().c_str());
       }
     }
     return conf;
@@ -103,8 +103,7 @@ template <typename Inter, typename Maker, typename Config> class TestStoreTempla
     if (testJson.find("name") == testJson.end()) {
       // This should be impossible. Input Validation should detect test blocks
       // incorrectly specified.
-      HTHROW INJECTION_EXCEPTION("Error During Test Validation: Test Declaration does not contain Test Name\n %s",
-                                 testJson.dump().c_str());
+      throw "Error During Test Validation: Test Declaration does not contain Test Name";
     }
 
     std::string name = testJson["name"].get<std::string>();
@@ -151,8 +150,7 @@ template <typename Inter, typename Maker, typename Config> class TestStoreTempla
 
       return f;
     }
-    HTHROW INJECTION_EXCEPTION("Error During Test Validation: Teset %s:%s does not exist.", package.c_str(),
-                               name.c_str());
+    throw "Error During Test Validation: Test does not exist.";
   }
 
   json& getSchema(std::string package, std::string name) {

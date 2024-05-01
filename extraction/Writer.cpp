@@ -7,8 +7,8 @@
 #include <set>
 #include <sstream>
 
-#include "base/Utilities.h"
-#include "base/exceptions.h"
+#include "shared/Utilities.h"
+#include "shared/exceptions.h"
 #include "json-schema.hpp"
 
 #define LAST_RUN_TIME "__LAST_RUN_TIME__"
@@ -178,7 +178,6 @@ class RegistrationWriter {
     registerHelper(j, "UnitTests", "UNITTEST", packageName);
     registerHelper(j, "Actions", "ACTION", packageName);
     registerHelper(j, "Serializers", "SERIALIZER", packageName);
-    registerHelper(j, "Transforms", "TRANSFORM", packageName);
     registerHelper(j, "Reducers", "REDUCER", packageName);
     registerHelper(j, "ScriptGenerators", "SCRIPTGENERATOR", packageName);
     registerHelper(j, "Validators", "VALIDATOR", packageName);

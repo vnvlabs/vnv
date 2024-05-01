@@ -5,7 +5,7 @@
 #include <stdarg.h>
 
 #include "base/Runtime.h"
-#include "base/Utilities.h"
+#include "shared/Utilities.h"
 #include "base/stores/InjectionPointStore.h"
 #include "c-interfaces/Wrappers.h"
 using namespace VnV;
@@ -22,7 +22,7 @@ struct VnV_Function_Sig pretty, const char* file, int line,  injectionDataCallba
   try {
     va_list argp;
     va_start(argp, callback);
-    NTV map = VariadicUtils::UnwrapVariadicArgs(argp);
+    NTV map = VariadicUtils::UnwrapVariadicArgs(argp, VNV_END_PARAMETERS_S);
     VnV::RunTime::instance().injectionPoint_begin(comm, package, id, pretty, file, line, VnV::DataCallback_wrapper(callback), map);
     va_end(argp);
   } catch (std::exception& e) {

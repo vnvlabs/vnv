@@ -3,5 +3,4 @@ function(add_private_source target filename)
 endfunction()
 
 add_private_source(test-runner parser.cpp)
-add_private_source(test-runner BFSTester.cpp)
 add_private_source(test-runner comm.cpp)

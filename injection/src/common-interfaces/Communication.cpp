@@ -3,7 +3,7 @@
 #include <cstring>
 #include <sstream>
 
-#include "base/exceptions.h"
+#include "shared/exceptions.h"
 #include "base/stores/CommunicationStore.h"
 #include "common-interfaces/Logging.h"
 

@@ -24,8 +24,7 @@ class IIterator : public ITest {
 
   virtual TestStatus runTest(ICommunicator_ptr /* comm */, IOutputEngine* /* engine */, InjectionPointType /* type */,
                              std::string /* stageId */) {
-    HTHROW INJECTION_EXCEPTION("Called RunTest on iterator %s:%s ", m_config.getPackage().c_str(),
-                               m_config.getName().c_str());
+    throw "Called RunTest on iterator";
   };
 };
 

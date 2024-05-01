@@ -8,7 +8,6 @@
 #include <map>
 #include <string>
 
-#include "base/Utilities.h"
 #include "base/parser/JsonParser.h"
 #include "base/stores/BaseStore.h"
 #include "common-interfaces/Communication.h"

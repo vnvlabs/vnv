@@ -6,6 +6,8 @@ defined in base/InjectionPointStore.h.
 #include "base/stores/InjectionPointStore.h"
 
 #include "base/Runtime.h"
+#include "shared/Utilities.h"
+#include "shared/exceptions.h"
 #include "base/parser/JsonSchema.h"      // getInjectionPointDeclarationSchema
 #include "base/points/InjectionPoint.h"  // InjectionPoint.
 #include "base/stores/SamplerStore.h"

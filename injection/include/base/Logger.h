@@ -16,6 +16,7 @@
 #include "base/parser/JsonParser.h"
 #include "common-interfaces/Communication.h"
 #include "common-interfaces/PackageName.h"
+#include "interfaces/ICommunicator.h"
 #define MAXSAVED_LOGS 1024
 
 #define MAX_LOG_SIZE 2048
@@ -82,7 +83,7 @@ class Logger {
    *
    * The Log function.
    */
-  void log(VnV_Comm comm, std::string pname, std::string level, std::string format);
+  void log(VnV_Comm comm, std::string pname, std::string level, std::string format, bool saved=true);
 
   /**
    * @brief setLog
@@ -96,6 +97,8 @@ class Logger {
 
   void setLog(bool engine, LogWriteType t, const std::string& outputType = "");
 
+  void write_to_file(ICommunicator_ptr comm, std::string pname, int stage, std::string level, std::string message);
+  
   /**
    * @brief addToBlackList
    * @param packageName

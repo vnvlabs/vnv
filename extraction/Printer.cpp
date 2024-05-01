@@ -9,8 +9,8 @@
 #include <iostream>
 #include <string>
 
-#include "base/Utilities.h"
-#include "base/exceptions.h"
+#include "shared/Utilities.h"
+#include "shared/exceptions.h"
 using namespace clang;
 using namespace llvm;
 using namespace clang::ast_matchers;

@@ -45,21 +45,5 @@ void VnV_Registration_Info(const char* filename, int quit) {
   }
 }
 
-void VnV_readFile(const char* reader, const char* filename) {
-  try {
-    VnV::RunTime::instance().readFile(reader, filename);
-  } catch (std::exception& e) {
-    VnV_Error(VNVPACKAGENAME, "Error Reading file %s with reader %s", filename, reader);
-  }
-}
 
-void VnV_readFileAndWalk(const char* reader, const char* filename, const char* package, const char* walker,
-                         const char* config) {
-  try {
-    VnV::RunTime::instance().readFileAndWalk(reader, filename, package, walker, json::parse(config));
-
-  } catch (std::exception& e) {
-    VnV_Error(VNVPACKAGENAME, "Error File Read");
-  }
-}
 }

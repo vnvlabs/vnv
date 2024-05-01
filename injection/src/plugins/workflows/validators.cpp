@@ -1,7 +1,7 @@
 #include <chrono>
 
-#include "base/DistUtils.h"
-#include "base/Utilities.h"
+#include "shared/DistUtils.h"
+#include "shared/Utilities.h"
 #include "base/stores/WorkflowStore.h"
 #include "interfaces/IWorkflow.h"
 
@@ -128,7 +128,7 @@ class FileValidator : public VnV::IValidator {
     } else if (req == "notExists") {
       return !VnV::DistUtils::fileExists(f) ? Status::VALID : (w ? Status::WAIT : Status::INVALID);
     } else {
-      throw INJECTION_EXCEPTION("Validation Error for req %s", req.c_str());
+      throw "Validation Error for req";
     }
   }
 

@@ -6,7 +6,7 @@
 #include "base/stores/OutputEngineStore.h"
 
 #include "base/Runtime.h"
-#include "base/exceptions.h"
+#include "shared/exceptions.h"
 #include "common-interfaces/Logging.h"
 
 using namespace VnV;
@@ -61,13 +61,6 @@ void OutputEngineStore::print() {
   }
 }
 
-json OutputEngineStore::listReaders() {
-  json a = json::array();
-  for (auto it : registeredReaders) {
-    a.push_back(it.first);
-  }
-  return a;
-}
 
 json OutputEngineStore::getRunInfo() {
   auto a = getEngineManager();
@@ -94,32 +87,7 @@ void OutputEngineStore::registerEngine(std::string name, engine_register_ptr eng
   registeredEngineSchema.insert(std::make_pair(name, s));
 }
 
-void OutputEngineStore::registerReader(std::string name, engine_reader_ptr engine_ptr, VnV::engine_schema_ptr s) {
-  registeredReaders.insert(std::make_pair(name, engine_ptr));
-  registeredReaderSchema.insert(std::make_pair(name, s));
-}
 
-std::shared_ptr<Nodes::IRootNode> OutputEngineStore::readFile(std::string filename, std::string engineType,
-                                                              json& config, bool async) {
-  auto it = registeredReaders.find(engineType);
-
-  if (it != registeredReaders.end()) {
-    json schema = json::parse((*registeredReaderSchema[engineType])());
-    try {
-      if (!schema.empty()) {
-        json_validator validator;
-        validator.set_root_schema(schema);
-        validator.validate(config);
-      }
-    } catch (std::exception& e) {
-      throw INJECTION_EXCEPTION("Invalid Engine Reader Configuration: %s", engineType.c_str());
-    }
-    std::cout << "READING THE FILE"
-              << " " << filename << std::endl;
-    return (*it->second)(filename, idCounter, config, async);
-  }
-  throw INJECTION_EXCEPTION("Invalid Engine Reader %s ", engineType.c_str());
-}
 
 OutputEngineManager* OutputEngineStore::getEngineManager() {
   if (manager != nullptr) return manager.get();

@@ -5,9 +5,6 @@
 #include <regex>
 #include <string>
 
-#include "base/Utilities.h"
-#include "base/exceptions.h"
-#include "base/stores/TransformStore.h"
 #include "c-interfaces/Wrappers.h"
 #include "common-interfaces/Communication.h"
 #include "json-schema.hpp"
@@ -40,8 +37,6 @@ class VnVParameter {
   void* ptr;
   std::string type;
 
-  std::shared_ptr<Transformer> trans = nullptr;
-  std::string transType = "";
 
  public:
   VnVParameter() { ptr = nullptr; }
@@ -62,60 +57,37 @@ class VnVParameter {
 
   std::string getType() const { return type; }
 
-  template <typename T> T* getPtr(std::string requestedType, bool throwOnError = true) {
-    StringUtils::squash(type);
-
-    if (requestedType.empty()) {  // Type checking turned off.
+  template <typename T> T* getPtr() {
       return (T*)(ptr);
-    }
-
-    if (trans == nullptr || type.compare(transType) != 0) {
-      trans = TransformStore::instance().getTransformer(type, requestedType);
-      transType = requestedType;
-    }
-
-    if (trans != nullptr && type.compare(transType) == 0) {
-      return static_cast<T*>(trans->Transform(ptr));
-    }
-
-    if (throwOnError) {
-      HTHROW INJECTION_EXCEPTION("Bad Transform Requested -- Cannot transform from %s -> %s", type.c_str(),
-                                 requestedType.c_str());
-    }
-    return NULL;
   }
 
-  template <typename T> T& getRef(std::string type) { return *getPtr<T>(type, true); }
+  template <typename T> T& getRef() { return *getPtr<T>(); }
 };
 
 class VnVParameterSet : public std::map<std::string, VnVParameter> {
  public:
-  template <typename T> T* getPtr(std::string name, std::string type, bool throwOnError = true) {
-    StringUtils::squash(type);
-
+  template <typename T> T* getPtr(std::string name, bool throwOnError = true) {
     auto it = find(name);
     if (it != end()) {
-      return it->second.getPtr<T>(type, throwOnError);
+      return it->second.getPtr<T>();
     }
     if (throwOnError) {
-      HTHROW INJECTION_EXCEPTION("Parameter Mapping Error. No parameter called %s exists", name.c_str());
+      throw "Parameter Mapping Error";
     }
     return NULL;
   }
 
-  template <typename T> T& getRef(std::string name, std::string type) {
-    StringUtils::squash(type);
+  template <typename T> T& getRef(std::string name) {
     auto it = find(name);
     if (it != end()) {
-      return it->second.getRef<T>(type);
+      return it->second.getRef<T>();
     }
-    HTHROW INJECTION_EXCEPTION("Parameter Mapping Error: No parameter named %s exists. ", name.c_str());
+    throw "Parameter Mapping Error:";
   }
 };
 
 class TestConfig {
  protected:
-  std::map<std::string, std::shared_ptr<Transformer>> transformers;
   VnVParameterSet* parameters;
 
   std::string testName;

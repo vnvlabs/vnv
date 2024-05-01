@@ -4,10 +4,14 @@
 #include <thread>
 
 #include "base/Runtime.h"
-#include "base/Utilities.h"
-#include "base/exceptions.h"
+#include "shared/Utilities.h"
+#include "shared/DistUtils.h"
+#include "shared/exceptions.h"
 #include "base/stores/OutputEngineStore.h"
 #include "inja.hpp"
+
+#include "json-schema.hpp"
+using nlohmann::json;
 
 namespace VnV {
 
@@ -100,6 +104,43 @@ std::string IScriptGenerator::render(std::string templ, const json& data) {
   }
 }
 
+ template <typename T>
+  std::shared_ptr<T> WorkflowStore::getComponent(std::map<std::string, std::pair<json, T* (*)(const json& config)>>& map,
+                                  std::string packageName, std::string name, const nlohmann::json& config) {
+    auto it = map.find(packageName + ":" + name);
+    if (it != map.end()) {
+      auto sch = it->second.first;
+       try {
+          nlohmann::json_schema::json_validator validator;
+          validator.set_root_schema(sch);
+          validator.validate(config);
+          std::shared_ptr<T> s;
+          s.reset((*(it->second.second))(config));
+          return s;
+      
+       } catch (std::exception& e) {
+          throw VnVExceptionBase("Input Validation Failed.");
+       }
+    }  
+    throw VnVExceptionBase("Invalid Component not found");
+  }
+
+  std::shared_ptr<IValidator> WorkflowStore::getValidator(std::string packageName, std::string name, const nlohmann::json& config) {
+    return getComponent(validator_factory, packageName, name, config);
+  }
+
+  std::shared_ptr<IScheduler> WorkflowStore::getScheduler(std::string packageName, std::string name, const nlohmann::json& config) {
+    return getComponent(scheduler_factory, packageName, name, config);
+  }
+
+  std::shared_ptr<IScriptGenerator> WorkflowStore::getScript(std::string packageName, std::string name, const nlohmann::json& config) {
+    return getComponent(script_factory, packageName, name, config);
+  }
+
+  std::shared_ptr<IJobCreator> WorkflowStore::getJobCreator(std::string packageName, std::string name, const nlohmann::json& config) {
+    return getComponent(job_factory, packageName, name, config);
+  }
+
 void JobManager::subjob(std::string package, std::string name, const json& config) {
   // TODO Naming Conflicts?
   auto creator = WorkflowStore::instance().getJobCreator(package, name, config);
@@ -131,14 +172,14 @@ std::tuple<std::string, std::string, bool> JobManager::add_node(std::shared_ptr<
     // Add all the VnV Reports.
     std::string vnvJobDir = job->getVnVJobDir();
     std::string jobName = job->getVnVJobName();
-    std::vector<std::string> files = DistUtils::listFilesInDirectory(vnvJobDir);
+    std::vector<std::string> files = VnV::DistUtils::listFilesInDirectory(vnvJobDir);
     std::string prefix = "vnv_" + jobName + "_";
     std::string postfix = ".runInfo";
     for (auto it : files) {
       if (it.substr(0, prefix.size()).compare(prefix) == 0) {
         if (it.substr(it.size() - postfix.size()).compare(postfix) == 0) {
           if (!runInfo.contains(it)) {
-            std::ifstream ifs(DistUtils::join({vnvJobDir, it}, 0777, false));
+            std::ifstream ifs(VnV::DistUtils::join({vnvJobDir, it}, 0777, false));
             if (ifs.good()) {
               json rinfo = json::parse(ifs);
               runInfo[it] = rinfo;  // Cache that result.

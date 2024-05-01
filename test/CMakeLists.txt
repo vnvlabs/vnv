@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(test-runner)
 target_sources(test-runner PRIVATE "test-runner.cpp")
-target_link_libraries(test-runner PRIVATE msgpack)
 add_subdirectory(unit-tests)
 link_vnv_file(test-runner VnVTestRunner cpp)
 

@@ -17,6 +17,7 @@
 #  define EVERYONE(...) FOR_EACH(DOIT, __VA_ARGS__)
 
 namespace VnV {
+typedef std::map<std::string, std::pair<std::string, void*>> NTV;
 
 namespace CppIteration {
 

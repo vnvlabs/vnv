@@ -9,8 +9,8 @@
 #include <map>
 
 #include "base/Runtime.h"
-#include "base/Utilities.h"
-#include "base/exceptions.h"
+#include "shared/Utilities.h"
+#include "shared/exceptions.h"
 #include "interfaces/ICommunicator.h"
 
 // CommType conflicts with CommType in openmpi.

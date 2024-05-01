@@ -7,13 +7,9 @@
 
 #include "base/FunctionSigniture.h"
 #include "base/InjectionPointConfig.h"
-#include "base/Utilities.h"
-#include "base/exceptions.h"
-#include "base/stores/TransformStore.h"
 #include "common-interfaces/Communication.h"
 #include "common-interfaces/Logging.h"
 #include "interfaces/IOutputEngine.h"
-#include "interfaces/ITransform.h"
 #include "interfaces/argType.h"
 #include "interfaces/templates.h"
 #include "json-schema.hpp"
@@ -71,24 +67,24 @@ class ITest {
    */
   const json& getConfigurationJson() const;
 
-  template <typename T> T* getInputPtr(std::string name, std::string type) { return getPtr<T>(name, type, true); }
+  template <typename T> T* getInputPtr(std::string name) { return getPtr<T>(name,  true); }
 
-  template <typename T> T* getOutputPtr(std::string name, std::string type) { return getPtr<T>(name, type, false); }
+  template <typename T> T* getOutputPtr(std::string name) { return getPtr<T>(name, false); }
 
-  template <typename T> T& getInputRef(std::string name, std::string type) { return getRef<T>(name, type, true); }
+  template <typename T> T& getInputRef(std::string name) { return getRef<T>(name, true); }
 
-  template <typename T> T& getOutputRef(std::string name, std::string type) { return getRef<T>(name, type, false); }
+  template <typename T> T& getOutputRef(std::string name) { return getRef<T>(name, false); }
 
-  template <typename T> T* getPtr(std::string name, std::string type = "") { return getPtr<T>(name, type, true); }
+  template <typename T> T* getPtr(std::string name) { return getPtr<T>(name, true); }
 
-  template <typename T> T& getRef(std::string name, std::string type = "") { return getRef<T>(name, type, true); }
+  template <typename T> T& getRef(std::string name) { return getRef<T>(name, true); }
 
-  template <typename T> T& getRef(std::string name, std::string type, bool input) {
-    return *getPtr<T>(name, type, input);
+  template <typename T> T& getRef(std::string name, bool input) {
+    return *getPtr<T>(name, input);
   }
 
-  template <typename T> T* getPtr(std::string name, std::string type, bool input) {
-    return m_config.getParameterMap().getPtr<T>(name, type, input);
+  template <typename T> T* getPtr(std::string name, bool input) {
+    return m_config.getParameterMap().getPtr<T>(name, input);
   }
 
  protected:
@@ -96,12 +92,9 @@ class ITest {
 };
 
 // Little shortcut macros for cases where the type name is the type.
-#define GetRef(name, T) getRef<T>(name, #T)
-#define GetPtr(name, T) getPtr<T>(name, #T)
-#define GetPtr_NoThrow(name, T) getPtr<T>(name, #T, true, false)
+#define GetRef(name, T) getRef<T>(name)
+#define GetPtr(name, T) getPtr<T>(name)
 
-#define GetRef_NoCheck(name, T) getRef<T>(name)
-#define GetPtr_NoCheck(name, T) getPtr<T>(name)
 
 typedef ITest* (*maker_ptr)(TestConfig config);
 void registerTest(std::string package, std::string name, std::string schema, VnV::maker_ptr m);

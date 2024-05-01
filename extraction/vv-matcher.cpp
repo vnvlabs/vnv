@@ -25,9 +25,9 @@
 #include <string>
 #include <vector>
 
-#include "base/DistUtils.h"
-#include "base/Utilities.h"
-#include "base/exceptions.h"
+#include "shared/DistUtils.h"
+#include "shared/Utilities.h"
+#include "shared/exceptions.h"
 #include "json-schema.hpp"
 
 using nlohmann::json;

@@ -305,7 +305,7 @@ module libvnv
     end subroutine
 
    
-    subroutine vnv_file_c(world, input, package, name, filename,reader) bind(C, name="vnv_file_x")
+    subroutine vnv_file_c(world, input, package, name, filename,reader, action) bind(C, name="vnv_file_x")
         use iso_c_binding
         implicit none
         INTEGER(C_INT), intent(in) :: world
@@ -314,6 +314,7 @@ module libvnv
         character(len=1, kind=C_CHAR), intent(in) :: name(*)
         character(len=1, kind=C_CHAR), intent(in) :: filename(*)
         character(len=1, kind=C_CHAR), intent(in) :: reader(*)
+        INTEGER(C_INT), intent(in) :: action        
     end subroutine
  
 
@@ -668,22 +669,27 @@ contains ! Implementation of the functions. We just wrap the C function here.
         call vnv_log_c(int(world,kind=c_int), convert("warning"), convert(package),convert(message))
     end subroutine
 
-    subroutine vnv_input_file(world,package,name, filename,reader)
+    subroutine vnv_input_file(world,package,name, filename,reader,action)
         INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: name
         character(len=*), intent(in) :: filename
         character(len=*), intent(in) :: reader
-        call vnv_file_c(int(world,kind=c_int),INT(1,kind=C_INT),convert(package),convert(name),convert(filename),convert(reader))        
+        INTEGER, intent(in) :: action
+
+        call vnv_file_c(int(world,kind=c_int),INT(1,kind=C_INT),convert(package),convert(name), &
+            convert(filename),convert(reader),int(action,kind=c_int))        
     end subroutine
 
-    subroutine vnv_output_file(world,package,name,filename,reader)
+    subroutine vnv_output_file(world,package,name,filename,reader,action)
         INTEGER, intent(in) :: world
         character(len=*), intent(in) :: package
         character(len=*), intent(in) :: name
         character(len=*), intent(in) :: filename
         character(len=*), intent(in) :: reader
-        call vnv_file_c(int(world,kind=c_int),INT(0,kind=C_INT),convert(package),convert(name),convert(filename),convert(reader))        
+        INTEGER, intent(in) :: action
+        call vnv_file_c(int(world,kind=c_int),INT(0,kind=C_INT),convert(package),convert(name), &
+            convert(filename),convert(reader),int(action,kind=c_int))        
     end subroutine
     
 end module

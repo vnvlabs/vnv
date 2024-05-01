@@ -12,7 +12,7 @@ defined in base/IteratorStore.h.
 #include "common-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
 #include "interfaces/IIterator.h"
 #include "interfaces/ITest.h"  // TestConfig
-
+#include "shared/exceptions.h"
 using namespace VnV;
 
 IteratorStore::IteratorStore() {}

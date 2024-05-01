@@ -244,9 +244,9 @@ void vnv_log_x(int world, const char* level, const char* package, const char* me
   VnV::RunTime::instance().log(comm, package, level, message);
 }
 
-void vnv_file_x(int world, int input, const char* package, const char* name, const char* filename, const char* reader) {
+void vnv_file_x(int world, int input, const char* package, const char* name, const char* filename, const char* reader, int action) {
   VnV_Comm comm = world ? VWORLD : VSELF;
-  VnV::RunTime::instance().registerFile(comm, package, name, input, filename, reader);
+  VnV::RunTime::instance().registerFile(comm, package, name, input, reader, filename, "");
 }
 }
 

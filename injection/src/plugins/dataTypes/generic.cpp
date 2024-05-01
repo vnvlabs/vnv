@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "base/exceptions.h"
+#include "shared/exceptions.h"
 #include "common-interfaces/Logging.h"
 #include "interfaces/ICommunicator.h"
 #include "interfaces/IOutputEngine.h"

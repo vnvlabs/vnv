@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include "base/exceptions.h"
+#include "shared/exceptions.h"
 #include "json-schema.hpp"
 using nlohmann::json_schema::json_validator;
 

@@ -10,9 +10,8 @@
 
 #include <iostream>
 
-#include "base/DistUtils.h"
-#include "base/Provenance.h"
-#include "base/Utilities.h"
+#include "shared/Provenance.h"
+#include "shared/Utilities.h"
 #include "base/parser/JsonSchema.h"
 #include "base/stores/ActionStore.h"
 #include "base/stores/CommunicationStore.h"
@@ -26,12 +25,15 @@
 #include "base/stores/SamplerStore.h"
 #include "base/stores/TestStore.h"
 #include "base/stores/UnitTestStore.h"
-#include "base/stores/WalkerStore.h"
 #include "base/stores/WorkflowStore.h"
 #include "common-interfaces/Logging.h"
 #include "interfaces/IAction.h"
 #include "interfaces/points/Injection.h"
-#include "streaming/Nodes.h"
+#include "shared/exceptions.h"
+
+//#include "shared/DistUtils.h"
+#include "dist/DistUtils.h"
+
 
 using namespace VnV;
 
@@ -49,7 +51,7 @@ ICommunicator_ptr getComm(VnV_Comm comm) {
   return CommunicationStore::instance().getCommunicator(comm); }
 }  // namespace
 
-void RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
+bool RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
   try {
     auto it = plugins.find(libraryPath);
     if (it == plugins.end()) {
@@ -58,13 +60,15 @@ void RunTime::loadPlugin(std::string libraryPath, std::string packageName) {
         registrationCallBack reg = DistUtils::searchLibrary(dllib, VNV_GET_REGISTRATION + packageName);
         if (reg != nullptr) {
           runTimePackageRegistration(packageName, reg);
+          return true;
         }
       } else {
-        VnV_Warn(VNVPACKAGENAME, "Library not found");
+          return false;
       }
     }
+    return true;
   } catch (std::exception& e) {
-    throw INJECTION_EXCEPTION("Error Loading Plugin: Library not found: %s", libraryPath.c_str());
+    return false;
   }
 }
 
@@ -76,7 +80,9 @@ int RunTime::registerCleanUpAction(std::function<void(ICommunicator_ptr)> action
 
 void RunTime::makeLibraryRegistrationCallbacks(std::map<std::string, std::string> packageNames) {
   for (auto it : packageNames) {
-    loadPlugin(it.second, it.first);
+    if (! loadPlugin(it.second, it.first) ) {
+      VnV_Warn(VNVPACKAGENAME, "Could not load plugin: %s", it.first.c_str());
+    }
   }
 
   std::string home_dir = DistUtils::getEnvironmentVariable("HOME", StringUtils::random(5));
@@ -85,7 +91,9 @@ void RunTime::makeLibraryRegistrationCallbacks(std::map<std::string, std::string
   json conf = json::parse(ifs);
 
   for (auto &it : conf["plugin"].items()) {
-    loadPlugin(it.value(),it.key());
+    if (!loadPlugin(it.value(),it.key())) {
+      VnV_Warn(VNVPACKAGENAME, "Could not load plugin: %s", it.key().c_str());
+    }
   }
 }
 
@@ -139,7 +147,6 @@ nlohmann::json RunTime::getFullJsonSchema() {
   defs["plugger"] = PlugsStore::instance().schema(packageJson);
 
   defs["sampler"] = SamplerStore::instance().schema(packageJson);
-  defs["transform"] = TransformStore::instance().schema(packageJson);
 
   defs["outputEngine"] = OutputEngineStore::instance().schema(packageJson);
   defs["communicator"] = CommunicationStore::instance().schema(packageJson);
@@ -489,10 +496,13 @@ void RunTime::registerLogLevel(std::string packageName, std::string name, std::s
   logger.registerLogLevel(packageName, name, color, true);
 }
 
-void RunTime::registerFile(VnV_Comm comm, std::string packageName, std::string name, int input, std::string filename,
-                           std::string reader) {
-  std::string fname = DistUtils::getAbsolutePath(filename);
-  OutputEngineStore::instance().getEngineManager()->file(getComm(comm), packageName, name, input, fname, reader);
+void RunTime::registerFile(VnV_Comm comm, std::string packageName, std::string name, int input, std::string reader, std::string infilename,
+                           std::string outfilename) {
+  
+
+
+  OutputEngineStore::instance().getEngineManager()->file(getComm(comm), packageName, name, input,reader, infilename,outfilename);
+
 }
 
 void RunTimeOptions::callback(json& j) { RunTime::instance().runTimeOptions.fromJson(j); }
@@ -526,11 +536,15 @@ void RunTime::writeRunInfoFile() {
 
 void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
   initializedCount++;
+  ICommunicator_ptr world = CommunicationStore::instance().worldComm();
 
   if (initializedCount == 1) {
+
+  
     // Set up the logger. This occurs as early as possible to allow log messages
     // to be caught int the registration objects.
     if (info.logInfo.on) {
+      logger.setRank(world->Rank());
       logger.setLog(info.logInfo.engine, info.logInfo.type, info.logInfo.filename);
 
       for (auto it : info.logInfo.logs) {
@@ -544,6 +558,8 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
     if (!info.workflowDir.empty()) {
       workflowDir_ = info.workflowDir;
     }
+
+
 
     // Pull out the template patch. This is the user provides specification file
     // that should be merged into the final specificiation.
@@ -560,22 +576,21 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
     // Now we register VnVs communicator. The VnV communicator is set to be the
     // same as the communicator for the executable.
     // CommunicationStore::instance().copySettings(mainPackageName,VNVPACKAGENAME_S);
-  }
 
-  // Register the plugins specified in the input file.
-  makeLibraryRegistrationCallbacks(info.additionalPlugins);
 
-  // Set up the engine
-  ICommunicator_ptr world = CommunicationStore::instance().worldComm();
-  logger.setRank(world->Rank());
 
-  if (initializedCount == 1) {
     if (!OutputEngineStore::instance().isInitialized()) {
+      
+
       VnV_Debug(VNVPACKAGENAME, "Configuring The Output Engine");
+
+
       try {
         OutputEngineStore::instance().setEngineManager(world, info.engineInfo.engineType, info.engineInfo.engineConfig);
 
       } catch (VnVExceptionBase& e) {
+
+        
         VnV_Error(VNVPACKAGENAME,
                   "Error Initializing Engine: What happens next will depend on the 'onEngineInitializationFailed' "
                   "parameter.");
@@ -585,12 +600,14 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
         std::abort();
       }
       VnV_Debug(VNVPACKAGENAME, "Output Engine Configuration Successful");
+
     }
   }
 
   // Process the configs (wait until now because it allows loaded test libraries
   // to register options objects.
   processToolConfig(info.pluginConfig, info.cmdline, world);
+  
 
   if (info.schemaDump) {
     dumpSpecification(info.schemaQuit);
@@ -604,6 +621,8 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
   VnV_Debug(VNVPACKAGENAME,
             "Validating Json Test Configuration Input and converting to TestConfig "
             "objects");
+
+
 
   for (auto it : info.injectionPoints) {
     auto x = TestStore::instance().validateTests(it.second.tests);
@@ -630,16 +649,19 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
       throw INJECTION_BUG_REPORT("Unknown Injection point type %d", it.second.type);
     }
   }
+
+
   if (info.runAll) {
     InjectionPointStore::instance().runAll();
   }
 
+
+
   jobManager = WorkflowStore::instance().buildJobManager(mainPackageName, workflowName(), info.workflowInfo.workflows);
 
-  OutputEngineStore::instance().getEngineManager()->sendInfoNode(world);
+  OutputEngineStore::instance().getEngineManager()->sendInfoNode(world,getFullJson(),getProv().toJson(), workflowName(),workflowJob());
   ActionStore::instance().initialize(info.actionInfo);
 }
-
 void RunTime::loadInjectionPoints(json _json) {
   JsonParser parser;
   char** argv = nullptr;
@@ -701,8 +723,10 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
                            registrationCallBack callback) {
   mainPackageName = packageName;
 
-  // Set the provenance information .
+  DistUtils::libData lb;
+  DistUtils::getAllLinkedLibraryData(&lb);
   prov.reset(new VnV::VnVProv(*argc, *argv, configFile, config));
+  prov->setLibraries(lb);
 
   JsonParser parser;
   try {
@@ -740,7 +764,6 @@ bool RunTime::InitFromJson(const char* packageName, int* argc, char*** argv, jso
     }
   }
 
-  prov.reset(new VnV::VnVProv(*argc, *argv, configFile, config));
 
   VnV_Comm comm = CommunicationStore::instance().world();
 
@@ -812,6 +835,8 @@ bool RunTime::configure(std::string packageName, RunInfo info, registrationCallB
 
     loadRunInfo(info, callback);
 
+
+
     // Run any workflows listed in the application
     jobManager->run(commW, true);
 
@@ -833,6 +858,8 @@ bool RunTime::configure(std::string packageName, RunInfo info, registrationCallB
 }
 
 void RunTime::processToolConfig(json config, json& cmdline, ICommunicator_ptr world) {
+
+  
   OptionsParserStore::instance().parse(config, cmdline, world);
 }
 
@@ -868,7 +895,10 @@ bool RunTime::Finalize() {
     for (auto& it : cleanupActions) {
       it.second(comm);
     }
+    CommunicationStore::instance().Finalize();
+  
   }
+
 
   resetStore();
   return true;
@@ -886,23 +916,6 @@ void RunTime::log(VnV_Comm comm, std::string pname, std::string level, std::stri
 void RunTime::runUnitTests(VnV_Comm comm, UnitTestInfo info) {
   loadHotPatch(comm);
   UnitTestStore::instance().runAll(comm, info);
-}
-
-std::shared_ptr<Nodes::IRootNode> RunTime::readFile(std::string reader, std::string filename) {
-  json j = json::object();
-  return OutputEngineStore::instance().readFile(filename, reader, j);
-}
-
-void RunTime::readFileAndWalk(std::string reader, std::string filename, std::string pack, std::string walk,
-                              nlohmann::json con) {
-  auto rootNode = readFile(reader, filename);
-
-  std::shared_ptr<IWalker> walker = WalkerStore::instance().getWalker(pack, walk, rootNode.get(), con);
-  VnV::Nodes::WalkerNode node;
-
-  while (walker->next(node)) {
-    std::cout << node.item->getName() << std::endl;
-  }
 }
 
 void RunTime::printRunTimeInformation() {

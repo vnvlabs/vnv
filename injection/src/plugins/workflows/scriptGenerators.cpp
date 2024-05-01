@@ -2,8 +2,8 @@
 
 #include <chrono>
 
-#include "base/DistUtils.h"
-#include "base/Utilities.h"
+#include "shared/DistUtils.h"
+#include "shared/Utilities.h"
 #include "base/stores/WorkflowStore.h"
 #include "interfaces/IWorkflow.h"
 

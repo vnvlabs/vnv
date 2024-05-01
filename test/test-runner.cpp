@@ -9,7 +9,7 @@ const char* inputfile = R"(
 {
   "runTests": true,
   "outputEngine": {
-    "json_file" : {
+    "file" : {
        "filename" : "test-results"
     }
   },

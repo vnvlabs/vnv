@@ -5,7 +5,7 @@
 #include <stdarg.h>
 
 #include "base/Runtime.h"
-#include "base/Utilities.h"
+#include "shared/Utilities.h"
 #include "base/stores/IteratorStore.h"
 
 using namespace VnV;
@@ -22,7 +22,7 @@ VnV_Iterator _VnV_injectionIteration(VnV_Comm comm, const char* packageName, con
   try {
     va_list argp;
     va_start(argp, once);
-    NTV parameters = VariadicUtils::UnwrapVariadicArgs(argp);
+    NTV parameters = VariadicUtils::UnwrapVariadicArgs(argp,VNV_END_PARAMETERS_S);
     VnV_Iterator v = VnV::RunTime::instance().injectionIteration(comm, packageName, name, pretty, fname, line,
                                                                  DataCallback_wrapper(callback), parameters, once);
     va_end(argp);
