@@ -18,6 +18,7 @@
 #include <typeindex>
 
 #include "base/Logger.h"
+#include "base/Provenance.h"
 #include "base/parser/JsonParser.h"
 #include "base/points/InjectionPoint.h"
 #include "base/points/IteratorPoint.h"
@@ -25,6 +26,7 @@
 #include "base/stores/BaseStore.h"
 #include "c-interfaces/Wrappers.h"
 #include "common-interfaces/RunTime.h"
+#include "interfaces/ActionType.h"
 #include "interfaces/Initialization.h"
 
 /**
@@ -34,9 +36,6 @@
 using nlohmann::json;
 
 namespace VnV {
-
-class VnVProv;
-
 /**
  * @brief The RunTime clas
  *
@@ -98,14 +97,10 @@ class RunTime {
   std::string hotpatchVar;
 
   // Workflow Identification
-  std::string workflowName_;;
-  std::string workflowJob_;
+  std::string workflowName_ = StringUtils::random(10);
+  std::string workflowJob_ = StringUtils::random(10);
   std::string workflowDir_ = "/tmp";
   std::shared_ptr<JobManager> jobManager = nullptr;
-
-  std::vector<std::string> command_line_vector;
-  std::vector<char*> command_line_char_star;
-  int command_line_size; 
 
   bool hotpatch;
 
@@ -165,7 +160,7 @@ class RunTime {
 
   RunTimeOptions* getRunTimeOptions();
 
-  void processToolConfig(json config, ICommunicator_ptr world);
+  void processToolConfig(json config, json& cmdline, ICommunicator_ptr world);
 
   void runTimePackageRegistration(std::string packageName, registrationCallBack reg);
 
@@ -256,8 +251,8 @@ class RunTime {
 
   void registerLogLevel(std::string packageName, std::string logLevel, std::string color);
 
-  void registerFile(VnV_Comm comm, std::string packageName, std::string name, int input, std::string reader,
-                    std::string infilename, std::string outfilename);
+  void registerFile(VnV_Comm comm, std::string packageName, std::string name, int input, std::string filename,
+                    std::string reader);
 
   std::map<std::type_index, std::unique_ptr<BaseStore>> stores;
   void resetStore();
@@ -284,8 +279,21 @@ class RunTime {
 
   static RunTime& reset();
 
+  /**
+   * @brief loadInjectionPoints
+   * @param json
+   *
+   * Load injection points from a json file. This is a pooly named WIP.
+   *
+   * The idea here is that we can load additional injection points at any time.
+   * At the moment this is used by the unit testers to add injection point
+   * configuraitons dynamically.
+   *
+   *
+   */
+  void loadInjectionPoints(json _json);
 
-  bool loadPlugin(std::string filename, std::string packageName);
+  void loadPlugin(std::string filename, std::string packageName);
 
   /**
    * @brief runUnitTests
@@ -293,6 +301,10 @@ class RunTime {
    * Run all user configured unit testers.
    */
   void runUnitTests(VnV_Comm comm, UnitTestInfo info);
+
+  std::shared_ptr<Nodes::IRootNode> readFile(std::string reader, std::string filename);
+  void readFileAndWalk(std::string reader, std::string filename, std::string package, std::string walker,
+                       nlohmann::json config);
 
   void getFullSchema(std::string filename);
 

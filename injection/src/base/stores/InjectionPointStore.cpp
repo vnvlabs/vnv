@@ -6,8 +6,6 @@ defined in base/InjectionPointStore.h.
 #include "base/stores/InjectionPointStore.h"
 
 #include "base/Runtime.h"
-#include "shared/Utilities.h"
-#include "shared/exceptions.h"
 #include "base/parser/JsonSchema.h"      // getInjectionPointDeclarationSchema
 #include "base/points/InjectionPoint.h"  // InjectionPoint.
 #include "base/stores/SamplerStore.h"
@@ -205,13 +203,11 @@ void InjectionPointStore::addInjectionPoint(std::string package, std::string nam
 }
 
 // Turn on all not configured injection points with default options.
-void InjectionPointStore::runAll(std::vector<TestConfig>& tests) {
-  
-  
+void InjectionPointStore::runAll() {
   for (auto& it : registeredInjectionPoints) {
     auto a = injectionPoints.find(it.first);
     if (a == injectionPoints.end()) {
-      InjectionPointConfig c(it.second.package, it.second.name, true, json::object(), tests);
+      InjectionPointConfig c(it.second.package, it.second.name, true, json::object(), {});
       injectionPoints.insert(std::make_pair(it.first, c));
     }
   }

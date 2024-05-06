@@ -551,6 +551,15 @@ template <typename T> class StreamManager : public OutputEngineManager {
     }
   }
 
+  void write_stdout(ICommunicator_ptr comm, const std::string& out) override {
+      setComm(comm, false);
+      T j = T::object();
+      j[JSD::comm] = comm->uniqueId();
+      j[JSD::value] = out;
+      j[JSD::node] = JSN::stdout;
+      write(j);
+  }
+
   void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string id,
                                      InjectionPointType type, std::string stageVal, std::string filename,
                                      int line) override {

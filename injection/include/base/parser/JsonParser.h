@@ -42,9 +42,9 @@ struct LoggerInfo {
    * become noops.
    *
    */
-  bool on = true;
+  bool on;
 
-  bool engine = true;
+  bool engine;
 
   /**
    * @brief Where should we write logging statements.
@@ -189,7 +189,7 @@ struct RunInfo {
   bool runTests; /**< Should any tests be run */
   bool schemaDump = false;
   bool schemaQuit = false;
-  std::vector<json> runAll;  
+  bool runAll = false;
   std::string workflowName = "";
   std::string workflowJob = "";
   std::string workflowDir = "";
@@ -344,7 +344,7 @@ class JsonParser {
    *
    * Here we add the injection point to the injection point list.
    */
-  std::vector<json> addInjectionPoint(const json& injectionPointJson, std::set<std::string>& runScopes,
+  bool addInjectionPoint(const json& injectionPointJson, std::set<std::string>& runScopes,
                          std::map<std::string, InjectionPointInfo>& ips, InjectionType type);
 
   /**
@@ -370,10 +370,28 @@ class JsonParser {
    *
    * @todo argc should be an int, not an int*
    */
-  RunInfo _parse(const json& input, std::vector<std::string>&command_line);
+  RunInfo _parse(const json& input, int* argc, char** argv);
 
  public:
-
+  /**
+   * @brief Parse the command line
+   *
+   * Search through the command line for parameters of the form
+   * --vnv.package.*=<value> and parse them into a Json object of the form
+   * {"package"-> {key:value}}
+   *
+   * The command line json, along with any package options provided to the
+   * user are sent through to the packages options callback.
+   *
+   * @param argc the number of arguments in argv
+   * @param argv the command line arguments
+   * @return json representation of the command line arguments
+   *
+   * @todo Remove this functionality -- Users can now pass override arguments
+   * on the command line that are automatically merged into the input file. No
+   * need to additionally support command line parameters with that functionality.
+   */
+  json commandLineParser(int* argc, char** argv);
 
   /**
    * @brief Parse a users input file given an input file stream
@@ -383,7 +401,7 @@ class JsonParser {
    * @param argv  The command line arguments
    * @return RunInfo
    */
-  RunInfo parse(std::ifstream& fstream, std::vector<std::string>& commandline);
+  RunInfo parse(std::ifstream& fstream, int* argc, char** argv);
 
   /**
    * @brief Parse a users input file using a json object.
@@ -393,10 +411,9 @@ class JsonParser {
    * @param argv  The command line arguments
    * @return RunInfo
    */
-  RunInfo parse(const json& _json, std::vector<std::string>& commandline);
+  RunInfo parse(const json& _json, int* argc, char** argv);
 };
 
 }  // namespace VnV
 
 #endif
-

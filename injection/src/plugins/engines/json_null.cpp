@@ -35,6 +35,8 @@ class NullManager : public OutputEngineManager {
   void setFromJson(ICommunicator_ptr worldComm, json& config) override {}
   void sendInfoNode(ICommunicator_ptr worldComm, const json& fullJson, const json& prov, std::string workflowName, std::string workflowJob ) override {}
 
+  void write_stdout(ICommunicator_ptr comm, const std::string& out) override {}
+
   void injectionPointEndedCallBack(std::string id, InjectionPointType type, std::string stageVal) override {}
 
   void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string id,

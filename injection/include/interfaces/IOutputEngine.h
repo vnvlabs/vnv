@@ -695,6 +695,8 @@ class IInternalOutputEngine : public IOutputEngine {
 
   virtual void sendInfoNode(ICommunicator_ptr worldComm, const json& fullJson, const json& prov, std::string workflowName, std::string workflowJob ) = 0;
 
+  virtual void write_stdout(ICommunicator_ptr selfComm, const std::string& out) = 0;
+
   virtual void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string id,
                                              InjectionPointType type, std::string stageId, std::string filename,
                                              int line) = 0;
@@ -755,6 +757,11 @@ class OutputEngineManager : public IInternalOutputEngine {
   void set(ICommunicator_ptr world, json& configuration, std::string key);
 
   IOutputEngine* getOutputEngine();
+
+  virtual void write_stdout(const std::string& out) {
+      auto selfcomm = CommunicationStore::instance().selfComm();
+      IInternalOutputEngine::write_stdout(selfcomm, out);
+  }
 
   virtual ~OutputEngineManager() = default;
 };

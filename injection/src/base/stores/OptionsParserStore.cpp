@@ -41,7 +41,7 @@ nlohmann::json OptionsParserStore::schema(json& packageJson) {
   return j;
 }
 
-void OptionsParserStore::callBack(std::string name, json info, ICommunicator_ptr world) {
+void OptionsParserStore::callBack(std::string name, json info, std::vector<std::string>& cmdline, ICommunicator_ptr world) {
 
   
   auto it = factory.find(name);
@@ -74,16 +74,10 @@ void OptionsParserStore::callBack(std::string name, json info, ICommunicator_ptr
   }
 }
 
-void OptionsParserStore::parse(json info, json& cmdline, ICommunicator_ptr world) {
+void OptionsParserStore::parse(json info, std::vector<std::string>& cmdline, ICommunicator_ptr world) {
 
-  for (auto& it : factory) {
-    
-    json& found = JsonUtilities::getOrCreate(info, it.first, JsonUtilities::CreateType::Object);
-    if (cmdline.contains(it.first)) {
-      found["command-line"] = cmdline[it.first];
-    }
-   
-    callBack(it.first, found, world);
+  for (auto& it : factory) {   
+    callBack(it.first, info,  cmdline, world);
   }
 }
 
