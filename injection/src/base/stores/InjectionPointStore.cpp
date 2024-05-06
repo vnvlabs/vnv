@@ -11,6 +11,7 @@ defined in base/InjectionPointStore.h.
 #include "base/stores/SamplerStore.h"
 #include "common-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
 #include "interfaces/ITest.h"           // TestConfig
+#include "shared/exceptions.h"
 
 using namespace VnV;
 

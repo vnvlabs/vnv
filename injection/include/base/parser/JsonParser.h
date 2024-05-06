@@ -186,7 +186,7 @@ struct WorkflowInfo {
  * Utility struct for storing parsed information about the RunTime Environment
  */
 struct RunInfo {
-  bool runTests; /**< Should any tests be run */
+  bool runTests = false; /**< Should any tests be run */
   bool schemaDump = false;
   bool schemaQuit = false;
   bool runAll = false;
@@ -198,8 +198,8 @@ struct RunInfo {
   std::map<std::string, std::string> additionalPlugins;      /**< List of file paths to included plugin libraries */
   std::map<std::string, InjectionPointInfo> injectionPoints; /**< all injection points with tests */
 
-  json pluginConfig; /**< Json object mapping packageName to shared library path */
-  json cmdline;      /**< Command Line options parsed into a configuration json --vnv.packageName.[sdfsdf] = "sdf"*/
+  json pluginConfig = json::object(); /**< Json object mapping packageName to shared library path */
+  json cmdline = json::object();      /**< Command Line options parsed into a configuration json --vnv.packageName.[sdfsdf] = "sdf"*/
 
   UnitTestInfo unitTestInfo; /**< Unit testing configuration */
   LoggerInfo logInfo;        /**< loging configuration */

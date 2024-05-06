@@ -18,7 +18,6 @@
 #include <typeindex>
 
 #include "base/Logger.h"
-#include "base/Provenance.h"
 #include "base/parser/JsonParser.h"
 #include "base/points/InjectionPoint.h"
 #include "base/points/IteratorPoint.h"
@@ -28,6 +27,7 @@
 #include "common-interfaces/RunTime.h"
 #include "interfaces/ActionType.h"
 #include "interfaces/Initialization.h"
+#include "shared/Provenance.h"
 
 /**
  * VnV Namespace
@@ -160,7 +160,7 @@ class RunTime {
 
   RunTimeOptions* getRunTimeOptions();
 
-  void processToolConfig(json config, json& cmdline, ICommunicator_ptr world);
+  void processToolConfig(json config, std::vector<std::string>& cmdline, ICommunicator_ptr world);
 
   void runTimePackageRegistration(std::string packageName, registrationCallBack reg);
 
@@ -251,8 +251,8 @@ class RunTime {
 
   void registerLogLevel(std::string packageName, std::string logLevel, std::string color);
 
-  void registerFile(VnV_Comm comm, std::string packageName, std::string name, int input, std::string filename,
-                    std::string reader);
+  void registerFile(VnV_Comm comm, std::string packageName, std::string name, int input,  std::string reader , std::string infilename,
+  std::string outfilename);
 
   std::map<std::type_index, std::unique_ptr<BaseStore>> stores;
   void resetStore();
@@ -301,10 +301,6 @@ class RunTime {
    * Run all user configured unit testers.
    */
   void runUnitTests(VnV_Comm comm, UnitTestInfo info);
-
-  std::shared_ptr<Nodes::IRootNode> readFile(std::string reader, std::string filename);
-  void readFileAndWalk(std::string reader, std::string filename, std::string package, std::string walker,
-                       nlohmann::json config);
 
   void getFullSchema(std::string filename);
 

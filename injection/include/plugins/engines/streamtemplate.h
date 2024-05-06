@@ -551,7 +551,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
     }
   }
 
-  void write_stdout(ICommunicator_ptr comm, const std::string& out) override {
+  void write_stdout_info(ICommunicator_ptr comm, const std::string& out) override {
       setComm(comm, false);
       T j = T::object();
       j[JSD::comm] = comm->uniqueId();

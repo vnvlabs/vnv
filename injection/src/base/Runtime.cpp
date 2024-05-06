@@ -10,9 +10,9 @@
 
 #include <iostream>
 
-#include "base/DistUtils.h"
-#include "base/Provenance.h"
-#include "base/Utilities.h"
+#include "shared/DistUtils.h"
+#include "shared/Provenance.h"
+#include "shared/Utilities.h"
 #include "base/parser/JsonSchema.h"
 #include "base/stores/ActionStore.h"
 #include "base/stores/CommunicationStore.h"
@@ -26,12 +26,12 @@
 #include "base/stores/SamplerStore.h"
 #include "base/stores/TestStore.h"
 #include "base/stores/UnitTestStore.h"
-#include "base/stores/WalkerStore.h"
 #include "base/stores/WorkflowStore.h"
 #include "common-interfaces/Logging.h"
 #include "interfaces/IAction.h"
 #include "interfaces/points/Injection.h"
-#include "streaming/Nodes.h"
+#include "dist/DistUtils.h"
+#include "shared/exceptions.h"
 
 using namespace VnV;
 
@@ -139,7 +139,6 @@ nlohmann::json RunTime::getFullJsonSchema() {
   defs["plugger"] = PlugsStore::instance().schema(packageJson);
 
   defs["sampler"] = SamplerStore::instance().schema(packageJson);
-  defs["transform"] = TransformStore::instance().schema(packageJson);
 
   defs["outputEngine"] = OutputEngineStore::instance().schema(packageJson);
   defs["communicator"] = CommunicationStore::instance().schema(packageJson);
@@ -489,10 +488,8 @@ void RunTime::registerLogLevel(std::string packageName, std::string name, std::s
   logger.registerLogLevel(packageName, name, color, true);
 }
 
-void RunTime::registerFile(VnV_Comm comm, std::string packageName, std::string name, int input, std::string filename,
-                           std::string reader) {
-  std::string fname = DistUtils::getAbsolutePath(filename);
-  OutputEngineStore::instance().getEngineManager()->file(getComm(comm), packageName, name, input, fname, reader);
+void RunTime::registerFile(VnV_Comm comm, std::string packageName, std::string name, int input, std::string reader, std::string ifilename, std::string ofilename) {
+  OutputEngineStore::instance().getEngineManager()->file(getComm(comm), packageName, name, input, reader, ifilename, ofilename);
 }
 
 void RunTimeOptions::callback(json& j) { RunTime::instance().runTimeOptions.fromJson(j); }
@@ -590,7 +587,11 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
 
   // Process the configs (wait until now because it allows loaded test libraries
   // to register options objects.
-  processToolConfig(info.pluginConfig, info.cmdline, world);
+
+
+  std::vector<std::string> cmdline;
+  std::cout << "FFFF " << info.pluginConfig << std::endl;
+  processToolConfig(info.pluginConfig, cmdline, world);
 
   if (info.schemaDump) {
     dumpSpecification(info.schemaQuit);
@@ -636,7 +637,7 @@ void RunTime::loadRunInfo(RunInfo& info, registrationCallBack callback) {
 
   jobManager = WorkflowStore::instance().buildJobManager(mainPackageName, workflowName(), info.workflowInfo.workflows);
 
-  OutputEngineStore::instance().getEngineManager()->sendInfoNode(world);
+  OutputEngineStore::instance().getEngineManager()->sendInfoNode(world, getFullJson(), getProv().toJson(), workflowName_, workflowJob());
   ActionStore::instance().initialize(info.actionInfo);
 }
 
@@ -832,7 +833,7 @@ bool RunTime::configure(std::string packageName, RunInfo info, registrationCallB
   return 0;
 }
 
-void RunTime::processToolConfig(json config, json& cmdline, ICommunicator_ptr world) {
+void RunTime::processToolConfig(json config, std::vector<std::string>& cmdline, ICommunicator_ptr world) {
   OptionsParserStore::instance().parse(config, cmdline, world);
 }
 
@@ -870,6 +871,8 @@ bool RunTime::Finalize() {
     }
   }
 
+  CommunicationStore::instance().Finalize();
+
   resetStore();
   return true;
 }
@@ -888,22 +891,6 @@ void RunTime::runUnitTests(VnV_Comm comm, UnitTestInfo info) {
   UnitTestStore::instance().runAll(comm, info);
 }
 
-std::shared_ptr<Nodes::IRootNode> RunTime::readFile(std::string reader, std::string filename) {
-  json j = json::object();
-  return OutputEngineStore::instance().readFile(filename, reader, j);
-}
-
-void RunTime::readFileAndWalk(std::string reader, std::string filename, std::string pack, std::string walk,
-                              nlohmann::json con) {
-  auto rootNode = readFile(reader, filename);
-
-  std::shared_ptr<IWalker> walker = WalkerStore::instance().getWalker(pack, walk, rootNode.get(), con);
-  VnV::Nodes::WalkerNode node;
-
-  while (walker->next(node)) {
-    std::cout << node.item->getName() << std::endl;
-  }
-}
 
 void RunTime::printRunTimeInformation() {
   logger.print();

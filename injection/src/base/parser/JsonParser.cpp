@@ -8,8 +8,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "base/Utilities.h"
-#include "base/exceptions.h"
+#include "shared/Utilities.h"
+#include "shared/exceptions.h"
 #include "base/parser/JsonSchema.h"  // ValidationSchema()
 
 using namespace VnV;
@@ -342,7 +342,10 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
 
   if (main.find("options") != main.end()) {
     info.pluginConfig = main.find("options").value();
+  } else {
+    info.pluginConfig = json::object();
   }
+  
   info.cmdline = commandLineParser(argc, argv);
 
   // Get the run information and the scopes.
