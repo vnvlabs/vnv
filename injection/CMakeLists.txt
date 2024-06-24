@@ -13,6 +13,8 @@ set_target_properties(injection PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 
 
 add_library(Injection::Injection ALIAS injection)
 
+target_link_options(injection PRIVATE "-Wl,--no-undefined")
+
 if(WITH_MPI)
   target_include_directories(
     injection
@@ -39,3 +41,5 @@ message(injection PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../third-party/cppcrc)
 
 add_shared_sources(injection)
 add_subdirectory(src)
+
+

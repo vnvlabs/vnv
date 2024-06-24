@@ -1,12 +1,13 @@
 ﻿#ifndef JSONCPPINTERFACE_H
 #define JSONCPPINTERFACE_H
 
+
+#include "interfaces/IOutputEngine.h"
+#include "validate/json-schema.hpp"
+using nlohmann::json;
+
 #include "common-interfaces/PackageName.h"
 #include "interfaces/ICommunicator.h"
-#include "interfaces/IOutputEngine.h"
-#include "json-schema.hpp"
-
-using nlohmann::json;
 namespace VnV {
 
 typedef void* (*options_cpp_callback_ptr)(json& info, std::vector<std::string>& cmdline, IOutputEngine* engine, ICommunicator_ptr world);

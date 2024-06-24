@@ -9,7 +9,7 @@
 
 #include "shared/Utilities.h"
 #include "shared/exceptions.h"
-#include "json-schema.hpp"
+#include "shared/json.hpp"
 
 #define LAST_RUN_TIME "__LAST_RUN_TIME__"
 #define LAST_FILE_NAME "__LAST_FILE_NAME__"
@@ -181,7 +181,7 @@ class RegistrationWriter {
     registerHelper(j, "Reducers", "REDUCER", packageName);
     registerHelper(j, "ScriptGenerators", "SCRIPTGENERATOR", packageName);
     registerHelper(j, "Validators", "VALIDATOR", packageName);
-    registerHelper(j, "JobCreators", "JOBCREATOR", packageName);
+    registerHelper(j, "Workflows", "WORKFLOW", packageName);
     registerHelper(j, "Schedulers", "SCHEDULER", packageName);
     registerHelper(j, "Samplers", "SAMPLER", packageName);
     registerHelper(j, "Walkers", "WALKER", packageName);
@@ -314,7 +314,7 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string targetFi
           "Plugs",           "Engines",      "EngineReaders",    "Comms",       "Reducers",     "Samplers",
           "Walkers",         "DataTypes",    "Serializers",      "Transforms",  "UnitTests",    "Actions",
           "Options",         "Introduction", "Conclusion",       "Executables", "Communicator", "Schedulers",
-          "Validators",      "JobCreators",  "ScriptGenerators", "CodeBlocks"}) {
+          "Validators",      "Workflows",  "ScriptGenerators", "CodeBlocks"}) {
       json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);
       for (auto it : VnV::JsonUtilities::getOrCreate(it.value(), type).items()) {
         to[it.key()] = it.value();

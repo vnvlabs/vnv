@@ -8,6 +8,31 @@
 // It should be included and compilable using a C compiler to insure it can be
 // used in C and C++.
 
+
+#ifdef __cplusplus
+#  include "interfaces/IOptions.h"
+
+#  include "interfaces/ICommunicator.h"
+#  include "interfaces/IDataType.h"
+#  include "interfaces/IOutputEngine.h"
+#  include "interfaces/IReduction.h"
+#  include "interfaces/ISampler.h"
+#  include "interfaces/ITest.h"
+#  include "interfaces/IUnitTest.h"
+#  include "interfaces/IWorkflow.h"
+#  include "interfaces/Initialization.h"
+#  include "interfaces/argType.h"
+#  include "interfaces/points/Injection.h"
+#  include "interfaces/IAction.h"
+
+#else
+
+#  include "c-interfaces/Initialization.h"
+#  include "c-interfaces/Options.h"
+#  include "c-interfaces/points/Injection.h"
+
+#endif
+
 // C Interface for the runtime functions.
 #include "common-interfaces/RunTime.h"
 
@@ -17,34 +42,5 @@
 // C Interface for the Logging components of VnV
 #include "common-interfaces/Logging.h"
 
-#ifdef __cplusplus
-
-#  include "interfaces/IAction.h"
-#  include "interfaces/ICommunicator.h"
-#  include "interfaces/IDataType.h"
-#  include "interfaces/IIterator.h"
-#  include "interfaces/IOptions.h"
-#  include "interfaces/IOutputEngine.h"
-#  include "interfaces/IPlug.h"
-#  include "interfaces/IReduction.h"
-#  include "interfaces/ISampler.h"
-#  include "interfaces/ITest.h"
-#  include "interfaces/IUnitTest.h"
-#  include "interfaces/IWorkflow.h"
-#  include "interfaces/Initialization.h"
-#  include "interfaces/argType.h"
-#  include "interfaces/points/Injection.h"
-#  include "interfaces/points/Iteration.h"
-#  include "interfaces/points/Plug.h"
-
-#else
-
-#  include "c-interfaces/Initialization.h"
-#  include "c-interfaces/Options.h"
-#  include "c-interfaces/points/Injection.h"
-#  include "c-interfaces/points/Iteration.h"
-#  include "c-interfaces/points/Plug.h"
-
-#endif
 
 #endif  // GAURD

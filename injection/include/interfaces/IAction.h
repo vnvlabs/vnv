@@ -10,7 +10,7 @@
 #include "interfaces/ICommunicator.h"
 #include "interfaces/IOutputEngine.h"
 #include "interfaces/argType.h"
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 namespace VnV {
 
 class ActionStore;

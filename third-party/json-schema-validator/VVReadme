@@ -1,8 +1,0 @@
-
-Modified version of the json-schema-validator ,
-
-build: mkdir build && cd build
-cmake -DBUILD_SHARED_LIBS=1 -DCMAKE_INSTALL_PREFIX=../install ..
-make 
-make install
-

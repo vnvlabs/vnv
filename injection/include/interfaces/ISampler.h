@@ -46,7 +46,7 @@ class ISampler {
   ISampler() {}
   virtual ~ISampler() {}
 
-  virtual bool sample(VnV::InjectionPointType /* stage */, std::string /* stageId */) { return true; }
+  virtual bool sample(VnV::ICommunicator_ptr comm, VnV::InjectionPointType /* stage */, std::string /* stageId */) { return true; }
 };
 
 typedef ISampler* (*sampler_ptr)(nlohmann::json&);
@@ -71,7 +71,7 @@ template <typename Runner> class Sampler_T : public ISampler {
   class name : public Sampler_T<Runner> {                                                             \
    public:                                                                                            \
     name(nlohmann::json& config) : Sampler_T(config){};                                               \
-    virtual bool sample(VnV::InjectionPointType type, std::string stageId) override;                  \
+    virtual bool sample(VnV::ICommunicator_ptr comm, VnV::InjectionPointType type, std::string stageId) override;                  \
   };                                                                                                  \
                                                                                                       \
   VnV::ISampler* declare_##name(nlohmann::json& config) { return new name(config); }                  \
@@ -79,7 +79,7 @@ template <typename Runner> class Sampler_T : public ISampler {
   }                                                                                                   \
   }                                                                                                   \
   }                                                                                                   \
-  bool VnV::PNAME::Samplers::name::sample(VnV::InjectionPointType type, std::string stageId)
+  bool VnV::PNAME::Samplers::name::sample(VnV::ICommunicator_ptr comm, VnV::InjectionPointType type, std::string stageId)
 
 #define INJECTION_SAMPLER_S(PNAME, name, schema) INJECTION_SAMPLER_RS(PNAME, name, int, schema)
 

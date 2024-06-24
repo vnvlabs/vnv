@@ -2,12 +2,7 @@
 #define WRAPPERS_H
 
 #include "common-interfaces/Communication.h"
-#include "common-interfaces/PackageName.h"
 
-// Define the inters for the VnV Iterator
-typedef struct VnV_Iterator_ {
-  void* data;
-} VnV_Iterator;
 
 // Define an interface for the OutputEngineWrapper
 struct IOutputEngineWrapper {
@@ -46,5 +41,11 @@ typedef void (*injectionDataCallback)(VnV_Comm comm, struct ParameterSetWrapper*
                                       struct IOutputEngineWrapper* engine, int injectionPointType, const char* stageId);
 
 typedef void (*initDataCallback)(VnV_Comm comm, struct IOutputEngineWrapper* engine);
+
+
+#define VNV_C_CALLBACK_DEFINE(NAME, data) \
+  int NAME_CALLBACK__EXT(VnV_Comm comm, struct ParameterSetWrapper* wrapper, struct IOutputEngineWrapper* engine, int injectionPointType, const char* stageId)
+
+#define VNV_C_CALLBACK(NAME) NAME_CALLBACK__EXT
 
 #endif  // WRAPPERS_H

@@ -20,6 +20,7 @@ R"(
       "workflows" : {
         "$ref" : "#/definitions/workflows"
       },
+      "execution" : {"type" : "object" },
       "job" : {
          "type" : "object",
          "properties" : {
@@ -52,9 +53,6 @@ R"(
       },
       "iterators": {
         "$ref": "#/definitions/iterators"
-      },
-      "plugs": {
-        "$ref": "#/definitions/plugs"
       },
       "options": {
         "$ref" : "#/definitions/options"
@@ -98,13 +96,14 @@ R"(
       "job" : {
          "type" : "object"
       },
+      
       "outputEngine": {
         "description": "Parameters to configure the output Engine",
         "type": "object",
         "minProperties": 1,
         "maxProperties": 1,
         "default": {
-          "json_stdout": {}
+          "stdout": {}
         }
       },
       "runScopes": {
@@ -116,11 +115,11 @@ R"(
       },
       "unit-testing": {
         "default": {
-          "runTests": false
+          "runUnitTests": false
         },
         "type": "object",
         "properties": {
-          "runTests": {
+          "runUnitTests": {
             "type": "boolean",
             "default": true
           },
@@ -256,161 +255,7 @@ R"(
         },
         "additionalProperties": false
       },
-      "iterators": {
-        "description": "Injection Iteration Points",
-        "type": "object",
-        "patternProperties": {
-          "^.*?:.*?$": {
-            "$ref": "#/definitions/iterator"
-          },
-          "additionalProperties": false
-        }
-      },
-      "iterator": {
-        "description": "An injection iterator defined somewhere in the code",
-        "type": "object",
-        "properties": {
-          "runInternal": {
-            "type": "boolean"
-          },
-          "template": {
-            "$ref": "#/definitions/runtemplate"
-          },
-          "runScope": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "tests": {
-            "type": "object",
-            "patternProperties": {
-              "^.*?:.*?$": {
-                "$ref": "#/definitions/test"
-              }
-            },
-            "additionalProperties": false
-          },
-          "iterators": {
-            "type": "object",
-            "patternProperties": {
-              "^.*?:.*?$": {
-                "$ref": "#/definitions/iteratorfunc"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "default": {
-          "runInternal": true,
-          "tests": {},
-          "iterators": {}
-        }
-      },
-      "plugs": {
-        "description": "Plugs",
-        "type": "object",
-        "patternProperties": {
-          "^.*?:.*?$": {
-            "$ref": "#/definitions/plug"
-          }
-        },
-        "additionalProperties": false
-      },
-      "plug": {
-        "description": "An injection plug defined somewhere in the code",
-        "type": "object",
-        "properties": {
-          "template": {
-            "$ref": "#/definitions/runtemplate"
-          },
-          "runInternal": {
-            "type": "boolean"
-          },
-          "runScope": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "tests": {
-            "type": "object",
-            "patternProperties": {
-              "^.*?:.*?$": {
-                "$ref": "#/definitions/test"
-              }
-            },
-            "additionalProperties": false
-          },
-          "plug": {
-            "$ref": "#/definitions/plugger"
-          }
-        },
-        "default": {
-          "runInternal": true,
-          "tests": {},
-          "plug": {}
-        }
-      },
-      "plugged": {
-        "type": "object",
-        "properties": {
-          "config": {
-            "type": "object"
-          },
-          "runScope": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "plugger": {
-        "description": "Test information",
-        "type": "object",
-        "patternProperties": {
-          "^.*?:.*?$": {
-            "$ref": "#/definitions/plugged"
-          }
-        },
-        "maxProperties": 1,
-        "minProperties": 1,
-        "additionalProperties": false
-      },
-      "iteratorfunc": {
-        "description": "Test information",
-        "type": "object",
-        "patternProperties": {
-          "^.*?:.*?$": {
-            "$ref": "#/definitions/iteratorconfig"
-          }
-        },
-        "maxProperties": 1,
-        "minProperties": 1,
-        "additionalProperties": false
-      },
-      "iteratorconfig": {
-        "description": "Test information",
-        "type": "object",
-        "properties": {
-          "config": {
-            "type": "object"
-          },
-          "template": {
-            "$ref": "#/definitions/runtemplate"
-          },
-          "runScope": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "default": {
-          "config": {}
-        }
-      },
+  
       "test": {
         "description": "Test information",
         "type": "object",

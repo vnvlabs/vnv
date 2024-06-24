@@ -12,20 +12,20 @@
 #include <stdarg.h>
 
 #include <chrono>
-#include <json-schema.hpp>
 #include <map>
 #include <string>
 #include <typeindex>
+#include <fcntl.h>
+#include <unistd.h>
+#include <iostream>
 
+#include "validate/json-schema.hpp"
 #include "base/Logger.h"
 #include "base/parser/JsonParser.h"
 #include "base/points/InjectionPoint.h"
-#include "base/points/IteratorPoint.h"
-#include "base/points/PlugPoint.h"
 #include "base/stores/BaseStore.h"
 #include "c-interfaces/Wrappers.h"
 #include "common-interfaces/RunTime.h"
-#include "interfaces/ActionType.h"
 #include "interfaces/Initialization.h"
 #include "shared/Provenance.h"
 
@@ -91,10 +91,10 @@ class RunTime {
   RunTimeOptions runTimeOptions;
   RunInfo info;
 
+  std::vector<std::string> command_line_vector;
   std::shared_ptr<VnVProv> prov;
 
   std::string configFile = "<unknown>";
-  std::string hotpatchVar;
 
   // Workflow Identification
   std::string workflowName_ = StringUtils::random(10);
@@ -102,7 +102,16 @@ class RunTime {
   std::string workflowDir_ = "/tmp";
   std::shared_ptr<JobManager> jobManager = nullptr;
 
-  bool hotpatch;
+
+  int stdout_pipefd[2], stderr_pipefd[2];
+  int stdout_bk, stderr_bk;
+  char buf[101];
+  bool stdout_configured = false;
+  
+  void read_stdout(); 
+
+  void configure_stdout();
+  void unconfigure_stdout();
 
   void loadRunInfo(RunInfo& info, registrationCallBack callback);
 
@@ -165,30 +174,6 @@ class RunTime {
   void runTimePackageRegistration(std::string packageName, registrationCallBack reg);
 
   bool isInitialized() { return initializedCount > 0; }
-
-  /****************** ITERATIONS ************************************/
- private:
-  std::shared_ptr<IterationPoint> getNewInjectionIteration(VnV_Comm comm, std::string pname, std::string id,
-                                                           struct VnV_Function_Sig pretty, InjectionPointType type,
-                                                           int once, NTV& args);
-
- public:
-  int injectionIterationRun(VnV_Iterator* iterator);
-
-  VnV_Iterator injectionIteration(VnV_Comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
-                                  std::string fname, int line, const DataCallback& callback, NTV& args, int once);
-
-  /****************** PLUGS ************************************/
- private:
-  std::shared_ptr<PlugPoint> getNewInjectionPlug(VnV_Comm comm, std::string pname, std::string id,
-                                                 struct VnV_Function_Sig pretty, NTV& args);
-
- public:
-  // Cpp Interface for an Injection Plug
-  VnV_Iterator injectionPlug(VnV_Comm, std::string pname, std::string id, struct VnV_Function_Sig pretty,
-                             std::string fname, int line, const DataCallback& callback, NTV& args);
-
-  int injectionPlugRun(VnV_Iterator* iterator);
 
   /************************ INJECTION POINTS **************************/
  private:
@@ -279,21 +264,8 @@ class RunTime {
 
   static RunTime& reset();
 
-  /**
-   * @brief loadInjectionPoints
-   * @param json
-   *
-   * Load injection points from a json file. This is a pooly named WIP.
-   *
-   * The idea here is that we can load additional injection points at any time.
-   * At the moment this is used by the unit testers to add injection point
-   * configuraitons dynamically.
-   *
-   *
-   */
-  void loadInjectionPoints(json _json);
 
-  void loadPlugin(std::string filename, std::string packageName);
+  bool loadPlugin(std::string filename, std::string packageName);
 
   /**
    * @brief runUnitTests
@@ -303,8 +275,6 @@ class RunTime {
   void runUnitTests(VnV_Comm comm, UnitTestInfo info);
 
   void getFullSchema(std::string filename);
-
-  void loadHotPatch(VnV_Comm comm);
 
   VnVProv getProv();
 

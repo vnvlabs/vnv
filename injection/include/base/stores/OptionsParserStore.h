@@ -10,7 +10,7 @@
 #include <map>
 #include <string>
 
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 using nlohmann::json;
 
 #include "base/stores/BaseStore.h"

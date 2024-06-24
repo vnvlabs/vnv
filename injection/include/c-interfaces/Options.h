@@ -2,7 +2,7 @@
 #define JSONCINTERFACE_H
 
 #include "common-interfaces/PackageName.h"
-#include "json-c-interface.hpp"
+#include "validate/json-c-interface.hpp"
 
 typedef void* (*options_callback_ptr)(cjson info);
 typedef char* (*options_schema_ptr)();

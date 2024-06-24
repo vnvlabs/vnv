@@ -5,11 +5,13 @@
 #include <regex>
 #include <string>
 
+
+
+#include "validate/json-schema.hpp"
+using nlohmann::json;
+
 #include "c-interfaces/Wrappers.h"
 #include "common-interfaces/Communication.h"
-#include "json-schema.hpp"
-
-using nlohmann::json;
 
 namespace VnV {
 

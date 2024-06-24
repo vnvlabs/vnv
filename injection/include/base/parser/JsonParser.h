@@ -13,7 +13,7 @@
 #include <set>
 #include <string>
 
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 using nlohmann::json;
 
 /**
@@ -42,9 +42,9 @@ struct LoggerInfo {
    * become noops.
    *
    */
-  bool on;
+  bool on = false;
 
-  bool engine;
+  bool engine = true;
 
   /**
    * @brief Where should we write logging statements.
@@ -107,8 +107,6 @@ struct SamplerInfo {
  */
 enum class InjectionType {
   POINT, /**< A Simple Injection Point (see VnV::InjectionPoint)*/
-  ITER,  /**< A VnV Iteration Point (see VnV::IterationPoint)*/
-  PLUG   /**< A VnV Plug point (see VnV::PlugPoint) */
 };
 
 /**
@@ -122,8 +120,6 @@ struct InjectionPointInfo {
   std::string name;                          /**< The name of the injection point */
   std::string package;                       /**< The package that declared the injection point */
   std::vector<json> tests;                   /**< Test configuration json defined at the injection point */
-  std::vector<json> iterators;               /**< Iteration configuration json defined at the injection point */
-  json plug = json::object();                /**< Plug configuration json defined at the injection point */
   json templateName = json::object();
   SamplerInfo sampler; /**< Sampler configuration for this injection point */
 
@@ -138,9 +134,9 @@ struct InjectionPointInfo {
  *
  */
 struct UnitTestInfo {
-  bool runUnitTests;   /**< if true, unit tests will be executed */
+  bool runUnitTests = false;   /**< if true, unit tests will be executed */
   json unitTestConfig; /**< the configuration object for the unit tests */
-  bool exitAfterTests; /**< if true, std::exit will be called at end of tests */
+  bool exitAfterTests = false; /**< if true, std::exit will be called at end of tests */
 };
 
 /**
@@ -217,8 +213,6 @@ struct RunInfo {
    *
    */
   json template_overrides = json::object();
-
-  bool hotpatch = false; /**< Should hotpatching be enabled */
 
   bool error;               /**< Was there an error when parsing */
   std::string errorMessage; /**< What was the error message (if there was one) */

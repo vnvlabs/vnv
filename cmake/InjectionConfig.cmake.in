@@ -4,11 +4,6 @@ include(CMakeFindDependencyMacro)
 list(APPEND CMAKE_PREFIX_PATH ${Injection_CMAKE_DIR})
 
 
-if (NOT TARGET jsv::jsv)
-   find_dependency(jsv)
-endif()
-
-
 
 if(NOT TARGET Injection::Injection)
   include("${Injection_CMAKE_DIR}/InjectionTargets.cmake")

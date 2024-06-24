@@ -5,9 +5,9 @@ add_subdirectory(plugins)
 add_subdirectory(fortran-interfaces)
 add_subdirectory(common-interfaces)
 add_subdirectory(dist)
+add_subdirectory(validate)
 
 target_link_libraries(injection PRIVATE dl)
-target_link_libraries(injection PUBLIC jsv::jsv)
 
 target_link_libraries(injection PRIVATE Python3::Python)
 

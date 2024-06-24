@@ -10,15 +10,15 @@
 #include "base/stores/OutputEngineStore.h"
 #include "inja.hpp"
 
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 using nlohmann::json;
 
 namespace VnV {
 
 BaseStoreInstance(WorkflowStore)
 
-    void registerJobCreator(std::string packageName, std::string name, const std::string schema, job_ptr r) {
-  WorkflowStore::instance().addJobCreator(packageName, name, json::parse(schema), r);
+void registerWorkflow(std::string packageName, std::string name, const std::string schema, workflow_ptr r) {
+  WorkflowStore::instance().addWorkflow(packageName, name, json::parse(schema), r);
 }
 
 void registerValidator(std::string packageName, std::string name, const std::string schema, validator_ptr r) {
@@ -40,8 +40,7 @@ void JobManager::run(ICommunicator_ptr ptr, bool before) {
     auto selfComm = ptr->self();
 
     if (before) {
-      OutputEngineStore::instance().getEngineManager()->workflowStartedCallback(selfComm, package, name,
-                                                                                getWorkflowFile());
+      OutputEngineStore::instance().getEngineManager()->workflowStartedCallback(selfComm, package, name, getWorkflowFile());
     }
 
     auto delay = 30;       // 30 seconds between updates.
@@ -78,18 +77,15 @@ void JobManager::run(ICommunicator_ptr ptr, bool before) {
         std::this_thread::sleep_for(std::chrono::milliseconds(stepDelay));
 
         if (delay <
-            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start_time)
-                .count()) {
-          OutputEngineStore::instance().getEngineManager()->workflowUpdatedCallback(selfComm, package, name,
-                                                                                    getWorkflowFile());
+            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - start_time).count()) {
+          OutputEngineStore::instance().getEngineManager()->workflowUpdatedCallback(selfComm, package, name, getWorkflowFile());
           start_time = std::chrono::high_resolution_clock::now();
         }
       }
     }
 
     if (!before) {
-      OutputEngineStore::instance().getEngineManager()->workflowEndedCallback(selfComm, package, name,
-                                                                              getWorkflowFile());
+      OutputEngineStore::instance().getEngineManager()->workflowEndedCallback(selfComm, package, name, getWorkflowFile());
     }
   }
   // Wait for workflow to finish.
@@ -137,19 +133,12 @@ std::string IScriptGenerator::render(std::string templ, const json& data) {
     return getComponent(script_factory, packageName, name, config);
   }
 
-  std::shared_ptr<IJobCreator> WorkflowStore::getJobCreator(std::string packageName, std::string name, const nlohmann::json& config) {
-    return getComponent(job_factory, packageName, name, config);
+  std::shared_ptr<IWorkflow> WorkflowStore::getWorkflow(std::string packageName, std::string name, const nlohmann::json& config) {
+    return getComponent(workflow_factory, packageName, name, config);
   }
-
-void JobManager::subjob(std::string package, std::string name, const json& config) {
-  // TODO Naming Conflicts?
-  auto creator = WorkflowStore::instance().getJobCreator(package, name, config);
-  creators.push(package + ":" + name);
-  creator->createJob(*this);
-  creators.pop();
-}
-
-std::tuple<std::string, std::string, bool> JobManager::add_node(std::shared_ptr<Job> job,
+  
+  
+  std::tuple<std::string, std::string, bool> JobManager::add_node(std::shared_ptr<Job> job,
                                                                 std::map<std::string, json>& nodes, json& edges) {
   json j = json::object();
 
@@ -223,7 +212,7 @@ std::tuple<std::string, std::string, bool> JobManager::add_node(std::shared_ptr<
   return {jobNode, validNode, job->runBeforeApplication()};
 }
 
-Job::Job(std::string n, std::shared_ptr<IScheduler> s, std::string creator, JobManager& manager)
+  Job::Job(std::string n, std::shared_ptr<IScheduler> s, std::string creator, JobManager& manager)
     : name(n), scheduler(s), jcreator(creator), jstore(manager) {
   vnv_workflow_id = StringUtils::random(6);
   enviornment["VNV_WORKFLOW_ID"] = vnv_workflow_id;

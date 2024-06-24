@@ -5,11 +5,6 @@ list(APPEND CMAKE_MODULE_PATH ${Injection_CMAKE_DIR})
 
 list(REMOVE_AT CMAKE_MODULE_PATH -1)
 
-find_dependency(jsv)
-
-if NOT TARGET jsv::jsv)
-  include("${Injection_CMAKE_DIR}/jsv-targets.cmake")
-endif()
 
 if(NOT TARGET Injection::Injection)
   include("${Injection_CMAKE_DIR}/InjectionTargets.cmake")

@@ -25,7 +25,7 @@ SOFTWARE.
 #ifndef INCLUDE_INJA_INJA_HPP_
 #define INCLUDE_INJA_INJA_HPP_
 
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 #if (defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)) && !defined(INJA_NOEXCEPTION)
   #ifndef INJA_THROW
@@ -51,7 +51,7 @@ SOFTWARE.
 #include <sstream>
 #include <string>
 
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 // #include "config.hpp"
 #ifndef INCLUDE_INJA_CONFIG_HPP_
@@ -2367,7 +2367,7 @@ public:
 #include <string>
 #include <utility>
 
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 // #include "function_storage.hpp"
 
@@ -2860,7 +2860,7 @@ using TemplateStorage = std::map<std::string, Template>;
 // #include "utils.hpp"
 
 
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 namespace inja {
 
@@ -3498,7 +3498,7 @@ public:
 #include <utility>
 #include <vector>
 
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 // #include "config.hpp"
 

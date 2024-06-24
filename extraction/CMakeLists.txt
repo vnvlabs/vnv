@@ -63,7 +63,7 @@ if(Clang_FOUND)
   add_executable(Injection::Extraction ALIAS vnv-matcher)
 
   target_include_directories(vnv-matcher SYSTEM PRIVATE ${CLANG_INCLUDE_DIRS})
-  target_include_directories( vnv-matcher PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../injection/include)
+  target_include_directories( vnv-matcher PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../include)
   target_compile_definitions(vnv-matcher PRIVATE -DPACKAGENAME=VnVProcessor)
   
   target_link_libraries(
@@ -74,7 +74,6 @@ if(Clang_FOUND)
             clangFrontend
             clangTooling
             clangToolingRefactoring
-            jsv::jsv
   )          
 
   install(

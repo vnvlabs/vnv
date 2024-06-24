@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "base/TestConfig.h"
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 namespace VnV {
 

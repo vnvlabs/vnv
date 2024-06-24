@@ -5,7 +5,7 @@
 #include <set>
 
 #include "interfaces/ICommunicator.h"
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 using nlohmann::json;
 

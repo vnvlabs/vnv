@@ -11,8 +11,7 @@
 #include "common-interfaces/Logging.h"
 #include "interfaces/IOutputEngine.h"
 #include "interfaces/argType.h"
-#include "interfaces/templates.h"
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 //#include "common-interfaces/Logging.h"
 using nlohmann::json;

@@ -7,7 +7,7 @@
 #include <iostream>
 
 #include "shared/exceptions.h"
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 using nlohmann::json_schema::json_validator;
 
 namespace VnV {

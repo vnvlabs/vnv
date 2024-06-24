@@ -6,7 +6,7 @@
 #include <string>
 
 #include "common-interfaces/prettyfunction.h"
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 namespace VnV {
 using nlohmann::json;

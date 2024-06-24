@@ -13,7 +13,7 @@
 
 #include "common-interfaces/PackageName.h"
 #include "interfaces/ICommunicator.h"
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 using nlohmann::json;
 
@@ -361,7 +361,6 @@ class JobManager {
     throw "Job by that name already exists.";
   }
 
-  void subjob(std::string package, std::string name, const json& config);
 
   std::shared_ptr<Job> get(std::string name) {
     auto it = jobs.find(name);
@@ -459,10 +458,10 @@ class Script {
   std::string generate() { return script; }
 };
 
-class IJobCreator {
+class IWorkflow {
  public:
   virtual void createJob(JobManager& manager) = 0;
-  virtual ~IJobCreator() {}
+  virtual ~IWorkflow() {}
 };
 
 // Little plugin to allow for script generation (e.g. for moab scripts. )
@@ -476,8 +475,8 @@ class IScriptGenerator {
   static std::string render(std::string templ, const nlohmann::json& data);
 };
 
-typedef IJobCreator* (*job_ptr)(const nlohmann::json& config);
-void registerJobCreator(std::string packageName, std::string name, const std::string schema, job_ptr r);
+typedef IWorkflow* (*workflow_ptr)(const nlohmann::json& config);
+void registerWorkflow(std::string packageName, std::string name, const std::string schema, workflow_ptr r);
 
 typedef IValidator* (*validator_ptr)(const nlohmann::json& config);
 void registerValidator(std::string packageName, std::string name, const std::string schema, validator_ptr r);
@@ -499,11 +498,11 @@ class InjaScriptGenerator : public IScriptGenerator {
 
 }  // namespace VnV
 
-#define INJECTION_JOBCREATOR(PNAME, name, SCHEMA)                                                     \
+#define INJECTION_WORKFLOW(PNAME, name, SCHEMA)                                                     \
   namespace VnV {                                                                                     \
   namespace PNAME {                                                                                   \
-  namespace JobCreators {                                                                             \
-  class name : public VnV::IJobCreator {                                                              \
+  namespace Workflows {                                                                             \
+  class name : public VnV::IWorkflow {                                                              \
     nlohmann::json config;                                                                            \
                                                                                                       \
    public:                                                                                            \
@@ -511,25 +510,29 @@ class InjaScriptGenerator : public IScriptGenerator {
     void createJob(JobManager& jobmanager) override;                                                  \
   };                                                                                                  \
                                                                                                       \
-  VnV::IJobCreator* declare_##name(const nlohmann::json& config) { return new name(config); }         \
-  void register_##name() { VnV::registerJobCreator(VNV_STR(PNAME), #name, SCHEMA, &declare_##name); } \
+  VnV::IWorkflow* declare_##name(const nlohmann::json& config) { return new name(config); }         \
+  void register_##name() { VnV::registerWorkflow(VNV_STR(PNAME), #name, SCHEMA, &declare_##name); } \
   }                                                                                                   \
   }                                                                                                   \
   }                                                                                                   \
-  void VnV::PNAME::JobCreators::name::createJob(JobManager& manager)
+  void VnV::PNAME::Workflows::name::createJob(JobManager& manager)
+
+
+
 
 #define INJECTION_CREATE_JOB(VAR, NAME, SCHEDULER) auto VAR = manager.create(NAME, SCHEDULER);
 
-#define DECLAREJOBCREATOR(PNAME, name) \
+#define DECLAREWORKFLOW(PNAME, name) \
   namespace VnV {                      \
   namespace PNAME {                    \
-  namespace JobCreators {              \
+  namespace Workflows {              \
   void register_##name();              \
   }                                    \
   }                                    \
   }
 
-#define REGISTERJOBCREATOR(PNAME, name) VnV::PNAME::JobCreators::register_##name();
+
+#define REGISTERWORKFLOW(PNAME, name) VnV::PNAME::Workflows::register_##name();
 
 #define INJECTION_VALIDATOR(PNAME, name, schema)                                                \
   namespace VnV {                                                                               \

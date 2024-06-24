@@ -551,12 +551,13 @@ template <typename T> class StreamManager : public OutputEngineManager {
     }
   }
 
-  void write_stdout_info(ICommunicator_ptr comm, const std::string& out) override {
+  void write_stdout_info(ICommunicator_ptr comm, const std::string& out, bool error) override {
       setComm(comm, false);
       T j = T::object();
       j[JSD::comm] = comm->uniqueId();
       j[JSD::value] = out;
       j[JSD::node] = JSN::stdout;
+      j[JSD::stage] = error;
       write(j);
   }
 
@@ -748,12 +749,25 @@ template <typename V> class FileStream : public StreamWriter<V> {
   virtual void initialize(json& config) override {
     std::string s = config["filename"].template get<std::string>();
     filestub = s;
+    auto comm = CommunicationStore::instance().worldComm();
+    int counter = -1; 
 
     if (std::filesystem::exists(filestub) ) {
-       if (!std::filesystem::is_directory(filestub) || !std::filesystem::is_empty(filestub) ) {
-          throw "Error: If filename exists, it must be a empty Directory.";
-       }
+      int counter = 0;
+      if (comm->Rank() == 0 ) {
+
+        while(std::filesystem::exists(filestub)) {
+          filestub = s + std::to_string(++counter);
+        }
+        
+      }
+      comm->BroadCast(&counter,1,sizeof(int),0);
+      filestub = s + std::to_string(counter);
+      VnV_Warn(VNVPACKAGENAME, "Directory %s exists. Writing output to %s instead.", s.c_str(), filestub.c_str());
+
     }
+    comm->Barrier();
+
     try {
         std::string fname = getFileName_(filestub,"__start__");
         std::ofstream file(fname);

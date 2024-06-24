@@ -8,7 +8,7 @@
 #include "interfaces/IWorkflow.h"
 
 INJECTION_INJA_TEMPLATE(VNVPACKAGENAME, Template, R"({"type":"object","properties":{"children":{"type":"array"}}})",
-                        R"(Roll Call:
+R"(Roll Call:
 ## for child in children
   Hello {{ child }}.
 ## endfor    
@@ -21,7 +21,7 @@ INJECTION_INJA_TEMPLATE(VNVPACKAGENAME, SimpleSlurmHeader,
 {   
     "type" : "object",
     "properties" : {
-        "jobName" : {"type" : "string" },
+        "jobName" : {"type" : "string"},
         "hello" : {"type" : "string" },
         "email" : {"type" : "string" },
         "tasks" : {"type" : "integer" },
@@ -49,7 +49,7 @@ INJECTION_INJA_TEMPLATE(VNVPACKAGENAME, SimpleSlurmHeader,
 pwd; hostname; date
 
 ## for module in modules
-   module load python
+   module load {{module}}
 ## endfor
 
 echo {{ hello }})");

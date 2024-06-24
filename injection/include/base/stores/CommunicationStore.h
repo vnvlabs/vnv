@@ -1,8 +1,6 @@
 ﻿#ifndef COMMUNICATIONSTORE_H
 #define COMMUNICATIONSTORE_H
 
-#include <interfaces/ICommunicator.h>
-
 #include <type_traits>
 
 #include "base/stores/BaseStore.h"
@@ -14,7 +12,7 @@ using VnV::comm_register_ptr;
 using VnV::ICommunicator;
 using VnV::ICommunicator_ptr;
 
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 namespace VnV {
 

@@ -488,8 +488,8 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     } else if (nae == "INJECTION_VALIDATOR") {
       json& jj = getDef("Validators", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_JOBCREATOR") {
-      json& jj = getDef("JobCreators", getPackageName(Args, 0), getPackageName(Args, 1));
+    } else if (nae == "INJECTION_WORKFLOW") {
+      json& jj = getDef("Workflows", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["jobs"] = json::object();
       jj["docs"] = getDocs(Range).toJson();
       lastWorkflowJson = &jj;

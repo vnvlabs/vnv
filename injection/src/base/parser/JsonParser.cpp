@@ -81,18 +81,7 @@ bool JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runSco
           addTest(test.key(), test.value(), aip->second.tests, runScopes);
         }
       }
-      if (values.find("iterators") != values.end()) {
-        for (auto& test : values["iterators"].items()) {
-          addTest(test.key(), test.value(), aip->second.iterators, runScopes);
-        }
-      }
-      if (values.find("plug") != values.end()) {
-        json c = values["plug"];
-        if (add(c, runScopes)) {
-          aip->second.plug = c;
-        }
-      }
-
+     
       if (values.find("sampler") != values.end()) {
         aip->second.sampler = getSamplerInfo(values["sampler"]);
       }
@@ -112,17 +101,7 @@ bool JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runSco
           addTest(test.key(), test.value(), ipInfo.tests, runScopes);
         }
       }
-      if (type == InjectionType::ITER && values.find("iterators") != values.end()) {
-        for (auto& test : it.value()["iterators"].items()) {
-          addTest(test.key(), test.value(), ipInfo.iterators, runScopes);
-        }
-      }
-      if (type == InjectionType::PLUG && values.find("plug") != values.end()) {
-        json c = values["plug"];
-        if (add(c, runScopes)) {
-          aip->second.plug = c;
-        }
-      }
+     
       if (values.find("sampler") != values.end()) {
         ipInfo.sampler = getSamplerInfo(values["sampler"]);
       }
@@ -137,7 +116,7 @@ bool JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runSco
         ipInfo.templateName = values["template"];
       }
 
-      if (ipInfo.tests.size() > 0 || ipInfo.runInternal || ipInfo.iterators.size() > 0) {
+      if (ipInfo.tests.size() > 0 || ipInfo.runInternal ) {
         ips.insert(std::make_pair(it.key(), ipInfo));
       }
     }
@@ -345,7 +324,7 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   } else {
     info.pluginConfig = json::object();
   }
-  
+
   info.cmdline = commandLineParser(argc, argv);
 
   // Get the run information and the scopes.
@@ -368,7 +347,7 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   if (main.find("outputEngine") != main.end()) {
     info.engineInfo = getEngineInfo(main["outputEngine"]);
   } else {
-    info.engineInfo = getEngineInfo(R"({ "json_stdout" : {} })"_json);
+    info.engineInfo = getEngineInfo(R"({ "stdout" : {} })"_json);
   }
 
   // Get the output Engine information.
@@ -405,20 +384,6 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   // Add all the injection points;
   if (main.find("injectionPoints") != main.end()) {
     info.runAll = addInjectionPoint(main["injectionPoints"], runScopes, info.injectionPoints, InjectionType::POINT);
-  }
-
-  // Add all the injection points;
-  if (main.find("iterators") != main.end()) {
-    addInjectionPoint(main["iterators"], runScopes, info.injectionPoints, InjectionType::ITER);
-  }
-
-  // Add all the injection points;
-  if (main.find("plugs") != main.end()) {
-    addInjectionPoint(main["plugs"], runScopes, info.injectionPoints, InjectionType::PLUG);
-  }
-
-  if (main.find("hotpatch") != main.end()) {
-    info.hotpatch = main["hotpatch"].get<bool>();
   }
 
   // Add all the injection points;

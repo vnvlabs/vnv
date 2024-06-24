@@ -15,12 +15,11 @@
 #include <vector>
 #include <list>
 
-
+#include "interfaces/ISampler.h"
 #include "c-interfaces/Wrappers.h"
 #include "interfaces/ICommunicator.h"
-#include "interfaces/ISampler.h"
 #include "interfaces/ITest.h"
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 using nlohmann::json;
 
@@ -29,8 +28,6 @@ namespace VnV {
 // Forward declare important classes
 class InjectionPointStore;
 class TestConfig;
-class IIterator;
-class IPlug;
 class VnVParameter;
 class RunTime;
 class OutputEngineManager;
@@ -63,8 +60,6 @@ class InjectionPointBase {
   static constexpr const char* internalTestName = "__internal__";
 
   ICommunicator_ptr comm; /**< The communicator defined for this injection point */
-
-  //@todo move to the IteratorPoint derived class
 
   std::string name;    /**< name of this injection point */
   std::string package; /**< Package that made this injection point call */

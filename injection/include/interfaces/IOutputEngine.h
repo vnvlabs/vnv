@@ -4,8 +4,8 @@
 #include <string>
 #include <type_traits>
 
-#include "base/Communication.h"
 #include "base/InjectionPointConfig.h"
+#include "base/Communication.h"
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/DataTypeStore.h"
 #include "base/stores/ReductionStore.h"
@@ -14,7 +14,7 @@
 #include "common-interfaces/Logging.h"
 #include "common-interfaces/PackageName.h"
 #include "interfaces/IUnitTest.h"
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 #define FetchTypes X(std::string) X(int) X(double) X(long)
 
 
@@ -695,7 +695,7 @@ class IInternalOutputEngine : public IOutputEngine {
 
   virtual void sendInfoNode(ICommunicator_ptr worldComm, const json& fullJson, const json& prov, std::string workflowName, std::string workflowJob ) = 0;
 
-  virtual void write_stdout_info(ICommunicator_ptr selfComm, const std::string& out) = 0;
+  virtual void write_stdout_info(ICommunicator_ptr selfComm, const std::string& out, bool error) = 0;
 
   virtual void injectionPointStartedCallBack(ICommunicator_ptr comm, std::string packageName, std::string id,
                                              InjectionPointType type, std::string stageId, std::string filename,
@@ -758,9 +758,9 @@ class OutputEngineManager : public IInternalOutputEngine {
 
   IOutputEngine* getOutputEngine();
 
-  virtual void write_stdout(const std::string& out) {
+  virtual void write_stdout(const std::string& out, bool error) {
       auto selfcomm = CommunicationStore::instance().selfComm();
-      write_stdout_info(selfcomm, out);
+      write_stdout_info(selfcomm, out, error);
   }
 
   virtual ~OutputEngineManager() = default;

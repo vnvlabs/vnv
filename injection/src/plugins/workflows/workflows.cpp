@@ -5,7 +5,8 @@
  * A simple job Creator that runs the example.
  *
  */
-INJECTION_JOBCREATOR(VNVPACKAGENAME, Simple, "{}") {
+INJECTION_WORKFLOW(VNVPACKAGENAME, Simple, "{}") {
+  
   auto config = json::object();
   auto scheduler = WorkflowStore::instance().getScheduler(VNVPACKAGENAME_S, "Bash", config);
 
@@ -15,7 +16,6 @@ INJECTION_JOBCREATOR(VNVPACKAGENAME, Simple, "{}") {
    *
    */
   INJECTION_CREATE_JOB(job, "Sample Job 1", scheduler);
-
   job->addEnvironmentVariable("testEnv", "hello");
   job->setSetupScript("echo \"Hello World\"");
   job->setTeardownScript("echo \"Hello World from the Teardown script (hello=${testEnv})\"");

@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: MIT
  *
  */
-#include <json-schema.hpp>
+#include "validate/json-schema.hpp"
 
 #include <memory>
 #include <set>
@@ -1116,14 +1116,10 @@ namespace nlohmann
 namespace json_schema
 {
 
-json_validator::json_validator(schema_loader loader,
-                               format_checker format)
-    : root_(std::unique_ptr<root_schema>(new root_schema(loader, format)))
+json_validator::json_validator(schema_loader loader, format_checker format): root_(std::unique_ptr<root_schema>(new root_schema(loader, format)))
 {
-}
 
-// move constructor, destructor and move assignment operator can be defaulted here
-// where root_schema is a complete type
+}
 json_validator::json_validator(json_validator &&) = default;
 json_validator::~json_validator() = default;
 json_validator &json_validator::operator=(json_validator &&) = default;

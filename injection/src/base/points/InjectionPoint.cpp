@@ -12,7 +12,7 @@
 #include "base/stores/SamplerStore.h"
 #include "base/stores/TestStore.h"
 #include "common-interfaces/Logging.h"
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 #include "shared/exceptions.h"
 
 using namespace VnV;
@@ -87,11 +87,12 @@ void InjectionPoint::run(std::string function, int line, const DataCallback& cal
   bool runIt = (type == InjectionPointType::End);
 
   if (!runIt) {
+
     // The injection point only runs IF the sampler lets it. This lets us
     // completly skip injection points or iterations. The sampler can say to
     // skip iters, Begin, and single.
     auto sampler = SamplerStore::instance().getSamplerForInjectionPoint(package, name);
-    runIt = sampler == nullptr ? true : sampler->sample(type, stageId);
+    runIt = sampler == nullptr ? true : sampler->sample(comm, type, stageId);
   }
 
   if (runIt) {

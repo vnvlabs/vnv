@@ -11,7 +11,7 @@
 #  include "common-interfaces/PackageName.h"
 #  include "interfaces/IOutputEngine.h"
 #  include "interfaces/ITest.h"
-#  include "json-schema.hpp"
+#  include "validate/json-schema.hpp"
 
 typedef void (*vnv_registration_function)();
 

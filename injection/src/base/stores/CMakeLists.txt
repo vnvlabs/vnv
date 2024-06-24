@@ -7,8 +7,6 @@ target_sources(
           ${CMAKE_CURRENT_LIST_DIR}/ActionStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/OptionsParserStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/CommunicationStore.cpp
-          ${CMAKE_CURRENT_LIST_DIR}/IteratorStore.cpp
-          ${CMAKE_CURRENT_LIST_DIR}/PlugStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/DataTypeStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/ReductionStore.cpp
           ${CMAKE_CURRENT_LIST_DIR}/WorkflowStore.cpp

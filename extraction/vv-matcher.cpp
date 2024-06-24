@@ -28,7 +28,7 @@
 #include "shared/DistUtils.h"
 #include "shared/Utilities.h"
 #include "shared/exceptions.h"
-#include "json-schema.hpp"
+#include "shared/json.hpp"
 
 using nlohmann::json;
 using namespace clang::tooling;

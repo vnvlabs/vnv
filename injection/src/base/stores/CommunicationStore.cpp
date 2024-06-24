@@ -117,6 +117,7 @@ VnV_Comm CommunicationStore::world() { return {world_str, NULL}; }
 
 VnV_Comm CommunicationStore::self() { return {self_str, NULL}; }
 
+
 void CommunicationStore::Finalize() { root->Finalize(); }
 
 BaseStoreInstance(CommunicationStore)

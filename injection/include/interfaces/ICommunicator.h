@@ -100,6 +100,8 @@ class ICommunicator {
 
   virtual CommCompareType compare(ICommunicator_ptr ptr) = 0;
   virtual bool contains(ICommunicator_ptr) = 0;
+  virtual bool contains(long proc) = 0;
+
 
   virtual void Send(void* buffer, int count, int dest, int tag, int dataTypeSize) = 0;
   virtual IRequest_ptr ISend(void* buffer, int count, int dest, int tag, int dataTypeSize) = 0;

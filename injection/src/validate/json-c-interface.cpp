@@ -8,8 +8,8 @@
  */
 
 #include <iostream>
-#include <json-c-interface.hpp>
-#include <nlohmann/json.hpp>
+#include "validate/json-c-interface.hpp"
+#include "shared/json.hpp"
 using nlohmann::json;
 
 #define CJSON_OK 0

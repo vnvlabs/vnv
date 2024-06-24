@@ -31,12 +31,6 @@ class PointCtx {
   PointCtx(int w, std::string p, std::string n) : world(w), package(p), name(n) {}
 };
 
-class PlugCtx : public PointCtx {
- public:
-  VnV_Iterator iterator;
-  int once = 1;
-  PlugCtx(int w, std::string p, std::string n, int o = 1) : PointCtx(w, p, n), once(o) { iterator.data = NULL; }
-};
 
 }  // namespace
 
@@ -197,47 +191,7 @@ void vnv_point_run_x(void** ctx) {
   VnV::RunTime::instance().injectionPoint_end(c->package, c->name, "", -1, [](VnV::VnVCallbackData& data) {});
 }
 
-void* vnv_plug_init_x(int world, const char* package, const char* fname) {
-  PlugCtx* a = new PlugCtx(world, package, fname);
-  return a;
-}
 
-int vnv_plug_run_x(void** ctx) {
-  PlugCtx* c = (PlugCtx*)(*ctx);
-  VnV_Comm comm = c->world ? VWORLD : VSELF;
-
-  if (c->iterator.data == NULL) {
-    c->iterator = VnV::RunTime::instance().injectionPlug(comm, c->package, c->name, {"gfortran", ""}, "", -1, NULL,
-                                                         c->parameters);
-  }
-  auto res = VnV::RunTime::instance().injectionPlugRun(&(c->iterator));
-
-  if (res == 0) {
-    delete c;
-  }
-  return res;
-}
-
-void* vnv_iterator_init_x(int world, const char* package, const char* fname, int* once) {
-  PlugCtx* a = new PlugCtx(world, package, fname, *once);
-  return a;
-}
-
-int vnv_iterator_run_x(void** ctx) {
-  PlugCtx* c = (PlugCtx*)(*ctx);
-  VnV_Comm comm = c->world ? VWORLD : VSELF;
-
-  if (c->iterator.data == NULL) {
-    c->iterator = VnV::RunTime::instance().injectionIteration(comm, c->package, c->name, {"gfortran", ""}, "", -1, NULL,
-                                                              c->parameters, c->once);
-  }
-  auto res = VnV::RunTime::instance().injectionIterationRun(&(c->iterator));
-
-  if (res == 0) {
-    delete c;
-  }
-  return res;
-}
 
 void vnv_log_x(int world, const char* level, const char* package, const char* message) {
   VnV_Comm comm = world ? VWORLD : VSELF;

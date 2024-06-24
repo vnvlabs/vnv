@@ -154,6 +154,8 @@ class MPICommunicator : public ICommunicator {
     commUniqueId = comm->uniqueId;
     setComm(comm->comm);
   }
+  
+  std::set<int> wranks_set;
 
   void setComm(MPI_Comm comm_) {
     comm = comm_;
@@ -177,10 +179,17 @@ class MPICommunicator : public ICommunicator {
 
         commUniqueId = VnV::HashUtils::vectorHash(wranks);
 
+        wranks_set = std::set<int>(std::make_move_iterator(wranks.begin()),std::make_move_iterator(wranks.end()));
+
+
         MPI_Group_free(&grp);
         MPI_Group_free(&world_grp);
       }
     }
+  }
+
+  bool contains(long proc) override {
+     return wranks_set.find(proc) != wranks_set.end();
   }
 
   void* getData() override {
@@ -192,6 +201,7 @@ class MPICommunicator : public ICommunicator {
 
   long uniqueId() override { return commUniqueId; }
 
+  
 
   int Size() override {
    return Size_();
@@ -344,6 +354,8 @@ class MPICommunicator : public ICommunicator {
     MPI_Group_compare(them, intersect, &contained);
     return contained != MPI_UNEQUAL;
   }
+
+
 
   void Send(void* buffer, int count, int dest, int tag, int dataTypeSize) override {
     MPI_Send(buffer, count, getDataType(dataTypeSize), destMap(dest), tagMap(tag), comm);

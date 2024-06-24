@@ -10,7 +10,7 @@
  *
  */
 
-#include "json-schema.hpp"  // <nlohmann json library and json validation
+#include "validate/json-schema.hpp"  // <nlohmann json library and json validation
 using nlohmann::json;
 
 namespace VnV {

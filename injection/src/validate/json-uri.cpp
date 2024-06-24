@@ -6,7 +6,7 @@
  * SPDX-License-Identifier: MIT
  *
  */
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 #include <sstream>
 

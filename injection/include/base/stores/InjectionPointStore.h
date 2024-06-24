@@ -16,7 +16,7 @@
 #include "base/InjectionPointConfig.h"
 #include "base/stores/BaseStore.h"
 #include "interfaces/ITest.h"
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 using nlohmann::json;
 

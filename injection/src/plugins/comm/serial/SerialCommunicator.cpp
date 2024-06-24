@@ -170,6 +170,9 @@ class SerialCommunicator : public VnV::ICommunicator {
   // Only contains if it is itself.
   bool contains(ICommunicator_ptr ptr)override  { return compare(ptr) == CommCompareType::EXACT; }
 
+  bool contains(long proc)override  { return proc == 0; }
+  
+
   void Send(void* buffer, int count, int dest, int tag, int dataTypeSize) override {
     auto q = getSendQueue();
     void* data = malloc(count * dataTypeSize);

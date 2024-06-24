@@ -10,7 +10,7 @@
 #include "base/points/InjectionPoint.h"
 #include "base/stores/OutputEngineStore.h"
 #include "common-interfaces/Logging.h"
-#include "json-schema.hpp"
+#include "validate/json-schema.hpp"
 
 using namespace VnV;
 using nlohmann::json_schema::json_validator;

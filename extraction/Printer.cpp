@@ -325,60 +325,7 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       singleJson["Begin"] = info;
       addParameters(sig, E, idJson, count);
 
-    } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite_iteration")) {
-      // Iteration point using the C++ interface
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
-      std::string sig = getSig(E, count++, FF);
-      count++;  // skip the filename
-      count++;  // skip the line number
-      count++;  // skip the callback
-      count++;  // skip the once parameter
-
-      json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
-      json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
-      singleJson["Begin"] = info;
-      addParameters(sig, E, idJson, count);
-
-    } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite_plug")) {
-      // Plug point using the C++ interface
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
-      std::string sig = getSig(E, count++, FF);
-      count++;  // Skip the filename
-      count++;  // Skip the line
-      count++;  // Skip the callback
-
-      json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
-      json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
-      singleJson["Begin"] = info;
-      addParameters(sig, E, idJson, count);
-
-    } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iteration")) {
-      // Iteration point in the C interface.
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
-      std::string sig = getSig(E, count++, FF);
-      count++;  // skip the filename
-      count++;  // skip the line number
-      count++;  // skip the callback
-      count++;  // skip the once parameter
-
-      json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
-      json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
-      singleJson["Begin"] = info;
-      addParameters(sig, E, idJson, count);
-
-    } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_plug")) {
-      // Iteration point in the C interface.
-      unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
-      std::string sig = getSig(E, count++, FF);
-      count++;  // skip the filename
-      count++;  // skip the line number
-      count++;  // skip the callback
-
-      json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
-      json& singleJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
-      singleJson["Begin"] = info;
-      addParameters(sig, E, idJson, count);
-
+    
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("cpp_callsite_begin")) {
       // Loop begin with the C++ interface
       unsigned int count = getInfo(E, FF, Result, info, id, filename, 1, strip);
@@ -392,23 +339,6 @@ class VnVPrinter : public MatchFinder::MatchCallback {
       singleJson["Begin"] = info;
 
       addParameters(sig, E, idJson, count);
-    } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_iter")) {
-      // Iteration of a loop in the C AND C++ interface
-      // unsigned int count = getInfo(E, FF, Result, info, id, filename, 0);
-
-      // json& idJson = VnV::JsonUtilities::getOrCreate(main_json, id);
-      // json& stagesJson = VnV::JsonUtilities::getOrCreate(idJson, "stages");
-
-      // std::string iterid;
-      // try{
-      //   iterid = VnV::StringUtils::trim_copy(getValueFromStringLiteral(E->getArg(count++)->IgnoreParenCasts()));
-      //} catch (...) {
-      //   do {
-      //     iterid = "Dynamic_" + VnV::StringUtils::random(4);
-      //   } while (stagesJson.contains(iterid));
-      //}
-      // stagesJson[iterid] = info;
-
     } else if (const CallExpr* E = Result.Nodes.getNodeAs<clang::CallExpr>("callsite_end")) {
       // End of  a loop in the C AND C++ interface
       getInfo(E, FF, Result, info, id, filename, 0, strip);
@@ -433,25 +363,10 @@ class VnVFinder : public MatchFinder {
                                                  callee(functionDecl(hasName("_VnV_injectionPoint_begin"))))
                                             .bind("callsite_begin");
 
-    // Loop iteration in C
-    StatementMatcher functionMatcher2 = callExpr(hasAncestor(functionDecl().bind("function")),
-                                                 callee(functionDecl(hasName("_VnV_injectionPoint_loop"))))
-                                            .bind("callsite_iter");
-
     // Loop End in C
     StatementMatcher functionMatcher3 =
         callExpr(hasAncestor(functionDecl().bind("function")), callee(functionDecl(hasName("_VnV_injectionPoint_end"))))
             .bind("callsite_end");
-
-    // Iteration Begin in C
-    StatementMatcher functionMatcher4 =
-        callExpr(hasAncestor(functionDecl().bind("function")), callee(functionDecl(hasName("_VnV_injectionIteration"))))
-            .bind("callsite_iteration");
-
-    // Iteration Begin in C
-    StatementMatcher functionMatcher4plug =
-        callExpr(hasAncestor(functionDecl().bind("function")), callee(functionDecl(hasName("_VnV_injectionPlug"))))
-            .bind("callsite_plug");
 
     // Begin Single Injection Point in C++
     StatementMatcher functionMatcherC = callExpr(hasAncestor(functionDecl().bind("function")),
@@ -463,39 +378,21 @@ class VnVFinder : public MatchFinder {
                                                   callee(functionDecl(hasName("VnV::CppInjection::BeginLoopPack"))))
                                              .bind("cpp_callsite_begin");
 
-    // Loop iteration
-    StatementMatcher functionMatcher2C = callExpr(hasAncestor(functionDecl().bind("function")),
-                                                  callee(functionDecl(hasName("VnV::CppInjection::IterLoop"))))
-                                             .bind("callsite_iter");
-
     // Loop end in C++
     StatementMatcher functionMatcher3C = callExpr(hasAncestor(functionDecl().bind("function")),
                                                   callee(functionDecl(hasName("VnV::CppInjection::EndLoop"))))
                                              .bind("callsite_end");
 
-    // Begin a iteration in C++
-    StatementMatcher functionMatcher4C = callExpr(hasAncestor(functionDecl().bind("function")),
-                                                  callee(functionDecl(hasName("VnV::CppIteration::IterationPack"))))
-                                             .bind("cpp_callsite_iteration");
 
-    // Begin a Plug in C++
-    StatementMatcher functionMatcher5C =
-        callExpr(hasAncestor(functionDecl().bind("function")), callee(functionDecl(hasName("VnV::CppPlug::PlugPack"))))
-            .bind("cpp_callsite_plug");
+
 
     addMatcher(functionMatcherC, &Printer);
     addMatcher(functionMatcher1C, &Printer);
-    addMatcher(functionMatcher2C, &Printer);
     addMatcher(functionMatcher3C, &Printer);
-    addMatcher(functionMatcher4C, &Printer);
-    addMatcher(functionMatcher5C, &Printer);
-    addMatcher(functionMatcher4plug, &Printer);
 
     addMatcher(functionMatcher, &Printer);
     addMatcher(functionMatcher1, &Printer);
-    addMatcher(functionMatcher2, &Printer);
     addMatcher(functionMatcher3, &Printer);
-    addMatcher(functionMatcher4, &Printer);
   }
   json& get() { return Printer.get(); }
 };
