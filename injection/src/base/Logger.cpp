@@ -3,12 +3,11 @@
     base/Logger.h
 **/
 #include "base/Logger.h"  //Prototype.
-#include <mpi.h>
 #include <sstream>  //stringstream
 
 #include "base/Runtime.h"                   // RunTime.
 #include "base/stores/OutputEngineStore.h"  // OutputEngineStore
-#include "common-interfaces/Logging.h"      // Logging macros
+#include "common-interfaces/all.h"      // Logging macros
 using namespace VnV;
 
 namespace {

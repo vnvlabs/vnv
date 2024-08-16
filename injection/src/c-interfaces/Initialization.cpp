@@ -28,26 +28,15 @@ VnV::InitDataCallback cpp_to_c_wrapper(initDataCallback callback) {
 
 extern "C" {
 
-int VnV_init(const char* packageName, int* argc, char*** argv, const char* filename, initDataCallback icallback,
-             registrationCallBack callback) {
+int VnV_init(const char* packageName, int* argc, char*** argv, initDataCallback icallback, registrationCallBack callback) {
   try {
-    return VnV::RunTime::instance().InitFromFile(packageName, argc, argv, filename, cpp_to_c_wrapper(icallback), callback);
+    return VnV::RunTime::instance().InitFromFile(packageName, argc, argv, cpp_to_c_wrapper(icallback), callback);
   } catch (std::exception& e) {
     std::cout << "Error Initializing VnV: " << e.what() << std::endl;
   }
   return 0;
 }
 
-int VnV_init_raw(const char* packageName, int* argc, char*** argv, const char* inputjson, initDataCallback icallback,
-                 registrationCallBack callback) {
-  try {
-    json j = json::parse(inputjson);
-    return VnV::RunTime::instance().InitFromJson(packageName, argc, argv, j, cpp_to_c_wrapper(icallback), callback);
-  } catch (std::exception& e) {
-    std::cout << "Error Initializing VnV: " << e.what() << std::endl;
-  }
-  return 0;
-}
 
 void VnV_finalize() {
   try {

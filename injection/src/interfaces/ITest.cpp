@@ -6,10 +6,10 @@
 
 #include "base/stores/OutputEngineStore.h"
 #include "base/stores/TestStore.h"
-#include "common-interfaces/Logging.h"
+#include "common-interfaces/all.h"
 #include "shared/exceptions.h"
+
 using namespace VnV;
-using nlohmann::json_schema::json_validator;
 
 const json& TestConfig::getAdditionalParameters() const { return testConfigJson["configuration"]; }
 

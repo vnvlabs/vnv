@@ -62,13 +62,21 @@ SamplerInfo JsonParser::getSamplerInfo(const json& samplerJson) {
 }
 
 bool JsonParser::addInjectionPoint(const json& ip, std::set<std::string>& runScopes,
-                                   std::map<std::string, InjectionPointInfo>& ips, InjectionType type) {
+                                   std::map<std::string, InjectionPointInfo>& ips, InjectionType type, std::vector<json>& all_on_tests) {
   bool all_on = false;
+
   for (auto& it : ip.items()) {
     if (it.key().compare("runAll") == 0) {
       all_on = it.value().get<bool>();
       continue;
-    } else if (!add(it.value(), runScopes)) {
+    } else if (it.key().compare("runAll_tests") == 0) {
+        for (auto &itt : it.value().items()) {
+          addTest(itt.key(),itt.value(),all_on_tests,runScopes);
+        }
+        continue;
+    } 
+    
+    else if (!add(it.value(), runScopes)) {
       continue;
     }
 
@@ -331,9 +339,20 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
   if (main.find("runTests") != main.end()) {
     info.runTests = main["runTests"].get<bool>();
   } else {
-    info.runTests = true;
+    info.runTests = false;
   }
-  if (!info.runTests) return info;
+// Get the run information and the scopes.
+  if (main.find("name") != main.end()) {
+    info.name = main["name"].get<std::string>();
+  } else {
+    info.name = "";
+  }
+
+  if (main.find("description") != main.end()) {
+    info.description = main["description"].get<std::string>();
+  } else {
+    info.description = "";
+  }
 
   // Get the run Scopes info.
   std::set<std::string> runScopes;
@@ -383,7 +402,7 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
 
   // Add all the injection points;
   if (main.find("injectionPoints") != main.end()) {
-    info.runAll = addInjectionPoint(main["injectionPoints"], runScopes, info.injectionPoints, InjectionType::POINT);
+    info.runAll = addInjectionPoint(main["injectionPoints"], runScopes, info.injectionPoints, InjectionType::POINT, info.runAll_tests);
   }
 
   // Add all the injection points;
@@ -397,20 +416,10 @@ RunInfo JsonParser::_parse(const json& mainFile, int* argc, char** argv) {
 json JsonParser::commandLineParser(int* argc, char** argv) {
   json main = json::object();
   for (int i = 0; i < *argc; i++) {
+  
     std::string s(argv[i]);
-    std::vector<std::string> result;
-    StringUtils::StringSplit(s, ".", result);
-
-    // valid parameters are --vnv.packageName.key <value>
-    if (result.size() >= 3 && result[0].compare("--vnv") == 0) {
-      json& j = JsonUtilities::getOrCreate(main, result[1], JsonUtilities::CreateType::Object);
-
-      // Set the value to be argv[i+1], the next token in the command line.
-      // A bit hacky, but don't set i+=1 to skip the next parameter. This
-      // allows for parameters where there is no value. We could not know
-      // that without pre-registration, which we should probably do, but
-      // this works for now.
-      j[result[2]] = (i + 1 == *argc) ? "" : argv[i + 1];
+    if (s.substr(0,6).compare("--vnv-") == 0) {
+      main[s.substr(6)] = (i+1 == *argc) ? "" : argv[i+1];
     }
   }
   return main;

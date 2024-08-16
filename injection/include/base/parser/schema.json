@@ -9,6 +9,12 @@ R"(
       "runTests": {
         "type": "boolean"
       },
+      "name" : {
+        "type" : "string", "description" : " A name for this report"
+      },
+      "description" : {
+        "type" : "string" , "description" : "A breif description about the report"
+      },
       "schema" : {
         "type" : "object",
         "properties" : {
@@ -60,8 +66,8 @@ R"(
       "template-overrides": {
         "type": "object"
       },
-      "communicator": {
-        "$ref": "#/definitions/communicator"
+      "comments" : {
+        "type" : "object"
       }
     },
     "additionalProperties": false,
@@ -74,10 +80,6 @@ R"(
         },
         "vnv-file": true,
         "default": {}
-      },
-      "communicator": {
-        "type": "string",
-        "default": "mpi"
       },
       "workflows" : {
         "type": "object",
@@ -147,6 +149,15 @@ R"(
           }
         }
       },
+      "tests": {
+            "type": "object",
+            "patternProperties": {
+              "^.*?:.*?$": {
+                "$ref": "#/definitions/test"
+              }
+            },
+            "additionalProperties": false
+      },
       "actions": {
         "default": {},
         "type": "object",
@@ -198,7 +209,10 @@ R"(
         "description": "Injection Points",
         "type": "object",
         "properties": {
-          "runAll" : {"type" : "boolean"}
+          "runAll" : {"type" : "boolean"},
+          "runAll_tests" : {
+              "$ref" : "#/definitions/tests"
+          }
         },
         "patternProperties": {
           "^.*?:.*?$": {
@@ -232,13 +246,7 @@ R"(
             "$ref": "#/definitions/runScope"
           },
           "tests": {
-            "type": "object",
-            "patternProperties": {
-              "^.*?:.*?$": {
-                "$ref": "#/definitions/test"
-              }
-            },
-            "additionalProperties": false
+            "$ref" : "#/definitions/tests"
           }
         },
         "default": {

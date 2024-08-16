@@ -10,53 +10,51 @@
 #include <map>
 #include <string>
 
-#include "validate/json-schema.hpp"
-using nlohmann::json;
 
 #include "base/stores/BaseStore.h"
 #include "c-interfaces/Options.h"
 #include "interfaces/IOptions.h"
 
-namespace VnV {
+using nlohmann::json;
 
-class RawJsonObject {
- public:
-  RawJsonObject(json& j) : data(j) {}
-  json data;
-};
+namespace VnV
+{
 
-class OptionsParserStore : public BaseStore {
-  friend class Runtime;
+  class RawJsonObject
+  {
+  public:
+    RawJsonObject(json &j) : data(j) {}
+    json data;
+  };
 
- private:
-  std::map<std::string, std::pair<json, std::pair<options_callback_ptr, options_cpp_callback_ptr>>,
-           std::less<std::string>>
-      factory;
+  class OptionsParserStore : public BaseStore
+  {
+    friend class Runtime;
 
-  std::map<std::string, void*> optionResult;
+  private:
+    std::map<std::string, std::pair<json, std::pair<options_callback_ptr, options_cpp_callback_ptr>>,
+             std::less<std::string>>
+        factory;
 
- public:
-  OptionsParserStore();
+    std::map<std::string, void *> optionResult;
 
-  void add(std::string name, json& m, options_callback_ptr v);
-  void add(std::string name, json& m, options_cpp_callback_ptr v);
-  void callBack(std::string name, json info, std::vector<std::string>& cmdline, ICommunicator_ptr world);
+  public:
+    OptionsParserStore();
 
-  void* getResult(std::string name) {
-    if (optionResult.find(name) != optionResult.end()) {
-      return optionResult[name];
-    }
-    return nullptr;
-  }
+    void add(std::string name, json &m, options_callback_ptr v);
+    void add(std::string name, json &m, options_cpp_callback_ptr v);
+    void callBack(std::string name, json info, std::vector<std::string> &cmdline, ICommunicator_ptr world);
 
-  void parse(json info, std::vector<std::string>& cmdline, ICommunicator_ptr world);
+    void *getResult(std::string name);
 
-  json& getSchema(std::string package);
+    void parse(json info, std::vector<std::string> &cmdline, ICommunicator_ptr world);
 
-  static OptionsParserStore& instance();
+    json &getSchema(std::string package);
 
-  json schema(json& packageJson);
-};
+    static OptionsParserStore &instance();
 
-}  // namespace VnV
-#endif  // VVOPTIONSPARSER_H
+    json schema(json &packageJson);
+  };
+
+} // namespace VnV
+#endif // VVOPTIONSPARSER_H

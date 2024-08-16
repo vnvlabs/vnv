@@ -7,15 +7,12 @@
 
 #include "base/FunctionSigniture.h"
 #include "base/InjectionPointConfig.h"
-#include "common-interfaces/Communication.h"
-#include "common-interfaces/Logging.h"
+#include "common-interfaces/all.h"
 #include "interfaces/IOutputEngine.h"
-#include "interfaces/argType.h"
+#include "interfaces/helpers/argType.h"
 #include "validate/json-schema.hpp"
 
-//#include "common-interfaces/Logging.h"
 using nlohmann::json;
-using nlohmann::json_schema::json_validator;
 /**
  * @brief The TestConfig class
  */
@@ -110,15 +107,8 @@ template <typename Runner, typename Type> class Test_T : public Type {
 
 }  // namespace VnV
 
-#define VNVDECLAREMACRO(Type, PNAME, name) \
-  namespace VnV {                          \
-  namespace PNAME {                        \
-  namespace Type {                         \
-  void register_##name();                  \
-  }                                        \
-  }                                        \
-  }
-#define VNVREGISTERMACRO(Type, PNAME, name) VnV::PNAME::Type::register_##name();
+ 
+#define VNVREGISTERMACRO(Type, PNAME, name)
 
 #define INJECTION_TEST_RS(PNAME, name, Runner, schema)                                                               \
   namespace VnV {                                                                                                    \
@@ -137,12 +127,21 @@ template <typename Runner, typename Type> class Test_T : public Type {
   VnV::TestStatus VnV::PNAME::Tests::name::runTest(ICommunicator_ptr comm, VnV::IOutputEngine* engine,               \
                                                    VnV::InjectionPointType type, std::string stageId)
 
-#define DECLARETEST(PNAME, name) VNVDECLAREMACRO(Tests, PNAME, name)
-
-#define REGISTERTEST(PNAME, name) VNVREGISTERMACRO(Tests, PNAME, name)
 
 #define INJECTION_TEST_R(PNAME, name, runner) INJECTION_TEST_RS(PNAME, name, runner, R"({"type":"object"})")
 
 #define INJECTION_TEST(PNAME, name) INJECTION_TEST_R(PNAME, name, int)
+
+#define DECLARETEST(PNAME, name) \
+ namespace VnV {                          \
+  namespace PNAME {                        \
+    namespace Tests {                         \
+      void register_##name();                  \
+    }                                        \
+  }                                        \
+}
+
+#define REGISTERTEST(PNAME, name) VnV::PNAME::Tests::register_##name();
+
 
 #endif  // ITEST_H

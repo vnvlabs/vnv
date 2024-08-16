@@ -11,7 +11,6 @@
 using nlohmann::json;
 
 #include "c-interfaces/Wrappers.h"
-#include "common-interfaces/Communication.h"
 
 namespace VnV {
 
@@ -19,7 +18,7 @@ enum TestStatus { SUCCESS, FAILURE, NOTRUN };
 
 class IOutputEngine;
 
-enum class InjectionPointType { Single, Begin, End, Iter };
+enum class InjectionPointType { Single, Begin, End, Iter, Child_Single, Child_Begin, Child_End, Child_Iter };
 namespace InjectionPointTypeUtils {
 std::string getType(InjectionPointType type, std::string stageId);
 int toC(InjectionPointType type);

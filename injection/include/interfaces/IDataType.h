@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "common-interfaces/Logging.h"
+#include "common-interfaces/all.h"
 
 namespace VnV {
 

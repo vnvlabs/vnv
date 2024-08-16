@@ -1,10 +1,12 @@
-﻿#include "base/Communication.h"
+﻿#include "base/communication/Communication.h"
 
 #include <algorithm>
+#include <numeric>
 
 #include "shared/exceptions.h"
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/DataTypeStore.h"
+#include "base/stores/ReductionStore.h"
 
 using namespace VnV;
 
@@ -94,6 +96,20 @@ std::pair<IDataType_vec, IStatus_ptr> DataTypeCommunication::Recv(int count, lon
   }
   free(buffer);
   return std::make_pair(results, status);
+}
+
+IDataType_ptr DataTypeCommunication::ReduceVector(IDataType_vec& data, long long dtype, std::string reducer, int root){
+    return ReduceVector(data, dtype, ReductionStore::instance().getReducer(reducer), root);
+}
+
+IDataType_ptr DataTypeCommunication::ReduceLocalVec(IDataType_vec& data, std::string reducer) {
+    return ReduceLocalVec(data, ReductionStore::instance().getReducer(reducer));
+}
+
+IDataType_ptr DataTypeCommunication::ReduceVector(IDataType_vec& data, long long dtype, IReduction_ptr reducer, int root) {
+    IDataType_vec v = {ReduceLocalVec(data, reducer)};
+    auto r = ReduceMultiple(v, dtype, reducer, root);
+    return (r.size() == 1) ? r[0] : nullptr;
 }
 
 IRequest_ptr DataTypeCommunication::IRecv(int count, long long dataType, int dest, int tag) {

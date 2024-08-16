@@ -1,66 +1,35 @@
 #ifndef RUNTIME_INIT_INTERFACE_H
 #define RUNTIME_INIT_INTERFACE_H
+#ifndef __cplusplus
 
-#ifndef WITHOUT_VNV
+#include "c-interfaces/Wrappers.h"
+#include "common-interfaces/all.h"
+int VnV_init(const char *packageName, int *argc, char ***argv,
+             initDataCallback icallback, registrationCallBack callback);
 
-#  ifndef __cplusplus
-
-#    include "c-interfaces/Wrappers.h"
-#    include "common-interfaces/Communication.h"
-#    include "common-interfaces/PackageName.h"
-
-#    define INJECTION_INITIALIZE_C(PNAME, argc, argv, icallback, filename) \
-      VnV_init(VNV_STR(PNAME), argc, argv, filename, icallback, VNV_REGISTRATION_CALLBACK_NAME(PNAME))
-
-#    define INJECTION_INITIALIZE_RAW_C(PNAME, argc, argv, icallback, inputjson) \
-      VnV_init_raw(VNV_STR(PNAME), argc, argv, inputjson, icallback, VNV_REGISTRATION_CALLBACK_NAME(PNAME))
-
-#    define INJECTION_INITIALIZE(PNAME, argc, argv, filename) \
-      INJECTION_INITIALIZE_C(PNAME,argc,argv, NULL, filename)
-      
-
-#    define INJECTION_INITIALIZE_RAW(PNAME, argc, argv, inputjson) \
-      INJECTION_INITIALIZE_RAW_C(PNAME,argc,argv, NULL, filename)
-      
-      
-#    define INJECTION_FINALIZE(PNAME) VnV_finalize();
-
-/**
- * @brief VnV_init
- * @param argc argc from the command line ( used in case of MPI_Init )
- * @param argv argv from the command line ( used in case of MPI_Init )
- * @param filename The configuration file name
- * @return todo.
- *
- * Initialize the VnV library. If this function is not called, no injection
- * point testing will take place.
- */
-int VnV_init(const char* packageName, int* argc, char*** argv, const char* filename, initDataCallback icallback,
-             registrationCallBack callback);
-
-/**
- * @brief VnV_init
- * @param argc argc from the command line ( used in case of MPI_Init )
- * @param argv argv from the command line ( used in case of MPI_Init )
- * @param filename The configuration file name
- * @return todo.
- *
- * Initialize the VnV library. If this function is not called, no injection
- * point testing will take place.
- */
-int VnV_init_raw(const char* packageName, int* argc, char*** argv, const char* inputjson, initDataCallback icallback,
-                 registrationCallBack callback);
 
 void VnV_finalize();
 
-#  endif
+#ifndef VNV_OFF
 
-#else  // WITHOUT_VNV
-#  define VnV_init(...)
-#  define VnV_finalize(...)
-#  define VnV_runUnitTests()
-#  define REGISTER_VNV_CALLBACK void __vnv_call_back_will_never_be_called
+#define INJECTION_INITIALIZE_C(PNAME, argc, argv, icallback)         \
+  VnV_init(VNV_STR(PNAME), argc, argv, icallback,                    \
+           VNV_REGISTRATION_CALLBACK_NAME(PNAME))
+
+#define INJECTION_INITIALIZE(PNAME, argc, argv)                      \
+  INJECTION_INITIALIZE_C(PNAME, argc, argv, NULL)
+
+#define INJECTION_FINALIZE(PNAME) VnV_finalize();
+
+#else
+
+#define INJECTION_INITIALIZE_C(...)
+#define INJECTION_INITIALIZE_RAW_C(...)
+#define INJECTION_INITIALIZE(...)
+#define INJECTION_INITIALIZE_RAW(...)
+#define INJECTION_FINALIZE(...)
 
 #endif
 
-#endif  // RUNTIMEINTERFACE_H
+#endif // RUNTIMEINTERFACE_H
+#endif

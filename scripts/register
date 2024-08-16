@@ -5,44 +5,71 @@ import os
 import json
 
 
-if len(sys.argv) != 4:
-    print("Usage Error python app ")
-    exit(1)
-
-if sys.argv[1] not in ["gui","plugin"]:
-    print("Unknown reg type ", sys.argv[1], " Should be in ", ["gui","plugin"])
-    exit(1)
-    
-if not os.path.exists(sys.argv[3]):
-    print("Registration file does not exist")
-    exit(1)
-
-if sys.argv[1] == "gui":
-  try:
-    with open(sys.argv[3],'r') as ff:
-        json.load(ff)
-  except Exception as e:
-    print(e)
-    print("Registration file provided is not valid json")
-    exit(1)
-    
-
 reg_file_name = os.path.expanduser("~/.vnv")
+conf = {}
+try:
+    with open(reg_file_name, 'r') as ff:
+        conf = json.load(ff)
+except:
+    conf = {}
 
-if os.path.exists(reg_file_name):
-    with open(reg_file_name,'r') as f:
-        try:
-            REGISTRATION = json.load(f)
-        except:
-            print("Registration file is corrupt")
-            exit(1)
+if sys.argv[1] == "executable":
+
+    if len(sys.argv) < 4:
+        print("Usage Error python app ")
+        exit(1)
+
+    if "executables" not in conf:
+        conf["executables"] = {}
+        
+    conf["executables"][sys.argv[2]] = {
+        "filename": sys.argv[3],
+        "description": " ".join(sys.argv[4:])
+    }
+
+
+elif sys.argv[1] == "executablep":
+
+    if len(sys.argv) < 5:
+        print("Usage Error python app ")
+        exit(1)
+
+    if "executables" not in conf:
+        conf["executables"] = {}
+        
+    conf["executables"][sys.argv[2]] = {
+        "filename": sys.argv[3],
+        "defs" : {
+            "args" : sys.argv[4]
+        },
+        "description": " ".join(sys.argv[5:])
+    }
+        
+    
+elif sys.argv[1] == "plugin":
+
+    if len(sys.argv) != 4:
+        print("Usage Error python app ")
+        exit(1)
+
+    if "plugins" not in conf:
+        conf["plugins"] = {}
+    conf["plugins"][sys.argv[2]] = sys.argv[3]
+
+elif sys.argv[1] == "report":
+
+    if len(sys.argv) != 4:
+        print("Usage Error python app ")
+        exit(1)
+
+    if "reports" not in conf:
+        conf["reports"] = {}
+    conf["reports"][sys.argv[2]] = sys.argv[3]
+
 else:
-    REGISTRATION = { "gui" : {}, "plugin" : {}}
+    print("Unknown reg type ", sys.argv[1], " Should be in ", [
+          "executable", "plugin", "report"])
+    exit(1)
 
-
-REGISTRATION[sys.argv[1]][sys.argv[2]] = sys.argv[3]
-    
 with open(reg_file_name, 'w') as f:
-    json.dump(REGISTRATION,f, indent=4)
-    
-    
+        json.dump(conf, f, indent=4)

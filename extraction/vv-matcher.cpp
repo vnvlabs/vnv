@@ -206,11 +206,11 @@ int main(int argc, const char** argv) {
 
     std::string outputFileName = outputFile.getValue();
     if (!cacheonly.getValue() && outputFileName.empty()) {
-      HTHROW INJECTION_EXCEPTION_("No output file specified");
+      throw INJECTION_EXCEPTION_("No output file specified");
     }
 
     if (cacheonly.getValue() && outputonly.getValue()) {
-      HTHROW INJECTION_EXCEPTION_("Cant have cache only and output only at the same time. ");
+      throw INJECTION_EXCEPTION_("Cant have cache only and output only at the same time. ");
     }
 
     std::string targetFileName = targetFile.getValue();

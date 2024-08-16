@@ -4,7 +4,7 @@
 
 #include <map>
 
-#include "base/points/InjectionPoint.h"
+#include "base/InjectionPoint.h"
 #include "interfaces/ITest.h"
 
 namespace VnV {

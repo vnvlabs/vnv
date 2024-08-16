@@ -6,21 +6,21 @@
 #include "validate/json-schema.hpp"
 using nlohmann::json;
 
-#include "common-interfaces/PackageName.h"
-#include "interfaces/ICommunicator.h"
+#include "common-interfaces/all.h"
+#include "base/communication/ICommunicator.h"
 namespace VnV {
 
 typedef void* (*options_cpp_callback_ptr)(json& info, std::vector<std::string>& cmdline, IOutputEngine* engine, ICommunicator_ptr world);
 
-void RegisterOptions(std::string packageName, std::string schema, options_cpp_callback_ptr callback);
+  void RegisterOptions(std::string packageName, std::string schema, options_cpp_callback_ptr callback);
 
-void RegisterOptions_Json(std::string packageName, json& schema, options_cpp_callback_ptr callback);
+  void RegisterOptions_Json(std::string packageName, json& schema, options_cpp_callback_ptr callback);
 
-void* getOptionsObject(std::string packageName);
+  void* getOptionsObject(std::string packageName);
 
 }  // namespace VnV
 
-#ifdef __cplusplus
+
 
 #  define INJECTION_OPTIONS(PNAME, schema, OptionsObject)                                                            \
     namespace VnV {                                                                                                  \
@@ -48,6 +48,5 @@ void* getOptionsObject(std::string packageName);
 
 #  define INJECTION_GET_CONFIG(PNAME) VnV::PNAME::getOptionsObject();
 
-#endif
 
 #endif  // JSONINTERFACE_H

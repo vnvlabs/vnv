@@ -1,10 +1,5 @@
 ### MACRO TO BUILD THE REGISTRATION CPP FILE DYNAMICALLY
 option(WITH_EXTRACTION "Use extraction to generate Registration files" ON)
-set(VNV_OUT_DIR "${CMAKE_BINARY_DIR}/registration" CACHE PATH "Output Directory for Registration files")
-set(VNV_OUT_PREFIX "Registration" CACHE STRING "VNV Registration file prefix")
-set(VNV_OUT_EXT "c" CACHE STRING "VNV Registration Ouput file extension" )
-set(VNV_COMPILE_COMMANDS "${CMAKE_BINARY_DIR}/compile_commands.json" CACHE FILEPATH "Compile Commands file")
-set(VNV_DIST_PATH "${CMAKE_SOURCE_DIR}/registration/" CACHE PATH "Directory to save registraiton cache files to")
 
 set(VNV_C_COMPILER @CMAKE_C_COMPILER@)
 set(VNV_C_COMPILER_VERSION @CMAKE_C_COMPILER_VERSION@)
@@ -14,8 +9,9 @@ set(VNV_MPI_C_COMPILER @MPI_C_COMPILER@)
 set(VNV_MPI_C_VERSION @MPI_C_VERSION@)
 set(VNV_MPI_CXX_COMPILER @MPI_CXX_COMPILER@)
 set(VNV_MPI_CXX_VERSION @MPI_CXX_VERSION@)
-set(VNV_SCRIPTS_DIR @CMAKE_INSTALL_PREFIX@/scripts)
-set(VNV_MODULES_DIR @CMAKE_INSTALL_PREFIX@/modules)
+set(VNV_SCRIPTS_DIR @VNV_CURR_INSTALL@/scripts)
+set(VNV_MODULES_DIR @VNV_CURR_INSTALL@/modules)
+set(VNV_REGISTRATION @VNV_CURR_INSTALL@/bin/register)
 
 if(WITH_EXTRACTION AND TARGET Injection::Extraction)
 
@@ -34,8 +30,6 @@ add_custom_target(
    )
 
 
-#TODO targetFile is wrong -- Need to figure out a way to get the file name 
-# of the target output binary. 
 function( add_vnv_generation_target targetName packageName extension fortran ) 
     
    if (${fortran} GREATER 0 ) 
@@ -56,7 +50,9 @@ function( add_vnv_generation_target targetName packageName extension fortran )
          BYPRODUCTS ${CMAKE_BINARY_DIR}/vnv_${packageName}.${extension} ${CMAKE_BINARY_DIR}/vnv.__registration__  ${fortranFile}
          COMMENT "Generating the vnv registration file for ${targetName}." 
    )
-      
+
+
+
 endfunction()
 
 
@@ -113,6 +109,31 @@ function(link_vnv_file targetName packageName extension)
   link_vnv_file_semi(${targetName} ${packageName} ${extension} 0)
 endfunction()
 
+
+function(link_vnv_executable targetName packageName extension)
+  link_vnv_file(${targetName} ${packageName} ${extension})
+  
+
+endfunction()
+
+function(vnv_register_on_install targetName path_rel_install )
+
+endfunction()
+
+function(vnv_register_build targetName packageName installPath )
+  
+  add_custom_target(vnv_register_${targetName} ALL
+         COMMAND ${VNV_REGISTRATION} executable ${packageName} ${installPath} ${ARGN}  
+         DEPENDS ${targetName}
+         COMMENT "Registering the VnV Executable for ${targetName}" 
+  )
+
+
+endfunction()
+
+function(vnv_register_install name installPath)
+  install(CODE "execute_process(COMMAND ${VNV_REGISTRATION} executable ${name} ${installPath} ${ARGN} )")
+endfunction()
 
 endif()
 

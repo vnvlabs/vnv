@@ -7,7 +7,7 @@
 
 #include "base/Runtime.h"
 #include "shared/exceptions.h"
-#include "common-interfaces/Logging.h"
+#include "common-interfaces/all.h"
 
 using namespace VnV;
 using nlohmann::json;
@@ -21,7 +21,7 @@ void OutputEngineStore::setEngineManager(ICommunicator_ptr world, std::string ty
     try {
       manager.reset((*it->second)());
     } catch (std::exception& e) {
-      HTHROW INJECTION_EXCEPTION("Engine init failed:  %s", e.what());
+      throw INJECTION_EXCEPTION("Engine init failed:  %s", e.what());
     }
 
     if (manager == nullptr) {
@@ -40,10 +40,10 @@ void OutputEngineStore::setEngineManager(ICommunicator_ptr world, std::string ty
       }
       return;
     } catch (std::exception& e) {
-      HTHROW INJECTION_EXCEPTION_("Invalid Engine Schema");
+      throw INJECTION_EXCEPTION_("Invalid Engine Schema");
     }
   }
-  HTHROW INJECTION_EXCEPTION("Invalid Engine Name %s", type.c_str());
+  throw INJECTION_EXCEPTION("Invalid Engine Name %s", type.c_str());
 }
 
 void OutputEngineStore::printAvailableEngines() {
@@ -67,6 +67,12 @@ json OutputEngineStore::getRunInfo() {
   if (a != nullptr) return a->getRunInfo();
   return json::object();
 }
+std::string OutputEngineStore::getFilePath() {
+  auto a = getEngineManager();
+  if (a != nullptr) return a->getFilePath();
+  return "";
+}
+
 
 json OutputEngineStore::schema(json& packageJson) {
   nlohmann::json m = R"({"type":"object"})"_json;

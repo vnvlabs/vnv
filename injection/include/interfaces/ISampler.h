@@ -19,18 +19,19 @@ class SamplerConfig {
   std::string ipPackage = "";
   nlohmann::json config = json::object();
 
-  SamplerConfig(const InjectionPointInfo& info) {
-    if (!info.sampler.name.empty()) {
-      active = true;
-      name = info.sampler.name;
-      package = info.sampler.package;
-      ipName = info.name;
-      ipPackage = info.package;
-      config = info.sampler.config;
+  SamplerConfig(std::string package, std::string name, std::string ippackage, std::string ipname, json& config) {
+    if (!name.empty()) {
+      this->active = true;
+      this->name = name;
+      this->package = package;
+      this->config = config;
+      this->ipName = ipname;
+      this->ipPackage = ippackage;
     } else {
       active = false;
     }
   }
+
 };
 
 class ISampler;

@@ -1,18 +1,16 @@
 ﻿
 /** @file ActionStore.cpp **/
 
-#include "base/stores/ActionStore.h"
-
-#include <dlfcn.h>
-
 #include <iostream>
 
+#include "base/stores/ActionStore.h"
 #include "base/Runtime.h"
 #include "shared/Utilities.h"
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/OutputEngineStore.h"
-#include "common-interfaces/Logging.h"
+#include "common-interfaces/all.h"
 #include "shared/constants.h"
+#include "base/parser/JsonSchema.h"
 
 using namespace VnV::Constants;
 using namespace VnV;
@@ -114,6 +112,51 @@ void ActionStore::initialize(ICommunicator_ptr world) {
       }
     }
   }
+
+
+  OutputEngineManager* ActionStore::getEngine() { return OutputEngineStore::instance().getEngineManager(); }
+
+  void ActionStore::registerAction(std::string packageName, std::string name, const json& schema, action_ptr m) {
+    action_factory[packageName + ":" + name] = {schema, m};
+    VnV_Debug(VNVPACKAGENAME, "Registering Action %s:%s", packageName.c_str(), name.c_str());
+  }
+
+  bool ActionStore::registeredAction(std::string packageName, std::string name) {
+    return action_factory.find(packageName + ":" + name) != action_factory.end();
+  }
+
+  
+
+  void ActionStore::print() {
+  
+    std::ostringstream oss;
+    oss << "The Actions will run:\n";
+    for (auto it : actions) {
+      oss << "\t" << it->getPackage()<<":"<< it->getName() << "\n";
+    }
+    std::string os = "%s" + oss.str();
+    
+    VnV_Info(VNVPACKAGENAME, os.c_str(),"");
+
+
+}
+
+  void ActionStore::addAction(std::string packageName, std::string name, const json& config) {
+    auto it = action_factory.find(packageName + ":" + name);
+    if (it != action_factory.end()) {
+      try {
+        VnV::validateSchema(config, it->second.first, true);
+        std::shared_ptr<VnV::IAction> act;
+        act.reset((*(it->second.second))(config));
+        act->setNameAndPackageAndEngine(packageName, name, getEngine());
+        actions.push_back(act);
+        return;
+      } catch (std::exception& e) {
+      }
+    }
+    throw "Error adding Action";
+  }
+
 
 
 void VnV::registerVnVAction(std::string packageName, std::string name, std::string schema, action_ptr m) {

@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "interfaces/ICommunicator.h"
+#include "base/communication/ICommunicator.h"
 
 namespace VnV {
 

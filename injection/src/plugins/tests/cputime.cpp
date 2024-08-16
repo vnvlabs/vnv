@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "shared/DistUtils.h"
-#include "common-interfaces/Logging.h"
+#include "common-interfaces/all.h"
 #include "interfaces/ITest.h"
 
 using namespace VnV;
@@ -84,11 +84,16 @@ cpuRunner::~cpuRunner() {}
  *          "labels" : {{as_json(Labels)}},
  *          "datasets" : [{
  *             "label": "Recorded CPU Times",
- *             "backgroundColor": "rgb(255, 99, 132)",
- *             "borderColor": "rgb(255, 99, 132)",
+ *             "backgroundColor": "rgb(57, 105, 160)",
+ *             "borderColor": "rgb(57, 105, 160)",
  *             "data": {{as_json(Data)}}
- *           }]
- *       },
+ *           }, {
+ *             "label": "DT",
+ *             "backgroundColor": "rgb(57, 105, 160)",
+ *             "borderColor": "rgb(57, 105, 160)",
+ *             "data": {{as_json(vec_delta(Data))}}
+ *           }
+ *       ]},
  *       "options" : {
  *           "animation" : false,
  *           "responsive" : true,

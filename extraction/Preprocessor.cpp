@@ -251,8 +251,6 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
   Preprocessor& pp;
   json& thisJson;
 
-  json docOverrides;
-
   CommentOptions commentOptions;
   std::set<std::string>& modTime;
   std::vector<std::unique_ptr<RawComment>> currComment;
@@ -274,9 +272,9 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
 
   void override_comment(SourceRange range, std::string packageName, std::string name, std::string type,
                         int importannce) {
-    json& docOverrides = VnV::JsonUtilities::getOrCreate(thisJson, "doc_overrides");
-    json& j = VnV::JsonUtilities::getOrCreate(docOverrides, type);
-    json& jj = VnV::JsonUtilities::getOrCreate(j, packageName + ":" + name);
+    
+    json& docOverrides = VnV::JsonUtilities::getOrCreate(thisJson, "Overrides");
+    json& jj = VnV::JsonUtilities::getOrCreate(docOverrides, packageName + ":" + name);
 
     if (jj.contains("imp") && jj["imp"].get<int>() > importannce) {
       return;
@@ -415,27 +413,14 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
     lastTestJson = nullptr;
     lastWorkflowJson = nullptr;
 
-    if (nae == "INJECTION_COMMENT") {
+    if (nae == "INJECTION_EXT_CALLBACK" ) {
       std::string pname = getPackageName(Args, 0);
       std::string name = getPackageName(Args, 1);
-      std::string type = getPackageName(Args, 2);
-      int import = std::atoi(getPackageName(Args, 3).c_str());
-      override_comment(Range, pname, name, type, import);
-
+      override_comment(Range, pname, name, "InjectionPoints", 10);
     } else if (nae == "INJECTION_TEST_RS") {
-      // gets or creates a jj with:
-      //  type="Tests"
-      //  packageName = getPackageName(Args,0)
-      //  nstr = getPackageName(Args,1)
       json& jj = getDef("Tests", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_ITERATOR_RS") {
-      json& jj = getDef("Iterators", getPackageName(Args, 0), getPackageName(Args, 1));
-      jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_PLUG_RS") {
-      json& jj = getDef("Plugs", getPackageName(Args, 0), getPackageName(Args, 1));
-      jj["docs"] = getDocs(Range).toJson();
-    } else if (nae == "INJECTION_SERIALIZER_R") {
+    }  else if (nae == "INJECTION_SERIALIZER_R") {
       json& jj = getDef("Serializers", getPackageName(Args, 0), getPackageName(Args, 1));
       jj["docs"] = getDocs(Range).toJson();
       jj["type"] = stringArgs(pp, Args->getUnexpArgument(3), false);
@@ -534,29 +519,17 @@ class PreprocessCallback : public PPCallbacks, CommentHandler {
       jj[pname]["lib"] = "plugins";
     } else if (nae == "INJECTION_LOOP_BEGIN") {
       json& jj = getDef("InjectionPoints", getPackageName(Args, 0), getPackageName(Args, 2));
-      json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
-      json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
       jj["docs"] = getDocs(Range).toJson();
-      thisStage["docs"] = ProcessedComment().toJson();
       if (nae == "INJECTION_LOOP_BEGIN") {
         jj["loop"] = true;
       }
-    } else if (nae == "INJECTION_ITERATION") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 1), getPackageName(Args, 3));
+
+      //Can prob delete these -- dont think we use them anymore. Maybe in Printer.cpp
       json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
       json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
-      jj["docs"] = getDocs(Range).toJson();
-      jj["iterator"] = true;
       thisStage["docs"] = ProcessedComment().toJson();
-
-    } else if (nae == "INJECTION_FUNCTION_PLUG") {
-      json& jj = getDef("InjectionPoints", getPackageName(Args, 1), getPackageName(Args, 3));
-      json& stages = VnV::JsonUtilities::getOrCreate(jj, "stages");
-      json& thisStage = VnV::JsonUtilities::getOrCreate(stages, "Begin");
-      jj["docs"] = getDocs(Range).toJson();
-      jj["plug"] = true;
-      thisStage["docs"] = ProcessedComment().toJson();
-
+    
+  
     } else if (nae == "INJECTION_CODEBLOCK_START") {
       SourceManager& SM = pp.getSourceManager();
       SourceLocation loc = Range.getEnd();
@@ -630,6 +603,7 @@ class PreProcessVnV : public PreprocessorFrontendAction {
       PP.Lex(Tok);
     } while (Tok.isNot(tok::eof));
 
+
     mainJson[filename]["data"] = subJson;
     json j = json::array();
     for (auto& it : includes) {
@@ -646,26 +620,7 @@ class VnVPackageFinderFrontendActionFactory : public tooling::FrontendActionFact
 
   std::unique_ptr<FrontendAction> create() override { return std::make_unique<PreProcessVnV>(mainJson); }
 
-  void finalize() {
-    if (mainJson.contains("doc_overrides")) {
-      nlohmann::json overrides = mainJson["doc_overrides"];
-      for (auto type : overrides.items()) {
-        if (mainJson.contains(type.key())) {
-          json tjson = mainJson[type.key()];
-          for (auto& n : type.value().items()) {
-            if (tjson.contains(n.key())) {
-              tjson[n.key()]["docs"] = n.value()["docs"];
-            } else {
-              std::cout << "Error -- No " << type.key() << " named " << n.key() << std::endl;
-            }
-          }
-        } else {
-          std::cout << "Error -- No type named " << type.key() << std::endl;
-        }
-      }
-      mainJson.erase("doc_overrides");
-    }
-  }
+  void finalize() { }
 
  private:
   std::unique_ptr<PreProcessVnV> ptr;

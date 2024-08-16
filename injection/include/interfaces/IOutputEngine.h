@@ -5,19 +5,16 @@
 #include <type_traits>
 
 #include "base/InjectionPointConfig.h"
-#include "base/Communication.h"
+#include "base/communication/Communication.h"
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/DataTypeStore.h"
 #include "base/stores/ReductionStore.h"
 #include "c-interfaces/Wrappers.h"
-#include "common-interfaces/Communication.h"
-#include "common-interfaces/Logging.h"
-#include "common-interfaces/PackageName.h"
+#include "common-interfaces/all.h"
 #include "interfaces/IUnitTest.h"
 #include "validate/json-schema.hpp"
+
 #define FetchTypes X(std::string) X(int) X(double) X(long)
-
-
 
 /**
  * @brief The IOutputEngine class
@@ -84,9 +81,7 @@ class IOutputEngine {
 
   virtual void Put(std::string variableName, const json& value, const MetaData& m = MetaData()) = 0;
 
-  virtual void Put(std::string variableName,
-
-                   const std::string& value, const MetaData& m = MetaData()) = 0;
+  virtual void Put(std::string variableName,const std::string& value, const MetaData& m = MetaData()) = 0;
 
   virtual void Put(std::string variableName, IDataType_ptr data, const MetaData& m = MetaData()) = 0;
 
@@ -739,6 +734,8 @@ class IInternalOutputEngine : public IOutputEngine {
   virtual std::string print() = 0;
 
   virtual json getRunInfo() = 0;
+
+  virtual std::string getFilePath() = 0;
 
   virtual void finalize(ICommunicator_ptr worldComm, long currentTime) = 0;
 

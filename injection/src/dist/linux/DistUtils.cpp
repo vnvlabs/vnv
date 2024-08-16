@@ -183,8 +183,6 @@ namespace VnV
 
     std::shared_ptr<VnVProcess> exec(std::string cmd) { return std::make_shared<LinuxProcess>(cmd); }
 
-  
-
     static int info_callback(struct dl_phdr_info *info, size_t /*size*/, void *data)
     {
       std::string name(info->dlpi_name);

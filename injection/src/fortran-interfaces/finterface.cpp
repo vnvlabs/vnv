@@ -17,10 +17,9 @@ namespace {
 class InitCtx {
  public:
   std::string package;
-  std::string filename;
   std::vector<std::string> args;
   registrationCallBack callback;
-  InitCtx(const char* p, const char* f, registrationCallBack c) : package(p), filename(f), callback(c) {}
+  InitCtx(const char* p, registrationCallBack c) : package(p), callback(c) {}
 };
 
 class PointCtx {
@@ -36,8 +35,8 @@ class PointCtx {
 
 extern "C" {
 
-void* vnv_init_start_x(const char* package, const char* fname, registrationCallBack* callback) {
-  InitCtx* a = new InitCtx(package, fname, *callback);
+void* vnv_init_start_x(const char* package,  registrationCallBack* callback) {
+  InitCtx* a = new InitCtx(package,  *callback);
   return a;
 }
 
@@ -56,7 +55,7 @@ void vnv_init_end_x(void** ctx) {
 
   int argc = c->args.size();
   char** argv = cstrings.data();
-  VnV::Init(c->package.c_str(), &argc, &argv, c->filename.c_str(), NULL, c->callback);
+  VnV::Init(c->package.c_str(), &argc, &argv, NULL, c->callback);
   delete (c);
 }
 

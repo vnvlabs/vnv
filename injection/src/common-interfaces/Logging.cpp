@@ -2,7 +2,7 @@
 /**
   @file Logging.cpp
 **/
-#include "common-interfaces/Logging.h"
+#include "common-interfaces/all.h"
 
 #include "base/Runtime.h"
 
@@ -24,11 +24,19 @@ void _VnV_registerFile(VnV_Comm comm, const char* packageName, const char* name,
   }
 }
 
+void _VnV_LogV(VnV_Comm comm, const char* p, const char* l, const char* format, va_list args) {
+  try {
+    VnV::RunTime::instance().log(comm, p, l, format, args);
+  } catch (std::exception& e) {
+    std::cout << "Error during logging: " << e.what() << std::endl;
+  }
+}
+
 void _VnV_Log(VnV_Comm comm, const char* p, const char* l, const char* format, ...) {
   try {
     va_list args;
     va_start(args, format);
-    VnV::RunTime::instance().log(comm, p, l, format, args);
+    _VnV_LogV(comm, p, l, format, args);
     va_end(args);
   } catch (std::exception& e) {
     std::cout << "Error during logging: " << e.what() << std::endl;

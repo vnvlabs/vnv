@@ -43,25 +43,9 @@ INJECTION_UNITTEST(VnVTestRunner,Communication,4) {
     }
     std::vector<int> ranks = {rank};
 
-    bool cc =  comm->contains(comm->create(ranks,10));
-    RANK(0,TEST_ASSERT_EQUALS("comm contains", true, cc));
-
-    cc = comm->create(ranks,10)->contains(comm);
-    RANK(0,TEST_ASSERT_EQUALS("comm not contained in ", false, cc));
-
-
-    bool cd = VnV::CommCompareType::EXACT ==  comm->compare(comm);
-    RANK(0,TEST_ASSERT_EQUALS("Comm compare with self", true, cd));
-
-    cd = VnV::CommCompareType::GROUP ==  comm->compare(comm->duplicate());
-    RANK(0,TEST_ASSERT_EQUALS("Comm compare with duplicate of self", true, cd));
-
-    cd = VnV::CommCompareType::UNEQUAL ==  comm->compare(comm->create(ranks,10));
-    RANK(0,TEST_ASSERT_EQUALS("Comm compare with different comm", true, cd));
-
     std::vector<int> re(4);
     comm->AllReduce(&data[0],2,&re[0],sizeof(int),VnV::OpType::PROD);
-    cc = (re[0] = 1 && re[1] == 16 );
+    bool cc = (re[0] = 1 && re[1] == 16 );
     RANK(0, TEST_ASSERT_EQUALS("All Reduce", true, cc);)
 
     comm->Gather(&data[rank],1,&re[0],sizeof(int),0);

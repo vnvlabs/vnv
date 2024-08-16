@@ -1,4 +1,4 @@
-#include "base/CommMapper.h"
+#include "base/communication/CommMapper.h"
 
 #include <unistd.h>
 
@@ -7,8 +7,8 @@
 #include <set>
 
 #include "VnV.h"
-#include "base/Communication.h"
-#include "interfaces/ICommunicator.h"
+#include "base/communication/Communication.h"
+#include "base/communication/ICommunicator.h"
 #include "validate/json-schema.hpp"
 #include "shared/exceptions.h"
 using namespace VnV;
@@ -295,6 +295,21 @@ std::vector<long> CommMapper::listAllComms(ICommunicator_ptr worldComm) {
   }
   return {};
 }
+
+std::shared_ptr<InjectionPointMerger> InjectionPointMerger::join(
+      std::string outputfile, std::set<CommWrap_ptr>& comms,
+      std::function<std::shared_ptr<InjectionPointInterface>(long)>& parse) {
+    INJECTION_ASSERT((comms.size() != 1), "Invalid Comms Object. Size should be one but it was %ld", comms.size());
+
+    std::map<long, CommWrap_ptr> commsMap = CommMapper::convertToMap(comms);
+    std::shared_ptr<InjectionPointMerger> dstruct = nullptr;
+    std::set<long> done;
+    for (auto it : commsMap) {
+      join(dstruct, it.second->id, commsMap, outputfile, done, parse);
+    }
+    return dstruct;
+  }
+
 
 long CommMapper::id = 0;
 

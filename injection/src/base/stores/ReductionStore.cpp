@@ -29,7 +29,7 @@ IReduction_ptr ReductionStore::getReducer(long long key) {
     s->setKey(key);
     return s;
   }
-  throw INJECTION_EXCEPTION("Un supported Data Type %d", key);
+  throw INJECTION_EXCEPTION("Un supported Reducer %d", key);
 }
 
 IReduction_ptr ReductionStore::getReducer(std::string packageName, std::string name) {

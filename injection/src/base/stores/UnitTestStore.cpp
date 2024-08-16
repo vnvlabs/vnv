@@ -11,7 +11,7 @@
 #include "shared/Utilities.h"
 #include "base/stores/CommunicationStore.h"
 #include "base/stores/OutputEngineStore.h"
-#include "common-interfaces/Logging.h"
+#include "common-interfaces/all.h"
 
 using namespace VnV;
 

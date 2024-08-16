@@ -21,7 +21,7 @@ const char* inputfile = R"(
 
 int main(int argc, char** argv) {
  try {
-  INJECTION_INITIALIZE_RAW(PACKAGENAME, &argc, &argv, inputfile);
+  INJECTION_INITIALIZE(PACKAGENAME, &argc, &argv);
   INJECTION_FINALIZE(PACKAGENAME);
  } catch (const char * e) {
   std::cout << e << std::endl;

@@ -7,9 +7,9 @@ defined in base/InjectionPointStore.h.
 
 #include "base/Runtime.h"
 #include "base/parser/JsonSchema.h"      // getInjectionPointDeclarationSchema
-#include "base/points/InjectionPoint.h"  // InjectionPoint.
+#include "base/InjectionPoint.h"  // InjectionPoint.
 #include "base/stores/SamplerStore.h"
-#include "common-interfaces/Logging.h"  //Logging Statements (VnV_Debug, etc)
+#include "common-interfaces/all.h"  //Logging Statements (VnV_Debug, etc)
 #include "interfaces/ITest.h"           // TestConfig
 #include "shared/exceptions.h"
 
@@ -100,6 +100,9 @@ json InjectionPointStore::schema(json& packageJson) {
   })"_json;
 
   json props = json::object();
+  props["runAll"] = R"({"type" : "boolean", "default" : false, "description" : "Run all injection points"})"_json;
+  props["runAll_tests"] = R"({"$ref" : "#/definitions/test"})"_json;
+  
   for (auto& it : registeredInjectionPoints) {
     json j = temp;
     j["description"] = packageJson[it.second.package]["InjectionPoints"][it.second.name]["docs"]["description"];
@@ -154,8 +157,32 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::getExistingInjectionPoint(s
 
 void InjectionPointStore::registerLoopedInjectionPoint(std::string package, std::string name,
                                                        std::shared_ptr<InjectionPoint>& ptr) {
-  active.push(ptr);
+  active.push_back(ptr);
 }
+
+
+//We want to return a list of injection points that are open parents of this injection point
+//For simplicity, a parent injection point is an open injection point with the same communicator
+//as the current injection point. (In reality, we could do all injection points with comms that 
+//are contained inside the current injection point, but we will get there eventually
+std::vector<std::shared_ptr<InjectionPoint>> InjectionPointStore::getParents(InjectionPoint& ip, bool onqueue) {
+    std::vector<std::shared_ptr<InjectionPoint>> res;
+    bool found_me = !onqueue;
+    for (auto it = active.rbegin(); it != active.rend(); it++) {
+        if (! found_me ) {
+          if ((*it).get() == &ip) {
+            found_me = true;
+          }
+        } else {
+        
+          if ( (!(*it)->skipped) && (*it)->comm->uniqueId() == ip.comm->uniqueId()) {
+              res.push_back(*it);
+          }
+        }
+    }
+    return res;
+}
+
 
 std::shared_ptr<InjectionPoint> InjectionPointStore::fetchFromQueue(std::string package, std::string name,
                                                                     InjectionPointType stage) {
@@ -163,19 +190,27 @@ std::shared_ptr<InjectionPoint> InjectionPointStore::fetchFromQueue(std::string 
   std::string key = package + ":" + name;
 
   if (active.size() == 0) {
-    throw INJECTION_BUG_REPORT("Fetch from Queue called with no Injection points int the stack %s:%s", package.c_str(),
-                               name.c_str());
-  }
-  auto ptr = active.top();
-  if (key.compare(ptr->getPackage() + ":" + ptr->getName()) != 0) {
-    throw INJECTION_EXCEPTION("Injection Point Nesting Error. Cannot call %s stage  inside a %s:%s", key.c_str(),
-                              ptr->getPackage().c_str(), ptr->getName().c_str());
+    throw INJECTION_BUG_REPORT("Fetch from Queue called with no Injection points started %s:%s", package.c_str(),  name.c_str());
   }
 
   if (stage == InjectionPointType::End) {
-    active.pop();
+      std::shared_ptr<InjectionPoint> ptr = active.back();
+      if (key.compare(ptr->getPackage() + ":" + ptr->getName()) != 0) {
+        throw INJECTION_EXCEPTION("Injection Point Nesting Error. Cannot End %s:%s as its not the last injection point to be started ",  package.c_str(), name.c_str());
+      }
+      active.pop_back();
+      return ptr;
+  } else if (stage == InjectionPointType::Iter) {
+    for (auto r=active.rbegin(); r != active.rend(); r++) {
+      if (key.compare((*r)->getPackage() + ":" + (*r)->getName()) == 0) {
+        return *r;  
+      }
+    }
+  } else {
+      throw INJECTION_EXCEPTION("Tried to fetch with a non iterative point: %s:%s",  package.c_str(), name.c_str());
   }
-  return ptr;
+
+  return nullptr;
 }
 
 bool InjectionPointStore::registered(std::string package, std::string name) {
@@ -204,24 +239,37 @@ void InjectionPointStore::addInjectionPoint(std::string package, std::string nam
 }
 
 // Turn on all not configured injection points with default options.
-void InjectionPointStore::runAll() {
+void InjectionPointStore::runAll(std::vector<TestConfig>& tests) {
   for (auto& it : registeredInjectionPoints) {
     auto a = injectionPoints.find(it.first);
     if (a == injectionPoints.end()) {
-      InjectionPointConfig c(it.second.package, it.second.name, true, json::object(), {});
+      InjectionPointConfig c(it.second.package, it.second.name, true, json::object(), tests);
       injectionPoints.insert(std::make_pair(it.first, c));
     }
   }
 }
 
 void InjectionPointStore::print() {
-  for (auto it : registeredInjectionPoints) {
-    VnV_Info(VNVPACKAGENAME, "%s(%s)", it.first.c_str(), it.second.specJson.dump().c_str());
-  }
-
+  
+  std::ostringstream oss;
+  oss << "%sThe Following Injection points will run:\n";
   for (auto it : injectionPoints) {
-    VnV_Info("Internal Run Configuration is %s", (it.second.runInternal) ? "On" : "Off");
+    oss << "\t" << it.second.packageName <<":"<< it.second.name << " with tests\n";
+    if (it.second.runInternal) {
+         oss << "\t\t" << "Internal Test\n";
+    }
+    for (auto itt : it.second.tests) {
+       oss << "\t\t" << itt.getPackage() << ":" << itt.getName() << "\n";
+    }
   }
+  std::string os = oss.str();
+  VnV_Info(VNVPACKAGENAME, os.c_str(),"");
+
+  //for (auto it : registeredInjectionPoints) {
+  //  VnV_Info(VNVPACKAGENAME, "%s(%s)", it.first.c_str(), it.second.specJson.dump().c_str());
+  //}
+
+
 }
 
 BaseStoreInstance(InjectionPointStore)

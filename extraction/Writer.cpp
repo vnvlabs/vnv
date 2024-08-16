@@ -117,16 +117,6 @@ class RegistrationWriter {
     finalized = true;
   }
 
-  json getExecutableDocumentations(std::string packageName) {
-    auto it = pjson.find(packageName);
-    if (it != pjson.end()) {
-      if (it->second.contains("Executables")) {
-        return (it->second)["Executables"];
-      }
-    }
-    return json::object();
-  }
-
   std::string printPackage(std::string packageName) {
     if (!packageName.empty()) {
       auto it = oss_declare.find(packageName);
@@ -286,13 +276,9 @@ class RegistrationWriter {
           createPackageOss(pname);
 
           VnV::JsonUtilities::getOrCreate(pjson[pname], "InjectionPoints")[name] = it.value();
-
-          bool iterator = it.value().value("/iterator"_json_pointer, false);
-          bool plug = it.value().value("/plug"_json_pointer, false);
           std::string escaped = VnV::StringUtils::escapeQuotes(params.dump(), true);
-          std::string t = iterator ? "Iterator" : plug ? "Plug" : "Point";
 
-          oss_register[pname] << "\tRegister_Injection_" << t << "(\"" << pname << "\",\"" << name << "\"," << escaped
+          oss_register[pname] << "\tRegister_Injection_Point" <<  "(\"" << pname << "\",\"" << name << "\"," << escaped
                               << ");\n";
         }
       }
@@ -308,20 +294,43 @@ void writeFile(json& cacheInfo, std::string outputFileName, std::string targetFi
 
   // Pull everything into types, not files.
   json finalJson = json::object();
+
+
+  // Pull out a list of overrides for comments
+  json overrides = json::object();
+  for (auto fileData : cacheInfo["data"].items()) {
+     for (auto it : VnV::JsonUtilities::getOrCreate(fileData.value(), "Overrides").items()) {
+        if ( (!overrides.contains(it.key())) || overrides[it.key()]["imp"].get<int>() < it.value()["imp"].get<int>()) {
+          overrides[it.key()] = it.value();
+        }
+     }
+  }
+
+  //Now go through and update everything. 
   for (auto it : cacheInfo["data"].items()) {
+    
     for (std::string type :
          {"InjectionPoints", "SubPackages",  "LogLevels",        "Files",       "Tests",        "Iterators",
           "Plugs",           "Engines",      "EngineReaders",    "Comms",       "Reducers",     "Samplers",
           "Walkers",         "DataTypes",    "Serializers",      "Transforms",  "UnitTests",    "Actions",
           "Options",         "Introduction", "Conclusion",       "Executables", "Communicator", "Schedulers",
           "Validators",      "Workflows",  "ScriptGenerators", "CodeBlocks"}) {
+    
       json& to = VnV::JsonUtilities::getOrCreate(finalJson, type);
-      for (auto it : VnV::JsonUtilities::getOrCreate(it.value(), type).items()) {
-        to[it.key()] = it.value();
-      }
-    }
-  }
 
+      for (auto itt : VnV::JsonUtilities::getOrCreate(it.value(), type).items()) {
+        to[itt.key()] = itt.value();
+        
+        //Update with the overrides if we find one. 
+        if (overrides.contains(itt.key()) && overrides[itt.key()]["imp"].get<int>() > 0 ) {
+          to[itt.key()]["docs"] = overrides[itt.key()]["docs"];
+        }
+      }
+    
+    }
+  
+  }
+  
   // Generate the registration code using the given json.
   RegistrationWriter r(finalJson, packageName);
 

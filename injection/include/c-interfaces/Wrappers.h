@@ -1,7 +1,7 @@
 ﻿#ifndef WRAPPERS_H
 #define WRAPPERS_H
 
-#include "common-interfaces/Communication.h"
+#include "common-interfaces/all.h"
 
 
 // Define an interface for the OutputEngineWrapper
@@ -9,7 +9,7 @@ struct IOutputEngineWrapper {
   void* ptr;
 };
 
-#define OUTPUTENGINESUPPORTEDTYPES X(double) X(int) X(long)
+#define OUTPUTENGINESUPPORTEDTYPES X(double) X(int) X(long) X(float)
 #define X(type) \
   VNVEXTERNC void VnV_Output_Put_##type(struct IOutputEngineWrapper* wrapper, const char* name, type* value);
 OUTPUTENGINESUPPORTEDTYPES
@@ -33,6 +33,11 @@ struct ParameterSetWrapper {
 #define InjectionPointType_Begin 1
 #define InjectionPointType_Iter 2
 #define InjectionPointType_End 3
+#define InjectionPointType_Child_Single 4
+#define InjectionPointType_Child_Begin 5
+#define InjectionPointType_Child_Iter 6
+#define InjectionPointType_Child_End 7
+
 
 VNVEXTERNC struct ParameterDTO VnV_Parameter_Get(struct ParameterSetWrapper* wrapper, const char* name);
 
@@ -43,9 +48,6 @@ typedef void (*injectionDataCallback)(VnV_Comm comm, struct ParameterSetWrapper*
 typedef void (*initDataCallback)(VnV_Comm comm, struct IOutputEngineWrapper* engine);
 
 
-#define VNV_C_CALLBACK_DEFINE(NAME, data) \
-  int NAME_CALLBACK__EXT(VnV_Comm comm, struct ParameterSetWrapper* wrapper, struct IOutputEngineWrapper* engine, int injectionPointType, const char* stageId)
 
-#define VNV_C_CALLBACK(NAME) NAME_CALLBACK__EXT
 
 #endif  // WRAPPERS_H

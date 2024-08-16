@@ -1,0 +1,4 @@
+﻿
+
+@VNV_WITH_MPI@#define WITHOUT_MPI 1
+#include "api/VnV.h"

@@ -41,7 +41,7 @@ template <typename T> T WriteDataJson(IDataType_vec gather) {
         try {
           outdata = d->getPutData(it.first);  // TODO_THROWS
         } catch (VnV::VnVExceptionBase& e) {
-          HTHROW INJECTION_EXCEPTION(
+          throw INJECTION_EXCEPTION(
               "DataType is not configured Correctly %s is listed as a type in"
               "get local put data, but getPutData throws when it is passed to it.",
               it.first.c_str());
@@ -119,6 +119,8 @@ template <typename T> class StreamWriter {
   virtual void newComm(long id, const T& obj, ICommunicator_ptr comm) = 0;
   virtual void write(long id, const T& obj, long jid) = 0;
   virtual json getRunInfo() = 0;
+  virtual std::string getFilePath() = 0;
+
   virtual bool supportsFetch() { return false; }
   virtual bool fetch(long id, long jid, json& obj) { return false; }
   virtual std::string getFileStub() = 0; 
@@ -247,6 +249,7 @@ template <typename T> class StreamManager : public OutputEngineManager {
   }
 
   json getRunInfo() override { return stream->getRunInfo(); }
+  std::string getFilePath() override { return stream->getFilePath();}
 
   bool Fetch(std::string message, const json& schema, long timeoutInSeconds, json& response) override {
     std::string line = response.dump();
@@ -736,6 +739,9 @@ template <typename V> class FileStream : public StreamWriter<V> {
     j["filename"] = DistUtils::getAbsolutePath(filestub);
     return j;
   }
+
+  std::string getFilePath() override { return DistUtils::getAbsolutePath(filestub); }
+
 
   std::string getFileStub() override {
     return filestub;

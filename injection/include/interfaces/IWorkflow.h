@@ -11,8 +11,8 @@
 #include <exception>
 #include <stack>
 
-#include "common-interfaces/PackageName.h"
-#include "interfaces/ICommunicator.h"
+#include "common-interfaces/all.h"
+#include "base/communication/ICommunicator.h"
 #include "validate/json-schema.hpp"
 
 using nlohmann::json;

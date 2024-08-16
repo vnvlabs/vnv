@@ -8,10 +8,7 @@
 #include <map>
 #include <string>
 
-#include "base/parser/JsonParser.h"
 #include "base/stores/BaseStore.h"
-#include "common-interfaces/Communication.h"
-#include "common-interfaces/PackageName.h"
 #include "interfaces/IReduction.h"
 
 namespace VnV {

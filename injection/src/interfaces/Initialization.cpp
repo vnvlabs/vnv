@@ -11,21 +11,10 @@ namespace VnV {
 
 void defaultInitCallback(VnV_Comm comm, VnV::IOutputEngine* engine){};
 
-int Init(const char* packageName, int* argc, char*** argv, const char* filename, InitDataCallback icallback,
+int Init(const char* packageName, int* argc, char*** argv, InitDataCallback icallback,
          registrationCallBack callback) {
   try {
-    return VnV::RunTime::instance().InitFromFile(packageName, argc, argv, filename, icallback, callback);
-  } catch (std::exception& e) {
-    std::cout << "Error Initializing VnV: " << e.what() << std::endl;
-  }
-  return 0;
-}
-
-int Init_raw(const char* packageName, int* argc, char*** argv, const char* inputjson, InitDataCallback icallback,
-             registrationCallBack callback) {
-  try {
-    json j = json::parse(inputjson);
-    return VnV::RunTime::instance().InitFromJson(packageName, argc, argv, j, icallback, callback);
+    return VnV::RunTime::instance().InitFromFile(packageName, argc, argv, icallback, callback);
   } catch (std::exception& e) {
     std::cout << "Error Initializing VnV: " << e.what() << std::endl;
   }

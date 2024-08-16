@@ -11,29 +11,31 @@
 #include "base/stores/BaseStore.h"
 #include "interfaces/ISampler.h"
 
-namespace VnV {
+namespace VnV
+{
 
-class SamplerStore : public BaseStore {
- private:
-  std::map<std::string, ISampler_ptr> samplers;
-  std::map<std::string, std::pair<sampler_ptr, std::string>> sampler_factory;
+  class SamplerStore : public BaseStore
+  {
+  private:
+    std::map<std::string, ISampler_ptr> samplers;
+    std::map<std::string, std::pair<sampler_ptr, std::string>> sampler_factory;
 
- public:
-  SamplerStore() {}
+  public:
+    SamplerStore() {}
 
-  ISampler_ptr getSamplerForInjectionPoint(std::string ipPackage, std::string ipName);
+    ISampler_ptr getSamplerForInjectionPoint(std::string ipPackage, std::string ipName);
 
-  void addSampler(std::string packageName, std::string name, std::string schema, sampler_ptr m);
+    void addSampler(std::string packageName, std::string name, std::string schema, sampler_ptr m);
 
-  bool createSampler(const SamplerConfig& config);
+    bool createSampler(const SamplerConfig &config);
 
-  void print();
+    void print();
 
-  nlohmann::json schema(json& packageJson);
+    nlohmann::json schema(json &packageJson);
 
-  static SamplerStore& instance();
-};
+    static SamplerStore &instance();
+  };
 
-}  // namespace VnV
+} // namespace VnV
 
 #endif

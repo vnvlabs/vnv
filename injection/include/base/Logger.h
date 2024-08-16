@@ -14,9 +14,8 @@
 #include <string>
 
 #include "base/parser/JsonParser.h"
-#include "common-interfaces/Communication.h"
-#include "common-interfaces/PackageName.h"
-#include "interfaces/ICommunicator.h"
+#include "common-interfaces/all.h"
+#include "base/communication/ICommunicator.h"
 #define MAXSAVED_LOGS 1024
 
 #define MAX_LOG_SIZE 2048

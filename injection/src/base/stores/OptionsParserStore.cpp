@@ -11,7 +11,7 @@
 #include "shared/Utilities.h"
 #include "shared/exceptions.h"
 #include "base/stores/OutputEngineStore.h"
-#include "common-interfaces/Logging.h"
+#include "common-interfaces/all.h"
 
 using namespace VnV;
 
@@ -23,7 +23,6 @@ void OptionsParserStore::add(std::string name, json& schema, options_callback_pt
 }
 
 void OptionsParserStore::add(std::string name, json& schema, options_cpp_callback_ptr v) {
-  std::cout << "HERE " << name << std::endl;
   std::pair<options_callback_ptr, options_cpp_callback_ptr> x = {nullptr, v};
   factory[name] = {schema, x};
 }
@@ -40,6 +39,13 @@ nlohmann::json OptionsParserStore::schema(json& packageJson) {
   j["additionalProperties"] = false;
   return j;
 }
+
+  void* OptionsParserStore::getResult(std::string name) {
+    if (optionResult.find(name) != optionResult.end()) {
+      return optionResult[name];
+    }
+    return nullptr;
+  }
 
 void OptionsParserStore::callBack(std::string name, json info, std::vector<std::string>& cmdline, ICommunicator_ptr world) {
 

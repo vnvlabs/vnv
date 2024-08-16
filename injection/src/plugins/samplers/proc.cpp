@@ -7,6 +7,7 @@
 class sampleRunner
 {
 private:
+    std::map<long, bool> contains_cache;
     bool setup_complete = false;
     int processor = 0;
     void setup(json &config)
@@ -24,7 +25,13 @@ public:
     bool run(json &config, VnV::ICommunicator_ptr ptr, VnV::InjectionPointType type, std::string stageId)
     {
         setup(config); 
-        return ptr->contains(processor);
+        auto it = contains_cache.find(ptr->uniqueId());
+        if (it == contains_cache.end()) {
+            bool contains = ptr->contains(processor);
+            contains_cache[ptr->uniqueId()] = contains;
+            return contains;
+        }
+        return it->second;
     }
 };
 

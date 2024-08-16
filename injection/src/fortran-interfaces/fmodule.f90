@@ -48,11 +48,10 @@ module libvnv
     interface
         
   ! void functions maps to subroutines
-    TYPE(C_PTR) function vnv_init_start_c(package,fname,regis) bind(C, name="vnv_init_start_x")
+    TYPE(C_PTR) function vnv_init_start_c(package, regis) bind(C, name="vnv_init_start_x")
         use iso_c_binding
         implicit none
         character(len=1, kind=C_CHAR), intent(in) :: package(*)
-        character(len=1, kind=C_CHAR), intent(in) :: fname(*)
         type(c_funptr), intent(in) :: regis
     end function
 
@@ -511,7 +510,7 @@ contains ! Implementation of the functions. We just wrap the C function here.
        CHARACTER(len=32) :: arg
        TYPE(C_PTR) :: ctx
        
-       ctx = vnv_init_start_c(convert(package), convert(fname), regis)
+       ctx = vnv_init_start_c(convert(package), regis)
 
        DO i = 0, iargc()
             CALL getarg(i,arg)

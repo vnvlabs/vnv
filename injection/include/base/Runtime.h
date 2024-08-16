@@ -22,10 +22,10 @@
 #include "validate/json-schema.hpp"
 #include "base/Logger.h"
 #include "base/parser/JsonParser.h"
-#include "base/points/InjectionPoint.h"
+#include "base/InjectionPoint.h"
 #include "base/stores/BaseStore.h"
 #include "c-interfaces/Wrappers.h"
-#include "common-interfaces/RunTime.h"
+#include "common-interfaces/all.h"
 #include "interfaces/Initialization.h"
 #include "shared/Provenance.h"
 
@@ -137,8 +137,10 @@ class RunTime {
    * information. The Provenance test included in the tests/provenance is
    * designed to work with this injection point in mind.
    */
-  bool InitFromFile(const char* packageName, int* argc, char*** argv, std::string configFile,
+  bool InitFromFile(const char* packageName, int* argc, char*** argv, 
                     InitDataCallback icallback, registrationCallBack callback);
+  
+  
   bool InitFromJson(const char* packageName, int* argc, char*** argv, json& configFile, InitDataCallback icallback,
                     registrationCallBack callback);
 
@@ -160,6 +162,9 @@ class RunTime {
    * Write all run infomation to the logs.
    */
   void printRunTimeInformation();
+
+  void registerReport(const char * reportName, const char* filepath, std::string description);
+
 
   void writeSpecification(std::string filename, bool quit);
 

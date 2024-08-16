@@ -23,7 +23,7 @@ std::string getValueFromStringLiteral(const Expr* a) {
   if (xx == "StringLiteral") {
     return ((const clang::StringLiteral*)a)->getString().str();
   } else {
-    HTHROW INJECTION_EXCEPTION("Could not extract value for expression as it is a %s and not a StringLiteral",
+    throw INJECTION_EXCEPTION("Could not extract value for expression as it is a %s and not a StringLiteral",
                                xx.c_str());
   }
 }
@@ -194,7 +194,7 @@ std::string getSig(const CallExpr* call, int count, const FunctionDecl* caller) 
     std::string compiler = ((const clang::StringLiteral*)bb)->getString().str();
     return ComputeName(compiler, caller);
   }
-  HTHROW INJECTION_EXCEPTION(
+  throw INJECTION_EXCEPTION(
       "Error extracting Function Signiture. The parameter is not a string literal class (it is %s)",
       bb->getStmtClassName());
 }
@@ -255,7 +255,7 @@ void addParameters(std::string sig, const CallExpr* E, json& idJson, unsigned in
     if (it->dump().compare(params.dump()) != 0) {
       std::string s = it->dump();
       std::string p = params.dump();
-      HTHROW INJECTION_EXCEPTION(
+      throw INJECTION_EXCEPTION(
           "Two injection points with same signiture and ID but different parameters were encounted\n"
           "Signuture: %s\n"
           "Option 1: %s \n"

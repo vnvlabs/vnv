@@ -10,42 +10,43 @@
 
 #include "base/parser/JsonParser.h"
 #include "base/stores/BaseStore.h"
-#include "common-interfaces/Communication.h"
-#include "common-interfaces/PackageName.h"
+#include "common-interfaces/all.h"
 #include "interfaces/IUnitTest.h"
 
-namespace VnV {
+namespace VnV
+{
 
-class UnitTestStore : public BaseStore {
- private:
-  // TODO OUTPUT JUNIT REPORT FORMAT SO IT CAN BE INCLUDED IN GITLAB CI PIPELINE
+  class UnitTestStore : public BaseStore
+  {
+  private:
+    // TODO OUTPUT JUNIT REPORT FORMAT SO IT CAN BE INCLUDED IN GITLAB CI PIPELINE
 
-  std::map<std::string, std::map<std::string, tester_ptr, std::less<std::string>>> tester_factory;
+    std::map<std::string, std::map<std::string, tester_ptr, std::less<std::string>>> tester_factory;
 
-  std::map<std::string, int> tester_cores;
+    std::map<std::string, int> tester_cores;
 
-  void runTest(ICommunicator_ptr comm, std::string packageName, std::string Name, IUnitTest* tester);
+    void runTest(ICommunicator_ptr comm, std::string packageName, std::string Name, IUnitTest *tester);
 
-  ICommunicator_ptr dispatch(VnV_Comm comm, int cores);
+    ICommunicator_ptr dispatch(VnV_Comm comm, int cores);
 
- public:
-  UnitTestStore();
+  public:
+    UnitTestStore();
 
-  void addUnitTester(std::string packageName, std::string name, tester_ptr m, int cores);
+    void addUnitTester(std::string packageName, std::string name, tester_ptr m, int cores);
 
-  IUnitTest* getUnitTester(std::string packageName, std::string name);
+    IUnitTest *getUnitTester(std::string packageName, std::string name);
 
-  void runTest(ICommunicator_ptr comm, std::string packageName, std::string testName);
+    void runTest(ICommunicator_ptr comm, std::string packageName, std::string testName);
 
-  void runAll(VnV_Comm comm, VnV::UnitTestInfo info);
+    void runAll(VnV_Comm comm, VnV::UnitTestInfo info);
 
-  void print();
+    void print();
 
-  json schema(json& packageJson);
+    json schema(json &packageJson);
 
-  static UnitTestStore& instance();
-};
+    static UnitTestStore &instance();
+  };
 
-}  // namespace VnV
+} // namespace VnV
 
 #endif

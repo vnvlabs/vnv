@@ -7,13 +7,12 @@
 #include <stdarg.h>
 
 #include "shared/exceptions.h"
-#include "base/points/InjectionPoint.h"
+#include "base/InjectionPoint.h"
 #include "base/stores/OutputEngineStore.h"
-#include "common-interfaces/Logging.h"
+#include "common-interfaces/all.h"
 #include "validate/json-schema.hpp"
 
 using namespace VnV;
-using nlohmann::json_schema::json_validator;
 
 std::string VnV::InjectionPointTypeUtils::getType(InjectionPointType type, std::string stageId) {
   if (type == InjectionPointType::Begin) {
@@ -22,6 +21,12 @@ std::string VnV::InjectionPointTypeUtils::getType(InjectionPointType type, std::
     return "End";
   } else if (type == InjectionPointType::Single) {
     return "Single";
+  } else if (type == InjectionPointType::Child_Begin) {
+    return "CBegin";
+  } else if (type == InjectionPointType::Child_End) {
+    return "CEnd";
+  } else if (type == InjectionPointType::Child_Single) {
+    return "CSingle";
   } else {
     return stageId;
   }
@@ -37,7 +42,15 @@ int VnV::InjectionPointTypeUtils::toC(InjectionPointType type) {
     return InjectionPointType_Iter;
   case InjectionPointType::End:
     return InjectionPointType_End;
-  }
+  case InjectionPointType::Child_End:
+    return InjectionPointType_Child_End;
+  case InjectionPointType::Child_Begin:
+    return InjectionPointType_Child_Begin;
+  case InjectionPointType::Child_Iter:
+    return InjectionPointType_Child_Iter;
+  case InjectionPointType::Child_Single:
+    return InjectionPointType_Child_Single;
+  } 
   throw INJECTION_BUG_REPORT_(
       "Someone added an injection point type without implementing an intmap "
       "for it - tisk tisk");

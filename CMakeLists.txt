@@ -43,14 +43,29 @@ add_subdirectory(shared)
 add_subdirectory(extraction)
 add_subdirectory(third-party)
 
+set(VNV_CURR_INSTALL ${CMAKE_BINARY_DIR})
 configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake @ONLY)
+set(VNV_CURR_INSTALL ${CMAKE_INSTALL_PREFIX})
+configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/Registration.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake.install @ONLY)
+
+
 include("${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake")
-install(FILES ${CMAKE_SOURCE_DIR}/scripts/register ${CMAKE_SOURCE_DIR}/scripts/merge DESTINATION ${CMAKE_INSTALL_PREFIX}/bin PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)
+
+install(FILES ${CMAKE_SOURCE_DIR}/scripts/register DESTINATION ${CMAKE_INSTALL_PREFIX}/bin PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_WRITE WORLD_EXECUTE)
 
 
+if (WITH_MPI)
+   set(VNV_WITH_MPI "//")
+else()
+   set(VNV_WITH_MPI "")
+endif()
+configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/VnV.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/build_includes/VnV.h @ONLY)
+
+
+configure_file(${CMAKE_CURRENT_LIST_DIR}/scripts/register ${CMAKE_BINARY_DIR}/bin/register)
 
 add_subdirectory(injection)
-
+target_include_directories(injection PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/build_includes/>)
 
 option(BUILD_TESTS "Build the test runner" ON)
 if(BUILD_TESTS)
@@ -76,11 +91,9 @@ install(
   NAMESPACE Injection::
   DESTINATION lib/cmake)
 
-install(FILES ${CMAKE_CURRENT_LIST_DIR}/injection/include/VnV.h
-        DESTINATION include)
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/injection/include/
-        DESTINATION include)
-
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/injection/include/ DESTINATION include)
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/shared/include/ DESTINATION include)
+install(FILES ${CMAKE_BINARY_DIR}/build_includes/VnV.h DESTINATION include)
 
 #Register a vnv file on install
 install_vnv_registration_dir(vnv gui vnv-config.json)        
@@ -101,9 +114,13 @@ configure_package_config_file(
 # Install the config, configversion and custom find modules
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/InjectionConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/InjectionConfigVersion.cmake
   DESTINATION ${INSTALL_CONFIGDIR})
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/Registration.cmake.install
+  DESTINATION ${INSTALL_CONFIGDIR}
+  RENAME Registration.cmake
+  )
 
 
 export(

@@ -3,8 +3,8 @@
 #include <string>
 
 #include "shared/exceptions.h"
-#include "common-interfaces/Logging.h"
-#include "interfaces/ICommunicator.h"
+#include "common-interfaces/all.h"
+#include "base/communication/ICommunicator.h"
 #include "interfaces/IOutputEngine.h"
 
 namespace VnV {

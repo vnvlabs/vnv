@@ -7,9 +7,9 @@
 #include <stdexcept>
 #include <vector>
 
-#include "interfaces/ICommunicator.h"
+#include "base/communication/ICommunicator.h"
 #include "interfaces/IOutputEngine.h"
-#include "interfaces/argType.h"
+#include "interfaces/helpers/argType.h"
 #include "validate/json-schema.hpp"
 namespace VnV {
 

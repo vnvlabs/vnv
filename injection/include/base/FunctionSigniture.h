@@ -5,7 +5,7 @@
 #include <regex>
 #include <string>
 
-#include "common-interfaces/prettyfunction.h"
+#include "common-interfaces/all.h"
 #include "validate/json-schema.hpp"
 
 namespace VnV {
