@@ -30,9 +30,11 @@
 //of the VnV library. But, it might not be a depdendency of an
 //application using it. The VnV Comm wrapper makes sure mpi is 
 //not required in applications using the toolkit. 
-struct VnV_Comm {
+struct VnV_Comm_ {
     void* data;
 }; 
+
+typedef struct VnV_Comm_ VnV_Comm;
 
 VNVEXTERNC VnV_Comm VnV_Comm_Self();
 VNVEXTERNC VnV_Comm VnV_Comm_World();
@@ -45,7 +47,7 @@ VNVEXTERNC VnV_Comm VnV_Comm_World();
 //If we have mpi, then we can create custom VnV_Comm objects
 //from MPI_Comm objects. 
 VNVEXTERNC VnV_Comm VnV_Comm_Cust(MPI_Comm comm);
-#define VCUST(comm) VnV_Comm_Cust(comm);
+#define VCUST(comm) VnV_Comm_Cust(comm)
 
 #endif
 
